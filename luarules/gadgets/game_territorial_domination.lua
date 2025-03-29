@@ -14,16 +14,13 @@ end
 -- TODO:
 -- need to convert the score text display to use i18n for language localization
 
--- check and make sure that aircraft aren't already entered air when they're first built
 -- warning sounds
--- some maps have untraversable terrain outside of air movements... should they be uncapturable?
 
 -- code cleanup
 -- need to do the modoptions
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
-Spring.Echo("Territorial Domination is enabled")
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
@@ -47,9 +44,6 @@ if SYNCED then
 	local SECONDS_TO_MAX = territorialDominationConfig[modOptions.territorial_domination_config].maxTime
 	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
 
-	Spring.Echo("SECONDS_TO_MAX: " .. SECONDS_TO_MAX)
-	Spring.Echo("SECONDS_TO_START: " .. SECONDS_TO_START)
-
 	--configs
 	local DEBUGMODE = false -- Changed to uppercase as it's a constant
 
@@ -70,18 +64,16 @@ if SYNCED then
 	local GRID_SIZE = 1024
 	local FINISHED_BUILDING = 1
 	local STARTING_PROGRESS = 0
-	local CORNER_MULTIPLIER = 1.4142135623730951
+	local CORNER_MULTIPLIER = 1.4142135623730951 -- a constant representing the diagonal of a square
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 
 
 	--localized functions
-	local sqrt = math.sqrt
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
 	local random = math.random
-	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitHealth = Spring.GetUnitHealth
@@ -106,13 +98,15 @@ if SYNCED then
 	local gaiaTeamID = spGetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 	local teams = spGetTeamList()
-	local allyTeamsCount = 0
-	local allyHordesCount = 0
+	local allyCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
 	local gameFrame = 0
 	local sentGridStructure = false
+	local thresholdSecondsDelay = 0
+	local thresholdDelayTimestamp = 0
+	local maxThreshold = 0
 
 	--tables
 	local allyTeamsWatch = {}
@@ -139,11 +133,38 @@ if SYNCED then
 		end
 	end
 
+	local function setThresholdIncreaseRate()
+		local seconds = spGetGameSeconds()
+		if allyCount == 1 then
+			thresholdSecondsDelay = 0
+		else
+			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
+			maxThreshold = floor(min(#captureGrid / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
+			thresholdSecondsDelay = max((SECONDS_TO_MAX - startTime) / maxThreshold, 1)
+		end
+		thresholdDelayTimestamp = seconds + thresholdSecondsDelay
+	end
+
+	local function updateCurrentDefeatThreshold()
+		local seconds = spGetGameSeconds()
+
+		if seconds > SECONDS_TO_START then
+			if thresholdSecondsDelay == 0 and allyCount ~= 1 then
+				setThresholdIncreaseRate()
+			end
+			if thresholdSecondsDelay ~= 0 and thresholdDelayTimestamp < seconds then
+				defeatThreshold = min(defeatThreshold + 1, maxThreshold)
+				thresholdDelayTimestamp = seconds + thresholdSecondsDelay
+			end
+		end
+	end
+
 	local function updateLivingTeamsData()
-		allyTeamsCount = 0  -- Reset count first
-		allyHordesCount = 0
+
 		allyTeamsWatch = {}  -- Clear existing watch list
-		
+		local allyHordesCount = 0
+		local allyTeamsCount = 0
+
 		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
 			if teamID ~= gaiaTeamID then
@@ -166,6 +187,13 @@ if SYNCED then
 		end
 		for allyID in pairs(allyTeamsWatch) do
 			allyTeamsCount = allyTeamsCount + 1
+		end
+		
+		local oldAllyCount = allyCount
+		allyCount = allyTeamsCount + allyHordesCount --something about flipping from old to new causes things to break
+
+		if allyCount ~= oldAllyCount then
+			setThresholdIncreaseRate()
 		end
 	end
 
@@ -221,8 +249,9 @@ if SYNCED then
 				data.gridMidpointZ = originZ + GRID_SIZE / 2
 				data.allyOwnerID = gaiaAllyTeamID
 				data.progress = STARTING_PROGRESS
-				data.hasUnits = false
 				data.decayDelay = 0
+				data.contested = false
+				data.contiguous = false
 				data.corners = {
 					{x = data.mapOriginX, z = data.mapOriginZ},                           -- Bottom-left
 					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ},               -- Bottom-right
@@ -232,25 +261,6 @@ if SYNCED then
 			end
 		end
 		return gridData
-	end
-
-	local defeatCheckCooldown = 0
-	local function updateCurrentDefeatThreshold()
-		local COOLDOWN_TIME = 10
-		local seconds = spGetGameSeconds()
-		local allyCount = allyTeamsCount + allyHordesCount
-
-		if defeatCheckCooldown > seconds or seconds < SECONDS_TO_START or allyCount == 1 then return end
-
-		local elapsedSeconds = seconds - SECONDS_TO_START
-		local adjustedSecondsToMax = SECONDS_TO_MAX - SECONDS_TO_START
-
-		local progressRatio = min(elapsedSeconds / adjustedSecondsToMax, 1)
-		local wantedThreshold = min(((progressRatio * #captureGrid) / allyCount), #captureGrid / 2) -- because two teams must fight for half at most
-		if wantedThreshold > defeatThreshold then
-			defeatThreshold = defeatThreshold + 1
-			defeatCheckCooldown = seconds + COOLDOWN_TIME
-		end
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
@@ -278,7 +288,8 @@ if SYNCED then
 		local units = spGetUnitsInRectangle(data.mapOriginX, data.mapOriginZ, data.mapOriginX + GRID_SIZE, data.mapOriginZ + GRID_SIZE)
 		
 		local allyPowers = {}
-		data.hasUnits = false
+		local hasUnits = false
+		data.contested = false
 		
 		for i = 1, #units do
 			local unitID = units[i]
@@ -290,7 +301,7 @@ if SYNCED then
 				local allyTeam = spGetUnitAllyTeam(unitID)
 				
 				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
-					data.hasUnits = true
+					hasUnits = true
 					local power = unitData.power
 					if unitData.isStatic then
 						power = power * STATIC_UNIT_POWER_MULTIPLIER
@@ -313,12 +324,15 @@ if SYNCED then
 		for allyID, power in pairs(allyPowers) do
 			if allyPowers[allyID] > 0 then
 				power = power + random() -- randomize power to prevent ties where the last tied victor always wins
+				if allyID ~= data.allyOwnerID then
+					data.contested = true
+				end
 			else
 				allyPowers[allyID] = nil -- not allowed to capture without power.
 			end
 		end
 		
-		if data.hasUnits then
+		if hasUnits then
 			return allyPowers
 		end
 		return nil
@@ -378,7 +392,7 @@ if SYNCED then
 		return winningAllyID, progressChange
 	end
 
-	local function applyProgress(gridID, progressChange, winningAllyID, delayDecay)
+	local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
 		local newProgress = data.progress + progressChange
 		
@@ -395,7 +409,7 @@ if SYNCED then
 			data.progress = newProgress
 		end
 
-		if delayDecay then
+		if delayDecay and (data.contested or data.contiguous) then
 			data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
 		end
 	end
@@ -410,16 +424,11 @@ if SYNCED then
 
 	local function getSquareContiguityProgress(gridID)
 		local currentSquareData = captureGrid[gridID]
-		
-		-- Skip if this square has units or is owned by Gaia
-		if currentSquareData.hasUnits then
-			return nil, 0
-		end
-		
 		local neighborAllyTeamCounts = {}
 		local dominantAllyTeamCount = 0
 		local totalNeighborCount = 0
 		local dominantAllyTeamID
+		currentSquareData.contiguous = false
 		
 		local currentGridX = currentSquareData.gridX
 		local currentGridZ = currentSquareData.gridZ
@@ -464,6 +473,7 @@ if SYNCED then
 
 		-- Only apply contiguity effect if the dominant ally team owns more than half of all neighbors
 		if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
+			currentSquareData.contiguous = true
 			-- If dominant ally is different from current owner, return negative progress (capture)
 			if dominantAllyTeamID ~= currentSquareData.allyOwnerID then
 				return dominantAllyTeamID, -CONTIGUOUS_PROGRESS_INCREMENT
@@ -473,7 +483,7 @@ if SYNCED then
 			end
 		end
 		
-		return nil, 0
+		return nil, nil
 	end
 
 	local function getRandomizedGridIDs()
@@ -564,9 +574,9 @@ if SYNCED then
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
 		if data.progress > OWNERSHIP_THRESHOLD then
-			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
+			addProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
 		else
-			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
+			addProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
 		end
 	end
 
@@ -607,7 +617,7 @@ if SYNCED then
 				local allyPowers = getAllyPowersInSquare(gridID)
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
-					applyProgress(gridID, progressChange, winningAllyID, true)
+					addProgress(gridID, progressChange, winningAllyID, true)
 				end
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
@@ -615,16 +625,18 @@ if SYNCED then
 			end
 		elseif frameModulo == 1 then
 			local randomizedIDs = getRandomizedGridIDs()
-			for i = 1, #randomizedIDs do
-				local gridID = randomizedIDs[i]
-				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-				if contiguousAllyID and progressChange ~= 0 then
-					applyProgress(gridID, progressChange, contiguousAllyID, true)
+			for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
+				if not captureGrid[randomizedIDs[i]].contested then
+					local gridID = randomizedIDs[i]
+					local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
+					if contiguousAllyID then --zzz unverified that it's working, 
+						addProgress(gridID, progressChange, contiguousAllyID, true)
+					end
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if data.decayDelay < frame then
+				if not data.contested and data.decayDelay < frame then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
@@ -674,6 +686,8 @@ if SYNCED then
 			local unitID = units[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
+
+		setThresholdIncreaseRate()
 	end
 
 else

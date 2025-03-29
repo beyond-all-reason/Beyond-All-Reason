@@ -33,7 +33,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecaltype = "decals/cormmkr_aoplane.dds",
 			energyconv_capacity = 6000,
-			energyconv_efficiency = 0.01824,
+			energyconv_efficiency = 0.02,
 			flashlightmin = 0.8,
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",

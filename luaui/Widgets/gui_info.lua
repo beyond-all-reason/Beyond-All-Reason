@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = false
 
@@ -1933,12 +1933,14 @@ function widget:DrawScreen()
 			end)
 		end
 	else
-		dlistInfo = gl.CreateList(function()
-			if not useRenderToTexture then
-				drawInfoBackground()
-				drawInfo()
-			end
-		end)
+		if not dlistInfo then
+			dlistInfo = gl.CreateList(function()
+				if not useRenderToTexture then
+					drawInfoBackground()
+					drawInfo()
+				end
+			end)
+		end
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
