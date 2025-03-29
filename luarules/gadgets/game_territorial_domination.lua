@@ -12,7 +12,6 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- check if units are finished building before they can capture territory
 -- need to convert the score text display to use i18n for language localization
 
 -- warning sounds
@@ -65,18 +64,16 @@ if SYNCED then
 	local GRID_SIZE = 1024
 	local FINISHED_BUILDING = 1
 	local STARTING_PROGRESS = 0
-	local CORNER_MULTIPLIER = 1.4142135623730951
+	local CORNER_MULTIPLIER = 1.4142135623730951 -- a constant representing the diagonal of a square
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 
 
 	--localized functions
-	local sqrt = math.sqrt
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
 	local random = math.random
-	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitHealth = Spring.GetUnitHealth
