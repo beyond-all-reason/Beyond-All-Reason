@@ -29,16 +29,16 @@ if SYNCED then
 
 	local territorialDominationConfig = {
 		short = {
-			gracePeriod = 3 * 60,
-			maxTime = 15 * 60,
+			gracePeriod = 6 * 60,
+			maxTime = 18 * 60,
 		},
 		default = {
-			gracePeriod = 5 * 60,
-			maxTime = 22 * 60,
+			gracePeriod = 6 * 60,
+			maxTime = 24 * 60,
 		},
 		long = {
-			gracePeriod = 10 * 60,
-			maxTime = 35 * 60,
+			gracePeriod = 6 * 60,
+			maxTime = 36 * 60,
 		},
 	}
 	
