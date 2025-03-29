@@ -13,6 +13,7 @@ end
 
 -- TODO:
 -- need to convert the score text display to use i18n for language localization
+-- test update
 
 -- warning sounds
 
