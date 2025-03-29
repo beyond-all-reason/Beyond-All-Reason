@@ -128,6 +128,7 @@ local buttonsArea = {}
 -- UI State
 local orgHeight = 46
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 local vsx, vsy = Spring.GetViewGeometry()
 local mx = -1
@@ -152,6 +153,7 @@ local lastStorageValue = { metal = -1, energy = -1 }
 local lastStorageText = { metal = '', energy = '' }
 local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
+local prevShowButtons = showButtons
 
 -- Interactions
 local draggingShareIndicatorValue = {}
@@ -169,8 +171,7 @@ local now = os.clock()
 local nextStateCheck = 0
 local nextGuishaderCheck = 0
 local nextResBarUpdate = 0
-local nextResTextUpdate = 0
-local nextComWindUpdate = 0
+local nextSlowUpdate = 0
 local nextBarsUpdate = 0
 
 local blinkDirection = true
@@ -365,7 +366,6 @@ local function updateComs(forceText)
 		WG['tooltip'].AddTooltip('coms', area, Spring.I18N('ui.topbar.commanderCountTooltip'), nil, Spring.I18N('ui.topbar.commanderCount'))
 	end
 end
-
 
 local function updateWindRisk()
 	-- precomputed percentage of time wind is less than 6, from wind random monte carlo simulation, given minWind and maxWind
@@ -572,9 +572,9 @@ local function updateResbarText(res, force)
 		font2:End()
 	end)
 
-	if not spec and gameFrame > 90 or force then
+	if not spec and gameFrame > 90 then
 		-- display overflow notification
-		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) or force then
+		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 			if not showOverflowTooltip[res] then showOverflowTooltip[res] = now + 1.1 end
 
 			if showOverflowTooltip[res] < now then
@@ -658,6 +658,11 @@ local function updateResbarText(res, force)
 				end
 			end
 		else
+			if force then
+				if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
+				lastWarning[res] = nil
+			end
+
 			showOverflowTooltip[res] = nil
 		end
 	end
@@ -991,6 +996,7 @@ function init()
 		end
 	end
 
+
 	updateResbarText('metal', true)
 	updateResbarText('energy', true)
 end
@@ -1204,16 +1210,13 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > nextResTextUpdate then
-		nextResTextUpdate = now + 1.0
+	if now > nextSlowUpdate then
+		nextSlowUpdate = now + 0.5
 
+		-- resbar values and overflow
+		updateAllyTeamOverflowing()
 		updateResbarText('metal')
 		updateResbarText('energy')
-		updateAllyTeamOverflowing()
-	end
-
-	if now > nextComWindUpdate then
-		nextComWindUpdate = now + 0.5
 
 		-- wind
 		currentWind = sformat('%.1f', select(4, spGetWind()))
@@ -1242,28 +1245,25 @@ local function drawResBars()
 		if not spec and gameFrame > 90 then
 			if allyteamOverflowingMetal then
 				glColor(1, 0, 0, 0.13 * allyteamOverflowingMetal * blinkProgress)
+				glCallList(dlistResbar[res][4]) -- flash bar
 			elseif overflowingMetal then
 				glColor(1, 1, 1, 0.05 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
-			end
-
-			if allyteamOverflowingMetal or overflowingMetal then glCallList(dlistResbar[res][4]) end
-		end
-
-		-- low metal background
-		if r[res][1] < 1000 then
-			local process = (r[res][1] / r[res][2]) * 13
-			if process < 1 then
-				process = 1 - process
-				glColor(0.9, 0.4, 1, 0.08 * process)
-				glCallList(dlistResbar[res][5])
+				glCallList(dlistResbar[res][4]) -- flash bar
+			elseif r[res][1] < 1000 then
+				local process = (r[res][1] / r[res][2]) * 13
+				if process < 1 then
+					process = 1 - process
+					glColor(0.9, 0.4, 1, 0.08 * process)
+					glCallList(dlistResbar[res][5])  -- flash bar
+				end
 			end
 		end
 
 		drawResbarValues(res, update)
-		glCallList(dlistResbar[res][6])
-		glCallList(dlistResbar[res][3])
-		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end
-		glCallList(dlistResbar[res][2])
+		glCallList(dlistResbar[res][6]) -- storage
+		glCallList(dlistResbar[res][3]) -- pull, expense, income
+		glCallList(dlistResbar[res][2]) -- sliders
+		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
 
 	res = 'energy'
@@ -1273,28 +1273,25 @@ local function drawResBars()
 		if not spec and gameFrame > 90 then
 			if allyteamOverflowingEnergy then
 				glColor(1, 0, 0, 0.13 * allyteamOverflowingEnergy * blinkProgress)
+				glCallList(dlistResbar[res][4]) -- flash bar
 			elseif overflowingEnergy then
 				glColor(1, 1, 0, 0.05 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
-			end
-
-			if allyteamOverflowingEnergy or overflowingEnergy then glCallList(dlistResbar[res][4]) end
-
-			-- low energy background
-			if r[res][1] < 2000 then
+				glCallList(dlistResbar[res][4]) -- flash bar
+			elseif r[res][1] < 2000 then
 				local process = (r[res][1] / r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
 					glColor(0.9, 0.55, 1, 0.08 * process)
-					glCallList(dlistResbar[res][5])
+					glCallList(dlistResbar[res][5]) -- flash bar
 				end
 			end
 		end
 
 		drawResbarValues(res, update)
-		glCallList(dlistResbar[res][6])
-		glCallList(dlistResbar[res][3])
-		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end
-		glCallList(dlistResbar[res][2])
+		glCallList(dlistResbar[res][6]) -- storage
+		glCallList(dlistResbar[res][3]) -- pull, expense, income
+		glCallList(dlistResbar[res][2]) -- sliders
+		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
 
 	glPopMatrix()
@@ -1354,7 +1351,7 @@ local function drawQuitScreen()
 			quitscreenQuitArea   = { x + buttonMargin + 2 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
 
 			-- window
-			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil, useRenderToTexture)
+			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil)--, useRenderToTexture)
 			local color1, color2
 
 			font:Begin()
@@ -1439,10 +1436,8 @@ local function drawUiBackground()
 	if showButtons and buttonsArea[1] then
 		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 	end
-
 end
 
-local prevShowButtons = showButtons
 function widget:DrawScreen()
 	now = os.clock()
 
@@ -1450,18 +1445,22 @@ function widget:DrawScreen()
 		prevShowButtons = showButtons
 		refreshUi = true
 	end
+
 	if useRenderToTexture then
 		if refreshUi then
 			refreshUi = false
+
 			if uiBgTex then
 				gl.DeleteTextureFBO(uiBgTex)
 				uiBgTex = nil
 			end
+
 			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
 			})
+
 			if uiBgTex then
 				gl.RenderToTexture(uiBgTex, function()
 					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
@@ -1475,6 +1474,7 @@ function widget:DrawScreen()
 					gl.PopMatrix()
 				end)
 			end
+
 			if WG['guishader'] then
 				if uiBgList then glDeleteList(uiBgList) end
 				uiBgList = glCreateList(function()
@@ -1486,8 +1486,9 @@ function widget:DrawScreen()
 				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
 			end
 		end
+
 		if uiBgTex then
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Color(1, 1, 1, ui_opacity * 1.1)
 			gl.Texture(uiBgTex)
 			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 			gl.Texture(false)
@@ -1566,7 +1567,6 @@ function widget:DrawScreen()
 	end
 
 	if showButtons and dlistButtons1 and buttonsArea['buttons'] then
-
 		if not useRenderToTexture then
 			glCallList(dlistButtons1)
 		end
