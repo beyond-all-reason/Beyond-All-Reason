@@ -545,7 +545,7 @@ function ShardUnit:GetPosition()
 		end
 	else]]
 	if not bpx then
-		Spring.Echo(self:Name(), self.id, "nil position")
+		Spring.Echo(self:Name(), self.id, "Get Position return nil position")
 		return
 	end
 	if self.position == nil then

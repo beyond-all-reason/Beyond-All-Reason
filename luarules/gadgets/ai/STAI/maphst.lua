@@ -22,15 +22,25 @@ function MapHST:Init()
 		print('map already loaded')
 		return
 	end
+	local RAM = gcinfo()
 	self:basicMapInfo()
+	print('1',gcinfo()-RAM)
 	self:InitPathCost()
+	print('2',gcinfo()-RAM)
 	self.topology = {air = {}}
+	print('3',gcinfo()-RAM)
 	self:createGrid()
+	print('4',gcinfo()-RAM)
 	self.METALS = map:GetMetalSpots()
+	print('5',gcinfo()-RAM)
 	self.GEOS = map:GetGeoSpots()
+	print('6',gcinfo()-RAM)
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
+	print('7',gcinfo()-RAM)
 	self.allSpots = self.ai.tool:tableConcat({self.METALS,self.GEOS})
+	print('8',gcinfo()-RAM)
 	self.hotSpots = {}
+	print('9',gcinfo()-RAM)
 	self:hotSpotter(self.METALS,self.GEOS)
 	self.waterMetals = {}
 	self.groundMetals = {}
@@ -39,9 +49,13 @@ function MapHST:Init()
 	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	self:gridAnalisy()
+	print('10',gcinfo()-RAM)
 	self:metalScan()
+	print('11',gcinfo()-RAM)
 	self:geoScan()
+	print('12',gcinfo()-RAM)
 	self:LayerScan()
+	print('13',gcinfo()-RAM)
 	self.trampledCells = {}
 	self:DrawDebug()
 	self.map_loaded = true
@@ -316,9 +330,8 @@ function MapHST:gridAnalisy()--do the first analisy of the grid
 	local net = {}
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
-			for layer,anteNetwork in pairs(CELL.moveLayers) do--(self.ai.armyhst.mobUnitExampleName) do
+			for layer,anteNetwork in pairs(CELL.moveLayers) do
 				if anteNetwork == 0 then
-				--if CELL.moveLayers[layer] and CELL.moveLayers[layer] == 0  then
 					if not net[layer] then
 						net[layer] = 0
 						self.networks[layer] = {}
@@ -493,11 +506,6 @@ function MapHST:metalScan()--insert MEX in to the correct CELL and layer's netwo
 		for layer,nets in pairs(self.networks) do
 			if CELL.moveLayers[layer] then
 				table.insert(self.networks[layer][CELL.moveLayers[layer]].metals,spot)
-				--for index,network in pairs(nets) do
-	 			--	if network  then
-				--		table.insert(self.networks[layer][index].metals,spot)
-	 			--	end
-				--end
 			end
 		end
 		if map:CanBuildHere(self.ai.armyhst.UWMetalSpotCheckUnitType, spot) then
@@ -515,11 +523,6 @@ function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's networ
 		for layer,nets in pairs(self.networks) do
 			if CELL.moveLayers[layer] then
 				table.insert(self.networks[layer][CELL.moveLayers[layer]].geos,spot)
-				--for index,network in pairs(nets) do
-				--	if network then
-				--		table.insert(self.networks[layer][index].geos,spot)
-				--	end
-				--end
 			end
 		end
 	end

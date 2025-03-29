@@ -955,6 +955,14 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_flak_'}} ,
 			special = true } , --specialFilter
+		{ 	category = '_mex_' ,
+			economy = function(_,param,name)--ecofunc()
+					return true
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
 	}
 ---------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------

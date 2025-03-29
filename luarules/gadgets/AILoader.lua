@@ -222,9 +222,14 @@ if gadgetHandler:IsSyncedCode() then
 			
 		end
 		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
-		Spring.Echo('cmdCounter',cmdCounter)
+		--Spring.Echo('cmdCounter',cmdCounter)
 	end
 
+	function gadget:Shutdown()
+		Spring.Echo("Shard AI sync gadget shutdown")
+		Spring.Echo('STAI commands issued:',cmdCounter)
+		
+	end
 
 else	-- UNSYNCED CODE
 
@@ -304,6 +309,7 @@ else	-- UNSYNCED CODE
 	local pershardmemlimit = 50000
 	local garbagelimit = basememlimit -- in kilobytes, will adjust upwards as needed
 	local numShards = 0
+	local memoryRecord = 0
 
 	function gadget:GameStart()
 		-- Initialise AIs
@@ -337,6 +343,7 @@ else	-- UNSYNCED CODE
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
+				memoryRecord = math.max(memoryRecord,ramuse)
 				Spring.Echo("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
@@ -537,6 +544,7 @@ else	-- UNSYNCED CODE
 	
 	function gadget:Shutdown()
 		Spring.Echo("Shard AI unsync gadget shutdown")
+		Spring.Echo('STAI memory record:',memoryRecord)
 		gadgetHandler:RemoveSyncAction("shard_debug_position")
 	end
 

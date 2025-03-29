@@ -80,12 +80,12 @@ function ShardAI:Init()
 			if m == nil then
 				self:Warn("Error! Shard tried to init a nil module!")
 			else
-				--local RAM = gcinfo()
+				local RAM = gcinfo()
 
 				----tracyZoneBeginMem(m:Name())
 				m:Init()
 				------tracyZoneEndMem()
-				--print (m:Name(),gcinfo() - RAM)
+				print (m:Name(),gcinfo() - RAM)
 			end
 		end
 
