@@ -339,7 +339,7 @@ local function checkCommanderAlive(teamID)
 end
 
 local function setTeamTable(teamID)
-	local commanderAlive, minc, mrecl, einc, erecl, x, y
+	local minc, mrecl, einc, erecl
 	local _, leaderID, isDead, isAI, aID = GetTeamInfo(teamID, false)
 	local leaderName, active, spectator = GetPlayerInfo(leaderID, false)
 	if teamID == gaiaID then
@@ -357,8 +357,6 @@ local function setTeamTable(teamID)
 	_, _, _, minc = GetTeamResources(teamID, "metal")
 	_, _, _, einc = GetTeamResources(teamID, "energy")
 	erecl, mrecl = getTeamReclaim(teamID)
-	x, _, y = Spring.GetTeamStartPosition(teamID)
-	commanderAlive = checkCommanderAlive(teamID)
 
 	if not teamData[teamID] then
 		teamData[teamID] = {}
@@ -369,10 +367,13 @@ local function setTeamTable(teamID)
 	teamData[teamID].red = tred
 	teamData[teamID].green = tgreen
 	teamData[teamID].blue = tblue
-	teamData[teamID].startx = x
-	teamData[teamID].starty = y
+	if not teamData[teamID].startx then
+		local x, _, y = Spring.GetTeamStartPosition(teamID)
+		teamData[teamID].startx = x
+		teamData[teamID].starty = y
+	end
 	teamData[teamID].isDead = teamData[teamID].isDead or isDead
-	teamData[teamID].hasCom = commanderAlive
+	teamData[teamID].hasCom = checkCommanderAlive(teamID)
 	teamData[teamID].minc = minc
 	teamData[teamID].mrecl = mrecl
 	teamData[teamID].einc = einc
@@ -1366,27 +1367,38 @@ function widget:ViewResize()
 	Reinit()
 end
 
-function widget:GameFrame(frameNum)
+
+local sec = 0
+local sec1 = 0
+local sec2 = 0
+function widget:Update(dt)
 	if not inSpecMode or not myFullview then
 		return
 	end
-
-	if frameNum == 15 then
-		UpdateAllTeams()
+	
+	local gf = Spring.GetGameFrame()
+	if not gamestarted and gf > 0 then
+		gamestarted = true
 	end
-
-	if frameNum - lastPlayerChange == 40 then
+	if gf - lastPlayerChange == 40 then
+		lastPlayerChange = lastPlayerChange - 1	-- prevent repeat execution cause this is in widget:Update
 		-- check for dead teams
 		for teamID in pairs(teamData) do
 			teamData[teamID].isDead = select(3, GetTeamInfo(teamID, false))
 		end
 		UpdateAllies()
 		createTeamCompositionList()
-	elseif frameNum % 80 == 5 then
-		createTeamCompositionList()
 	end
 
-	if frameNum % 10 == 1 then
+	sec1 = sec1 + dt
+	if sec1 > 0.5 then
+		sec1 = 0
+		UpdateAllTeams()
+	end
+
+	sec2 = sec2 + dt
+	if sec2 > 0.3 then
+		sec2 = 0
 		-- set/update player resources
 		for teamID, data in pairs(teamData) do
 			data.minc = select(4, GetTeamResources(teamID, "metal")) or 0
@@ -1397,19 +1409,13 @@ function widget:GameFrame(frameNum)
 		UpdateAllies()
 	end
 
-	if not gamestarted and frameNum > 0 then
-		gamestarted = true
-	end
-end
-
-local sec = 0
-function widget:Update(dt)
 	sec = sec + dt
-	if sec > 5 then
+	if sec > 3 then
 		sec = 0
 		if WG.allyTeamRanking then
 			updateDrawPos()
 		end
+		createTeamCompositionList()
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
@@ -1429,7 +1435,6 @@ function widget:DrawScreen()
 		return
 	end
 	
-
 	if refreshTeamCompositionList then
 		refreshTeamCompositionList = false
 		makeTeamCompositionList()
