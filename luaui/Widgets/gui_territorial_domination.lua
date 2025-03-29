@@ -5,10 +5,13 @@ function widget:GetInfo()
 		author    = "SethDGamre",
 		date      = "2025",
 		license   = "GNU GPL, v2",
-		layer     = 0,
+		layer     = -9, --must be after game_territorial_domination.lua
 		enabled   = true,
 	}
 end
+
+local modOptions = Spring.GetModOptions()
+if modOptions.deathmode ~= "territorial_domination" then return false end
 
 -- Cache frequently used functions
 local floor = math.floor
@@ -39,15 +42,18 @@ local WARNING_THRESHOLD = 3  -- blink red if within 3 points of defeat
 local ALERT_THRESHOLD = 10  -- alert if within 10 points of defeat
 local PADDING_MULTIPLIER = 0.36
 local TEXT_HEIGHT_MULTIPLIER = 0.33
-local SCORE_RULES_KEY = "territorialScore"
-local THRESHOLD_RULES_KEY = "territorialDefeatThreshold"
+local SCORE_RULES_KEY = "territorialDominationScore"
+local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
+local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+local GRACE_PERIOD_KEY = "territorialDominationGracePeriod"
 
 -- Colors
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
 local COLOR_YELLOW = {1, 0.8, 0, 1}  -- Yellow for getting close to threshold
 local COLOR_BG = {0, 0, 0, 0.6}  -- Semi-transparent black background
-local BLINK_COLOR = {1, 0, 0, 0.5} -- Used for blinking red text alpha
+local BLINK_COLOR = {1, 0, 0, 0.7} -- Used for blinking red text alpha
+local NEEDED_TEXT_COLOR_FROZEN = {0.6, 0.6, 0.6, 1.0} -- Greyed out color
 
 -- State Variables
 local lastWarningBlinkTime = 0
@@ -56,6 +62,7 @@ local amSpectating = false
 local myAllyID = -1
 local selectedAllyTeamID = -1 -- Track the selected team for spectators
 local gaiaAllyTeamID = -1
+local gracePeriod = math.huge
 
 -- Font Cache
 local fontCache = {
@@ -72,6 +79,7 @@ local currentTextColor = {COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_
 
 function widget:Initialize()
 	amSpectating = GetSpectatingState()
+	gracePeriod = GetGameRulesParam(GRACE_PERIOD_KEY) or 0
 	myAllyID = GetMyAllyTeamID()
 	selectedAllyTeamID = myAllyID -- Default to own ally team
 	gaiaAllyTeamID = select(6, GetTeamInfo(Spring.GetGaiaTeamID()))
@@ -119,13 +127,25 @@ local function drawScore()
 	-- Get current score and threshold for display logic
 	local difference = score - threshold
 
-	-- Format text using I18N directly, like in cmd_share_unit.lua
+	-- Check if threshold is currently frozen or still in grace period
+	local currentTime = GetGameSeconds()
+	local freezeExpirationTime = GetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentTime)
+	local isInGracePeriod = (currentTime < gracePeriod)
+	
+	-- Grey out "needed" text if either in grace period or threshold is frozen
+	local shouldGreyOutNeeded = isThresholdFrozen or isInGracePeriod
+
+	-- Format text components separately to apply different colors
 	local ownedText = I18N("ui.territorialdomination.score.owned", { score = score })
 	local neededText = I18N("ui.territorialdomination.score.needed", { threshold = threshold })
-	local text = ownedText .. " " .. neededText
+	
+	-- Add spacing between text elements for display calculation
+	local spacer = "   " -- Three spaces for comfortable separation
+	local fullText = ownedText .. spacer .. neededText
 
-	-- Calculate dimensions
-	local textWidth = glGetTextWidth(text) * fontCache.fontSize
+	-- Calculate dimensions using the full text with spacer
+	local textWidth = glGetTextWidth(fullText) * fontCache.fontSize
 	local backgroundWidth = textWidth + (fontCache.paddingX * 2)
 	local backgroundHeight = fontCache.fontSize + (fontCache.paddingY * 2)
 
@@ -162,9 +182,25 @@ local function drawScore()
 		glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
 		glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
 
-		-- Draw score text
+		-- Calculate text positioning with proper spacing
+		local ownedTextWidth = glGetTextWidth(ownedText) * fontCache.fontSize
+		local spacerWidth = glGetTextWidth(spacer) * fontCache.fontSize
+		local neededTextWidth = glGetTextWidth(neededText) * fontCache.fontSize
+		local totalWidth = ownedTextWidth + spacerWidth + neededTextWidth
+		local startX = displayPositionX - (totalWidth / 2)
+
+		-- Draw owned text with color based on warning/alert thresholds
 		glColor(currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4])
-		glText(text, displayPositionX, textPositionY, fontCache.fontSize, "co") -- Center horizontally, offset vertically
+		glText(ownedText, startX + (ownedTextWidth / 2), textPositionY, fontCache.fontSize, "co")
+
+		-- Draw needed text with either white or grey color
+		local neededStartX = startX + ownedTextWidth + spacerWidth
+		if shouldGreyOutNeeded then
+			glColor(NEEDED_TEXT_COLOR_FROZEN[1], NEEDED_TEXT_COLOR_FROZEN[2], NEEDED_TEXT_COLOR_FROZEN[3], NEEDED_TEXT_COLOR_FROZEN[4])
+		else
+			glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4])
+		end
+		glText(neededText, neededStartX + (neededTextWidth / 2), textPositionY, fontCache.fontSize, "co")
 	glPopMatrix()
 end
 
@@ -201,4 +237,4 @@ function widget:UnitDeselected(unitID, unitDefID, unitTeam)
 	if amSpectating and GetSelectedUnitsCount() == 0 then
 		selectedAllyTeamID = myAllyID
 	end
-end 
+end

@@ -70,9 +70,10 @@ if SYNCED then
 	local FREEZE_DELAY_SECONDS = 60
 
 	-- Constants for rules parameters
-	local SCORE_RULES_KEY = "territorialScore"
-	local THRESHOLD_RULES_KEY = "territorialDefeatThreshold"
-
+	local SCORE_RULES_KEY = "territorialDominationScore"
+	local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
+	local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+	local GRACE_PERIOD_KEY = "territorialDominationGracePeriod"
 	--localized functions
 	local floor = math.floor
 	local max = math.max
@@ -204,6 +205,7 @@ if SYNCED then
 
 		if allyCount ~= oldAllyCount then
 			freezeThresholdTimer = spGetGameSeconds() + FREEZE_DELAY_SECONDS
+			Spring.SetGameRulesParam(FREEZE_DELAY_KEY, freezeThresholdTimer)
 		end
 	end
 
@@ -709,6 +711,7 @@ if SYNCED then
 		numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 		numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 		SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
+		Spring.SetGameRulesParam(GRACE_PERIOD_KEY, SECONDS_TO_START)
 		captureGrid = generateCaptureGrid()
 		updateLivingTeamsData()
 
