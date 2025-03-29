@@ -1,6 +1,7 @@
-if #Spring.GetAllyTeamList()-1 > 16 then
-	return
-end
+
+--if #Spring.GetAllyTeamList()-1 > 16 then
+--	return
+--end
 
 function widget:GetInfo()
 	return {
@@ -576,6 +577,9 @@ function widget:Shutdown()
 	if uiBgTex then
 		gl.DeleteTextureFBO(uiBgTex)
 	end
+	if uiTex then
+		gl.DeleteTextureFBO(uiTex)
+	end
 	WG['ecostats'] = nil
 end
 
@@ -588,11 +592,10 @@ local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
 	end
-	if teamCompositionList then
-		gl.DeleteList(teamCompositionList)
-	end
-	teamCompositionList = gl.CreateList(DrawTeamComposition)
 	if useRenderToTexture then
+		if #uiElementRects == 0 then
+			DrawTeamComposition()	-- need to run once so uiElementRects gets filled
+		end
 		areaRect = {}
 		for id, rect in pairs(uiElementRects) do
 			if not areaRect[1] then
@@ -627,6 +630,14 @@ local function makeTeamCompositionList()
 				format = GL.ALPHA,
 				fbo = true,
 			})
+			if uiTex then
+				gl.DeleteTextureFBO(uiTex)
+			end
+			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
 		end
 		if uiBgTex then
 			gl.RenderToTexture(uiBgTex, function()
@@ -642,6 +653,23 @@ local function makeTeamCompositionList()
 				gl.PopMatrix()
 			end)
 		end
+		if uiTex then
+			gl.RenderToTexture(uiTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.Color(1,1,1,1)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
+				gl.Translate(-areaRect[1], -areaRect[2], 0)
+				DrawTeamComposition()
+				gl.PopMatrix()
+			end)
+		end
+	else
+		if teamCompositionList then
+			gl.DeleteList(teamCompositionList)
+		end
+		teamCompositionList = gl.CreateList(DrawTeamComposition)
 	end
 	if WG['guishader'] then
 		for id, rect in pairs(guishaderRects) do
@@ -1396,24 +1424,34 @@ function widget:DrawScreen()
 	if not myFullview or not inSpecMode then
 		return
 	end
+	
+	if aliveAllyTeams > 16 then
+		return
+	end
+	
 
-	if not teamCompositionList or refreshTeamCompositionList then
+	if refreshTeamCompositionList then
 		refreshTeamCompositionList = false
 		makeTeamCompositionList()
 	end
 
-	if useRenderToTexture then
+	if useRenderToTexture and uiBgTex then
 		-- background element
 		gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 		gl.Texture(uiBgTex)
 		gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
-		gl.Texture(false)
+		-- content
 		gl.Color(1,1,1,1)
+		gl.Texture(uiTex)
+		gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
+		gl.Texture(false)
 	end
 
 	gl.PolygonOffset(-7, -10)
 	gl.PushMatrix()
-	gl.CallList(teamCompositionList)
+	if not useRenderToTexture then
+		gl.CallList(teamCompositionList)
+	end
 	drawListStandard()
 	gl.PopMatrix()
 
