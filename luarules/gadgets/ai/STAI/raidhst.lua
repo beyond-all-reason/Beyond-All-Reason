@@ -203,7 +203,24 @@ function RaidHST:SquadAdvance(squad)
 		return
 	end
 	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
+
 	if type(squad.role ) == 'number' then
+		local preventThreat = nil
+		for i,blob in pairs(self.ai.targethst.MOBILE_BLOBS) do
+			local targetPos = game:GetUnitByID(squad.role):GetPosition()
+			if self.ai.tool:distance(blob.position,game:GetUnitByID(squad.role):GetPosition()) < self.ai.maphst.gridSizeDouble then
+				preventThreat = blob.position
+				break
+			end
+		
+		end
+		if preventThreat then
+			for i,member in pairs(squad.members) do
+				squad.cmdUnitId[i] = member.unit:Internal():ID()
+			end
+			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.FIGHT ,preventThreat,0,'1-2')
+			return
+		end
 		for i,member in pairs(squad.members) do
 			local currentCommand =member.unit:Internal():CurrentCommand()
 			--Spring.Echo(currentCommand)
@@ -218,6 +235,21 @@ function RaidHST:SquadAdvance(squad)
 		
 		return
 	end
+	--[[if squad.role == 'defense' thenTODOFIXPREVENTIVE
+		for i,member in pairs(squad.members) do
+			local currentCommand =member.unit:Internal():CurrentCommand()
+			--Spring.Echo(currentCommand)
+			if not currentCommand or currentCommand ~= CMD.GUARD then
+				squad.cmdUnitId[i] = member.unit:Internal():ID()
+			end
+			
+		end
+		if #squad.cmdUnitId > 0 then
+			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.GUARD ,squad.role,0,'1-2')
+		end
+		
+		return
+	end]]
 	self:SquadStepComplete(squad)
 	self:EchoDebug('advance #members',#squad.members,squad.path,#squad.path)
 	
@@ -268,15 +300,15 @@ function RaidHST:SquadsTargetUpdate()
 			end]]
 			return squad.target,squad.role
 
-
+		
 		else
 			self:SquadResetTarget(squad)
 			--local defense = self:SquadsTargetDefense(squad)
--- 			if defense then
--- 				squad.target = defense
--- 				squad.role = 'defense'
--- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
--- 			else
+ 			--if defense then
+ 			--	squad.target = defense
+ 			--	squad.role = 'defense'
+ 			--	self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
+ 			
 
 			local prevent, targetID = self:SquadsTargetPrevent(squad)
 			if prevent then

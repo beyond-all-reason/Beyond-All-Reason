@@ -137,6 +137,7 @@ function MapHST:basicMapInfo()--capture and set foundamental map info
 	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
 	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
 	self.gridSizeHalf = self.gridSize / 2
+	self.gridSizeDouble = self.gridSize * 2
 	self.gridSideX = self.elmoMapSizeX / self.gridSize
 	self.gridSideZ = self.elmoMapSizeZ / self.gridSize
 	self.gridArea = self.gridSideX * self.gridSideZ
@@ -557,9 +558,7 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
-	local RAM = gcinfo()
 	local pathObject = map:GetPathObject(mclass, POS1.x,POS1.y,POS1.z, POS2.x,POS2.y,POS2.z)
-	print('11',gcinfo()-RAM)
 	if not pathObject then 
 		self:Warn('no path found',POS1,POS2) 
 		return
@@ -569,11 +568,9 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 		self:Warn('no waypoints for the object found',POS1,POS2)
 		return
 	end
-	print('12',gcinfo()-RAM)
 	if toGrid then
 		waypoints = self:gridThePath(waypoints)
 	end
-	print('13',gcinfo()-RAM)
 	return waypoints
 	
 end
