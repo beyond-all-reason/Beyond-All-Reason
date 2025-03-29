@@ -12,8 +12,7 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- need to convert the score text display to use i18n for language localization
--- test update
+-- exponential growth may need to delay after a ally is eliminated to prevent domino effect
 
 -- warning sounds
 
@@ -49,8 +48,8 @@ if SYNCED then
 	local DEBUGMODE = false -- Changed to uppercase as it's a constant
 
 	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
-	local maxEmptyImpedencePower = 100
-	local minEmptyImpedenceMultiplier = 0.90
+	local maxEmptyImpedencePower = 25
+	local minEmptyImpedenceMultiplier = 0.80
 
 	local FLYING_UNIT_POWER_MULTIPLIER = 0.01 -- units capture territory super slowly while flying, so terrein only accessable via air can be captured
 	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
@@ -68,6 +67,7 @@ if SYNCED then
 	local CORNER_MULTIPLIER = 1.4142135623730951 -- a constant representing the diagonal of a square
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
+	local FREEZE_DELAY_SECONDS = 60
 
 	-- Constants for rules parameters
 	local SCORE_RULES_KEY = "territorialScore"
@@ -111,6 +111,7 @@ if SYNCED then
 	local thresholdSecondsDelay = 0
 	local thresholdDelayTimestamp = 0
 	local maxThreshold = 0
+	local freezeThresholdTimer = 0
 
 	--tables
 	local allyTeamsWatch = {}
@@ -137,29 +138,34 @@ if SYNCED then
 		end
 	end
 
+	local function getTargetThreshold() -- linear progression kills players too quickly
+		local seconds = spGetGameSeconds()
+		local minFactor = 0.2
+		local maxFactor = 1
+		local thresholdExponentialFactor = math.clamp(minFactor, (seconds - SECONDS_TO_START) / SECONDS_TO_MAX, maxFactor)
+		local targetThreshold = #captureGrid * thresholdExponentialFactor
+		return targetThreshold
+	end
+
 	local function setThresholdIncreaseRate()
 		local seconds = spGetGameSeconds()
 		if allyCount == 1 then
 			thresholdSecondsDelay = 0
 		else
 			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
-			maxThreshold = floor(min(#captureGrid / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
+			maxThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
 			thresholdSecondsDelay = max((SECONDS_TO_MAX - startTime) / maxThreshold, 1)
 		end
-		thresholdDelayTimestamp = seconds + thresholdSecondsDelay
+		thresholdDelayTimestamp = min(seconds + thresholdSecondsDelay, thresholdDelayTimestamp)
 	end
 
 	local function updateCurrentDefeatThreshold()
 		local seconds = spGetGameSeconds()
+		local totalDelay = max(SECONDS_TO_START, freezeThresholdTimer, thresholdDelayTimestamp)
 
-		if seconds > SECONDS_TO_START then
-			if thresholdSecondsDelay == 0 and allyCount ~= 1 then
-				setThresholdIncreaseRate()
-			end
-			if thresholdSecondsDelay ~= 0 and thresholdDelayTimestamp < seconds then
-				defeatThreshold = min(defeatThreshold + 1, maxThreshold)
-				thresholdDelayTimestamp = seconds + thresholdSecondsDelay
-			end
+		if totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1 or seconds > SECONDS_TO_MAX then
+			defeatThreshold = min(defeatThreshold + 1, maxThreshold)
+			thresholdDelayTimestamp = seconds + thresholdSecondsDelay
 		end
 	end
 
@@ -197,7 +203,7 @@ if SYNCED then
 		allyCount = allyTeamsCount + allyHordesCount --something about flipping from old to new causes things to break
 
 		if allyCount ~= oldAllyCount then
-			setThresholdIncreaseRate()
+			freezeThresholdTimer = spGetGameSeconds() + FREEZE_DELAY_SECONDS
 		end
 	end
 
@@ -628,6 +634,7 @@ if SYNCED then
 
 		if frameModulo == 0 then
 			updateLivingTeamsData()
+			setThresholdIncreaseRate()
 			updateCurrentDefeatThreshold()
 			allyTallies = getClearedAllyTallies()
 
