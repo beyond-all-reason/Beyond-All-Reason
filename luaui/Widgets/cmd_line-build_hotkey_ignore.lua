@@ -1,5 +1,7 @@
 include("keysym.h.lua")
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name         = "Line-Build Hotkey Ignore",

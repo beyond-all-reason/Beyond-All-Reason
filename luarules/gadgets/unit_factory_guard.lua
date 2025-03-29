@@ -4,6 +4,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Factory Guard",

@@ -2,6 +2,8 @@ if not Spring.Utilities.IsDevMode() then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Dev Auto cheat",

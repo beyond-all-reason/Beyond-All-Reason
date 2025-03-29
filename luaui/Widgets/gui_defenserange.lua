@@ -2,6 +2,8 @@ include("keysym.h.lua")
 
 local versionNumber = "6.32"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Defense Range",

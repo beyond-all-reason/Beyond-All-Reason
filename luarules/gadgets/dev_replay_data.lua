@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "UnitDamagedReplay",
@@ -46,6 +48,8 @@ end
 
 --[[
 Use this widget to print UnitDamaged info to the infolog (or modify it for your purposes)
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
       name      = "UnitDamageReplayAnalysis",

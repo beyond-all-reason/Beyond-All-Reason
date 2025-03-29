@@ -2,6 +2,8 @@ if not Spring.GetModOptions().xmas then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",

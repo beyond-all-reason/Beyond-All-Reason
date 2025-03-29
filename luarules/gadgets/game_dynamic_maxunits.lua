@@ -3,6 +3,8 @@ if not Spring.TransferUnitLimit then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Dynamic Maxunits",

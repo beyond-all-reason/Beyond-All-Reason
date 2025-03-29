@@ -2,6 +2,8 @@ if gl.CreateShader == nil or Spring.GetSpectatingState() then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	  = "Stained Glass",

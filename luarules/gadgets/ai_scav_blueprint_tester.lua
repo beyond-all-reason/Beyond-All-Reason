@@ -13,6 +13,8 @@ local radius
 local high_radius = 0
 local line = 1
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "Scav Blueprint Tester",

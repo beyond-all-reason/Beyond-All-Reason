@@ -6,6 +6,8 @@ else
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Spawner",

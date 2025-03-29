@@ -1,5 +1,7 @@
 local versionNum = '5.00'
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Auto Group",

@@ -2,6 +2,8 @@ if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.
 	return false
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Raptor Stats Panel",

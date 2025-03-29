@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "TEST DrawPrimitiveAtUnit GL4 Minimal Example",

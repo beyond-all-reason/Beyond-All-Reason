@@ -2,6 +2,8 @@ if not WeaponDefNames.legcib_juno_pulse_mini then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage Mini',
