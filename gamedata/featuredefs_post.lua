@@ -66,3 +66,42 @@ for featureDefName, featureDef in pairs(FeatureDefs) do
 		featureDef.customparams.i18nfrom = proxy
 	end
 end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local function isModelOK(fd)
+	local specifiesModel = fd.object and (fd.object ~= "")
+
+	-- explicitly modelless (geo etc)
+	if fd.drawtype == -1 and not specifiesModel then
+		return true
+	end
+
+	-- implicitly modelless
+	if not fd.drawtype and not specifiesModel then
+		return true
+	end
+
+	-- explicitly specified to use a model, but doesn't provide one (gigachad.jpg)
+	if fd.drawtype == 0
+	and not specifiesModel then
+		return false
+	end
+
+	-- old tree renderer removed from engine
+	if tonumber(fd.drawtype or 0) > 0 then
+		return false
+	end
+
+	local modelPath = "objects3d/" .. fd.object
+	return VFS.FileExists(modelPath          , VFS.ZIP)
+	    or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
+end
+
+for name, def in pairs(FeatureDefs) do
+	if not isModelOK(def) then
+		Spring.Log("featuredefs_post.lua", LOG.WARNING, "Removing feature def", name, "for having invalid model that would crash the engine", def.object)
+		FeatureDefs[name] = nil
+	end
+end
