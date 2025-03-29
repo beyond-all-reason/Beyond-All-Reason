@@ -12,12 +12,10 @@ function gadget:GetInfo()
 end
 
 -- TODO:
+-- check if units are finished building before they can capture territory
 -- need to convert the score text display to use i18n for language localization
---it's possible for units to capture territory slower with units than contiguously. If territory can be captured contiguously,
 
--- check and make sure that aircraft aren't already entered air when they're first built
 -- warning sounds
--- some maps have untraversable terrain outside of air movements... should they be uncapturable?
 
 -- code cleanup
 -- need to do the modoptions
@@ -254,8 +252,9 @@ if SYNCED then
 				data.gridMidpointZ = originZ + GRID_SIZE / 2
 				data.allyOwnerID = gaiaAllyTeamID
 				data.progress = STARTING_PROGRESS
-				data.progressChange = 0
 				data.decayDelay = 0
+				data.contested = false
+				data.contiguous = false
 				data.corners = {
 					{x = data.mapOriginX, z = data.mapOriginZ},                           -- Bottom-left
 					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ},               -- Bottom-right
@@ -293,6 +292,7 @@ if SYNCED then
 		
 		local allyPowers = {}
 		local hasUnits = false
+		data.contested = false
 		
 		for i = 1, #units do
 			local unitID = units[i]
@@ -327,6 +327,9 @@ if SYNCED then
 		for allyID, power in pairs(allyPowers) do
 			if allyPowers[allyID] > 0 then
 				power = power + random() -- randomize power to prevent ties where the last tied victor always wins
+				if allyID ~= data.allyOwnerID then
+					data.contested = true
+				end
 			else
 				allyPowers[allyID] = nil -- not allowed to capture without power.
 			end
@@ -392,10 +395,9 @@ if SYNCED then
 		return winningAllyID, progressChange
 	end
 
-	local function applyProgress(gridID, progressChange, winningAllyID, delayDecay)
+	local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
 		local newProgress = data.progress + progressChange
-		data.progressChange = progressChange
 		
 		if newProgress < 0 then
 			data.allyOwnerID = winningAllyID
@@ -410,7 +412,7 @@ if SYNCED then
 			data.progress = newProgress
 		end
 
-		if delayDecay then
+		if delayDecay and (data.contested or data.contiguous) then
 			data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
 		end
 	end
@@ -425,16 +427,11 @@ if SYNCED then
 
 	local function getSquareContiguityProgress(gridID)
 		local currentSquareData = captureGrid[gridID]
-		
-		-- Skip if this square has units or is owned by Gaia
-		if currentSquareData.progressChange > CONTIGUOUS_PROGRESS_INCREMENT then
-			return nil, nil
-		end
-		
 		local neighborAllyTeamCounts = {}
 		local dominantAllyTeamCount = 0
 		local totalNeighborCount = 0
 		local dominantAllyTeamID
+		currentSquareData.contiguous = false
 		
 		local currentGridX = currentSquareData.gridX
 		local currentGridZ = currentSquareData.gridZ
@@ -479,6 +476,7 @@ if SYNCED then
 
 		-- Only apply contiguity effect if the dominant ally team owns more than half of all neighbors
 		if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
+			currentSquareData.contiguous = true
 			-- If dominant ally is different from current owner, return negative progress (capture)
 			if dominantAllyTeamID ~= currentSquareData.allyOwnerID then
 				return dominantAllyTeamID, -CONTIGUOUS_PROGRESS_INCREMENT
@@ -579,9 +577,9 @@ if SYNCED then
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
 		if data.progress > OWNERSHIP_THRESHOLD then
-			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
+			addProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
 		else
-			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
+			addProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
 		end
 	end
 
@@ -622,7 +620,7 @@ if SYNCED then
 				local allyPowers = getAllyPowersInSquare(gridID)
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
-					applyProgress(gridID, progressChange, winningAllyID, true)
+					addProgress(gridID, progressChange, winningAllyID, true)
 				end
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
@@ -630,16 +628,18 @@ if SYNCED then
 			end
 		elseif frameModulo == 1 then
 			local randomizedIDs = getRandomizedGridIDs()
-			for i = 1, #randomizedIDs do
-				local gridID = randomizedIDs[i]
-				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-				if contiguousAllyID and progressChange then --zzz unverified that it's working, 
-					applyProgress(gridID, progressChange, contiguousAllyID, true)
+			for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
+				if not captureGrid[randomizedIDs[i]].contested then
+					local gridID = randomizedIDs[i]
+					local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
+					if contiguousAllyID then --zzz unverified that it's working, 
+						addProgress(gridID, progressChange, contiguousAllyID, true)
+					end
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if data.decayDelay < frame then
+				if not data.contested and data.decayDelay < frame then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
