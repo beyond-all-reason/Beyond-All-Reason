@@ -14,6 +14,7 @@ end
 -- TODO:
 
 -- warning sounds
+-- when enemies are capturing a square, don't delay decay because they're in the same direction. instead, check if the square is occupied to prevent decay so decay can immediately take over after they leave it
 
 -- code cleanup
 -- need to do the modoptions
@@ -418,7 +419,7 @@ if SYNCED then
 			data.progress = newProgress
 		end
 
-		if delayDecay and (data.contested or data.contiguous) then
+		if delayDecay and (data.contested or data.contiguous) and data.allyOwnerID ~= winningAllyID then
 			data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
 		end
 	end
@@ -660,7 +661,7 @@ if SYNCED then
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if not data.contested and data.decayDelay < frame then
+				if not data.contested and not data.contiguous and data.decayDelay < frame then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
