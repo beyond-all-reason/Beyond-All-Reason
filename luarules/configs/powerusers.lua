@@ -35,5 +35,5 @@ return {
 	['PtaQ'] = everything,
 	['TarnishedKnight'] = everything,
 	['OPman'] = everything,
-	['Nightmare2512 '] = everything
+	['Nightmare2512'] = everything
 }
