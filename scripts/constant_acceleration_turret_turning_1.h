@@ -188,7 +188,9 @@ CATT1_Aim(heading, pitch){
 
 			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {
 				CATT1velocity = 0;
-				start-script CATT1_Restore();
+				#ifndef CATT_DONTRESTORE
+					start-script CATT1_Restore();
+				#endif
 				return;}
 			}
 		sleep 32;

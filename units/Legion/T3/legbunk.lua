@@ -138,7 +138,6 @@ return {
 			piledriver = {
 				areaofeffect = 65,
 				avoidfeature = false,
-				bouncerebound = 0,
 				cegtag = "gausscannonprojectile",
 				craterboost = 0.5,
 				cratermult = 0.5,
@@ -162,12 +161,16 @@ return {
 				soundhitvolume = 32,
 				soundtrigger = true,
 				turret = true,
+				thickness = 24,
 				waterweapon = true,
-				weapontype = "Cannon",
-				weaponvelocity = 2000,
+				weapontype = "LaserCannon",
+				weaponvelocity = 600,
 				damage = {
-					commanders = 500,
-					default = 2000,},
+					commanders = 250,
+					default = 1500,},
+				customparams = {
+					overpenetrate = true,
+				},
 			},
 			railgunt2 = {
 				areaofeffect = 16,
@@ -206,8 +209,9 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 740,
-					default = 1480,
+					vtol = 225,
+					commanders = 225,
+					default = 375,
 				},
 				customparams = {
 					overpenetrate = true,
