@@ -1078,7 +1078,7 @@ end
 function gadget:RecvFromSynced(messageName, ...)
     if messageName == "InitializeGridSquare" then
         local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
-        local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
+        local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
         captureGrid[gridID] = {
             visibilityBitmask = visibilityBitmask,
             allyOwnerID = allyOwnerID,
@@ -1101,22 +1101,22 @@ function gadget:RecvFromSynced(messageName, ...)
             local oldAllyOwnerID = gridData.allyOwnerID
             gridData.visibilityBitmask = visibilityBitmask
             gridData.allyOwnerID = allyOwnerID
-            gridData.oldProgress = gridData.newProgress
-            gridData.captureChange = progress - gridData.oldProgress
 
-            if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then -- check absolute value
-                gridData.oldProgress = progress -- Snap progress if change is too large
-                gridData.captureChange = 0 -- No smooth animation needed if snapping
-            end
-            gridData.newProgress = progress
+			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
+			if not gridData.isVisible then
+				gridData.newProgress = gridData.oldProgress
+				gridData.captureChange = 0
+			else
+				gridData.oldProgress = gridData.newProgress
+				gridData.captureChange = progress - gridData.oldProgress
 
-            local resetColor = false
-            gridData.isVisible, resetColor = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
-            if resetColor then
-                gridData.currentColor = blankColor
-            end
+				if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then -- check absolute value
+					gridData.oldProgress = progress -- Snap progress if change is too large
+					gridData.captureChange = 0 -- No smooth animation needed if snapping
+				end
+				gridData.newProgress = progress
+			end
         end
-        
     end
 end
 
@@ -1160,8 +1160,6 @@ function gadget:Update()
                         gridData.currentColor = enemyColor
                     end
                 end
-            elseif not gridData.isVisible and gridData.allyOwnerID ~= myAllyID then
-                gridData.currentColor = blankColor
             end
             
             local captureChangePerFrame = 0
