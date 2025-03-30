@@ -68,6 +68,8 @@ if SYNCED then
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 	local FREEZE_DELAY_SECONDS = 60
+	local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
+	local MIN_THRESHOLD_DELAY = 1
 
 	-- Constants for rules parameters
 	local SCORE_RULES_KEY = "territorialDominationScore"
@@ -79,6 +81,7 @@ if SYNCED then
 	local max = math.max
 	local min = math.min
 	local random = math.random
+	local clamp = math.clamp
 	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitHealth = Spring.GetUnitHealth
@@ -143,7 +146,7 @@ if SYNCED then
 		local seconds = spGetGameSeconds()
 		local minFactor = 0.2
 		local maxFactor = 1
-		local thresholdExponentialFactor = math.clamp(minFactor, (seconds - SECONDS_TO_START) / SECONDS_TO_MAX, maxFactor)
+		local thresholdExponentialFactor = min(minFactor + ((seconds - SECONDS_TO_START) / SECONDS_TO_MAX), maxFactor)
 		local targetThreshold = #captureGrid * thresholdExponentialFactor
 		return targetThreshold
 	end
@@ -155,7 +158,7 @@ if SYNCED then
 		else
 			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
 			maxThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
-			thresholdSecondsDelay = max((SECONDS_TO_MAX - startTime) / maxThreshold, 1)
+			thresholdSecondsDelay = clamp(MIN_THRESHOLD_DELAY, (SECONDS_TO_MAX - startTime) / maxThreshold, MAX_THRESHOLD_DELAY)
 		end
 		thresholdDelayTimestamp = min(seconds + thresholdSecondsDelay, thresholdDelayTimestamp)
 	end
