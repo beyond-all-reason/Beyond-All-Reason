@@ -2,7 +2,7 @@
 
 #include "../recoil_common_includes.h"
 
-//#define DEBUG
+#define DEBUG
 #include "../debug.h"
 
 piece
@@ -75,6 +75,7 @@ static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, i
 #define SIG_AIM_GUN			16
 #define SIG_FIRE_BUNKER		32
 #define SIG_FIRE_GUN		64
+#define SIGNAL_RESTORE		128
 
 #define UNITSIZE 			8
 #define MAXTILT				100
@@ -154,6 +155,13 @@ Create(){
 	start-script Steering();
 
 	//Booting up!
+	
+	turn aimxarml to x-axis <0.000000> now;
+	turn aimyarml to y-axis <0.000000> now;
+	turn aimxarmr to x-axis <0.000000> now;
+	turn aimyarmr to y-axis <0.000000> now;
+	turn aimyarmr to z-axis <0.000000> now;	
+	
 	spin fingers around z-axis speed <360> accelerate <6>;}
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -172,7 +180,7 @@ Create(){
 #define CATT1_PRECISION <3>
 //#define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
-#define CATT1_RESTORE_SPEED 2
+#define CATT1_RESTORE_SPEED <2>
 
 //CATT2 as Railgun
 #define CATT2_PIECE_X aimxarmr
@@ -184,7 +192,7 @@ Create(){
 #define CATT2_PRECISION <3>
 //#define CATT2_PITCH_SPEED <85>
 #define CATT2_RESTORE_DELAY 3000
-#define CATT2_RESTORE_SPEED 2
+#define CATT2_RESTORE_SPEED <2>
 
 #define HAS_STUN
 //#define CATT2_DEBUG
@@ -234,6 +242,7 @@ QueryWeapon2(piecenum)
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;
+	set-signal-mask SIG_AIM_TC;
 	var cauaim;
     var cauface;
 	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
@@ -343,8 +352,9 @@ AimWeapon2(heading, pitch)
 		return (0);
 	}
 	signal SIG_AIM_BUNKER;
-	start-script ResetWeapon();
 	set-signal-mask SIG_AIM_BUNKER;
+	isAiming = TRUE;
+	
 	turn piledriver to x-axis <0> - pitch/2 speed <30>;
 	oldHeadingBunker = heading;
 	if (new_heading < 0) {
@@ -352,8 +362,8 @@ AimWeapon2(heading, pitch)
 	} else {
 		call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
 	}
+	//start-script ResetWeapon();
 	start-script RestoreAfterDelay();
-	isAiming = TRUE;
 	return(1);
 }
 
@@ -382,10 +392,11 @@ AimWeapon3(heading, pitch) {
 	var new_heading;
 	new_heading = heading - torsofunkyHeading;
 	if (ANGLE_DIFFERENCE_GREATER_THAN(new_heading,<135>)) {
-		return (0); //TODO: Tell cobbs about this. This block makes sure to only attack things within a sane angle compared to the torso!
+		return (0);
 	}
 	signal SIG_AIM_GUN;
 	set-signal-mask SIG_AIM_GUN;
+	isAiming = TRUE;
 	
 	//turn railgun to x-axis <0> speed <30>;
 	oldHeadingRailgun = heading;
@@ -397,7 +408,6 @@ AimWeapon3(heading, pitch) {
 	} else {
 		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
 	}
-	isAiming = TRUE;
 	start-script RestoreAfterDelay();
 	return(1);}
 
@@ -446,17 +456,18 @@ Recoil_Bunker() {
 //When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
 ResetWeapon() {
 	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
-	sleep CATT1_RESTORE_DELAY;
 	signal SIG_AIM_BUNKER;
+	sleep CATT1_RESTORE_DELAY;
 	oldHeadingBunker = 0;
 	turn aimxarml to x-axis <0.000000> speed <60.000000>;
-	turn aimyarml to y-axis <0.000000> speed <60.000000>;}
+	turn aimyarml to y-axis <0.000000> speed <60.000000>;
+	wait-for-turn aimyarml around y-axis;
+	wait-for-turn aimxarml around x-axis;
+	}
+
 
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_AIM_TC;
-	set-signal-mask SIG_AIM_BUNKER;
-	set-signal-mask SIG_AIM_GUN;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();}
 
@@ -464,33 +475,27 @@ ExecuteRestoreAfterDelay() {
     if (stunned) {
         return (1);
     }
-	signal SIG_AIM_BUNKER;
-	signal SIG_AIM_GUN;
-
-	turn aimy1 to y-axis <0.000000> speed <60.000000>;
-	turn aimxarml to x-axis <0.000000> speed <60.000000>;
-	turn aimyarml to y-axis <0.000000> speed <60.000000>;
-	turn aimxarmr to x-axis <0.000000> speed <60.000000>;
-	turn aimyarmr to y-axis <0.000000> speed <60.000000>;
-	turn CATT2_PIECE_Y to z-axis <0.000000> speed <60.000000>;
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
 	
-
+	isAiming = FALSE;
+	turn aimy1 to y-axis <0.000000> speed <60.000000>;
+	//turn aimxarml to x-axis <0.000000> speed <60.000000>;
+	//turn aimyarml to y-axis <0.000000> speed <60.000000>;
+	//turn aimxarmr to x-axis <0.000000> speed <60.000000>;
+	//turn aimyarmr to y-axis <0.000000> speed <60.000000>;
+	turn aimyarmr to z-axis <0.000000> speed <60.000000>;
 	turn piledriver to x-axis <25> speed <60.000000>;
 	turn railgun to x-axis <25> speed <60.000000>;
-
-	call-script Retract_bunker();
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimxarml around x-axis;
-	wait-for-turn aimyarml around y-axis;
-	wait-for-turn aimxarmr around x-axis;
-	wait-for-turn aimyarmr around y-axis;
-
-	isAiming = FALSE;
-
+	
+	start-script CATT1_Restore();
+	start-script CATT2_Restore();
+	start-script Retract_bunker();
+	
 	oldHeadingBunker = 0;
 	oldHeadingRailgun = 0;
 
-	oldHeadingTS = 0xbadface;}
+	oldHeadingTS = 0;}
 
 FireBunkerExhausts(){
 	emit-sfx 1024 + 0 from flaresmoke1;
@@ -498,8 +503,6 @@ FireBunkerExhausts(){
 	return (1);}
 
 FireGunExhausts() {
-	//TODO: Make these alternate, or sequential, or something.
-
 	if(fuelSaver){
 		emit-sfx 1024 + 0 from flaresmokegun1;
 		emit-sfx 1024 + 0 from flaresmokegun3;
@@ -574,7 +577,7 @@ Killed(severity, corpsetype) {
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}}

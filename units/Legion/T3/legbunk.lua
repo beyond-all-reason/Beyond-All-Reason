@@ -111,7 +111,7 @@ return {
 			aimhull = { --Stolen from legeheatraymech.lua
 				areaofeffect = 4,
 				avoidfeature = false,
-				canattackground = false,
+				canattackground = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -176,7 +176,7 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = true,
-				canattackground = false,
+				canattackground = true,
 				cegtag = "railgun",
 				collisionSize = 0.667,
 				craterareaofeffect = 0,
