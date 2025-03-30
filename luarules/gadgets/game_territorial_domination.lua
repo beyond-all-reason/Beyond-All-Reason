@@ -12,7 +12,6 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- exponential growth early game is too slow, late game is plenty fast. ideally first tick after grace followed by steady then exponential growth
 
 -- warning sounds
 
@@ -71,12 +70,11 @@ if SYNCED then
 	local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 	local MIN_THRESHOLD_DELAY = 1
 
-	-- Constants for rules parameters
 	local SCORE_RULES_KEY = "territorialDominationScore"
 	local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 	local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 	local GRACE_PERIOD_KEY = "territorialDominationGracePeriod"
-	--localized functions
+
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
@@ -102,7 +100,6 @@ if SYNCED then
 	local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 	local SendToUnsynced = SendToUnsynced
 
-	--variables
 	local gaiaTeamID = spGetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 	local teams = spGetTeamList()
@@ -117,7 +114,6 @@ if SYNCED then
 	local maxThreshold = 0
 	local freezeThresholdTimer = 0
 
-	--tables
 	local allyTeamsWatch = {}
 	local hordeModeTeams = {}
 	local hordeModeAllies = {}
@@ -127,11 +123,10 @@ if SYNCED then
 	local killQueue = {}
 	local commandersDefs = {}
 	local allyTallies = {}
-	local randomizedGridIDs = {} -- Pre-allocate for reuse
+	local randomizedGridIDs = {}
 	local flyingUnits = {}
 
-	--start-up
-	for _, teamID in ipairs(teams) do --first figure out which teams are exempt
+	for _, teamID in ipairs(teams) do
 		local luaAI = spGetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
 			if string.sub(luaAI, 1, 12) == 'ScavengersAI' then
@@ -142,7 +137,7 @@ if SYNCED then
 		end
 	end
 
-	local function getTargetThreshold() -- linear progression kills players too quickly
+	local function getTargetThreshold()
 		local seconds = spGetGameSeconds()
 		local minFactor = 0.2
 		local maxFactor = 1
@@ -179,7 +174,6 @@ if SYNCED then
 		local allyHordesCount = 0
 		local allyTeamsCount = 0
 
-		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
 			if teamID ~= gaiaTeamID then
 				local _, _, isDead, _, _, allyTeam = spGetTeamInfo(teamID)
@@ -204,7 +198,7 @@ if SYNCED then
 		end
 		
 		local oldAllyCount = allyCount
-		allyCount = allyTeamsCount + allyHordesCount --something about flipping from old to new causes things to break
+		allyCount = allyTeamsCount + allyHordesCount
 
 		if allyCount ~= oldAllyCount then
 			freezeThresholdTimer = spGetGameSeconds() + FREEZE_DELAY_SECONDS
@@ -728,9 +722,7 @@ if SYNCED then
 	end
 
 else
---unsynced code
 
--- Include necessary files
 local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
@@ -739,27 +731,22 @@ local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMini
 
 local UNSYNCED_DEBUG_MODE = false
 
---constants
-local SQUARE_SIZE = 1024  -- Match GRID_SIZE from synced part
+local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
 local SQUARE_HEIGHT = 20
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
-local MAX_CAPTURE_CHANGE = 0.12 -- to prevent super fast capture expansions that look bad
+local MAX_CAPTURE_CHANGE = 0.12
 
---tables
 local captureGrid = {}
 
---team stuff
 local myAllyID = Spring.GetMyAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local teams = Spring.GetTeamList()
 
---colors
-local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
-local enemyColor = {1, 0, 0, SQUARE_ALPHA} -- red for enemy
-local alliedColor = {0, 1, 0, SQUARE_ALPHA} -- green for ally
+local blankColor = {0.5, 0.5, 0.5, 0.0}
+local enemyColor = {1, 0, 0, SQUARE_ALPHA}
+local alliedColor = {0, 1, 0, SQUARE_ALPHA}
 
--- Add spectator detection
 local amSpectating = Spring.GetSpectatingState()
 
 local allyColors = {}
@@ -782,8 +769,6 @@ local planeLayout = {
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
-local random = math.random
-local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local squareVBO = nil
 local squareVAO = nil
@@ -864,7 +849,6 @@ void main() {
 }
 ]]
 
--- Fragment shader source
 local fragmentShaderSource = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
@@ -999,11 +983,9 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 	
 	for x = 0, xresolution do
 		for y = 0, yresolution do
-			-- Calculate normalized position [-1 to 1]
 			local xPos = xsize * ((x / xresolution) - 0.5) * 2
 			local yPos = ysize * ((y / yresolution) - 0.5) * 2
 			
-			-- Add vertex with position and placeholder values
 			vertexData[#vertexData + 1] = xPos  -- x
 			vertexData[#vertexData + 1] = yPos  -- y (used as z in the shader)
 			vertexData[#vertexData + 1] = 0     -- z (unused)
@@ -1013,7 +995,6 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 		end
 	end
 	
-	-- Create index data for triangles
 	local indexData = {}
 	local colSize = yresolution + 1
 	
@@ -1033,18 +1014,15 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 		end
 	end
 	
-	-- Define and upload vertex data
 	squareVBO:Define((xresolution + 1) * (yresolution + 1), VBOLayout)
 	squareVBO:Upload(vertexData)
 	
-	-- Create index buffer
 	local squareIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 	if squareIndexVBO == nil then 
 		squareVBO:Delete()
 		return nil 
 	end
 	
-	-- Define and upload index data
 	squareIndexVBO:Define(#indexData)
 	squareIndexVBO:Upload(indexData)
 	
@@ -1083,26 +1061,21 @@ function gadget:Initialize()
 		return
 	end
     
-    -- Update spectating state and own ally ID needed for visibility checks
     amSpectating = Spring.GetSpectatingState()
     myAllyID = Spring.GetMyAllyTeamID()
-    -- Widget handles its own initialization
 end
 
 local wasSpectating = false
 local previousAllyID = nil
 
--- Helper function that ONLY determines if a square is visible to the local player
 local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBitmask)
     if amSpectating or newAllyOwnerID == myAllyID then
         return true, false
     end
 
-    -- Otherwise, check the visibility bitmask for LOS/radar
     local allyTeamBit = 2 ^ myAllyID
     local isCurrentlyVisible = (visibilityBitmask / allyTeamBit) % 2 >= 1
     
-    -- Only reset color if the square was owned by player and is now owned by someone else
     local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
     
     return isCurrentlyVisible, shouldResetColor
@@ -1111,8 +1084,7 @@ end
 function gadget:RecvFromSynced(messageName, ...)
     if messageName == "InitializeGridSquare" then
         local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
-        -- Need to ensure myAllyID is available here, it should be from Initialize or Update
-        local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask) -- Initial visibility check
+        local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
         captureGrid[gridID] = {
             visibilityBitmask = visibilityBitmask,
             allyOwnerID = allyOwnerID,
@@ -1122,7 +1094,7 @@ function gadget:RecvFromSynced(messageName, ...)
             gridMidpointX = gridMidpointX,
             gridMidpointZ = gridMidpointZ,
             isVisible = isVisible,
-            currentColor = blankColor -- Start as blank
+            currentColor = blankColor
         }
         
     elseif messageName == "InitializeConfigs" then
@@ -1147,13 +1119,10 @@ function gadget:RecvFromSynced(messageName, ...)
             local resetColor = false
             gridData.isVisible, resetColor = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
             if resetColor then
-                gridData.currentColor = blankColor -- Reset color immediately if player lost ownership and LOS
+                gridData.currentColor = blankColor
             end
         end
         
-    elseif messageName == "UpdateAllyScore" then
-        -- Keep for backward compatibility, but no processing needed
-        -- Score is now handled by the widget reading from rules params
     end
 end
 
@@ -1161,16 +1130,14 @@ function gadget:Update()
     local currentFrame = Spring.GetGameFrame()
     
     if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
-        -- Update player status needed for visibility checks
         local currentSpectating = Spring.GetSpectatingState()
         local currentAllyID = Spring.GetMyAllyTeamID()
 
-        -- If player status changed, re-evaluate visibility for all squares
         local playerStatusChanged = false
         if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
             playerStatusChanged = true
-            amSpectating = currentSpectating -- Update cached state
-            myAllyID = currentAllyID         -- Update cached state
+            amSpectating = currentSpectating
+            myAllyID = currentAllyID
             
             for gridID, gridSquareData in pairs(captureGrid) do
                 local resetColor = false
@@ -1180,7 +1147,6 @@ function gadget:Update()
                 end
             end
         end
-        -- Update tracking variables only after comparison
         wasSpectating = amSpectating
         previousAllyID = myAllyID
         
@@ -1188,16 +1154,12 @@ function gadget:Update()
             local gridData = captureGrid[gridID]
             
             if gridData.isVisible then
-                -- Update color only if visible
                 if gridData.allyOwnerID == gaiaAllyTeamID then
                     gridData.currentColor = blankColor
                 elseif amSpectating then
-                    -- Use team colors for spectators based on owner
-                    -- Ensure allyColors[gaiaAllyTeamID] is blankColor
-                    allyColors[gaiaAllyTeamID] = blankColor -- safety check
-                    gridData.currentColor = allyColors[gridData.allyOwnerID] or blankColor -- Use blank if owner color somehow missing
+                    allyColors[gaiaAllyTeamID] = blankColor
+                    gridData.currentColor = allyColors[gridData.allyOwnerID] or blankColor
                 else
-                    -- Use allied/enemy colors for players
                     if gridData.allyOwnerID == myAllyID then
                         gridData.currentColor = alliedColor
                     else
@@ -1205,14 +1167,11 @@ function gadget:Update()
                     end
                 end
             elseif not gridData.isVisible and gridData.allyOwnerID ~= myAllyID then
-                -- If not visible and not owned by me, ensure it's blank
-                -- This handles the case where a square becomes hidden but wasn't reset by getSquareVisibility
                 gridData.currentColor = blankColor
             end
             
             local captureChangePerFrame = 0
             if gridData.captureChange then
-                -- Calculate change per frame based on the update interval
                 captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
             end
 
@@ -1222,7 +1181,7 @@ function gadget:Update()
                 gridData.currentColor,
                 {captureChangePerFrame, gridData.oldProgress, currentFrame, 0.0}
             )
-            gridData.captureChange = nil -- Clear the change after processing for VBO update
+            gridData.captureChange = nil
         end
         
         uploadAllElements(instanceVBO)
@@ -1230,7 +1189,6 @@ function gadget:Update()
     end
 end
 
--- Draw the square in world view
 function gadget:DrawWorldPreUnit()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 	
