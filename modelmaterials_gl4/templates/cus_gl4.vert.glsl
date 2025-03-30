@@ -5,7 +5,7 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+layout (location = 5) in uvec3 bonesInfo; //boneIDs, boneWeights, boneIDsHigh
 #define pieceIndex (bonesInfo.x & 0x000000FFu)
 
 layout (location = 6) in uvec4 instData;
@@ -14,6 +14,7 @@ layout (location = 6) in uvec4 instData;
 // u32 uniOffset
 // u32 {teamIdx, drawFlag, unused, unused}
 // u32 unused
+
 #ifndef USEQUATERNIONS
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
 		mat4 mat[];
@@ -385,154 +386,168 @@ void DoWindVertexMove(inout vec4 mVP) {
 	//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 }
 
+
+
+uint GetUnpackedValue(uint packedValue, uint byteNum) {
+	return (packedValue >> (8u * byteNum)) & 0xFFu;
+}
+// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
 // There are multiple switches:
 // Skinning or not (defined by USESKINNING)
 // Quaternions or not (defined by USEQUATERNIONS)
 // SLERPQUATERNIONS or not (defined by SLERPQUATERNIONS)
 // STATICMODEL or not (defined by STATICMODEL)
 
-
-#ifdef USESKINNING
-	uint GetUnpackedValue(uint packedValue, uint byteNum) {
-		return (packedValue >> (8u * byteNum)) & 0xFFu;
-	}
-	// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
-
-	// The only difference is that displacedPos is passed in, and we always assume staticModel = false
-	void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
-	{
-
+// The only difference is that displacedPos is passed in, and we always assume staticModel = false
+void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal, in vec3 safeTangent, out vec3 msTangent, in vec3 safeBitangent, out vec3 msBitangent)
+{
+	#ifdef STATICMODEL
+		bool staticModel = true;// (matrixMode > 0);
+	#else
 		bool staticModel = false;// (matrixMode > 0);
+	#endif
 
-		vec4 piecePos = vec4(displacedPos, 1.0);
+	vec4 piecePos = vec4(displacedPos, 1.0);
 
-		vec4 weights = vec4(
-			float(GetUnpackedValue(bonesInfo.y, 0u)) / 255.0,
+	vec4 weights = vec4(
+		float(GetUnpackedValue(bonesInfo.y, 0u)) / 255.0,0,0,0
+	);
+
+	uint bID0 = GetUnpackedValue(bonesInfo.x, 0u); //first boneID
+
+	#ifndef USEQUATERNIONS
+		mat4 b0BoneMat = mat[instData.x + bID0 + uint(!staticModel)];
+		mat3 b0NormMat = mat3(b0BoneMat);
+
+		weights[0] *= b0BoneMat[3][3];
+
+		msPosition = b0BoneMat * piecePos;
+		msNormal   = b0NormMat * normal;
+		msTangent  = b0NormMat * safeTangent;
+		msBitangent= b0NormMat * safeBitangent;
+	#else
+		Transform tx;
+		if (staticModel) {
+			tx = transforms[instData.x + bID0];
+		} else {
+			// do interpolation
+			#ifdef SLERPQUATERNIONS
+				tx = SLerp(
+					transforms[instData.x + 2u * (1u + bID0) + 0u],
+					transforms[instData.x + 2u * (1u + bID0) + 1u],
+					timeInfo.w
+				);
+			#else
+				tx = Lerp(
+					transforms[instData.x + 2u * (1u + bID0) + 0u],
+					transforms[instData.x + 2u * (1u + bID0) + 1u],
+					timeInfo.w
+				);
+			#endif
+		}
+
+		weights[0] *= float(tx.trSc.w > 0.0);
+		msPosition = ApplyTransform(tx, piecePos);
+
+		msNormal    = RotateByQuaternion(tx.quat, normal);
+		msTangent   = RotateByQuaternion(tx.quat, safeTangent);
+		msBitangent = RotateByQuaternion(tx.quat, safeBitangent);
+	#endif
+	// Without skinning, we can bail quite early here, as we dont need to check all the other bones and weights
+	#ifdef USESKINNING
+		if (staticModel || weights[0] == 1.0)
+			return;
+		weights.yzw = vec3(
 			float(GetUnpackedValue(bonesInfo.y, 1u)) / 255.0,
 			float(GetUnpackedValue(bonesInfo.y, 2u)) / 255.0,
 			float(GetUnpackedValue(bonesInfo.y, 3u)) / 255.0
 		);
 
-		uint bID0 = GetUnpackedValue(bonesInfo.x, 0u); //first boneID
+		float wSum = 0.0;
 
+		msPosition *= weights[0];
+		msNormal   *= weights[0];
+		msTangent  *= weights[0];
+		msBitangent*= weights[0];
+		wSum       += weights[0];
+
+		// Old matrix path
 		#ifndef USEQUATERNIONS
-			mat4 b0BoneMat = mat[instData.x + bID0 + uint(!staticModel)];
-			mat3 b0NormMat = mat3(b0BoneMat);
 
-			weights[0] *= b0BoneMat[3][3];
+			uint numPieces = GetUnpackedValue(instData.z, 3);
+			mat4 bposeMat    = mat[instData.w + bID0];
 
-			msPosition = b0BoneMat * piecePos;
-			msNormal   = b0NormMat * normal;
-		#else
-			Transform tx;
-			if (staticModel) {
-				tx = transforms[instData.x + bID0];
-			} else {
-				// do interpolation
-				#ifdef SLERPQUATERNIONS
-					tx = SLerp(
-						transforms[instData.x + 2u * (1u + bID0) + 0u],
-						transforms[instData.x + 2u * (1u + bID0) + 1u],
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi);
+
+				if (bID == 0xFFu || weights[bi] == 0.0)
+					continue;
+
+				mat4 bposeInvMat = mat[instData.w + numPieces + bID];
+				mat4 boneMat     = mat[instData.x +        1u + bID];
+
+				weights[bi] *= boneMat[3][3];
+
+				mat4 skinMat = boneMat * bposeInvMat * bposeMat;
+				mat3 normMat = mat3(skinMat);
+
+				msPosition += skinMat * piecePos * weights[bi];
+				msNormal   += normMat * normal   * weights[bi];
+				msTangent  += normMat * safeTangent   * weights[bi];
+				msBitangent+= normMat * safeBitangent   * weights[bi];
+				wSum       += weights[bi];
+			}
+		#else // New quaternion path
+			Transform bposeTra = transforms[instData.w + bID0];
+
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi) + (GetUnpackedValue(bonesInfo.z, bi) << 8u);
+
+				if (bID == 0xFFFFu || weights[bi] == 0.0)
+					continue;
+
+				Transform bposeInvTra = InvertTransformAffine(transforms[instData.w + bID]);
+
+				#ifndef SLERPQUATERNIONS
+					Transform boneTx = Lerp(
+						transforms[instData.x + 2u * (1u + bID) + 0u],
+						transforms[instData.x + 2u * (1u + bID) + 1u],
 						timeInfo.w
 					);
 				#else
-					tx = Lerp(
-						transforms[instData.x + 2u * (1u + bID0) + 0u],
-						transforms[instData.x + 2u * (1u + bID0) + 1u],
+					Transform boneTx = SLerp(
+						transforms[instData.x + 2u * (1u + bID) + 0u],
+						transforms[instData.x + 2u * (1u + bID) + 1u],
 						timeInfo.w
 					);
 				#endif
-				//tx = transforms[instData.x + 2u * (1u + bID0) + 1u];
+
+				weights[bi] *= float(boneTx.trSc.w > 0.0);
+
+				// emulate boneTx * bposeInvTra * bposeTra * piecePos
+				vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
+
+				tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
+
+				// emulate boneTx * bposeInvTra * bposeTra * normal
+				vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
+				vec3 txPieceTangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeTangent);
+				vec3 txPieceBitangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeBitangent);
+
+				msPosition += txPiecePos    * weights[bi];
+				msNormal   += txPieceNormal * weights[bi];
+				msTangent  += txPieceTangent * weights[bi];
+				msBitangent+= txPieceBitangent * weights[bi];
+				wSum       += weights[bi];
 			}
-
-			weights[0] *= float(tx.trSc.w > 0.0);
-			msPosition = ApplyTransform(tx, piecePos);
-			tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
-			msNormal = ApplyTransform(tx, normal);
 		#endif
-		// Without skinning, we can bail quite early here, as we dont need to check all the other bones and weights
-		#if USESKINNING
-			if (staticModel || weights[0] == 1.0)
-				return;
 
-			float wSum = 0.0;
-
-			msPosition *= weights[0];
-			msNormal   *= weights[0];
-			wSum       += weights[0];
-
-			#ifndef USEQUATERNIONS
-					//mat4 bposeMat = mat[instData.w + b0]; // this is the non-quat way of getting it
-
-				uint numPieces = GetUnpackedValue(instData.z, 3);
-				mat4 bposeMat    = mat[instData.w + b0];
-
-				// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
-				for (uint bi = 1; bi < 3; ++bi) {
-					uint bID = GetUnpackedValue(bonesInfo.x, bi);
-
-					if (bID == 0xFFu || weights[bi] == 0.0)
-						continue;
-
-					mat4 bposeInvMat = mat[instData.w + numPieces + bID];
-					mat4 boneMat     = mat[instData.x +        1u + bID];
-
-					weights[bi] *= boneMat[3][3];
-
-					mat4 skinMat = boneMat * bposeInvMat * bposeMat;
-					mat3 normMat = mat3(skinMat);
-
-					msPosition += skinMat * piecePos * weights[bi];
-					msNormal   += normMat * normal   * weights[bi];
-					wSum       += weights[bi];
-				}
-			#else
-				Transform bposeTra = transforms[instData.w + bID0];
-
-				// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
-				for (uint bi = 1; bi < 3; ++bi) {
-					uint bID = GetUnpackedValue(bonesInfo.x, bi) + (GetUnpackedValue(bonesInfo.z, bi) << 8u);
-
-					if (bID == 0xFFFFu || weights[bi] == 0.0)
-						continue;
-
-					Transform bposeInvTra = InvertTransformAffine(transforms[instData.w + bID]);
-
-					#ifndef SLERPQUATERNIONS
-						Transform boneTx = Lerp(
-							transforms[instData.x + 2u * (1u + bID) + 0u],
-							transforms[instData.x + 2u * (1u + bID) + 1u],
-							timeInfo.w
-						);
-					#else
-						Transform boneTx = SLerp(
-							transforms[instData.x + 2u * (1u + bID) + 0u],
-							transforms[instData.x + 2u * (1u + bID) + 1u],
-							timeInfo.w
-						);
-					#endif
-
-					weights[bi] *= float(boneTx.trSc.w > 0.0);
-
-					// emulate boneTx * bposeInvTra * bposeTra * piecePos
-					vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
-
-					tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
-
-					// emulate boneTx * bposeInvTra * bposeTra * normal
-					vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
-
-					msPosition += txPiecePos    * weights[bi];
-					msNormal   += txPieceNormal * weights[bi];
-					wSum       += weights[bi];
-				}
-			#endif
-
-			msPosition /= wSum;
-			msNormal   /= wSum;
-		#endif
-	}
-#endif
+		msPosition /= wSum;
+		msNormal   /= wSum;
+	#endif
+}
 
 mat4 rotationMatrix(vec3 rot) {
 	float c1 = cos(rot.x);
@@ -621,17 +636,50 @@ void main(void)
 		}
 	}
 	#endif
-	
-	// pieceMatrix looks up the model-space transform matrix for unit being drawn
-	mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
-	// Then it places it in the world
-	mat4 worldMatrix = mat[instData.x];
-	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
-	mat3 normalMatrix = mat3(worldPieceMatrix);
 
-	vec4 modelPos; // model-space positision
-	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
-	vec4 worldPos = worldMatrix * modelPos;
+	vec4 modelPos = vec4(pos, 1.0); // model-space position	
+
+	//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
+	vec3 safeT = T; // already defined REM
+	vec3 safeB = B; // already defined REM
+	if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
+		safeT = vec3(1.0, 0.0, 0.0);
+		safeB = vec3(0.0, 0.0, 1.0);
+	}
+
+	vec3 modelSpaceTangent;
+	vec3 modelSpaceBitangent;
+	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
+
+	#ifdef USEQUATERNIONS
+		Transform modelToWorldTX = Lerp(
+			transforms[instData.x + 0u],
+			transforms[instData.x + 1u],
+			timeInfo.w
+		);
+		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
+
+		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
+		worldTangent   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
+		worldBitangent = RotateByQuaternion(modelToWorldTX.quat, modelSpaceBitangent);
+		worldNormal    = RotateByQuaternion(modelToWorldTX.quat, modelVertexNormal);
+	#else
+		// pieceMatrix looks up the model-space transform matrix for unit being drawn
+		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+		// Then it places it in the world
+		mat4 worldMatrix = mat[instData.x];
+		vec4 worldPos = worldMatrix * modelPos;
+
+		// Calculate Normals:
+		// tangent --> world space transformation (for vectors)
+		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+		mat3 normalMatrix = mat3(worldPieceMatrix);
+		worldTangent   = normalMatrix * modelSpaceTangent;
+		worldBitangent = normalMatrix * modelSpaceBitangent;
+		worldNormal    = normalMatrix * normal; 
+	#endif
+
+
 
 	//worldPos.x += 64; // for dem debuggins
 	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
@@ -731,19 +779,6 @@ void main(void)
 			shadowVertexPos.xy += vec2(0.5);  //no need for shadowParams anymore
 			//shadowVertexPos = shadowProj * shadowVertexPos;
 		//}
-
-		// Calculate Normals:
-		//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
-		vec3 safeT = T; // already defined REM
-		vec3 safeB = B; // already defined REM
-		if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
-			safeT = vec3(1.0, 0.0, 0.0);
-			safeB = vec3(0.0, 0.0, 1.0);
-		}
-		// tangent --> world space transformation (for vectors)
-		worldTangent = normalMatrix * safeT;
-		worldBitangent = normalMatrix * safeB;
-		worldNormal = normalMatrix * modelVertexNormal;
 
 		if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
 			//aoTerm = clamp(1.0 * fract(uv.x * 16384.0), shadowDensity.y, 1.0);
