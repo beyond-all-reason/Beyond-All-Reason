@@ -1322,6 +1322,7 @@ void main(void){
 		//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 		//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 		//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
+		//fragData[0] = vec4(vec3(worldTBN[2]), 1.0); //debug TBN
 		#ifdef HASALPHASHADOWS
 			if (texColor2.a < 0.5) discard;
 		#endif
