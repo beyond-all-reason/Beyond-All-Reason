@@ -33,6 +33,7 @@ PixalatedDoom:
 https://www.youtube.com/@pixalateddoom5061
 
 JaplinSeven:
+https://www.japlinseven.com/
 https://www.youtube.com/@japlinseven
 
 Check license_music.txt in the root of this project for more information.
