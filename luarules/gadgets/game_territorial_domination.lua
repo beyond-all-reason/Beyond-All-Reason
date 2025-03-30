@@ -12,12 +12,8 @@ function gadget:GetInfo()
 end
 
 -- TODO:
-
 -- warning sounds
--- when enemies are capturing a square, don't delay decay because they're in the same direction. instead, check if the square is occupied to prevent decay so decay can immediately take over after they leave it
-
 -- code cleanup
--- need to do the modoptions
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -550,12 +546,9 @@ if SYNCED then
 
 	
 	local function updateTeamRulesScores()
-		-- Set global threshold for all teams to access
 		Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
 		
-		-- Set team-specific scores
 		for allyID, tally in pairs(allyTallies) do
-			-- Find all teams in this ally team and set their score
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, tally)
 			end
@@ -654,7 +647,7 @@ if SYNCED then
 				if not captureGrid[randomizedIDs[i]].contested then
 					local gridID = randomizedIDs[i]
 					local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-					if contiguousAllyID then --zzz unverified that it's working, 
+					if contiguousAllyID then
 						addProgress(gridID, progressChange, contiguousAllyID, true)
 					end
 				end
