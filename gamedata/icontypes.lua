@@ -2220,7 +2220,7 @@ local icontypes = {
 		size = 1.46999991
 	},
 	legbunk = {
-		bitmap = "icons/legpilum.png",
+		bitmap = "icons/legbunk.png",
 		size = 1.83749986
 	},
 	leegmech = {
