@@ -46,7 +46,7 @@ end
 	-- this usually additively blends with a 'flat' (usually team) color
 
   -- NO REFLECTIONS, REFRACTIONS ET AL
-
+-- NOTE: DYNAMIC MODELS ARE UNSUPPORTED WITH QUATERNIONS!!!
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
 
 
@@ -62,11 +62,13 @@ local unitShader, unitShapeShader
 local unitShaderConfig = {
 	STATICMODEL = 0.0, -- do not touch!
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local unitShapeShaderConfig = {
 	STATICMODEL = 1.0, -- do not touch!
 	TRANSPARENCY = 0.5,
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local vsSrc = [[
@@ -95,21 +97,21 @@ layout (location = 9) in uvec4 instData;
 uniform float iconDistance;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-layout(std140, binding = 2) uniform FixedStateMatrices {
-	mat4 modelViewMat;
-	mat4 projectionMat;
-	mat4 textureMat;
-	mat4 modelViewProjectionMat;
-};
-#line 15000
-//layout(std140, binding=0) readonly buffer MatrixBuffer {
-layout(std140, binding=0) buffer MatrixBuffer {
-	mat4 mat[];
-};
 
-mat4 GetPieceMatrix(bool staticModel) {
-    return mat[instData.x + pieceIndex + uint(!staticModel)];
-}
+#line 15000
+
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) buffer MatrixBuffer {
+		mat4 mat[];
+	};
+	mat4 GetPieceMatrix(bool staticModel) {
+    	return mat[instData.x + pieceIndex + uint(!staticModel)];
+	}
+#else
+	//__QUATERNIONDEFS__
+#endif
+
+
 
 //enum DrawFlags : uint8_t {
 //    SO_NODRAW_FLAG = 0, // must be 0
@@ -132,22 +134,33 @@ out vec3 worldPos;
 
 void main() {
 	uint baseIndex = instData.x;
+	// parameters.y is always 1 (as we only use this lib for static models)
 
 	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	mat4 modelMatrix = mat[baseIndex];
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
-	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
-	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+	#if USEQUATERNIONS == 0
+		mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
+		vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+	#else
+		Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex );
+		vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
+	#endif
 
 	// Make the rotation matrix around Y and rotate the model
 	mat3 rotY = rotation3dY(worldposrot.w);
 	localModelPos.xyz = rotY * localModelPos.xyz;
 
 	vec4 worldModelPos = localModelPos;
-	if (parameters.y < 0.5) worldModelPos = modelMatrix*localModelPos;
+	// Dynamic model:
+	#if USEQUATERNIONS == 0
+		if (parameters.y < 0.5) {
+			mat4 modelMatrix = mat[baseIndex];
+			worldModelPos = modelMatrix*localModelPos;
+		}
+	#endif
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -156,7 +169,7 @@ void main() {
 
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
 
-	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
+	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (worldposrot.xyz);
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
 		if (isDynamic == 1u) { // Only hide dynamic units when zoomed out
 			myTeamColor.a = 0.0; // do something if we are far out?
@@ -507,7 +520,9 @@ function widget:Initialize()
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	vsSrc = vsSrc:gsub("//__QUATERNIONDEFS__", LuaShader.GetQuaternionDefs())
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__QUATERNIONDEFS__", LuaShader.GetQuaternionDefs())
 
 	unitShader = LuaShader({
 		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShaderConfig)),
