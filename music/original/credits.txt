@@ -36,7 +36,7 @@ JaplinSeven:
 https://www.japlinseven.com/
 https://www.youtube.com/@japlinseven
 
-Hunter of Night
+Hunter of Light
 https://soundcloud.com/jan-smith-6
 
 Check license_music.txt in the root of this project for more information.
