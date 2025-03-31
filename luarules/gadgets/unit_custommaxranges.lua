@@ -6,6 +6,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Controls Unit's maxrange",

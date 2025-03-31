@@ -3,6 +3,8 @@
 --https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
 
 --------------------------------------------OLD AIRJETS---------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Airjets GL4",

@@ -12,6 +12,8 @@ if not spawnpadSpawnEnabled then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "commander builder spawn",
