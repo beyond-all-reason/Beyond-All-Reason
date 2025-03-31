@@ -187,7 +187,7 @@ if gadgetHandler:IsSyncedCode() then
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
-	local gaiaTeamID = GetGaiaTeamID() --??
+	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
 		scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
