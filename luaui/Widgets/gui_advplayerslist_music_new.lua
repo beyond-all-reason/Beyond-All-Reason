@@ -33,6 +33,7 @@ local warHighLevel = 32500
 local warMeterResetTime = 40 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 60 -- seconds
+local songsSinceEvent = 0
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -1083,25 +1084,28 @@ function PlayNewTrack(paused)
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
-		if #eventWarHighTracks > 0 and math.random() <= 0.25 and currentTrackListString ~= "eventWarHigh" then
+		if #eventWarHighTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
 			currentTrackList = eventWarHighTracks
 			currentTrackListString = "eventWarHigh"
+			songsSinceEvent = 0
 		else
 			currentTrackList = warhighTracks
 			currentTrackListString = "warHigh"
 		end
 	elseif warMeter >= warLowLevel then
-		if #eventWarLowTracks > 0 and math.random() <= 0.25 and currentTrackListString ~= "eventWarLow" then
+		if #eventWarLowTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
+			songsSinceEvent = 0
 		else
 			currentTrackList = warlowTracks
 			currentTrackListString = "warLow"
 		end
 	else
-		if #eventPeaceTracks > 0 and math.random() <= 0.25 and currentTrackListString ~= "eventPeace" then
+		if #eventPeaceTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
+			songsSinceEvent = 0
 		else
 			currentTrackList = peaceTracks
 			currentTrackListString = "peace"
@@ -1184,6 +1188,7 @@ function PlayNewTrack(paused)
 			interruptionTime = 999999
 		else
 			interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+			songsSinceEvent = songsSinceEvent + 1
 		end
 
 		if fadeDirection then
