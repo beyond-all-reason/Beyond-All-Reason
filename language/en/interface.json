@@ -132,7 +132,8 @@
 			"warlow": "Conflict",
 			"warhigh": "War",
 			"bossfight": "Boss fight",
-			"gameover": "Game over"
+			"gameover": "Game over",
+			"bonus": "Bonus"
 		},
 		"playerTV": {
 			"playerTV": "TV",
