@@ -283,6 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Mace",
 		"Marauder",
 		"Mauser",
+		"MVPete",
 		"Oracle",
 		"Paladin",
 		"Pawn",
