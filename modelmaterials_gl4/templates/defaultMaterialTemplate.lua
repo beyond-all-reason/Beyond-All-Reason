@@ -31,7 +31,7 @@ local shaderTemplate = {
 }
 
 -- local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0" -- SKIN_SUPPORT is now always on since 1653
-local USEQUATERNIONS = (string.find(Engine.version, 'BAR-quat', nil, true) and "#define USEQUATERNIONS") or ""
+local USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4
 local SLERPQUATERIONS = nil-- "#define SLERPQUATERIONS 1" -- nil to disable slerping and just use lerp
 
 local defaultMaterialTemplate = {
