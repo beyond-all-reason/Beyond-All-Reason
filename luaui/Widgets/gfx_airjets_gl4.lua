@@ -154,6 +154,7 @@ local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+
 local vsSrc =
 [[#version 420
 #extension GL_ARB_uniform_buffer_object : require
@@ -180,6 +181,7 @@ out DataVS {
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -201,9 +203,14 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 };
-layout(std140, binding=0) readonly buffer MatrixBuffer {
-	mat4 UnitPieces[];
-};
+
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) readonly buffer MatrixBuffer {
+		mat4 UnitPieces[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 
 mat4 rotationMatrix(vec3 axis, float angle)
@@ -239,11 +246,20 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #line 10468
 void main()
 {
+
+	#if USEQUATERNIONS == 0	
 	uint baseIndex = instData.x; // grab the correct offset into UnitPieces SSBO
+		mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
+		mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
+		mat4 worldMat = modelMatrix * pieceMatrix;
+	#else
+		Transform pieceWorldTX = GetPieceWorldTransform(instData.x, pieceIndex);
+		mat4 worldMat = TransformToMat4(pieceWorldTX);
 
-	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
-
-	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
+		//worldMat = mat4(1.0); // TODO: remove this line when quaternions are working
+		//worldMat[3].xyz = uni[instData.y].drawPos.xyz;
+		//worldMat[3].xyz = pieceWorldTX.trSc.xyz;
+	#endif
 
 	vec4 speedvector = uni[instData.y].speed;
 
@@ -251,9 +267,6 @@ void main()
 	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
-
-	mat4 worldMat = modelMatrix * pieceMatrix;
-	//worldMat = modelMatrix;
 
 
 	mat4 worldMatInv = transpose(worldMat);
@@ -350,17 +363,12 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget()
 end
 
-local function initGL4()
 
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	jetShader =  LuaShader(
-    {
-      vertex = vsSrc,
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
+local jetShaderSourceCache = {
+	vsSrc = vsSrc,
+	fsSrc = fsSrc,
+	shaderName = "JetShader GL4",
+	uniformInt = {
         noiseMap = 0,
         mask = 1,
         },
@@ -368,26 +376,31 @@ local function initGL4()
         --jetuniforms = {1,1,1,1}, --unused
 		--iconDistance = 1,
       },
-    },
-    "jetShader GL4"
-  )
-  local shaderCompiled = jetShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
-  local quadVBO,numVertices = InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
-  local jetInstanceVBOLayout = {
-		  {id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
-		  {id = 2, name = 'emitdir', size = 3}, --  emit dir
-		  {id = 3, name = 'color', size = 3}, --- color
-		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
-		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
-		}
-  jetInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
-  jetInstanceVBO.numVertices = numVertices
-  jetInstanceVBO.vertexVBO = quadVBO
-  jetInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
-  jetInstanceVBO.primitiveType = GL.TRIANGLES
-  jetInstanceVBO.indexVBO = InstanceVBOTable.makeRectIndexVBO()
-  jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
+	shaderConfig = {
+		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+	},
+	forceupdate = true, -- otherwise file-less defines are not updated
+}
+
+local function initGL4()
+	jetShader = LuaShader.CheckShaderUpdates(jetShaderSourceCache)
+	--Spring.Echo(jetShader.shaderParams.vertex)
+	if not jetShader then goodbye("Failed to compile jetShader GL4 ") end
+	local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	local jetInstanceVBOLayout = {
+			{id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
+			{id = 2, name = 'emitdir', size = 3}, --  emit dir
+			{id = 3, name = 'color', size = 3}, --- color
+			{id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
+			{id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
+			}
+	jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+	jetInstanceVBO.numVertices = numVertices
+	jetInstanceVBO.vertexVBO = quadVBO
+	jetInstanceVBO.VAO = makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
+	jetInstanceVBO.primitiveType = GL.TRIANGLES
+	jetInstanceVBO.indexVBO = makeRectIndexVBO()
+	jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
 end
 
 --------------------------------------------------------------------------------
