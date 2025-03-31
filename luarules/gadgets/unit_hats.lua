@@ -3,6 +3,8 @@ if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Hats",
