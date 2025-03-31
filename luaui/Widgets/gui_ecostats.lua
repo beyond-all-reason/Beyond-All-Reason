@@ -1420,11 +1420,12 @@ function widget:Update(dt)
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
-	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
-	if topbarShowButtons ~= prevTopbarShowButtons then
+	topbarShowButtons = WG['topbar'] and WG['topbar'].getShowButtons()
+	if topbarShowButtons ~= prevTopbarShowButtons or not prevTopbar and (WG['topbar'] ~= nil) or prevTopbar ~= (WG['topbar'] ~= nil) then
 		Reinit()
 		lastTextListUpdate = 0
 	end
+	prevTopbar = WG['topbar'] ~= nil and true or false
 end
 
 function widget:DrawScreen()
