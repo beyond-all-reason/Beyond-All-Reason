@@ -588,9 +588,6 @@ end
 
 local areaRect = {}
 local prevAreaRect = {}
-local function createTeamCompositionList()
-	refreshTeamCompositionList = true
-end
 local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
@@ -730,11 +727,13 @@ local function Reinit()
 		end
 	end
 
+	uiElementRects = {}
+
 	processScaling()
 	UpdateAllTeams()
 	UpdateAllies()
 	updateButtons()
-	createTeamCompositionList()
+	refreshTeamCompositionList = true
 end
 
 function widget:GetConfigData(data)
@@ -1226,7 +1225,7 @@ function widget:PlayerChanged(playerID)
 	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			UpdateAllTeams()
-			createTeamCompositionList()
+			refreshTeamCompositionList = true
 		end
 	end
 	myFullview = select(2, Spring.GetSpectatingState())
@@ -1389,7 +1388,7 @@ function widget:Update(dt)
 			teamData[teamID].isDead = select(3, GetTeamInfo(teamID, false))
 		end
 		UpdateAllies()
-		createTeamCompositionList()
+		refreshTeamCompositionList = true
 	end
 
 	sec1 = sec1 + dt
@@ -1417,7 +1416,7 @@ function widget:Update(dt)
 		if WG.allyTeamRanking then
 			updateDrawPos()
 		end
-		createTeamCompositionList()
+		refreshTeamCompositionList = true
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
