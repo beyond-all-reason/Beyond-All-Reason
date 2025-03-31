@@ -185,17 +185,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- Teams
 	--------------------------------------------------------------------------------
 
-	local teams = GetTeamList()
-	for _, teamID in ipairs(teams) do
-		local teamLuaAI = GetTeamLuaAI(teamID)
-		if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-			scavTeamID = teamID
-			scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-			--computerTeams[teamID] = true
-		else
-			humanTeams[teamID] = true
-		end
-	end
+	local scavTeamID = Spring.Utilities.GetScavTeamID()
+
+	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID() 
 
 	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
