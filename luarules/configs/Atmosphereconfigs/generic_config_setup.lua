@@ -64,6 +64,8 @@ end
 -- badweatherchance = 100
 -- fireflieschance = 100
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GameFrame(n)
     local clock = n%fullcyclelength
 
