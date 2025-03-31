@@ -1270,7 +1270,6 @@ function widget:GameFrame(n)
 			else
 				warMeter = 0
 			end
-			Spring.Echo(warMeter)
 		elseif Spring.Utilities.Gametype.IsScavengers() then
 			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
 				warMeter = warHighLevel+1
