@@ -5817,7 +5817,7 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+	if not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) then
 		options[getOptionByID('soundtrackAprilFools')] = nil
 	end
 
