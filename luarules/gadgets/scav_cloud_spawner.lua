@@ -18,7 +18,7 @@ end
 
 local scavTeamID = Spring.Utilities.GetScavTeamID()
 
-local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID() 
+local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID() --unused here as well
 
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
