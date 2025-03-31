@@ -4,6 +4,8 @@
 -- quickly tap m followed by 1 to set anchor 1
 -- quickly tap n followed by 1 to focus on anchor 1
 -- etc etc
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Camera Anchors",
