@@ -17,9 +17,6 @@ if not gadgetHandler:IsSyncedCode() or not Spring.Utilities.Gametype.IsScavenger
 end
 
 local scavTeamID = Spring.Utilities.GetScavTeamID()
-
-local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID() --unused here as well
-
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 local cloudMult = math.ceil((math.ceil(((mapx+mapz)*0.5)/512)^2)/18)
