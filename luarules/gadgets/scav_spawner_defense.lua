@@ -36,7 +36,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetUnitNeutral = Spring.GetUnitNeutral
 	local GetTeamList = Spring.GetTeamList
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GetGaiaTeamID = Spring.GetGaiaTeamID
 	local SetGameRulesParam = Spring.SetGameRulesParam
 	local GetGameRulesParam = Spring.GetGameRulesParam
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
@@ -187,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-	
+
 	local gaiaTeamID = GetGaiaTeamID() --??
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
