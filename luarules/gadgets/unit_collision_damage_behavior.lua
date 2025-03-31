@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Collision Damage Behavior",
@@ -17,8 +19,8 @@ if not gadgetHandler:IsSyncedCode() then return end
 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units. Chosen empirically.
 local fallDamageMagnificationFactor = 14
 
---this defines how fast a unit has to be moving in order to take object collision damage
-local collisionVelocityThreshold = 99 / Game.gameSpeed
+--this defines how fast a unit has to be moving in order to take object collision damage, empirically selected.
+local collisionVelocityThreshold = 108 / Game.gameSpeed
 
 --the angle of descent that is allowed collision damage. The angle is measured from directly above downward.
 local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees

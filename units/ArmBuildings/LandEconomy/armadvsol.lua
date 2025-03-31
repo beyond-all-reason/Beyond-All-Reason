@@ -23,7 +23,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 370,
+		metalcost = 350,
 		objectname = "Units/ARMADVSOL.s3o",
 		script = "Units/ARMADVSOL.cob",
 		seismicsignature = 0,
