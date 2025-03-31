@@ -126,6 +126,7 @@ local windArea = {}
 local tidalarea = {}
 local comsArea = {}
 local buttonsArea = {}
+local prevButtonsArea = {}
 
 -- UI State
 local orgHeight = 46
@@ -294,6 +295,12 @@ local function updateButtons()
 			UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 		end
 	end)
+
+	-- sometimes its gets wide when (stats) button gets added
+	if prevButtonsArea[1] and buttonsArea[1] ~= prevButtonsArea[1] then
+		refreshUi = true
+	end
+	prevButtonsArea = buttonsArea
 
 	-- add background blur
 	if not useRenderToTexture then
