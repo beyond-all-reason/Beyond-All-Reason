@@ -229,8 +229,6 @@ function widget:ViewResize()
 		end
 	end
 
-	refreshUi = true
-
 	init()
 end
 
@@ -854,6 +852,8 @@ local function drawResbarValues(res, update)
 end
 
 function init()
+	refreshUi = true
+
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 	topbarArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
 
@@ -910,7 +910,6 @@ function init()
 			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
 		end
 	end
-
 
 	updateResbarText('metal', true)
 	updateResbarText('energy', true)
