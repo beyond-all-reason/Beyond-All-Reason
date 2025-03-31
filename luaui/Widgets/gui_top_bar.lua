@@ -1491,7 +1491,6 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
 		glCallList(tidaldlist2)
-		glPopMatrix()
 	end
 
 	glPushMatrix()
