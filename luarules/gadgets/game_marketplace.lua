@@ -3,6 +3,8 @@ if Spring.GetModOptions().marketplace ~= "enabled" then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "marketplaces",

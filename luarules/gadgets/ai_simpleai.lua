@@ -21,6 +21,8 @@ for i = 1, #teams do
 end
 teams = nil
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "SimpleAI",

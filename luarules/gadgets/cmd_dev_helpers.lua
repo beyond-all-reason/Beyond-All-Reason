@@ -5,6 +5,8 @@ for word in msg:gmatch("[%-_%w]+") do
 end
 ]]--
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Dev Helper Cmds",

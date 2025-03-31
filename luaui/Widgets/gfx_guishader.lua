@@ -3,6 +3,8 @@ if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "GUI Shader",

@@ -2,6 +2,8 @@ include("keysym.h.lua")
 
 local versionNumber = "1.1"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name    = "Attack Range GL4",

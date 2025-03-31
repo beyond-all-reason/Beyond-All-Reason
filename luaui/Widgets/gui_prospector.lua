@@ -5,6 +5,8 @@
 -- On metal maps, there is no spot value at all, so this is required to see how much mexes will produce
 -----------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Prospector",

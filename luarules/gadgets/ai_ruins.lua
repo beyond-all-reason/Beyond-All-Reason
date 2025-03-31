@@ -3,6 +3,8 @@ if not (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().rui
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "ruin spawn",

@@ -7,6 +7,8 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Map Grass GL4",

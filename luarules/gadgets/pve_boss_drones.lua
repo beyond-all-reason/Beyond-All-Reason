@@ -3,6 +3,8 @@ if not (Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsSca
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name = "PvE Boss Drones",

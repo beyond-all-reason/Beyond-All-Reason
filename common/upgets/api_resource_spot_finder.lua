@@ -1,4 +1,4 @@
-local upget = gadget or widget
+local upget = gadget or widget ---@type Addon
 local globalScope = gadget and GG or WG
 
 -- gadget side must be layered after gadgets/map_metal_spot_placer.lua

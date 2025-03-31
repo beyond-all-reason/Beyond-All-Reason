@@ -8,6 +8,8 @@ if success and mapinfo then
 	voidWater = mapinfo.voidwater
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Context Build",

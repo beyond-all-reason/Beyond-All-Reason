@@ -1,6 +1,8 @@
 include("keysym.h.lua")
 local versionNumber = 1.4
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "FactoryQ Manager",

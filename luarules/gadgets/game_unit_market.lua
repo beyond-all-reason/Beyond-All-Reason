@@ -3,6 +3,8 @@ if not Spring.GetModOptions().unit_market then
 end
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name    = "Unit Market - Backend",

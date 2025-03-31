@@ -10,6 +10,8 @@ end
 
 
 local widgetName = "SSAO"
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = widgetName,

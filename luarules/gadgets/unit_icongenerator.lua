@@ -22,6 +22,8 @@ example usage (need cheats):
 --2. fix the culling of floating structures
 --3. make units get their default stance (e.g. armcom)
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "IconGenerator",

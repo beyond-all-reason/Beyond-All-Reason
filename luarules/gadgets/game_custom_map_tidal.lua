@@ -1,5 +1,7 @@
 if not gadgetHandler:IsSyncedCode() then return false end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Custom Map Tidal",

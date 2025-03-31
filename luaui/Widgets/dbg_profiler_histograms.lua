@@ -3,6 +3,8 @@
 -- reading on LuaVBO: https://github.com/beyond-all-reason/spring/blob/BAR/rts/Lua/LuaVBOImpl.cpp
 -- Quick video on what VAO/VBO are: https://www.youtube.com/watch?v=WMiggUPst-Q
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Profiler Histograms",

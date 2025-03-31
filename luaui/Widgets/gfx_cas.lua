@@ -2,6 +2,8 @@ if gl.CreateShader == nil then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	  = "Contrast Adaptive Sharpen",
