@@ -142,7 +142,7 @@ return {
 				craterboost = 0.5,
 				cratermult = 0.5,
 				damagemodifier = 0.33,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.8,
 				explosiongenerator = "custom:barrelshot-large",
 				gravityaffected = false,
 				impulseboost = 10,
@@ -173,7 +173,7 @@ return {
 				},
 			},
 			railgunt2 = {
-				areaofeffect = 16,
+				areaofeffect = 32, --Twice that of a Sharpshooter
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = true,
@@ -188,7 +188,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 0,
 				hardstop = true,
-				impactonly = true,
+				impactonly = false,
 				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Snub-Nose Railgun",

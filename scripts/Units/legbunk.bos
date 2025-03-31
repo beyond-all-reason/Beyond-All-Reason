@@ -108,8 +108,10 @@ Steering(heading, currentSpeed) {
 		sleep 20;
 	}}
 
+static-var isPushing;
 Create(){
 	isMoving = FALSE;
+	isPushing = TRUE;
 	animSpeed = 2; // Set to 4 for 75ms, 4.3733 for 82ms
 	restore_delay = 3000; // Delay from returning to relaxed idle stance
 
@@ -243,6 +245,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;
 	set-signal-mask SIG_AIM_TC;
+	call-script StopPushups();
 	var cauaim;
     var cauface;
 	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
@@ -403,11 +406,16 @@ AimWeapon3(heading, pitch) {
 
 	turn railgun to x-axis <0> - pitch/2 speed <30>;
 	call-script dontgetyourlegshotoff(heading);
-	if (new_heading < 0) {
+	
+	
+	/*if (new_heading < 0) {
 		call-script CATT2_Aim(new_heading,(pitch+400)/2);
 	} else {
 		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
-	}
+	}*/
+	turn aimxarmr to x-axis pitch/2 speed <30>;
+	turn aimyarmr to y-axis new_heading speed <90>;
+	
 	start-script RestoreAfterDelay();
 	return(1);}
 
@@ -1182,7 +1190,9 @@ Walk() {
 
 StopWalking() { // Call this from StopMoving()!
 	//animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-
+	if (isPushing) {
+		call-script StopPushups();
+	}
 	//Customized parts go here
 	turn lthigh to y-axis <20> speed <525.118567> / animSpeed;
 	turn rthigh to y-axis <-20> speed <527.117224> / animSpeed;
@@ -1232,15 +1242,21 @@ UnitSpeed(){ // REMEMBER TO animspeed = 2 in Create() !!
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 65;
-	}}
+	}
+}
 StartMoving(){
 	signal SIG_WALK;
 	isMoving=TRUE;
+	call-script StopPushups();
 	start-script Walk();}
 StopMoving(){
 	signal SIG_WALK;
 	isMoving=FALSE;
-	call-script StopWalking();}
+	call-script StopWalking();
+	if (!isPushing and !isAiming and !isMoving) {
+			start-script Pushup();
+	}
+}
 
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\LegbunkV6-death anim - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
@@ -1276,7 +1292,6 @@ DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\Legbunk
 			turn lshin to y-axis <-0.457240> speed <1.371721> ;
 			turn lthigh to x-axis <-12.696283> speed <38.088850> ;
 			turn pelvis to x-axis <15.450653> speed <46.351959> ;
-			explode pile type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide pile;
 			turn piledriver to y-axis <3.306467> speed <9.919402> ;
 			explode rarm type FALL|SMOKE|FIRE|NOHEATCLOUD;
@@ -1432,4 +1447,802 @@ DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\Legbunk
 		if (TRUE) { //Frame:95
 		sleep 329;
 		}
+}
+Pushup() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\LegbunkV6 - skeletonized 2 - pushups - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIG_WALK | SIG_AIM_TC; //you might need this
+	if (RAND(1,100) > 10) return; // reduce probs to only 10%
+	sleep 10000 + 100*RAND(1,200); // 10-30 secs
+	isPushing = TRUE;
+	stop-spin fingers around z-axis;
+	while (isPushing) {
+		if (isPushing) { //Frame:12
+			turn larm to x-axis <20.564091> speed <56.083885> ; 
+			turn larm to z-axis <-25.586712> speed <69.781941> ; 
+			turn larm to y-axis <50.868128> speed <138.731257> ; 
+			turn larmorshoulder to x-axis <-13.163474> speed <35.900385> ; 
+			turn larmorshoulder to z-axis <20.706140> speed <56.471292> ; 
+			turn larmorshoulder to y-axis <-38.176598> speed <104.117994> ; 
+			turn lfootjoint to x-axis <-24.677103> speed <67.301190> ; 
+			turn lfootjoint to z-axis <-11.589381> speed <31.607404> ; 
+			turn lfootjoint to y-axis <-6.041326> speed <16.476344> ; 
+			turn lforearm to x-axis <-30.994114> speed <84.529403> ; 
+			turn lforearm to z-axis <3.257505> speed <8.884104> ; 
+			turn lforearm to y-axis <-40.381151> speed <110.130411> ; 
+			turn lmidleg to x-axis <-2.634389> speed <7.184697> ; 
+			turn lshin to x-axis <4.392356> speed <11.979154> ; 
+			turn lthigh to x-axis <-5.133962> speed <14.001714> ; 
+			turn lthigh to z-axis <-0.522695> speed <1.425532> ; 
+			turn lthigh to y-axis <1.475919> speed <50.520216> ; 
+			turn ltoes to x-axis <-49.984660> speed <136.321799> ; 
+			turn ltoes to z-axis <0.886264> speed <2.417084> ; 
+			turn ltoes to y-axis <0.381493> speed <1.040437> ; 
+			move pelvis to z-axis [1.420604] speed [3.874376] ; 
+			move pelvis to y-axis [-21.518303] speed [58.686281] ; 
+			turn pelvis to x-axis <79.590863> speed <217.065989> ; 
+			turn piledriver to x-axis <-19.519412> speed <121.416583> ; 
+			turn piledriver to z-axis <-0.504873> speed <1.376927> ; 
+			turn piledriver to y-axis <-12.194213> speed <33.256945> ; 
+			turn railgun to x-axis <-19.925530> speed <122.524182> ; 
+			turn railgun to z-axis <0.572850> speed <1.562318> ; 
+			turn railgun to y-axis <12.581945> speed <34.314396> ; 
+			turn rarm to x-axis <22.640329> speed <61.746351> ; 
+			turn rarm to z-axis <29.801208> speed <81.276022> ; 
+			turn rarm to y-axis <-54.911415> speed <149.758405> ; 
+			turn rarmorshoulder to x-axis <-14.179844> speed <38.672302> ; 
+			turn rarmorshoulder to z-axis <-24.157003> speed <65.882735> ; 
+			turn rarmorshoulder to y-axis <41.334922> speed <112.731605> ; 
+			turn rfootjoint to x-axis <-24.678206> speed <67.304198> ; 
+			turn rfootjoint to z-axis <11.580168> speed <31.582277> ; 
+			turn rfootjoint to y-axis <6.032306> speed <16.451743> ; 
+			turn rforearm to x-axis <-30.774712> speed <83.931032> ; 
+			turn rforearm to z-axis <-3.406598> speed <9.290721> ; 
+			turn rforearm to y-axis <43.058151> speed <117.431321> ; 
+			turn rmidleg to x-axis <-2.631282> speed <7.176223> ; 
+			turn rshin to x-axis <4.387215> speed <11.965132> ; 
+			turn rthigh to x-axis <-5.132370> speed <50.997373> ; 
+			turn rthigh to z-axis <0.536231> speed <1.462448> ; 
+			turn rthigh to y-axis <-1.475653> speed <50.520949> ; 
+			turn rtoes to x-axis <-49.984957> speed <136.322609> ; 
+			turn rtoes to z-axis <-0.886223> speed <2.416972> ; 
+			turn rtoes to y-axis <-0.381398> speed <1.040177> ; 
+			turn torso to x-axis <4.589470> speed <12.516738> ; 
+			turn torso to z-axis <1.373386> speed <3.745599> ; 
+			turn torso to y-axis <-0.825612> speed <2.251668> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:16
+			turn larm to x-axis <18.626221> speed <14.534024> ; 
+			turn larm to z-axis <-22.081291> speed <26.290653> ; 
+			turn larm to y-axis <46.363464> speed <33.784976> ; 
+			turn larmorshoulder to x-axis <-12.160946> speed <7.518963> ; 
+			turn larmorshoulder to z-axis <17.798547> speed <21.806946> ; 
+			turn larmorshoulder to y-axis <-34.726280> speed <25.877384> ; 
+			turn lfootjoint to x-axis <-22.159741> speed <18.880214> ; 
+			turn lfootjoint to z-axis <-11.273425> speed <2.369670> ; 
+			turn lfootjoint to y-axis <-6.595715> speed <4.157917> ; 
+			turn lforearm to x-axis <-31.298147> speed <2.280242> ; 
+			turn lforearm to z-axis <3.016826> speed <1.805091> ; 
+			turn lforearm to y-axis <-38.924517> speed <10.924751> ; 
+			turn lmidleg to x-axis <-1.338074> speed <9.722364> ; 
+			turn lshin to x-axis <2.237970> speed <16.157896> ; 
+			turn lthigh to x-axis <-6.803461> speed <12.521242> ; 
+			turn lthigh to y-axis <0.780624> speed <5.214711> ; 
+			move pelvis to z-axis [0.804549] speed [4.620414] ; 
+			move pelvis to y-axis [-20.679897] speed [6.288042] ; 
+			turn piledriver to x-axis <-18.318333> speed <9.008089> ; 
+			turn piledriver to z-axis <-0.352010> speed <1.146474> ; 
+			turn piledriver to y-axis <-11.393375> speed <6.006291> ; 
+			turn railgun to x-axis <-18.739930> speed <8.891997> ; 
+			turn railgun to z-axis <0.413722> speed <1.193456> ; 
+			turn railgun to y-axis <11.783480> speed <5.988490> ; 
+			turn rarm to x-axis <20.844715> speed <13.467105> ; 
+			turn rarm to z-axis <25.767227> speed <30.254861> ; 
+			turn rarm to y-axis <-50.225383> speed <35.145242> ; 
+			turn rarmorshoulder to x-axis <-13.384125> speed <5.967897> ; 
+			turn rarmorshoulder to z-axis <-20.831751> speed <24.939390> ; 
+			turn rarmorshoulder to y-axis <37.714986> speed <27.149515> ; 
+			turn rfootjoint to x-axis <-22.161676> speed <18.873977> ; 
+			turn rfootjoint to z-axis <11.257391> speed <2.420832> ; 
+			turn rfootjoint to y-axis <6.580205> speed <4.109242> ; 
+			turn rforearm to x-axis <-31.411750> speed <4.777786> ; 
+			turn rforearm to z-axis <-3.119907> speed <2.150176> ; 
+			turn rforearm to y-axis <41.770435> speed <9.657870> ; 
+			turn rmidleg to x-axis <-1.335098> speed <9.721378> ; 
+			turn rshin to x-axis <2.233016> speed <16.156492> ; 
+			turn rthigh to x-axis <-6.801759> speed <12.520419> ; 
+			turn rthigh to y-axis <-0.775647> speed <5.250048> ; 
+			turn torso to x-axis <3.946891> speed <4.819346> ; 
+			turn torso to z-axis <1.264592> speed <0.815957> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:20
+			turn larm to x-axis <12.960114> speed <42.495804> ; 
+			turn larm to z-axis <-14.652291> speed <55.717503> ; 
+			turn larm to y-axis <33.035156> speed <99.962312> ; 
+			turn larmorshoulder to x-axis <-8.807942> speed <25.147529> ; 
+			turn larmorshoulder to z-axis <11.557814> speed <46.805502> ; 
+			turn larmorshoulder to y-axis <-24.658450> speed <75.508727> ; 
+			turn lfootjoint to x-axis <-17.987916> speed <31.288687> ; 
+			turn lfootjoint to z-axis <-10.706706> speed <4.250397> ; 
+			turn lfootjoint to y-axis <-6.729378> speed <1.002469> ; 
+			turn lforearm to x-axis <-29.557094> speed <13.057896> ; 
+			turn lforearm to z-axis <3.596683> speed <4.348929> ; 
+			turn lforearm to y-axis <-33.213994> speed <42.828923> ; 
+			turn lmidleg to x-axis <-2.262280> speed <6.931550> ; 
+			turn lshin to x-axis <3.775412> speed <11.530812> ; 
+			turn lthigh to x-axis <-11.618484> speed <36.112675> ; 
+			turn lthigh to y-axis <0.403835> speed <2.825919> ; 
+			move pelvis to z-axis [0.188494] speed [4.620412] ; 
+			move pelvis to y-axis [-18.164690] speed [18.864055] ; 
+			turn piledriver to x-axis <-14.017182> speed <32.258633> ; 
+			turn piledriver to z-axis <0.057723> speed <3.073000> ; 
+			turn piledriver to y-axis <-8.667572> speed <20.443516> ; 
+			turn railgun to x-axis <-14.454608> speed <32.139916> ; 
+			turn railgun to z-axis <-0.023873> speed <3.281964> ; 
+			turn railgun to y-axis <9.039398> speed <20.580617> ; 
+			turn rarm to x-axis <15.362561> speed <41.116155> ; 
+			turn rarm to z-axis <17.007313> speed <65.699355> ; 
+			turn rarm to y-axis <-36.208697> speed <105.125141> ; 
+			turn rarmorshoulder to x-axis <-10.380945> speed <22.523847> ; 
+			turn rarmorshoulder to z-axis <-13.509425> speed <54.917442> ; 
+			turn rarmorshoulder to y-axis <27.077406> speed <79.781856> ; 
+			turn rfootjoint to x-axis <-17.990489> speed <31.283897> ; 
+			turn rfootjoint to z-axis <10.686341> speed <4.282874> ; 
+			turn rfootjoint to y-axis <6.710950> speed <0.980589> ; 
+			turn rforearm to x-axis <-30.506558> speed <6.788935> ; 
+			turn rforearm to z-axis <-3.843731> speed <5.428675> ; 
+			turn rforearm to y-axis <36.281903> speed <41.163988> ; 
+			turn rmidleg to x-axis <-2.259118> speed <6.930145> ; 
+			turn rshin to x-axis <3.770170> speed <11.528656> ; 
+			turn rthigh to x-axis <-11.616818> speed <36.112941> ; 
+			turn rthigh to y-axis <-0.395489> speed <2.851182> ; 
+			turn torso to x-axis <2.957861> speed <7.417725> ; 
+			turn torso to z-axis <0.921112> speed <2.576101> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:24
+			turn larm to x-axis <2.439381> speed <78.905497> ; 
+			turn larm to z-axis <-7.360648> speed <54.687320> ; 
+			turn larm to y-axis <14.580284> speed <138.411542> ; 
+			turn larmorshoulder to x-axis <-1.624649> speed <53.874701> ; 
+			turn larmorshoulder to z-axis <5.505445> speed <45.392770> ; 
+			turn larmorshoulder to y-axis <-10.811569> speed <103.851607> ; 
+			turn lfootjoint to x-axis <-13.466216> speed <33.912754> ; 
+			turn lfootjoint to z-axis <-10.102329> speed <4.532827> ; 
+			turn lforearm to x-axis <-24.070475> speed <41.149644> ; 
+			turn lforearm to z-axis <4.176637> speed <4.349654> ; 
+			turn lforearm to y-axis <-22.557820> speed <79.921307> ; 
+			turn lmidleg to x-axis <-6.990472> speed <35.461437> ; 
+			turn lshin to x-axis <11.512141> speed <58.025471> ; 
+			turn lthigh to x-axis <-19.183469> speed <56.737389> ; 
+			turn lthigh to y-axis <0.173581> speed <1.726905> ; 
+			move pelvis to z-axis [-0.427560] speed [4.620409] ; 
+			move pelvis to y-axis [-13.972679] speed [31.440082] ; 
+			turn piledriver to x-axis <-7.249604> speed <50.756839> ; 
+			turn piledriver to z-axis <0.292162> speed <1.758291> ; 
+			turn piledriver to y-axis <-4.422685> speed <31.836653> ; 
+			turn railgun to x-axis <-7.703056> speed <50.636643> ; 
+			turn railgun to z-axis <-0.296834> speed <2.047211> ; 
+			turn railgun to y-axis <4.775676> speed <31.977913> ; 
+			turn rarm to x-axis <4.707557> speed <79.912525> ; 
+			turn rarm to z-axis <8.215802> speed <65.936328> ; 
+			turn rarm to y-axis <-17.022713> speed <143.894882> ; 
+			turn rarmorshoulder to x-axis <-3.249503> speed <53.485814> ; 
+			turn rarmorshoulder to z-axis <-6.212287> speed <54.728539> ; 
+			turn rarmorshoulder to y-axis <12.647723> speed <108.222623> ; 
+			turn rfootjoint to x-axis <-13.469574> speed <33.906863> ; 
+			turn rfootjoint to z-axis <10.080149> speed <4.546434> ; 
+			turn rforearm to x-axis <-25.833391> speed <35.048757> ; 
+			turn rforearm to z-axis <-4.794937> speed <7.134044> ; 
+			turn rforearm to y-axis <25.736020> speed <79.094128> ; 
+			turn rmidleg to x-axis <-6.986700> speed <35.456865> ; 
+			turn rshin to x-axis <11.506068> speed <58.019237> ; 
+			turn rthigh to x-axis <-19.182100> speed <56.739611> ; 
+			turn rthigh to y-axis <-0.162037> speed <1.750888> ; 
+			turn torso to x-axis <1.978137> speed <7.347934> ; 
+			turn torso to z-axis <0.563487> speed <2.682190> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:28
+			turn larm to x-axis <-14.138277> speed <124.332438> ; 
+			turn larm to z-axis <-2.609937> speed <35.630331> ; 
+			turn larm to y-axis <-9.294119> speed <179.058022> ; 
+			turn larmorshoulder to x-axis <10.416883> speed <90.311487> ; 
+			turn larmorshoulder to z-axis <2.145144> speed <25.202257> ; 
+			turn larmorshoulder to y-axis <6.899230> speed <132.830994> ; 
+			turn lfootjoint to x-axis <-11.223267> speed <16.822116> ; 
+			turn lfootjoint to z-axis <-9.797792> speed <2.284026> ; 
+			turn lforearm to x-axis <-10.703769> speed <100.250294> ; 
+			turn lforearm to z-axis <0.768654> speed <25.559876> ; 
+			turn lforearm to y-axis <-3.079233> speed <146.089403> ; 
+			turn lmidleg to x-axis <-19.629392> speed <94.791898> ; 
+			turn lmidleg to z-axis <0.218975> speed <1.011888> ; 
+			turn lshin to x-axis <30.208113> speed <140.219790> ; 
+			turn lshin to z-axis <-0.212216> speed <1.077361> ; 
+			turn lthigh to x-axis <-27.500775> speed <62.379793> ; 
+			turn lthigh to y-axis <0.027176> speed <1.098034> ; 
+			move pelvis to z-axis [-1.043614] speed [4.620405] ; 
+			move pelvis to y-axis [-8.103853] speed [44.016194] ; 
+			turn piledriver to x-axis <-0.390816> speed <51.440906> ; 
+			turn piledriver to z-axis <0.017763> speed <2.057993> ; 
+			turn piledriver to y-axis <-0.119303> speed <32.275366> ; 
+			turn railgun to x-axis <-0.906370> speed <50.975145> ; 
+			turn railgun to z-axis <-0.062274> speed <1.759200> ; 
+			turn railgun to y-axis <0.502678> speed <32.047483> ; 
+			turn rarm to x-axis <-12.242956> speed <127.128850> ; 
+			turn rarm to z-axis <2.091831> speed <45.929788> ; 
+			turn rarm to y-axis <7.237715> speed <181.953211> ; 
+			turn rarmorshoulder to x-axis <9.029172> speed <92.090063> ; 
+			turn rarmorshoulder to z-axis <-1.691914> speed <33.902799> ; 
+			turn rarmorshoulder to y-axis <-5.374316> speed <135.165292> ; 
+			turn rfootjoint to x-axis <-11.227633> speed <16.814560> ; 
+			turn rfootjoint to z-axis <9.775631> speed <2.283885> ; 
+			turn rforearm to x-axis <-12.768761> speed <97.984722> ; 
+			turn rforearm to z-axis <-2.022920> speed <20.790122> ; 
+			turn rforearm to y-axis <6.633016> speed <143.272529> ; 
+			turn rmidleg to x-axis <-19.623796> speed <94.778224> ; 
+			turn rmidleg to z-axis <-0.218922> speed <1.011813> ; 
+			turn rshin to x-axis <30.200341> speed <140.207041> ; 
+			turn rshin to z-axis <0.212140> speed <1.077086> ; 
+			turn rthigh to x-axis <-27.500442> speed <62.387567> ; 
+			turn rthigh to y-axis <-0.013297> speed <1.115557> ; 
+			turn torso to x-axis <1.521182> speed <3.427161> ; 
+			turn torso to z-axis <0.429122> speed <1.007738> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:32
+			turn larm to x-axis <-13.566440> speed <4.288778> ; 
+			turn larm to z-axis <-2.136300> speed <3.552283> ; 
+			turn larm to y-axis <-9.154685> speed <1.045755> ; 
+			turn larmorshoulder to x-axis <10.001602> speed <3.114605> ; 
+			turn larmorshoulder to z-axis <1.784703> speed <2.703303> ; 
+			turn larmorshoulder to y-axis <6.785890> speed <0.850051> ; 
+			turn lfootjoint to x-axis <-13.085339> speed <13.965538> ; 
+			turn lfootjoint to z-axis <-10.019910> speed <1.665883> ; 
+			turn lforearm to x-axis <-10.039391> speed <4.982832> ; 
+			turn lmidleg to x-axis <-22.380940> speed <20.636614> ; 
+			turn lshin to x-axis <33.877093> speed <27.517347> ; 
+			turn lthigh to x-axis <-26.543399> speed <7.180317> ; 
+			move pelvis to z-axis [-0.427559] speed [4.620415] ; 
+			turn rarm to x-axis <-11.627344> speed <4.617088> ; 
+			turn rarm to z-axis <1.651603> speed <3.301706> ; 
+			turn rarm to y-axis <7.126823> speed <0.831693> ; 
+			turn rarmorshoulder to x-axis <8.579430> speed <3.373068> ; 
+			turn rarmorshoulder to z-axis <-1.358127> speed <2.503396> ; 
+			turn rfootjoint to x-axis <-13.088670> speed <13.957778> ; 
+			turn rfootjoint to z-axis <10.005737> speed <1.725792> ; 
+			turn rforearm to x-axis <-12.070190> speed <5.239284> ; 
+			turn rmidleg to x-axis <-22.374581> speed <20.630889> ; 
+			turn rshin to x-axis <33.868873> speed <27.513991> ; 
+			turn rthigh to x-axis <-26.543481> speed <7.177205> ; 
+			turn torso to x-axis <1.624677> speed <0.776212> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:36
+			turn larm to x-axis <-0.393079> speed <98.800210> ; 
+			turn larm to z-axis <-5.519080> speed <25.370854> ; 
+			turn larm to y-axis <8.859118> speed <135.103526> ; 
+			turn larmorshoulder to x-axis <0.373006> speed <72.214471> ; 
+			turn larmorshoulder to z-axis <4.076151> speed <17.185858> ; 
+			turn larmorshoulder to y-axis <-6.547716> speed <100.002044> ; 
+			turn lfootjoint to x-axis <-14.760392> speed <12.562901> ; 
+			turn lfootjoint to z-axis <-10.247023> speed <1.703349> ; 
+			turn lforearm to x-axis <-20.477061> speed <78.282523> ; 
+			turn lforearm to z-axis <4.195556> speed <25.837170> ; 
+			turn lforearm to y-axis <-18.362579> speed <114.909547> ; 
+			turn lmidleg to x-axis <-12.188011> speed <76.446971> ; 
+			turn lmidleg to z-axis <0.139068> speed <0.821982> ; 
+			turn lshin to x-axis <19.596617> speed <107.103569> ; 
+			turn lshin to z-axis <-0.123669> speed <0.939295> ; 
+			turn lthigh to x-axis <-20.767096> speed <43.322272> ; 
+			move pelvis to z-axis [0.188496] speed [4.620409] ; 
+			move pelvis to y-axis [-12.575340] speed [33.536139] ; 
+			turn piledriver to x-axis <-5.249674> speed <36.823254> ; 
+			turn piledriver to z-axis <0.267902> speed <1.887242> ; 
+			turn piledriver to y-axis <-3.206867> speed <23.210888> ; 
+			turn railgun to x-axis <-5.708986> speed <36.404953> ; 
+			turn railgun to z-axis <-0.283199> speed <1.665259> ; 
+			turn railgun to y-axis <3.561834> speed <22.989321> ; 
+			turn rarm to x-axis <1.828892> speed <100.921774> ; 
+			turn rarm to z-axis <6.051351> speed <32.998108> ; 
+			turn rarm to y-axis <-11.118831> speed <136.842400> ; 
+			turn rarmorshoulder to x-axis <-1.239830> speed <73.644445> ; 
+			turn rarmorshoulder to z-axis <-4.510172> speed <23.640331> ; 
+			turn rarmorshoulder to y-axis <8.240516> speed <101.431809> ; 
+			turn rfootjoint to x-axis <-14.763024> speed <12.557651> ; 
+			turn rfootjoint to z-axis <10.234726> speed <1.717417> ; 
+			turn rforearm to x-axis <-22.334350> speed <76.981199> ; 
+			turn rforearm to z-axis <-4.986606> speed <22.107040> ; 
+			turn rforearm to y-axis <21.569674> speed <112.248305> ; 
+			turn rmidleg to x-axis <-12.183365> speed <76.434120> ; 
+			turn rmidleg to z-axis <-0.139027> speed <0.821781> ; 
+			turn rshin to x-axis <19.589683> speed <107.093925> ; 
+			turn rshin to z-axis <0.123617> speed <0.939024> ; 
+			turn rthigh to x-axis <-20.766154> speed <43.329956> ; 
+			turn torso to x-axis <1.961645> speed <2.527266> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:40
+			turn larm to x-axis <11.184640> speed <86.832889> ; 
+			turn larm to z-axis <-12.393487> speed <51.558049> ; 
+			turn larm to y-axis <27.370463> speed <138.835089> ; 
+			turn larmorshoulder to x-axis <-7.723358> speed <60.722728> ; 
+			turn larmorshoulder to z-axis <9.677776> speed <42.012188> ; 
+			turn larmorshoulder to y-axis <-20.416901> speed <104.018887> ; 
+			turn lfootjoint to x-axis <-18.700853> speed <29.553456> ; 
+			turn lfootjoint to z-axis <-10.778647> speed <3.987183> ; 
+			turn lfootjoint to y-axis <-7.023201> speed <1.316759> ; 
+			turn lforearm to x-axis <-27.104941> speed <49.709105> ; 
+			turn lforearm to z-axis <4.356873> speed <1.209878> ; 
+			turn lforearm to y-axis <-30.081861> speed <87.894609> ; 
+			turn lmidleg to x-axis <-6.010105> speed <46.334296> ; 
+			turn lshin to x-axis <9.927669> speed <72.517111> ; 
+			turn lthigh to x-axis <-13.303638> speed <55.975940> ; 
+			move pelvis to z-axis [0.804550] speed [4.620408] ; 
+			move pelvis to y-axis [-17.046818] speed [33.536081] ; 
+			turn piledriver to x-axis <-11.998304> speed <50.614727> ; 
+			turn piledriver to y-axis <-7.449948> speed <31.823105> ; 
+			turn railgun to x-axis <-12.431935> speed <50.422116> ; 
+			turn railgun to z-axis <-0.159455> speed <0.928078> ; 
+			turn railgun to y-axis <7.809689> speed <31.858907> ; 
+			turn rarm to x-axis <13.612948> speed <88.380417> ; 
+			turn rarm to z-axis <14.349743> speed <62.237938> ; 
+			turn rarm to y-axis <-30.263120> speed <143.582171> ; 
+			turn rarmorshoulder to x-axis <-9.371654> speed <60.988681> ; 
+			turn rarmorshoulder to z-axis <-11.296163> speed <50.894936> ; 
+			turn rarmorshoulder to y-axis <22.615320> speed <107.811031> ; 
+			turn rfootjoint to x-axis <-18.702736> speed <29.547847> ; 
+			turn rfootjoint to z-axis <10.767989> speed <3.999471> ; 
+			turn rfootjoint to y-axis <7.017209> speed <1.321248> ; 
+			turn rforearm to x-axis <-28.306899> speed <44.794122> ; 
+			turn rforearm to z-axis <-4.802356> speed <1.381871> ; 
+			turn rforearm to y-axis <33.142878> speed <86.799030> ; 
+			turn rmidleg to x-axis <-6.006406> speed <46.327191> ; 
+			turn rshin to x-axis <9.921678> speed <72.510035> ; 
+			turn rthigh to x-axis <-13.302114> speed <55.980301> ; 
+			turn torso to x-axis <2.919573> speed <7.184456> ; 
+			turn torso to z-axis <0.803394> speed <2.142571> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:44
+			turn larm to x-axis <20.564089> speed <70.345873> ; 
+			turn larm to z-axis <-25.586712> speed <98.949187> ; 
+			turn larm to y-axis <50.868128> speed <176.232481> ; 
+			turn larmorshoulder to x-axis <-13.163474> speed <40.800869> ; 
+			turn larmorshoulder to z-axis <20.706142> speed <82.712743> ; 
+			turn larmorshoulder to y-axis <-38.176598> speed <133.197730> ; 
+			turn lfootjoint to x-axis <-24.673896> speed <44.797823> ; 
+			turn lfootjoint to z-axis <-11.626975> speed <6.362456> ; 
+			turn lfootjoint to y-axis <-7.362180> speed <2.542338> ; 
+			turn lforearm to x-axis <-30.994114> speed <29.168797> ; 
+			turn lforearm to z-axis <3.257505> speed <8.245259> ; 
+			turn lforearm to y-axis <-40.381151> speed <77.244675> ; 
+			turn lmidleg to x-axis <-2.634398> speed <25.317799> ; 
+			turn lshin to x-axis <4.392355> speed <41.514857> ; 
+			turn lthigh to x-axis <-5.120154> speed <61.376127> ; 
+			move pelvis to z-axis [1.420604] speed [4.620409] ; 
+			move pelvis to y-axis [-21.518303] speed [33.536139] ; 
+			turn piledriver to x-axis <-19.519412> speed <56.408310> ; 
+			turn piledriver to z-axis <-0.504873> speed <5.138387> ; 
+			turn piledriver to y-axis <-12.194212> speed <35.581986> ; 
+			turn railgun to x-axis <-19.925530> speed <56.201964> ; 
+			turn railgun to z-axis <0.572850> speed <5.492288> ; 
+			turn railgun to y-axis <12.581945> speed <35.791924> ; 
+			turn rarm to x-axis <22.640329> speed <67.705356> ; 
+			turn rarm to z-axis <29.801208> speed <115.885993> ; 
+			turn rarm to y-axis <-54.911419> speed <184.862237> ; 
+			turn rarmorshoulder to x-axis <-14.179844> speed <36.061427> ; 
+			turn rarmorshoulder to z-axis <-24.157005> speed <96.456311> ; 
+			turn rarmorshoulder to y-axis <41.334922> speed <140.397014> ; 
+			turn rfootjoint to x-axis <-24.675011> speed <44.792060> ; 
+			turn rfootjoint to z-axis <11.617902> speed <6.374353> ; 
+			turn rfootjoint to y-axis <7.356194> speed <2.542390> ; 
+			turn rforearm to x-axis <-30.774712> speed <18.508592> ; 
+			turn rforearm to z-axis <-3.406598> speed <10.468191> ; 
+			turn rforearm to y-axis <43.058151> speed <74.364547> ; 
+			turn rmidleg to x-axis <-2.631282> speed <25.313432> ; 
+			turn rshin to x-axis <4.387216> speed <41.508466> ; 
+			turn rthigh to x-axis <-5.118293> speed <61.378656> ; 
+			turn torso to x-axis <4.589470> speed <12.524232> ; 
+			turn torso to z-axis <1.373386> speed <4.274939> ; 
+			turn torso to y-axis <-0.825612> speed <0.777647> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:48
+			turn larm to x-axis <18.626221> speed <14.534011> ; 
+			turn larm to z-axis <-22.081291> speed <26.290653> ; 
+			turn larm to y-axis <46.363464> speed <33.784976> ; 
+			turn larmorshoulder to x-axis <-12.160946> speed <7.518956> ; 
+			turn larmorshoulder to z-axis <17.798547> speed <21.806958> ; 
+			turn larmorshoulder to y-axis <-34.726280> speed <25.877384> ; 
+			turn lfootjoint to x-axis <-22.159073> speed <18.861170> ; 
+			turn lfootjoint to z-axis <-11.283001> speed <2.579801> ; 
+			turn lforearm to x-axis <-31.298147> speed <2.280242> ; 
+			turn lforearm to z-axis <3.016826> speed <1.805091> ; 
+			turn lforearm to y-axis <-38.924517> speed <10.924751> ; 
+			turn lmidleg to x-axis <-1.338067> speed <9.722484> ; 
+			turn lshin to x-axis <2.237963> speed <16.157936> ; 
+			turn lthigh to x-axis <-6.796170> speed <12.570118> ; 
+			move pelvis to z-axis [0.804549] speed [4.620414] ; 
+			move pelvis to y-axis [-20.679897] speed [6.288042] ; 
+			turn piledriver to x-axis <-18.318333> speed <9.008089> ; 
+			turn piledriver to z-axis <-0.352010> speed <1.146474> ; 
+			turn piledriver to y-axis <-11.393375> speed <6.006285> ; 
+			turn railgun to x-axis <-18.739930> speed <8.891997> ; 
+			turn railgun to z-axis <0.413722> speed <1.193456> ; 
+			turn railgun to y-axis <11.783480> speed <5.988490> ; 
+			turn rarm to x-axis <20.844715> speed <13.467105> ; 
+			turn rarm to z-axis <25.767227> speed <30.254861> ; 
+			turn rarm to y-axis <-50.225383> speed <35.145268> ; 
+			turn rarmorshoulder to x-axis <-13.384125> speed <5.967897> ; 
+			turn rarmorshoulder to z-axis <-20.831751> speed <24.939403> ; 
+			turn rarmorshoulder to y-axis <37.714986> speed <27.149515> ; 
+			turn rfootjoint to x-axis <-22.161047> speed <18.854729> ; 
+			turn rfootjoint to z-axis <11.266958> speed <2.632084> ; 
+			turn rfootjoint to y-axis <7.250230> speed <0.794733> ; 
+			turn rforearm to x-axis <-31.411750> speed <4.777786> ; 
+			turn rforearm to z-axis <-3.119907> speed <2.150176> ; 
+			turn rforearm to y-axis <41.770435> speed <9.657870> ; 
+			turn rmidleg to x-axis <-1.335095> speed <9.721402> ; 
+			turn rshin to x-axis <2.233012> speed <16.156526> ; 
+			turn rthigh to x-axis <-6.794246> speed <12.569650> ; 
+			turn torso to x-axis <3.946891> speed <4.819346> ; 
+			turn torso to z-axis <1.264592> speed <0.815957> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:52
+			turn larm to x-axis <12.960114> speed <42.495804> ; 
+			turn larm to z-axis <-14.652291> speed <55.717503> ; 
+			turn larm to y-axis <33.035156> speed <99.962312> ; 
+			turn larmorshoulder to x-axis <-8.807942> speed <25.147529> ; 
+			turn larmorshoulder to z-axis <11.557814> speed <46.805502> ; 
+			turn larmorshoulder to y-axis <-24.658450> speed <75.508727> ; 
+			turn lfootjoint to x-axis <-17.987141> speed <31.289494> ; 
+			turn lfootjoint to z-axis <-10.714975> speed <4.260194> ; 
+			turn lfootjoint to y-axis <-7.081679> speed <1.369474> ; 
+			turn lforearm to x-axis <-29.557094> speed <13.057896> ; 
+			turn lforearm to z-axis <3.596683> speed <4.348929> ; 
+			turn lforearm to y-axis <-33.213994> speed <42.828923> ; 
+			turn lmidleg to x-axis <-2.262282> speed <6.931612> ; 
+			turn lshin to x-axis <3.775422> speed <11.530945> ; 
+			turn lthigh to x-axis <-11.614653> speed <36.138625> ; 
+			move pelvis to z-axis [0.188494] speed [4.620412] ; 
+			move pelvis to y-axis [-18.164690] speed [18.864055] ; 
+			turn piledriver to x-axis <-14.017182> speed <32.258633> ; 
+			turn piledriver to z-axis <0.057723> speed <3.073000> ; 
+			turn piledriver to y-axis <-8.667572> speed <20.443516> ; 
+			turn railgun to x-axis <-14.454608> speed <32.139916> ; 
+			turn railgun to z-axis <-0.023873> speed <3.281964> ; 
+			turn railgun to y-axis <9.039398> speed <20.580617> ; 
+			turn rarm to x-axis <15.362561> speed <41.116155> ; 
+			turn rarm to z-axis <17.007313> speed <65.699355> ; 
+			turn rarm to y-axis <-36.208697> speed <105.125141> ; 
+			turn rarmorshoulder to x-axis <-10.380945> speed <22.523847> ; 
+			turn rarmorshoulder to z-axis <-13.509425> speed <54.917442> ; 
+			turn rarmorshoulder to y-axis <27.077406> speed <79.781856> ; 
+			turn rfootjoint to x-axis <-17.989769> speed <31.284589> ; 
+			turn rfootjoint to z-axis <10.694634> speed <4.292428> ; 
+			turn rfootjoint to y-axis <7.064148> speed <1.395609> ; 
+			turn rforearm to x-axis <-30.506558> speed <6.788935> ; 
+			turn rforearm to z-axis <-3.843731> speed <5.428675> ; 
+			turn rforearm to y-axis <36.281903> speed <41.163988> ; 
+			turn rmidleg to x-axis <-2.259118> speed <6.930169> ; 
+			turn rshin to x-axis <3.770172> speed <11.528699> ; 
+			turn rthigh to x-axis <-11.612834> speed <36.139412> ; 
+			turn torso to x-axis <2.957861> speed <7.417725> ; 
+			turn torso to z-axis <0.921112> speed <2.576101> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:56
+			turn larm to x-axis <2.439381> speed <78.905497> ; 
+			turn larm to z-axis <-7.360648> speed <54.687320> ; 
+			turn larm to y-axis <14.580284> speed <138.411542> ; 
+			turn larmorshoulder to x-axis <-1.624649> speed <53.874701> ; 
+			turn larmorshoulder to z-axis <5.505445> speed <45.392770> ; 
+			turn larmorshoulder to y-axis <-10.811569> speed <103.851607> ; 
+			turn lfootjoint to x-axis <-13.464440> speed <33.920258> ; 
+			turn lfootjoint to z-axis <-10.115908> speed <4.493005> ; 
+			turn lfootjoint to y-axis <-6.912026> speed <1.272400> ; 
+			turn lforearm to x-axis <-24.070475> speed <41.149644> ; 
+			turn lforearm to z-axis <4.176637> speed <4.349654> ; 
+			turn lforearm to y-axis <-22.557820> speed <79.921307> ; 
+			turn lmidleg to x-axis <-6.990463> speed <35.461359> ; 
+			turn lshin to x-axis <11.512142> speed <58.025397> ; 
+			turn lthigh to x-axis <-19.181408> speed <56.750663> ; 
+			move pelvis to z-axis [-0.427560] speed [4.620409] ; 
+			move pelvis to y-axis [-13.972679] speed [31.440082] ; 
+			turn piledriver to x-axis <-7.249604> speed <50.756839> ; 
+			turn piledriver to z-axis <0.292162> speed <1.758291> ; 
+			turn piledriver to y-axis <-4.422685> speed <31.836653> ; 
+			turn railgun to x-axis <-7.703056> speed <50.636643> ; 
+			turn railgun to z-axis <-0.296834> speed <2.047211> ; 
+			turn railgun to y-axis <4.775676> speed <31.977913> ; 
+			turn rarm to x-axis <4.707557> speed <79.912525> ; 
+			turn rarm to z-axis <8.215802> speed <65.936328> ; 
+			turn rarm to y-axis <-17.022713> speed <143.894882> ; 
+			turn rarmorshoulder to x-axis <-3.249503> speed <53.485814> ; 
+			turn rarmorshoulder to z-axis <-6.212287> speed <54.728539> ; 
+			turn rarmorshoulder to y-axis <12.647723> speed <108.222623> ; 
+			turn rfootjoint to x-axis <-13.468069> speed <33.912747> ; 
+			turn rfootjoint to z-axis <10.093749> speed <4.506638> ; 
+			turn rfootjoint to y-axis <6.894495> speed <1.272400> ; 
+			turn rforearm to x-axis <-25.833391> speed <35.048757> ; 
+			turn rforearm to z-axis <-4.794937> speed <7.134044> ; 
+			turn rforearm to y-axis <25.736020> speed <79.094128> ; 
+			turn rmidleg to x-axis <-6.986698> speed <35.456851> ; 
+			turn rshin to x-axis <11.506071> speed <58.019240> ; 
+			turn rthigh to x-axis <-19.179941> speed <56.753301> ; 
+			turn torso to x-axis <1.978137> speed <7.347934> ; 
+			turn torso to z-axis <0.563487> speed <2.682190> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:60
+			turn larm to x-axis <-14.138277> speed <124.332438> ; 
+			turn larm to z-axis <-2.609937> speed <35.630331> ; 
+			turn larm to y-axis <-9.294119> speed <179.058022> ; 
+			turn larmorshoulder to x-axis <10.416883> speed <90.311487> ; 
+			turn larmorshoulder to z-axis <2.145144> speed <25.202257> ; 
+			turn larmorshoulder to y-axis <6.899230> speed <132.830994> ; 
+			turn lfootjoint to x-axis <-11.220931> speed <16.826316> ; 
+			turn lfootjoint to z-axis <-9.817582> speed <2.237442> ; 
+			turn lforearm to x-axis <-10.703769> speed <100.250294> ; 
+			turn lforearm to z-axis <0.768654> speed <25.559876> ; 
+			turn lforearm to y-axis <-3.079233> speed <146.089403> ; 
+			turn lmidleg to x-axis <-19.629397> speed <94.792003> ; 
+			turn lmidleg to z-axis <0.218974> speed <1.011887> ; 
+			turn lshin to x-axis <30.208106> speed <140.219733> ; 
+			turn lshin to z-axis <-0.212216> speed <1.077361> ; 
+			turn lthigh to x-axis <-27.499651> speed <62.386824> ; 
+			move pelvis to z-axis [-1.043614] speed [4.620405] ; 
+			move pelvis to y-axis [-8.103853] speed [44.016194] ; 
+			turn piledriver to x-axis <-0.390816> speed <51.440906> ; 
+			turn piledriver to z-axis <0.017763> speed <2.057993> ; 
+			turn piledriver to y-axis <-0.119303> speed <32.275366> ; 
+			turn railgun to x-axis <-0.906370> speed <50.975145> ; 
+			turn railgun to z-axis <-0.062274> speed <1.759200> ; 
+			turn railgun to y-axis <0.502678> speed <32.047483> ; 
+			turn rarm to x-axis <-12.242956> speed <127.128850> ; 
+			turn rarm to z-axis <2.091831> speed <45.929788> ; 
+			turn rarm to y-axis <7.237715> speed <181.953211> ; 
+			turn rarmorshoulder to x-axis <9.029172> speed <92.090063> ; 
+			turn rarmorshoulder to z-axis <-1.691914> speed <33.902799> ; 
+			turn rarmorshoulder to y-axis <-5.374316> speed <135.165292> ; 
+			turn rfootjoint to x-axis <-11.225385> speed <16.820131> ; 
+			turn rfootjoint to z-axis <9.795491> speed <2.236936> ; 
+			turn rforearm to x-axis <-12.768761> speed <97.984722> ; 
+			turn rforearm to z-axis <-2.022920> speed <20.790122> ; 
+			turn rforearm to y-axis <6.633016> speed <143.272529> ; 
+			turn rmidleg to x-axis <-19.623803> speed <94.778288> ; 
+			turn rmidleg to z-axis <-0.218922> speed <1.011812> ; 
+			turn rshin to x-axis <30.200351> speed <140.207099> ; 
+			turn rshin to z-axis <0.212140> speed <1.077085> ; 
+			turn rthigh to x-axis <-27.499248> speed <62.394803> ; 
+			turn torso to x-axis <1.521182> speed <3.427161> ; 
+			turn torso to z-axis <0.429122> speed <1.007738> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:64
+			turn larm to x-axis <-13.566440> speed <4.288778> ; 
+			turn larm to z-axis <-2.136300> speed <3.552283> ; 
+			turn larm to y-axis <-9.154685> speed <1.045755> ; 
+			turn larmorshoulder to x-axis <10.001602> speed <3.114605> ; 
+			turn larmorshoulder to z-axis <1.784703> speed <2.703303> ; 
+			turn larmorshoulder to y-axis <6.785890> speed <0.850051> ; 
+			turn lfootjoint to x-axis <-13.083917> speed <13.972396> ; 
+			turn lfootjoint to z-axis <-10.031112> speed <1.601472> ; 
+			turn lforearm to x-axis <-10.039391> speed <4.982832> ; 
+			turn lmidleg to x-axis <-22.380954> speed <20.636678> ; 
+			turn lshin to x-axis <33.877079> speed <27.517295> ; 
+			turn lthigh to x-axis <-26.542831> speed <7.176155> ; 
+			move pelvis to z-axis [-0.427559] speed [4.620415] ; 
+			turn rarm to x-axis <-11.627344> speed <4.617088> ; 
+			turn rarm to z-axis <1.651603> speed <3.301706> ; 
+			turn rarm to y-axis <7.126823> speed <0.831693> ; 
+			turn rarmorshoulder to x-axis <8.579430> speed <3.373068> ; 
+			turn rarmorshoulder to z-axis <-1.358127> speed <2.503396> ; 
+			turn rfootjoint to x-axis <-13.087457> speed <13.965538> ; 
+			turn rfootjoint to z-axis <10.016962> speed <1.661036> ; 
+			turn rforearm to x-axis <-12.070190> speed <5.239284> ; 
+			turn rmidleg to x-axis <-22.374593> speed <20.630928> ; 
+			turn rshin to x-axis <33.868866> speed <27.513863> ; 
+			turn rthigh to x-axis <-26.542906> speed <7.172569> ; 
+			turn torso to x-axis <1.624677> speed <0.776212> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:68
+			turn larm to x-axis <-0.393079> speed <98.800210> ; 
+			turn larm to z-axis <-5.519080> speed <25.370854> ; 
+			turn larm to y-axis <8.859118> speed <135.103526> ; 
+			turn larmorshoulder to x-axis <0.373006> speed <72.214471> ; 
+			turn larmorshoulder to z-axis <4.076151> speed <17.185858> ; 
+			turn larmorshoulder to y-axis <-6.547716> speed <100.002044> ; 
+			turn lfootjoint to x-axis <-14.760029> speed <12.570835> ; 
+			turn lfootjoint to z-axis <-10.250148> speed <1.642767> ; 
+			turn lforearm to x-axis <-20.477061> speed <78.282523> ; 
+			turn lforearm to z-axis <4.195556> speed <25.837170> ; 
+			turn lforearm to y-axis <-18.362579> speed <114.909547> ; 
+			turn lmidleg to x-axis <-12.188003> speed <76.447131> ; 
+			turn lmidleg to z-axis <0.139068> speed <0.821985> ; 
+			turn lshin to x-axis <19.596619> speed <107.103454> ; 
+			turn lshin to z-axis <-0.123669> speed <0.939295> ; 
+			turn lthigh to x-axis <-20.766825> speed <43.320044> ; 
+			move pelvis to z-axis [0.188496] speed [4.620409] ; 
+			move pelvis to y-axis [-12.575340] speed [33.536139] ; 
+			turn piledriver to x-axis <-5.249674> speed <36.823254> ; 
+			turn piledriver to z-axis <0.267902> speed <1.887242> ; 
+			turn piledriver to y-axis <-3.206867> speed <23.210888> ; 
+			turn railgun to x-axis <-5.708986> speed <36.404953> ; 
+			turn railgun to z-axis <-0.283199> speed <1.665259> ; 
+			turn railgun to y-axis <3.561834> speed <22.989321> ; 
+			turn rarm to x-axis <1.828892> speed <100.921774> ; 
+			turn rarm to z-axis <6.051351> speed <32.998108> ; 
+			turn rarm to y-axis <-11.118831> speed <136.842400> ; 
+			turn rarmorshoulder to x-axis <-1.239830> speed <73.644445> ; 
+			turn rarmorshoulder to z-axis <-4.510172> speed <23.640331> ; 
+			turn rarmorshoulder to y-axis <8.240516> speed <101.431809> ; 
+			turn rfootjoint to x-axis <-14.762696> speed <12.564291> ; 
+			turn rfootjoint to z-axis <10.237837> speed <1.656560> ; 
+			turn rforearm to x-axis <-22.334350> speed <76.981199> ; 
+			turn rforearm to z-axis <-4.986606> speed <22.107040> ; 
+			turn rforearm to y-axis <21.569674> speed <112.248305> ; 
+			turn rmidleg to x-axis <-12.183365> speed <76.434209> ; 
+			turn rmidleg to z-axis <-0.139027> speed <0.821781> ; 
+			turn rshin to x-axis <19.589686> speed <107.093849> ; 
+			turn rshin to z-axis <0.123617> speed <0.939023> ; 
+			turn rthigh to x-axis <-20.765879> speed <43.327702> ; 
+			turn torso to x-axis <1.961645> speed <2.527266> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:72
+			turn larm to x-axis <11.184640> speed <86.832889> ; 
+			turn larm to z-axis <-12.393487> speed <51.558049> ; 
+			turn larm to y-axis <27.370463> speed <138.835089> ; 
+			turn larmorshoulder to x-axis <-7.723358> speed <60.722728> ; 
+			turn larmorshoulder to z-axis <9.677776> speed <42.012188> ; 
+			turn larmorshoulder to y-axis <-20.416901> speed <104.018887> ; 
+			turn lfootjoint to x-axis <-18.700747> speed <29.555390> ; 
+			turn lfootjoint to z-axis <-10.779428> speed <3.969599> ; 
+			turn lfootjoint to y-axis <-7.035355> speed <1.213227> ; 
+			turn lforearm to x-axis <-27.104941> speed <49.709105> ; 
+			turn lforearm to z-axis <4.356873> speed <1.209878> ; 
+			turn lforearm to y-axis <-30.081861> speed <87.894609> ; 
+			turn lmidleg to x-axis <-6.010099> speed <46.334277> ; 
+			turn lshin to x-axis <9.927671> speed <72.517111> ; 
+			turn lthigh to x-axis <-13.303509> speed <55.974871> ; 
+			move pelvis to z-axis [0.804550] speed [4.620408] ; 
+			move pelvis to y-axis [-17.046818] speed [33.536081] ; 
+			turn piledriver to x-axis <-11.998304> speed <50.614727> ; 
+			turn piledriver to y-axis <-7.449948> speed <31.823105> ; 
+			turn railgun to x-axis <-12.431935> speed <50.422116> ; 
+			turn railgun to z-axis <-0.159455> speed <0.928078> ; 
+			turn railgun to y-axis <7.809689> speed <31.858907> ; 
+			turn rarm to x-axis <13.612948> speed <88.380417> ; 
+			turn rarm to z-axis <14.349743> speed <62.237938> ; 
+			turn rarm to y-axis <-30.263120> speed <143.582171> ; 
+			turn rarmorshoulder to x-axis <-9.371654> speed <60.988681> ; 
+			turn rarmorshoulder to z-axis <-11.296163> speed <50.894936> ; 
+			turn rarmorshoulder to y-axis <22.615320> speed <107.811031> ; 
+			turn rfootjoint to x-axis <-18.702748> speed <29.550395> ; 
+			turn rfootjoint to z-axis <10.768745> speed <3.981810> ; 
+			turn rfootjoint to y-axis <7.029395> speed <1.217463> ; 
+			turn rforearm to x-axis <-28.306899> speed <44.794122> ; 
+			turn rforearm to z-axis <-4.802356> speed <1.381871> ; 
+			turn rforearm to y-axis <33.142878> speed <86.799030> ; 
+			turn rmidleg to x-axis <-6.006407> speed <46.327185> ; 
+			turn rshin to x-axis <9.921697> speed <72.509920> ; 
+			turn rthigh to x-axis <-13.301978> speed <55.979257> ; 
+			turn torso to x-axis <2.919573> speed <7.184456> ; 
+			turn torso to z-axis <0.803394> speed <2.142571> ; 
+		sleep 131;
+		}
+		if (isPushing) { //Frame:76
+			turn larm to x-axis <20.564089> speed <70.345873> ; 
+			turn larm to z-axis <-25.586712> speed <98.949187> ; 
+			turn larm to y-axis <50.868128> speed <176.232481> ; 
+			turn larmorshoulder to x-axis <-13.163474> speed <40.800869> ; 
+			turn larmorshoulder to z-axis <20.706142> speed <82.712743> ; 
+			turn larmorshoulder to y-axis <-38.176598> speed <133.197730> ; 
+			turn lfootjoint to x-axis <-24.673848> speed <44.798259> ; 
+			turn lfootjoint to z-axis <-11.627146> speed <6.357890> ; 
+			turn lfootjoint to y-axis <-7.367873> speed <2.493885> ; 
+			turn lforearm to x-axis <-30.994114> speed <29.168797> ; 
+			turn lforearm to z-axis <3.257505> speed <8.245259> ; 
+			turn lforearm to y-axis <-40.381151> speed <77.244675> ; 
+			turn lmidleg to x-axis <-2.634391> speed <25.317811> ; 
+			turn lshin to x-axis <4.392356> speed <41.514857> ; 
+			turn lthigh to x-axis <-5.120092> speed <61.375624> ; 
+			move pelvis to z-axis [1.420604] speed [4.620409] ; 
+			move pelvis to y-axis [-21.518303] speed [33.536139] ; 
+			turn piledriver to x-axis <-19.519412> speed <56.408310> ; 
+			turn piledriver to z-axis <-0.504873> speed <5.138387> ; 
+			turn piledriver to y-axis <-12.194212> speed <35.581986> ; 
+			turn railgun to x-axis <-19.925530> speed <56.201964> ; 
+			turn railgun to z-axis <0.572850> speed <5.492288> ; 
+			turn railgun to y-axis <12.581945> speed <35.791924> ; 
+			turn rarm to x-axis <22.640329> speed <67.705356> ; 
+			turn rarm to z-axis <29.801208> speed <115.885993> ; 
+			turn rarm to y-axis <-54.911419> speed <184.862237> ; 
+			turn rarmorshoulder to x-axis <-14.179844> speed <36.061427> ; 
+			turn rarmorshoulder to z-axis <-24.157005> speed <96.456311> ; 
+			turn rarmorshoulder to y-axis <41.334922> speed <140.397014> ; 
+			turn rfootjoint to x-axis <-24.675050> speed <44.792265> ; 
+			turn rfootjoint to z-axis <11.618073> speed <6.369960> ; 
+			turn rfootjoint to y-axis <7.361932> speed <2.494032> ; 
+			turn rforearm to x-axis <-30.774712> speed <18.508592> ; 
+			turn rforearm to z-axis <-3.406598> speed <10.468191> ; 
+			turn rforearm to y-axis <43.058151> speed <74.364547> ; 
+			turn rmidleg to x-axis <-2.631285> speed <25.313416> ; 
+			turn rshin to x-axis <4.387216> speed <41.508604> ; 
+			turn rthigh to x-axis <-5.118224> speed <61.378150> ; 
+			turn torso to x-axis <4.589470> speed <12.524232> ; 
+			turn torso to z-axis <1.373386> speed <4.274939> ; 
+			turn torso to y-axis <-0.825612> speed <0.777647> ; 
+		sleep 131;
+		}
+	}
+}
+// Call this when doing literally anything
+StopPushups() {
+	if (isPushing) {		
+		move pelvis to y-axis [0.000000] speed [586.862807] / animSpeed;
+		move pelvis to z-axis [0.000000] speed [46.204146] / animSpeed;
+		turn larm to x-axis <0.000000> speed <1243.324382> / animSpeed;
+		turn larm to y-axis <0.000000> speed <1790.580216> / animSpeed;
+		turn larm to z-axis <0.000000> speed <989.491874> / animSpeed;
+		turn larmorshoulder to x-axis <0.000000> speed <903.114871> / animSpeed;
+		turn larmorshoulder to y-axis <0.000000> speed <1331.977303> / animSpeed;
+		turn larmorshoulder to z-axis <0.000000> speed <827.127435> / animSpeed;
+		turn lfootjoint to x-axis <0.000000> speed <673.011898> / animSpeed;
+		turn lfootjoint to y-axis <0.000000> speed <164.763443> / animSpeed;
+		turn lfootjoint to z-axis <0.000000> speed <316.074036> / animSpeed;
+		turn lforearm to x-axis <0.000000> speed <1002.502936> / animSpeed;
+		turn lforearm to y-axis <0.000000> speed <1460.894028> / animSpeed;
+		turn lforearm to z-axis <0.000000> speed <258.371697> / animSpeed;
+		turn lmidleg to x-axis <0.000000> speed <947.920035> / animSpeed;
+		turn lmidleg to z-axis <0.000000> speed <10.118876> / animSpeed;
+		turn lshin to x-axis <0.000000> speed <1402.197901> / animSpeed;
+		turn lshin to z-axis <0.000000> speed <10.773614> / animSpeed;
+		turn lthigh to x-axis <0.000000> speed <623.868241> / animSpeed;
+		turn lthigh to y-axis <19.999998> speed <505.202160> / animSpeed;
+		turn lthigh to z-axis <0.000000> speed <14.255320> / animSpeed;
+		turn ltoes to x-axis <0.000000> speed <1363.217990> / animSpeed;
+		turn ltoes to y-axis <0.000000> speed <10.404367> / animSpeed;
+		turn ltoes to z-axis <0.000000> speed <24.170836> / animSpeed;
+		turn pelvis to x-axis <0.000000> speed <2170.659887> / animSpeed;
+		turn piledriver to x-axis <25.000002> speed <1214.165830> / animSpeed;
+		turn piledriver to y-axis <0.000000> speed <355.819857> / animSpeed;
+		turn piledriver to z-axis <0.000000> speed <51.383870> / animSpeed;
+		turn railgun to x-axis <25.000004> speed <1225.241820> / animSpeed;
+		turn railgun to y-axis <0.000000> speed <357.919244> / animSpeed;
+		turn railgun to z-axis <0.000000> speed <54.922877> / animSpeed;
+		turn rarm to x-axis <0.000000> speed <1271.288500> / animSpeed;
+		turn rarm to y-axis <0.000000> speed <1848.622374> / animSpeed;
+		turn rarm to z-axis <0.000000> speed <1158.859926> / animSpeed;
+		turn rarmorshoulder to x-axis <0.000000> speed <920.900628> / animSpeed;
+		turn rarmorshoulder to y-axis <0.000000> speed <1403.970143> / animSpeed;
+		turn rarmorshoulder to z-axis <0.000000> speed <964.563114> / animSpeed;
+		turn rfootjoint to x-axis <0.000000> speed <673.041982> / animSpeed;
+		turn rfootjoint to y-axis <0.000000> speed <164.517428> / animSpeed;
+		turn rfootjoint to z-axis <0.000000> speed <315.822770> / animSpeed;
+		turn rforearm to x-axis <0.000000> speed <979.847220> / animSpeed;
+		turn rforearm to y-axis <0.000000> speed <1432.725293> / animSpeed;
+		turn rforearm to z-axis <0.000000> speed <221.070396> / animSpeed;
+		turn rmidleg to x-axis <0.000000> speed <947.782876> / animSpeed;
+		turn rmidleg to z-axis <0.000000> speed <10.118126> / animSpeed;
+		turn rshin to x-axis <0.000000> speed <1402.070988> / animSpeed;
+		turn rshin to z-axis <0.000000> speed <10.770863> / animSpeed;
+		turn rthigh to x-axis <0.000000> speed <623.948026> / animSpeed;
+		turn rthigh to y-axis <-20.000001> speed <505.209486> / animSpeed;
+		turn rthigh to z-axis <0.000000> speed <14.624485> / animSpeed;
+		turn rtoes to x-axis <0.000000> speed <1363.226093> / animSpeed;
+		turn rtoes to y-axis <0.000000> speed <10.401773> / animSpeed;
+		turn rtoes to z-axis <0.000000> speed <24.169722> / animSpeed;
+		turn torso to x-axis <0.000000> speed <125.242319> / animSpeed;
+		turn torso to y-axis <0.000000> speed <22.516682> / animSpeed;
+		turn torso to z-axis <0.000000> speed <42.749395> / animSpeed;
+		
+		start-script ExecuteRestoreAfterDelay();
+		spin fingers around z-axis speed <360> accelerate <6>;
+		isPushing = FALSE;
+	}
 }
