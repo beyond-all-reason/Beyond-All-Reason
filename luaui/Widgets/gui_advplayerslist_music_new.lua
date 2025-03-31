@@ -35,7 +35,7 @@ local warHighLevel = 32500
 local warMeterResetTime = 40 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 60 -- seconds
-local songsSinceEvent = 0
+local songsSinceEvent = 5 -- start with higher number so event track can be played first
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
