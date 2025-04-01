@@ -1086,7 +1086,7 @@ function PlayNewTrack(paused)
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
-		if #eventWarHighTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventWarHighTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventWarHighTracks
 			currentTrackListString = "eventWarHigh"
 			songsSinceEvent = 0
@@ -1095,7 +1095,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warHigh"
 		end
 	elseif warMeter >= warLowLevel then
-		if #eventWarLowTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventWarLowTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
 			songsSinceEvent = 0
@@ -1104,7 +1104,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warLow"
 		end
 	else
-		if #eventPeaceTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventPeaceTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
 			songsSinceEvent = 0
