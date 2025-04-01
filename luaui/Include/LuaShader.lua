@@ -372,10 +372,11 @@ Transform Lerp(Transform t0, Transform t1, float a) {
 		mix(t0.trSc, t1.trSc, a)
 	);
 }
-
+//https://www.songho.ca/opengl/gl_quaternion.html
 mat4 TransformToMat4(Transform t) {
     // Normalize the quaternion to ensure a proper rotation matrix.
     vec4 q = normalize(t.quat);
+	q.xyz *= -1.0; // flip the quaternion to match the right-handed coordinate system
     // Uniform scale factor stored in t.trSc.w.
     float s = t.trSc.w;
 
@@ -434,15 +435,16 @@ Transform GetPieceWorldTransform(uint baseIndex, uint pieceID)
 		transforms[baseIndex + 1u],
 		timeInfo.w
 	);
-	return ApplyTransform(modelToWorldTX, pieceToMModelTX);
+	
+	return ApplyTransform( modelToWorldTX, pieceToMModelTX);
 }
 
 // This helper function gets the transform that gets you the model-space to world-space transform
-Transform GetModelWorldTransform(uint baseIndex, uint pieceID)
+Transform GetModelWorldTransform(uint baseIndex)
 {
 	return Lerp(
-		transforms[baseIndex + 0u],
-		transforms[baseIndex + 1u],
+		transforms[baseIndex  + 0u],
+		transforms[baseIndex  + 1u],
 		timeInfo.w
 	);
 }

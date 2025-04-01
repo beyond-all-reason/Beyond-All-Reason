@@ -22,9 +22,13 @@ layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-	mat4 mat[];
-};
+#if USEQUATERNIONS == 0
+	layout(std140, binding = 0) readonly buffer MatrixBuffer {
+		mat4 mat[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 struct SUniformsBuffer {
 	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -46,6 +50,8 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
 	SUniformsBuffer uni[];
 };
+
+
 
 #line 10000
 
@@ -113,22 +119,34 @@ void main()
 	
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
+	#if USEQUATERNIONS == 1 
+		Transform tx;
+	#endif
 	
 	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
 	// v_worldposrad contains the incoming piece-level offset
 	// v_worldPosRad should be after changing to unit-space
 	// we have to transform BOTH the center of the light to piece-space
 	// and the vertices of the light volume to piece-space
-	// we need to go from light-space to world-space
+	// we need to go from light-space to world-space 
 	vec3 lightCenterPosition =  v_worldPosRad.xyz;
 	v_lightcolor = lightcolor;
 	if (attachedtounitID > 0){
-		mat4 worldMatrix = mat[instData.x];
-		placeInWorldMatrix = worldMatrix;
-		if (pieceIndex > 0u) {
-			mat4 pieceMatrix = mat[instData.x + pieceIndex];
-			placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
-		}
+		#if USEQUATERNIONS == 0 
+			mat4 worldMatrix = mat[instData.x];
+			placeInWorldMatrix = worldMatrix;
+			if (pieceIndex > 0u) {
+				mat4 pieceMatrix = mat[instData.x + pieceIndex];
+				placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
+			} 
+		#else
+			tx = GetModelWorldTransform(instData.x);
+			if (pieceIndex > 0u){
+				Transform ty = GetPieceModelTransform(instData.x, pieceIndex);
+				tx = ApplyTransform(tx, ty);
+			}
+			placeInWorldMatrix = TransformToMat4(tx);
+		#endif
 		//uint drawFlags = (instData.z & 0x0000100u);// >> 8 ; // hopefully this works
 		//if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
 		// disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn. 
@@ -207,6 +225,7 @@ void main()
 		v_worldPosRad.xyz = lightCenterPosition;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
 		v_position = vec4( lightVertexPosition, 1.0);
+		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesnt work
 	}
 	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
