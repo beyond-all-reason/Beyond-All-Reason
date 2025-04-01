@@ -113,7 +113,6 @@ function AttackHST:SquadCheck(squad)
 	local memberCount = 0
 	for i,member in pairs(squad.members) do
 		if not member.unit or not member.unit:Internal():GetPosition()	then
-
 			table.remove(squad.members,i)
 			self:RemoveRecruit(member)
 		else
@@ -139,7 +138,6 @@ function AttackHST:SquadCheck(squad)
 	squad.lastAdvance = squad.lastAdvance or 0
 	squad.leaderPos = squad.leaderPos or self.ai.tool:RezTable()
 	for i,member in pairs(squad.members) do
-
 		if member.unit then
 			squad.leader = member.unit:Internal():ID()
 			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
@@ -180,7 +178,6 @@ function AttackHST:SquadFindPath(squad,target)
 	end
 	self:EchoDebug("got path of", #path, "nodes")
 	return path,1
-	
 end
 
 function AttackHST:SquadAdvance(squad)
@@ -188,7 +185,6 @@ function AttackHST:SquadAdvance(squad)
 	if game:Frame() < squad.lastAdvance + 30 then
 		return
 	end
-
 	if not squad.target then
 		return
 	end
@@ -205,10 +201,8 @@ function AttackHST:SquadAdvance(squad)
 	end
 	self:SquadStepComplete(squad)
 	self:EchoDebug('advance #members',#squad.members,'remaining step',#squad.path)
-
-	
 	for i,member in pairs(squad.members) do
-		squad.cmdUnitId[i] = member.unit:Internal():ID()
+		squad.cmdUnitId[i] = member.unit:Internal():ID()--:TODO unit can be nil!!
 	end
 	if self.ai.tool:distance(squad.position,self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)) < 512 then
 		self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.FIGHT ,squad.path[squad.step],0,'1-2')
@@ -231,7 +225,6 @@ function AttackHST:SquadsTargetHandled(target)
 end
 
 function AttackHST:SquadsTargetUpdate()
-
 	for id,squad in pairs(self.squads) do
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'offense cell', squad.target.X,squad.target.Z)
@@ -264,8 +257,6 @@ function AttackHST:SquadsTargetUpdate()
 					self:EchoDebug('squad', squad.squadID, 'have no target')
 				end
 			end
-			
-			--end
 		end
 	end
 end
@@ -277,15 +268,11 @@ function AttackHST:SquadsTargetPrevent(squad)
 	for id,role in pairs(self.ai.buildingshst.roles) do
 		if role.role == 'expand' then
 		local builderPos = game:GetUnitByID(id):GetPosition()
-		--local cell = self.ai.maphst:GetCell(builderPos,self.ai.maphst.GRID)
-		--local targetHandled = self:SquadsTargetHandled(cell)
-		--if not targetHandled or targetHandled == squad.squadID then
 			local dist = self.ai.tool:distance(builderPos,squad.position)
 			if dist < frontDist then
 				X,Z = self.ai.maphst:PosToGrid(builderPos)
 				frontDist = dist
 				preventCell = {X = X,Z = Z}
-				
 			end
 		end
 	end
@@ -296,16 +283,11 @@ function AttackHST:SquadsTargetPrevent2(squad)
 	local targetDist = math.huge
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-		--if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
-		--local targetHandled = self:SquadsTargetHandled(self.ai.loshst.OWN[blob.defendCell.X][blob.defendCell.Z])
-		--if not targetHandled or targetHandled == squad.squadID then
 		local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
 		if dist < targetDist then
 			targetDist = dist
 			targetCell = {X = blob.targetCell.X,Z = blob.targetCell.Z}
 		end
-		--end
-		--end
 	end
 	return  targetCell
 end
@@ -317,11 +299,8 @@ function AttackHST:SquadsTargetAttack(squad)
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
 			if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z])  or squad.squadID == not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z])then
-			
 				local mclass =self.ai.armyhst.unitTable[game:GetUnitByID(squad.leader):Name()].mclass
-				--local mclass = game:GetUnitByID(squad.leader):Name()
 				local path = map:PathTest(mclass,squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z,blob.position.x,blob.position.y,blob.position.z,8)
-				--local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 				if path then
 					local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 					if dist > worstDist then

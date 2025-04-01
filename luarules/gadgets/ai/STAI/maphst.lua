@@ -22,25 +22,15 @@ function MapHST:Init()
 		print('map already loaded')
 		return
 	end
-	local RAM = gcinfo()
 	self:basicMapInfo()
-	print('1',gcinfo()-RAM)
 	self:InitPathCost()
-	print('2',gcinfo()-RAM)
 	self.topology = {air = {}}
-	print('3',gcinfo()-RAM)
 	self:createGrid()
-	print('4',gcinfo()-RAM)
 	self.METALS = map:GetMetalSpots()
-	print('5',gcinfo()-RAM)
 	self.GEOS = map:GetGeoSpots()
-	print('6',gcinfo()-RAM)
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
-	print('7',gcinfo()-RAM)
 	self.allSpots = self.ai.tool:tableConcat({self.METALS,self.GEOS})
-	print('8',gcinfo()-RAM)
 	self.hotSpots = {}
-	print('9',gcinfo()-RAM)
 	self:hotSpotter(self.METALS,self.GEOS)
 	self.waterMetals = {}
 	self.groundMetals = {}
@@ -49,13 +39,9 @@ function MapHST:Init()
 	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	self:gridAnalisy()
-	print('10',gcinfo()-RAM)
 	self:metalScan()
-	print('11',gcinfo()-RAM)
 	self:geoScan()
-	print('12',gcinfo()-RAM)
 	self:LayerScan()
-	print('13',gcinfo()-RAM)
 	self.trampledCells = {}
 	self:DrawDebug()
 	self.map_loaded = true
@@ -581,18 +567,15 @@ function MapHST:gridThePath(wp,factor)
 	factor = factor or self.gridSize
 	local prev = #wp
 	for i = #wp,1,-1 do
-		--Spring.Echo('ambassa',#wp,i,wp[i],prev,wp[prev])
 		if i and i ~= prev then
 			if self.ai.tool:RawDistance(wp[prev][1],wp[prev][2],wp[prev][3],wp[i][1],wp[i][2],wp[i][3]) < factor then
 				table.remove(wp,i)
 				prev = prev - 1
 			else
 				prev = i
-				--Spring.MarkerAddPoint(wp[prev][1],wp[prev][2],wp[prev][3]	)
 			end
 		end
 	end
-	print(#wp)
 	for index,pos in pairs(wp) do
 		pos.x = table.remove(pos,1)
 		pos.y = table.remove(pos,1)
@@ -816,7 +799,7 @@ function MapHST:MobilityOfUnit(unit)
 	return mtype, self:MobilityNetworkHere(mtype, position)
 end
 
-function MapHST:UnitCanGoHere(unit, position)
+function MapHST:UnitCanGoHereBackup(unit, position)
 	if not unit  or not position then return false end
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
@@ -826,7 +809,18 @@ function MapHST:UnitCanGoHere(unit, position)
 		return true
 	end
 end
+function MapHST:UnitCanGoHere(unit, position)
+	if not unit  or not position then return false end
+	local mtype, unet = self:MobilityOfUnit(unit)
+	if mtype == 'air' then return true end
+	local ux,uy,uz = unit:GetRawPos()
+	
+	return map:PathTest(self.ai.armyhst.unitTable[unit:Name()].mclass ,ux,uy,uz ,position.x,position.y,position.z)
+		
+	
 
+	
+end
 function MapHST:UnitCanGetToUnit(unit1, unit2)
 	local position = unit2:GetPosition()
 	return self:UnitCanGoHere(unit1, position)

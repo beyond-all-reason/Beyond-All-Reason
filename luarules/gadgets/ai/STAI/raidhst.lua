@@ -9,9 +9,9 @@ function RaidHST:internalName()
 end
 
 local floor = math.floor
-
+local   SpringGetUnitCommands = Spring.GetUnitCommands
 function RaidHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -197,14 +197,16 @@ function RaidHST:SquadAdvance(squad)
 	if game:Frame() < squad.lastAdvance + 30 then
 		return
 	end
-	squad.lastAdvance = game:Frame()
-	squad.idleCount = 0
+	
 	if not squad.target or not squad.path then
 		return
 	end
+	squad.lastAdvance = game:Frame()
+	squad.idleCount = 0
 	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
 
 	if type(squad.role ) == 'number'  and game:GetUnitByID(squad.role):GetPosition()then
+		self:EchoDebug(squad.squadID,'prevent',squad.role)
 		local preventThreat = nil
 		local targetPos = game:GetUnitByID(squad.role):GetPosition()
 		for i,blob in pairs(self.ai.targethst.MOBILE_BLOBS) do
@@ -220,37 +222,24 @@ function RaidHST:SquadAdvance(squad)
 				squad.cmdUnitId[i] = member.unit:Internal():ID()
 			end
 			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.FIGHT ,preventThreat,0,'1-2')
+			self:EchoDebug('preventThreat',preventThreat)
 			return
 		end
+
 		for i,member in pairs(squad.members) do
-			local currentCommand =member.unit:Internal():CurrentCommand()
-			--Spring.Echo(currentCommand)
-			if not currentCommand or currentCommand ~= CMD.GUARD then
+			local lastCommand,lastTarget = member:GetLastCommandReceived()
+			self:EchoDebug('lastCommand,lastTarget',lastCommand,lastTarget)
+			if lastCommand ~= CMD.GUARD or lastTarget ~= squad.target then
 				squad.cmdUnitId[i] = member.unit:Internal():ID()
+				member:SetLastCommandReceived(CMD.GUARD,squad.role)
 			end
-			
 		end
 		if #squad.cmdUnitId > 0 then
 			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.GUARD ,squad.role,0,'1-2')
+			self:EchoDebug('prevent normal guard')
 		end
-		
 		return
 	end
-	--[[if squad.role == 'defense' thenTODOFIXPREVENTIVE
-		for i,member in pairs(squad.members) do
-			local currentCommand =member.unit:Internal():CurrentCommand()
-			--Spring.Echo(currentCommand)
-			if not currentCommand or currentCommand ~= CMD.GUARD then
-				squad.cmdUnitId[i] = member.unit:Internal():ID()
-			end
-			
-		end
-		if #squad.cmdUnitId > 0 then
-			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.GUARD ,squad.role,0,'1-2')
-		end
-		
-		return
-	end]]
 	self:SquadStepComplete(squad)
 	self:EchoDebug('advance #members',#squad.members,'path lenght',#squad.path)
 	
@@ -271,7 +260,7 @@ function RaidHST:SquadsTargetHandled(target,role)
 	if role then
 		for squadID,squad in pairs(self.squads) do
 			if squad.role and squad.role == role  then
-				self:EchoDebug(id,'handled by squad',squad.squadID)
+				self:EchoDebug(role,'handled by squad',squad.squadID)
 				return squad.squadID
 				
 			end
@@ -292,10 +281,12 @@ end
 --end
 
 function RaidHST:SquadsTargetUpdate()
+	self:EchoDebug('SquadsTargetUpdate')
 	for id,squad in pairs(self.squads) do
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
 		elseif squad.target and type(squad.role) == 'number' and game:GetUnitByID(squad.role):GetPosition() then
+			self:EchoDebug('squad' , squad.squadID, 'guard ', squad.role)
 			--[[local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
 			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
 			if targetX then
@@ -307,7 +298,7 @@ function RaidHST:SquadsTargetUpdate()
 				squad.path[1].z = targetZ
 				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
 			end]]
-			return squad.target,squad.role
+			--return squad.target,squad.role
 
 		
 		else
@@ -321,6 +312,7 @@ function RaidHST:SquadsTargetUpdate()
 
 			local prevent, targetID = self:SquadsTargetPrevent(squad)
 			if prevent then
+				self:EchoDebug('prevent set for ',squad.squadID,targetID)
 				squad.target = prevent
 				squad.role = targetID
 				squad.step = 1
@@ -352,11 +344,13 @@ function RaidHST:SquadsTargetPrevent(squad)
 	local frontDist = math.huge
 	local preventCell = nil
 	local targetID = nil
+	self:EchoDebug('set target prevent for', squad.squadID)
 	for id,role in pairs(self.ai.buildingshst.roles) do
 		if role.role == 'expand' or role.role == 'support' or role.role == 'default' then
 			local builder = game:GetUnitByID(id)
+			self:EchoDebug('try to prevent for',id)
 			if not self:SquadsTargetHandled(nil,id) or squad.squadID == self:SquadsTargetHandled(nil,id) then
-
+				self:EchoDebug('prevent not handled', id)
 				local builderPos = builder:GetPosition()
 				local cell = self.ai.maphst:GetCell(builderPos,self.ai.maphst.GRID)
 				--local targetHandled = self:SquadsTargetHandled(cell)

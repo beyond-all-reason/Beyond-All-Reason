@@ -199,6 +199,12 @@ function map:MapName() -- returns the name of this map
 	return Game.mapName
 end
 
+function map:GetWind()
+	local _,_,_,strenght =Spring.GetWind()
+	return strenght 
+
+end
+
 function map:AverageWind() -- returns (minwind+maxwind)/2
 	return ( Game.windMin + (Game.windMax - Game.windMin)/2 )
 end
@@ -233,7 +239,6 @@ end
 -- DRAWING FUNCTIONS
 
 function map:DrawRectangle(pos1, pos2, color, label, filled, channel)
-	print("map:DrawRectangle")
 	channel = channel or 1
 	color = color or {}
 	if (Script.LuaUI('ShardDrawAddRectangle')) then
@@ -252,7 +257,6 @@ function map:EraseRectangle(pos1, pos2, color, label, filled, channel)
 end
 
 function map:DrawCircle(pos, radius, color, label, filled, channel)
-	print("map:DrawCircle")
 	channel = channel or 1
 	color = color or {}
 	if (Script.LuaUI('ShardDrawAddCircle')) then
@@ -308,7 +312,6 @@ function map:ErasePoint(pos, color, label, channel)
 end
 
 function map:EraseAll(channel)
-	print('map:EraseAll')
 	channel = channel or 1
 	if (Script.LuaUI('ShardDrawClearShapes')) then
 		Script.LuaUI.ShardDrawClearShapes(self.ai.game:GetTeamID(), channel)
@@ -318,7 +321,6 @@ function map:EraseAll(channel)
 end
 
 function map:DisplayDrawings(onOff)
-	print('map:DisplayDrawings')
 	if (Script.LuaUI('ShardDrawDisplay')) then
 		Script.LuaUI.ShardDrawDisplay(onOff)
 	end

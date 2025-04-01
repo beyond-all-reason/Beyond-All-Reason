@@ -446,7 +446,6 @@ function BuildingsHST:GetMyProject(builderID)
 end
 
 function BuildingsHST:NewPlan(unitName, position, builderID, builderName)
-	local builder = game:GetUnitByID(builderId)
 	self:EchoDebug(builderName, " plans to build ", unitName .. " at ", position.x , position.z)
 	local plan = {unitName = unitName, position = position, builderID = builderID, builderName = builderName}
 	self:CalculateRect(plan)

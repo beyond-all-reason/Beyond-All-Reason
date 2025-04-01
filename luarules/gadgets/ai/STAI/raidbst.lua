@@ -46,6 +46,15 @@ function RaidBST:OwnerBuilt()
 	self.ai.raidhst:AddRecruit(self)
 end
 
+function RaidBST:SetLastCommandReceived(cmd,target)
+	self.lastCommand = cmd
+	self.lastTarget = target
+end
+
+function RaidBST:GetLastCommandReceived()
+	return self.lastCommand, self.lastTarget
+end
+
 function RaidBST:OwnerDamaged(attacker,damage)
 	self.damaged = self.game:Frame()
 end

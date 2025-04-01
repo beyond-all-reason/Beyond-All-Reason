@@ -52,15 +52,12 @@ Tool._TABLES = {}
 Tool.tablerez = 0
 Tool.tablenew = 0
 function Tool:RezTable()
-	--print('#RezTable',#self._TABLES,self.tablerez,self.tablenew)
-
+	self:EchoDebug('#RezTable',#self._TABLES,self.tablerez,self.tablenew)
 	if self._TABLES[1] then
-		--print('#RezTable rez old table',#self._TABLES)
 		self.tablerez = self.tablerez +1
 		return table.remove(self._TABLES)
 	end
 	self.tablenew = self.tablenew + 1
-	--print('#RezTable not enough, create a new table',#self._TABLES)
 	return {}
 end
 
@@ -87,9 +84,7 @@ function Tool:KillTable(t)
 			--t = nil
 		end
 	end
-
-	--end
-	--print('#KillTable',#self._TABLES)
+	self:EchoDebug('#KillTable',#self._TABLES)
 	return nil
 end
 

@@ -19,7 +19,7 @@ function BuildersBST:Init()
 	if self.ai.armyhst.commanderList[self.name] then self.isCommander = true end
 	self.role = self.ai.buildingshst:SetRole(self.id)
 	self.queue = self.ai.taskshst.roles[self.role]
-	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
+	self:EchoDebug(" initializing...")
 	self.unit:ElectBehaviour()
 end
 
@@ -38,11 +38,11 @@ function BuildersBST:EngineerhstBuilderBuild()
 end
 
 function BuildersBST:OwnerDead()
-	if self.unit ~= nil then
+	--if self.unit ~= nil then
 		self.ai.buildingshst.roles[self.id] = nil
 		self.ai.engineerhst.Builders[self.id] = nil
 		self.ai.buildingshst:ClearMyProjects(self.id)
-	end
+	--end
 end
 
 function BuildersBST:OwnerIdle()
@@ -107,18 +107,20 @@ function BuildersBST:Update()
 	local f = self.game:Frame()
 	self.position.x, self.position.y, self.position.z = self.unit:Internal():GetRawPos()
 	if not self:IsActive() then
+		self:EchoDebug('inactive')
 		return
 	end
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
 	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress, relativeHealth = self.unit:Internal()
 	:GetHealtsParams()
 	if relativeHealth < 0.99 and buildProgress == 1 and not self.isCommander then
-		self:Evade()
+		self:Assist()
 		return
 	end
-	if not self.sketch and not self.builder and self.failOut then
-		self:EchoDebug(self.name, 'failout')
-		if f > self.failOut + 600 then --wait 360 frame before check again queue
+	if not self.sketch and not self.builder and self.failOut and self.assistant then
+		self:EchoDebug(self.name, 'failout',self.role,self.failOut,self.assistant,game:GetUnitByID(self.assistant):GetPosition(),game:GetUnitByID(self.assistant):Name())
+		
+		if f > self.failOut + 600 then --waiting frame before check again queue
 			self:EchoDebug(self.name, 'failout reset')
 			self.failOut = nil
 			self.fails = 0
@@ -164,7 +166,9 @@ function BuildersBST:specialFilter(cat, param, name)
 				name = newName
 			end
 		end
-		check = true
+		if map:AverageWind() <= 7 or map:GetWind() < 5 then
+			check = true
+		end
 	elseif cat == '_fus_' then
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName', newName)
@@ -181,7 +185,7 @@ function BuildersBST:specialFilter(cat, param, name)
 			check = true
 		end
 	elseif cat == '_wind_' then
-		check = map:AverageWind() > 7
+		check = map:AverageWind() > 7 and map:GetWind() > 5
 	elseif cat == '_tide_' then
 		check = map:TidalStrength() >= 10
 	elseif cat == '_aa1_' then
@@ -391,15 +395,12 @@ function BuildersBST:ProgressQueue()
 			if utype and p then
 				self.ai.buildingshst:NewPlan(jobName, p, self.id, self.name)
 				local facing = self.ai.buildingshst:GetFacing(p)
-
 				self.ai.tool:GiveOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,facing},0,'1-1')--TODO insert facing at end of p
-				
 				self.watchdogTimeout = math.huge
 				self.fails = 0
 				self.failOut = nil
 				self.assistant = false
 				self:EchoDebug(self.name, " successful build command for ", utype:Name())
-				--
 				return true
 			else
 				self.fails = self.fails + 1
@@ -421,8 +422,13 @@ function BuildersBST:ProgressQueue()
 end
 
 function BuildersBST:Assist()
-	if self.assistant then return end
-	local builderPos = self.ai.tool:UnitPos(self)
+	self:EchoDebug('assistant proc for', self.name)
+	if self.assistant then 
+		self:EchoDebug('already assist ', self.assistant)
+		return 
+	
+		end
+	local builderPos = self.unit:Internal():GetPosition()
 	if self.role ~= 'eco' then
 		local bossDist = math.huge
 		local bossTarget
@@ -432,43 +438,38 @@ function BuildersBST:Assist()
 					local dist = self.ai.tool:distance(builderPos, project.position)
 					if dist < bossDist then
 						bossDist = dist
-						bossTarget = bossID
+						bossTarget = project.builderID
 					end
 				end
 			end
 		end
 		if bossTarget then
-			--self.unit:Internal():Guard(bossTarget)
 			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
-			self.assistant = true
+			self.assistant = bossTarget
 		end
 	else
 		local bossDist = math.huge
 		local bossTarget
-		for bossID, project in pairs(self.ai.buildingshst.sketch) do
-			if project.position and self.ai.armyhst.unitTable[project.builderName].techLevel >= self.ai.armyhst.unitTable[self.name].techLevel then
-				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
+		local bossLevel = 0
+		for bossID, project in pairs(self.ai.buildingshst.builders) do
+			self:EchoDebug('project',project)
+			if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
+				local builderLevel = self.ai.armyhst.unitTable[project.builderName].techLevel
+				if builderLevel >= bossLevel then
+					bossLevel = builderLevel
 					local dist = self.ai.tool:distance(builderPos, project.position)
 					if dist < bossDist then
 						bossDist = dist
-						bossTarget = bossID
+						bossTarget = project.builderID
+						self:EchoDebug('elect a boss',bossID,project)
 					end
 				end
 			end
 		end
 		if bossTarget then
 			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
-			self.assistant = true
-		else
-			local unitsNear = self.game:getUnitsInCylinder(builderPos, 2500)
-			for index, unitID in pairs(unitsNear) do
-				local unitName = self.game:GetUnitByID(unitID):Name()
-				if self.ai.armyhst.factoryMobilities[unitName] then
-					self.ai.tool:GiveOrder(self.id, CMD.GUARD, unitID,0,'1-1')
-					self.assistant = true
-					return
-				end
-			end
+			self.assistant = bossTarget
+			
 		end
 	end
 end
