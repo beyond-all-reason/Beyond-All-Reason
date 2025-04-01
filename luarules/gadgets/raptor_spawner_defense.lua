@@ -177,6 +177,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- Teams
 	--------------------------------------------------------------------------------
 
+	local teams = GetTeamList()
+	for _, teamID in ipairs(teams) do
+		if teamID ~= raptorTeamID then
+			humanTeams[teamID] = true
+		end
+	end
+
 	local gaiaTeamID = GetGaiaTeamID()
 	if not raptorTeamID then
 		raptorTeamID = gaiaTeamID
