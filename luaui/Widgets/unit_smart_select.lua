@@ -30,8 +30,9 @@ local mods = {
  idle     = false, -- whether to select only idle units
  same     = false, -- whether to select only units that share type with current selection
  deselect = false, -- whether to select units not present in current selection
- all      = false, -- whether to select all units
+ all      = false, -- whether to select without filters
  mobile   = false, -- whether to select only mobile units
+ append   = false, -- whether to append units to current selection
 }
 local customFilterDef = ""
 local lastMods = mods
@@ -260,12 +261,13 @@ function widget:Update(dt)
 		and mods.deselect == lastMods[3]
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
+		and mods.append == lastMods[6]
 		and customFilterDef == lastCustomFilterDef
 	then
 		return
 	end
 
-	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.append }
 	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
@@ -394,7 +396,7 @@ function widget:Update(dt)
 		selectedUnits = newSelection
 		spSelectUnitArray(selectedUnits)
 
-	elseif mods.all then  -- append units inside selection rectangle to current selection
+	elseif mods.append then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
 		selectedUnits = Spring.GetSelectedUnits()
