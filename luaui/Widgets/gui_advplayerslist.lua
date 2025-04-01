@@ -868,7 +868,7 @@ function widget:GameFrame(n)
             forceMainListRefresh = true
         else
             -- when PvE: rank players inside team based on production and damage dealt
-            if isPvE and n % 200 == 1  then
+            if isPvE and not isSinglePlayer and n % 200 == 1  then
                 local rankingChanged = false
                 local scores = {}
                 for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
