@@ -9,13 +9,6 @@ local adjustSide = function(sideMin, sideMax, mapSize, spread)
 	local incrementBy = math.ceil((spread - sideSize)/2)
 	sideMin = sideMin - incrementBy
 	sideMax = sideMax + incrementBy
-	if sideMin < 0 then
-		sideMax = sideMax - sideMin
-		sideMin = 0
-	elseif sideMax > mapSize then
-		sideMin = sideMin - (sideMax - mapSize)
-		sideMax = mapSize
-	end
 	sideMin = math.max(sideMin, 0)
 	sideMax = math.min(sideMax, mapSize)
 	return sideMin, sideMax
