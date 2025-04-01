@@ -15,19 +15,19 @@ if modOptions.deathmode ~= "territorial_domination" then return false end
 
 local floor = math.floor
 local format = string.format
-local GetViewGeometry = Spring.GetViewGeometry
-local GetMiniMapGeometry = Spring.GetMiniMapGeometry
-local GetGameSeconds = Spring.GetGameSeconds
-local GetMyAllyTeamID = Spring.GetMyAllyTeamID
-local GetSpectatingState = Spring.GetSpectatingState
-local GetTeamInfo = Spring.GetTeamInfo
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local GetUnitTeam = Spring.GetUnitTeam
-local GetTeamRulesParam = Spring.GetTeamRulesParam
-local GetGameRulesParam = Spring.GetGameRulesParam
-local GetTeamList = Spring.GetTeamList
-local I18N = Spring.I18N
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spGetGameRulesParam = Spring.GetGameRulesParam
+local spGetTeamList = Spring.GetTeamList
+local spI18N = Spring.I18N
 local glColor = gl.Color
 local glRect = gl.Rect
 local glText = gl.Text
@@ -69,19 +69,18 @@ local fontCache = {
 }
 
 local backgroundColor = {COLOR_BG[1], COLOR_BG[2], COLOR_BG[3], COLOR_BG[4]}
-local currentTextColor = {COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4]}
 
 function widget:Initialize()
-	amSpectating = GetSpectatingState()
-	gracePeriod = GetGameRulesParam(GRACE_PERIOD_KEY) or 0
-	myAllyID = GetMyAllyTeamID()
+	amSpectating = spGetSpectatingState()
+	gracePeriod = spGetGameRulesParam(GRACE_PERIOD_KEY) or 0
+	myAllyID = spGetMyAllyTeamID()
 	selectedAllyTeamID = myAllyID
-	gaiaAllyTeamID = select(6, GetTeamInfo(Spring.GetGaiaTeamID()))
+	gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID()))
 end
 
 function widget:Update()
-	amSpectating = GetSpectatingState()
-	myAllyID = GetMyAllyTeamID()
+	amSpectating = spGetSpectatingState()
+	myAllyID = spGetMyAllyTeamID()
 end
 
 local function drawScore()
@@ -90,12 +89,12 @@ local function drawScore()
 	if scoreAllyID == gaiaAllyTeamID then return end
 	
 	local score = 0
-	local threshold = GetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	
-	for _, teamID in ipairs(GetTeamList()) do
-		local _, _, isDead, _, _, allyTeamID = GetTeamInfo(teamID)
+	for _, teamID in ipairs(spGetTeamList()) do
+		local _, _, isDead, _, _, allyTeamID = spGetTeamInfo(teamID)
 		if not isDead and allyTeamID == scoreAllyID then
-			local teamScore = GetTeamRulesParam(teamID, SCORE_RULES_KEY)
+			local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
 			if teamScore then
 				score = teamScore
 				break
@@ -104,7 +103,7 @@ local function drawScore()
 	end
 	
 	if not fontCache.initialized then
-		local _, viewportSizeY = GetViewGeometry()
+		local _, viewportSizeY = spGetViewGeometry()
 		fontCache.fontSizeMultiplier = math.max(1.2, math.min(2.25, viewportSizeY / 1080))
 		fontCache.fontSize = floor(14 * fontCache.fontSizeMultiplier)
 		fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
@@ -114,24 +113,20 @@ local function drawScore()
 
 	local difference = score - threshold
 
-	local currentTime = GetGameSeconds()
-	local freezeExpirationTime = GetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local currentTime = spGetGameSeconds()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentTime)
 	local isInGracePeriod = (currentTime < gracePeriod)
 	
-	local shouldGreyOutNeeded = isThresholdFrozen or isInGracePeriod
+	local shouldGreyOutText = isThresholdFrozen or isInGracePeriod
 
-	local ownedText = I18N("ui.territorialdomination.score.owned", { score = score })
-	local neededText = I18N("ui.territorialdomination.score.needed", { threshold = threshold })
+    local displayText = spI18N("ui.territorialdomination.score", { number = difference })
 	
-	local spacer = "   "
-	local fullText = ownedText .. spacer .. neededText
-
-	local textWidth = glGetTextWidth(fullText) * fontCache.fontSize
+	local textWidth = glGetTextWidth(displayText) * fontCache.fontSize
 	local backgroundWidth = textWidth + (fontCache.paddingX * 2)
 	local backgroundHeight = fontCache.fontSize + (fontCache.paddingY * 2)
 
-	local minimapPosX, minimapPosY, minimapSizeX = GetMiniMapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local displayPositionX = math.max(backgroundWidth/2, minimapPosX + minimapSizeX/2)
 	local backgroundTop = minimapPosY
 	local backgroundBottom = backgroundTop - backgroundHeight
@@ -139,39 +134,28 @@ local function drawScore()
 	local backgroundLeft = displayPositionX - backgroundWidth/2
 	local backgroundRight = displayPositionX + backgroundWidth/2
 
-	if difference <= WARNING_THRESHOLD then
-		local currentTime = GetGameSeconds()
-		if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
-			lastWarningBlinkTime = currentTime
-			isWarningVisible = not isWarningVisible
-		end
-		currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
-	elseif difference <= ALERT_THRESHOLD then
-		currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
-	else
-		currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4]
-	end
-
 	glPushMatrix()
 		glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
 		glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
 
-		local ownedTextWidth = glGetTextWidth(ownedText) * fontCache.fontSize
-		local spacerWidth = glGetTextWidth(spacer) * fontCache.fontSize
-		local neededTextWidth = glGetTextWidth(neededText) * fontCache.fontSize
-		local totalWidth = ownedTextWidth + spacerWidth + neededTextWidth
-		local startX = displayPositionX - (totalWidth / 2)
-
-		glColor(currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4])
-		glText(ownedText, startX + (ownedTextWidth / 2), textPositionY, fontCache.fontSize, "co")
-
-		local neededStartX = startX + ownedTextWidth + spacerWidth
-		if shouldGreyOutNeeded then
+		if shouldGreyOutText then
 			glColor(NEEDED_TEXT_COLOR_FROZEN[1], NEEDED_TEXT_COLOR_FROZEN[2], NEEDED_TEXT_COLOR_FROZEN[3], NEEDED_TEXT_COLOR_FROZEN[4])
 		else
-			glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4])
+			if difference <= WARNING_THRESHOLD then
+				local currentTime = spGetGameSeconds()
+				if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
+					lastWarningBlinkTime = currentTime
+					isWarningVisible = not isWarningVisible
+				end
+				glColor(COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4])
+			elseif difference <= ALERT_THRESHOLD then
+				glColor(COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4])
+			else
+				glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4])
+			end
 		end
-		glText(neededText, neededStartX + (neededTextWidth / 2), textPositionY, fontCache.fontSize, "co")
+		
+		glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
 	glPopMatrix()
 end
 
@@ -181,26 +165,14 @@ end
 
 function widget:PlayerChanged(playerID)
 	if amSpectating then
-		if GetSelectedUnitsCount() > 0 then
-			local unitID = GetSelectedUnits()[1]
-			local unitTeam = GetUnitTeam(unitID)
+		if spGetSelectedUnitsCount() > 0 then
+			local unitID = spGetSelectedUnits()[1]
+			local unitTeam = spGetUnitTeam(unitID)
 			if unitTeam then
-				selectedAllyTeamID = select(6, GetTeamInfo(unitTeam)) or myAllyID
+				selectedAllyTeamID = select(6, spGetTeamInfo(unitTeam)) or myAllyID
 				return
 			end
 		end
-		selectedAllyTeamID = myAllyID
-	end
-end
-
-function widget:UnitSelected(unitID, unitDefID, unitTeam, selected)
-	if amSpectating and selected and unitTeam then
-		selectedAllyTeamID = select(6, GetTeamInfo(unitTeam)) or myAllyID
-	end
-end
-
-function widget:UnitDeselected(unitID, unitDefID, unitTeam)
-	if amSpectating and GetSelectedUnitsCount() == 0 then
 		selectedAllyTeamID = myAllyID
 	end
 end

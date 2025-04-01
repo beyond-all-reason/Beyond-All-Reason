@@ -667,10 +667,7 @@
 			}
 		},
 		"territorialdomination": {
-			"score": {
-				"owned": "Owned: %{score}",
-				"needed": "Needed: %{threshold}"
-			}
+			"score": "Reserve Territories: %{number}"
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
