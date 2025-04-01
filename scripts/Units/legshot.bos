@@ -262,22 +262,104 @@ StopMoving(){
 
 //#include "unit_hitbyweaponid_and_smoke.h"
 
-HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+}
+
+// Disable armored state when 2000 damage is taken
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	tdamage = dmg + tdamage;
-	if ((tdamage > 50000) AND (shieldup == 1))
+	if ((tdamage > 40000) AND (shieldup == 1))
 	{
-		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
-		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		hide leftPlate;
 		hide rightPlate;
-		hide logoPlate;
+		hide legTopPlateR;
+		hide legTopPlateL;
+		hide legBottomPlateL;
+		hide legBottomPlateR;
+		// End Animation
+		
 		set ARMORED to 0;
 		shieldup = 0;
+		start-script repairShield();
 	}
-	return (100);
+	return (100); //return damage percent
 }
+
+// Restore this units hume shield after 20000ms / 20 seconds, restore armored state
+repairShield()
+{
+	set-signal-mask SIGNAL_REPAIR;
+	sleep 15000;
+	
+	// Start Animation: 5 second countdown
+	show legBottomPlateR;
+	emit-sfx 1024 + 1 from legBottomPlateR;
+	sleep 1000;
+	
+	show legBottomPlateL;
+	emit-sfx 1024 + 1 from legBottomPlateL;
+	sleep 1000;
+	
+	show legTopPlateL;
+	emit-sfx 1024 + 1 from legTopPlateL;
+	sleep 1000;
+	
+	show legTopPlateR;
+	emit-sfx 1024 + 1 from legTopPlateR;
+	sleep 1000;
+	
+	show leftPlate;
+	emit-sfx 1024 + 1 from leftPlate;
+	sleep 1000;
+
+	show rightPlate;
+	emit-sfx 1024 + 1 from rightPlate;
+	// End Animation
+	
+	// Reset shield status 
+	shieldup = 1;
+	set ARMORED to 1;
+	tdamage = 0;
+}
+
+
+/////////////////
+// HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+// {
+// 	tdamage = dmg + tdamage;
+// 	if ((tdamage > 50000) AND (shieldup == 1))
+// 	{
+// 		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		hide leftPlate;
+// 		hide rightPlate;
+// 		hide logoPlate;
+// 		set ARMORED to 0;
+// 		shieldup = 0;
+// 	}
+// 	return (100);
+// }
 
 Create()
 {
@@ -315,12 +397,12 @@ ExecuteRestoreAfterDelay()
 	turn gunSleeve to x-axis <0.000000> speed <90.000000>;
 	wait-for-turn torsoPivot around y-axis;
 	wait-for-turn gunSleeve around x-axis;
-	show leftPlate;
-	show rightPlate;
-	show logoPlate;
+	// show leftPlate;
+	// show rightPlate;
+	// show logoPlate;
 	tdamage = 0;	
-	set ARMORED to 1;
-	shieldup = 1;
+	// set ARMORED to 1;
+	// shieldup = 1;
 	bAiming = FALSE;
 }
 SetStunned(State)
@@ -353,7 +435,7 @@ AimPrimary(heading, pitch)
 	bAiming = TRUE;
 	turn torsoPivot to y-axis heading speed <200.000000>;
 	turn gunSleeve to x-axis <0.000000> - pitch speed <90.000000>;
-	//wait-for-turn aimy1 around y-axis;
+	wait-for-turn torsoPivot around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -371,19 +453,23 @@ Shot1()
 {
 	if (whichBarrel == 0){
  		emit-sfx 1024 + 0 from topFlare;
+		move topBarrel to z-axis [-5] speed [100];
 		sleep 10;
         whichBarrel = 1;
 		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
+		move topBarrel to z-axis [0] speed [3];
 		turn torso to y-axis <0> speed <20>;
 		return (0);
     }
     if (whichBarrel == 1){
 		emit-sfx 1024 + 0 from bottomFlare;
+		move bottomBarrel to z-axis [-5] speed [100];
 		sleep 10;
         whichBarrel = 0;
-		turn torso to y-axis <-15> speed <300>;
+		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
+		move bottomBarrel to z-axis [0] speed [3];
 		turn torso to y-axis <0> speed <20>;
 		return (0);
     }
