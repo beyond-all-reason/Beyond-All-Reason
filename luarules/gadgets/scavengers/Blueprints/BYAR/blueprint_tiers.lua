@@ -1,8 +1,7 @@
 local UDN = UnitDefNames
 local wallChance = 0
-local ScavengerTeamID = Spring.GetGaiaTeamID()
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
+local ScavengerTeamID = Spring.GetGaiaTeamID() --can this be replaced with GetScavTeamID()
+for i = 1, #teams do --this block needs to be deleted I think
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		ScavengerTeamID = i - 1
