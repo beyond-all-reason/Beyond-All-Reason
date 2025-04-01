@@ -550,12 +550,7 @@ if gadgetHandler:IsSyncedCode() then
 		pausedTargets[unitID] = nil
 	end
 
-	local emptyCmdOptions = {}
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
-		if type(cmdOptions) ~= 'table' then
-			-- does UnitCmdDone always returns number instead of table?
-			cmdOptions = emptyCmdOptions
-		end
 		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
