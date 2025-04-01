@@ -16,16 +16,7 @@ if not gadgetHandler:IsSyncedCode() or not Spring.Utilities.Gametype.IsScavenger
     return
 end
 
-local teams = Spring.GetTeamList()
-for _, teamID in ipairs(teams) do
-    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-    if (teamLuaAI and string.find(teamLuaAI, "Scavengers")) then
-        scavTeamID = teamID
-        scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-        break
-    end
-end
-
+local scavTeamID = Spring.Utilities.GetScavTeamID()
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 local cloudMult = math.ceil((math.ceil(((mapx+mapz)*0.5)/512)^2)/18)
