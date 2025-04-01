@@ -12,11 +12,8 @@ function gadget:GetInfo()
 end
 
 -- TODO:
-
 -- warning sounds
-
 -- code cleanup
--- need to do the modoptions
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -418,7 +415,7 @@ if SYNCED then
 			data.progress = newProgress
 		end
 
-		if delayDecay and (data.contested or data.contiguous) then
+		if delayDecay and (data.contested or data.contiguous) and data.allyOwnerID ~= winningAllyID then
 			data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
 		end
 	end
@@ -549,12 +546,9 @@ if SYNCED then
 
 	
 	local function updateTeamRulesScores()
-		-- Set global threshold for all teams to access
 		Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
 		
-		-- Set team-specific scores
 		for allyID, tally in pairs(allyTallies) do
-			-- Find all teams in this ally team and set their score
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, tally)
 			end
@@ -653,14 +647,14 @@ if SYNCED then
 				if not captureGrid[randomizedIDs[i]].contested then
 					local gridID = randomizedIDs[i]
 					local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-					if contiguousAllyID then --zzz unverified that it's working, 
+					if contiguousAllyID then
 						addProgress(gridID, progressChange, contiguousAllyID, true)
 					end
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if not data.contested and data.decayDelay < frame then
+				if not data.contested and not data.contiguous and data.decayDelay < frame then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
@@ -1084,7 +1078,7 @@ end
 function gadget:RecvFromSynced(messageName, ...)
     if messageName == "InitializeGridSquare" then
         local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
-        local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
+        local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
         captureGrid[gridID] = {
             visibilityBitmask = visibilityBitmask,
             allyOwnerID = allyOwnerID,
@@ -1107,22 +1101,22 @@ function gadget:RecvFromSynced(messageName, ...)
             local oldAllyOwnerID = gridData.allyOwnerID
             gridData.visibilityBitmask = visibilityBitmask
             gridData.allyOwnerID = allyOwnerID
-            gridData.oldProgress = gridData.newProgress
-            gridData.captureChange = progress - gridData.oldProgress
 
-            if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then -- check absolute value
-                gridData.oldProgress = progress -- Snap progress if change is too large
-                gridData.captureChange = 0 -- No smooth animation needed if snapping
-            end
-            gridData.newProgress = progress
+			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
+			if not gridData.isVisible then
+				gridData.newProgress = gridData.oldProgress
+				gridData.captureChange = 0
+			else
+				gridData.oldProgress = gridData.newProgress
+				gridData.captureChange = progress - gridData.oldProgress
 
-            local resetColor = false
-            gridData.isVisible, resetColor = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
-            if resetColor then
-                gridData.currentColor = blankColor
-            end
+				if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then -- check absolute value
+					gridData.oldProgress = progress -- Snap progress if change is too large
+					gridData.captureChange = 0 -- No smooth animation needed if snapping
+				end
+				gridData.newProgress = progress
+			end
         end
-        
     end
 end
 
@@ -1166,8 +1160,6 @@ function gadget:Update()
                         gridData.currentColor = enemyColor
                     end
                 end
-            elseif not gridData.isVisible and gridData.allyOwnerID ~= myAllyID then
-                gridData.currentColor = blankColor
             end
             
             local captureChangePerFrame = 0
