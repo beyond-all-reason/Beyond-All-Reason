@@ -669,7 +669,7 @@ if SYNCED then
 				count = count + 1
 			end
 			
-			if count > 0 and currentSecond > freezeThresholdTimer then
+			if count > 0 then
 				averageTally = averageTally / count
 				-- Update rules parameters with scores for all teams
 				updateTeamRulesScores()
@@ -678,7 +678,7 @@ if SYNCED then
 					-- Send score to unsynced for debugging (kept for backwards compatibility)
 					updateUnsyncedScore(allyID, tally)
 					
-					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and thresholdDelayTimestamp < currentSecond and not DEBUGMODE then
+					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and freezeThresholdTimer < currentSecond and not DEBUGMODE then
 						--check if score is below average score to prevent defeat in case of a tie
 						triggerAllyDefeat(allyID)
 						setAllyGridToGaia(allyID)
