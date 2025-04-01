@@ -6,7 +6,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 44,
+        version = 45,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -55,6 +55,7 @@ end
 	v42   (Floris): support FFA allyteam ranking leaderboard style
 	v43   (Floris): extracted lockcamera execution
 	v44   (Floris): added rendertotexture draw method
+	v45   (Floris): support PvE team ranking leaderboard style
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -103,6 +104,7 @@ local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
 local Spring_GetMyTeamID = Spring.GetMyTeamID
 local Spring_AreTeamsAllied = Spring.AreTeamsAllied
+local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
@@ -544,6 +546,9 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
     hideShareIcons = true
 end
 
+local teamRanking = {}
+local isPvE = Spring.Utilities.Gametype.IsPvE()
+
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -847,19 +852,65 @@ local function SetOriginalColourNames()
 end
 
 function widget:GameFrame(n)
-    if n > 0 and not gameStarted then
-        if mySpecStatus and not alwaysHideSpecs then
-            specListShow = true
-        else
-            specListShow = false
-        end
+    if n > 0 then
+        if not gameStarted then
+            if mySpecStatus and not alwaysHideSpecs then
+                specListShow = true
+            else
+                specListShow = false
+            end
 
-        gameStarted = true
-        SetSidePics()
-        InitializePlayers()
-        SortList()
-        SetOriginalColourNames()
-        forceMainListRefresh = true
+            gameStarted = true
+            SetSidePics()
+            InitializePlayers()
+            SortList()
+            SetOriginalColourNames()
+            forceMainListRefresh = true
+        else
+            -- when PvE: rank players inside team based on production and damage dealt
+            if isPvE and n % 200 == 1  then
+                local rankingChanged = false
+                local scores = {}
+                for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
+                    for _,teamID in ipairs(Spring_GetTeamList(allyTeamID)) do
+                        if teamID ~= gaiaTeamID then
+                            if not scores[allyTeamID] then
+                                scores[allyTeamID] = {}
+                            end
+                            local range = Spring_GetTeamStatsHistory(teamID)
+                            local history = Spring_GetTeamStatsHistory(teamID,range)
+                            if history then
+                                history = history[#history]
+                                scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = math.floor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
+                            end
+                        end
+                    end
+                    
+                    if scores[allyTeamID] then
+                        table.sort(scores[allyTeamID], function(m1, m2)
+                            return m1.score > m2.score
+                        end)
+                        local ranking = {}
+                        local text = ''
+                        for i, params in ipairs(scores[allyTeamID]) do
+                            ranking[i] = params.teamID
+                            text = text .. params.teamID..', '
+                            if not teamRanking[allyTeamID] or not teamRanking[allyTeamID][i] or ranking[i] ~= teamRanking[allyTeamID][i] then
+                                rankingChanged = true
+                            end
+                        end
+                        if rankingChanged then
+                            teamRanking[allyTeamID] = ranking
+                        end
+                    end
+                end
+                if rankingChanged then
+                    WG.teamRanking = teamRanking
+                    SortList()
+                    CreateLists()
+                end
+            end
+        end
     end
 end
 
@@ -1328,7 +1379,11 @@ function SortAllyTeams(vOffset)
 	vOffset = 12 / 2.66
 	if not WG.allyTeamRanking or not enemyListShow then
 		vOffset = vOffset + (labelOffset*playerScale) - 3
-		if drawAlliesLabel then
+		if teamRanking[myAllyTeamID] then
+            drawListOffset[#drawListOffset + 1] = vOffset
+            drawList[#drawList + 1] = -6  -- leader/scoreboard label
+			vOffset = SortTeams(myAllyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
+        elseif drawAlliesLabel then
 			drawListOffset[#drawListOffset + 1] = vOffset
 			drawList[#drawList + 1] = -2  -- "Allies" label
 			vOffset = SortTeams(myAllyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
@@ -1372,6 +1427,9 @@ function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
+    if teamRanking[allyTeamID] then
+        teamsList = teamRanking[allyTeamID]
+    end
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
@@ -1800,6 +1858,7 @@ end
 
 function drawMainList()
     local leader
+    leaderboardOffset = nil
     for i, drawObject in ipairs(drawList) do
         if drawObject == -5 then
             specsLabelOffset = drawListOffset[i]
@@ -1830,7 +1889,6 @@ function drawMainList()
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else
-                    leaderboardOffset = nil
                     DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
                 end
                 if Spring.GetGameFrame() <= 0 then
@@ -1841,6 +1899,9 @@ function drawMainList()
                     end
                 end
             end
+        elseif drawObject == -6 then
+            DrawLabel(" "..Spring.I18N('ui.playersList.scoreboard'), drawListOffset[i], true)
+            leaderboardOffset = drawListOffset[i]
         elseif drawObject == -2 then
             DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
             if Spring.GetGameFrame() <= 0 then
@@ -3595,9 +3656,14 @@ function widget:Update(delta)
 		if leaderboardOffset then
 			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
 			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
-				tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
+                if teamRanking[myAllyTeamID] then
+                    tipTextTitle = Spring.I18N('ui.playersList.scoreboard')
+                    tipText = Spring.I18N('ui.playersList.scoreboardTooltip')
+                else
+				    tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
+                    tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
+                end
 				tipTextTime = os.clock()
-				tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
 			end
 		end
 
