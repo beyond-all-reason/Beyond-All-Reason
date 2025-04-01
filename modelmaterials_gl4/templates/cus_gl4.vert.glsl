@@ -15,7 +15,7 @@ layout (location = 6) in uvec4 instData;
 // u32 {teamIdx, drawFlag, unused, unused}
 // u32 unused
 
-#ifndef USEQUATERNIONS
+#if USEQUATERNIONS == 0 
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
 		mat4 mat[];
 	};
@@ -415,7 +415,7 @@ void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msN
 
 	uint bID0 = GetUnpackedValue(bonesInfo.x, 0u); //first boneID
 
-	#ifndef USEQUATERNIONS
+	#if USEQUATERNIONS == 0
 		mat4 b0BoneMat = mat[instData.x + bID0 + uint(!staticModel)];
 		mat3 b0NormMat = mat3(b0BoneMat);
 
@@ -472,7 +472,7 @@ void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msN
 		wSum       += weights[0];
 
 		// Old matrix path
-		#ifndef USEQUATERNIONS
+		#if USEQUATERNIONS == 0
 
 			uint numPieces = GetUnpackedValue(instData.z, 3);
 			mat4 bposeMat    = mat[instData.w + bID0];
@@ -651,7 +651,7 @@ void main(void)
 	vec3 modelSpaceBitangent;
 	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
 
-	#ifdef USEQUATERNIONS
+	#if USEQUATERNIONS == 1
 		Transform modelToWorldTX = Lerp(
 			transforms[instData.x + 0u],
 			transforms[instData.x + 1u],

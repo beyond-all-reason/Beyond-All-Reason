@@ -31,7 +31,7 @@ local shaderTemplate = {
 }
 
 -- local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0" -- SKIN_SUPPORT is now always on since 1653
-local USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4
+local USEQUATERNIONS = (Engine.FeatureSupport.transformsInGL4 and "1") or "0"
 local SLERPQUATERIONS = nil-- "#define SLERPQUATERIONS 1" -- nil to disable slerping and just use lerp
 
 local defaultMaterialTemplate = {
@@ -60,7 +60,7 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define SHIFT_RGBHSV",
-		USEQUATERNIONS,
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
 		SLERPQUATERIONS,
 	},
 	deferredDefinitions = {
@@ -78,7 +78,7 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define SHIFT_RGBHSV",
-		USEQUATERNIONS,
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
 		SLERPQUATERIONS,
 	},
 	shadowDefinitions = {
@@ -95,7 +95,7 @@ local defaultMaterialTemplate = {
 	#endif
 #endif
 ]],
-		USEQUATERNIONS,
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
 		SLERPQUATERIONS,
 	},
 	reflectionDefinitions = {
@@ -113,7 +113,7 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define REFLECT_DISCARD",
-		USEQUATERNIONS,
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
 		SLERPQUATERIONS,
 	},
 
