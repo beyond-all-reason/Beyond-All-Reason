@@ -183,15 +183,7 @@ if gadgetHandler:IsSyncedCode() then
 			humanTeams[teamID] = true
 		end
 	end
-
-	local gaiaTeamID = GetGaiaTeamID()
-	if not raptorTeamID then -- else block is just a comment, if block seems redundant considering lines 137-138. can this be removed altogether?
-		raptorTeamID = gaiaTeamID
-		raptorAllyTeamID = select(6, Spring.GetTeamInfo(raptorTeamID))
-	else
-		--computerTeams[gaiaTeamID] = nil
-	end
-
+	
 	humanTeams[gaiaTeamID] = nil
 
 	local function PutRaptorAlliesInRaptorTeam(n)
