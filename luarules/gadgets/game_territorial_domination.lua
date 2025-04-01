@@ -110,6 +110,7 @@ if SYNCED then
 	local thresholdDelayTimestamp = 0
 	local maxThreshold = 0
 	local freezeThresholdTimer = 0
+	local currentSecond = 0
 
 	local allyTeamsWatch = {}
 	local hordeModeTeams = {}
@@ -626,6 +627,7 @@ if SYNCED then
 		local frameModulo = frame % GRID_CHECK_INTERVAL
 
 		if frameModulo == 0 then
+			currentSecond = spGetGameSeconds()
 			updateLivingTeamsData()
 			setThresholdIncreaseRate()
 			updateCurrentDefeatThreshold()
@@ -676,7 +678,7 @@ if SYNCED then
 					-- Send score to unsynced for debugging (kept for backwards compatibility)
 					updateUnsyncedScore(allyID, tally)
 					
-					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and not DEBUGMODE then
+					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and thresholdDelayTimestamp < currentSecond and not DEBUGMODE then
 						--check if score is below average score to prevent defeat in case of a tie
 						triggerAllyDefeat(allyID)
 						setAllyGridToGaia(allyID)
