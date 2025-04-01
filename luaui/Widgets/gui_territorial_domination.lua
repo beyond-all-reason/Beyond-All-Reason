@@ -38,12 +38,12 @@ local glGetTextWidth = gl.GetTextWidth
 local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
+local WARNING_SECONDS = 10
 local PADDING_MULTIPLIER = 0.36
 local TEXT_HEIGHT_MULTIPLIER = 0.33
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
-local GRACE_PERIOD_KEY = "territorialDominationGracePeriod"
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -53,12 +53,13 @@ local BLINK_COLOR = {1, 0, 0, 0.7}
 local NEEDED_TEXT_COLOR_FROZEN = {0.6, 0.6, 0.6, 1.0}
 
 local lastWarningBlinkTime = 0
+local lastFreezeBlinkTime = 0
 local isWarningVisible = true
+local isFreezeWarningVisible = true
 local amSpectating = false
 local myAllyID = -1
 local selectedAllyTeamID = -1
 local gaiaAllyTeamID = -1
-local gracePeriod = math.huge
 
 local fontCache = {
 	initialized = false,
@@ -72,7 +73,6 @@ local backgroundColor = {COLOR_BG[1], COLOR_BG[2], COLOR_BG[3], COLOR_BG[4]}
 
 function widget:Initialize()
 	amSpectating = spGetSpectatingState()
-	gracePeriod = spGetGameRulesParam(GRACE_PERIOD_KEY) or 0
 	myAllyID = spGetMyAllyTeamID()
 	selectedAllyTeamID = myAllyID
 	gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID()))
@@ -116,9 +116,45 @@ local function drawScore()
 	local currentTime = spGetGameSeconds()
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentTime)
-	local isInGracePeriod = (currentTime < gracePeriod)
+	local timeUntilUnfreeze = freezeExpirationTime - currentTime
 	
-	local shouldGreyOutText = isThresholdFrozen or isInGracePeriod
+	local shouldGreyOutText = isThresholdFrozen and timeUntilUnfreeze > WARNING_SECONDS
+
+	local textColor
+	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
+		if currentTime - lastFreezeBlinkTime > BLINK_FREQUENCY then
+			lastFreezeBlinkTime = currentTime
+			isFreezeWarningVisible = not isFreezeWarningVisible
+		end
+		
+		if isFreezeWarningVisible then
+			textColor = NEEDED_TEXT_COLOR_FROZEN
+		else
+			if difference <= WARNING_THRESHOLD then
+				textColor = COLOR_RED
+			elseif difference <= ALERT_THRESHOLD then
+				textColor = COLOR_YELLOW
+			else
+				textColor = COLOR_WHITE
+			end
+		end
+	else
+		if shouldGreyOutText then
+			textColor = NEEDED_TEXT_COLOR_FROZEN
+		else
+			if difference <= WARNING_THRESHOLD then
+				if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
+					lastWarningBlinkTime = currentTime
+					isWarningVisible = not isWarningVisible
+				end
+				textColor = isWarningVisible and COLOR_RED or BLINK_COLOR
+			elseif difference <= ALERT_THRESHOLD then
+				textColor = COLOR_YELLOW
+			else
+				textColor = COLOR_WHITE
+			end
+		end
+	end
 
     local displayText = spI18N("ui.territorialdomination.score", { number = difference })
 	
@@ -137,23 +173,7 @@ local function drawScore()
 	glPushMatrix()
 		glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
 		glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
-
-		if shouldGreyOutText then
-			glColor(NEEDED_TEXT_COLOR_FROZEN[1], NEEDED_TEXT_COLOR_FROZEN[2], NEEDED_TEXT_COLOR_FROZEN[3], NEEDED_TEXT_COLOR_FROZEN[4])
-		else
-			if difference <= WARNING_THRESHOLD then
-				local currentTime = spGetGameSeconds()
-				if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
-					lastWarningBlinkTime = currentTime
-					isWarningVisible = not isWarningVisible
-				end
-				glColor(COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4])
-			elseif difference <= ALERT_THRESHOLD then
-				glColor(COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4])
-			else
-				glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4])
-			end
-		end
+		glColor(textColor[1], textColor[2], textColor[3], textColor[4])
 		
 		glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
 	glPopMatrix()
