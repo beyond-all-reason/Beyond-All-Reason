@@ -30,9 +30,10 @@ local mods = {
  idle     = false, -- whether to select only idle units
  same     = false, -- whether to select only units that share type with current selection
  deselect = false, -- whether to select units not present in current selection
- all      = false, -- whether to select without filters
+ all      = false, -- whether to select without filters and append (backwards compatibility, it's like append+any)
  mobile   = false, -- whether to select only mobile units
  append   = false, -- whether to append units to current selection
+ any      = false, -- whether to select without filters
 }
 local customFilterDef = ""
 local lastMods = mods
@@ -262,12 +263,18 @@ function widget:Update(dt)
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
 		and mods.append == lastMods[6]
+		and mods.any == lastMods[7]
 		and customFilterDef == lastCustomFilterDef
 	then
 		return
 	end
 
-	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.append }
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.append, mods.any }
+	if mods.all then
+		-- backwards compatibility
+		mods.any = true
+		mods.append = true
+	end
 	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
@@ -342,7 +349,7 @@ function widget:Update(dt)
 		end
 		mouseSelection = tmp
 
-	elseif selectBuildingsWithMobile == false and mods.all == false and mods.deselect == false then
+	elseif selectBuildingsWithMobile == false and mods.any == false and mods.deselect == false then
 		-- only select mobile units, not buildings
 		local mobiles = false
 		for i = 1, #mouseSelection do
