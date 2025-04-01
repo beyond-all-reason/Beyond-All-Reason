@@ -304,7 +304,6 @@ local LandUnitsList = {
 			--Cortex
 			["cordemon_scav"] = 3,
 			--Legion
-			["legbunk_scav"] = 5,
 			--N/A
 		},
 	},
