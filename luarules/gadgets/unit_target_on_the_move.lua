@@ -551,7 +551,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local emptyCmdOptions = {}
-	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
+	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		if type(cmdOptions) ~= 'table' then
 			-- does UnitCmdDone always returns number instead of table?
 			cmdOptions = emptyCmdOptions
