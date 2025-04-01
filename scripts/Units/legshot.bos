@@ -293,6 +293,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		
 		hide leftPlate;
 		hide rightPlate;
+		hide logoPlate;
 		hide legTopPlateR;
 		hide legTopPlateL;
 		hide legBottomPlateL;
@@ -310,7 +311,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 repairShield()
 {
 	set-signal-mask SIGNAL_REPAIR;
-	sleep 15000;
+	sleep 14000;
 	
 	// Start Animation: 5 second countdown
 	show legBottomPlateR;
@@ -335,6 +336,10 @@ repairShield()
 
 	show rightPlate;
 	emit-sfx 1024 + 1 from rightPlate;
+	sleep 1000;
+
+	show logoPlate;
+	emit-sfx 1024 + 1 from logoPlate;
 	// End Animation
 	
 	// Reset shield status 
