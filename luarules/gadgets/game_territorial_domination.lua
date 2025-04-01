@@ -12,6 +12,7 @@ function gadget:GetInfo()
 end
 
 -- TODO:
+-- fix display not updating before grace period ends
 -- warning sounds
 -- code cleanup
 
