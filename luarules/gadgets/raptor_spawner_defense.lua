@@ -185,7 +185,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local gaiaTeamID = GetGaiaTeamID()
-	if not raptorTeamID then
+	if not raptorTeamID then -- else block is just a comment, if block seems redundant considering lines 137-138. can this be removed altogether?
 		raptorTeamID = gaiaTeamID
 		raptorAllyTeamID = select(6, Spring.GetTeamInfo(raptorTeamID))
 	else
