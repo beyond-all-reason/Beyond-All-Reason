@@ -1405,12 +1405,6 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Accurate Lasers
-		
-			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
-				wDef.targetmoveerror = nil
-			end
-
 		----EMP rework
 
 		if modOptions.emprework then
