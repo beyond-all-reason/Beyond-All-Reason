@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Language",
@@ -27,6 +29,8 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
+	i18nHelper.RefreshDefs()
+
 	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
 	WG['language'] = {}

@@ -3,6 +3,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Unit Carrier Spawner",
@@ -24,7 +26,7 @@ local SetUnitNoSelect			= Spring.SetUnitNoSelect
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spUseTeamResource 		= Spring.UseTeamResource
 local spGetTeamResources 		= Spring.GetTeamResources
-local GetCommandQueue     		= Spring.GetCommandQueue
+local GetUnitCommands     		= Spring.GetUnitCommands
 local spSetUnitArmored 			= Spring.SetUnitArmored
 local spGetUnitStates			= Spring.GetUnitStates
 local spGetUnitDefID        	= Spring.GetUnitDefID
@@ -691,7 +693,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParam
 			if carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetype == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage > 0 then
 				if carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage == 1 then
 					--Spring.Echo(carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
-					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder})
+					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
 				end
 				if (not carrierMetaList[carrierUnitID].docking) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage >= 4 + carrierMetaList[carrierUnitID].dronebombingruns then
 					carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage = 0
@@ -723,7 +725,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
 				    local currentTime =  spGetGameSeconds()
 				    if ((currentTime - carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing) >= 4) then
-					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder})
+					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder)
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage + 1
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing = spGetGameSeconds()
 				    end
@@ -751,7 +753,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 
 	if carrierUnitID then
@@ -874,7 +876,7 @@ local function UpdateStandaloneDrones(frame)
 	for unitID,value in pairs(droneMetaList) do
 		if droneMetaList[unitID].wild then
 			-- move around unless in combat
-			local cQueue = GetCommandQueue(unitID, -1)
+			local cQueue = GetUnitCommands(unitID, -1)
 			local engaged = false
 			for j = 1, (cQueue and #cQueue or 0) do
 				if cQueue[j].id == CMD.ATTACK then
@@ -1123,9 +1125,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 										elseif carrierMetaData.dronebombingside == 1 then
 											carrierMetaData.dronebombingside = -1
 										end
-										local mt = Spring.GetUnitMoveTypeData(subUnitID)
-										--Spring.Echo("movetype: ", mt.name)
-										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, {maxRudder = 0.05})
+										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										carrierMetaData.subUnitsList[subUnitID].bomberStage = 1
 									end
@@ -1181,7 +1181,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 									end
 								else
 									if fightOrder then
-										local cQueue = GetCommandQueue(subUnitID, -1)
+										local cQueue = GetUnitCommands(subUnitID, -1)
 										for j = 1, (cQueue and #cQueue or 0) do
 											if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
 													idleTarget = cQueue[j].params
@@ -1229,7 +1229,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						end
 					elseif not carrierMetaData.subUnitsList[subUnitID].stayDocked and not (carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber") then
 						-- return to carrier unless in combat
-						local cQueue = GetCommandQueue(subUnitID, -1)
+						local cQueue = GetUnitCommands(subUnitID, -1)
 						local engaged = false
 						for j = 1, (cQueue and #cQueue or 0) do
 							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then

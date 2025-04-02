@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Nuke Controller",
@@ -47,9 +49,15 @@ for i = 1, #teams do
 end
 
 local nukeDefs = {}
-for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav", "legsilo_scav", "corjuno_scav", "armjuno_scav", "legstarfall_scav"}) do 
-	if UnitDefNames[unitDefName] then 
-		nukeDefs[UnitDefNames[unitDefName].id] = true
+for unitDefID, def in ipairs(UnitDefs) do
+	if def.weapons then
+		for i = 1, #def.weapons do
+			local wDef = WeaponDefs[def.weapons[i].weaponDef]
+			if wDef.targetable == 1 then
+				nukeDefs[unitDefID] = true
+				break
+			end
+		end
 	end
 end
 

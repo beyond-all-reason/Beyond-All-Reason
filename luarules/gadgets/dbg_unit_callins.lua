@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "UnitCallinsGadget",
@@ -108,7 +110,7 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if enabledcallins.UnitDestroyed == nil then return end
 	if printcallins then Spring.Echo("g:UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
 	if showcallins then addEvent(unitID, "UnitDestroyed") end

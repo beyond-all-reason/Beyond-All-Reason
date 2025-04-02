@@ -453,12 +453,12 @@ drawgun()
 	
 	hide gunstatic;
 	show gunhand;
-	//turn luparm to x-axis <0> speed <360>; //90   arm bleibt beim schie�ssen nun unten
+	//turn luparm to x-axis <0> speed <360>;
 	turn ruparm to x-axis <-60> speed <360>; //-179*   720
 	sleep 125;
 	turn ruparm to x-axis <-10> speed <360>;  //0* ****** arm position when shooting (only ruparm, rloarm is in aiming)
 	sleep 125;
-	turn rloarm to x-axis <-40> speed <360>; //new armhaltung nach dem schiessen wenn waffe wieder im holster
+	turn rloarm to x-axis <-40> speed <360>;
 	sleep 125;  //new
 */
 

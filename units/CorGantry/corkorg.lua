@@ -12,8 +12,8 @@ return {
 		energymake = 300,
 		energystorage = 5000,
 		explodeas = "korgExplosion",
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 6,
+		footprintz = 6,
 		health = 149000,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -23,10 +23,10 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 12,
 		metalcost = 29000,
-		movementclass = "VBOT5",
+		movementclass = "VBOT6",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
-		script = "Units/corkorg_clean.cob",
+		script = "Units/corkorg.cob",
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
@@ -160,7 +160,7 @@ return {
 				range = 900,
 				reloadtime = 4,
 				rgbcolor = "1 0.55 0",
-				rgbcolor2 = "0.95 1.0 0.7",
+				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
@@ -217,6 +217,10 @@ return {
 				weaponvelocity = 2600,
 				damage = {
 					default = 800,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
 				},
 			},
 			krogfootstep = {
@@ -276,6 +280,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
+					lups_noshockwave = true,
 					nofire = true,
 				},
 				damage = {

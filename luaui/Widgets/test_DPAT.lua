@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "TEST DrawPrimitiveAtUnit GL4",
@@ -16,7 +18,7 @@ local texture = "luaui/images/backgroundtile.png"
 ---- GL4 Backend Stuff----
 local selectionVBO = nil
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc

@@ -25,6 +25,8 @@ else
 end
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "supply drops",
@@ -246,7 +248,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
 			LootboxesToSpawn = LootboxesToSpawn+0.5

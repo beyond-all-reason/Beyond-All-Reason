@@ -9,6 +9,7 @@ local function getSettings()
 
 	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
+	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
@@ -16,43 +17,47 @@ local function getSettings()
 	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
-	for _, allyTeam in ipairs(springAllyTeamList) do
-		local teamList = Spring.GetTeamList(allyTeam) or {}
+	for _, allyTeamID in ipairs(springAllyTeamList) do
+		local teamList = Spring.GetTeamList(allyTeamID) or {}
 		local allyteamEntirelyHuman = true
 
-		if #teamList > 0 and allyTeam ~= gaiaAllyTeamID then
+		if #teamList > 0 and allyTeamID ~= gaiaAllyTeamID then
 			local isAllyTeamValid = true
 
-			for _, team in ipairs(teamList) do
-				if select (4, Spring.GetTeamInfo(team, false)) then
+			for _, teamID in ipairs(teamList) do
+				if select (4, Spring.GetTeamInfo(teamID, false)) then
 					allyteamEntirelyHuman = false
 				else
-					local teamPlayers = Spring.GetPlayerList(team)
+					local teamPlayers = Spring.GetPlayerList(teamID)
 					for _, playerID in ipairs(teamPlayers) do
 						playerCount = playerCount + 1
 					end
 				end
 
-				local luaAI = Spring.GetTeamLuaAI(team)
+				local luaAI = Spring.GetTeamLuaAI(teamID)
 
 				if luaAI then
 					if luaAI:find("Raptors") then
 						isRaptors = true
 						isAllyTeamValid = false
+						raptorTeamID = teamID
+						raptorAllyTeamID = allyTeamID
 					elseif luaAI:find("Scavengers") then
 						isScavengers = true
 						isAllyTeamValid = false
+						scavTeamID = teamID
+						scavAllyTeamID = allyTeamID
 					end
 				end
 			end
 
 			if isAllyTeamValid then
-				allyTeamList[#allyTeamList+1] = allyTeam
+				allyTeamList[#allyTeamList+1] = allyTeamID
 				allyTeamSizes[#allyTeamSizes+1] = #teamList
 			end
 
 			if allyteamEntirelyHuman then
-				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeam
+				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeamID
 			end
 		end
 	end
@@ -102,6 +107,10 @@ local function getSettings()
 		isCoop = isCoop,
 		isFFA = isFFA,
 		isSandbox = isSandbox,
+		scavTeamID = scavTeamID,
+		scavAllyTeamID = scavAllyTeamID,
+		raptorTeamID = raptorTeamID,
+		raptorAllyTeamID = raptorAllyTeamID,
 	}
 
 	return settings
@@ -127,4 +136,8 @@ return {
 		IsFFA          = function () return getSettings().isFFA          end,
 		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
+	GetScavTeamID = function () return getSettings().scavTeamID end,
+	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
+	GetChickenTeamID = function () return getSettings().raptorTeamID end,
+	GetChickenAllyTeamID = function () return getSettings().raptorAllyTeamID end,
 }

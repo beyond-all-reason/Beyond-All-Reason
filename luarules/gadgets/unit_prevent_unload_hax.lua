@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Prevent Unload Hax",
@@ -55,7 +57,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     unloadedUnits[unitID] = nil
 end
 

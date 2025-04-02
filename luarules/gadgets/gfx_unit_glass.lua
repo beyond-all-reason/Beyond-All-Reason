@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Unit glass pieces",
@@ -24,7 +26,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
 local glassUnitDefs = {}
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
 end
 

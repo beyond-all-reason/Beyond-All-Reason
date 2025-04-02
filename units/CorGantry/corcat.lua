@@ -24,7 +24,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAT.s3o",
-		script = "Units/CORCAT_CLEAN.cob",
+		script = "Units/CORCAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 700,
@@ -148,6 +148,10 @@ return {
 				wobble = 2000,
 				damage = {
 					default = 450,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1553,
 				},
 			},
 		},

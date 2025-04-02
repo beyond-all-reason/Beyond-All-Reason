@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = "EMP + decloak range",
@@ -98,7 +100,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
     end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if units[unitID] then
         units[unitID] = nil
     end

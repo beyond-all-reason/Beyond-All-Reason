@@ -4,10 +4,10 @@
 	"unit": {
 	//              0          1         2          3            4         5          6          7            8        9
 		"armada": ["armllt",  "armtl",  "armrl",   "armbeamer", "armhlt", "armclaw", "armcir",  "armferret", "armpb", "armatl",
-		           "armflak", "armamb", "armanni", "armguard",  "armamd", "armtarg", "armgate", "armptl"],
+		           "armflak", "armamb", "armanni", "armguard",  "armamd", "armtarg", "armgate"],
 	//              0          1           2          3          4         5          6            7          8          9
 		"cortex": ["corllt",  "cortl",    "corrl",   "corhllt", "corhlt", "cormaw",  "cormadsam", "corerad", "corvipe", "coratl",
-		           "corflak", "cortoast", "cordoom", "corpun",  "corfmd", "cortarg", "corgate",   "corptl"]
+		           "corflak", "cortoast", "cordoom", "corpun",  "corfmd", "cortarg", "corgate"]
 	},
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
 	"land":  [0, 0, 2, 3, 4, 7, 13, 7, 8, 10, 11, 12],

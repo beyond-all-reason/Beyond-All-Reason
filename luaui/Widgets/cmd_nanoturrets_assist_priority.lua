@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name         = "Priority Construction Turrets",
@@ -34,7 +36,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     if (nanoDefs[unitDefID] ~= nil) then
         -- Echo(turretCreatedMessage .. ": " .. unitID)
         local pos = {GetUnitPosition(unitID)}
-        local unitsNear = GetUnitsInSphere(pos[1], pos[2], pos[3], nanoDefs[unitDefID])
+        local unitsNear = GetUnitsInSphere(pos[1], pos[2], pos[3], nanoDefs[unitDefID], -3)
         -- Echo("found units nearby: " .. unitsNear)
         for _, id in ipairs(unitsNear) do
             if (nanoDefs[GetUnitDefID(id)] ~= nil) then 

@@ -3,6 +3,8 @@ if not Spring.GetModOptions().emprework then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
    return {
       name      = "Unit Slowing",
@@ -147,7 +149,7 @@ function gadget:GameFrame(f)
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
    removeUnit(unitID)
 end
 

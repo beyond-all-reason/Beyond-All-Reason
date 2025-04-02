@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "BuildBar",
@@ -10,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -313,7 +315,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if unitTeam ~= myTeamID then
 		return
 	end
@@ -419,9 +421,8 @@ function widget:SetConfigData(data)
 	bar_side = data.side or 2
 	bar_offset = data.offset or 0
 	bar_align = data.align or 0
-
-	bar_side = math.min(math.max(bar_side, 0), 3)
-	bar_align = math.min(math.max(bar_align, -1), 1)
+	bar_side = math.clamp(bar_side, 0, 3)
+	bar_align = math.clamp(bar_align, -1, 1)
 end
 
 -------------------------------------------------------------------------------

@@ -15,6 +15,7 @@ CallInsList = {
 	"Shutdown",
 	"LayoutButtons",
 	"ConfigureLayout",
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	"KeyPress",
@@ -77,11 +78,6 @@ CallInsList = {
 	"FeatureDestroyed",
 
 	"DrawGenesis",
-	"DrawWater",
-	"DrawSky",
-	"DrawSun",
-	"DrawGrass",
-	"DrawTrees",
 	"DrawWorld",
 	"DrawWorldPreUnit",
 	"DrawWorldPreParticles",
@@ -105,6 +101,8 @@ CallInsList = {
 	"DrawAlphaFeaturesLua",
 	"DrawShadowUnitsLua",
 	"DrawShadowFeaturesLua",
+
+	"FontsChanged",
 
 	"SunChanged",
 

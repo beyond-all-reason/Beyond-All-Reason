@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name = "Unit Capture Decay",
@@ -16,7 +18,7 @@ end
 
 local unitsWithCaptureProgress = {}
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     unitsWithCaptureProgress[unitID] = nil
 end
 

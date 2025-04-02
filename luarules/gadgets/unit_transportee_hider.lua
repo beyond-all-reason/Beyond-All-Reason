@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Transportee Hider",
@@ -54,7 +56,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	massLeft[unitID] = nil
 	toBeLoaded[unitID] = nil
 end

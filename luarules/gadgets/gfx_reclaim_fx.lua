@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Reclaim effect",
@@ -48,7 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if attackerID == nil and not ignoreUnits[unitDefID] then -- if reclaimed
 			local ux,uy,uz = Spring.GetUnitPosition(unitID)
 			if ux ~= nil then

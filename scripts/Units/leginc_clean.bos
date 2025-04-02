@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime, aimAdj, oldsteerheading;
+static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime, aimAdj, oldsteerheading, timer;
 
 
 #define BASEPIECE body
@@ -451,6 +451,7 @@ StopWalking() {
 	move body to z-axis [0] speed [100] / animSpeed;
 	
 	turn body to x-axis <0> speed <200> / animSpeed;
+	turn body to y-axis <0> speed <200> / animSpeed;
 	turn body to z-axis <0> speed <200> / animSpeed;
 	turn turret to y-axis <0> speed <200> / animSpeed; 
 	turn sleeve to x-axis <0> speed <200> / animSpeed;
@@ -556,42 +557,35 @@ Stop()
 	hide flare;
 }
 
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep restore_delay;
+	oldhead = 1000000;
+	start-script ExecuteRestoreAfterDelay();
+}
 
-
-TimeToRestore(addTime) {
-	
+ExecuteRestoreAfterDelay(addTime) {
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
     // If it has to be, it _must_ be immediately restarted
     // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned) {
+	//while((timeLeft > 1) || Stunned) {
 		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-	//get PRINT(77, timeLeft, get GAME_FRAME);
-    // The restore section must be atomic :/
-
-
-
-
-    signal SIGNAL_AIM1;
+    //    addTime = timeLeft;
+    //    timeLeft = 1;
+    //    sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    //}
 	hide flare;
-
 	turn aimy1 to y-axis <0.0> speed <20.0>;
 	turn aimx1 to x-axis <0.0> speed <20.0>;
-
     timeLeft = 0;
-	//get PRINT(333333);
+	timer = 0;
     isfiring = 0;
 	oldhead = -1000000;
 	aimAdj = 0;	
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	//wait-for-turn turretBase around y-axis;
 }
-
 
 SweepFire()
 {
@@ -600,17 +594,21 @@ SweepFire()
 	while (TRUE)
 	{
 		gameframe = get(GAME_FRAME);
-
 		//get PRINT(123, targetswap, isfiring, lastfired+firetime>gameframe);
 		//get PRINT(1234, lastfired, firetime, gameframe);
-		if (isfiring == 1 AND lastfired+firetime>gameframe)
+		if (timer > 30)
 		{
+			timer = 0;
+			start-script ExecuteRestoreAfterDelay();
+		}
+		if (isfiring == 1 AND timer <= 30)
+		{
+			timer = timer + 1;
 			emit-sfx 2048 from flare;
 		}
 		sleep 20;
 	}
 }
-
 
 Create()
 {
@@ -629,8 +627,9 @@ Create()
 	isfiring = 0;
 	oldhead = -1000000;
 
-	firetime = 120;
+	firetime = 10;
 	lastfired = get(GAME_FRAME)-200;
+	timer = 0;
 
 	oldsteerheading = get HEADING;
 	isMoving = FALSE;
@@ -668,29 +667,38 @@ SetStunned(State)
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
+	timer = 0;
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	turn aimy1 to y-axis heading - aimAdj speed <30>;
 	turn aimx1 to x-axis -1*pitch speed <15>;
-    if (timeLeft == 0)
-    {
-        start-script TimeToRestore();
-    }
-    timeLeft = restore_delay;
+	if (((get ABS(oldhead - heading)) > 65536) OR ((get ABS(oldhead - heading) > <1>) AND ((get ABS(oldhead - heading)) < 65536 - <1>)))
+	{
+		oldhead = 1000000;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+	}
 	gameframe = get(GAME_FRAME);
-	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
+	if ((get ABS(oldhead - heading) < <1>) AND oldhead != -1000000)
 	{
 		oldhead = heading;
 		isfiring = 1;
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
 		gameframe = get(GAME_FRAME);
 		lastfired = gameframe;
 		return (0);
 	}
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
+	if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	oldhead = heading;
-	isfiring = 1;
-	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
+	//isfiring = 1;
+	
 	return (0);
 }
 

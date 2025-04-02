@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Sensor Ranges Radar",
@@ -29,7 +31,7 @@ local circleSegments = 64
 	-- color
 -- TODO: draw ally ranges in diff color!
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -279,7 +281,7 @@ function widget:Shutdown()
 	WG.radarrange = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   if 	unitList[unitID] then
     unitList[unitID] = nil
 	activeUnits[unitID] = nil

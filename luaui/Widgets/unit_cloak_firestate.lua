@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Cloak Fire State",
@@ -36,6 +38,9 @@ local exceptionList = { --add exempt units here
 	"cormine3",
 	"cormine4",
 	"corfmine3",
+	"legmine1",
+	"legmine2",
+	"legmine3",
 	"corsktl",
 	"armpb",
 	"armamb",
@@ -89,7 +94,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if decloakFireState[unitID] then
 		decloakFireState[unitID] = nil
 	end

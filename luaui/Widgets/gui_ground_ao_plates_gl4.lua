@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Ground AO Plates GL4",
@@ -7,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -20,7 +23,7 @@ local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 
 
 local groundPlateVBO = nil
 local groundPlateShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local debugmode = false
 

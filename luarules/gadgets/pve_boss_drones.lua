@@ -3,6 +3,8 @@ if not (Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsSca
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name = "PvE Boss Drones",
@@ -549,7 +551,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if aliveCarriers[unitID] then
         aliveCarriers[unitID] = nil
         for droneID, stats in pairs(aliveDrones) do

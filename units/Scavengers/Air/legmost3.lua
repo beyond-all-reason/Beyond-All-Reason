@@ -3,10 +3,10 @@ return {
 		maxacc = 0.15,
 		blocking = false,
 		maxdec = 0.375,
-		energycost = 48000,
-		metalcost = 3500,
+		energycost = 42000,
+		metalcost = 3000,
 		buildpic = "LEGMOS.DDS",
-		buildtime = 48000,
+		buildtime = 42000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -120,6 +120,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 700,
 				--wobble = 3000,
+				customparams = {
+					stockpilelimit = 8,
+				},
 				damage = {
 					default = 200,
 				},

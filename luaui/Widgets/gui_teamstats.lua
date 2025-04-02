@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "TeamStats",
@@ -92,6 +94,7 @@ local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
 local max					= math.max
+local clamp					= math.clamp
 local floor					= math.floor
 local huge					= math.huge
 local sort					= table.sort
@@ -110,7 +113,7 @@ local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spr
 local isSpec = Spring.GetSpectatingState()
 
 
-local playerScale = math.max(0.3, math.min(1, 25 / #Spring.GetTeamList()))
+local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
 
 function aboveRectangle(mousePos,boxData)
 	local included = true
@@ -145,7 +148,7 @@ function isAbove(mousePos,guiData)
 end
 
 function colorToChar(colorarray)
-	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
+	return char(255,clamp(floor(colorarray[1]*255), 1, 255) ,clamp(floor(colorarray[2]*255), 1, 255) ,clamp(floor(colorarray[3]*255), 1, 255))
 end
 
 local teamData={}

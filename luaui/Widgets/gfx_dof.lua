@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	  = "Depth of Field",
@@ -282,7 +284,7 @@ function init()
 			"#define LOW_QUALITY 0 \n",
 			"#define HIGH_QUALITY 1 \n"
 		},
-		fragment = VFS.LoadFile("LuaUI\\Widgets\\Shaders\\dof.fs", VFS.RAW_FIRST),
+		fragment = VFS.LoadFile("LuaUI/Shaders/dof.fs", VFS.RAW_FIRST),
 
 		uniformInt = {origTex = 0, blurTex0 = 1, blurTex1 = 2, blurTex2 = 3, blurTex3 = 4},
 	})

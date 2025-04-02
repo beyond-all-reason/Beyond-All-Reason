@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, aim, emitnano, cagelight, cagelight_emit;
+piece  base, aim, emitnano;
 
 static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
@@ -148,7 +148,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type BITMAPONLY | NOHEATCLOUD;
-		explode cagelight type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -157,7 +156,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode cagelight type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -166,13 +164,11 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode cagelight type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode cagelight type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

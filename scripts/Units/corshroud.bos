@@ -5,7 +5,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, tower, jam;
+piece  base, tower;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -46,15 +46,13 @@ Go()
 		set ACTIVATION to 0;
 		return (0);
 	}
-	show jam;
-	spin tower around y-axis speed <60> accelerate <1>;
+	spin tower around y-axis speed <40.005495>;
 	return (0);
 }
 
 Stop()
 {
-	hide jam;
-	stop-spin tower around y-axis decelerate <4>;
+	stop-spin tower around y-axis;
 	return (0);
 }
 

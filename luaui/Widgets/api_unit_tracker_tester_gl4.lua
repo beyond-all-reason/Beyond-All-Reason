@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "API Unit Tracker Tester GL4",
@@ -14,7 +16,7 @@ local myvisibleUnits = {} -- table of unitID : unitDefID
 
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local texture = "luaui/images/solid.png"
 
 local function initGL4()

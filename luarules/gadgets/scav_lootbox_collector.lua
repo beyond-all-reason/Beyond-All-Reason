@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Scav Lootbox Collector",
@@ -82,7 +84,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if aliveLootboxes[unitID] then
         aliveLootboxes[unitID] = nil
         aliveLootboxesCount = aliveLootboxesCount - 1

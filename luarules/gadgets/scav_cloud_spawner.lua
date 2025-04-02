@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
     name = "Scav Cloud Spawner",
@@ -159,7 +161,7 @@ function gadget:UnitCreated(unitID, unitDefID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if mistDefIDs[unitDefID] then
         aliveMists[unitID] = nil
     end

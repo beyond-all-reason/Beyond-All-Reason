@@ -8,6 +8,8 @@
 
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
 -- PERF: updateGrid should be replaced by a method that only updates prices on cells on places where setLabBuildMode is used followed by updateGrid
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -20,6 +22,8 @@ function widget:GetInfo()
 		handler = true,
 	}
 end
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
@@ -36,6 +40,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_clamp = math.clamp
 local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -215,7 +220,7 @@ local ui_opacity, ui_scale
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ordermenuLeft = vsx / 5
+local ordermenuLeft = math.floor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local zoomMult = 1.5
@@ -248,6 +253,7 @@ local currentPage = 1
 local minimapHeight = 0.235
 
 local selectedBuilders = {}
+local prevSelectedBuilders = {}
 local selectedBuildersCount = 0
 local prevSelectedBuildersCount = 0
 
@@ -314,6 +320,7 @@ local function refreshUnitDefs()
 		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
+
 		if ud.customParams.metal_extractor then
 			unitMetal_extractor[udid] = ud.customParams.metal_extractor
 		end
@@ -322,8 +329,6 @@ local function refreshUnitDefs()
 		end
 	end
 end
-
-refreshUnitDefs()
 
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
@@ -842,6 +847,30 @@ local function updateBuilders()
 		return
 	end
 
+	-- check if builder type selection actually differs from previous selection
+	local changes = false
+	if #selectedBuilders ~= #prevSelectedBuilders then
+		changes = true
+	else
+		for unitDefID, count in pairs(prevSelectedBuilders) do
+			if not selectedBuilders[unitDefID] then
+				changes = true
+				break
+			end
+		end
+		if not changes then
+			for unitDefID, count in pairs(selectedBuilders) do
+				if not prevSelectedBuilders[unitDefID] then
+					changes = true
+					break
+				end
+			end
+		end
+	end
+	if not changes then
+		return
+	end
+
 	-- grow buildersRect according to current number of selected builders
 	buildersRect.xEnd = builderRects[builderTypes].xEnd
 
@@ -1239,6 +1268,8 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	refreshUnitDefs()
+
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		-- Build menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
@@ -1430,9 +1461,9 @@ function widget:ViewResize()
 	if stickToBottom then
 		local posY = math_floor(0.14 * ui_scale * vsy)
 		local posYEnd = 0
-		local posX = math_floor(ordermenuLeft * vsx) + widgetSpaceMargin
+		local posX = ordermenuLeft + widgetSpaceMargin
 		local height = posY
-		builderButtonSize = categoryButtonHeight * 1.75
+		builderButtonSize = math_floor(categoryButtonHeight * 1.75)
 
 		rows = 2
 		columns = 6
@@ -1519,7 +1550,7 @@ function widget:ViewResize()
 			categoriesRect.yEnd + (cellSize * rows)
 		)
 
-		backgroundRect:set(posX, posYEnd, posXEnd, buildpicsRect.yEnd + (bgpadding * 1.5))
+		backgroundRect:set(posX, posYEnd, posXEnd, math_floor(buildpicsRect.yEnd + (bgpadding * 1.5)))
 
 		local buttonWidth = (categoriesRect.xEnd - categoriesRect.x) / 3
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
@@ -1561,6 +1592,14 @@ function widget:ViewResize()
 	checkGuishader(true)
 
 	redraw = true
+
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuBgTex)
+		buildmenuBgTex = nil
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
+	updateGrid()
 end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
@@ -1603,7 +1642,7 @@ function widget:Update(dt)
 		local prevOrdermenuHeight = ordermenuHeight
 		if WG["ordermenu"] then
 			local oposX, _, owidth, oheight = WG["ordermenu"].getPosition()
-			ordermenuLeft = oposX + owidth
+			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
 		if
@@ -1679,7 +1718,8 @@ local function drawBuildMenuBg()
 		(backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0),
 		1,
 		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0
+		0,
+		nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture
 	)
 end
 
@@ -1692,8 +1732,8 @@ local function drawButton(rect)
 
 	local color = highlight and 0.2 or 0
 
-	local color1 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- bottom
-	local color2 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- top
+	local color1 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
+	local color2 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -2499,10 +2539,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-		if redraw then
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-			redraw = nil
-		end
 
 		if WG["guishader"] then
 			if dlistGuishader then
@@ -2511,14 +2547,71 @@ function widget:DrawScreen()
 			checkGuishaderBuilders()
 		end
 
-		-- create buildmenu drawlists
-		if not dlistBuildmenu then
-			dlistBuildmenu = gl.CreateList(function()
-				drawBuildMenuBg()
-				drawBuildMenu()
-			end)
+		if redraw then
+			redraw = nil
+			if useRenderToTexture then
+				if not buildmenuBgTex then
+					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if buildmenuBgTex then
+					gl.RenderToTexture(buildmenuBgTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenuBg()
+						gl.PopMatrix()
+					end)
+				end
+				if not buildmenuTex then
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if buildmenuTex then
+					gl.RenderToTexture(buildmenuTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenu()
+						gl.PopMatrix()
+					end)
+				end
+			else
+				gl.DeleteList(dlistBuildmenu)
+				dlistBuildmenu = gl.CreateList(function()
+					drawBuildMenuBg()
+					drawBuildMenu()
+				end)
+			end
 		end
-		gl.CallList(dlistBuildmenu)
+
+		if useRenderToTexture then
+			if buildmenuBgTex then
+				-- background element
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(buildmenuBgTex)
+				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				-- content
+				gl.Color(1,1,1,1)
+				gl.Texture(buildmenuTex)
+				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				gl.Texture(false)
+			end
+		else
+			if dlistBuildmenu then
+				gl.CallList(dlistBuildmenu)
+			end
+		end
 
 		if redrawProgress then
 			dlistProgress = gl.DeleteList(dlistProgress)
@@ -2617,6 +2710,7 @@ function widget:SelectionChanged(newSel)
 	activeBuilderID = nil
 	builderIsFactory = false
 	labBuildModeActive = false
+	prevSelectedBuilders = selectedBuilders
 	selectedBuilders = {}
 	selectedBuildersCount = 0
 	currentPage = 1
@@ -2729,7 +2823,12 @@ end
 function widget:Shutdown()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistProgress = gl.DeleteList(dlistProgress)
-
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuBgTex)
+		buildmenuBgTex = nil
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
 	if WG["guishader"] and dlistGuishader then
 		WG["guishader"].DeleteDlist("buildmenu")
 		WG["guishader"].DeleteDlist("buildmenubuilders")

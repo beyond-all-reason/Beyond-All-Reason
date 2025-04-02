@@ -2,6 +2,8 @@ include("keysym.h.lua")
 
 local versionNumber = "6.32"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Defense Range",
@@ -403,7 +405,6 @@ function UnitDetected( unitID, allyTeam, teamId )
 	end
 	local unitDefID = spGetUnitDefID(unitID)
 
-	local key = tostring(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 
 	local range = 0

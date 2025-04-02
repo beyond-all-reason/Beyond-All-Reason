@@ -153,6 +153,29 @@ if Spring.GetConfigInt("version", 0) < version then
 		Spring.SetConfigFloat("ui_scale", 0.94)
 	end
 end
+version = 5
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
+	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
+end
+version = 6
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	-- disabling for now
+	Spring.SetConfigInt("ui_rendertotexture", 0)
+end
+
+-- apply the old pre-engine implementation stored camera minimum zoom level
+local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
+if oldMinCamHeight ~= -1 then
+	Spring.SetConfigInt("MinimumCameraHeight", -1)
+	Spring.SetConfigInt("CamSpringMinZoomDistance", oldMinCamHeight)
+	Spring.SetConfigInt("OverheadMinZoomDistance", oldMinCamHeight)
+end
+
 
 Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
@@ -176,6 +199,7 @@ else
 	Spring.SetConfigInt("KeyChainTimeout", userKeyChainTimeout)
 end
 
+
 -- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag.
 -- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag
 local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
@@ -183,7 +207,7 @@ local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.Ge
 
 local baseDragThreshold = 16
 baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * ( 1/3000) ) -- is 16 at 1080p
-baseDragThreshold = math.max(8, math.min(40, baseDragThreshold)) -- clamp between 8 and 40
+baseDragThreshold = math.clamp(baseDragThreshold, 8, 40)
 Spring.Echo(string.format("Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d", xresolution,yresolution,baseDragThreshold, baseDragThreshold + 16))
 Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
@@ -194,3 +218,12 @@ Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("AnimationMT", 1)
 Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
 Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
+
+-- Breaking/limiting the curse of RA 𓀀 𓀁 𓀂 𓀃 𓀄 𓀅 𓀆 𓀇 𓀈 𓀉 𓀊 𓀋 𓀌 𓀍 𓀎 𓀏 𓀐 𓀑 𓀒 𓀓 𓀔 𓀕 𓀖
+Spring.SetConfigInt("MaxFontTries", 0)
+Spring.SetConfigInt("UseFontConfigLib", 0)
+
+local language = Spring.GetConfigString("language", 'en')
+if language ~= 'en' and language ~= 'fr' then
+	Spring.SetConfigString("language", 'en')
+end

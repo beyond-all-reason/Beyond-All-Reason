@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Decals GL4",
@@ -215,7 +217,7 @@ local decalExtraLargeVBO = nil
 local decalShader = nil
 local decalLargeShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local hasBadCulling = false -- AMD+Linux combo
 
@@ -240,15 +242,15 @@ local spec, fullview = Spring.GetSpectatingState()
 
 ---- GL4 Backend Stuff----
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
+local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
+local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
 
-local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
+local vsSrcLargePath = "LuaUI/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
 
@@ -588,7 +590,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
 local firstRun = true
@@ -603,7 +604,6 @@ local function DrawDecals()
 
 	if skipdraw then return end
 	--local alt, ctrl = Spring.GetModKeyState()
-	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
@@ -1082,7 +1082,7 @@ for weaponDefID=1, #WeaponDefs do
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
 			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
-			radius = radius * 0.8 
+			radius = radius * 0.8
 			--radiusVariation = 0.3
 			heatstart = 8000
 			heatdecay = 3.95
@@ -1701,16 +1701,16 @@ local UnitScriptDecalsNames = {
 	['corsumo'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corsumo_a.png',
-			offsetx = -1, --offset from what the UnitScriptDecal returns
-			offsetz = -1, --
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
-			width = 26,
+			width = 30,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.80,
+			alphastart = 0.85,
 			alphadecay = 0.0010,
-			maxalpha = 0.9,
+			maxalpha = 1.0,
 			bwfactor = 0.1,
 			glowsustain = 0.0,
 			glowadd = 0.0,
@@ -1926,7 +1926,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
-	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
 	--	return
@@ -1942,8 +1941,6 @@ function widget:Initialize()
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
-			local j = math.floor(math.random()*20+1)
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
 			AddDecal(
