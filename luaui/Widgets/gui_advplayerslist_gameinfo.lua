@@ -76,6 +76,7 @@ local function drawContent()
 	local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
 	font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 	local textWidth = font:GetTextWidth(text) * textsize
+	usedTextWidth = 0
 	if textWidth > usedTextWidth or textWidthClock+30 < os.clock() then
 		usedTextWidth = textWidth
 		textWidthClock = os.clock()
@@ -86,6 +87,8 @@ local function drawContent()
 	else
 		clock = os.date("%I:%M %p")
 	end
+	--font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+
 	font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 
 	font:End()
