@@ -201,9 +201,9 @@ local labGrids = {
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"legelrpcmech", "legbunk", "legjav", "legeheatraymech", --astraeus, pilum, javelin, sol invictus
-		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, cataphract, praetorian, mukade
-		"legkeres","legerailtank","corkarg" -- keres, daedalus, karganeth
+		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
+		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
+		"legkeres","legerailtank","" -- keres, daedalus
 	}
 }
 local unitGrids = {
@@ -2045,6 +2045,10 @@ if Spring.GetModOptions().experimentalextraunits then
 	end
 	unitGrids["armacsub"][4][1][3] = "armnanotc2plat"
 	unitGrids["coracsub"][4][1][3] = "cornanotc2plat"
+	
+	-- Adds the Pilum to the slot before the Javelin, moving the Karganeth to end of the list
+	labGrids["leggant"][11] = labGrids["leggant"][2]
+	labGrids["leggant"][2] = "legbunk" 
 end
 
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
