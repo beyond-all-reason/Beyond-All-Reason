@@ -761,6 +761,52 @@ function widget:TeamDied(teamID)
     doPlayerUpdate()
 end
 
+local function rankTeamPlayers()
+    local rankingChanged = false
+    local scores = {}
+    for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
+        local teams = Spring_GetTeamList(allyTeamID)
+        if #teams > 1 then
+            for _,teamID in ipairs(teams) do
+                if teamID ~= gaiaTeamID then
+                    if not scores[allyTeamID] then
+                        scores[allyTeamID] = {}
+                    end
+                    local range = Spring_GetTeamStatsHistory(teamID)
+                    local history = Spring_GetTeamStatsHistory(teamID,range)
+                    if history then
+                        history = history[#history]
+                        scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = math.floor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
+                    end
+                end
+            end
+            
+            if scores[allyTeamID] then
+                table.sort(scores[allyTeamID], function(m1, m2)
+                    return m1.score > m2.score
+                end)
+                local ranking = {}
+                local text = ''
+                for i, params in ipairs(scores[allyTeamID]) do
+                    ranking[i] = params.teamID
+                    text = text .. params.teamID..', '
+                    if not teamRanking[allyTeamID] or not teamRanking[allyTeamID][i] or ranking[i] ~= teamRanking[allyTeamID][i] then
+                        rankingChanged = true
+                    end
+                end
+                if rankingChanged then
+                    teamRanking[allyTeamID] = ranking
+                end
+            end
+        end
+    end
+    if rankingChanged then
+        WG.teamRanking = teamRanking
+        SortList()
+        CreateLists()
+    end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 
@@ -794,6 +840,11 @@ function widget:Initialize()
 	GetAliveAllyTeams()
 	SortList()
     SetModulesPositionX()
+
+    -- when PvE: rank players inside each team based on production and damage dealt
+    if isPvE and not isSinglePlayer then
+        rankTeamPlayers()
+    end
 
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
@@ -867,51 +918,9 @@ function widget:GameFrame(n)
             SetOriginalColourNames()
             forceMainListRefresh = true
         else
-            -- when PvE: rank players inside team based on production and damage dealt
+            -- when PvE: rank players inside each team based on production and damage dealt
             if isPvE and not isSinglePlayer and n % 200 == 1  then
-                local rankingChanged = false
-                local scores = {}
-                for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
-                    local teams = Spring_GetTeamList(allyTeamID)
-                    if #teams > 1 then
-                        for _,teamID in ipairs(teams) do
-                            if teamID ~= gaiaTeamID then
-                                if not scores[allyTeamID] then
-                                    scores[allyTeamID] = {}
-                                end
-                                local range = Spring_GetTeamStatsHistory(teamID)
-                                local history = Spring_GetTeamStatsHistory(teamID,range)
-                                if history then
-                                    history = history[#history]
-                                    scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = math.floor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
-                                end
-                            end
-                        end
-                        
-                        if scores[allyTeamID] then
-                            table.sort(scores[allyTeamID], function(m1, m2)
-                                return m1.score > m2.score
-                            end)
-                            local ranking = {}
-                            local text = ''
-                            for i, params in ipairs(scores[allyTeamID]) do
-                                ranking[i] = params.teamID
-                                text = text .. params.teamID..', '
-                                if not teamRanking[allyTeamID] or not teamRanking[allyTeamID][i] or ranking[i] ~= teamRanking[allyTeamID][i] then
-                                    rankingChanged = true
-                                end
-                            end
-                            if rankingChanged then
-                                teamRanking[allyTeamID] = ranking
-                            end
-                        end
-                    end
-                end
-                if rankingChanged then
-                    WG.teamRanking = teamRanking
-                    SortList()
-                    CreateLists()
-                end
+                rankTeamPlayers()
             end
         end
     end
