@@ -368,8 +368,10 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 // Disable armored state when 1500 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
+	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	tdamage = dmg + tdamage;
+	start-script repairShield();
 	if ((tdamage > 30000) AND (shieldup == 1))
 	{
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
@@ -385,7 +387,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		
 		set ARMORED to 0;
 		shieldup = 0;
-		start-script repairShield();
+		
 	}
 	return (100); //return damage percent
 }
