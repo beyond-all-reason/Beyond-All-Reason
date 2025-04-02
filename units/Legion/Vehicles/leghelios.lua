@@ -151,7 +151,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heliosfire",
 				soundtrigger = 1,
-				--targetmoveerror = 0.2,
 				thickness = 2.0,
 				tolerance = 10000,
 				turret = true,

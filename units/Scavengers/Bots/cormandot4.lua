@@ -172,7 +172,6 @@ return {
 				soundstart = "lasfirerb",
 				soundtrigger = 1,
                 targetborder = 1,
-				targetmoveerror = 0,
 				thickness = 10,
 				turret = true,
 				weapontype = "BeamLaser",

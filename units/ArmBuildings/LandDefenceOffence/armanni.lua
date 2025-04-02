@@ -136,7 +136,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				texture3 = "largebeam",
 				thickness = 4.5,
 				tilelength = 150,

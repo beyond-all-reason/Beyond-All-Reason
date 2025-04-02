@@ -138,7 +138,6 @@ return {
 				soundstart = "minigun3",
 				soundstartvolume = 4.5,
 				sprayangle = 968,
-				targetmoveerror = 0,
 				thickness = 0.91,
 				tolerance = 16000,
 				turret = true,
