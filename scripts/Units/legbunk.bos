@@ -2,11 +2,10 @@
 
 #include "../recoil_common_includes.h"
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 
 piece
-head,
 pelvis,
 frontPelvis,
 torso,
@@ -115,9 +114,6 @@ Create(){
 	animSpeed = 2; // Set to 4 for 75ms, 4.3733 for 82ms
 	restore_delay = 3000; // Delay from returning to relaxed idle stance
 
-
-	//Start in power pose! Thank you cleaned Pawn <3
-	call-script StopWalking();
 	start-script UnitSpeed();
 
 	//Hiding empties, no clue if this is needed or not, but everyone does it.
@@ -163,7 +159,15 @@ Create(){
 	turn aimxarmr to x-axis <0.000000> now;
 	turn aimyarmr to y-axis <0.000000> now;
 	turn aimyarmr to z-axis <0.000000> now;	
-	
+
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	//Start in power pose! Thank you cleaned Pawn <3
+	//And thank you Black Hydra for this neat while block!
+	start-script StopPushups();
+	call-script StopWalking();
 	spin fingers around z-axis speed <360> accelerate <6>;}
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -193,7 +197,7 @@ Create(){
 #define CATT2_JERK <2>
 #define CATT2_PRECISION <3>
 //#define CATT2_PITCH_SPEED <85>
-#define CATT2_RESTORE_DELAY 3000
+#define CATT2_RESTORE_DELAY 4500
 #define CATT2_RESTORE_SPEED <2>
 
 #define HAS_STUN
@@ -366,7 +370,7 @@ AimWeapon2(heading, pitch)
 		call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
 	}
 	//start-script ResetWeapon();
-	start-script RestoreAfterDelay();
+	start-script CATT1_Restore();
 	return(1);
 }
 
@@ -405,18 +409,15 @@ AimWeapon3(heading, pitch) {
 	oldHeadingRailgun = heading;
 
 	turn railgun to x-axis <0> - pitch/2 speed <30>;
-	call-script dontgetyourlegshotoff(heading);
+	start-script dontgetyourlegshotoff(heading);
 	
 	
-	/*if (new_heading < 0) {
+	if (new_heading < 0) {
 		call-script CATT2_Aim(new_heading,(pitch+400)/2);
 	} else {
 		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
-	}*/
-	turn aimxarmr to x-axis pitch/2 speed <30>;
-	turn aimyarmr to y-axis new_heading speed <90>;
-	
-	start-script RestoreAfterDelay();
+	}
+	start-script CATT2_Restore();
 	return(1);}
 
 static-var leg_clearance;
@@ -425,6 +426,8 @@ dontgetyourlegshotoff(h) {
 	else if ( h > <135> ) { leg_clearance = <15>; }
 	else { leg_clearance = <0>; }
 	turn CATT2_PIECE_Y to z-axis leg_clearance speed <120>;
+	sleep CATT2_RESTORE_DELAY;
+	turn CATT2_PIECE_Y to z-axis <0> speed <60>;
 }
 
 FireWeapon3(){
@@ -492,12 +495,12 @@ ExecuteRestoreAfterDelay() {
 	//turn aimyarml to y-axis <0.000000> speed <60.000000>;
 	//turn aimxarmr to x-axis <0.000000> speed <60.000000>;
 	//turn aimyarmr to y-axis <0.000000> speed <60.000000>;
-	turn aimyarmr to z-axis <0.000000> speed <60.000000>;
+	//turn aimyarmr to z-axis <0.000000> speed <60.000000>;
 	turn piledriver to x-axis <25> speed <60.000000>;
 	turn railgun to x-axis <25> speed <60.000000>;
 	
-	start-script CATT1_Restore();
-	start-script CATT2_Restore();
+	//start-script CATT1_Restore();
+	//start-script CATT2_Restore();
 	start-script Retract_bunker();
 	
 	oldHeadingBunker = 0;
@@ -1190,9 +1193,6 @@ Walk() {
 
 StopWalking() { // Call this from StopMoving()!
 	//animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	if (isPushing) {
-		call-script StopPushups();
-	}
 	//Customized parts go here
 	turn lthigh to y-axis <20> speed <525.118567> / animSpeed;
 	turn rthigh to y-axis <-20> speed <527.117224> / animSpeed;
@@ -1449,8 +1449,9 @@ DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\Legbunk
 		}
 }
 Pushup() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\LegbunkV6 - skeletonized 2 - pushups - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	if (isPushing) { return (0); };
 	set-signal-mask SIG_WALK | SIG_AIM_TC; //you might need this
-	if (RAND(1,100) > 10) return; // reduce probs to only 10%
+	if (RAND(1,100) > 20) return; // reduce probs to only 10%
 	sleep 10000 + 100*RAND(1,200); // 10-30 secs
 	isPushing = TRUE;
 	stop-spin fingers around z-axis;
