@@ -110,7 +110,7 @@ return {
 				-- bursrate = 0.25,
 				tolerace = 3000,
 				firetolerance = 3000,
-				areaofeffect = 75,
+				areaofeffect = 144,
 				avoidfeature = false,
 				burnblow = true,
 				craterboost = 0,
@@ -120,7 +120,7 @@ return {
 				impulsefactor = 2.5,
 				name = "Medium Blast Riot Cannon",
 				noselfdamage = true,
-				range = 350,
+				range = 300,
 				reloadtime = 2.0,
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
@@ -142,7 +142,7 @@ return {
 					vtol = 35,
 				},
 				customparams = {
-					exclude_preaim = true
+					--exclude_preaim = true
 				}
 			},
 		},

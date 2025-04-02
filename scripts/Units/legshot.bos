@@ -282,8 +282,10 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 // Disable armored state when 2000 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
+	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	tdamage = dmg + tdamage;
+	start-script repairShield();
 	if ((tdamage > 40000) AND (shieldup == 1))
 	{
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
@@ -302,7 +304,6 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		
 		set ARMORED to 0;
 		shieldup = 0;
-		start-script repairShield();
 	}
 	return (100); //return damage percent
 }
@@ -448,39 +449,25 @@ AimPrimary(heading, pitch)
 
 FirePrimary(){
 	if (whichBarrel == 0){
-        whichBarrel = 1;
-    }
-    if (whichBarrel == 1){
-        whichBarrel = 0;
-	}
-}
-
-Shot1()
-{
-	if (whichBarrel == 0){
  		emit-sfx 1024 + 0 from topFlare;
 		move topBarrel to z-axis [-5] speed [100];
-		sleep 10;
-        whichBarrel = 1;
 		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
 		move topBarrel to z-axis [0] speed [3];
 		turn torso to y-axis <0> speed <20>;
+		whichBarrel = 1;
 		return (0);
     }
     if (whichBarrel == 1){
-		emit-sfx 1024 + 0 from bottomFlare;
+ 		emit-sfx 1024 + 0 from bottomFlare;
 		move bottomBarrel to z-axis [-5] speed [100];
-		sleep 10;
-        whichBarrel = 0;
 		turn torso to y-axis <-10> speed <300>;
 		wait-for-turn torso around y-axis;
 		move bottomBarrel to z-axis [0] speed [3];
 		turn torso to y-axis <0> speed <20>;
+		whichBarrel = 0;
 		return (0);
     }
-
-
 }
 
 Killed(severity, corpsetype)
