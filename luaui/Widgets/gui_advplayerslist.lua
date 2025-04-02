@@ -761,6 +761,7 @@ function widget:TeamDied(teamID)
     doPlayerUpdate()
 end
 
+-- rank players inside each team based on production and damage dealt
 local function rankTeamPlayers()
     local rankingChanged = false
     local scores = {}
@@ -902,6 +903,12 @@ local function SetOriginalColourNames()
     end
 end
 
+function widget:GameOver(winningAllyTeams)
+    if isPvE and not isSinglePlayer then
+        rankTeamPlayers()
+    end
+end
+
 function widget:GameFrame(n)
     if n > 0 then
         if not gameStarted then
@@ -919,7 +926,7 @@ function widget:GameFrame(n)
             forceMainListRefresh = true
         else
             -- when PvE: rank players inside each team based on production and damage dealt
-            if isPvE and not isSinglePlayer and n % 200 == 1  then
+            if isPvE and not isSinglePlayer and n % 250 == 1  then
                 rankTeamPlayers()
             end
         end
