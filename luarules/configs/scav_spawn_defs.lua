@@ -388,6 +388,7 @@ local LandUnitsList = {
 			["legpede_scav"] = 1,
 			["legkeres_scav"] = 4,
 			["legeshotgunmech_scav"] = 2,
+			["legbunk_scav"] = 2,
 		},
 		[7] = {
 			--Armada

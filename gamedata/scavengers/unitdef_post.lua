@@ -297,6 +297,7 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav"
 		uDef.buildoptions[numBuildoptions + 2] = "leggobt3_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "legpede_scav"
+		uDef.buildoptions[numBuildoptions + 4] = "legbunk_scav"
 	elseif name == "armca_scav" or name == "armck_scav" or name == "armcv_scav" then
 		--local numBuildoptions = #uDef.buildoptions
 	elseif name == "corca_scav" or name == "corck_scav" or name == "corcv_scav" then
