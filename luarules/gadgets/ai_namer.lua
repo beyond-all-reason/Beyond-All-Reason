@@ -1,5 +1,7 @@
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "AI namer",
@@ -112,6 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Shadowisperke",
 		"Skymirrh",
 		"skynet",
+		"smellymoo",
 		"smile",
 		"sprEEEzy",
 		"Sprung",
@@ -200,6 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 		"TIMBO",
 		"Titan",
 		"TopHatButcher",
+		"Unusual Emphasis",
 		"Woody",
 		"Yavarin",
 		"Zagupi",

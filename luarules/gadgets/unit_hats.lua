@@ -3,6 +3,8 @@ if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Hats",
@@ -75,12 +77,14 @@ local unitDefCanWearHats = {
 	[144092] = true, -- [DmE]Wraxell
 	[42178] = true,  -- [pretor]
 	[119539] = true, -- [Stud]Lovish
+	[641] = true, -- ZLO
 }
-local champion = { --   Fight Night 1v1 winner
+local champion = { --   Fight Night 1v1 and Master's League winners
 	[139738] = true, -- [DmE]FlyingDuck
 	[82263] = true, -- PRO_Autopilot
 	[975] = true, -- StarDoM
 	[2377] = true, -- Therxyy
+	[439] = true, -- Goopy
 }
  local vikings = { -- Omega Series 3: Winners
 	[59340] = true,  -- Austin

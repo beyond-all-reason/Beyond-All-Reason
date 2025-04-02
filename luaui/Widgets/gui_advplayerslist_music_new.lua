@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	= "AdvPlayersList Music Player New",
@@ -29,10 +31,11 @@ local showGUI = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 40000
-local warMeterResetTime = 30 -- seconds
+local warHighLevel = 32500
+local warMeterResetTime = 40 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 60 -- seconds
+local songsSinceEvent = 5 -- start with higher number so event track can be played first
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -53,12 +56,18 @@ local warhighTracks = {}
 local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
+local bossFightTracksAll = {}
+local bonusTracks = {}
+
+local eventPeaceTracks = {}
+local eventWarLowTracks = {}
+local eventWarHighTracks = {}
 
 local menuTracks = {}
 local loadingTracks = {}
 
 local currentTrack
-local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
@@ -69,6 +78,18 @@ local serverFrame = 0
 local bossHasSpawned = false
 
 local function ReloadMusicPlaylists()
+	-----------------------------------SETTINGS---------------------------------------
+
+	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
+	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
+
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
+		Spring.SetConfigInt('UseSoundtrackNew', 1)
+		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	end
+
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
 
@@ -91,15 +112,8 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
 	end
-
-	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
-		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
-		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
-	end
-
-	if (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12) then
-		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
-	end
+	table.append(bossFightTracksAll, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
+	table.append(bossFightTracksAll, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -111,17 +125,38 @@ local function ReloadMusicPlaylists()
 	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
 	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
-	-----------------------------------SETTINGS---------------------------------------
 
-	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
-	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
+	-- Events
+	eventPeaceTracks = {}
+	eventWarLowTracks = {}
+	eventWarHighTracks = {}
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
-		Spring.SetConfigInt('UseSoundtrackNew', 1)
-		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	if newSoundtrackEnabled then
+		-- April Fools --------------------------------------------------------------------------------------------------------------------
+		if ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+		elseif (not ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+		end
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+
+		-- Christmas ----------------------------------------------------------------------------------------------------------------------
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
 	end
+
 	-------------------------------CREATE PLAYLISTS-----------------------------------
 
 	peaceTracks = {}
@@ -193,6 +228,10 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 	bossFightTracks = shuffleMusic(bossFightTracks)
+	eventPeaceTracks = shuffleMusic(eventPeaceTracks)
+	eventWarLowTracks = shuffleMusic(eventWarLowTracks)
+	eventWarHighTracks = shuffleMusic(eventWarHighTracks)
+	bonusTracks = shuffleMusic(bonusTracks)
 
 	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
 	-- Spring.Echo("----- peaceTracks -----")
@@ -244,6 +283,24 @@ local function ReloadMusicPlaylists()
 		gameoverTracksPlayCounter = math.random(#gameoverTracks)
 	else
 		gameoverTracksPlayCounter = 1
+	end
+
+	if #eventPeaceTracks > 1 then
+		eventPeaceTracksPlayCounter = math.random(#eventPeaceTracks)
+	else
+		eventPeaceTracksPlayCounter = 1
+	end
+
+	if #eventWarLowTracks > 1 then
+		eventWarLowTracksPlayCounter = math.random(#eventWarLowTracks)
+	else
+		eventWarLowTracksPlayCounter = 1
+	end
+
+	if #eventWarHighTracks > 1 then
+		eventWarHighTracksPlayCounter = math.random(#eventWarHighTracks)
+	else
+		eventWarHighTracksPlayCounter = 1
 	end
 end
 
@@ -692,19 +749,28 @@ function widget:Initialize()
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
 		end
 		for k,v in pairs(peaceTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
+			if peaceTracks[k] and not string.find(peaceTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
+			end
 		end
 		for k,v in pairs(warlowTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
+			if warlowTracks[k] and not string.find(warlowTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
+			end
 		end
 		for k,v in pairs(warhighTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+			if warhighTracks[k] and not string.find(warhighTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+			end
 		end
-		for k,v in pairs(bossFightTracks) do
+		for k,v in pairs(bossFightTracksAll) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bossfight'), processTrackname(v), v}
 		end
 		for k,v in pairs(gameoverTracks) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
+		end
+		for k,v in pairs(bonusTracks) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bonus'), processTrackname(v), v}
 		end
 		return tracksConfig
 	end
@@ -1022,6 +1088,7 @@ function PlayNewTrack(paused)
 	end
 	currentTrack = nil
 	currentTrackList = nil
+	currentTrackIsEventMusic = nil
 
 	if gameOver then
 		currentTrackList = gameoverTracks
@@ -1031,14 +1098,32 @@ function PlayNewTrack(paused)
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
-		currentTrackList = warhighTracks
-		currentTrackListString = "warHigh"
+		if #eventWarHighTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+			currentTrackList = eventWarHighTracks
+			currentTrackListString = "eventWarHigh"
+			songsSinceEvent = 0
+		else
+			currentTrackList = warhighTracks
+			currentTrackListString = "warHigh"
+		end
 	elseif warMeter >= warLowLevel then
-		currentTrackList = warlowTracks
-		currentTrackListString = "warLow"
+		if #eventWarLowTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+			currentTrackList = eventWarLowTracks
+			currentTrackListString = "eventWarLow"
+			songsSinceEvent = 0
+		else
+			currentTrackList = warlowTracks
+			currentTrackListString = "warLow"
+		end
 	else
-		currentTrackList = peaceTracks
-		currentTrackListString = "peace"
+		if #eventPeaceTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+			currentTrackList = eventPeaceTracks
+			currentTrackListString = "eventPeace"
+			songsSinceEvent = 0
+		else
+			currentTrackList = peaceTracks
+			currentTrackListString = "peace"
+		end
 	end
 
 	if not currentTrackList then
@@ -1078,6 +1163,30 @@ function PlayNewTrack(paused)
 				bossFightTracksPlayCounter = 1
 			end
 		end
+		if currentTrackListString == "eventPeace" then
+			currentTrack = currentTrackList[eventPeaceTracksPlayCounter]
+			if eventPeaceTracksPlayCounter < #eventPeaceTracks then
+				eventPeaceTracksPlayCounter = eventPeaceTracksPlayCounter + 1
+			else
+				eventPeaceTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "eventWarLow" then
+			currentTrack = currentTrackList[eventWarLowTracksPlayCounter]
+			if eventWarLowTracksPlayCounter < #eventWarLowTracks then
+				eventWarLowTracksPlayCounter = eventWarLowTracksPlayCounter + 1
+			else
+				eventWarLowTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "eventWarHigh" then
+			currentTrack = currentTrackList[eventWarHighTracksPlayCounter]
+			if eventWarHighTracksPlayCounter < #eventWarHighTracks then
+				eventWarHighTracksPlayCounter = eventWarHighTracksPlayCounter + 1
+			else
+				eventWarHighTracksPlayCounter = 1
+			end
+		end
 		if currentTrackListString == "gameOver" then
 			currentTrack = currentTrackList[gameoverTracksPlayCounter]
 		end
@@ -1088,7 +1197,14 @@ function PlayNewTrack(paused)
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
-		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+
+		if string.find(currentTrackListString, "event") then
+			interruptionTime = 999999
+		else
+			interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+			songsSinceEvent = songsSinceEvent + 1
+		end
+
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
@@ -1158,8 +1274,23 @@ function widget:GameFrame(n)
 		--	Spring.StopSoundStream()
 		--	return
 		--end
-
-		if warMeter > 0 then
+		if Spring.Utilities.Gametype.IsRaptors() then
+			if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
+				warMeter = warHighLevel+1
+			elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
+				warMeter = warLowLevel+1
+			else
+				warMeter = 0
+			end
+		elseif Spring.Utilities.Gametype.IsScavengers() then
+			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
+				warMeter = warHighLevel+1
+			elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
+				warMeter = warLowLevel+1
+			else
+				warMeter = 0
+			end
+		elseif warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
 				warMeter = warHighLevel*3
@@ -1178,7 +1309,7 @@ function widget:GameFrame(n)
 						fadeDirection = -2
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
-					  and ((currentTrackListString == "intro" and n > 90)
+					  and ((currentTrackListString == "intro" and n > 9000)
 						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
 						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
 						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold

@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 jobs:
   update:
+    # Only run this workflow on forks if it was triggered manually. Otherwise
+    # contributors will get extra commits in their PRs.
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'beyond-all-reason/beyond-all-reason'
     name: Update recoil-lua-library
     runs-on: ubuntu-latest
     permissions:
