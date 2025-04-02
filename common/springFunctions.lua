@@ -17,6 +17,10 @@ local utilities = {
 	GetAllyTeamList = team.GetAllyTeamList,
 	GetPlayerCount = team.GetPlayerCount,
 	Gametype = team.Gametype,
+	GetScavAllyTeamID = team.GetScavAllyTeamID,
+	GetChickenTeamID = team.GetChickenTeamID,
+	GetScavTeamID = team.GetScavTeamID,
+	GetChickenAllyTeamID = team.GetChickenAllyTeamID,
 
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam('isDevMode')
