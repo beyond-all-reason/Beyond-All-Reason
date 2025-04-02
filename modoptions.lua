@@ -859,18 +859,18 @@ local options = {
     --	section	= "options_extra",
     --},
 
-	{
-		key		= "unithats",
-		name	= "Unit Hats",
-		desc	= "Unit Hats, for the current season",
-		type	= "list",
-		def		= "april",
-		items	= {
-			{ key = "disabled",	name = "Disabled" },
-			{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-		},
-		section	= "options_extra",
-	},
+	-- {
+	-- 	key		= "unithats",
+	-- 	name	= "Unit Hats",
+	-- 	desc	= "Unit Hats, for the current season",
+	-- 	type	= "list",
+	-- 	def		= "disabled",
+	-- 	items	= {
+	-- 		{ key = "disabled",	name = "Disabled" },
+	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
+	-- 	},
+	-- 	section	= "options_extra",
+	-- },
 	--{
 	--	key		= "easter_egg_hunt",
 	--	name	= "Easter Eggs Hunt",
