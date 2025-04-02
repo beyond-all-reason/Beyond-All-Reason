@@ -1,19 +1,19 @@
 local UDN = UnitDefNames
 local wallChance = 0
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local ScavengerTeamID = Spring.GetGaiaTeamID() --can this be replaced with GetScavTeamID()
 for i = 1, #teams do --this block needs to be deleted I think
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		gaiaTeamID = i - 1
+		ScavengerTeamID = i - 1
 		break
 	end
 end
 
 function BPWallOrPopup(faction, tier)
-	if gaiaTeamID then
-		wallChance = Spring.GetTeamUnitCount(gaiaTeamID)
+	if ScavengerTeamID then
+		wallChance = Spring.GetTeamUnitCount(ScavengerTeamID)
 	end
-	if math.random(1, Spring.GetTeamMaxUnits(gaiaTeamID)*0.9) > wallChance then
+	if math.random(1, Spring.GetTeamMaxUnits(ScavengerTeamID)*0.9) > wallChance then
 		local r = math.random(0,20)
 		if tier == 1 then
 			if faction == "arm" then
