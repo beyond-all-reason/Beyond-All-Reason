@@ -18,8 +18,7 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
--- Get TeamIDs and AllyTeamIDs of Scavengers
-local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID() --get scavenger ally teamID
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
