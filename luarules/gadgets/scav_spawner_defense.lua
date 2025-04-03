@@ -135,7 +135,6 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
-	local raptorTeamID = Spring.Utilities.GetChickenTeamID()
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
@@ -189,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local teams = GetTeamList()
 	for _,teamID in ipairs(teams) do
-		if teamID ~= raptorTeamID then
+		if teamID ~= scavTeamID then
 			humanTeams[teamID] = true
 		end
 	end
