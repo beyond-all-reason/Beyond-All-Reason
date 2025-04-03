@@ -1,14 +1,6 @@
 local UDN = UnitDefNames
 local wallChance = 0
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		gaiaTeamID = i - 1
-		break
-	end
-end
 
 function BPWallOrPopup(faction, tier)
 	if gaiaTeamID then
