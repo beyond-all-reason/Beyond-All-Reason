@@ -42,10 +42,10 @@ local powerThresholds = {
 }
 
 
-local allyID = select(6, Spring.GetTeamInfo(teamID))
 local scavengerTeam = Spring.Utilities.GetScavTeamID()
 local raptorTeam = Spring.Utilities.GetChickenTeamID()
 for _, teamID in ipairs(teamList) do
+    local allyID = select(6, Spring.GetTeamInfo(teamID))
     if select (4, Spring.GetTeamInfo(teamID, false)) then
         aiTeams[teamID] = true
         playerTeams[teamID] = true
