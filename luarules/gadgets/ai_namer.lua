@@ -146,6 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		"BoT0x",
 		"Canyoudigit84",
 		"catraxx",
+		"Chrono", -- Donater $100
 		"Coresample",
 		"danielquinn",
 		"dallabill",
