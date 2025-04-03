@@ -54,7 +54,6 @@ end
 
 local scavTeamID = Spring.Utilities.GetScavTeamID()
 local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-
 local aliveLootboxes = {}
 local aliveLootboxesCount = 0
 local aliveSpawners = {}
