@@ -3,17 +3,14 @@ mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
 local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
 local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-for i = 1,#teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengersAIEnabled = true
-		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
-		if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
-			ScavengerStartboxExists = false
-		else
-			ScavengerStartboxExists = true
-		end
-		break
+
+if Spring.Utilities.Gametype.IsScavengers() then
+	scavengersAIEnabled = true
+	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
+	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
+		ScavengerStartboxExists = false
+	else
+		ScavengerStartboxExists = true
 	end
 end
 
