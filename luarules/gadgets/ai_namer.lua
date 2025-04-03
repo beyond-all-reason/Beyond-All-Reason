@@ -137,7 +137,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Zecrus",
 		"ZephyrSkies",
 
-		-- Supporters ($20+ Donation)
+		-- Supporters ($40+ Donation & personal request)
 		"aeon",
 		"Aknaroth",
 		"badosu",
@@ -154,7 +154,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Diana",
 		"EnJoY",
 		"ewang",
-		"FishouseMike",
+		"FishouseMike", --Donater $40
 		"FlorisXIV",
 		"fluxtux",
 		"Glass",
@@ -177,6 +177,7 @@ if gadgetHandler:IsSyncedCode() then
 		"MelKaven",
 		"mordante",
 		"MoustacheG",
+		"MVPete", --Donater $50
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
@@ -287,7 +288,6 @@ if gadgetHandler:IsSyncedCode() then
 		"Mace",
 		"Marauder",
 		"Mauser",
-		"MVPete",
 		"Oracle",
 		"Paladin",
 		"Pawn",
