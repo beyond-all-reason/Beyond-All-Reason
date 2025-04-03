@@ -1,6 +1,6 @@
 local UDN = UnitDefNames
 local wallChance = 0
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Spring.Utilities.GetScavTeamID() or Spring.GetGaiaTeamID()
 
 function BPWallOrPopup(faction, tier)
 	if gaiaTeamID then
