@@ -1,5 +1,4 @@
-//#define TA			// This is a TA script
-
+#define CUSTOMSIGNALS
 #include "../recoil_common_includes.h"
 
 //#define DEBUG
@@ -61,11 +60,6 @@ pileextension9,
 pile;
 
 
-// For C:\Users\Furtan GPunkt\Downloads\Lgepilv21-Walkcycle.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
-
-// Hit ctrl-shift-B to compile any .bos file
-
-// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
 #define MOVESCALE 100
 #define SIG_WALK			2
@@ -111,12 +105,11 @@ static-var isPushing;
 Create(){
 	isMoving = FALSE;
 	isPushing = TRUE;
-	animSpeed = 2; // Set to 4 for 75ms, 4.3733 for 82ms
-	restore_delay = 3000; // Delay from returning to relaxed idle stance
+	animSpeed = 2;
+	restore_delay = 3000;
 
 	start-script UnitSpeed();
 
-	//Hiding empties, no clue if this is needed or not, but everyone does it.
 	hide frontPelvis;
 	hide frontTorso;
 	hide aimy1;
@@ -135,24 +128,18 @@ Create(){
 	hide flaresmokegun5;
 	hide flaresmokegun6;
 
-	//For the funky Targetting System ofc
 	torsofunkyHeading = 0;
 	oldHeadingBunker = 0;
 	oldHeadingRailgun = 0;
 
-	//For Steering()
 	timer = 0;
 	oldsteerheading = get HEADING;;
 
-	//Gotta save on that fuel/particles
 	fuelSaver = FALSE;
 
-	//Needed for CATT to do its thing ig.
 	call-script CATT1_Init();
 	call-script CATT2_Init();
 	start-script Steering();
-
-	//Booting up!
 	
 	turn aimxarml to x-axis <0.000000> now;
 	turn aimyarml to y-axis <0.000000> now;
@@ -164,9 +151,7 @@ Create(){
 	{
 		sleep 500;
 	}
-	//Start in power pose! Thank you cleaned Pawn <3
-	//And thank you Black Hydra for this neat while block!
-	start-script StopPushups();
+	start-script StopPushups(); //Needed to make sure the unit rotates back into position if using /reloadcob legbunk
 	call-script StopWalking();
 	spin fingers around z-axis speed <360> accelerate <6>;}
 
@@ -184,7 +169,6 @@ Create(){
 #define CATT1_ACCELERATION <0.9>
 #define CATT1_JERK <2>
 #define CATT1_PRECISION <3>
-//#define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <2>
 
@@ -196,13 +180,10 @@ Create(){
 #define CATT2_ACCELERATION <0.9>
 #define CATT2_JERK <2>
 #define CATT2_PRECISION <3>
-//#define CATT2_PITCH_SPEED <85>
 #define CATT2_RESTORE_DELAY 4500
 #define CATT2_RESTORE_SPEED <2>
 
 #define HAS_STUN
-//#define CATT2_DEBUG
-
 
 #include "../constant_acceleration_turret_turning_1.h"
 #include "../constant_acceleration_turret_turning_2.h"
@@ -224,7 +205,7 @@ Setstunned(State)
 	}
 }
 
-QueryWeapon1(piecenum) //Hull Rotation
+QueryWeapon1(piecenum)
 {
 	piecenum = torso;
 }
@@ -237,7 +218,7 @@ AimFromWeapon1(piecenum)
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = aimflarebunker; // Point the barrel at the dude, not your chest
+	piecenum = aimflarebunker;
 }
 
 QueryWeapon2(piecenum)
@@ -245,6 +226,7 @@ QueryWeapon2(piecenum)
 	piecenum = piledriver;
 }
 
+//Targetting System / Responsible for torso rotation and saving that info for the other turrets.
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;
@@ -288,15 +270,16 @@ AimWeapon1(heading, pitch)
 		}
 	}
 
-	var gun_xz;
-    gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
-    var gun_x;
-    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
-    var gun_z;
-    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+	//We will use the torso's origin and a parented empty placed in front to get this piece's heading
+	var torso_xz;
+    torso_xz = get PIECE_XZ(torso);
+    var torso_x;
+    torso_x = (torso_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of torso (credit for unpack code goes to Beherith)
+    var torso_z;
+    torso_z = (torso_xz & 0x0000ffff);                            //unpack z coordinates of torso
 
     var turret_xz;
-    turret_xz = get PIECE_XZ(frontTorso);                        //get packed turret coordinates
+    turret_xz = get PIECE_XZ(frontTorso);
     var turret_x;
     turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
     var turret_z;
@@ -304,23 +287,23 @@ AimWeapon1(heading, pitch)
 
     var aim_x;
     var aim_z;
-    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
-    aim_z = gun_z - turret_z;
+    aim_x = torso_x - turret_x;                                //calculate relative coordinates of the torso to the turret (how far away it is in each direction)
+    aim_z = torso_z - turret_z;
 
 	//And this will get direction of the pelvis/base in worldspace
     var hull_xz;
-    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    hull_xz = get PIECE_XZ(pelvis);
     var hull_x;
-    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;
     var hull_z;
-    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    hull_z = (hull_xz & 0x0000ffff);
 
     var smoke_xz;
-    smoke_xz = get PIECE_XZ(frontPelvis);                            //get packed smoke coordinates
+    smoke_xz = get PIECE_XZ(frontPelvis);
     var smoke_x;
-    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;
     var smoke_z;
-    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    smoke_z = (smoke_xz & 0x0000ffff);
 
     var face_x;
     var face_z;
@@ -331,9 +314,7 @@ AimWeapon1(heading, pitch)
     cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
 
-    //var torsofunkyHeading;
     torsofunkyHeading = (cauface - cauaim) +400;                                //calculate angle of turret relative to the hull
-	//torsofunkyHeading = heading;
 	if (((get ABS(oldHeadingTS - heading)) > 65536) OR(((get ABS(oldHeadingTS - heading)) > 1300) AND ((get ABS(oldHeadingTS - heading)) < 64236)))
 	{
 		oldHeadingTS = 1000000;
@@ -349,8 +330,6 @@ AimWeapon1(heading, pitch)
 
 
 //Pile Driver
-//PROBLEM: It looks really good if you target fire, but have actual targets enter its zone and it fires away without waiting to turn first.
-//Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
 AimWeapon2(heading, pitch)
 {
 	var new_heading;
@@ -364,12 +343,7 @@ AimWeapon2(heading, pitch)
 	
 	turn piledriver to x-axis <0> - pitch/2 speed <30>;
 	oldHeadingBunker = heading;
-	if (new_heading < 0) {
-		call-script CATT1_Aim(new_heading,(pitch+400)/2);
-	} else {
-		call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
-	}
-	//start-script ResetWeapon();
+	call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
 	start-script CATT1_Restore();
 	return(1);
 }
@@ -378,7 +352,6 @@ FireWeapon2()
 {
 	signal SIG_FIRE_BUNKER;
 	call-script Attack_bunker();
-	//spin fingers around z-axis speed <-360> accelerate <12>;
 	call-script Recoil_Bunker();
 	sleep 100;
 	call-script Retract_bunker();
@@ -405,21 +378,16 @@ AimWeapon3(heading, pitch) {
 	set-signal-mask SIG_AIM_GUN;
 	isAiming = TRUE;
 	
-	//turn railgun to x-axis <0> speed <30>;
 	oldHeadingRailgun = heading;
 
 	turn railgun to x-axis <0> - pitch/2 speed <30>;
 	start-script dontgetyourlegshotoff(heading);
 	
-	
-	if (new_heading < 0) {
-		call-script CATT2_Aim(new_heading,(pitch+400)/2);
-	} else {
-		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
-	}
+	call-script CATT2_Aim(new_heading,(pitch+400)/2);
 	start-script CATT2_Restore();
 	return(1);}
 
+//Turns the right arm up a bit to avoid visual clipping at extreme angles.
 static-var leg_clearance;
 dontgetyourlegshotoff(h) {
 	if ( h > <165> ) { leg_clearance = <25>; } 
@@ -464,20 +432,6 @@ Recoil_Bunker() {
 	turn lforearm to x-axis <0> speed [0.4];
 	sleep 100;}
 
-//When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
-ResetWeapon() {
-	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
-	signal SIG_AIM_BUNKER;
-	sleep CATT1_RESTORE_DELAY;
-	oldHeadingBunker = 0;
-	turn aimxarml to x-axis <0.000000> speed <60.000000>;
-	turn aimyarml to y-axis <0.000000> speed <60.000000>;
-	wait-for-turn aimyarml around y-axis;
-	wait-for-turn aimxarml around x-axis;
-	}
-
-
-
 RestoreAfterDelay(){
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();}
@@ -491,16 +445,9 @@ ExecuteRestoreAfterDelay() {
 	
 	isAiming = FALSE;
 	turn aimy1 to y-axis <0.000000> speed <60.000000>;
-	//turn aimxarml to x-axis <0.000000> speed <60.000000>;
-	//turn aimyarml to y-axis <0.000000> speed <60.000000>;
-	//turn aimxarmr to x-axis <0.000000> speed <60.000000>;
-	//turn aimyarmr to y-axis <0.000000> speed <60.000000>;
-	//turn aimyarmr to z-axis <0.000000> speed <60.000000>;
 	turn piledriver to x-axis <25> speed <60.000000>;
 	turn railgun to x-axis <25> speed <60.000000>;
 	
-	//start-script CATT1_Restore();
-	//start-script CATT2_Restore();
 	start-script Retract_bunker();
 	
 	oldHeadingBunker = 0;
@@ -525,7 +472,6 @@ FireGunExhausts() {
 	}
 	fuelSaver = !fuelSaver;
 	return (1);}
-
 
 Attack_bunker() {
 	stop-spin fingers around z-axis decelerate <150>;
@@ -1192,8 +1138,7 @@ Walk() {
 	}}
 
 StopWalking() { // Call this from StopMoving()!
-	//animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	//Customized parts go here
+	//Power Pose goes here
 	turn lthigh to y-axis <20> speed <525.118567> / animSpeed;
 	turn rthigh to y-axis <-20> speed <527.117224> / animSpeed;
 	turn piledriver to x-axis <25> speed <713.166646> / animSpeed;
@@ -1232,9 +1177,9 @@ StopWalking() { // Call this from StopMoving()!
 	turn torso to y-axis <0> speed <643.462474> / animSpeed;}
 
 UnitSpeed(){ // REMEMBER TO animspeed = 2 in Create() !!
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	maxSpeed = get MAX_SPEED;
+	animFramesPerKeyframe = 2;
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe));
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
@@ -1259,7 +1204,7 @@ StopMoving(){
 }
 
 //use call-script DeathAnim(); from Killed()
-DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\LegbunkV6-death anim - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
+DeathAnim() {
 	signal SIG_WALK;
 	signal SIG_AIM_TC;
 	signal SIG_AIM_BUNKER;
@@ -1432,8 +1377,7 @@ DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\Legbunk
 			move larm to y-axis [-10.677145] speed [32.703444] ;
 			turn larm to x-axis <-33.142482> speed <10.554118> ;
 			turn larm to z-axis <53.698619> speed <160.641459> ;
-			turn larm to y-axis <71.612293> speed <177.443069> ; //WARNING: possible gimbal lock issue detected in frame 74 bone larm
-
+			turn larm to y-axis <71.612293> speed <177.443069> ;
 			turn lforearm to x-axis <-44.939585> speed <4.756434> ;
 			turn lforearm to z-axis <16.268964> speed <36.886300> ;
 			turn lforearm to y-axis <0.341837> speed <15.529555> ;
@@ -1441,17 +1385,11 @@ DeathAnim() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\Legbunk
 			turn piledriver to y-axis <-86.898147> speed <152.111482> ;
 		sleep 329;
 		}
-		if (TRUE) { //Frame:85
-		sleep 362;
-		}
-		if (TRUE) { //Frame:95
-		sleep 329;
-		}
 }
-Pushup() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\LegbunkV6 - skeletonized 2 - pushups - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+Pushup() {
 	if (isPushing) { return (0); };
-	set-signal-mask SIG_WALK | SIG_AIM_TC; //you might need this
-	if (RAND(1,100) > 20) return; // reduce probs to only 10%
+	set-signal-mask SIG_WALK | SIG_AIM_TC;
+	if (RAND(1,100) > 20) return; // reduce probs to only 20%
 	sleep 10000 + 100*RAND(1,200); // 10-30 secs
 	isPushing = TRUE;
 	stop-spin fingers around z-axis;
