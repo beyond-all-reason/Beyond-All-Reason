@@ -2,7 +2,7 @@ local teams = Spring.GetTeamList()
 mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
 local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
-
+local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
