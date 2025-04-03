@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -82,24 +82,6 @@ function BuildersBST:Watchdog()
 	end
 end
 
-function BuildersBST:Evade()
-	--[[
-	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
-	if home then
-		self.unit:Internal():Guard(home.id)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-		return
--- 		home = home.position
-	else
-		home = self.ai.tool:UnitPos(self)
-		home = self.ai.tool:RandomAway(home,300)
-		self.unit:Internal():Move(home)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-	end
-	]]
-	self:Assist()
-end
-
 function BuildersBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BuildersBST' then
 		return
@@ -111,12 +93,13 @@ function BuildersBST:Update()
 		return
 	end
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress, relativeHealth = self.unit:Internal()
-	:GetHealtsParams()
+	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress, relativeHealth = self.unit:Internal():GetHealtsParams()
+
 	if relativeHealth < 0.99 and buildProgress == 1 and not self.isCommander then
 		self:Assist()
 		return
 	end
+	
 	if not self.sketch and not self.builder and self.failOut and self.assistant then
 		self:EchoDebug(self.name, 'failout',self.role,self.failOut,self.assistant,game:GetUnitByID(self.assistant):GetPosition(),game:GetUnitByID(self.assistant):Name())
 		
@@ -124,6 +107,7 @@ function BuildersBST:Update()
 			self:EchoDebug(self.name, 'failout reset')
 			self.failOut = nil
 			self.fails = 0
+			self.assistant = nil
 		end
 	elseif self.builder and self.sketch and self.sketch.unitID then
 		self:EchoDebug(self.name, self.role, 'build ', self.sketch.unitName, 'at', self.sketch.position.x,
@@ -136,6 +120,7 @@ function BuildersBST:Update()
 	elseif self.sketch and not self.builder then --WARNING  have a building in build and no builder in construction
 		self:Warn(' no builder to execute sketch', self.sketch)
 	else
+
 		self:ProgressQueue()
 	end
 end
@@ -341,6 +326,16 @@ end
 
 function BuildersBST:ProgressQueue()
 	self:EchoDebug(self.name, " progress queue", self.role, self.idx, #self.queue)
+	
+	local pt = self.unit:Internal():GetPosition()
+	
+	if  not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, 1, true, true,false ) or 
+		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, -1, true, true,false ) or 
+		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, 1, true, true,false ) or 
+		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, -1, true, true,false ) then
+		self:Warn('moveorder not pass for builder',self.name, self.id)
+		return
+	end
 	if self.isCommander then
 		self.role = self.ai.buildingshst:SetRole(self.id)
 		self.queue = self.ai.taskshst.roles[self.role]

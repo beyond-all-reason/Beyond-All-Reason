@@ -121,6 +121,7 @@ function ScoutBST:Update()
 		return
 	end
 	if self.active then
+		local RAM = gcinfo()
 		local unit = self.unit:Internal()
 		self.position.x, self.position.y ,self.position.z = unit:GetRawPos()
 		local X,Z = self.ai.maphst:PosToGrid(self.position)
@@ -134,14 +135,20 @@ function ScoutBST:Update()
 		else
 			self.evading = nil
 		end
+		RAM = gcinfo() -RAM
+		print('1',RAM)
 		if not self.evading and self.isWeapon then
 			--self.attacking = self:bestAdjacentPos(self.unit:Internal(),nil)
 			self.attacking = self:ImmediateTarget()
 		end
+		RAM = gcinfo() -RAM
+		print('2',RAM)
 		if self.attacking then
 			self:Attacking()
 			return
 		end
+		RAM = gcinfo() -RAM
+		print('3',RAM)
 		if not self.target  and not self.attacking and not self.evading  then
 			self.target = self.ai.scouthst:ClosestSpot2(self)
 			if self.target then
@@ -149,6 +156,8 @@ function ScoutBST:Update()
 			end
 
 		end
+		RAM = gcinfo() -RAM
+		print('4',RAM)
 		if self.target then
 			self:EchoDebug('check',self.id)
 			local X,Z = self.ai.maphst:PosToGrid(self.target)
@@ -156,8 +165,9 @@ function ScoutBST:Update()
 				self.target = nil
 			end
 		end
+		RAM = gcinfo() -RAM
+		print('5',RAM)
 	end
-	self.unit:ElectBehaviour()
 end
 
 

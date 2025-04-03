@@ -190,7 +190,7 @@ end
 
 function BuildingsHST:CanBuildHere(unittype,x,y,z) -- returns boolean
 	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), x, y, z)
-	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
+	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0 --TODO check if it really necessary
 	-- self:EchoDebug(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), newX, newY, newZ
 end
@@ -240,11 +240,11 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 		end
 	end
 	-- don't build where the builder can't go
--- 	if pos ~= nil then
--- 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
--- 			return nil
--- 		end
--- 	end
+ 	if pos ~= nil then
+ 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
+ 			return nil
+ 		end
+ 	end
 	return true
 end
 

@@ -340,7 +340,6 @@ function MapHST:gridAnalisy()--do the first analisy of the grid
 		geos = {},
 		allSpots = {}
 		}
-
 end
 
 function MapHST:LayerScan() --a most approfondite analisy of the layers
@@ -589,23 +588,15 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 	local counter = 0
 	local testUnitName = testUnit.unit:Internal():Name()
 	local testUnitPos = testUnit.unit:Internal():GetPosition()
-	local className = UnitDefNames[testUnitName].moveDef.name
-	local classID = UnitDefNames[testUnitName].id
-	local parsed = {}
 	self.ttt={trampled = 0}
-	local last 
 	local first,firstX,firstZ
 	local wpos,wposX,wposZ
 	local waypoints
 	local  total = 0
-	local average = 0
-	
 	for index1 , POS1 in pairs(self.METALS) do
-		
-		
 		waypoints = self:getPath(testUnitName,testUnitPos,POS1,true)
 		if  waypoints then
-			local waypointsNumber = #waypoints
+			
 			last = waypoints[#waypoints]
 			counter = counter + 1
 			first = table.remove(waypoints)
@@ -730,12 +721,8 @@ end
 function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest free metal spot for the request unittype
 	position = position or builder:GetPosition()
 	local layer, net = self:MobilityOfUnit(builder)
-	local builderName = builder:Name()
-	local builderPos = builder:GetPosition()
 	local uname = unittype:Name()
 	local spotPosition = nil
-	local spotDistance = math.huge
-
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
 	for index, spot in pairs(sortlist) do
@@ -814,12 +801,15 @@ function MapHST:UnitCanGoHere(unit, position)
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
 	local ux,uy,uz = unit:GetRawPos()
-	
+	local pathtest = map:GetPathObject(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z)
+	if pathtest then
+		local _waypoints = map:GetPathWaypoints(pathtest)
+		if _waypoints then
+			return self.ai.tool:RawDistance(position.x,position.y,position.z,_waypoints[#_waypoints][1],_waypoints[#_waypoints][2],_waypoints[#_waypoints][3]) < self.gridSize
+			--Spring.MarkerAddPoint(_waypoints[#_waypoints][1],_waypoints[#_waypoints][2],_waypoints[#_waypoints][3],'go'	)
+		end
+	end
 	return map:PathTest(self.ai.armyhst.unitTable[unit:Name()].mclass ,ux,uy,uz ,position.x,position.y,position.z)
-		
-	
-
-	
 end
 function MapHST:UnitCanGetToUnit(unit1, unit2)
 	local position = unit2:GetPosition()
@@ -863,11 +853,9 @@ end
 
 function MapHST:IsUnderWater(position)
 	return position.y < 0
--- 	return Spring.GetGroundHeight(position.x, position.z) < 0
 end
 
 function MapHST:DrawDebug()
-	
 	for i=0,9 do
 		self.map:EraseAll(i)
 	end

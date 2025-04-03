@@ -35,7 +35,6 @@ function CleanerBST:OwnerBuilt()
 end
 
 function CleanerBST:OwnerIdle()
-	--print("nano idle",self.id)
 	self:Patroling()
 end
 
@@ -54,13 +53,9 @@ end
 
 function CleanerBST:Clean(targetId)
 	self:EchoDebug("clean this",targetId)
-	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	if not currentOrder or not  currentOrder.id or currentOrder.id ~= 90 then
-		local target = self.game:GetUnitByID(targetId)
-
-		--local exec = self.unit:Internal():Reclaim(target)
+	local currentCommand = self.unit:Internal():CurrentCommand()
+	if  currentCommand ~= CMD.RECLAIM then
 		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.RECLAIM,targetId,0,'1-1')
-		
 	end
 end
 
@@ -105,9 +100,8 @@ end
 
 function CleanerBST:Patroling()
 -- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
-	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	
-	if not currentOrder or not  currentOrder.id  then
+	local currentCommand = self.unit:Internal():CurrentCommand()
+	if currentCommand ~= CMD.PATROL then
 		self.ai.tool:GiveOrder(self.id,CMD.PATROL,self.patrolCommand,0,'1-1')
 	end
 end

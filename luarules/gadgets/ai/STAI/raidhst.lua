@@ -9,7 +9,6 @@ function RaidHST:internalName()
 end
 
 local floor = math.floor
-local   SpringGetUnitCommands = Spring.GetUnitCommands
 function RaidHST:Init()
 	self.DebugEnabled = false
 	self.recruits = {}
@@ -276,7 +275,7 @@ function RaidHST:SquadsTargetHandled(target,role)
 	end
 end
 
---function hst:HaveTarget(squad)
+--function hst:GetTarget(squad)
 	--return squad.target.X and Squad.target.Z
 --end
 
@@ -287,20 +286,6 @@ function RaidHST:SquadsTargetUpdate()
 			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
 		elseif squad.target and type(squad.role) == 'number' and game:GetUnitByID(squad.role):GetPosition() then
 			self:EchoDebug('squad' , squad.squadID, 'guard ', squad.role)
-			--[[local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
-			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
-			if targetX then
-				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
-				squad.target = {X=X, Z=Z}--self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
-				squad.step = 1
-				squad.path[1].x = targetX
-				squad.path[1].y = targetY
-				squad.path[1].z = targetZ
-				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
-			end]]
-			--return squad.target,squad.role
-
-		
 		else
 			self:SquadResetTarget(squad)
 			--local defense = self:SquadsTargetDefense(squad)
@@ -353,14 +338,11 @@ function RaidHST:SquadsTargetPrevent(squad)
 				self:EchoDebug('prevent not handled', id)
 				local builderPos = builder:GetPosition()
 				local cell = self.ai.maphst:GetCell(builderPos,self.ai.maphst.GRID)
-				--local targetHandled = self:SquadsTargetHandled(cell)
-				--if not targetHandled or targetHandled == squad.squadID then
 				local dist = self.ai.tool:distance(cell.POS,squad.position)
 				if dist < frontDist then
 					preventCell = {X=cell.X,Z = cell.Z}
 					targetID = id
 				end
-				--end
 			end
 		end
 	end
@@ -378,7 +360,6 @@ function RaidHST:SquadsTargetDefense(squad)
 				targetCell = {X = blob.defendCell.X,Z = blob.defendCell.Z}--self.ai.loshst[blob.defendCell.X][blob.defendCell.Z]
 			end
 		end
-		--end
 	end
 	return  targetCell
 end
@@ -397,7 +378,6 @@ function RaidHST:SquadsTargetAttack(squad)
 				end
 			end
 		end
-		--end
 	end
 	return bestTarget
 end
@@ -497,83 +477,3 @@ function RaidHST:visualDBG()
 		end
 	end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[function RaidHST:SquadFormation(squad)
-	self:EchoDebug('squad formation')
-	local members = squad.members
-	if #squad.members < 1 then
-		return
-	end
-	local maxMemberSize
-	local lowestSpeed
-	local totalThreat = 0
-	for i, member in pairs(members) do
-		if not maxMemberSize or member.congSize > maxMemberSize then
-			maxMemberSize = member.congSize
-		end
-		if not lowestSpeed or member.speed < lowestSpeed then
-			lowestSpeed = member.speed
-		end
-		totalThreat = totalThreat + member.threat
-	end
-	local backDist = maxMemberSize * 3
-	local backs = {}
-	local backsCount = 0
-	local forwards = {}
-	local forwardsCount = 0
-	for i, member in pairs(members) do
-		if member.sturdy then
-			forwardsCount = forwardsCount + 1
-			forwards[forwardsCount] = member
-		else
-			backsCount = backsCount + 1
-			backs[backsCount] = member
-			member.formationBack = backDist
-		end
-	end
-	local half = floor(#forwards / 2)
-	local anglePerMember = halfPi / #forwards
-	for i = 1, #forwards do
-		local member = forwards[i]
-		member.formationDist = (half - i) * maxMemberSize
-		member.formationAngle = (i - half) * anglePerMember
-	end
-	half = floor(#backs / 2)
-	anglePerMember = #backs / halfPi
-	for i = 1, #backs do
-		local member = backs[i]
-		member.formationDist = (half - i) * maxMemberSize
-		member.formationAngle = (i - half) * anglePerMember
-	end
-	squad.lowestSpeed = lowestSpeed
-	squad.totalThreat = totalThreat
-end]]

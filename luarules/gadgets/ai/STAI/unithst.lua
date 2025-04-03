@@ -26,7 +26,12 @@ function UnitHST:Update()--is before shardlua/unit
 -- 		unit.z = z
 		if x then
 			if unit:HasBehaviours() then
+				local RAM = gcinfo()
 				unit:Update()
+				RAM = gcinfo()- RAM
+				if RAM > 1 then
+					print(unit:Internal():Name(),RAM)
+				end
 			end
 		end
 

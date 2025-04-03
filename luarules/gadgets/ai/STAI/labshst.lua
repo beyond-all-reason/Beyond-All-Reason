@@ -266,7 +266,7 @@ function LabsHST:PrePositionFilter()
 	return factoriesPreCleaned
 end
 
-function LabsHST:FactoryPosition(factoryName,builder)
+function LabsHST:FactoryPosition(factoryName,builder)--TODO test ildpos with bigger labs and do a check for exitside with bigger units
 	if not factoryName or not builder then return end
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildingshst
