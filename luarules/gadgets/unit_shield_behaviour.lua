@@ -39,7 +39,7 @@ local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
-local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
+local spGetProjectilesInSphere      = Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
 local spUseUnitResource             = Spring.UseUnitResource
@@ -236,14 +236,7 @@ end
 local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
 	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
 	local x, y, z = spGetUnitPosition(shieldUnitID)
-	-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
-	-- TODO: Change to GetProjectilesInCircle once it is added
-	local radius = radius * math.sqrt(math.pi) / 2
-	local xmin = x - radius
-	local xmax = x + radius
-	local zmin = z - radius
-	local zmax = z + radius
-	local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
+	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
 	for _, projectileID in ipairs(projectiles) do
 		projectileShieldHitCache[projectileID] = true
 	end
