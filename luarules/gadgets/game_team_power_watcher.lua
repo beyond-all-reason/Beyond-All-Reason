@@ -41,15 +41,12 @@ local powerThresholds = {
     {techLevel = 4.5, threshold = 725000}
 }
 
-for _, teamID in ipairs(teamList) do
-    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-    local allyID = select(6, Spring.GetTeamInfo(teamID))
 
-    if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-        scavengerTeam = teamID
-    elseif (teamLuaAI and string.find(teamLuaAI, "RaptorsAI")) then
-        raptorTeam = teamID
-    elseif select (4, Spring.GetTeamInfo(teamID, false)) then
+local allyID = select(6, Spring.GetTeamInfo(teamID))
+local scavengerTeam = Spring.Utilities.GetScavTeamID()
+local raptorTeam = Spring.Utilities.GetChickenTeamID()
+for _, teamID in ipairs(teamList) do
+    if select (4, Spring.GetTeamInfo(teamID, false)) then
         aiTeams[teamID] = true
         playerTeams[teamID] = true
         playerAllies[allyID] = playerAllies[allyID] or {}
@@ -63,7 +60,6 @@ for _, teamID in ipairs(teamList) do
         playerAllies[allyID][teamID] = true
     end
 end
-
 --assign team powers/peak powers to 0 to prevent nil
 for _, teamNumber in ipairs(teamList) do
     teamPowers[teamNumber] = 0
