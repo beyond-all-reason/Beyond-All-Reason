@@ -186,10 +186,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local gaiaTeamID = GetGaiaTeamID()
-	if not raptorTeamID then
-		raptorTeamID = gaiaTeamID
-		raptorAllyTeamID = Spring.Utilities.GetChickenAllyTeamID()
-	end
 
 	humanTeams[gaiaTeamID] = nil
 
