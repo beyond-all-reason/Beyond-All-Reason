@@ -1947,6 +1947,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 
 		if #createUnitQueue > 0 then
+			for i = 1,#createUnitQueue do
+				Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
+			end
 			createUnitQueue = {}
 		end
 
