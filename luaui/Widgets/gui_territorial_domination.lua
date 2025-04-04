@@ -52,9 +52,10 @@ local UPDATE_FREQUENCY = 0.1  -- Update the display list every 0.1 seconds
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
 local COLOR_YELLOW = {1, 0.8, 0, 1}
-local COLOR_BG = {0, 0, 0, 0.6}
-local BLINK_COLOR = {1, 0, 0, 0.7}
-local NEEDED_TEXT_COLOR_FROZEN = {0.6, 0.6, 0.6, 1.0}
+local COLOR_BACKGROUND = {0, 0, 0, 0.5}
+local COLOR_BORDER = {0.2, 0.2, 0.2, 0.2}
+local RED_BLINK_COLOR = {0.9, 0, 0, 1}
+local FROZEN_TEXT_COLOR = {0, 1, 1, 1.0}
 
 local lastWarningBlinkTime = 0
 local lastFreezeBlinkTime = 0
@@ -79,7 +80,9 @@ local fontCache = {
 	paddingY = 0
 }
 
-local backgroundColor = {COLOR_BG[1], COLOR_BG[2], COLOR_BG[3], COLOR_BG[4]}
+local backgroundColor = {COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4]}
+local borderColor = {COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4]}
+local BORDER_WIDTH = 2
 
 function widget:Initialize()
 	amSpectating = spGetSpectatingState()
@@ -151,7 +154,7 @@ function updateScoreDisplayList()
 		end
 		
 		if isFreezeWarningVisible then
-			textColor = NEEDED_TEXT_COLOR_FROZEN
+			textColor = FROZEN_TEXT_COLOR
 		else
 			if difference <= WARNING_THRESHOLD then
 				textColor = COLOR_RED
@@ -163,14 +166,14 @@ function updateScoreDisplayList()
 		end
 	else
 		if shouldGreyOutText then
-			textColor = NEEDED_TEXT_COLOR_FROZEN
+			textColor = FROZEN_TEXT_COLOR
 		else
 			if difference <= WARNING_THRESHOLD then
 				if currentGameTime - lastWarningBlinkTime > BLINK_FREQUENCY then
 					lastWarningBlinkTime = currentGameTime
 					isWarningVisible = not isWarningVisible
 				end
-				textColor = isWarningVisible and COLOR_RED or BLINK_COLOR
+				textColor = isWarningVisible and COLOR_RED or RED_BLINK_COLOR
 			elseif difference <= ALERT_THRESHOLD then
 				textColor = COLOR_YELLOW
 			else
@@ -230,10 +233,16 @@ function updateScoreDisplayList()
 		-- Create a new display list
 		displayList = glCreateList(function()
 			glPushMatrix()
+				-- Draw border (outer rectangle)
+				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
+				glRect(backgroundLeft - BORDER_WIDTH, backgroundBottom - BORDER_WIDTH, 
+				       backgroundRight + BORDER_WIDTH, backgroundTop + BORDER_WIDTH)
+				
+				-- Draw background (inner rectangle)
 				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
 				glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
-				glColor(textColor[1], textColor[2], textColor[3], textColor[4])
 				
+				glColor(textColor[1], textColor[2], textColor[3], textColor[4])
 				glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
 			glPopMatrix()
 		end)
