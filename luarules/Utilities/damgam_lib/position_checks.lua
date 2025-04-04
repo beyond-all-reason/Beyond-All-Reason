@@ -18,28 +18,7 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
--- Get TeamIDs and AllyTeamIDs of Scavengers and Raptors
-local scavengerTeamID
-local scavengerAllyTeamID
-local raptorTeamID
-if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors() then
-    local teams = Spring.GetTeamList()
-    for i = 1,#teams do
-        local luaAI = Spring.GetTeamLuaAI(teams[i])
-        if not scavengerTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-                scavengerTeamID = i - 1
-                _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
-            end
-        end
-        if not raptorTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-                raptorTeamID = i - 1
-                _,_,_,_,_,raptorAllyTeamID = Spring.GetTeamInfo(raptorTeamID)
-            end
-        end
-    end
-end
+local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}

@@ -34,29 +34,7 @@ local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 local unitTeams = {}
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
-
--- used to only get a single raptor or scav teamID's units with GetUnitsInSphere
-local raptorScavTeamID
-if scavengerAITeamID ~= 999 or raptorsAITeamID ~= 999 and not (scavengerAITeamID ~= 999 and raptorsAITeamID ~= 999) then
-	raptorScavTeamID = scavengerAITeamID ~= 999 and scavengerAITeamID or raptorsAITeamID
-end
+local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScavTeamID()
 
 local aliveHealers = {}
 local healersTable = {}
@@ -101,7 +79,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if healersTable[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if healersTable[unitDefID] and (unitTeam == pveTeamID) then
         aliveHealers[unitID] = {
 			teamID = unitTeam,
             healingpower = healersTable[unitDefID].healingpower,
@@ -122,11 +100,11 @@ function gadget:GameFrame(frame)
     for unitID, statsTable in pairs(aliveHealers) do
         if unitID % 30 == frame % 30 then
             x,y,z = spGetUnitPosition(unitID)
-            surroundingUnits = spGetUnitsInSphere(x, y, z, statsTable.healingrange, raptorScavTeamID)
+            surroundingUnits = spGetUnitsInSphere(x, y, z, statsTable.healingrange, pveTeamID)
             for i = 1, #surroundingUnits do
                 surroundingUnitID = surroundingUnits[i]
                 if not aliveHealers[surroundingUnitID] or (aliveHealers[surroundingUnitID].canbehealed and unitID ~= surroundingUnitID) then
-                    if raptorScavTeamID or spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
+                    if pveTeamID or spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
                         local oldHP, maxHP, _, _, oldBuild= spGetUnitHealth(surroundingUnitID)
                         if oldHP < maxHP then
                             local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)

@@ -140,7 +140,8 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
-	local scavTeamID, scavAllyTeamID
+	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local squadsTable = {}
@@ -191,23 +192,16 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 
 	local teams = GetTeamList()
-	for _, teamID in ipairs(teams) do
-		local teamLuaAI = GetTeamLuaAI(teamID)
-		if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-			scavTeamID = teamID
-			scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-			--computerTeams[teamID] = true
-		else
+	for _,teamID in ipairs(teams) do
+		if teamID ~= scavTeamID then
 			humanTeams[teamID] = true
 		end
 	end
-
+	
 	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
 		scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-	else
-		--computerTeams[gaiaTeamID] = nil
 	end
 
 	humanTeams[gaiaTeamID] = nil
