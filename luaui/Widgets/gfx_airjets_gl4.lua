@@ -36,6 +36,7 @@ local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
+local spIsUnitInLos = Spring.IsUnitInLos
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -1028,9 +1029,15 @@ function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
