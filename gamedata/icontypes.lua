@@ -2219,6 +2219,10 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
+	legbunk = {
+		bitmap = "icons/legbunk.png",
+		size = 1.83749986
+	},
 	leegmech = {
 		bitmap = "icons/bantha.png",
 		size = 2.29999995
@@ -2527,6 +2531,10 @@ local icontypes = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
 	},
+		legmohocon = {
+		bitmap = "icons/mex_t2_con.png",
+		size = 1.20749986
+	},
 	leghastatusalt = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
@@ -2732,7 +2740,7 @@ local icontypes = {
 		size = 2.51999998
 	},
 	legshot = {
-		bitmap = "icons/kbot_t2_shotgun.png",
+		bitmap = "icons/bot_t2_impulse2x.png",
 		size = 1.60000002
 	},
 	babylegshot = {

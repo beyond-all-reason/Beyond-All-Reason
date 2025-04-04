@@ -728,7 +728,7 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG['topbar'] then
+	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
 		widgetDimensions.top = topBarPosition[2] - widgetDimensions.distanceFromTopBar
 	else
@@ -2080,7 +2080,24 @@ function widget:GameFrame(frameNum)
 	end
 end
 
+local sec = 0
+local topbarShowButtons = true
 function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.05 then
+		sec = 0
+		if WG['topbar'] then
+			local prevShowButtons = topbarShowButtons
+			if WG['topbar'].getShowButtons() ~= prevShowButtons then
+				topbarShowButtons = WG['topbar'].getShowButtons()
+				if haveFullView then
+					init()
+				else
+					deInit()
+				end
+			end
+		end
+	end
 	if checkAndUpdateHaveFullView() then
 		if haveFullView then
 			init()

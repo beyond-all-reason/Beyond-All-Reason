@@ -536,6 +536,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
 			uDef.buildoptions[numBuildoptions + 3] = "legpede"
+			uDef.buildoptions[numBuildoptions + 4] = "legbunk"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -586,6 +587,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
 			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
+			uDef.buildoptions[numBuildoptions + 7] = "legmohocon"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
