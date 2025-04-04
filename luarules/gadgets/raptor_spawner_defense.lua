@@ -139,7 +139,8 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local queenResistance = {}
 	local queenIDs = {}
-	local raptorTeamID, raptorAllyTeamID
+	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local heroRaptor = {}
@@ -184,22 +185,12 @@ if gadgetHandler:IsSyncedCode() then
 	local teams = GetTeamList()
 	for _, teamID in ipairs(teams) do
 		local teamLuaAI = GetTeamLuaAI(teamID)
-		if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
-			raptorTeamID = teamID
-			raptorAllyTeamID = select(6, Spring.GetTeamInfo(raptorTeamID))
-			--computerTeams[teamID] = true
-		else
+		if teamID ~= raptorTeamID then
 			humanTeams[teamID] = true
 		end
 	end
 
 	local gaiaTeamID = GetGaiaTeamID()
-	if not raptorTeamID then
-		raptorTeamID = gaiaTeamID
-		raptorAllyTeamID = select(6, Spring.GetTeamInfo(raptorTeamID))
-	else
-		--computerTeams[gaiaTeamID] = nil
-	end
 
 	humanTeams[gaiaTeamID] = nil
 
