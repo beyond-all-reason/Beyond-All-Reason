@@ -118,7 +118,6 @@ function gadget:GameFrame(n)
 			end
 		end
 
-		local i = 1
 	end
 end
 

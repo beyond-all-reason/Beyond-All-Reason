@@ -335,7 +335,6 @@ UnitEffects = nil
 -- Variables
 --------------------------------------------------------------------------------
 
-local sphereVBO = nil
 local orbVBO = nil
 local orbShader = nil
 

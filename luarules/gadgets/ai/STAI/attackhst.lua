@@ -46,7 +46,6 @@ end
 
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	local f = self.game:Frame()
 	self:DraftAttackSquads()
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
@@ -61,7 +60,6 @@ function AttackHST:Update()
 end
 
 function AttackHST:DraftAttackSquads()
-	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
 		for index,soldier in pairs(soldiers) do
 		--self:EchoDebug(index,mtype,soldier.squad)--TODO fix thes fucking debug trouble
@@ -144,8 +142,6 @@ function AttackHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
-	local leader = nil
-	local leaderPos = nil
 	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
 
@@ -281,7 +277,6 @@ function AttackHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
-	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
 	local members = squad.members
@@ -400,7 +395,6 @@ function AttackHST:SquadsTargetDefense(squad)
 end
 
 function AttackHST:SquadsTargetAttack2(squad)
-	local bestValue = 0
 	local bestTarget = nil
 	local worstDist = 0
 	

@@ -567,9 +567,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitTargetPool[squadID] = pickedTarget
 		squadsTable[squadID].target = pos
 		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
-		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 		squadsTable[squadID].squadNeedsRefresh = true
-		--squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
 	function createSquad(newSquad)
@@ -1915,7 +1913,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if #createUnitQueue > 0 then
 			for i = 1,#createUnitQueue do
-				local unitID = Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
 				--if unitID then
 				--	local _, maxH = Spring.GetUnitHealth(unitID)
 				--	Spring.SetUnitHealth(unitID, maxH*0.5)

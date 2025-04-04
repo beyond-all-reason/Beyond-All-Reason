@@ -157,8 +157,6 @@ function ShieldSphereColorParticle:EndDraw()
 				glUniform(uniformLocations["translationScale"], posx, posy, posz, info.radius)
 				glUniform(uniformLocations["rotMargin"], pitch, yaw, roll, info.margin)
 
-				local optionX = info.optionX -- bitmask field
-				
 				if not info.optionX then 
 					local optionX = 0
 					optionX = EncodeBitmaskField(optionX, info.terrainOutline and canOutline, 1)

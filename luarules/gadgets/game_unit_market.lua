@@ -352,16 +352,11 @@ else -- unsynced
 
     -- lets only broadcast these trades to allies and spectators
 	local spGetSpectatingState = Spring.GetSpectatingState
-	local spec, _ = spGetSpectatingState()
-	local myPlayerID = Spring.GetMyPlayerID()
     local spAreTeamsAllied = Spring.AreTeamsAllied
     local myTeamID = Spring.GetMyTeamID()
-    local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:PlayerChanged(playerID)
-        myPlayerID = Spring.GetMyPlayerID()
         myTeamID = Spring.GetMyTeamID()
-        myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()

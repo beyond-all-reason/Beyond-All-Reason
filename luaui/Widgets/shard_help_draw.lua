@@ -56,7 +56,6 @@ local rectangleDisplayList = 0
 local circleDisplayList = 0
 local lineDisplayList = 0
 local pointDisplayList = 0
-local labelDisplayList = 0
 local timerDisplayList = 0
 
 local tRemove = table.remove
@@ -1062,10 +1061,6 @@ function widget:Update()
 		pointDisplayList = glCreateList(DrawPoints, shapes)
 		needUpdatePoints = false
 	end
-	-- if needUpdateLabels then
-		-- labelDisplayList = glCreateList(DrawLabels, shapes)
-		-- needUpdateLabels = false
-	-- end
 	if needUpdateInterface then
 		interfaceDisplayList = glCreateList(DrawInterface)
 		needUpdateInterface = false
@@ -1095,7 +1090,6 @@ function widget:DrawScreen()
 	if shapeCount == 0 or not displayOnOff or not selectedTeamID or not selectedChannel then
 		return
 	end
-	-- glCallList(labelDisplayList)
 	local shapes = GetShapes(selectedTeamID, selectedChannel)
 	DrawLabels(shapes)
 	glCallList(interfaceDisplayList)

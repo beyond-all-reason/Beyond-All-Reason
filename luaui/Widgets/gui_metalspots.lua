@@ -220,7 +220,6 @@ local function IsSpotOccupied(spot)
 	local prevOccupied = spot.occupied
 	local ally = false
 	local enemy = false
-	local changed = false
 	for j=1, #units do
 		if extractorDefs[spGetUnitDefID(units[j])] then
 			-- Actually check if we the ones are extracting from this spot?
@@ -487,7 +486,6 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
-	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
 	gl.Culling(true)

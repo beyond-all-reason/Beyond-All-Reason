@@ -280,7 +280,6 @@ local teamColors = {}
 local glassUnits = {}
 
 local pieceList
-local allUnits
 
 local sunChanged = true
 local glassShader

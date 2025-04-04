@@ -274,7 +274,6 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 			for index, uID in pairs(sortedUnits) do
 				local unitID = table.remove(sortedUnits,index)--self.game:GetUnitByID(uID)
 				local unit = self.game:GetUnitByID(unitID)
-				local unitName = unit:Name()
 				local  bx,by,bz = unit:GetRawPos()
 				if not neighbours or not self:unitsNearCheck(bx,by,bz, maxDist,number,neighbours) then
 					p = self:FindClosestBuildSite(utype, bx,by,bz, minDist, maxDist,builder,p)
@@ -292,8 +291,6 @@ function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 	
 	self:EchoDebug('search pos in list for',utype:Name())
 	local maxDist = maxDist or 390
-	local p
-	local tmpDist
 	local tmpPos = {}
 	if not list then 		return	end
 	for  index, pos in pairs(self.ai.tool:sortByDistance(builder:GetPosition(),list)) do
@@ -362,7 +359,6 @@ end
 
 function BuildingsHST:CheckForDuplicates(unitName)
 	if unitName == nil then return true end
-	local utable = self.ai.armyhst.unitTable[unitName]
 	local isFactory = self.ai.armyhst.factoryMobilities[unitName]
 	self:EchoDebug("looking for duplicate plan for ", unitName)
 	for i, plan in pairs(self.builders) do
@@ -445,7 +441,6 @@ function BuildingsHST:GetMyProject(builderID)
 end
 
 function BuildingsHST:NewPlan(unitName, position, builderID, builderName)
-	local builder = game:GetUnitByID(builderId)
 	self:EchoDebug(builderName, " plans to build ", unitName .. " at ", position.x , position.z)
 	local plan = {unitName = unitName, position = position, builderID = builderID, builderName = builderName}
 	self:CalculateRect(plan)

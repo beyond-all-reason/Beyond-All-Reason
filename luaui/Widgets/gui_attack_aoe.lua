@@ -700,7 +700,6 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 		return
 	end
 
-	local vertices = {}
 	local currScatter = scatter * v * sqrt(2 * fy / g)
 	local alphaMult = v * salvoDelay / aoe
 	if alphaMult > 1 then

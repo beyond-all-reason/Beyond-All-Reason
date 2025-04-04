@@ -21,7 +21,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local totalTime = 0
 
 local GetProjectilePosition = Spring.GetProjectilePosition
 local GetProjectileDirection = Spring.GetProjectileDirection

@@ -143,11 +143,6 @@ if gadgetHandler:IsSyncedCode() then
 			local dx, dy, dz = GetFeatureDirection(tree)
 			if true and fx ~= nil then
 
-				local ppx, ppy, ppz
-
-
-					local fire = false
-					local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft = GetFeatureResources(tree)
 					local dissapearSpeed = 1.7
 					local size = 'medium'
 					if treeScaleY[featureDefID] then
@@ -164,7 +159,6 @@ if gadgetHandler:IsSyncedCode() then
 					local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
 
 				local dmg = treeMass[featureDefID] * 2
-				local name = treeName[featureDefID]
 				Spring.SetFeatureResources(0,0,0,0)
 				Spring.SetFeatureNoSelect(tree, true)
 				Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
@@ -297,7 +291,6 @@ if gadgetHandler:IsSyncedCode() then
 							fire = true
 						end
 					end
-					local name = treeName[featureDefID]
 					Spring.SetFeatureResources(0,0,0,0)
 					Spring.SetFeatureNoSelect(featureID, true)
 					Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')

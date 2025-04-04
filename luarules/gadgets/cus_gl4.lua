@@ -415,7 +415,6 @@ local unitDrawBins = nil -- this also controls wether cusgl4 is on at all!
 
 local objectIDtoDefID = {}
 
-local processedCounter = 0 -- This is incremented on every update, and is used to identify which objects are no longer drawn
 
 local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 
@@ -534,7 +533,6 @@ local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
-local MATERIALS_DIR = "modelmaterials_gl4/"
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
@@ -782,7 +780,6 @@ end
 	-- uniform sampler2D losMapTex;	//8
 
 	-- uniform sampler2D brdfLUT;			//9
-	-- uniform sampler2D envLUT;			//10
 
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
@@ -844,7 +841,6 @@ local wreckAtlases = {
 }
 
 local brdfLUT = "modelmaterials_gl4/brdf_0.png"
-local envLUT = "modelmaterials_gl4/envlut_0.png"
 
 local existingfilecache = {} -- this speeds up the VFS calls
 
@@ -949,7 +945,6 @@ local function initBinsAndTextures()
 				[8] = "$info",
 				[9] = brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
 			}
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
@@ -1008,7 +1003,6 @@ local function initBinsAndTextures()
 				[8] = "$info:los",
 				[9] = GG.GetBrdfTexture(), --brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
 			}
 
 			local wreckTex1 =
@@ -1504,7 +1498,6 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	end
 end
 
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags, reason)
@@ -2012,14 +2005,10 @@ function gadget:Shutdown()
 end
 
 
-local totalbatches = 0
-local totalunits = 0
 
 local updateframe = 0
 
-local updatecount = 0
 
-local prevobjectcount = 0
 
 
 local function countbintypes(flagarray)
@@ -2263,7 +2252,6 @@ function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	lastSunChanged = df
 	local nightFactor = 1.0
 	if GG['NightFactor'] then
-		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 		nightFactor = (GG['NightFactor'].red + GG['NightFactor'].green + GG['NightFactor'].blue) * 0.33
 	end
 	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do

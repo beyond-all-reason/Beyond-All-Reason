@@ -46,7 +46,6 @@ end
 
 function RaidHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	local f = self.game:Frame()
 	self:DraftAttackSquads()
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
@@ -61,7 +60,6 @@ function RaidHST:Update()
 end
 
 function RaidHST:DraftAttackSquads()
-	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
 		self:EchoDebug('soldiers',#soldiers,'mina')
 		for index,soldier in pairs(soldiers) do
@@ -112,7 +110,6 @@ end
 function RaidHST:SquadCheck(squad)
 	self:EchoDebug('integrity',squad.squadID,#squad.members)
 	local check = nil
-	local x,y,z = 0,0,0
 	local mass = 0
 	local memberCount = 0
 	for i,member in pairs(squad.members) do
@@ -144,14 +141,11 @@ function RaidHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
-	local leader = nil
-	local leaderPos = nil
 	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
 
 		if member.unit then
 			squad.leader = member.unit:Internal()
-			--leaderPos = {x = member.unit.x, y = member.unit.y  , z = member.unit.z}
 			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
 			break
 -- 			local d = self.ai.tool:distance(p,squad.position)
@@ -161,13 +155,6 @@ function RaidHST:SquadCheck(squad)
 -- 			end
 		end
 	end
--- 	self:EchoDebug('set Leader',leader,leader.x,leader.z)
--- 	squad.leader = leader
---
--- 	squad.leaderPos = squad.leaderPos or {}
--- 	squad.leaderPos.x = leader.x
--- 	squad.leaderPos.y = leader.y
--- 	squad.leaderPos.z = leader.z
 	return true
 end
 
@@ -273,18 +260,6 @@ function RaidHST:SquadFindPath(squad,target)
 		return
 	end
 	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
-	--self:SquadNewPath(squad,target)
-
-	--if not squad.pathfinder then
-	--	self:Warn('no pathfinder')
-	--	return
-	--end
-
-	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
-	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
-
-		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
-	end
 
 	if path then
 		--local pt = {}
@@ -309,7 +284,6 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
-	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
 	local members = squad.members
@@ -451,7 +425,6 @@ function RaidHST:SquadsTargetDefense(squad)
 end
 
 function RaidHST:SquadsTargetAttack2(squad)
-	local bestValue = 0
 	local bestTarget = nil
 	local worstDist = 0
 

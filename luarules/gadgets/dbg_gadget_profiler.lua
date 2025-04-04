@@ -306,7 +306,6 @@ else
 	-- Unsynced Setup
 	--------------------------------------------------------------------------------
 
-	local startedProfiler = false
 	local running = false
 
 	local timersSynced = {}

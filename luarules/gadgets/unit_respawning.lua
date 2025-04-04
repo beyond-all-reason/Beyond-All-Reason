@@ -28,22 +28,16 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
-	local mcSetVelocity         = Spring.MoveCtrl.SetVelocity
-	local mcSetPosition         = Spring.MoveCtrl.SetPosition
 
 
 	local diag = math.diag
 
 
-	local TAU = 2 * math.pi
 	local PRIVATE = { private = true }
-	local EMPTY_TABLE = {}
 
 	local respawnMetaList = {}
-	local effigyMetaList = {}
 	local defCustomParams = {}
 
-	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
 

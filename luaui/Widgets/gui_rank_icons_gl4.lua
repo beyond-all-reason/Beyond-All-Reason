@@ -15,7 +15,6 @@ end
 local iconsize = 1
 local iconoffset = 24
 
-local falloffDistance = 1300
 local cutoffDistance = 2300
 
 local distanceMult = 1
@@ -128,9 +127,6 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 
-	local numVertices = 4 -- default to circle
-	local additionalheight = 0
-
 	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
 
@@ -229,7 +225,6 @@ local function getRank(unitDefID, xp)
 end
 
 local function updateUnitRank(unitID, unitDefID, noUpload)
-	local currentRank = unitRanks[unitID]
 	local xp = GetUnitExperience(unitID)
 	if xp then
 		local newrank = getRank(unitDefID, xp)
@@ -346,7 +341,6 @@ function widget:DrawWorld()
 		doRefresh = false
 	end
 	if rankVBO.usedElements > 0 then
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(rankVBO.usedElements)
 		--gl.Culling(GL.BACK)
 

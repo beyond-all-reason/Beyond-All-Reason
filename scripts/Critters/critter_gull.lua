@@ -1,10 +1,7 @@
 local wingr = piece "rwing"
-local base = piece "base"
 local flare = piece "flare"
 local wingl = piece "lwing"
 local flapSpeed = math.rad(360)
-local soundPause 		= 300
-local lastSound		 	= 0
 
 function script.Create()
 	StartThread (flapWings)

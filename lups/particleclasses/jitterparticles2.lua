@@ -5,7 +5,6 @@ local JitterParticles2 = {}
 JitterParticles2.__index = JitterParticles2
 
 local billShader
-local colormapUniform = {}
 
 local lastTexture = ""
 

@@ -21,7 +21,6 @@ local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMini
 ----------------------------------------------------------------
 
 local ttl = 10
-local highlightSize = 16
 local highlightLineMin = 10
 local highlightLineMax = 20
 local edgeMarkerSize = 8
@@ -73,7 +72,6 @@ local GL_FILL = GL.FILL
 
 local vsx, vsy = Spring.GetViewGeometry()
 local mapPoints = {}
-local lastPoint = 1
 local timeNow, timePart
 local on = false
 local mapX = Game.mapX * 512

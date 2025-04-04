@@ -163,8 +163,6 @@ local function maybe_irrelevant_code_please_ignore()
 	end
 	local slowDef = attritionWeaponDefs[weaponID]
 
-	local timeslow_damagefactor = 12
-	local timeslow_smartretargethealth = 50
 
 
 	-- add slow damage

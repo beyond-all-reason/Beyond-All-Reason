@@ -32,10 +32,7 @@ local histShader = nil
 local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
-local maxframes = 500
 
-local rectInstanceTable = nil
-local rectInstancePtr = 0
 
 local vsSrc = [[
 #version 420

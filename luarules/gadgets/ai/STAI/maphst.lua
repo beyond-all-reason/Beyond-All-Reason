@@ -578,9 +578,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 	local counter = 0
 	local testUnitName = testUnit.unit:Internal():Name()
 	local testUnitPos = testUnit.unit:Internal():GetPosition()
-	local className = UnitDefNames[testUnitName].moveDef.name
-	local classID = UnitDefNames[testUnitName].id
-	local parsed = {}
 	self.ttt={trampled = 0}
 	local last 
 	local first,firstX,firstZ
@@ -594,7 +591,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 		
 		waypoints = self:getPath(testUnitName,testUnitPos,POS1,true)
 		if  waypoints then
-			local waypointsNumber = #waypoints
 			last = waypoints[#waypoints]
 			counter = counter + 1
 			first = table.remove(waypoints)
@@ -719,8 +715,6 @@ end
 function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest free metal spot for the request unittype
 	position = position or builder:GetPosition()
 	local layer, net = self:MobilityOfUnit(builder)
-	local builderName = builder:Name()
-	local builderPos = builder:GetPosition()
 	local uname = unittype:Name()
 	local spotPosition = nil
 
@@ -760,7 +754,6 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest fre
 	self:EchoDebug("closestfreegeo for " .. unittype:Name() .. " by " .. builder:Name())
 	if not position then position = builder:GetPosition() end
 	local layer, net = self:MobilityOfUnit(builder)
-	local bname = builder:Name()
 	local uname = unittype:Name()
 	local bestDistance, bestPos
 	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do

@@ -99,7 +99,6 @@ local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 
 local unitMarket = Spring.GetModOptions().unit_market
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local math_sqrt = math.sqrt
 local math_floor = math.floor
@@ -115,7 +114,6 @@ local notEnoughForUnit = nil
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 local T2consForSale = {} -- Array of t2 cons that are currently for sale
 local t2consFormatted = {} -- Array of t2 cons defs that are on sale
-local loneTeamPlayer = false
 local ignoreTeam = {} -- Ignore teams that do not have human allies
 local triedToManullyBuyUnitID = nil
 local triedToBuyTime = 0
@@ -130,7 +128,6 @@ local buyWithoutHoldingAlt = true -- flip to true to buy with just a double-clic
 -- non-customizable yet or never
 local see_sales  = true  -- Set to false to never see console trade messages
 local spec_sale_offers = false -- Whether spectators see sale offers
-local buy_request_cooldown = 2 -- 2 seconds for each team
 -- ^ you have NO guarantee that the seller will see it though, the way it works seller gets UI Window showing that someone wants some unit to be set for sale
 -- they are only shown ONE window per team, so you can't really abuse it, and they CAN ban you for sending too many requests
 
@@ -142,7 +139,6 @@ local fontfileSize = 45
 local fontfileOutlineSize = 4.5
 local fontfileOutlineStrength = 9
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local uiScale = (0.7 + (vsx * vsy / 6500000))
 
 local fontSize = fontfileSize * 0.4
 
@@ -159,7 +155,6 @@ local dot_count = 0
 local T2ConDef = {}
 local unitDefInfo = {}
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local folder = "LuaUI/Images/groupicons/"
 local groups, unitGroup
 --
 local drawLists = {}
@@ -168,7 +163,6 @@ local t2conDock, t2conDockShown = nil, false
 local buyRequestDock, buyRequestDockShown = nil, false
 local DrawIcon, DrawHoverIcon
 local buyPriceBoldColor = '\255\230\230\230'
-local normalColor = '\255\255\255\255'
 local DrawUnitTradeInfo = function() end
 local t2conShopText = Spring.I18N('ui.unitMarket.t2conShop')
 local shopTitle = Spring.I18N('ui.unitMarket.shopTitle')
@@ -303,7 +297,6 @@ local function InitFindSales()
     for _, unitID in ipairs(Spring.GetAllUnits()) do
         if spValidUnitID(unitID) then
             local teamID = spGetUnitTeam(unitID)
-            local _, _, _, isAITeam = spGetTeamInfo(teamID)
             local price = spGetUnitRulesParam(unitID, "unitPrice")
             if not ignoreTeam[teamID] and (fullview or spAreTeamsAllied(teamID, myTeamID)) and (price > 0) then
                 addUnitToSale(unitID, price, spGetUnitDefID(unitID))
