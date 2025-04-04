@@ -527,17 +527,55 @@ Retract_bunker() {
 
 
 Killed(severity, corpsetype) {
+	stop-spin fingers around z-axis;
 	if( severity <= 25 )
 	{
-		stop-spin fingers around z-axis;
 		call-script DeathAnim();
 		corpsetype = 1 ;
-		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 ) 
+	{
+		corpsetype = 2 ;
+		explode torso type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type BITMAPONLY | NOHEATCLOUD;
 		explode rarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railgun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railgunfingers type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode piledriver type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
-	}}
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode rshin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode rfootjoint type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lshin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lfootjoint type SMOKE | FALL | NOHEATCLOUD ;
+		explode piledriver type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railgun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfootjoint type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fingers type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railgun type EXPLODE_ON_HIT |  FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railgunfingers type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lfootjoint type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode larm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+}
 
 Walk() {
 	set-signal-mask SIG_WALK;

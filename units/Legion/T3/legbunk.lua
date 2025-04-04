@@ -222,7 +222,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "AIMHULL",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 340,
 			},
