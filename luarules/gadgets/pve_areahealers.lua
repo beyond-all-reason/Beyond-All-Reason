@@ -34,7 +34,7 @@ local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 local unitTeams = {}
 
-local pveTeamID = Spring.Utilities.GetChickenTeamID() or Spring.Utilities.GetScavTeamID()
+local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScavTeamID()
 
 local aliveHealers = {}
 local healersTable = {}

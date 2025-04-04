@@ -185,7 +185,7 @@ local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMini
 
 
 local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetChickenAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)

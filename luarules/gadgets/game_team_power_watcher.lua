@@ -43,7 +43,7 @@ local powerThresholds = {
 
 local pveTeamID = scavengerTeam or raptorTeam
 local scavengerTeam = Spring.Utilities.GetScavTeamID()
-local raptorTeam = Spring.Utilities.GetChickenTeamID()
+local raptorTeam = Spring.Utilities.GetRaptorTeamID()
 for _, teamID in ipairs(teamList) do
     local allyID = select(6, Spring.GetTeamInfo(teamID))
     if teamID ~= scavengerTeam and teamID ~= raptorTeam and select (4, Spring.GetTeamInfo(teamID, false)) then

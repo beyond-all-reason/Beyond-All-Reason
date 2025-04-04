@@ -14,7 +14,7 @@ end
 
 -- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local pveAllyTeamID = Spring.Utilities.GetScavAllyTeamID() or Spring.Utilities.GetChickenAllyTeamID()
+local pveAllyTeamID = Spring.Utilities.GetScavAllyTeamID() or Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)

@@ -134,8 +134,8 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local queenResistance = {}
 	local queenIDs = {}
-	local raptorTeamID = Spring.Utilities.GetChickenTeamID()
-	local raptorAllyTeamID = Spring.Utilities.GetChickenAllyTeamID()
+	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local heroRaptor = {}

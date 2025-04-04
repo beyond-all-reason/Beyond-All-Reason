@@ -34,7 +34,7 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetChickenAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = true -- refresh shader code every second (disable in production!)

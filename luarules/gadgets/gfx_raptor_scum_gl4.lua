@@ -20,7 +20,7 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
-	local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetChickenTeamID()
+	local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 	local scumSpawnerIDs = {}
 

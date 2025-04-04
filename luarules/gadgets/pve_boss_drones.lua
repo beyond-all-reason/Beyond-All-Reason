@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetChickenTeamID()
+local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 

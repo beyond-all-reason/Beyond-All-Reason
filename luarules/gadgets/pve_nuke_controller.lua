@@ -29,7 +29,7 @@ else
 	return false
 end
 
-local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetChickenTeamID()
+local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 local nukeDefs = {}
 for unitDefID, def in ipairs(UnitDefs) do
