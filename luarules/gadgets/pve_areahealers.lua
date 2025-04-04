@@ -79,7 +79,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if healersTable[unitDefID] and (unitTeam == pveTeamID or unitTeam == pveTeamID) then
+    if healersTable[unitDefID] and (unitTeam == pveTeamID) then
         aliveHealers[unitID] = {
 			teamID = unitTeam,
             healingpower = healersTable[unitDefID].healingpower,
