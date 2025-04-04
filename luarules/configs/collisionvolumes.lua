@@ -385,6 +385,10 @@ pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
     ['0']={60,65,60,0,20,0,1,1,0},
 }
+pieceCollisionVolume['legmohoconct'] = {
+	['0']={70,30,70,0,-3,0,1,1},
+	['1']={21,16,30,0,-3,-1,2,1},
+}
 pieceCollisionVolume['leginfestor'] = {
 	['0']={38,23,45,0,7,0,1,1},
 	['16']={12,10,20,2,0,1,1,2},
