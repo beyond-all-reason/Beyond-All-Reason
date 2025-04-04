@@ -21304,6 +21304,17 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legbunk'] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'torch',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 425,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.18,
+							r = 0.2, g = 1.0, b = 0.2, a = 0.45,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		}
+	},
 	['legkark'] = {
 		eye1 = {
 			lightType = 'point',
