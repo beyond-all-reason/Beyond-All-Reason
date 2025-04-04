@@ -110,6 +110,7 @@ end
 function RaidHST:SquadCheck(squad)
 	self:EchoDebug('integrity',squad.squadID,#squad.members)
 	local check = nil
+	local x,y,z = 0,0,0
 	local mass = 0
 	local memberCount = 0
 	for i,member in pairs(squad.members) do
