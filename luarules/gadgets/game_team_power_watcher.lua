@@ -46,7 +46,7 @@ local scavengerTeam = Spring.Utilities.GetScavTeamID()
 local raptorTeam = Spring.Utilities.GetChickenTeamID()
 for _, teamID in ipairs(teamList) do
     local allyID = select(6, Spring.GetTeamInfo(teamID))
-    if not pveTeamID and select (4, Spring.GetTeamInfo(teamID, false)) then
+    if teamID ~= scavengerTeam and teamID ~= raptorTeam and select (4, Spring.GetTeamInfo(teamID, false)) then
         aiTeams[teamID] = true
         playerTeams[teamID] = true
         playerAllies[allyID] = playerAllies[allyID] or {}
