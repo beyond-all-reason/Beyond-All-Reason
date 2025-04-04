@@ -441,14 +441,6 @@ AimFromWeapon1(pieceIndex)
 
 FireWeapon1()
 {
-	move turret to z-axis [-5.0] speed [60.0];
-	wait-for-move turret along z-axis;
-	move turret to z-axis [0.0] speed [3.0];
-	return (0);
-}
-
-Shot1(zero)
-{
 
 	if (whichBarrel == 0){
 		emit-sfx 1024 + 0 from leftFlare;
@@ -458,6 +450,10 @@ Shot1(zero)
 		emit-sfx 1024 + 0 from rightFlare;
 		whichBarrel = 0;
 	}
+
+	move turret to z-axis [-5.0] speed [60.0];
+	wait-for-move turret along z-axis;
+	move turret to z-axis [0.0] speed [3.0];
 	return (0);
 }
 
