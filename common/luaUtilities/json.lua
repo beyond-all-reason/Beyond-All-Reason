@@ -181,7 +181,11 @@ end
 local instrumentedDecode
 -- Radical performance improvement for decode from Eike Decker!
 do
+	local type = base.type
 	local error = base.error
+	local assert = base.assert
+	local print = base.print
+	if Spring and Spring.Echo then print = Spring.Echo end
 	local tonumber = base.tonumber
 	-- initialize some values to be used in decoding function
 	
@@ -352,7 +356,12 @@ do
 			end
 			return "Line "..line.." character "..lpos
 		end
-
+		
+		-- debug func
+		--local function status (str)
+		--	print(str.." ("..s:sub(math.max(1,p-10),p+10)..")")
+		--end
+		
 		-- read the next token, according to the passed token table
 		local function next_token (tok)
 			while pos <= #js_string do
