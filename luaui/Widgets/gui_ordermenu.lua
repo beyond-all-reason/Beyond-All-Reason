@@ -580,11 +580,13 @@ local function drawCell(cell, zoom)
 
 			if isStateCommand[cmd.id] then
 				local currentStateIndex = cmd.params[1]
-				local commandState = cmd.params[currentStateIndex + stateOffset]
-				if commandState then
-					text = Spring.I18N('ui.orderMenu.' .. commandState)
-				else
-					text = '?'
+				if currentStateIndex then
+					local commandState = cmd.params[currentStateIndex + stateOffset]
+					if commandState then
+						text = Spring.I18N('ui.orderMenu.' .. commandState)
+					else
+						text = '?'
+					end
 				end
 			else
 				if cmd.action == 'stockpile' then
