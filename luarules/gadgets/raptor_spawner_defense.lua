@@ -21,6 +21,7 @@ function gadget:GetInfo()
 end
 
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
+local EnemyLib = VFS.Include('LuaRules/Gadgets/Include/SpawnerEnemyLib.lua')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -128,6 +129,10 @@ if gadgetHandler:IsSyncedCode() then
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
 	local firstSpawn = true
+	local fullySpawned = false
+	local spawnRetries = 0
+	local spawnRetryTimeDiv = 20
+	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
 	local spawnQueue = {}
@@ -411,7 +416,7 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(raptorAllyTeamID)
+	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
 
 	--[[
 
@@ -731,6 +736,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		local foundLocation = false
 		tracy.ZoneBeginN("Raptors:SpawnBurrow")
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
@@ -853,6 +859,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if canSpawnBurrow then
+				foundLocation = true
 				local burrowID = CreateUnit(config.burrowName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
 				if burrowID then
 					SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
@@ -863,6 +870,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		tracy.ZoneEnd()
+		return foundLocation
 	end
 
 	function updateQueenHealth()
@@ -1550,10 +1558,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		gadget:SetInitialSpawnBox()
+	end
+
+	function gadget:SetInitialSpawnBox()
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(raptorTeamID, false)
 			if luaAllyID then
-				lsx1, lsz1, lsx2, lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
+				lsx1, lsz1, lsx2, lsz2 = RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Raptor start box available, Burrow Placement set to 'Avoid Players'")
@@ -1783,6 +1795,29 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneEnd()
 	end
 
+	function gadget:TrySpawnBurrow(t)
+		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
+		local spawned = SpawnBurrow()
+		timeOfLastSpawn = t
+		if not fullySpawned then
+			local burrowCount = SetCount(burrows)
+			if burrowCount > 1 then
+				fullySpawned = true
+			elseif spawnRetries >= maxSpawnRetries or firstSpawn then
+				spawnAreaMultiplier = spawnAreaMultiplier + 1
+				RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
+				gadget:SetInitialSpawnBox()
+				spawnRetries = 0
+			else
+				spawnRetries = spawnRetries + 1
+			end
+		end
+		if firstSpawn and spawned then
+			timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
+			firstSpawn = false
+		end
+	end
+
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
@@ -1866,27 +1901,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 			if burrowCount < minBurrows then
-				SpawnBurrow()
-				timeOfLastSpawn = t
-				if firstSpawn then
-					timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
-					firstSpawn = false
-				end
+				gadget:TrySpawnBurrow(t)
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
-				if firstSpawn then
-					SpawnBurrow()
-					timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
-					timeOfLastSpawn = t
-					firstSpawn = false
-				else
-					SpawnBurrow()
-					timeOfLastSpawn = t
-				end
+				gadget:TrySpawnBurrow(t)
 				raptorEvent("burrowSpawn")
 				SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then

@@ -21,6 +21,7 @@ end
 Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
 local config = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
+local EnemyLib = VFS.Include('LuaRules/Gadgets/Include/SpawnerEnemyLib.lua')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -129,6 +130,10 @@ if gadgetHandler:IsSyncedCode() then
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
 	local firstSpawn = true
+	local fullySpawned = false
+	local spawnRetries = 0
+	local spawnRetryTimeDiv = 20
+	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
 	local spawnQueue = {}
@@ -412,7 +417,7 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-	local ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = Spring.GetAllyTeamStartBox(scavAllyTeamID)
+	local ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5)
 
 	--[[
 
@@ -873,6 +878,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		local foundLocation = false
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
 			local spread = config.burrowSize*1.5
@@ -1003,6 +1009,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if canSpawnBurrow then
+				foundLocation = true
 				for name,data in pairs(config.burrowUnitsList) do
 					if math.random() <= config.spawnChance and data.minAnger < math.max(1, techAnger) and data.maxAnger > math.max(1, techAnger) then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
@@ -1020,6 +1027,7 @@ if gadgetHandler:IsSyncedCode() then
 				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
+		return foundLocation
 	end
 
 	function updateBossLife()
@@ -1734,10 +1742,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		gadget:SetInitialSpawnBox()
+	end
+
+	function gadget:SetInitialSpawnBox()
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(scavTeamID, false)
 			if luaAllyID then
-				lsx1, lsz1, lsx2, lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
+				lsx1, lsz1, lsx2, lsz2 = ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Scav start box available, Burrow Placement set to 'Avoid Players'")
@@ -1910,6 +1922,29 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:TrySpawnBurrow()
+		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
+		local spawned = SpawnBurrow()
+		timeOfLastSpawn = t
+		if not fullySpawned then
+			local burrowCount = SetCount(burrows)
+			if burrowCount > 1 then
+				fullySpawned = true
+			elseif spawnRetries >= maxSpawnRetries or firstSpawn then
+				spawnAreaMultiplier = spawnAreaMultiplier + 1
+				ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
+				gadget:SetInitialSpawnBox()
+				spawnRetries = 0
+			else
+				spawnRetries = spawnRetries + 1
+			end
+		end
+		if firstSpawn and spawned then
+			timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
+			firstSpawn = false
+		end
+	end
+
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
@@ -1994,27 +2029,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if burrowCount < minBurrows then
-				SpawnBurrow()
-				timeOfLastSpawn = t
-				if firstSpawn then
-					timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
-					firstSpawn = false
-				end
+				gadget:TrySpawnBurrow(t)
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
-				if firstSpawn then
-					SpawnBurrow()
-					timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
-					timeOfLastSpawn = t
-					firstSpawn = false
-				else
-					SpawnBurrow()
-					timeOfLastSpawn = t
-				end
+				gadget:TrySpawnBurrow(t)
 				scavEvent("burrowSpawn")
 				SetGameRulesParam("scav_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
