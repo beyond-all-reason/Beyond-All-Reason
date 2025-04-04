@@ -236,6 +236,9 @@ end
 local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
 	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
 	local x, y, z = spGetUnitPosition(shieldUnitID)
+	if not x then
+		return -- Unit doesn't exist or is invalid
+	end
 	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
 	for _, projectileID in ipairs(projectiles) do
 		projectileShieldHitCache[projectileID] = true
@@ -259,6 +262,9 @@ end
 
 local function activateShield(unitID)
 	local shieldData = shieldUnitsData[unitID]
+	if not shieldData then
+		return -- Shield unit no longer exists
+	end
 	shieldData.shieldEnabled = true
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 0)
