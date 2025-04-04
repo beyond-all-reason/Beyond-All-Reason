@@ -736,8 +736,10 @@ local MAX_CAPTURE_CHANGE = 0.12
 local CAPTURE_SOUND_VOLUME = 1.0
 local OWNERSHIP_THRESHOLD = 1 / 1.4142135623730951 -- circle touching edge of the square
 local CAPTURE_SOUND_RESET_THRESHOLD = OWNERSHIP_THRESHOLD * 0.5
+local NOTIFY_DELAY = math.floor(Game.gameSpeed * 1)
 
 local captureGrid = {}
+local notifyFrames = {}
 
 local myAllyID = Spring.GetMyAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
@@ -765,7 +767,7 @@ end
 local planeLayout = {
 	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
 	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
-	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, unused
+	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, showSquareTimestamp
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
@@ -776,6 +778,7 @@ local squareVAO = nil
 local squareShader = nil
 local instanceVBO = nil
 local lastMoveFrame = 0
+local currentFrame = 0
 
 local vertexShaderSource = [[
 #version 420
@@ -789,7 +792,7 @@ local vertexShaderSource = [[
 layout (location = 0) in vec4 vertexPosition;
 layout (location = 1) in vec4 instancePositionScale; 
 layout (location = 2) in vec4 instanceColor; 
-layout (location = 3) in vec4 captureParameters; // captureSpeed, progressValue, startFrame, unused
+layout (location = 3) in vec4 captureParameters; // captureSpeed, progressValue, startFrame, showSquareTimestamp
 
 uniform sampler2D heightmapTexture;
 uniform int isMinimapRendering;
@@ -809,6 +812,7 @@ out VertexOutput {
 	float cameraDistance;
 	float isInMinimap;
 	float currentGameFrame;
+	float captureTimestamp;
 };
 
 void main() {
@@ -816,6 +820,7 @@ void main() {
 	progressSpeed = captureParameters.x;
 	progressValue = captureParameters.y;
 	startFrame = captureParameters.z;
+	captureTimestamp = captureParameters.w;
 	currentGameFrame = timeInfo.x;
 	
 	textureCoordinate = vertexPosition.xy * 0.5 + 0.5;
@@ -872,6 +877,7 @@ in VertexOutput {
 	float cameraDistance;
 	float isInMinimap;
 	float currentGameFrame;
+	float captureTimestamp;
 };
 
 out vec4 fragmentColor;
@@ -908,6 +914,20 @@ void main() {
 	if (isInMinimap < 0.5) {
 		float fadeRange = maxCameraDrawHeight - minCameraDrawHeight;
 		fadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
+		
+		// Apply pulsing effect for recently captured territories
+		if (captureTimestamp > 0.0) {
+			float timeSinceCapture = currentGameFrame - captureTimestamp;
+			float pulseFrequency = 0.05;
+			float pulseDuration = 120.0; // frames the pulse effect lasts
+			
+			if (timeSinceCapture < pulseDuration) {
+				float pulseIntensity = (1.0 - timeSinceCapture / pulseDuration) * 0.8;
+				float pulse = sin(timeSinceCapture * pulseFrequency) * 0.5 + 0.5;
+				fadeAlpha = max(fadeAlpha, pulse * pulseIntensity);
+				finalColor.rgb = mix(finalColor.rgb, vec3(1.0), pulse * pulseIntensity * 0.3);
+			}
+		}
 	}
 	
 	fragmentColor = vec4(finalColor.rgb, finalColor.a * fadeAlpha);
@@ -1034,7 +1054,7 @@ local function updateGridSquareInstanceVBO(gridID, posScale, color1, captureStat
 	local instanceData = {
 		posScale[1], posScale[2], posScale[3], posScale[4],  -- posscale: x, y, z, scale
 		color1[1], color1[2], color1[3], color1[4],         -- color1: r, g, b, a
-		captureState[1], captureState[2], captureState[3], captureState[4]  -- capturestate: speed, progress, startframe, unused
+		captureState[1], captureState[2], captureState[3], captureState[4]  -- capturestate: speed, progress, startframe, showSquareTimestamp
 	}
 	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
 end
@@ -1082,9 +1102,15 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBit
     return isCurrentlyVisible, shouldResetColor
 end
 
+local function notifyCapture(gridID)
+	local gridData = captureGrid[gridID]
+	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
+end
+
 local function doCaptureEffects(gridID)
 	local gridData = captureGrid[gridID]
-	spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
+	notifyFrames[currentFrame + NOTIFY_DELAY] = gridID
+	gridData.showSquareTimestamp = currentFrame
 end
 
 function gadget:RecvFromSynced(messageName, ...)
@@ -1100,7 +1126,8 @@ function gadget:RecvFromSynced(messageName, ...)
             gridMidpointX = gridMidpointX,
             gridMidpointZ = gridMidpointZ,
             isVisible = isVisible,
-            currentColor = blankColor
+            currentColor = blankColor,
+			showSquareTimestamp = 0
         }
         
     elseif messageName == "InitializeConfigs" then
@@ -1128,7 +1155,7 @@ function gadget:RecvFromSynced(messageName, ...)
 				end
 				gridData.newProgress = progress
 
-				if not amSpectating and allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD then
+				if notifyCapture(gridID) then
 					gridData.playedCapturedSound = true
 					doCaptureEffects(gridID)
 				end
@@ -1141,7 +1168,14 @@ function gadget:RecvFromSynced(messageName, ...)
 end
 
 function gadget:GameFrame(frame)
-    
+	currentFrame = frame
+
+	if notifyFrames[frame] then
+		local gridID = notifyFrames[frame]
+		local gridData = captureGrid[gridID]
+		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
+		notifyFrames[frame] = nil
+	end
     if frame % UPDATE_FRAME_RATE_INTERVAL == 0 and frame ~= lastMoveFrame then
         local currentSpectating = Spring.GetSpectatingState()
         local currentAllyID = Spring.GetMyAllyTeamID()
@@ -1190,7 +1224,7 @@ function gadget:GameFrame(frame)
                 gridID,
                 {gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
                 gridData.currentColor,
-                {captureChangePerFrame, gridData.oldProgress, frame, 0.0}
+                {captureChangePerFrame, gridData.oldProgress, frame, gridData.showSquareTimestamp}
             )
             gridData.captureChange = nil
         end
