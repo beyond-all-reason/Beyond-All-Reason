@@ -51,8 +51,8 @@ local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 local UPDATE_FREQUENCY = 0.1  -- Update the display list every
 local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
-local MIN_BLINK_VOLUME = 0.2
-local MAX_BLINK_VOLUME = 0.5
+local MIN_BLINK_VOLUME = 0.15
+local MAX_BLINK_VOLUME = 0.4
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
