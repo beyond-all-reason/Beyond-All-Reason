@@ -667,7 +667,7 @@
 			}
 		},
 		"territorialdomination": {
-			"score": "Owned: %{owned} Needed: %{needed}"
+			"score": "Controlled: %{controlled} Needed: %{needed}"
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",

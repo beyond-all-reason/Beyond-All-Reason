@@ -55,7 +55,7 @@ local COLOR_YELLOW = {1, 0.8, 0, 1}
 local COLOR_BACKGROUND = {0, 0, 0, 0.5}
 local COLOR_BORDER = {0.2, 0.2, 0.2, 0.2}
 local RED_BLINK_COLOR = {0.9, 0, 0, 1}
-local FROZEN_TEXT_COLOR = {0, 1, 1, 1.0}
+local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
 
 local lastWarningBlinkTime = 0
 local lastFreezeBlinkTime = 0
@@ -182,7 +182,7 @@ function updateScoreDisplayList()
 		end
 	end
 
-	local displayText = spI18N("ui.territorialdomination.score", { owned = score, needed = threshold})
+	local displayText = spI18N("ui.territorialdomination.score", { controlled = score, needed = threshold})
 	
 	local textWidth = glGetTextWidth(displayText) * fontCache.fontSize
 	local backgroundWidth = textWidth + (fontCache.paddingX * 2)
