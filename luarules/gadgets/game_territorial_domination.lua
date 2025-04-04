@@ -13,6 +13,7 @@ end
 
 -- TODO:
 -- code cleanup
+-- horde mode units count as second to last living team, so the last living allyteam is immune to territory control
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -165,7 +166,6 @@ if SYNCED then
 	end
 
 	local function updateLivingTeamsData()
-
 		allyTeamsWatch = {}  -- Clear existing watch list
 		local allyHordesCount = 0
 		local allyTeamsCount = 0
@@ -399,19 +399,26 @@ if SYNCED then
 
 	local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
-		local newProgress = data.progress + progressChange
+		local newProgress
+
+		if hordeModeTeams[winningAllyID] then
+			winningAllyID = gaiaAllyTeamID -- horde mode units cannot own territory, they give it back to gaia
+			newProgress = data.progress - abs(progressChange)
+		else
+			newProgress = data.progress + progressChange
+		end
 		
 		if newProgress < 0 then
 			data.allyOwnerID = winningAllyID
-			if winningAllyID == gaiaAllyTeamID then
-				data.progress = 0
-			else
-				data.progress = math.abs(newProgress)
-			end
+			data.progress = math.abs(newProgress)
 		elseif newProgress > MAX_PROGRESS then
 			data.progress = MAX_PROGRESS
 		else
 			data.progress = newProgress
+		end
+
+		if winningAllyID == gaiaAllyTeamID then
+			data.decayDelay = 0
 		end
 
 		if delayDecay and (data.contested or data.contiguous) and data.allyOwnerID ~= winningAllyID then
@@ -597,7 +604,7 @@ if SYNCED then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if commandersDefs[unitDefID] then
+		if commandersDefs[unitDefID] and not hordeModeTeams[unitTeam] and unitTeam ~= gaiaAllyTeamID then
 			livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
 		end
 	end
