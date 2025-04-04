@@ -190,7 +190,8 @@ function updateScoreDisplayList()
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local displayPositionX = math.max(backgroundWidth/2, minimapPosX + minimapSizeX/2)
-	local backgroundTop = minimapPosY
+	local MINIMAP_GAP = 3 -- Gap between minimap and our display
+	local backgroundTop = minimapPosY - MINIMAP_GAP
 	local backgroundBottom = backgroundTop - backgroundHeight
 	local textPositionY = backgroundBottom + (backgroundHeight * TEXT_HEIGHT_MULTIPLIER)
 	local backgroundLeft = displayPositionX - backgroundWidth/2
