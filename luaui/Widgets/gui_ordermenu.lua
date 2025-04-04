@@ -584,10 +584,9 @@ local function drawCell(cell, zoom)
 					local commandState = cmd.params[currentStateIndex + stateOffset]
 					if commandState then
 						text = Spring.I18N('ui.orderMenu.' .. commandState)
-					else
-						text = '?'
 					end
 				end
+				text = '?'
 			else
 				if cmd.action == 'stockpile' then
 					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
