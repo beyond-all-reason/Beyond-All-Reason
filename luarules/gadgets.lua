@@ -158,6 +158,8 @@ local callInLists = {
 	"StockpileChanged",
 
 	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -2155,6 +2157,18 @@ end
 function gadgetHandler:ActiveCommandChanged(id, cmdType)
 	for _, g in ipairs(self.ActiveCommandChangedList) do
 		g:ActiveCommandChanged(id, cmdType)
+	end
+end
+
+function gadgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	for _, g in r_ipairs(self.CameraRotationChangedList) do
+		g:CameraRotationChanged(rotx, roty, rotz)
+	end
+end
+
+function gadgetHandler:CameraPositionChanged(posx, posy, posz)
+	for _, g in r_ipairs(self.CameraPositionChangedList) do
+		g:CameraPositionChanged(posx, posy, posz)
 	end
 end
 
