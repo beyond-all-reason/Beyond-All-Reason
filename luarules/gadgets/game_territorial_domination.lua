@@ -1128,7 +1128,7 @@ function gadget:RecvFromSynced(messageName, ...)
 				end
 				gridData.newProgress = progress
 
-				if allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD then
+				if not amSpectating and allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD then
 					gridData.playedCapturedSound = true
 					doCaptureEffects(gridID)
 				end
