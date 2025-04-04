@@ -34,6 +34,9 @@ local glText = gl.Text
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glGetTextWidth = gl.GetTextWidth
+local glCreateList = gl.CreateList
+local glCallList = gl.CallList
+local glDeleteList = gl.DeleteList
 
 local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
@@ -44,6 +47,7 @@ local TEXT_HEIGHT_MULTIPLIER = 0.33
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+local UPDATE_FREQUENCY = 0.1  -- Update the display list every 0.1 seconds
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -60,6 +64,12 @@ local amSpectating = false
 local myAllyID = -1
 local selectedAllyTeamID = -1
 local gaiaAllyTeamID = -1
+local lastUpdateTime = 0
+local lastScore = -1
+local displayList = nil
+local lastDifference = -1
+local lastTextColor = nil
+local lastBackgroundDimensions = nil
 
 local fontCache = {
 	initialized = false,
@@ -78,15 +88,28 @@ function widget:Initialize()
 	gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID()))
 end
 
-function widget:Update()
+function widget:Update(dt)
 	amSpectating = spGetSpectatingState()
 	myAllyID = spGetMyAllyTeamID()
+	
+	-- Update the display list at the specified frequency
+	local currentTime = os.clock()
+	if currentTime - lastUpdateTime > UPDATE_FREQUENCY then
+		lastUpdateTime = currentTime
+		updateScoreDisplayList()
+	end
 end
 
-local function drawScore()
+function updateScoreDisplayList()
 	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
 	
-	if scoreAllyID == gaiaAllyTeamID then return end
+	if scoreAllyID == gaiaAllyTeamID then 
+		if displayList then
+			glDeleteList(displayList)
+			displayList = nil
+		end
+		return 
+	end
 	
 	local score = 0
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
@@ -113,17 +136,17 @@ local function drawScore()
 
 	local difference = score - threshold
 
-	local currentTime = spGetGameSeconds()
+	local currentGameTime = spGetGameSeconds()
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	local isThresholdFrozen = (freezeExpirationTime > currentTime)
-	local timeUntilUnfreeze = freezeExpirationTime - currentTime
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 	
 	local shouldGreyOutText = isThresholdFrozen and timeUntilUnfreeze > WARNING_SECONDS
 
 	local textColor
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
-		if currentTime - lastFreezeBlinkTime > BLINK_FREQUENCY then
-			lastFreezeBlinkTime = currentTime
+		if currentGameTime - lastFreezeBlinkTime > BLINK_FREQUENCY then
+			lastFreezeBlinkTime = currentGameTime
 			isFreezeWarningVisible = not isFreezeWarningVisible
 		end
 		
@@ -143,8 +166,8 @@ local function drawScore()
 			textColor = NEEDED_TEXT_COLOR_FROZEN
 		else
 			if difference <= WARNING_THRESHOLD then
-				if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
-					lastWarningBlinkTime = currentTime
+				if currentGameTime - lastWarningBlinkTime > BLINK_FREQUENCY then
+					lastWarningBlinkTime = currentGameTime
 					isWarningVisible = not isWarningVisible
 				end
 				textColor = isWarningVisible and COLOR_RED or BLINK_COLOR
@@ -156,7 +179,7 @@ local function drawScore()
 		end
 	end
 
-    local displayText = spI18N("ui.territorialdomination.score", { number = difference })
+	local displayText = spI18N("ui.territorialdomination.score", { owned = score, needed = threshold})
 	
 	local textWidth = glGetTextWidth(displayText) * fontCache.fontSize
 	local backgroundWidth = textWidth + (fontCache.paddingX * 2)
@@ -170,17 +193,59 @@ local function drawScore()
 	local backgroundLeft = displayPositionX - backgroundWidth/2
 	local backgroundRight = displayPositionX + backgroundWidth/2
 
-	glPushMatrix()
-		glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
-		glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
-		glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+	local backgroundDimensions = {
+		left = backgroundLeft,
+		right = backgroundRight,
+		top = backgroundTop,
+		bottom = backgroundBottom,
+		textX = displayPositionX,
+		textY = textPositionY
+	}
+	
+	-- Only recreate the display list if something has changed
+	local textColorChanged = lastTextColor == nil or 
+		lastTextColor[1] ~= textColor[1] or 
+		lastTextColor[2] ~= textColor[2] or 
+		lastTextColor[3] ~= textColor[3] or 
+		lastTextColor[4] ~= textColor[4]
+	
+	local backgroundChanged = lastBackgroundDimensions == nil or
+		lastBackgroundDimensions.left ~= backgroundDimensions.left or
+		lastBackgroundDimensions.right ~= backgroundDimensions.right or
+		lastBackgroundDimensions.top ~= backgroundDimensions.top or
+		lastBackgroundDimensions.bottom ~= backgroundDimensions.bottom or
+		lastBackgroundDimensions.textX ~= backgroundDimensions.textX or
+		lastBackgroundDimensions.textY ~= backgroundDimensions.textY
+	
+	if difference ~= lastDifference or textColorChanged or backgroundChanged then
+		lastDifference = difference
+		lastTextColor = {textColor[1], textColor[2], textColor[3], textColor[4]}
+		lastBackgroundDimensions = backgroundDimensions
 		
-		glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
-	glPopMatrix()
+		-- Delete the old display list if it exists
+		if displayList then
+			glDeleteList(displayList)
+		end
+		
+		-- Create a new display list
+		displayList = glCreateList(function()
+			glPushMatrix()
+				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
+				glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
+				glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+				
+				glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
+			glPopMatrix()
+		end)
+	end
 end
 
 function widget:DrawScreen()
-	drawScore()
+	if displayList then
+		glCallList(displayList)
+	else
+		updateScoreDisplayList()
+	end
 end
 
 function widget:PlayerChanged(playerID)
@@ -194,5 +259,12 @@ function widget:PlayerChanged(playerID)
 			end
 		end
 		selectedAllyTeamID = myAllyID
+	end
+end
+
+function widget:Shutdown()
+	if displayList then
+		glDeleteList(displayList)
+		displayList = nil
 	end
 end
