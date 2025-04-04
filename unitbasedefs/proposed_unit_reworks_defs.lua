@@ -31,37 +31,8 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armnanotc" or name == "cornanotc" or name == "armnanotcplat" or name == "cornanotcplat" then
 		uDef.metalcost = uDef.metalcost + 40
-		uDef.corpse = "DEAD"
-		uDef.explodeas = "mediumBuildingExplosionGeneric"
-		uDef.selfdestructas = "mediumBuildingExplosionGenericSelfd"
-		uDef.featuredefs = {
-			dead = {
-				blocking = false,
-				category = "heaps",
-				collisionvolumescales = "35.0 4.0 6.0",
-				collisionvolumetype = "cylY",
-				damage = uDef.health,
-				energy = 0,
-				featurereclamate = "SMUDGE01",
-				footprintx = 2,
-				footprintz = 2,
-				height = 4,
-				hitdensity = 100,
-				metal = math.floor(uDef.metalcost*0.6),
-				object = "Units/cor2X2C.s3o",
-				reclaimable = true,
-				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
-			},
-		}
 	end
-	
-	if name == "corafus" or  name == "armafus" then
-		uDef.metalcost = 12000
-		uDef.energycost = 84000
-		uDef.buildtime = 240000
-	end
+
 	if name == "armacv" or name == "coracv" or name == "armack" or name == "corack" or name == "armaca" or name == "coraca" then
 		uDef.workertime = math.ceil(uDef.workertime * 0.13) * 10
 	end
