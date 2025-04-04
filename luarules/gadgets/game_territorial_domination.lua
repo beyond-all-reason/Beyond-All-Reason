@@ -100,6 +100,8 @@ if SYNCED then
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 	local teams = spGetTeamList()
 	local allyCount = 0
+	local allyHordesCount = 0
+	local allyTeamsCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
@@ -166,9 +168,11 @@ if SYNCED then
 	end
 
 	local function updateLivingTeamsData()
-		allyTeamsWatch = {}  -- Clear existing watch list
-		local allyHordesCount = 0
-		local allyTeamsCount = 0
+		teams = spGetTeamList()
+		allyTeamsWatch = {}
+		hordeModeAllies = {}
+		allyHordesCount = 0
+		allyTeamsCount = 0
 
 		for _, teamID in ipairs(teams) do
 			if teamID ~= gaiaTeamID then
@@ -604,7 +608,7 @@ if SYNCED then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if commandersDefs[unitDefID] and not hordeModeTeams[unitTeam] and unitTeam ~= gaiaAllyTeamID then
+		if commandersDefs[unitDefID] then
 			livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
 		end
 	end
@@ -667,34 +671,26 @@ if SYNCED then
 				updateUnsyncedSquare(gridID)
 			end
 		elseif frameModulo == 2 then
-			local averageTally = 0
-			local count = 0
+			updateTeamRulesScores()
+			
+			local sortedAllies = {}
+			local totalCount = 0
 			for allyID, tally in pairs(allyTallies) do
-				averageTally = averageTally + tally
-				count = count + 1
+				table.insert(sortedAllies, {allyID = allyID, tally = tally})
+				updateUnsyncedScore(allyID, tally)
+				totalCount = totalCount + 1
 			end
 			
-			if count > 0 then
-				averageTally = averageTally / count
-				updateTeamRulesScores()
-				
-				local sortedAllies = {}
-				for allyID, tally in pairs(allyTallies) do
-					table.insert(sortedAllies, {allyID = allyID, tally = tally})
-					updateUnsyncedScore(allyID, tally)
-				end
-				
-				table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
-				
-				if count > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
-					local highestTally = sortedAllies[#sortedAllies].tally
-					for i = 1, #sortedAllies - 1 do
-						local allyData = sortedAllies[i]
-						
-						if allyData.tally < defeatThreshold and allyData.tally < highestTally then
-							triggerAllyDefeat(allyData.allyID)
-							setAllyGridToGaia(allyData.allyID)
-						end
+			table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
+			
+			if allyCount > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
+				local highestTally = sortedAllies[#sortedAllies].tally
+				for i = 1, #sortedAllies do
+					local allyData = sortedAllies[i]
+					
+					if allyData.tally < defeatThreshold and (allyData.tally < highestTally or allyHordesCount > 0) then
+						triggerAllyDefeat(allyData.allyID)
+						setAllyGridToGaia(allyData.allyID)
 					end
 				end
 			end	
