@@ -733,6 +733,9 @@ local SQUARE_ALPHA = 0.2
 local SQUARE_HEIGHT = 20
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
 local MAX_CAPTURE_CHANGE = 0.12
+local CAPTURE_SOUND_VOLUME = 1.0
+local OWNERSHIP_THRESHOLD = 1 / 1.4142135623730951 -- circle touching edge of the square
+local CAPTURE_SOUND_RESET_THRESHOLD = OWNERSHIP_THRESHOLD * 0.5
 
 local captureGrid = {}
 
@@ -766,6 +769,7 @@ local planeLayout = {
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
+local spPlaySoundFile = Spring.PlaySoundFile
 
 local squareVBO = nil
 local squareVAO = nil
@@ -1078,6 +1082,11 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBit
     return isCurrentlyVisible, shouldResetColor
 end
 
+local function doCaptureEffects(gridID)
+	local gridData = captureGrid[gridID]
+	spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
+end
+
 function gadget:RecvFromSynced(messageName, ...)
     if messageName == "InitializeGridSquare" then
         local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
@@ -1118,15 +1127,22 @@ function gadget:RecvFromSynced(messageName, ...)
 					gridData.captureChange = 0 -- No smooth animation needed if snapping
 				end
 				gridData.newProgress = progress
+
+				if allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD then
+					gridData.playedCapturedSound = true
+					doCaptureEffects(gridID)
+				end
+			end
+			if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
+				gridData.playedCapturedSound = false
 			end
         end
     end
 end
 
-function gadget:Update()
-    local currentFrame = Spring.GetGameFrame()
+function gadget:GameFrame(frame)
     
-    if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
+    if frame % UPDATE_FRAME_RATE_INTERVAL == 0 and frame ~= lastMoveFrame then
         local currentSpectating = Spring.GetSpectatingState()
         local currentAllyID = Spring.GetMyAllyTeamID()
 
@@ -1174,13 +1190,13 @@ function gadget:Update()
                 gridID,
                 {gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
                 gridData.currentColor,
-                {captureChangePerFrame, gridData.oldProgress, currentFrame, 0.0}
+                {captureChangePerFrame, gridData.oldProgress, frame, 0.0}
             )
             gridData.captureChange = nil
         end
         
         uploadAllElements(instanceVBO)
-        lastMoveFrame = currentFrame
+        lastMoveFrame = frame
     end
 end
 
