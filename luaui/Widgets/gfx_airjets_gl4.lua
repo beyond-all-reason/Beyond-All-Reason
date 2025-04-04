@@ -753,7 +753,7 @@ local function initGL4()
     },
     "jetShader GL4"
   )
-  shaderCompiled = jetShader:Initialize()
+  local shaderCompiled = jetShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
   local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
   local jetInstanceVBOLayout = {
@@ -903,9 +903,9 @@ local function Deactivate(unitID, unitDefID, who)
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
-		airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
+		local airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
 		if jetInstanceVBO.instanceIDtoIndex[airjetkey] then
-			popElementInstance(jetInstanceVBO,tostring(unitID).."_"..tostring(effectDef.piecenum))
+			popElementInstance(jetInstanceVBO, airjetkey)
 		end
 	end
 end
