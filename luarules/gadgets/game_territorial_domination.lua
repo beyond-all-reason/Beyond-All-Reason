@@ -669,17 +669,25 @@ if SYNCED then
 			
 			if count > 0 then
 				averageTally = averageTally / count
-				-- Update rules parameters with scores for all teams
 				updateTeamRulesScores()
 				
+				local sortedAllies = {}
 				for allyID, tally in pairs(allyTallies) do
-					-- Send score to unsynced for debugging (kept for backwards compatibility)
+					table.insert(sortedAllies, {allyID = allyID, tally = tally})
 					updateUnsyncedScore(allyID, tally)
-					
-					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and freezeThresholdTimer < currentSecond and not DEBUGMODE then
-						--check if score is below average score to prevent defeat in case of a tie
-						triggerAllyDefeat(allyID)
-						setAllyGridToGaia(allyID)
+				end
+				
+				table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
+				
+				if count > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
+					local highestTally = sortedAllies[#sortedAllies].tally
+					for i = 1, #sortedAllies - 1 do
+						local allyData = sortedAllies[i]
+						
+						if allyData.tally < defeatThreshold and allyData.tally < highestTally then
+							triggerAllyDefeat(allyData.allyID)
+							setAllyGridToGaia(allyData.allyID)
+						end
 					end
 				end
 			end	
