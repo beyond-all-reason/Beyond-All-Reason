@@ -278,6 +278,7 @@ local unitOrderTable = {
 	['armmar']         		= 007000,
 	['legjav']         		= 007005,
 	['corcat']         		= 007010,
+	['legbunk']        		= 007015,
 	['armraz']         		= 007020,
 	['corkarg']        		= 007030,
 	['armvang']        		= 007040,

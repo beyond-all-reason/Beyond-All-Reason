@@ -440,6 +440,7 @@ local armorDefs = {
 		"legch",
 		"legeyes",
 		"legjav",
+		"legbunk",
 		"legerailtank",
 		"legeheatraymech",
 		"legelrpcmech",
