@@ -13,7 +13,8 @@ end
 
 -- TODO:
 -- code cleanup
--- horde mode units count as second to last living team, so the last living allyteam is immune to territory control
+-- red text doesn't blink when spectating.
+-- when an allyteam dies, perspective changes to one of the remaining allyteams but the score doesn't refresh until a different one is selected and then the original auto-chosen allyteam is re-selected
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -53,7 +54,7 @@ if SYNCED then
 	local MAX_PROGRESS = 1.0
 	local PROGRESS_INCREMENT = 0.06
 	local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
-	local DECAY_PROGRESS_INCREMENT = 0.03
+	local DECAY_PROGRESS_INCREMENT = 0.015
 	local STATIC_POWER_MULTIPLIER = 3
 	local GRID_CHECK_INTERVAL = Game.gameSpeed
 	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
