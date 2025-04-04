@@ -362,7 +362,6 @@ function widget:Update() -- this is pointlessly expensive!
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x,z)
-			--totalsmoothness = totalsmoothness + abs(h-avgheight)
 			totalsmoothness = totalsmoothness + abs(h-prevHeight)
 			prevHeight = h
 		end
