@@ -1947,12 +1947,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 
 		if #createUnitQueue > 0 then
-			for i = 1,#createUnitQueue do
-				--if unitID then
-				--	local _, maxH = Spring.GetUnitHealth(unitID)
-				--	Spring.SetUnitHealth(unitID, maxH*0.5)
-				--end
-			end
 			createUnitQueue = {}
 		end
 
