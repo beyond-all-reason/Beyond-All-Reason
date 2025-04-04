@@ -27,6 +27,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamList = Spring.GetTeamList
+local spPlaySoundFile = Spring.PlaySoundFile
 local spI18N = Spring.I18N
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -37,6 +38,7 @@ local glGetTextWidth = gl.GetTextWidth
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
+local max = math.max
 
 local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
@@ -47,7 +49,10 @@ local TEXT_HEIGHT_MULTIPLIER = 0.33
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
-local UPDATE_FREQUENCY = 0.1  -- Update the display list every 0.1 seconds
+local UPDATE_FREQUENCY = 0.1  -- Update the display list every
+local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
+local MIN_BLINK_VOLUME = 0.2
+local MAX_BLINK_VOLUME = 0.5
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -71,6 +76,7 @@ local displayList = nil
 local lastDifference = -1
 local lastTextColor = nil
 local lastBackgroundDimensions = nil
+local warningSoundFadeMultiplier = 0.5
 
 local fontCache = {
 	initialized = false,
@@ -148,8 +154,15 @@ function updateScoreDisplayList()
 
 	local textColor
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
+		if currentGameTime > lastFreezeBlinkTime + BLINK_VOLUME_WARNING_RESET_SECONDS then
+			warningSoundFadeMultiplier = MAX_BLINK_VOLUME
+		end
 		if currentGameTime - lastFreezeBlinkTime > BLINK_FREQUENCY then
 			lastFreezeBlinkTime = currentGameTime
+			if isFreezeWarningVisible and not amSpectating then
+				spPlaySoundFile('cmd-onoff', warningSoundFadeMultiplier, "ui")
+				warningSoundFadeMultiplier = math.max(MIN_BLINK_VOLUME, warningSoundFadeMultiplier * 0.9)
+			end
 			isFreezeWarningVisible = not isFreezeWarningVisible
 		end
 		
@@ -172,6 +185,10 @@ function updateScoreDisplayList()
 				if currentGameTime - lastWarningBlinkTime > BLINK_FREQUENCY then
 					lastWarningBlinkTime = currentGameTime
 					isWarningVisible = not isWarningVisible
+					if isWarningVisible and not amSpectating then
+						spPlaySoundFile('cmd-onoff', warningSoundFadeMultiplier, "ui")
+						warningSoundFadeMultiplier = max(MIN_BLINK_VOLUME, warningSoundFadeMultiplier * 0.9)
+					end
 				end
 				textColor = isWarningVisible and COLOR_RED or RED_BLINK_COLOR
 			elseif difference <= ALERT_THRESHOLD then
