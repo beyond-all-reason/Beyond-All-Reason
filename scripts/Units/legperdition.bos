@@ -67,7 +67,7 @@ Create()
 	deployed = 0;
 	restore_delay = 3000;
 	
-	var hull_xz;
+	var hull_xz;												//since this is a building it doesnt rotate and I can get its rotation upon create
     hull_xz = get PIECE_XZ(fflap);                            //get packed hull coordinates
     var hull_x;
     hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
@@ -86,7 +86,7 @@ Create()
     face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
     face_z = hull_z - smoke_z;
 	
-	cauface = get ATAN(face_z, face_x);
+	cauface = get ATAN(face_z, face_x);						//use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
 	
 	return (0);
 }
@@ -106,6 +106,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	set-signal-mask SIG_RESTORE;
 	start-script Close();
 	turn aimy1 to x-axis <0> speed <30>;
 	wait-for-turn aimy1 around x-axis;
@@ -131,7 +132,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	if( deployed==0 )//deny until deployed
+	if( deployed==0 )											//deny until deployed
 	{
 		start-script Open();
 		return (0);
@@ -157,11 +158,11 @@ AimPrimary(heading, pitch)
     aim_z = gun_z - turret_z;
  
 	var cauaim;
-	cauaim = get ATAN(aim_z, aim_x);  
+	cauaim = get ATAN(aim_z, aim_x);  						//use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
 	
-	var trueaim;
+	var trueaim;											//angle of turret relative to the base
     trueaim = (cauaim - cauface) * (-1);
-	if( trueaim < (-32768))
+	if( trueaim < (-32768))									//prevents trueaim overflow above 32768 (180°) and makes its positive/negative arcs match that of heading
 	{
 		trueaim = 32768 + (trueaim % 32768);
 	}
@@ -170,7 +171,11 @@ AimPrimary(heading, pitch)
 		trueaim = (trueaim % 32768) - 32768;
 	}
 	
-	get PRINT(pitch);
+	//lots of if arguments to determine if it can skip rotation by pitching up to upright position and insta rotating to pitch back down in the correct direction
+	//first line is for when heading and trueaim are both not positive or negative and in the frontal arcs
+	//second line is for when heading < 0 and trueaim > 0 in the rear arc
+	//third line is for when heading > 0 and trueaim < 0 in the rear arc (yes they are seperate, didnt work otherwise)
+	//forth line is for when both heading and trueaim are positive or negative
 	
 	if (((((trueaim < 0) AND (heading > 0)) OR ((trueaim > 0) AND (heading < 0))) AND ( get ABS(trueaim - heading) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) < 32768) AND (upright == 0)) 
 	OR (((trueaim < 0) AND (heading > 0)) AND ((((trueaim - heading) % 32768) + 32768) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) > 32768) AND (upright == 0)) 
@@ -182,15 +187,15 @@ AimPrimary(heading, pitch)
 		upright = 1;
 	}
 	
-	if( upright == 1)
+	if( upright == 1)											//instantly rotates the cannon when vertical so it can pitch down in any direction without moving at all
 	{
 		turn aimy1 to y-axis heading now;
 		turn aimx1 to y-axis <0> - heading now;
 	}
 	
-	turn aimy1 to y-axis heading speed <50>;
+	turn aimy1 to y-axis heading speed <50>;					//same as above but slow so it turns around instead of snapping to the direction, only applies when not vertical
 	turn aimx1 to y-axis <0> - heading speed <50>;
-	turn aimy1 to x-axis <90.000000> - pitch speed <20>;
+	turn aimy1 to x-axis <90.000000> - pitch speed <20>;		//pitch off vertical
 	upright = 0;
 	
 	wait-for-turn aimy1 around x-axis;
