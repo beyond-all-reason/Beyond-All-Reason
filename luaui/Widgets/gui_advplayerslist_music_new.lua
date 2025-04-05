@@ -103,6 +103,8 @@ local function ReloadMusicPlaylists()
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 	local bossFightTracksNew		= {}
+		  bossFightTracksAll 		= {}
+		  bonusTracks				= {}
 
 	if Spring.Utilities.Gametype.IsRaptors() then
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))

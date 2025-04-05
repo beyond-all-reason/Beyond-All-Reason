@@ -5834,6 +5834,9 @@ function init()
 		else
 			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 		end
+	else
+		options[getOptionByID('soundtrackAprilFools')] = nil
+		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
