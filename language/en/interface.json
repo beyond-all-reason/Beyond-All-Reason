@@ -15,7 +15,8 @@
 				"scavengers": "Scavengers",
 				"stats": "Statistics",
 				"graphs": "Graphs",
-				"save": "Save"
+				"save": "Save",
+				"objectives": "Objectives"
 			},
 			"quit": {
 				"stay": "Stay",
