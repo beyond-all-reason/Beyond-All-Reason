@@ -7,9 +7,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			uDef.metalcost = 45
 			uDef.weapondefs.gator_laser.range = 220
 		end
-		if name == "corsktl" then
-			uDef.stealth = true
-		end
+
 
 	return uDef
 end

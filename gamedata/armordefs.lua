@@ -78,6 +78,7 @@ local armorDefs = {
 		"legstone",
 		"dice",
 		"chip",
+		"legmohoconin",
 	},
 	crawlingbombs = {
 		"armvader",
@@ -440,6 +441,7 @@ local armorDefs = {
 		"legch",
 		"legeyes",
 		"legjav",
+		"legbunk",
 		"legerailtank",
 		"legeheatraymech",
 		"legelrpcmech",
@@ -447,6 +449,8 @@ local armorDefs = {
 		"legdrag",
 		"scavdrag",
 		"scavfort",
+		"legmohocon",
+		"legmohoconct"
 	},
 	mines = {
 		"armfmine3",

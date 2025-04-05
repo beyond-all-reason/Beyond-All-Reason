@@ -278,6 +278,7 @@ local unitOrderTable = {
 	['armmar']         		= 007000,
 	['legjav']         		= 007005,
 	['corcat']         		= 007010,
+	['legbunk']        		= 007015,
 	['armraz']         		= 007020,
 	['corkarg']        		= 007030,
 	['armvang']        		= 007040,
@@ -460,6 +461,7 @@ local unitOrderTable = {
    ['legmoho']       = 100260,
    ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
+   ['legmohocon']     = 100310,
 
    --ECO ENERGY CONVERTERS
    ['armmakr']        = 100500,
