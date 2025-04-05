@@ -14,33 +14,46 @@ local modOptions = Spring.GetModOptions()
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local textTable = {}
+local seenObjectives = {}
+local hasAlwaysShowObjectives = false
+local hasUnseen = false 
+local textFile = nil
 
-local function loadObjectivesText(objectiveType)
+-- alwaysShow: when true, show this objective every time the game runs
+-- when false, only show it once and remember it's been seen
+local function loadObjectivesText(objectiveType, alwaysShow)
 	local objectiveText = Spring.I18N("objectives." .. objectiveType)
 	if objectiveText then
-		textTable[#textTable+1] = objectiveText
+		if alwaysShow then
+			table.insert(textTable, objectiveText)
+			hasAlwaysShowObjectives = true
+		else
+			if seenObjectives[objectiveType] == nil then
+				seenObjectives[objectiveType] = false
+			end
+			
+			table.insert(textTable, 1, objectiveText)
+			
+			if seenObjectives[objectiveType] == false then
+				hasUnseen = true
+			end
+		end
 	else
 		Spring.Echo("Objective not found: " .. objectiveType)
 	end
 end
 
-if scavengersAIEnabled then
-	loadObjectivesText("scavengers")
-end
---add more entries with additional if statements
-
-if not next(textTable) then
-	return false
+local function initializeObjectives()
+	if scavengersAIEnabled then
+		loadObjectivesText("scavengers", false)
+	end
+	-- add additional if statements to add objectives here. Multiple objective entries work but it's best to only do one at a time.
 end
 
-local textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
-
-local show = true	-- gets disabled when it has been loaded before
+local show = false
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
-local numGames = 0
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -269,7 +282,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-  if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	if show then
 		-- on window
@@ -279,6 +292,14 @@ function mouseEvent(x, y, button, release)
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
+				
+				-- Mark all one-time objectives as seen when the window is closed
+				for objectiveType, seen in pairs(seenObjectives) do
+					if not seen then
+						seenObjectives[objectiveType] = true
+					end
+				end
+				hasUnseen = false  -- All one-time objectives have been seen now
 			end
 			return true
 		end
@@ -286,8 +307,22 @@ function mouseEvent(x, y, button, release)
 end
 
 function widget:Initialize()
-	if textFile then
+	textTable = {}
+	hasAlwaysShowObjectives = false
+	hasUnseen = false
+	
+	initializeObjectives()
 
+	if not next(textTable) then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	
+	textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+	
+	show = hasAlwaysShowObjectives or hasUnseen
+
+	if textFile then
 		WG['objectives_info'] = {}
 		WG['objectives_info'].toggle = function(state)
 			if state ~= nil then
@@ -295,20 +330,70 @@ function widget:Initialize()
 			else
 				show = not show
 			end
+			
+			if not show then
+				local objectivesChanged = false
+				for objectiveType, seen in pairs(seenObjectives) do
+					if not seen then
+						seenObjectives[objectiveType] = true
+						objectivesChanged = true
+					end
+				end
+				if objectivesChanged then
+					hasUnseen = false
+				end
+			end
 		end
 		WG['objectives_info'].isvisible = function()
 			return show
 		end
-
-		-- somehow there are a few characters added at the start that we need to remove
-		--textFile = string.sub(textFile, 4)
-
-		-- store text into array
-		textLines = string.lines(textFile)
-
-		for i, line in ipairs(textLines) do
-			totalTextLines = i
+		
+		WG['objectives_info'].addObjective = function(objectiveType, alwaysShow)
+			local objectiveText = Spring.I18N("objectives." .. objectiveType)
+			if objectiveText then
+				local shouldShow = false
+				
+				if alwaysShow then
+					hasAlwaysShowObjectives = true
+					table.insert(textTable, objectiveText)
+					shouldShow = true
+				else
+					if seenObjectives[objectiveType] == nil then
+						seenObjectives[objectiveType] = false
+					end
+					
+					table.insert(textTable, 1, objectiveText)
+					
+					if seenObjectives[objectiveType] == false then
+						hasUnseen = true
+						shouldShow = true
+					end
+				end
+				
+				textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+				
+				textLines = string.lines(textFile)
+				totalTextLines = #textLines
+				
+				if textList then
+					glDeleteList(textList)
+				end
+				textList = gl.CreateList(DrawWindow)
+				
+				if shouldShow then
+					show = true
+				end
+				
+				return true
+			else
+				Spring.Echo("Objective not found: " .. objectiveType)
+				return false
+			end
 		end
+
+		textLines = string.lines(textFile)
+		totalTextLines = #textLines
+		
 		widget:ViewResize()
 	else
 		Spring.Echo("Text: couldn't load the text file")
@@ -326,21 +411,41 @@ function widget:Shutdown()
 	end
 end
 
-
-
 function widget:GetConfigData(data)
-	return {numGames	= numGames}
+	if show then
+		for objectiveType, seen in pairs(seenObjectives) do
+			if not seen then
+				seenObjectives[objectiveType] = true
+			end
+		end
+		hasUnseen = false
+	end
+	
+	return {
+		seenObjectives = seenObjectives
+	}
 end
 
 function widget:SetConfigData(data)
-	if data.numGames ~= nil then
-		numGames = data.numGames + 1
+	if data.seenObjectives ~= nil then
+		seenObjectives = data.seenObjectives
+		
+		hasUnseen = false
+		for objectiveType, seen in pairs(seenObjectives) do
+			if seen == false then
+				hasUnseen = true
+				break
+			end
+		end
 	end
-	if numGames > 1 then
-		show = false
-	end
+	
+	show = hasAlwaysShowObjectives or hasUnseen
 end
 
 function widget:LanguageChanged()
-	widget:ViewResize()
+	if textList then
+		glDeleteList(textList)
+		textList = nil
+	end
+	widget:Initialize()
 end
