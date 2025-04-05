@@ -1547,7 +1547,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if not UnitDefs[unitDefID].isscavenger then
-				Spring.Echo(UnitDefs[unitDefID].customParams.scav_swap_override)
+				-- Spring.Echo(UnitDefs[unitDefID].customParams.scav_swap_override)
 				if not UnitDefs[unitDefID].customParams.scav_swap_override then
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
