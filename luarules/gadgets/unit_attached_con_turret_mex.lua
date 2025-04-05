@@ -27,13 +27,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     end
 	local scav = ""
 	if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
-	Spring.Echo("isScav", UnitDefs[unitDefID].customParams.isscavenger, scav)
+	--Spring.Echo("isScav", UnitDefs[unitDefID].customParams.isscavenger, scav)
 	local xx,yy,zz = Spring.GetUnitPosition(unitID)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
 	local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
-	Spring.Echo('imex_id', imex_id)
+	--Spring.Echo('imex_id', imex_id)
 	Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
 	if not imex_id then
 		Spring.DestroyUnit(unitID, false, true)
@@ -44,7 +44,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	Spring.SetUnitBlocking(imex_id, true, true, false)													-- makes imex non interactive
 	Spring.SetUnitNoSelect(imex_id,true)
 	local nano_id = Spring.CreateUnit("legmohoconct" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
-	Spring.Echo('nano_id', nano_id)
+	--Spring.Echo('nano_id', nano_id)
 	if not nano_id then
 		Spring.DestroyUnit(unitID, false, true)
 		Spring.DestroyUnit(imex_id, false, true)
@@ -88,7 +88,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
 		
 		if damage < (maxHealth / 4) then
-			Spring.Echo("Legmohocon feature created")															-- if damage is <25% of max health spawn wreck
+			--Spring.Echo("Legmohocon feature created")															-- if damage is <25% of max health spawn wreck
 			local featureID = Spring.CreateFeature("legmohocon" .. scav .. "_dead" , xx, yy, zz, facing, unitTeam)
 			Spring.SetFeatureResurrect(featureID, "legmohocon" .. scav, facing, 0)
 		end

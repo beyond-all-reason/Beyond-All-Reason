@@ -1547,7 +1547,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if not UnitDefs[unitDefID].customParams.isscavenger then
-				Spring.Echo(UnitDefs[unitDefID].name, "unit created swap", UnitDefs[unitDefID].customParams.scav_swap_override_created)
+				--Spring.Echo(UnitDefs[unitDefID].name, "unit created swap", UnitDefs[unitDefID].customParams.scav_swap_override_created)
 				if not UnitDefs[unitDefID].customParams.scav_swap_override_created then
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
@@ -1883,7 +1883,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bossID then
 				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
-				Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+				--Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
@@ -2217,7 +2217,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if not UnitDefs[unitDefID].customParams.isscavenger then
-				Spring.Echo(UnitDefs[unitDefID].name, "unit captured swap", UnitDefs[unitDefID].customParams.scav_swap_override_captured)
+				--Spring.Echo(UnitDefs[unitDefID].name, "unit captured swap", UnitDefs[unitDefID].customParams.scav_swap_override_captured)
 				if not UnitDefs[unitDefID].customParams.scav_swap_override_captured then
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
@@ -2292,7 +2292,7 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+			--Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
