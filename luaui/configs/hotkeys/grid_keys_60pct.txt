@@ -35,7 +35,7 @@ bind               sc_e  reclaim
 bind         Shift+sc_e  reclaim
 bind               sc_f  fight
 bind         Shift+sc_f  fight
-bind           Alt+sc_f  forcestart
+bind           Alt+sc_f  chain force forcestart | say !cv forcestart
 bind               sc_g  stopproduction
 bind         Shift+sc_g  stopproduction
 bind               sc_g  stop
