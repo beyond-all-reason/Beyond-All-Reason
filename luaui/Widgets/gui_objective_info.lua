@@ -1,15 +1,7 @@
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-
-if not scavengersAIEnabled then
-	return
-end
-
-local widget = widget ---@type Widget
-
 function widget:GetInfo()
 	return {
-		name    = "Scavenger Info",
-		desc    = "",
+		name    = "Objective Info",
+		desc    = "Displays information about game objectives.",
 		author  = "Floris",
 		date    = "Jan 2020",
 		license = "GNU GPL, v2 or later",
@@ -18,12 +10,35 @@ function widget:GetInfo()
 	}
 end
 
+local modOptions = Spring.GetModOptions()
+local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
+
+local textTable = {}
+
+local function loadObjectivesText(objectiveType)
+	local objectiveText = Spring.I18N("objectives." .. objectiveType)
+	if objectiveText then
+		textTable[#textTable+1] = objectiveText
+	else
+		Spring.Echo("Objective not found: " .. objectiveType)
+	end
+end
+
+if scavengersAIEnabled then
+	loadObjectivesText("scavengers")
+end
+--add more entries with additional if statements
+
+if not next(textTable) then
+	return false
+end
+
+local textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+
 local show = true	-- gets disabled when it has been loaded before
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
-local textFile = VFS.LoadFile("gamedata/scavengers/infotext.txt")
 
 local numGames = 0
 
@@ -159,7 +174,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
-	local title = Spring.I18N('ui.topbar.button.scavengers')
+	local title = Spring.I18N('ui.topbar.button.objectives')
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
@@ -273,15 +288,15 @@ end
 function widget:Initialize()
 	if textFile then
 
-		WG['scavengerinfo'] = {}
-		WG['scavengerinfo'].toggle = function(state)
+		WG['objectives_info'] = {}
+		WG['objectives_info'].toggle = function(state)
 			if state ~= nil then
 				show = state
 			else
 				show = not show
 			end
 		end
-		WG['scavengerinfo'].isvisible = function()
+		WG['objectives_info'].isvisible = function()
 			return show
 		end
 
