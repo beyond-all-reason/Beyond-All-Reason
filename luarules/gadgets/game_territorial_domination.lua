@@ -42,7 +42,7 @@ if SYNCED then
 	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
 
 	--configs
-	local DEBUGMODE = false -- Changed to uppercase as it's a constant
+	local DEBUGMODE = false
 
 	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
 	local maxEmptyImpedencePower = 25
@@ -740,7 +740,7 @@ local UNSYNCED_DEBUG_MODE = false
 
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
-local SQUARE_HEIGHT = 20
+local SQUARE_HEIGHT = 10
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
 local MAX_CAPTURE_CHANGE = 0.12
 local CAPTURE_SOUND_VOLUME = 1.0
@@ -902,8 +902,9 @@ void main() {
 	
 	// Only show borders in the main view, not in the minimap
 	if (isInMinimap < 0.5) {
-		float borderFadeDistance = 16.0 / 1024.0;
-		borderOpacity = 1.0 - clamp(distanceToEdge / borderFadeDistance, 0.0, 1.0);
+		// Make border sharper by reducing the fade distance
+		float borderFadeDistance = 0.005; // Reduced from 8.0/1024.0 (~0.008) for sharper borders
+		borderOpacity = smoothstep(borderFadeDistance, 0.0, distanceToEdge); // Inverted smoothstep for sharper edge
 	}
 	
 	float distanceToCorner = 1.4142135623730951; // sqrt(2)
@@ -914,16 +915,14 @@ void main() {
 	float circleFillAmount = 1.0 - clamp((distanceToCenter - animatedProgress) / circleSoftness, 0.0, 1.0);
 	circleFillAmount = step(0.0, circleFillAmount) * circleFillAmount;
 	
-	// Border color only for main view
-	vec4 borderColor = vec4(0.95, 0.95, 0.95, 0.45);
+	// Create a local copy of the color for modification
+	vec4 modifiedColor = color;
 	
-	vec4 finalColor = vec4(color.rgb, color.a * circleFillAmount);
-	finalColor = mix(finalColor, borderColor, borderOpacity * step(0.0, borderOpacity));
-	
-	float fadeAlpha = 1.0;
+	// Apply fill alpha to the circle fill - make it depend on camera height
+	float fillFadeAlpha = 1.0;
 	if (isInMinimap < 0.5) {
 		float fadeRange = maxCameraDrawHeight - minCameraDrawHeight;
-		fadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
+		fillFadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
 		
 		// Apply pulsing effect for recently captured territories
 		if (captureTimestamp > 0.0) {
@@ -934,13 +933,72 @@ void main() {
 			if (timeSinceCapture < pulseDuration) {
 				float pulseIntensity = (1.0 - timeSinceCapture / pulseDuration) * 0.8;
 				float pulse = sin(timeSinceCapture * pulseFrequency) * 0.5 + 0.5;
-				fadeAlpha = max(fadeAlpha, pulse * pulseIntensity);
-				finalColor.rgb = mix(finalColor.rgb, vec3(1.0), pulse * pulseIntensity * 0.3);
+				fillFadeAlpha = max(fillFadeAlpha, pulse * pulseIntensity);
+				modifiedColor.rgb = mix(modifiedColor.rgb, vec3(1.0), pulse * pulseIntensity * 0.3);
 			}
 		}
 	}
 	
-	fragmentColor = vec4(finalColor.rgb, finalColor.a * fadeAlpha);
+	vec4 fillColor = vec4(modifiedColor.rgb, modifiedColor.a * circleFillAmount * fillFadeAlpha);
+	
+	// Border color only for main view - make it more distinct for sharper lines
+	vec4 borderColor = vec4(1.0, 1.0, 1.0, 0.8); // Increased alpha from 0.66 to 0.8 for more visibility
+	
+	// Border has its own independent alpha that doesn't fade with height
+	float borderAlpha = borderOpacity;
+	
+	// Dynamic edge visibility based on camera height
+	if (isInMinimap < 0.5) {
+		// *** IMPORTANT: This is where we control edge visibility ***
+		// At maxCameraDrawHeight: the full square edge is visible
+		// At minCameraDrawHeight: only corners visible, rest is hidden
+		
+		// Calculate where we are between min and max camera height
+		float heightRatio = clamp((cameraDistance - minCameraDrawHeight) / (maxCameraDrawHeight - minCameraDrawHeight), 0.0, 1.0);
+		
+		// As camera gets lower (heightRatio gets smaller), 
+		// innerFadeRadius gets bigger (hiding more of the border)
+		// 0.0 = hide nothing, 1.4 = hide everything except corners
+		float innerFadeRadius = mix(1.41, 0.0, heightRatio);
+		
+		// Calculate border width based on camera height
+		float baseWidth = 0.5;
+		float maxWidthMultiplier = 1.0;
+		float dynamicBorderWidth = baseWidth * (1.0 + (maxWidthMultiplier - 1.0) * heightRatio);
+		
+		// Use the dynamic border width instead of fixed width
+		if (distanceToCenter < innerFadeRadius - dynamicBorderWidth) {
+			// Hide interior borders completely
+			borderAlpha = 0.0;
+		} else if (distanceToCenter < innerFadeRadius) {
+			// Create a sharper transition at the edge with dynamic width
+			borderAlpha *= smoothstep(innerFadeRadius - dynamicBorderWidth, innerFadeRadius, distanceToCenter);
+		}
+		
+		// Make border thickness increase with camera height
+		float minBorderThickness = 0.005;
+		float maxBorderThickness = 0.009;
+		float borderThickness = mix(minBorderThickness, maxBorderThickness, heightRatio);
+		
+		// Apply border thickness to edge detection
+		float edgeDistance = distanceToEdge / borderThickness;
+		if (edgeDistance < 1.0) {
+			// Increase border alpha where we're close to square edges
+			// Use smoothstep for a gradual falloff
+			borderAlpha = max(borderAlpha, (1.0 - smoothstep(0.0, 1.0, edgeDistance)) * heightRatio);
+		}
+		
+		// Also scale border alpha with height for better visibility at high camera positions
+		borderAlpha *= mix(0.66, 0.85, heightRatio);
+	}
+	
+	// Only mix in border where we have border alpha with hard edge
+	vec4 finalColor = fillColor;
+	if (borderAlpha > 0.01) { // Reduced threshold from 0.1 to 0.05 to show more of the border
+		finalColor = mix(fillColor, borderColor, borderAlpha);
+	}
+	
+	fragmentColor = finalColor;
 }
 ]]
 
