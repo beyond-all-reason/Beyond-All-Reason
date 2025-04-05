@@ -111,7 +111,7 @@ return {
 				weaponvelocity = 200,
 				customparams = {
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
+					speceffect_when = "ypos<=0",
 				},
 				damage = {
 					commanders = 30,
