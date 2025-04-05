@@ -274,14 +274,14 @@ local function updateButtons()
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
 	end
 
-		if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
-		if WG['keybinds'] then addButton('keybinds', Spring.I18N('ui.topbar.button.keys')) end
-		if WG['changelog'] then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
-		if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
-		if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
-		if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
-		if WG['objectives_info'] then addButton('objectives', Spring.I18N('ui.topbar.button.objectives')) end
-		if isSinglePlayer and allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
+	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
+	if WG['keybinds'] then addButton('keybinds', Spring.I18N('ui.topbar.button.keys')) end
+	if WG['changelog'] then addButton('changelog', Spring.I18N('ui.topbar.button.changes')) end
+	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
+	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
+	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
+	if WG['objectives_info'] then addButton('objectives', Spring.I18N('ui.topbar.button.objectives')) end
+	if isSinglePlayer and allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
 	offset = offset + sidePadding
