@@ -17,7 +17,7 @@ local textTable = {}
 local seenObjectives = {}
 local hasAlwaysShowObjectives = false
 local hasUnseen = false 
-local textFile = nil
+local allText = nil
 
 -- alwaysShow: when true, show this objective every time the game runs
 -- when false, only show it once and remember it's been seen
@@ -144,7 +144,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	end
 
 	-- draw textarea
-	if textFile then
+	if allText then
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
@@ -318,11 +318,12 @@ function widget:Initialize()
 		return false
 	end
 	
-	textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+	
+	allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
 	
 	show = hasAlwaysShowObjectives or hasUnseen
 
-	if textFile then
+	if allText then
 		WG['objectives_info'] = {}
 		WG['objectives_info'].toggle = function(state)
 			if state ~= nil then
@@ -370,9 +371,9 @@ function widget:Initialize()
 					end
 				end
 				
-				textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+				allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
 				
-				textLines = string.lines(textFile)
+				textLines = string.lines(allText)
 				totalTextLines = #textLines
 				
 				if textList then
@@ -391,7 +392,7 @@ function widget:Initialize()
 			end
 		end
 
-		textLines = string.lines(textFile)
+		textLines = string.lines(allText)
 		totalTextLines = #textLines
 		
 		widget:ViewResize()
