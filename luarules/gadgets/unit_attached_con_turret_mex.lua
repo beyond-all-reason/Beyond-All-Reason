@@ -59,15 +59,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal))
 end
 
---function gadget:UnitCreated(unitID, unitDefID, unitTeam)
---
---	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
---        return
---    end
---	
---	gadget:UnitFinished(unitID, unitDefID, unitTeam)
---end
-
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
         return 
