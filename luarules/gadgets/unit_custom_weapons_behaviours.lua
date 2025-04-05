@@ -261,7 +261,7 @@ function gadget:Initialize()
 				local message = "Custom weapon has bad custom params: " .. weaponDef.name
 				message = message .. ' (speceffect_def=' .. def .. ')'
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
-			elseif not checkingFunctions[speceffect][when] or not applyingFunctions[speceffect] then
+			elseif not (checkingFunctions[speceffect] and checkingFunctions[speceffect][when]) or not applyingFunctions[speceffect] then
 				local message = "Custom weapon has bad custom params: " .. weaponDef.name
 				message = message .. ' (speceffect=' .. speceffect .. ',speceffect_when=' .. (when or 'nil') .. ')'
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
