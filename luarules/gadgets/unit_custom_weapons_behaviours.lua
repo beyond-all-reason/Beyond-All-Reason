@@ -76,37 +76,39 @@ local defaultCheck = { when = 'always', check = alwaysTrue }
 --------------------------------------------------------------------------------
 
 checkingFunctions.cruise = {}
-checkingFunctions.cruise["distance>0"] = function(proID)
+checkingFunctions.cruise["until lockon"] = function(proID)
 	if SpGetProjectileTimeToLive(proID) > 0 then
-		local targetTypeInt, target = SpGetProjectileTarget(proID)
-		local tx, ty, tz
-		if targetTypeInt == targetedGround then
-			tx, ty, tz = target[1], target[2], target[3]
-		elseif targetTypeInt == targetedUnit then
-			do
-				local _
-				_, _, _, _, _, _, tx, ty, tz = Spring.GetUnitPosition(target, true, true)
+		local targetPosX, targetPosY, targetPosZ
+		do
+			local targetTypeInt, target = SpGetProjectileTarget(proID)
+			if targetTypeInt == targetedGround then
+				targetPosX, targetPosY, targetPosZ = target[1], target[2], target[3]
+			elseif targetTypeInt == targetedUnit then
+				local _;
+				_, _, _, _, _, _,
+				targetPosX, targetPosY, targetPosZ = Spring.GetUnitPosition(target, true, true)
 			end
 		end
-		local px, py, pz = SpGetProjectilePosition(proID)
-		local pvx, pvy, pvz, speed = SpGetProjectileVelocity(proID)
 		local infos = projectiles[proID]
-		if math_sqrt((px - tx) ^ 2 + (py - ty) ^ 2 + (pz - tz) ^ 2) > tonumber(infos.lockon_dist) then
-			local nx, ny, nz = Spring.GetGroundNormal(px, pz)
-			local elevation = SpGetGroundHeight(px, pz) + tonumber(infos.cruise_min_height)
-			local correction = (pvx * nx + pvy * ny + pvz * nz) * ny
-			local pvy2
+		local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
+		local projectileVelX, projectileVelY, projectileVelZ, speed = SpGetProjectileVelocity(proID)
+		if tonumber(infos.lockon_dist) < math_sqrt((projectilePosX - targetPosX) ^ 2 + (projectilePosY - targetPosY) ^ 2 + (projectilePosZ - targetPosZ) ^ 2) then
+			local groundNormX, groundNormY, groundNormZ = Spring.GetGroundNormal(projectilePosX, projectilePosZ)
+			local cruisePosY = SpGetGroundHeight(projectilePosX, projectilePosZ) + tonumber(infos.cruise_min_height)
+			local correction = groundNormY *
+				(projectileVelX * groundNormX + projectileVelY * groundNormY + projectileVelZ * groundNormZ)
 			-- Always correct for ground clearance. Follow terrain after first ground clear.
 			-- Then, follow terrain also, but avoid going into steep dives, eg after cliffs.
-			if py < elevation then
-				pvy2 = pvy - correction
+			local cruiseVelY
+			if projectilePosY < cruisePosY then
+				cruiseVelY = projectileVelY - correction
 				projectilesData[proID] = true
-			elseif py > elevation and pvy > speed * -0.25 and projectilesData[proID] then
-				pvy2 = pvy - correction
+			elseif projectilePosY > cruisePosY and projectileVelY > speed * -0.25 and projectilesData[proID] then
+				cruiseVelY = projectileVelY - correction
 			end
-			if pvy2 then
-				SpSetProjectilePosition(proID, px, elevation, pz)
-				SpSetProjectileVelocity(proID, pvx, pvy2, pvz)
+			if cruiseVelY then
+				SpSetProjectilePosition(proID, projectilePosX, cruisePosY, projectilePosZ)
+				SpSetProjectileVelocity(proID, projectileVelX, cruiseVelY, projectileVelZ)
 			end
 			return false
 		end
@@ -134,33 +136,33 @@ checkingFunctions.retarget["always"] = function(proID)
 end
 
 checkingFunctions.sector_fire = {}
-applyingFunctions.sector_fire = function (proID)
+applyingFunctions.sector_fire = function(proID)
 	local infos = projectiles[proID]
 
-	local max_range_reduction = tonumber(infos.max_range_reduction)
-	local velocity_factor = 1 - (random() ^ (1 + max_range_reduction)) * max_range_reduction
+	local maxRangeReduction = tonumber(infos.max_range_reduction)
+	local transformXZ = 1 - (random() ^ (1 + maxRangeReduction)) * maxRangeReduction
 
-	local angle_factor = tonumber(infos.spread_angle) * (random() - 0.5) * mathPi / 180
-	local cos_angle = mathCos(angle_factor)
-	local sin_angle = mathSin(angle_factor)
+	local angleXZ = tonumber(infos.spread_angle) * (random() - 0.5) * mathPi / 180
+	local transformX = mathCos(angleXZ)
+	local transformZ = mathSin(angleXZ)
 
-	local vx, vy, vz = SpGetProjectileVelocity(proID)
-	vx = (vx * cos_angle - vz * sin_angle) * velocity_factor
-	vz = (vx * sin_angle + vz * cos_angle) * velocity_factor
+	local velX, velY, velZ = SpGetProjectileVelocity(proID)
+	velX = (velX * transformX - velZ * transformZ) * transformXZ
+	velZ = (velX * transformZ + velZ * transformX) * transformXZ
 
-	SpSetProjectileVelocity(proID, vx, vy, vz)
+	SpSetProjectileVelocity(proID, velX, velY, velZ)
 end
 
 checkingFunctions.split = {}
-checkingFunctions.split["yvel<0"] = velocityIsNegative
+checkingFunctions.split["at apex"] = velocityIsNegative
 applyingFunctions.split = function(proID)
-	local px, py, pz = SpGetProjectilePosition(proID)
-	local vx, vy, vz, vw = SpGetProjectileVelocity(proID)
+	local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
+	local projectileVelX, projectileVelY, projectileVelZ, speed = SpGetProjectileVelocity(proID)
 	local ownerID = Spring.GetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
 	local projectileDefID = WeaponDefNames[infos.speceffect_def].id
 	local projectileParams = {
-		pos     = { px, py, pz },
+		pos     = { projectilePosX, projectilePosY, projectilePosZ },
 		owner   = ownerID,
 		ttl     = 3000,
 		gravity = gravityPerFrame,
@@ -169,55 +171,54 @@ applyingFunctions.split = function(proID)
 	}
 	for _ = 1, tonumber(infos.number) do
 		projectileParams.speed = {
-			vx - vw * (random(-100, 100) / 880),
-			vy - vw * (random(-100, 100) / 440),
-			vz - vw * (random(-100, 100) / 880)
+			projectileVelX - speed * (random(-100, 100) / 880),
+			projectileVelY - speed * (random(-100, 100) / 440),
+			projectileVelZ - speed * (random(-100, 100) / 880)
 		}
 		Spring.SpawnProjectile(projectileDefID, projectileParams)
 	end
-	Spring.SpawnCEG(infos.splitexplosionceg, px, py, pz, 0, 0, 0, 0, 0)
+	Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ)
 	Spring.DeleteProjectile(proID)
 end
 
 -- Water penetration behaviors
 
 checkingFunctions.cannonwaterpen = {}
-checkingFunctions.cannonwaterpen["ypos<=0"] = elevationIsNonpositive
+checkingFunctions.cannonwaterpen["at water level"] = elevationIsNonpositive
 applyingFunctions.cannonwaterpen = function(proID)
-	local px, py, pz = SpGetProjectilePosition(proID)
-	local vx, vy, vz = SpGetProjectileVelocity(proID)
-	local nvx, nvy, nvz = vx * 0.5, vy * 0.5, vz * 0.5
+	local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = SpGetProjectileVelocity(proID)
 	local ownerID = Spring.GetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
 	local projectileParams = {
-		pos = { px, py, pz },
-		speed = { nvx, nvy, nvz },
-		owner = ownerID,
-		ttl = 3000,
-		gravity = -Game.gravity / 3600,
-		model = infos.model,
-		cegTag = infos.cegtag,
+		pos     = { projectilePosX, projectilePosY, projectilePosZ },
+		speed   = { projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5 },
+		owner   = ownerID,
+		ttl     = 3000,
+		gravity = gravityPerFrame * 0.5,
+		model   = infos.model,
+		cegTag  = infos.cegtag,
 	}
 	Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
-	Spring.SpawnCEG(infos.waterpenceg, px, py, pz, 0, 0, 0, 0, 0)
+	Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ)
 	Spring.DeleteProjectile(proID)
 end
 
 checkingFunctions.torpwaterpen = {}
-checkingFunctions.torpwaterpen["ypos<=0"] = elevationIsNonpositive
+checkingFunctions.torpwaterpen["at water level"] = elevationIsNonpositive
 applyingFunctions.torpwaterpen = function(proID)
-	local vx, vyOld, vz = SpGetProjectileVelocity(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = SpGetProjectileVelocity(proID)
 	local targetType, targetID = SpGetProjectileTarget(proID)
-	local vyNew = 0
 	-- Only dive below surface if the target is at an appreciable depth.
+	local diveSpeed = 0
 	if targetType == targetedUnit and targetID then
 		local _, unitPosY = Spring.GetUnitPosition(targetID)
 		if unitPosY and unitPosY < -10 then
-			vyNew = vyOld / 6
+			diveSpeed = projectileVelY / 6
 		end
 	end
 	-- Brake without halting, else torpedoes may overshoot close targets.
-	SpSetProjectileVelocity(proID, vx / 1.3, vyNew, vz / 1.3)
+	SpSetProjectileVelocity(proID, projectileVelX / 1.3, diveSpeed, projectileVelZ / 1.3)
 end
 
 --------------------------------------------------------------------------------
