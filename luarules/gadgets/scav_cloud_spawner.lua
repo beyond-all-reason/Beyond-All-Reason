@@ -115,6 +115,7 @@ function gadget:GameFrame(frame)
             local posx, posy, posz = Spring.GetFeaturePosition(featureID)
             if GG.IsPosInRaptorScum(posx, posy, posz) then
                 --Spring.Echo("isInScum", GG.IsPosInRaptorScum(posx, posy, posz))
+                aliveWrecks[featureID].resurrectable = Spring.GetFeatureResurrect(featureID)
                 if data.resurrectable and data.resurrectable ~= "" then
                     --Spring.Echo("resurrectable", data.resurrectable)
                     if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then

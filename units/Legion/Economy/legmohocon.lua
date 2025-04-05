@@ -45,7 +45,8 @@ return {						--costs should be same as legmohoconct and legmohoconin
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			scav_swap_override = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
+			scav_swap_override_created = "null", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
+			scav_swap_override_captured = "null", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			techlevel = 2,
 		},
 		featuredefs = {
