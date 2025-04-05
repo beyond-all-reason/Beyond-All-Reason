@@ -38,6 +38,9 @@ local glGetTextWidth = gl.GetTextWidth
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glTranslate = gl.Translate
 local max = math.max
 
 local BLINK_FREQUENCY = 0.5
@@ -53,12 +56,17 @@ local UPDATE_FREQUENCY = 0.1  -- Update the display list every
 local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
 local MIN_BLINK_VOLUME = 0.15
 local MAX_BLINK_VOLUME = 0.4
+local MAX_TERRITORIES = 256
+local TEXT_OUTLINE_OFFSET = 0.7  -- Reduced from 1.2
+local TEXT_OUTLINE_ALPHA = 0.35  -- Reduced from 0.6
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
 local COLOR_YELLOW = {1, 0.8, 0, 1}
 local COLOR_BACKGROUND = {0, 0, 0, 0.5}
 local COLOR_BORDER = {0.2, 0.2, 0.2, 0.2}
+local COLOR_GREEN = {0, 0.8, 0, 0.8}
+local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
 local RED_BLINK_COLOR = {0.9, 0, 0, 1}
 local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
 
@@ -77,6 +85,9 @@ local lastDifference = -1
 local lastTextColor = nil
 local lastBackgroundDimensions = nil
 local warningSoundFadeMultiplier = 0.5
+local healthbarWidth = 300
+local healthbarHeight = 20
+local lineWidth = 2
 
 local fontCache = {
 	initialized = false,
@@ -199,27 +210,34 @@ function updateScoreDisplayList()
 		end
 	end
 
-	local displayText = spI18N("ui.territorialdomination.score", { controlled = score, needed = threshold})
-	
-	local textWidth = glGetTextWidth(displayText) * fontCache.fontSize
-	local backgroundWidth = textWidth + (fontCache.paddingX * 2)
-	local backgroundHeight = fontCache.fontSize + (fontCache.paddingY * 2)
-
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local displayPositionX = math.max(backgroundWidth/2, minimapPosX + minimapSizeX/2)
+	local displayPositionX = math.max(healthbarWidth/2, minimapPosX + minimapSizeX/2)
 	local MINIMAP_GAP = 3 -- Gap between minimap and our display
-	local backgroundTop = minimapPosY - MINIMAP_GAP
-	local backgroundBottom = backgroundTop - backgroundHeight
-	local textPositionY = backgroundBottom + (backgroundHeight * TEXT_HEIGHT_MULTIPLIER)
-	local backgroundLeft = displayPositionX - backgroundWidth/2
-	local backgroundRight = displayPositionX + backgroundWidth/2
-
+	
+	-- Set up healthbar dimensions
+	local healthbarTop = minimapPosY - MINIMAP_GAP
+	local healthbarBottom = healthbarTop - healthbarHeight
+	local healthbarLeft = displayPositionX - healthbarWidth/2
+	local healthbarRight = displayPositionX + healthbarWidth/2
+	
+	-- Calculate text metrics and position
+	local textPadding = 4  -- Fixed padding between healthbar and text
+	local textHeight = fontCache.fontSize
+	local textPositionY = healthbarBottom - textPadding - textHeight/2
+	
+	-- Calculate background to include healthbar plus text with padding
+	local backgroundTop = healthbarTop
+	local backgroundBottom = textPositionY - textHeight/2 - 2 -- 2 pixels bottom padding
+	local backgroundLeft = healthbarLeft
+	local backgroundRight = healthbarRight
+	
 	local backgroundDimensions = {
 		left = backgroundLeft,
 		right = backgroundRight,
 		top = backgroundTop,
 		bottom = backgroundBottom,
-		textX = displayPositionX,
+		healthbarTop = healthbarTop,
+		healthbarBottom = healthbarBottom,
 		textY = textPositionY
 	}
 	
@@ -235,7 +253,8 @@ function updateScoreDisplayList()
 		lastBackgroundDimensions.right ~= backgroundDimensions.right or
 		lastBackgroundDimensions.top ~= backgroundDimensions.top or
 		lastBackgroundDimensions.bottom ~= backgroundDimensions.bottom or
-		lastBackgroundDimensions.textX ~= backgroundDimensions.textX or
+		lastBackgroundDimensions.healthbarTop ~= backgroundDimensions.healthbarTop or
+		lastBackgroundDimensions.healthbarBottom ~= backgroundDimensions.healthbarBottom or
 		lastBackgroundDimensions.textY ~= backgroundDimensions.textY
 	
 	if difference ~= lastDifference or textColorChanged or backgroundChanged then
@@ -251,17 +270,158 @@ function updateScoreDisplayList()
 		-- Create a new display list
 		displayList = glCreateList(function()
 			glPushMatrix()
-				-- Draw border (outer rectangle)
+				local textTopY = healthbarBottom - textPadding
+				local textBottomY = textTopY - textHeight
+				
 				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
-				glRect(backgroundLeft - BORDER_WIDTH, backgroundBottom - BORDER_WIDTH, 
-				       backgroundRight + BORDER_WIDTH, backgroundTop + BORDER_WIDTH)
+				glRect(backgroundLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+				       backgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
 				
-				-- Draw background (inner rectangle)
 				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
-				glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
+				glRect(backgroundLeft, healthbarBottom, backgroundRight, healthbarTop)
 				
+				-- Calculate healthbar positions
+				local fullHealthbarLeft = healthbarLeft
+				local fullHealthbarRight = healthbarRight
+				local healthbarScoreRight = healthbarLeft + (score / MAX_TERRITORIES) * healthbarWidth
+				local thresholdX = healthbarLeft + (threshold / MAX_TERRITORIES) * healthbarWidth
+				
+				-- Set up skull icon size to fit within the healthbar
+				local iconSize = 25
+				
+				-- Apply gradient from top to bottom to the healthbar instead of solid color
+				local cornerSize = healthbarHeight * 0.2
+				
+				-- Define a 3-pixel border around the filled portion
+				local borderSize = 3
+				local fillPaddingLeft = fullHealthbarLeft + borderSize
+				local fillPaddingRight = healthbarScoreRight - borderSize
+				local fillPaddingTop = healthbarTop  -- Removed top padding
+				local fillPaddingBottom = healthbarBottom + borderSize
+				
+				-- Main gradient (brighter on top, darker at bottom) - more subtle
+				local baseGreen = COLOR_GREEN
+				local topColor = {baseGreen[1], baseGreen[2], baseGreen[3], baseGreen[4]}
+				-- Make bottom color less different from top color for more subtle gradient
+				local bottomColor = {baseGreen[1]*0.7, baseGreen[2]*0.7, baseGreen[3]*0.7, baseGreen[4]}
+				
+				-- Create the gradient rectangle
+				-- First draw background gradient
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				
+				if fillPaddingLeft < fillPaddingRight then
+					-- Top to bottom gradient with 3-pixel border
+					local vertices = {
+						-- Bottom left
+						{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
+						-- Bottom right
+						{v = {fillPaddingRight, fillPaddingBottom}, c = bottomColor},
+						-- Top right
+						{v = {fillPaddingRight, fillPaddingTop}, c = topColor},
+						-- Top left
+						{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
+					}
+					gl.Shape(GL.QUADS, vertices)
+					
+					-- Add glossiness to top portion (reduced for subtlety)
+					local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
+					gl.Blending(GL.SRC_ALPHA, GL.ONE)
+					
+					-- Top highlight (more subtle)
+					local topGlossBottom = fillPaddingTop - glossHeight
+					vertices = {
+						-- Bottom left
+						{v = {fillPaddingLeft, topGlossBottom}, c = {1, 1, 1, 0}},
+						-- Bottom right
+						{v = {fillPaddingRight, topGlossBottom}, c = {1, 1, 1, 0}},
+						-- Top right
+						{v = {fillPaddingRight, fillPaddingTop}, c = {1, 1, 1, 0.04}}, -- reduced from 0.07
+						-- Top left
+						{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}  -- reduced from 0.07
+					}
+					gl.Shape(GL.QUADS, vertices)
+					
+					-- Bottom highlight (more subtle)
+					local bottomGlossHeight = (fillPaddingTop - fillPaddingBottom) * 0.2
+					vertices = {
+						-- Bottom left
+						{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}}, -- reduced from 0.03
+						-- Bottom right
+						{v = {fillPaddingRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}}, -- reduced from 0.03
+						-- Top right
+						{v = {fillPaddingRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
+						-- Top left
+						{v = {fillPaddingLeft, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}}
+					}
+					gl.Shape(GL.QUADS, vertices)
+					
+					gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				end
+				
+				-- Draw skull icon at the threshold position inside the healthbar
+				glPushMatrix()
+				local skullY = healthbarBottom + healthbarHeight/2
+				glTranslate(thresholdX, skullY, 0)
+				
+				-- Add shadow effect for the skull
+				local shadowOffset = 1.5
+				local shadowAlpha = 0.6
+				local shadowScale = 1.1
+				
+				-- Draw shadow (slightly larger, offset, and black)
+				glColor(0, 0, 0, shadowAlpha)
+				glTexture(':n:LuaUI/Images/skull.dds')
+				glTexRect(
+					-iconSize/2 * shadowScale + shadowOffset, 
+					-iconSize/2 * shadowScale - shadowOffset, 
+					iconSize/2 * shadowScale + shadowOffset, 
+					iconSize/2 * shadowScale - shadowOffset
+				)
+				
+				-- Draw the actual skull icon
+				glColor(1, 1, 1, 1) -- White for maximum contrast
+				glTexture(':n:LuaUI/Images/skull.dds')
+				glTexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+				glTexture(false)
+				glPopMatrix()
+				
+				-- Restore the white line with black background
+				local lineExtension = 3 -- How many pixels the lines extend beyond the bar
+				
+				-- Draw black background for white line (slightly wider than the line itself)
+				glColor(0, 0, 0, 0.8)
+				glRect(healthbarScoreRight - lineWidth - 1, healthbarBottom - lineExtension, 
+				       healthbarScoreRight + lineWidth + 1, healthbarTop + lineExtension)
+				
+				-- Draw the line using the same color as the fill (gradient green)
+				glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4])
+				glRect(healthbarScoreRight - lineWidth/2, healthbarBottom - lineExtension, 
+				       healthbarScoreRight + lineWidth/2, healthbarTop + lineExtension)
+				
+				-- Draw score difference text with outline
+				-- Position the text below the healthbar
+				local textY = healthbarBottom - textHeight
+				
+				-- Format the difference with a plus sign for positive values
+				local formattedDifference = difference
+				if difference > 0 then
+					formattedDifference = "+" .. difference
+				end
+				
+				-- Draw fuzzy black outline
+				glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+				glText(formattedDifference, healthbarScoreRight - TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight + TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight - TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight + TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight - TEXT_OUTLINE_OFFSET, textY, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight + TEXT_OUTLINE_OFFSET, textY, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "c")
+				
+				-- Draw actual text
 				glColor(textColor[1], textColor[2], textColor[3], textColor[4])
-				glText(displayText, displayPositionX, textPositionY, fontCache.fontSize, "c")
+				glText(formattedDifference, healthbarScoreRight, textY, fontCache.fontSize, "c")
 			glPopMatrix()
 		end)
 	end
