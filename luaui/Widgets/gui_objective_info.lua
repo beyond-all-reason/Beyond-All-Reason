@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name    = "Objective Info",
 		desc    = "Displays information about game objectives.",
 		author  = "Floris",
-		date    = "April 2025",
+		date    = "Jan 2020",
 		license = "GNU GPL, v2 or later",
 		layer   = -99990,
 		enabled = true,
