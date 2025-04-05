@@ -14,12 +14,21 @@ local modOptions = Spring.GetModOptions()
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local textTable = {}
-local root = "gamedata/objectives/"
-if scavengersAIEnabled then
-	textTable[#textTable+1] = VFS.LoadFile(root .. "scavengers.txt")
+
+-- Function to load objective text from interface.json
+local function loadObjective(objectiveType)
+	local objectiveText = Spring.I18N('objectives.' .. objectiveType)
+	if objectiveText then
+		textTable[#textTable+1] = objectiveText
+	else
+		Spring.Echo("Objective not found: " .. objectiveType)
+	end
 end
-Spring.Echo("text table entries", #textTable)
---add additional entries to the table gated behind if statements
+
+if scavengersAIEnabled then
+	loadObjective("scavengers")
+end
+--add more entries with additional if statements
 
 if not next(textTable) then
 	return false
