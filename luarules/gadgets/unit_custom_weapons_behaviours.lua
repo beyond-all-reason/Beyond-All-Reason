@@ -271,7 +271,7 @@ function gadget:Initialize()
 		end
 	end
 	if not next(weaponCustomParams) then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No custom weapons found. Removing.") -- todo: back to INFO
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found. Removing.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
