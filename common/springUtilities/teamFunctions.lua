@@ -122,7 +122,7 @@ return {
 	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
 	GetAllyTeamList  = function () return getSettings().allyTeamList end,
-	---@return integer? playerCount Get number of players in a game
+	---@return integer? playerCount Get number of players in a game, nil If it's an AI only game
 	GetPlayerCount   = function () return getSettings().playerCount end,
 	Gametype = {
 		---@return boolean
