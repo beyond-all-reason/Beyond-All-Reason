@@ -122,22 +122,38 @@ return {
 	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
 	GetAllyTeamList  = function () return getSettings().allyTeamList end,
+	---@return integer? playerCount number of players in a game
 	GetPlayerCount   = function () return getSettings().playerCount end,
 	Gametype = {
+		---@return boolean
 		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
+		---@return boolean
 		Is1v1          = function () return getSettings().is1v1          end,
+		---@return boolean
 		IsTeams        = function () return getSettings().isTeams        end,
+		---@return boolean
 		IsBigTeams     = function () return getSettings().isBigTeams     end,
+		---@return boolean
 		IsSmallTeams   = function () return getSettings().isSmallTeams   end,
+		---@return boolean
 		IsRaptors      = function () return getSettings().isRaptors      end,
+		---@return boolean
 		IsScavengers   = function () return getSettings().isScavengers   end,
+		---@return boolean
 		IsPvE          = function () return getSettings().isPvE          end,
+		---@return boolean
 		IsCoop         = function () return getSettings().isCoop         end,
+		---@return boolean
 		IsFFA          = function () return getSettings().isFFA          end,
+		---@return boolean
 		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
+	---@return integer? scavTeamID team ID for the scavenger team
 	GetScavTeamID = function () return getSettings().scavTeamID end,
+	---@return integer? scavAllyTeamID team ID for the scavenger ally team
 	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
+	---@return integer? raptorTeamID team ID for the raptor team
 	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
+	---@return integer? raptorAllyTeamID team ID for the raptor ally team
 	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
 }
