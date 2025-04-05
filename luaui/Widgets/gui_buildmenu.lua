@@ -274,12 +274,10 @@ local function RefreshCommands()
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
-			local i = 0
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
-						i = i + 1
 					end
 				end
 			end
@@ -414,6 +412,7 @@ function widget:Update(dt)
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 		end
 		selectedBuilders = {}
+		local prevSelectedFactoryCount = selectedFactoryCount
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
 		local selBuilderDefs = {}
@@ -430,6 +429,10 @@ function widget:Update(dt)
 					selectedBuilderCount = selectedBuilderCount + 1
 					selBuilderDefs[uDefID] = true
 				end
+			end
+
+			if selectedFactoryCount ~= prevSelectedFactoryCount then
+				doUpdate = true
 			end
 
 			-- check if builder type selection actually differs from previous selection
@@ -661,13 +664,6 @@ function drawBuildmenu()
 				colls = colls - 1
 				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows)))
 			end
-			--cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
-			--colls = math_min(minColls, math_floor(contentWidth / cellSize))
-			--if contentWidth / colls < contentWidth / cellSize then
-			--	rows = rows + 1
-			--	cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
-			--	colls = math_min(minColls, math_floor(contentWidth / cellSize))
-			--end
 		end
 	end
 
