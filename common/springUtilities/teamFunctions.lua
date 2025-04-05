@@ -122,7 +122,7 @@ return {
 	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
 	GetAllyTeamList  = function () return getSettings().allyTeamList end,
-	---@return integer? playerCount Get number of players in a game, nil If it's an AI only game
+	---@return integer? playerCount Get number of players in a game, nil If it's an AI only game.
 	GetPlayerCount   = function () return getSettings().playerCount end,
 	Gametype = {
 		---@return boolean
@@ -148,12 +148,12 @@ return {
 		---@return boolean
 		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
-	---@return integer? scavTeamID Team ID for the scavenger team
+	---@return integer? scavTeamID Team ID for the scavenger team.
 	GetScavTeamID = function () return getSettings().scavTeamID end,
-	---@return integer? scavAllyTeamID Team ID for the scavenger ally team
+	---@return integer? scavAllyTeamID Team ID for the scavenger ally team.
 	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
-	---@return integer? raptorTeamID Team ID for the raptor team
+	---@return integer? raptorTeamID Team ID for the raptor team.
 	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
-	---@return integer? raptorAllyTeamID Team ID for the raptor ally team
+	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
 	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
 }
