@@ -15,9 +15,8 @@ local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local textTable = {}
 
--- Function to load objective text from interface.json
-local function loadObjective(objectiveType)
-	local objectiveText = Spring.I18N('objectives.' .. objectiveType)
+local function loadObjectivesText(objectiveType)
+	local objectiveText = Spring.I18N("objectives." .. objectiveType)
 	if objectiveText then
 		textTable[#textTable+1] = objectiveText
 	else
@@ -26,7 +25,7 @@ local function loadObjective(objectiveType)
 end
 
 if scavengersAIEnabled then
-	loadObjective("scavengers")
+	loadObjectivesText("scavengers")
 end
 --add more entries with additional if statements
 
@@ -34,7 +33,7 @@ if not next(textTable) then
 	return false
 end
 
-local textFile = table.concat(textTable, "\n")
+local textFile = table.concat(textTable, "\n______________________________________________________________________________\n\n")
 
 local show = true	-- gets disabled when it has been loaded before
 
