@@ -35,7 +35,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.AddTeamResource(unitTeam, "energy", energyCost)
 		return
 	end
-	Spring.SetUnitBlocking(imex_id, true, false, false)													-- makes imex non interactive
+	Spring.SetUnitBlocking(imex_id, true, true, false)													-- makes imex non interactive
 	Spring.SetUnitNoSelect(imex_id,true)
 	local nano_id = Spring.CreateUnit("legmohoconct",xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
 	if not nano_id then
