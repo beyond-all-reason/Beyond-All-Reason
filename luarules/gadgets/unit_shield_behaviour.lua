@@ -39,7 +39,8 @@ local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
-local spGetProjectilesInSphere      = Spring.GetProjectilesInSphere
+local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
+local spGetProjectilesInSphere   	= Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
 local spUseUnitResource             = Spring.UseUnitResource
@@ -239,7 +240,19 @@ local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
 	if not x then
 		return -- Unit doesn't exist or is invalid
 	end
-	local projectiles = spGetProjectilesInSphere(x, y, z, radius)
+	local projectiles
+	if spGetProjectilesInSphere then
+		projectiles = spGetProjectilesInSphere(x, y, z, radius)
+	else
+		-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
+		-- TODO: Change to GetProjectilesInCircle once it is added
+		local radius = radius * math.sqrt(math.pi) / 2
+		local xmin = x - radius
+		local xmax = x + radius
+		local zmin = z - radius
+		local zmax = z + radius
+		projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
+	end
 	for _, projectileID in ipairs(projectiles) do
 		projectileShieldHitCache[projectileID] = true
 	end
