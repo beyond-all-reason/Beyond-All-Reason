@@ -46,6 +46,7 @@ return {						--costs should be same as legmohocon and legmohoconct
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
+			scav_swap_override = "legmohocon_scav", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 		},
