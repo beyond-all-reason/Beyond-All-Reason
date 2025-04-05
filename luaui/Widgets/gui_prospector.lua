@@ -32,16 +32,10 @@ local GetGroundInfo = Spring.GetGroundInfo
 local GetGameFrame = Spring.GetGameFrame
 local GetMapDrawMode = Spring.GetMapDrawMode
 
-local glLineWidth = gl.LineWidth
 local glColor = gl.Color
 local glRect = gl.Rect
 local glPolygonMode = gl.PolygonMode
-local glDrawGroundCircle = gl.DrawGroundCircle
-local glUnitShape = gl.UnitShape
 
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
 
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL

@@ -55,7 +55,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
-	local min = math.min
 
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}

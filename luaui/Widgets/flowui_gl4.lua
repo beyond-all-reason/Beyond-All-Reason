@@ -17,12 +17,8 @@ end
 
 local debugmode = false
 
-local glLineWidth = gl.LineWidth
-local glDepthTest = gl.DepthTest
-local GL_LINES = GL.LINES
 local font, loadedFontSize
 local rectRoundVBO = nil
-local vsx, vsy = Spring.GetViewGeometry()
 local groups = {} -- {energy = 'LuaUI/Images/groupicons/'energy.png',...}, retrieves from buildmenu in initialize
 local unitGroup = {}	-- {unitDefID = 'energy'}retrieves from buildmenu in initialize
 local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initialize
@@ -459,7 +455,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			end
 
 			if delta then
-				local cache = self.vboCache
 
 				self.vboCache[self.vbokeys[keyname]] = self.vboCache[self.vbokeys[keyname]] + delta
 			else
@@ -1775,9 +1770,6 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 	-- texture should be a table of UV coords from atlas
 	local fronttextalpha = 0
 
-	if texture == nil then
-	end
-
 	if atlasID == nil then
 			texture = {0,0,1,1}
 	else
@@ -1787,10 +1779,7 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 
 	if color == nil then color = {1,1,1,0.5} end
 	--uvs = Draw.TransformUVAtlasxXyY(texture, uvs) -- DO OFFSET!
-	local scale = size and (size / (sx-px)) or 1
 	--local offset = offset or 0
-	local csyMult = 1 / ((sy - py) / cs)
-	local ycMult = (sy-py) / (sx-px)
 
 	if z == nil then z = 0.50 end  -- fools depth sort
 	if c2 == nil then c2 = c1 end

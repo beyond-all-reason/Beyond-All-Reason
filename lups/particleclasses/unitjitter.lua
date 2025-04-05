@@ -5,7 +5,6 @@ local UnitJitter = {}
 UnitJitter.__index = UnitJitter
 
 local warpShader, warpShader2
-local tex
 local timerUniform
 local lastCullFace = GL.FRONT
 
@@ -53,7 +52,6 @@ local GL_BACK = GL.BACK
 local GL_FRONT = GL.FRONT
 local glCulling = gl.Culling
 local glUnit = gl.Unit
-local glUniform = gl.Uniform
 local glColor = gl.Color
 local glMultiTexCoord = gl.MultiTexCoord
 
