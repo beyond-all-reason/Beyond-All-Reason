@@ -284,7 +284,7 @@ return {
 					overrange_distance = 750,
 					projectile_destruction_method = "descend",
 					speceffect = "cruise",
-					speceffect_when = "distance>0",
+					speceffect_when = "until lockon",
 				},
 				damage = {
 					default = 200,

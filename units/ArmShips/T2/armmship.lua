@@ -193,7 +193,7 @@ return {
 					number = "6",
 					speceffect = "split",
 					speceffect_def = "armmship_rocket_split",
-					speceffect_when = "yvel<0",
+					speceffect_when = "at apex",
 					splitexplosionceg = "genericshellexplosion-medium",
 				},
 				damage = {
