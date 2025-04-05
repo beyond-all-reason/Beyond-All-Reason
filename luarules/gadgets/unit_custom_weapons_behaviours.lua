@@ -159,7 +159,7 @@ applyingFunctions.split = function(proID)
 	local vx, vy, vz, vw = SpGetProjectileVelocity(proID)
 	local ownerID = Spring.GetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
-	local projectileDefID = WeaponDefNames[infos.def].id
+	local projectileDefID = WeaponDefNames[infos.speceffect_def].id
 	local projectileParams = {
 		pos     = { px, py, pz },
 		owner   = ownerID,
@@ -199,7 +199,7 @@ applyingFunctions.cannonwaterpen = function(proID)
 		model = infos.model,
 		cegTag = infos.cegtag,
 	}
-	Spring.SpawnProjectile(WeaponDefNames[infos.def].id, projectileParams)
+	Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
 	Spring.SpawnCEG(infos.waterpenceg, px, py, pz, 0, 0, 0, 0, 0)
 	Spring.DeleteProjectile(proID)
 end
@@ -259,7 +259,7 @@ function gadget:Initialize()
 			local def = weaponDef.customParams.speceffect_def
 			if def and not WeaponDefNames[def] then
 				local message = "Custom weapon has bad custom params: " .. weaponDef.name
-				message = message .. ' (def=' .. def .. ')'
+				message = message .. ' (speceffect_def=' .. def .. ')'
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
 			elseif not checkingFunctions[speceffect][when] or not applyingFunctions[speceffect] then
 				local message = "Custom weapon has bad custom params: " .. weaponDef.name
