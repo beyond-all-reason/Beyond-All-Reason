@@ -1903,7 +1903,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
 
