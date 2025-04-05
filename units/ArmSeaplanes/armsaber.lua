@@ -85,7 +85,7 @@ return {
 				cratermult = 0,
 				duration = 0.05,
 				edgeeffectiveness = 0.15,
-				energypershot = 15,
+				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulsefactor = 0,
 				intensity = 4,
