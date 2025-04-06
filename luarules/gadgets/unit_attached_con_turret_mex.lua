@@ -34,6 +34,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
 	local original = Spring.GetUnitNearestAlly(unitID) 
 	local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
+  Spring.SetUnitHealth(unitID, {build = 0.5}) -- HAX required to make BARbarians not crash for now.
 	local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
 	--Spring.Echo(unitID, original, orgmetalCost)
 	if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
