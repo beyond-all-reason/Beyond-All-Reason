@@ -991,9 +991,36 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "basic", minAnger = 85, maxAnger = 1000, units = { {count = 8, unit = "raptor_land_swarmer_basic_t3_v1"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v2"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v3"} }})
-addNewSquad({ type = "basic", minAnger = 85, maxAnger = 1000, units = { {count = 8, unit = "raptor_land_swarmer_basic_t3_v2"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v3"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v1"} }})
-addNewSquad({ type = "basic", minAnger = 85, maxAnger = 1000, units = { {count = 8, unit = "raptor_land_swarmer_basic_t3_v3"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v1"}, {count = 8, unit = "raptor_land_swarmer_basic_t3_v2"} }})
+addNewSquad({
+	type = "basic",
+	minAnger = 85,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v1"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v2"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v3"}
+	}
+})
+addNewSquad({
+	type = "basic",
+	minAnger = 85,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v2"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v3"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v1"}
+	}
+})
+addNewSquad({
+	type = "basic",
+	minAnger = 85,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v3"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v1"},
+		{count = 8, unit = "raptor_land_swarmer_basic_t3_v2"}
+	}
+})
 
 -- Apex Swarmer
 
