@@ -2,6 +2,7 @@
 • [Pawn] 52m 870e -> 54m 900e
 • [Grunt] 210 -> 215 range
 • [Spybots] Can paralyze buildings up to 20s
+• [Antinuke buildings] Health 3650 -> 3300 (facilitating a full-length stun from spybot)
 • [Shuriken + Abductor] Regain targetmoveerror, revert Shuriken reloadtime 1.3s -> 1.2s
 
 # March 2025
