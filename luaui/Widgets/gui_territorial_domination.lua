@@ -15,6 +15,7 @@ if modOptions.deathmode ~= "territorial_domination" then return false end
 
 local floor = math.floor
 local format = string.format
+local len = string.len
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -92,7 +93,7 @@ local lineWidth = 2
 local maxThreshold = 256
 
 -- Helper functions to reduce upvalues in main functions
-local function drawHealthBar(left, right, bottom, top, score, threshold, textColor)
+local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
 	-- Calculate healthbar positions
 	local fullHealthbarLeft = left
 	local fullHealthbarRight = right
@@ -120,10 +121,10 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 	local fillPaddingBottom = bottom + borderSize
 	
 	-- Main gradient (brighter on top, darker at bottom) - more subtle
-	local baseGreen = COLOR_GREEN
-	local topColor = {baseGreen[1], baseGreen[2], baseGreen[3], baseGreen[4]}
+	local baseColor = barColor
+	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
 	-- Make bottom color less different from top color for more subtle gradient
-	local bottomColor = {baseGreen[1]*0.7, baseGreen[2]*0.7, baseGreen[3]*0.7, baseGreen[4]}
+	local bottomColor = {baseColor[1]*0.7, baseColor[2]*0.7, baseColor[3]*0.7, baseColor[4]}
 	
 	-- Create the gradient rectangle
 	-- First draw background gradient
@@ -245,8 +246,9 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 		iconSize/2 * shadowScale - shadowOffset
 	)
 	
-	-- Draw the actual skull icon
-	glColor(1, 1, 1, 1) -- White for maximum contrast
+	-- Draw the actual skull icon - reduce opacity if threshold is frozen
+	local skullAlpha = isThresholdFrozen and 0.5 or 1.0
+	glColor(1, 1, 1, skullAlpha) -- White with adjusted alpha
 	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
 	glTexture(false)
@@ -265,8 +267,8 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 	glRect(healthbarScoreRight - lineWidth/2, bottom - lineExtension, 
 		   healthbarScoreRight + lineWidth/2, top + lineExtension)
 		   
-	-- Return both the score position and the potentially expanded right edge
-	return healthbarScoreRight, right
+	-- Return both the score position, the potentially expanded right edge, and the threshold position
+	return healthbarScoreRight, right, thresholdX
 end
 
 local function drawDifferenceText(x, y, difference, fontSize, textColor)
@@ -278,18 +280,18 @@ local function drawDifferenceText(x, y, difference, fontSize, textColor)
 	
 	-- Draw fuzzy black outline
 	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
-	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y, fontSize, "c")
-	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y, fontSize, "c")
-	glText(formattedDifference, x, y - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(formattedDifference, x, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
+	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
+	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "l")
+	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "l")
+	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y, fontSize, "l")
+	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y, fontSize, "l")
+	glText(formattedDifference, x, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
+	glText(formattedDifference, x, y + TEXT_OUTLINE_OFFSET, fontSize, "l")
 	
 	-- Draw actual text
 	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
-	glText(formattedDifference, x, y, fontSize, "c")
+	glText(formattedDifference, x, y, fontSize, "l")
 end
 
 local fontCache = {
@@ -365,53 +367,17 @@ function updateScoreDisplayList()
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 	
-	local shouldGreyOutText = isThresholdFrozen and timeUntilUnfreeze > WARNING_SECONDS
-
-	local textColor
-	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
-		if currentGameTime > lastFreezeBlinkTime + BLINK_VOLUME_WARNING_RESET_SECONDS then
-			warningSoundFadeMultiplier = MAX_BLINK_VOLUME
-		end
-		if currentGameTime - lastFreezeBlinkTime > BLINK_FREQUENCY then
-			lastFreezeBlinkTime = currentGameTime
-			if isFreezeWarningVisible and not amSpectating then
-				spPlaySoundFile('cmd-onoff', warningSoundFadeMultiplier, "ui")
-				warningSoundFadeMultiplier = math.max(MIN_BLINK_VOLUME, warningSoundFadeMultiplier * 0.9)
-			end
-			isFreezeWarningVisible = not isFreezeWarningVisible
-		end
-		
-		if isFreezeWarningVisible then
-			textColor = FROZEN_TEXT_COLOR
-		else
-			if difference <= WARNING_THRESHOLD then
-				textColor = COLOR_RED
-			elseif difference <= ALERT_THRESHOLD then
-				textColor = COLOR_YELLOW
-			else
-				textColor = COLOR_WHITE
-			end
-		end
+	-- Always use white for text
+	local textColor = COLOR_WHITE
+	
+	-- Determine bar color based on conditions
+	local barColor
+	if difference <= WARNING_THRESHOLD then
+		barColor = COLOR_RED
+	elseif difference <= ALERT_THRESHOLD then
+		barColor = COLOR_YELLOW
 	else
-		if shouldGreyOutText then
-			textColor = FROZEN_TEXT_COLOR
-		else
-			if difference <= WARNING_THRESHOLD then
-				if currentGameTime - lastWarningBlinkTime > BLINK_FREQUENCY then
-					lastWarningBlinkTime = currentGameTime
-					isWarningVisible = not isWarningVisible
-					if isWarningVisible and not amSpectating then
-						spPlaySoundFile('cmd-onoff', warningSoundFadeMultiplier, "ui")
-						warningSoundFadeMultiplier = max(MIN_BLINK_VOLUME, warningSoundFadeMultiplier * 0.9)
-					end
-				end
-				textColor = isWarningVisible and COLOR_RED or RED_BLINK_COLOR
-			elseif difference <= ALERT_THRESHOLD then
-				textColor = COLOR_YELLOW
-			else
-				textColor = COLOR_WHITE
-			end
-		end
+		barColor = COLOR_GREEN
 	end
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
@@ -431,13 +397,13 @@ function updateScoreDisplayList()
 	local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth  -- End before half the skull width
 	
 	-- Calculate text metrics and position
-	local textPadding = 4  -- Fixed padding between healthbar and text
+	local textPadding = 8  -- Horizontal padding between healthbar and text
 	local textHeight = fontCache.fontSize
 	local textPositionY = healthbarBottom - textPadding - textHeight/2
 	
 	-- Calculate background to include healthbar plus text with padding
 	local backgroundTop = healthbarTop
-	local backgroundBottom = textPositionY - textHeight/2 - 2 -- 2 pixels bottom padding
+	local backgroundBottom = healthbarBottom
 	local backgroundLeft = healthbarLeft
 	local backgroundRight = healthbarRight
 	
@@ -450,17 +416,10 @@ function updateScoreDisplayList()
 		bottom = backgroundBottom,
 		healthbarTop = healthbarTop,
 		healthbarBottom = healthbarBottom,
-		textY = textPositionY,
 		exceedsMaxThreshold = exceedsMaxThreshold
 	}
 	
 	-- Only recreate the display list if something has changed
-	local textColorChanged = lastTextColor == nil or 
-		lastTextColor[1] ~= textColor[1] or 
-		lastTextColor[2] ~= textColor[2] or 
-		lastTextColor[3] ~= textColor[3] or 
-		lastTextColor[4] ~= textColor[4]
-	
 	local backgroundChanged = lastBackgroundDimensions == nil or
 		lastBackgroundDimensions.left ~= backgroundDimensions.left or
 		lastBackgroundDimensions.right ~= backgroundDimensions.right or
@@ -468,12 +427,10 @@ function updateScoreDisplayList()
 		lastBackgroundDimensions.bottom ~= backgroundDimensions.bottom or
 		lastBackgroundDimensions.healthbarTop ~= backgroundDimensions.healthbarTop or
 		lastBackgroundDimensions.healthbarBottom ~= backgroundDimensions.healthbarBottom or
-		lastBackgroundDimensions.textY ~= backgroundDimensions.textY or
 		lastBackgroundDimensions.exceedsMaxThreshold ~= backgroundDimensions.exceedsMaxThreshold
 	
-	if difference ~= lastDifference or textColorChanged or backgroundChanged then
+	if difference ~= lastDifference or backgroundChanged then
 		lastDifference = difference
-		lastTextColor = {textColor[1], textColor[2], textColor[3], textColor[4]}
 		lastBackgroundDimensions = backgroundDimensions
 		
 		-- Delete the old display list if it exists
@@ -487,6 +444,7 @@ function updateScoreDisplayList()
 				-- First, calculate the score position and actual width without drawing
 				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
 				local actualRight = healthbarRight
+				local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
 				if score > maxThreshold then
 					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
 				end
@@ -504,15 +462,37 @@ function updateScoreDisplayList()
 				glRect(backgroundLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
 				-- Now draw the health bar over the background
-				local healthbarScoreRight, actualRight = drawHealthBar(
+				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
 					healthbarLeft, healthbarRight, 
 					healthbarBottom, healthbarTop, 
-					score, threshold, textColor
+					score, threshold, barColor, isThresholdFrozen
 				)
 				
-				-- Draw score difference text
-				local textY = healthbarBottom - textHeight
-				drawDifferenceText(healthbarScoreRight, textY, difference, fontCache.fontSize, textColor)
+				-- Calculate a safe position for the text relative to the skull
+				local textX
+				local iconSize = 25
+				local textPadding = 2  -- Small padding between skull and text
+				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+				
+				-- Default: put text to the right of the skull
+				textX = thresholdX + iconSize/2 + textPadding
+				
+				-- If that would put it outside the green zone (score position), flip to the left
+				if textX > healthbarScoreRight then
+					textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
+					
+					-- If that's outside the bar area entirely, put it back on the right
+					if textX < healthbarLeft then
+						textX = thresholdX + iconSize/2 + textPadding
+					end
+				end
+				
+				-- Vertical center alignment
+				local verticalOffset = -3  -- Pixels to offset downward, adjust as needed
+				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+				
+				-- Draw score difference text inside the health bar (always white)
+				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 			glPopMatrix()
 		end)
 	end
