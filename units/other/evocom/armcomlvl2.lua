@@ -274,7 +274,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "uwlasrfir1",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 5,
 				tolerance = 10000,
 				turret = true,

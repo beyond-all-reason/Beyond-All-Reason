@@ -85,7 +85,6 @@ return {
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
 				targetborder = 0.75,
-				targetmoveerror = 0.1,
 				thickness = 1.25,
 				tolerance = 7000,
 				turret = false,

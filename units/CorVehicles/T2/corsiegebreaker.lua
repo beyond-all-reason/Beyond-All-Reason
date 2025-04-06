@@ -214,7 +214,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundtrigger = 0,
-				targetmoveerror = 0,
 				thickness = 2.6,
 				tolerance = 1000,
 				turret = true,
