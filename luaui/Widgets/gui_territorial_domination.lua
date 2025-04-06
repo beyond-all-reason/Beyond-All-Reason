@@ -479,11 +479,29 @@ function updateScoreDisplayList()
 					local exceedsMaxThreshold = score > maxThreshold
 					local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
 					
-					glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
+					-- Create a tinted background based on team color (very subtle)
+					local bgTintStrength = 0.15  -- How strong the team color affects the background
+					local tintedBackgroundColor = {
+						backgroundColor[1] + (teamColor[1] - backgroundColor[1]) * bgTintStrength,
+						backgroundColor[2] + (teamColor[2] - backgroundColor[2]) * bgTintStrength,
+						backgroundColor[3] + (teamColor[3] - backgroundColor[3]) * bgTintStrength,
+						backgroundColor[4]
+					}
+					
+					-- Also tint the border slightly
+					local borderTintStrength = 0.1  -- Border tint is more subtle
+					local tintedBorderColor = {
+						borderColor[1] + (teamColor[1] - borderColor[1]) * borderTintStrength,
+						borderColor[2] + (teamColor[2] - borderColor[2]) * borderTintStrength,
+						borderColor[3] + (teamColor[3] - borderColor[3]) * borderTintStrength,
+						borderColor[4]
+					}
+					
+					glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
 					glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
 						   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
 						   
-					glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
+					glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
 					glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 					
 					local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
@@ -563,11 +581,29 @@ function updateScoreDisplayList()
 			local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
 			
 			glPushMatrix()
-				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
+				-- Create a tinted background based on team color (very subtle)
+				local bgTintStrength = 0.15  -- How strong the team color affects the background
+				local tintedBackgroundColor = {
+					backgroundColor[1] + (barColor[1] - backgroundColor[1]) * bgTintStrength,
+					backgroundColor[2] + (barColor[2] - backgroundColor[2]) * bgTintStrength,
+					backgroundColor[3] + (barColor[3] - backgroundColor[3]) * bgTintStrength,
+					backgroundColor[4]
+				}
+				
+				-- Also tint the border slightly
+				local borderTintStrength = 0.1  -- Border tint is more subtle
+				local tintedBorderColor = {
+					borderColor[1] + (barColor[1] - borderColor[1]) * borderTintStrength,
+					borderColor[2] + (barColor[2] - borderColor[2]) * borderTintStrength,
+					borderColor[3] + (barColor[3] - borderColor[3]) * borderTintStrength,
+					borderColor[4]
+				}
+				
+				glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
 				glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
 					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
 					   
-				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
+				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
 				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
 				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
