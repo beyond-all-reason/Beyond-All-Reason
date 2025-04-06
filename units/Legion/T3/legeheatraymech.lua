@@ -170,7 +170,6 @@ return {
 				soundstart = "heatray4burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",

@@ -131,7 +131,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				targetmoveerror = 0,
 				thickness = 1.5,
 				turret = true,
 				weapontype = "LightningCannon",
