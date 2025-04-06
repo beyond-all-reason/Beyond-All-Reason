@@ -11,6 +11,8 @@ function widget:GetInfo()
 end
 
 --the skull is grey for a weird period of time before the end of frozen threshold period
+-- it is possible for the text to clip outside of the healthbar
+-- the bar can exceed the max crazy far, it needs to be bounded to some degree to prevent absurd overvalues
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -57,15 +59,15 @@ local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
-local UPDATE_FREQUENCY = 0.1  -- Update the display list every
+local UPDATE_FREQUENCY = 0.1
 local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
 local MIN_BLINK_VOLUME = 0.15
 local MAX_BLINK_VOLUME = 0.4
-local TEXT_OUTLINE_OFFSET = 0.7  -- Reduced from 1.2
-local TEXT_OUTLINE_ALPHA = 0.35  -- Reduced from 0.6
+local TEXT_OUTLINE_OFFSET = 0.7
+local TEXT_OUTLINE_ALPHA = 0.35
 local LINE_ALPHA = 0.5
 local BLINK_FRAMES = 10
-local BLINK_INTERVAL = 1  -- Blink every half second
+local BLINK_INTERVAL = 1
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -76,12 +78,12 @@ local COLOR_GREEN = {0, 0.8, 0, 0.8}
 local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
 local RED_BLINK_COLOR = {0.9, 0, 0, 1}
 local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
-local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}  -- Ice blue color for frozen healthbar
+local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}
 
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
 local isFreezeWarningVisible = true
-local isSkullFaded = true  -- Track if skull should use faded alpha
+local isSkullFaded = true
 
 local amSpectating = false
 local myAllyID = -1
@@ -98,12 +100,11 @@ local healthbarWidth = 300
 local healthbarHeight = 20
 local lineWidth = 2
 local maxThreshold = 256
-local blinkFrameCounter = 0  -- Counter for frames to control blinking
-local lastBlinkTime = 0  -- Last time we toggled the blink
+
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
-	-- Calculate healthbar positions
+	-- POSITION CALCULATIONS
 	local fullHealthbarLeft = left
 	local fullHealthbarRight = right
 	local barWidth = right - left
@@ -111,7 +112,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local originalRight = right
 	local exceedsMaxThreshold = score > maxThreshold
 	
-	-- If score exceeds maxThreshold, expand the bar
 	if exceedsMaxThreshold then
 		right = left + (score / maxThreshold) * barWidth
 	end
@@ -119,33 +119,27 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local healthbarScoreRight = left + (score / maxThreshold) * barWidth
 	local thresholdX = left + (threshold / maxThreshold) * barWidth
 	
-	-- Set up skull icon size to fit within the healthbar
 	local iconSize = 25
 	
-	-- Define a 3-pixel border around the filled portion
 	local borderSize = 3
 	local fillPaddingLeft = fullHealthbarLeft + borderSize
 	local fillPaddingRight = healthbarScoreRight - borderSize
-	local fillPaddingTop = top  -- Removed top padding
+	local fillPaddingTop = top
 	local fillPaddingBottom = bottom + borderSize
 	
-	-- Main gradient (brighter on top, darker at bottom) - more subtle
+	-- COLOR SETUP
 	local baseColor = isThresholdFrozen and COLOR_ICE_BLUE or barColor
 	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
-	-- Make bottom color less different from top color for more subtle gradient
 	local bottomColor = {baseColor[1]*0.7, baseColor[2]*0.7, baseColor[3]*0.7, baseColor[4]}
 	
-	-- Create the gradient rectangle
-	-- First draw background gradient
+	-- GRADIENT RENDERING
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	if fillPaddingLeft < fillPaddingRight then
-		-- If score exceeds maxThreshold, draw normal part first
 		if exceedsMaxThreshold then
-			-- Normal part (up to originalRight)
+			-- NORMAL SECTION
 			local normalPartRight = originalRight - borderSize
 			
-			-- Top to bottom gradient with 3-pixel border
 			local vertices = {
 				-- Bottom left
 				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
@@ -158,7 +152,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			}
 			gl.Shape(GL.QUADS, vertices)
 			
-			-- Now draw excess part with whiter color (50% whiter)
+			-- EXCESS SECTION
 			local excessTopColor = {
 				topColor[1] + (1 - topColor[1]) * 0.5,
 				topColor[2] + (1 - topColor[2]) * 0.5,
@@ -172,7 +166,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 				bottomColor[4]
 			}
 			
-			-- Draw excess part gradient
 			vertices = {
 				-- Bottom left
 				{v = {normalPartRight, fillPaddingBottom}, c = excessBottomColor},
@@ -185,8 +178,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			}
 			gl.Shape(GL.QUADS, vertices)
 		else
-			-- Standard drawing for normal cases
-			-- Top to bottom gradient with 3-pixel border
+			-- STANDARD SECTION
 			local vertices = {
 				-- Bottom left
 				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
@@ -200,11 +192,11 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			gl.Shape(GL.QUADS, vertices)
 		end
 		
-		-- Add glossiness to top portion (reduced for subtlety)
+		-- HIGHLIGHTS
 		local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		
-		-- Top highlight (more subtle)
+		-- Top highlight
 		local topGlossBottom = fillPaddingTop - glossHeight
 		local vertices = {
 			-- Bottom left
@@ -212,19 +204,19 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			-- Bottom right
 			{v = {fillPaddingRight, topGlossBottom}, c = {1, 1, 1, 0}},
 			-- Top right
-			{v = {fillPaddingRight, fillPaddingTop}, c = {1, 1, 1, 0.04}}, -- reduced from 0.07
+			{v = {fillPaddingRight, fillPaddingTop}, c = {1, 1, 1, 0.04}},
 			-- Top left
-			{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}  -- reduced from 0.07
+			{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}
 		}
 		gl.Shape(GL.QUADS, vertices)
 		
-		-- Bottom highlight (more subtle)
+		-- Bottom highlight
 		local bottomGlossHeight = (fillPaddingTop - fillPaddingBottom) * 0.2
 		vertices = {
 			-- Bottom left
-			{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}}, -- reduced from 0.03
+			{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
 			-- Bottom right
-			{v = {fillPaddingRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}}, -- reduced from 0.03
+			{v = {fillPaddingRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
 			-- Top right
 			{v = {fillPaddingRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
 			-- Top left
@@ -235,17 +227,16 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 	
-	-- Draw skull icon at the threshold position inside the healthbar
+	-- SKULL ICON RENDERING
 	glPushMatrix()
 	local skullY = bottom + (top - bottom)/2
 	glTranslate(thresholdX, skullY, 0)
 	
-	-- Add shadow effect for the skull
+	-- Shadow
 	local shadowOffset = 1.5
 	local shadowAlpha = 0.6
 	local shadowScale = 1.1
 	
-	-- Draw shadow (slightly larger, offset, and black)
 	glColor(0, 0, 0, shadowAlpha)
 	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(
@@ -255,19 +246,17 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		iconSize/2 * shadowScale - shadowOffset
 	)
 	
-	-- Determine skull alpha based on frozen state and blinking
+	-- SKULL ALPHA MANAGEMENT
 	local skullAlpha = 1.0
 	if isThresholdFrozen then
-		-- Get most current game time each time we draw
 		local currentGameTime = spGetGameSeconds()
 		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 		local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 		
 		if timeUntilUnfreeze <= WARNING_SECONDS then
-			-- During warning, show normal color for 33% of the time, faded for 67%
+			-- Warning period blinking
 			local currentTime = os.clock()
 			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
-			-- blinkPhase is now a value between 0.0 and 1.0 representing where we are in the cycle
 			if blinkPhase < 0.33 then
 				skullAlpha = 1.0
 				isSkullFaded = false
@@ -276,7 +265,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 				isSkullFaded = true
 			end
 		else
-			-- Normal frozen state - always faded
+			-- Normal frozen state
 			skullAlpha = 0.5
 			isSkullFaded = true
 		end
@@ -284,7 +273,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		isSkullFaded = false
 	end
 	
-	-- Draw the actual skull icon
+	-- Draw skull
 	glColor(1, 1, 1, skullAlpha)
 	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
@@ -292,31 +281,28 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	glTexture(false)
 	glPopMatrix()
 	
-	-- Restore the white line with black background
-	local lineExtension = 3 -- How many pixels the lines extend beyond the bar
+	-- SCORE LINE RENDERING
+	local lineExtension = 3
 	
-	-- Draw black background for white line (slightly wider than the line itself)
 	glColor(0, 0, 0, 0.8)
 	glRect(healthbarScoreRight - lineWidth - 1, bottom - lineExtension, 
 		   healthbarScoreRight + lineWidth + 1, top + lineExtension)
 	
-	-- Draw the line using the same color as the fill (gradient green)
 	glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], LINE_ALPHA)
 	glRect(healthbarScoreRight - lineWidth/2, bottom - lineExtension, 
 		   healthbarScoreRight + lineWidth/2, top + lineExtension)
 		   
-	-- Return both the score position, the potentially expanded right edge, and the threshold position
 	return healthbarScoreRight, right, thresholdX
 end
 
+-- TEXT RENDERING FUNCTION
 local function drawDifferenceText(x, y, difference, fontSize, textColor)
-	-- Format the difference with a plus sign for positive values
 	local formattedDifference = difference
 	if difference > 0 then
 		formattedDifference = "+" .. difference
 	end
 	
-	-- Draw fuzzy black outline
+	-- Text outline
 	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
 	glText(formattedDifference, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
 	glText(formattedDifference, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
@@ -327,7 +313,7 @@ local function drawDifferenceText(x, y, difference, fontSize, textColor)
 	glText(formattedDifference, x, y - TEXT_OUTLINE_OFFSET, fontSize, "l")
 	glText(formattedDifference, x, y + TEXT_OUTLINE_OFFSET, fontSize, "l")
 	
-	-- Draw actual text
+	-- Main text
 	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
 	glText(formattedDifference, x, y, fontSize, "l")
 end
@@ -355,19 +341,15 @@ function widget:Update(dt)
 	amSpectating = spGetSpectatingState()
 	myAllyID = spGetMyAllyTeamID()
 	
-	-- Get freeze state
 	local currentGameTime = spGetGameSeconds()
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)  -- Ensure timeUntilUnfreeze is never negative
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
-	-- Update the display list at higher frequency during warning period
 	local currentTime = os.clock()
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
-		-- During warning period, update every frame to ensure smooth blinking
 		updateScoreDisplayList()
 	elseif currentTime - lastUpdateTime > UPDATE_FREQUENCY then
-		-- Normal update frequency
 		lastUpdateTime = currentTime
 		updateScoreDisplayList()
 	end
@@ -413,12 +395,10 @@ function updateScoreDisplayList()
 
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)  -- Ensure timeUntilUnfreeze is never negative
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
-	-- Always use white for text
 	local textColor = COLOR_WHITE
 	
-	-- Determine bar color based on conditions
 	local barColor
 	if difference <= WARNING_THRESHOLD then
 		barColor = COLOR_RED
@@ -429,27 +409,22 @@ function updateScoreDisplayList()
 	end
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local MINIMAP_GAP = 3 -- Gap between minimap and our display
+	local MINIMAP_GAP = 3
 	
-	-- Set up skull icon size to fit within the healthbar
 	local iconSize = 25
 	local iconHalfWidth = iconSize / 2
 	
-	-- Scale the healthbar width to match the minimap width, minus the skull icon size
-	healthbarWidth = minimapSizeX - iconHalfWidth * 2  -- Subtract half the skull width from each side
+	healthbarWidth = minimapSizeX - iconHalfWidth * 2
 	
-	-- Set up healthbar dimensions
 	local healthbarTop = minimapPosY - MINIMAP_GAP
 	local healthbarBottom = healthbarTop - healthbarHeight
-	local healthbarLeft = minimapPosX + iconHalfWidth  -- Start after half the skull width
-	local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth  -- End before half the skull width
+	local healthbarLeft = minimapPosX + iconHalfWidth
+	local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
 	
-	-- Calculate text metrics and position
-	local textPadding = 8  -- Horizontal padding between healthbar and text
+	local textPadding = 8
 	local textHeight = fontCache.fontSize
 	local textPositionY = healthbarBottom - textPadding - textHeight/2
 	
-	-- Calculate background to include healthbar plus text with padding
 	local backgroundTop = healthbarTop
 	local backgroundBottom = healthbarBottom
 	local backgroundLeft = healthbarLeft
@@ -467,17 +442,14 @@ function updateScoreDisplayList()
 		exceedsMaxThreshold = exceedsMaxThreshold
 	}
 	
-	-- Check if we're in the warning period for blinking
 	local forceUpdate = false
 	if isThresholdFrozen then
 		local currentWarningTime = max(0, freezeExpirationTime - currentGameTime)
 		if currentWarningTime <= WARNING_SECONDS then
-			-- Always force update every frame during the warning period
 			forceUpdate = true
 		end
 	end
 	
-	-- Only recreate the display list if something has changed or forced update
 	local backgroundChanged = lastBackgroundDimensions == nil or
 		lastBackgroundDimensions.left ~= backgroundDimensions.left or
 		lastBackgroundDimensions.right ~= backgroundDimensions.right or
@@ -491,15 +463,13 @@ function updateScoreDisplayList()
 		lastDifference = difference
 		lastBackgroundDimensions = backgroundDimensions
 		
-		-- Delete the old display list if it exists
 		if displayList then
 			glDeleteList(displayList)
 		end
 		
-		-- Create a new display list
+		-- DISPLAY LIST CREATION
 		displayList = glCreateList(function()
 			glPushMatrix()
-				-- First, calculate the score position and actual width without drawing
 				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
 				local actualRight = healthbarRight
 				local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
@@ -507,11 +477,8 @@ function updateScoreDisplayList()
 					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
 				end
 				
-				-- Now we know the actual width, so we can draw the background to match
-				-- If the score exceeds maxThreshold, adjust the background width
 				local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or backgroundRight
 				
-				-- Draw background and border with potentially adjusted width FIRST
 				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
 				glRect(backgroundLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
 					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
@@ -519,37 +486,30 @@ function updateScoreDisplayList()
 				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
 				glRect(backgroundLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
-				-- Now draw the health bar over the background
 				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
 					healthbarLeft, healthbarRight, 
 					healthbarBottom, healthbarTop, 
 					score, threshold, barColor, isThresholdFrozen
 				)
 				
-				-- Calculate a safe position for the text relative to the skull
 				local textX
 				local iconSize = 25
-				local textPadding = 2  -- Small padding between skull and text
+				local textPadding = 2
 				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
 				
-				-- Default: put text to the right of the skull
 				textX = thresholdX + iconSize/2 + textPadding
 				
-				-- If that would put it outside the green zone (score position), flip to the left
 				if textX > healthbarScoreRight then
 					textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
 					
-					-- If that's outside the bar area entirely, put it back on the right
 					if textX < healthbarLeft then
 						textX = thresholdX + iconSize/2 + textPadding
 					end
 				end
 				
-				-- Vertical center alignment
-				local verticalOffset = -3  -- Pixels to offset downward, adjust as needed
+				local verticalOffset = -3
 				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 				
-				-- Draw score difference text inside the health bar (always white)
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 			glPopMatrix()
 		end)
@@ -557,18 +517,15 @@ function updateScoreDisplayList()
 end
 
 function widget:DrawScreen()
-	-- Always update blinking state on every frame before drawing
 	local currentGameTime = spGetGameSeconds()
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 	
-	-- If we're in the warning period, force update the display list every frame
 	if isSkullFaded or (isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS) then
 		updateScoreDisplayList()
 	end
 	
-	-- Draw the display list
 	if displayList then
 		glCallList(displayList)
 	else
