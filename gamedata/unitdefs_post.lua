@@ -221,11 +221,10 @@ local function preProcessTweakOptions()
 
 	local tweaks = {}
 	for name, value in pairs(modOptions) do
-		local type = name:match("^tweak(units)%d*$") or name:match("^tweak(defs)%d*$")
-		local index = name:match("^tweakunits(%d*)$") or name:match("^tweakdefs(%d*)$")
-		index = tonumber(index) or 0
-		if type and index then
-			table.insert(tweaks, {name = name, type = type, index = index, value = value})
+		local tweakType = name:match("^tweak([a-z]+)%d*$")
+		local index = tonumber(name:match("^tweak[a-z]+(%d*)$")) or 0
+		if (tweakType == 'defs' or tweakType == 'units') and index then
+			table.insert(tweaks, {name = name, type = tweakType, index = index, value = value})
 		end
 	end
 
