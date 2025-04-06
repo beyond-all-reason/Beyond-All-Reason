@@ -127,6 +127,10 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	
 	local iconSize = 25
 	
+
+	local skullOffset = (1 / maxThreshold) * barWidth
+	local skullX = thresholdX - skullOffset
+	
 	local borderSize = 3
 	local fillPaddingLeft = fullHealthbarLeft + borderSize
 	local fillPaddingRight = healthbarScoreRight - borderSize
@@ -270,7 +274,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	-- SKULL ICON RENDERING
 	glPushMatrix()
 	local skullY = bottom + (top - bottom)/2
-	glTranslate(thresholdX, skullY, 0)
+	glTranslate(skullX, skullY, 0)
 	
 	-- Shadow
 	local shadowOffset = 1.5
@@ -337,7 +341,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	glRect(linePos - lineWidth/2, bottom - lineExtension, 
 		   linePos + lineWidth/2, top + lineExtension)
 		   
-	return linePos, originalRight, thresholdX
+	return linePos, originalRight, thresholdX, skullX
 end
 
 -- TEXT RENDERING FUNCTION
@@ -566,7 +570,7 @@ function updateScoreDisplayList()
 				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
 				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
-				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
+				local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
 					healthbarLeft, healthbarRight, 
 					healthbarBottom, healthbarTop, 
 					score, threshold, teamColor, isThresholdFrozen
@@ -576,13 +580,13 @@ function updateScoreDisplayList()
 				local textPadding = 2
 				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
 				
-				textX = thresholdX + iconSize/2 + textPadding
+				textX = skullX + iconSize/2 + textPadding
 				
 				if textX > healthbarScoreRight then
-					textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
+					textX = skullX - iconSize/2 - textPadding - estimatedTextWidth
 					
 					if textX < healthbarLeft then
-						textX = thresholdX + iconSize/2 + textPadding
+						textX = skullX + iconSize/2 + textPadding
 					end
 				end
 				
@@ -668,7 +672,7 @@ function updateScoreDisplayList()
 				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
 				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
-				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
+				local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
 					healthbarLeft, healthbarRight, 
 					healthbarBottom, healthbarTop, 
 					score, threshold, barColor, isThresholdFrozen
@@ -678,13 +682,13 @@ function updateScoreDisplayList()
 				local textPadding = 2
 				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
 				
-				textX = thresholdX + iconSize/2 + textPadding
+				textX = skullX + iconSize/2 + textPadding
 				
 				if textX > healthbarScoreRight then
-					textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
+					textX = skullX - iconSize/2 - textPadding - estimatedTextWidth
 					
 					if textX < healthbarLeft then
-						textX = thresholdX + iconSize/2 + textPadding
+						textX = skullX + iconSize/2 + textPadding
 					end
 				end
 				
