@@ -560,7 +560,7 @@ if SYNCED then
 	local function updateTeamRulesScores()
 		Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
 
-		local maxThreshold = floor(min(#captureGrid, #captureGrid / 2)) -- because 1v1 is the smallest number of competitors
+		local maxThreshold = floor(min(#captureGrid/allyCount, #captureGrid / 2)) -- because 1v1 is the smallest number of competitors
 		Spring.SetGameRulesParam(MAX_THRESHOLD_RULES_KEY, maxThreshold)
 		
 		for allyID, tally in pairs(allyTallies) do

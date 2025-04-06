@@ -114,11 +114,14 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local originalRight = right
 	local exceedsMaxThreshold = score > maxThreshold
 	
+	-- Calculate the actual score position without exceeding the bar width
+	local healthbarScoreRight = left + math.min(score / maxThreshold, 1) * barWidth
+	
+	-- If score exceeds max, we won't extend the bar beyond its normal width
 	if exceedsMaxThreshold then
-		right = left + (score / maxThreshold) * barWidth
+		right = originalRight
 	end
 	
-	local healthbarScoreRight = left + (score / maxThreshold) * barWidth
 	local thresholdX = left + (threshold / maxThreshold) * barWidth
 	
 	local iconSize = 25
@@ -139,22 +142,33 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	
 	if fillPaddingLeft < fillPaddingRight then
 		if exceedsMaxThreshold then
-			-- NORMAL SECTION
-			local normalPartRight = originalRight - borderSize
+			-- Calculate how much the bar exceeds the max threshold
+			local overfillRatio = (score - maxThreshold) / maxThreshold
+			local maxBarWidth = originalRight - borderSize - fillPaddingLeft
+			local overfillWidth = maxBarWidth * overfillRatio
 			
-			local vertices = {
-				-- Bottom left
-				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-				-- Bottom right
-				{v = {normalPartRight, fillPaddingBottom}, c = bottomColor},
-				-- Top right
-				{v = {normalPartRight, fillPaddingTop}, c = topColor},
-				-- Top left
-				{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
-			}
-			gl.Shape(GL.QUADS, vertices)
+			-- Cap the overfill at the full width of the bar
+			overfillWidth = math.min(overfillWidth, maxBarWidth)
 			
-			-- EXCESS SECTION
+			-- The point where the bright color starts (from right side)
+			local brightColorStart = originalRight - borderSize - overfillWidth
+			
+			-- NORMAL COLORED SECTION (left part)
+			if brightColorStart > fillPaddingLeft then
+				local vertices = {
+					-- Bottom left
+					{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
+					-- Bottom right
+					{v = {brightColorStart, fillPaddingBottom}, c = bottomColor},
+					-- Top right
+					{v = {brightColorStart, fillPaddingTop}, c = topColor},
+					-- Top left
+					{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
+				}
+				gl.Shape(GL.QUADS, vertices)
+			end
+			
+			-- BRIGHT COLORED SECTION (right part - backfill)
 			local excessTopColor = {
 				topColor[1] + (1 - topColor[1]) * 0.5,
 				topColor[2] + (1 - topColor[2]) * 0.5,
@@ -168,15 +182,15 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 				bottomColor[4]
 			}
 			
-			vertices = {
+			local vertices = {
 				-- Bottom left
-				{v = {normalPartRight, fillPaddingBottom}, c = excessBottomColor},
+				{v = {brightColorStart, fillPaddingBottom}, c = excessBottomColor},
 				-- Bottom right
-				{v = {fillPaddingRight, fillPaddingBottom}, c = excessBottomColor},
+				{v = {originalRight - borderSize, fillPaddingBottom}, c = excessBottomColor},
 				-- Top right
-				{v = {fillPaddingRight, fillPaddingTop}, c = excessTopColor},
+				{v = {originalRight - borderSize, fillPaddingTop}, c = excessTopColor},
 				-- Top left
-				{v = {normalPartRight, fillPaddingTop}, c = excessTopColor}
+				{v = {brightColorStart, fillPaddingTop}, c = excessTopColor}
 			}
 			gl.Shape(GL.QUADS, vertices)
 		else
@@ -198,15 +212,21 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		
+		-- Adjust highlight end position for overfilled bars
+		local highlightRight = fillPaddingRight
+		if exceedsMaxThreshold then
+			highlightRight = originalRight - borderSize
+		end
+		
 		-- Top highlight
 		local topGlossBottom = fillPaddingTop - glossHeight
 		local vertices = {
 			-- Bottom left
 			{v = {fillPaddingLeft, topGlossBottom}, c = {1, 1, 1, 0}},
 			-- Bottom right
-			{v = {fillPaddingRight, topGlossBottom}, c = {1, 1, 1, 0}},
+			{v = {highlightRight, topGlossBottom}, c = {1, 1, 1, 0}},
 			-- Top right
-			{v = {fillPaddingRight, fillPaddingTop}, c = {1, 1, 1, 0.04}},
+			{v = {highlightRight, fillPaddingTop}, c = {1, 1, 1, 0.04}},
 			-- Top left
 			{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}
 		}
@@ -218,9 +238,9 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			-- Bottom left
 			{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
 			-- Bottom right
-			{v = {fillPaddingRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
+			{v = {highlightRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
 			-- Top right
-			{v = {fillPaddingRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
+			{v = {highlightRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
 			-- Top left
 			{v = {fillPaddingLeft, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}}
 		}
@@ -294,7 +314,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	glRect(healthbarScoreRight - lineWidth/2, bottom - lineExtension, 
 		   healthbarScoreRight + lineWidth/2, top + lineExtension)
 		   
-	return healthbarScoreRight, right, thresholdX
+	return healthbarScoreRight, originalRight, thresholdX
 end
 
 -- TEXT RENDERING FUNCTION
@@ -495,7 +515,8 @@ function updateScoreDisplayList()
 				end
 				
 				local exceedsMaxThreshold = score > maxThreshold
-				local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
+				-- Never extend background beyond the default width
+				local adjustedBackgroundRight = healthbarRight
 				
 				-- Create a tinted background based on team color (very subtle)
 				local bgTintStrength = 0.15  -- How strong the team color affects the background
@@ -595,7 +616,8 @@ function updateScoreDisplayList()
 			end
 			
 			local exceedsMaxThreshold = score > maxThreshold
-			local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
+			-- Never extend background beyond the default width
+			local adjustedBackgroundRight = healthbarRight
 			
 			glPushMatrix()
 				-- Create a tinted background based on team color (very subtle)
