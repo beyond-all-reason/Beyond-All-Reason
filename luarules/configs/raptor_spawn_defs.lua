@@ -1123,9 +1123,30 @@ addNewSquad({type = "special",
 	units = { {count = 1, unit = "raptor_land_swarmer_basic_t3_v3"} }
 })
 
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "4 raptor_land_swarmer_basic_t3_v1" }, maxAnger = 40 })
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "4 raptor_land_swarmer_basic_t3_v2" }, maxAnger = 40 })
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "4 raptor_land_swarmer_basic_t3_v3" }, maxAnger = 40 })
+addNewSquad({
+	type = "special",
+	minAnger = 20,
+	maxAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_land_swarmer_basic_t3_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 20,
+	maxAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_land_swarmer_basic_t3_v2"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 20,
+	maxAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_land_swarmer_basic_t3_v3"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 40, units = { "10 raptor_land_swarmer_spectre_t3_v1" } })
