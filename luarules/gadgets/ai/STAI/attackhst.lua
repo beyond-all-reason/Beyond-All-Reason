@@ -9,7 +9,6 @@ function AttackHST:internalName()
 end
 
 local floor = math.floor
-local ceil = math.ceil
 
 function AttackHST:Init()
 	self.DebugEnabled = false
@@ -47,7 +46,6 @@ end
 
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	local f = self.game:Frame()
 	self:DraftAttackSquads()
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
@@ -62,7 +60,6 @@ function AttackHST:Update()
 end
 
 function AttackHST:DraftAttackSquads()
-	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
 		for index,soldier in pairs(soldiers) do
 		--self:EchoDebug(index,mtype,soldier.squad)--TODO fix thes fucking debug trouble
@@ -145,9 +142,6 @@ function AttackHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
-	local memberDist = math.huge
-	local leader = nil
-	local leaderPos = nil
 	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
 
@@ -283,7 +277,6 @@ function AttackHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
-	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
 	local members = squad.members
@@ -402,9 +395,7 @@ function AttackHST:SquadsTargetDefense(squad)
 end
 
 function AttackHST:SquadsTargetAttack2(squad)
-	local bestValue = 0
 	local bestTarget = nil
-	local bestDist = math.huge
 	local worstDist = 0
 	
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
@@ -466,7 +457,6 @@ function AttackHST:AddRecruit(attkbhvr)
 		if attkbhvr.unit ~= nil then
 			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
 			attkbhvr:SetMoveState()
 			attkbhvr:Free()
@@ -480,7 +470,6 @@ function AttackHST:RemoveRecruit(attkbhvr)
 	for mtype, recruits in pairs(self.recruits) do
 		for i,v in ipairs(recruits) do
 			if v == attkbhvr then
-				local level = attkbhvr.level
 				table.remove(self.recruits[mtype], i)
 				return true
 			end
