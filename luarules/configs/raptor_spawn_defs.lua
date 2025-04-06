@@ -590,10 +590,31 @@ local raptorMinions = { -- Units spawning other units
 
 -- Basic Swarmer
 
-addNewSquad({ type = "basic", minAnger = 0, maxAnger = 30, weight = 10, units = { "4 raptor_land_swarmer_basic_t1_v1" }})
-addNewSquad({ type = "basic", minAnger = 10, maxAnger = 40, units = { "8 raptor_land_swarmer_basic_t1_v1" } })
-addNewSquad({ type = "basic", minAnger = 20, maxAnger = 50, units = { "16 raptor_land_swarmer_basic_t1_v1" } })
-addNewSquad({ type = "basic", minAnger = 30, maxAnger = 60, units = { "32 raptor_land_swarmer_basic_t1_v1" } })
+addNewSquad({ 
+	type = "basic",
+	minAnger = 0,
+	maxAnger = 30,
+	weight = 10,
+	units = { "4 raptor_land_swarmer_basic_t1_v1" }
+})
+addNewSquad({
+	type = "basic",
+	minAnger = 10,
+	maxAnger = 40,
+	units = { "8 raptor_land_swarmer_basic_t1_v1" }
+})
+addNewSquad({
+	type = "basic",
+	minAnger = 20,
+	maxAnger = 50,
+	units = { "16 raptor_land_swarmer_basic_t1_v1"}
+ })
+addNewSquad({
+	type = "basic",
+	minAnger = 30,
+	maxAnger = 60,
+	units = { "32 raptor_land_swarmer_basic_t1_v1"}
+})
 
 addNewSquad({ type = "basic", minAnger = 5, maxAnger = 50, units = { count = 4, unit = "raptor_land_swarmer_basic_t2_v1" }})
 addNewSquad({ type = "basic", minAnger = 5, maxAnger = 50, units = { count = 4, unit = "raptor_land_swarmer_basic_t2_v2" }})
