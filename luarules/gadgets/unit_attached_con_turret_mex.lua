@@ -32,6 +32,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
+    Spring.SetUnitHealth(unitID, {build = 0.5}) -- HAX required to make BARbarians not crash for now.
 	local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
 	--Spring.Echo('imex_id', imex_id)
 	Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
