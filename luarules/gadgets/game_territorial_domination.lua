@@ -764,6 +764,7 @@ local enemyColor = {1, 0, 0, SQUARE_ALPHA}
 local alliedColor = {0, 1, 0, SQUARE_ALPHA}
 
 local amSpectating = Spring.GetSpectatingState()
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local allyColors = {}
 for _, teamID in ipairs(teams) do
@@ -1309,6 +1310,8 @@ end
 function gadget:DrawWorldPreUnit()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 	
+	if spIsGUIHidden() then return end
+	
 	glTexture(0, "$heightmap")
 	glDepthTest(true)
 	
@@ -1324,6 +1327,8 @@ end
 
 function gadget:DrawInMiniMap()
 	if not squareShader or not squareVAO or not instanceVBO then return end
+	
+	if spIsGUIHidden() then return end
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 1)
