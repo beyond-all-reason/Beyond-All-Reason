@@ -42,7 +42,7 @@ if SYNCED then
 	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
 
 	--configs
-	local DEBUGMODE = false
+	local DEBUGMODE = true
 
 	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
 	local maxEmptyImpedencePower = 25
@@ -70,6 +70,7 @@ if SYNCED then
 
 	local SCORE_RULES_KEY = "territorialDominationScore"
 	local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
+	local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
 	local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 
 	local floor = math.floor
@@ -110,7 +111,7 @@ if SYNCED then
 	local sentGridStructure = false
 	local thresholdSecondsDelay = 0
 	local thresholdDelayTimestamp = 0
-	local maxThreshold = 0
+	local wantedDefeatThreshold = 0
 	local freezeThresholdTimer = 0
 	local currentSecond = 0
 
@@ -152,8 +153,8 @@ if SYNCED then
 			thresholdSecondsDelay = 0
 		else
 			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
-			maxThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
-			thresholdSecondsDelay = clamp(MIN_THRESHOLD_DELAY, (SECONDS_TO_MAX - startTime) / maxThreshold, MAX_THRESHOLD_DELAY)
+			wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
+			thresholdSecondsDelay = clamp(MIN_THRESHOLD_DELAY, (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold, MAX_THRESHOLD_DELAY)
 		end
 		thresholdDelayTimestamp = min(seconds + thresholdSecondsDelay, thresholdDelayTimestamp)
 	end
@@ -163,7 +164,7 @@ if SYNCED then
 		local totalDelay = max(SECONDS_TO_START, freezeThresholdTimer, thresholdDelayTimestamp)
 
 		if totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1 or seconds > SECONDS_TO_MAX then
-			defeatThreshold = min(defeatThreshold + 1, maxThreshold)
+			defeatThreshold = min(defeatThreshold + 1, wantedDefeatThreshold)
 			thresholdDelayTimestamp = seconds + thresholdSecondsDelay
 		end
 	end
@@ -558,6 +559,9 @@ if SYNCED then
 	
 	local function updateTeamRulesScores()
 		Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
+
+		local maxThreshold = floor(min(#captureGrid, #captureGrid / 2)) -- because 1v1 is the smallest number of competitors
+		Spring.SetGameRulesParam(MAX_THRESHOLD_RULES_KEY, maxThreshold)
 		
 		for allyID, tally in pairs(allyTallies) do
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
