@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+--the skull is grey for a weird period of time before the end of frozen threshold period
+
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
 
@@ -43,11 +45,12 @@ local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glTranslate = gl.Translate
 local max = math.max
+local spGetGameFrame = Spring.GetGameFrame
 
 local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
-local WARNING_SECONDS = 10
+local WARNING_SECONDS = 15
 local PADDING_MULTIPLIER = 0.36
 local TEXT_HEIGHT_MULTIPLIER = 0.33
 local SCORE_RULES_KEY = "territorialDominationScore"
@@ -61,6 +64,8 @@ local MAX_BLINK_VOLUME = 0.4
 local TEXT_OUTLINE_OFFSET = 0.7  -- Reduced from 1.2
 local TEXT_OUTLINE_ALPHA = 0.35  -- Reduced from 0.6
 local LINE_ALPHA = 0.5
+local BLINK_FRAMES = 10
+local BLINK_INTERVAL = 1  -- Blink every half second
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -71,11 +76,13 @@ local COLOR_GREEN = {0, 0.8, 0, 0.8}
 local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
 local RED_BLINK_COLOR = {0.9, 0, 0, 1}
 local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
+local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}  -- Ice blue color for frozen healthbar
 
 local lastWarningBlinkTime = 0
-local lastFreezeBlinkTime = 0
 local isWarningVisible = true
 local isFreezeWarningVisible = true
+local isSkullFaded = true  -- Track if skull should use faded alpha
+
 local amSpectating = false
 local myAllyID = -1
 local selectedAllyTeamID = -1
@@ -91,6 +98,8 @@ local healthbarWidth = 300
 local healthbarHeight = 20
 local lineWidth = 2
 local maxThreshold = 256
+local blinkFrameCounter = 0  -- Counter for frames to control blinking
+local lastBlinkTime = 0  -- Last time we toggled the blink
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -121,7 +130,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local fillPaddingBottom = bottom + borderSize
 	
 	-- Main gradient (brighter on top, darker at bottom) - more subtle
-	local baseColor = barColor
+	local baseColor = isThresholdFrozen and COLOR_ICE_BLUE or barColor
 	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
 	-- Make bottom color less different from top color for more subtle gradient
 	local bottomColor = {baseColor[1]*0.7, baseColor[2]*0.7, baseColor[3]*0.7, baseColor[4]}
@@ -246,11 +255,40 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		iconSize/2 * shadowScale - shadowOffset
 	)
 	
-	-- Draw the actual skull icon - reduce opacity if threshold is frozen
-	local skullAlpha = isThresholdFrozen and 0.5 or 1.0
-	glColor(1, 1, 1, skullAlpha) -- White with adjusted alpha
+	-- Determine skull alpha based on frozen state and blinking
+	local skullAlpha = 1.0
+	if isThresholdFrozen then
+		-- Get most current game time each time we draw
+		local currentGameTime = spGetGameSeconds()
+		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+		local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+		
+		if timeUntilUnfreeze <= WARNING_SECONDS then
+			-- During warning, show normal color for 33% of the time, faded for 67%
+			local currentTime = os.clock()
+			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
+			-- blinkPhase is now a value between 0.0 and 1.0 representing where we are in the cycle
+			if blinkPhase < 0.33 then
+				skullAlpha = 1.0
+				isSkullFaded = false
+			else
+				skullAlpha = 0.5
+				isSkullFaded = true
+			end
+		else
+			-- Normal frozen state - always faded
+			skullAlpha = 0.5
+			isSkullFaded = true
+		end
+	else
+		isSkullFaded = false
+	end
+	
+	-- Draw the actual skull icon
+	glColor(1, 1, 1, skullAlpha)
 	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+	
 	glTexture(false)
 	glPopMatrix()
 	
@@ -317,9 +355,19 @@ function widget:Update(dt)
 	amSpectating = spGetSpectatingState()
 	myAllyID = spGetMyAllyTeamID()
 	
-	-- Update the display list at the specified frequency
+	-- Get freeze state
+	local currentGameTime = spGetGameSeconds()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)  -- Ensure timeUntilUnfreeze is never negative
+	
+	-- Update the display list at higher frequency during warning period
 	local currentTime = os.clock()
-	if currentTime - lastUpdateTime > UPDATE_FREQUENCY then
+	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
+		-- During warning period, update every frame to ensure smooth blinking
+		updateScoreDisplayList()
+	elseif currentTime - lastUpdateTime > UPDATE_FREQUENCY then
+		-- Normal update frequency
 		lastUpdateTime = currentTime
 		updateScoreDisplayList()
 	end
@@ -365,7 +413,7 @@ function updateScoreDisplayList()
 
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)  -- Ensure timeUntilUnfreeze is never negative
 	
 	-- Always use white for text
 	local textColor = COLOR_WHITE
@@ -419,7 +467,17 @@ function updateScoreDisplayList()
 		exceedsMaxThreshold = exceedsMaxThreshold
 	}
 	
-	-- Only recreate the display list if something has changed
+	-- Check if we're in the warning period for blinking
+	local forceUpdate = false
+	if isThresholdFrozen then
+		local currentWarningTime = max(0, freezeExpirationTime - currentGameTime)
+		if currentWarningTime <= WARNING_SECONDS then
+			-- Always force update every frame during the warning period
+			forceUpdate = true
+		end
+	end
+	
+	-- Only recreate the display list if something has changed or forced update
 	local backgroundChanged = lastBackgroundDimensions == nil or
 		lastBackgroundDimensions.left ~= backgroundDimensions.left or
 		lastBackgroundDimensions.right ~= backgroundDimensions.right or
@@ -429,7 +487,7 @@ function updateScoreDisplayList()
 		lastBackgroundDimensions.healthbarBottom ~= backgroundDimensions.healthbarBottom or
 		lastBackgroundDimensions.exceedsMaxThreshold ~= backgroundDimensions.exceedsMaxThreshold
 	
-	if difference ~= lastDifference or backgroundChanged then
+	if difference ~= lastDifference or backgroundChanged or forceUpdate then
 		lastDifference = difference
 		lastBackgroundDimensions = backgroundDimensions
 		
@@ -499,6 +557,18 @@ function updateScoreDisplayList()
 end
 
 function widget:DrawScreen()
+	-- Always update blinking state on every frame before drawing
+	local currentGameTime = spGetGameSeconds()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+	
+	-- If we're in the warning period, force update the display list every frame
+	if isSkullFaded or (isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS) then
+		updateScoreDisplayList()
+	end
+	
+	-- Draw the display list
 	if displayList then
 		glCallList(displayList)
 	else

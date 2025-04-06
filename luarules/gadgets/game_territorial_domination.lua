@@ -42,7 +42,7 @@ if SYNCED then
 	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
 
 	--configs
-	local DEBUGMODE = true
+	local DEBUGMODE = false
 
 	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
 	local maxEmptyImpedencePower = 25
