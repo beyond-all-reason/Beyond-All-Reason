@@ -32,6 +32,8 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamList = Spring.GetTeamList
+local spGetTeamColor = Spring.GetTeamColor
+local spGetAllyTeamList = Spring.GetAllyTeamList
 local spPlaySoundFile = Spring.PlaySoundFile
 local spI18N = Spring.I18N
 local glColor = gl.Color
@@ -127,8 +129,8 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local fillPaddingTop = top
 	local fillPaddingBottom = bottom + borderSize
 	
-	-- COLOR SETUP
-	local baseColor = isThresholdFrozen and COLOR_ICE_BLUE or barColor
+	-- COLOR SETUP - don't change bar color when frozen
+	local baseColor = barColor
 	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
 	local bottomColor = {baseColor[1]*0.7, baseColor[2]*0.7, baseColor[3]*0.7, baseColor[4]}
 	
@@ -318,6 +320,23 @@ local function drawDifferenceText(x, y, difference, fontSize, textColor)
 	glText(formattedDifference, x, y, fontSize, "l")
 end
 
+-- Function to check if an ally team is still alive
+local function isAllyTeamAlive(allyTeamID)
+	if allyTeamID == gaiaAllyTeamID then
+		return false
+	end
+	
+	local teamList = spGetTeamList(allyTeamID)
+	for _, teamID in ipairs(teamList) do
+		local _, _, isDead = spGetTeamInfo(teamID)
+		if not isDead then
+			return true
+		end
+	end
+	
+	return false
+end
+
 local fontCache = {
 	initialized = false,
 	fontSizeMultiplier = 1,
@@ -367,21 +386,6 @@ function updateScoreDisplayList()
 		return 
 	end
 	
-	local score = 0
-	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-	
-	for _, teamID in ipairs(spGetTeamList()) do
-		local _, _, isDead, _, _, allyTeamID = spGetTeamInfo(teamID)
-		if not isDead and allyTeamID == scoreAllyID then
-			local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
-			if teamScore then
-				score = teamScore
-				break
-			end
-		end
-	end
-	
 	if not fontCache.initialized then
 		local _, viewportSizeY = spGetViewGeometry()
 		fontCache.fontSizeMultiplier = math.max(1.2, math.min(2.25, viewportSizeY / 1080))
@@ -389,23 +393,6 @@ function updateScoreDisplayList()
 		fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
 		fontCache.paddingY = fontCache.paddingX
 		fontCache.initialized = true
-	end
-
-	local difference = score - threshold
-
-	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
-	
-	local textColor = COLOR_WHITE
-	
-	local barColor
-	if difference <= WARNING_THRESHOLD then
-		barColor = COLOR_RED
-	elseif difference <= ALERT_THRESHOLD then
-		barColor = COLOR_YELLOW
-	else
-		barColor = COLOR_GREEN
 	end
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
@@ -416,75 +403,172 @@ function updateScoreDisplayList()
 	
 	healthbarWidth = minimapSizeX - iconHalfWidth * 2
 	
-	local healthbarTop = minimapPosY - MINIMAP_GAP
-	local healthbarBottom = healthbarTop - healthbarHeight
-	local healthbarLeft = minimapPosX + iconHalfWidth
-	local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-	
-	local textPadding = 8
-	local textHeight = fontCache.fontSize
-	local textPositionY = healthbarBottom - textPadding - textHeight/2
-	
-	local backgroundTop = healthbarTop
-	local backgroundBottom = healthbarBottom
-	local backgroundLeft = healthbarLeft
-	local backgroundRight = healthbarRight
-	
-	local exceedsMaxThreshold = score > maxThreshold
-	
-	local backgroundDimensions = {
-		left = backgroundLeft,
-		right = backgroundRight,
-		top = backgroundTop,
-		bottom = backgroundBottom,
-		healthbarTop = healthbarTop,
-		healthbarBottom = healthbarBottom,
-		exceedsMaxThreshold = exceedsMaxThreshold
-	}
-	
-	local forceUpdate = false
-	if isThresholdFrozen then
-		local currentWarningTime = max(0, freezeExpirationTime - currentGameTime)
-		if currentWarningTime <= WARNING_SECONDS then
-			forceUpdate = true
-		end
+	if displayList then
+		glDeleteList(displayList)
 	end
 	
-	local backgroundChanged = lastBackgroundDimensions == nil or
-		lastBackgroundDimensions.left ~= backgroundDimensions.left or
-		lastBackgroundDimensions.right ~= backgroundDimensions.right or
-		lastBackgroundDimensions.top ~= backgroundDimensions.top or
-		lastBackgroundDimensions.bottom ~= backgroundDimensions.bottom or
-		lastBackgroundDimensions.healthbarTop ~= backgroundDimensions.healthbarTop or
-		lastBackgroundDimensions.healthbarBottom ~= backgroundDimensions.healthbarBottom or
-		lastBackgroundDimensions.exceedsMaxThreshold ~= backgroundDimensions.exceedsMaxThreshold
-	
-	if difference ~= lastDifference or backgroundChanged or forceUpdate then
-		lastDifference = difference
-		lastBackgroundDimensions = backgroundDimensions
-		
-		if displayList then
-			glDeleteList(displayList)
-		end
-		
-		-- DISPLAY LIST CREATION
-		displayList = glCreateList(function()
-			glPushMatrix()
-				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-				local actualRight = healthbarRight
-				local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
-				if score > maxThreshold then
-					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+	-- DISPLAY LIST CREATION
+	displayList = glCreateList(function()
+		if amSpectating then
+			-- Show bars for all ally teams when spectating
+			local allyTeamList = spGetAllyTeamList()
+			local barHeight = healthbarHeight * 0.7
+			local barSpacing = 12
+			
+			-- Count alive ally teams for spacing calculations
+			local aliveAllyTeams = {}
+			for _, allyTeamID in ipairs(allyTeamList) do
+				if isAllyTeamAlive(allyTeamID) then
+					table.insert(aliveAllyTeams, allyTeamID)
 				end
-				
-				local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or backgroundRight
-				
+			end
+			
+			local totalHeight = #aliveAllyTeams * (barHeight + barSpacing)
+			
+			local startY = minimapPosY - MINIMAP_GAP
+			local currentY = startY
+			
+			for _, allyTeamID in ipairs(allyTeamList) do
+				if isAllyTeamAlive(allyTeamID) then
+					local score = 0
+					local teamColor = {1, 1, 1, 0.8} -- Default color
+					local firstTeamFound = false
+					
+					-- Find the first team in this ally team to get its color and score
+					for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+						local _, _, isDead = spGetTeamInfo(teamID)
+						if not isDead then
+							local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+							if teamScore then
+								score = teamScore
+								
+								-- Get first team's color if we haven't already
+								if not firstTeamFound then
+									local r, g, b = spGetTeamColor(teamID)
+									teamColor = {r, g, b, 0.8}
+									firstTeamFound = true
+								end
+								
+								break
+							end
+						end
+					end
+					
+					local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+					maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+					
+					local difference = score - threshold
+					local textColor = COLOR_WHITE
+					
+					local healthbarTop = currentY
+					local healthbarBottom = healthbarTop - barHeight
+					local healthbarLeft = minimapPosX + iconHalfWidth
+					local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
+					
+					local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+					local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+					
+					local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+					local actualRight = healthbarRight
+					local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
+					
+					if score > maxThreshold then
+						actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+					end
+					
+					local exceedsMaxThreshold = score > maxThreshold
+					local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
+					
+					glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
+					glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+						   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
+						   
+					glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
+					glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
+					
+					local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
+						healthbarLeft, healthbarRight, 
+						healthbarBottom, healthbarTop, 
+						score, threshold, teamColor, isThresholdFrozen
+					)
+					
+					local textX
+					local textPadding = 2
+					local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+					
+					textX = thresholdX + iconSize/2 + textPadding
+					
+					if textX > healthbarScoreRight then
+						textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
+						
+						if textX < healthbarLeft then
+							textX = thresholdX + iconSize/2 + textPadding
+						end
+					end
+					
+					local verticalOffset = -3
+					local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+					
+					drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+					
+					currentY = healthbarBottom - barSpacing
+				end
+			end
+		else
+			-- Single bar for the player's own team
+			local score = 0
+			local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+			maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+			
+			for _, teamID in ipairs(spGetTeamList(myAllyID)) do
+				local _, _, isDead = spGetTeamInfo(teamID)
+				if not isDead then
+					local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+					if teamScore then
+						score = teamScore
+						break
+					end
+				end
+			end
+			
+			local difference = score - threshold
+			local textColor = COLOR_WHITE
+			
+			local barColor
+			if difference <= WARNING_THRESHOLD then
+				barColor = COLOR_RED
+			elseif difference <= ALERT_THRESHOLD then
+				barColor = COLOR_YELLOW
+			else
+				barColor = COLOR_GREEN
+			end
+			
+			local healthbarTop = minimapPosY - MINIMAP_GAP
+			local healthbarBottom = healthbarTop - healthbarHeight
+			local healthbarLeft = minimapPosX + iconHalfWidth
+			local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
+			
+			local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+			local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+			
+			local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+			local actualRight = healthbarRight
+			local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
+			
+			if score > maxThreshold then
+				actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+			end
+			
+			local exceedsMaxThreshold = score > maxThreshold
+			local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
+			
+			glPushMatrix()
 				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
-				glRect(backgroundLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+				glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
 					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
 					   
 				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
-				glRect(backgroundLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
+				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
 				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
 					healthbarLeft, healthbarRight, 
@@ -493,7 +577,6 @@ function updateScoreDisplayList()
 				)
 				
 				local textX
-				local iconSize = 25
 				local textPadding = 2
 				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
 				
@@ -512,8 +595,8 @@ function updateScoreDisplayList()
 				
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 			glPopMatrix()
-		end)
-	end
+		end
+	end)
 end
 
 function widget:DrawScreen()
