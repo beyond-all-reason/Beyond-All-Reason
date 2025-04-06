@@ -32,11 +32,18 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
-    Spring.SetUnitHealth(unitID, {build = 0.5}) -- HAX required to make BARbarians not crash for now.
+	local original = Spring.GetUnitNearestAlly(unitID) 
+	local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
+  Spring.SetUnitHealth(unitID, {build = 0.5}) -- HAX required to make BARbarians not crash for now.
 	local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
-	--Spring.Echo('imex_id', imex_id)
+	--Spring.Echo(unitID, original, orgmetalCost)
+	if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
+		Spring.DestroyUnit(unitID, false, true)
+		Spring.AddTeamResource(unitTeam, "metal", metalCost)
+	end
 	Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
-	if not imex_id then
+	Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
+	if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
 		Spring.DestroyUnit(unitID, false, true)
 		Spring.AddTeamResource(unitTeam, "metal", metalCost)
 		Spring.AddTeamResource(unitTeam, "energy", energyCost)
@@ -46,7 +53,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	Spring.SetUnitNoSelect(imex_id,true)
 	local nano_id = Spring.CreateUnit("legmohoconct" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
 	--Spring.Echo('nano_id', nano_id)
-	if not nano_id then
+	if not nano_id then																							-- check incase the con fails to spawn, removes and refunds the unit
 		Spring.DestroyUnit(unitID, false, true)
 		Spring.DestroyUnit(imex_id, false, true)
 		Spring.AddTeamResource(unitTeam, "metal", metalCost)
