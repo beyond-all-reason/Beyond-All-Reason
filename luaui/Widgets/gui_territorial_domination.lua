@@ -423,114 +423,131 @@ function updateScoreDisplayList()
 				end
 			end
 			
+			-- Get scores for ally teams and sort by score (highest to lowest)
+			local allyTeamScores = {}
+			for _, allyTeamID in ipairs(aliveAllyTeams) do
+				local score = 0
+				local teamColor = {1, 1, 1, 0.8} -- Default color
+				local firstTeamFound = false
+				
+				-- Find the first team in this ally team to get its color and score
+				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(teamID)
+					if not isDead then
+						local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+						if teamScore then
+							score = teamScore
+							
+							-- Get first team's color if we haven't already
+							if not firstTeamFound then
+								local r, g, b = spGetTeamColor(teamID)
+								teamColor = {r, g, b, 0.8}
+								firstTeamFound = true
+							end
+							
+							break
+						end
+					end
+				end
+				
+				table.insert(allyTeamScores, {
+					allyTeamID = allyTeamID,
+					score = score,
+					teamColor = teamColor
+				})
+			end
+			
+			-- Sort by score (highest to lowest)
+			table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
+			
+			-- Calculate total height for positioning
 			local totalHeight = #aliveAllyTeams * (barHeight + barSpacing)
 			
 			local startY = minimapPosY - MINIMAP_GAP
 			local currentY = startY
 			
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if isAllyTeamAlive(allyTeamID) then
-					local score = 0
-					local teamColor = {1, 1, 1, 0.8} -- Default color
-					local firstTeamFound = false
-					
-					-- Find the first team in this ally team to get its color and score
-					for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-						local _, _, isDead = spGetTeamInfo(teamID)
-						if not isDead then
-							local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
-							if teamScore then
-								score = teamScore
-								
-								-- Get first team's color if we haven't already
-								if not firstTeamFound then
-									local r, g, b = spGetTeamColor(teamID)
-									teamColor = {r, g, b, 0.8}
-									firstTeamFound = true
-								end
-								
-								break
-							end
-						end
-					end
-					
-					local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-					maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-					
-					local difference = score - threshold
-					local textColor = COLOR_WHITE
-					
-					local healthbarTop = currentY
-					local healthbarBottom = healthbarTop - barHeight
-					local healthbarLeft = minimapPosX + iconHalfWidth
-					local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-					
-					local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-					local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-					
-					local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-					local actualRight = healthbarRight
-					local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
-					
-					if score > maxThreshold then
-						actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-					end
-					
-					local exceedsMaxThreshold = score > maxThreshold
-					local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
-					
-					-- Create a tinted background based on team color (very subtle)
-					local bgTintStrength = 0.15  -- How strong the team color affects the background
-					local tintedBackgroundColor = {
-						backgroundColor[1] + (teamColor[1] - backgroundColor[1]) * bgTintStrength,
-						backgroundColor[2] + (teamColor[2] - backgroundColor[2]) * bgTintStrength,
-						backgroundColor[3] + (teamColor[3] - backgroundColor[3]) * bgTintStrength,
-						backgroundColor[4]
-					}
-					
-					-- Also tint the border slightly
-					local borderTintStrength = 0.1  -- Border tint is more subtle
-					local tintedBorderColor = {
-						borderColor[1] + (teamColor[1] - borderColor[1]) * borderTintStrength,
-						borderColor[2] + (teamColor[2] - borderColor[2]) * borderTintStrength,
-						borderColor[3] + (teamColor[3] - borderColor[3]) * borderTintStrength,
-						borderColor[4]
-					}
-					
-					glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
-					glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
-						   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
-						   
-					glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
-					glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
-					
-					local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
-						healthbarLeft, healthbarRight, 
-						healthbarBottom, healthbarTop, 
-						score, threshold, teamColor, isThresholdFrozen
-					)
-					
-					local textX
-					local textPadding = 2
-					local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
-					
-					textX = thresholdX + iconSize/2 + textPadding
-					
-					if textX > healthbarScoreRight then
-						textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
-						
-						if textX < healthbarLeft then
-							textX = thresholdX + iconSize/2 + textPadding
-						end
-					end
-					
-					local verticalOffset = -3
-					local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
-					
-					drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
-					
-					currentY = healthbarBottom - barSpacing
+			-- Draw bars for sorted ally teams
+			for _, allyTeamData in ipairs(allyTeamScores) do
+				local allyTeamID = allyTeamData.allyTeamID
+				local score = allyTeamData.score
+				local teamColor = allyTeamData.teamColor
+				
+				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+				maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+				
+				local difference = score - threshold
+				local textColor = COLOR_WHITE
+				
+				local healthbarTop = currentY
+				local healthbarBottom = healthbarTop - barHeight
+				local healthbarLeft = minimapPosX + iconHalfWidth
+				local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
+				
+				local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+				local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+				
+				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+				local actualRight = healthbarRight
+				local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
+				
+				if score > maxThreshold then
+					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
 				end
+				
+				local exceedsMaxThreshold = score > maxThreshold
+				local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or healthbarRight
+				
+				-- Create a tinted background based on team color (very subtle)
+				local bgTintStrength = 0.15  -- How strong the team color affects the background
+				local tintedBackgroundColor = {
+					backgroundColor[1] + (teamColor[1] - backgroundColor[1]) * bgTintStrength,
+					backgroundColor[2] + (teamColor[2] - backgroundColor[2]) * bgTintStrength,
+					backgroundColor[3] + (teamColor[3] - backgroundColor[3]) * bgTintStrength,
+					backgroundColor[4]
+				}
+				
+				-- Also tint the border slightly
+				local borderTintStrength = 0.1  -- Border tint is more subtle
+				local tintedBorderColor = {
+					borderColor[1] + (teamColor[1] - borderColor[1]) * borderTintStrength,
+					borderColor[2] + (teamColor[2] - borderColor[2]) * borderTintStrength,
+					borderColor[3] + (teamColor[3] - borderColor[3]) * borderTintStrength,
+					borderColor[4]
+				}
+				
+				glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
+				glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
+					   
+				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
+				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
+				
+				local healthbarScoreRight, actualRight, thresholdX = drawHealthBar(
+					healthbarLeft, healthbarRight, 
+					healthbarBottom, healthbarTop, 
+					score, threshold, teamColor, isThresholdFrozen
+				)
+				
+				local textX
+				local textPadding = 2
+				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+				
+				textX = thresholdX + iconSize/2 + textPadding
+				
+				if textX > healthbarScoreRight then
+					textX = thresholdX - iconSize/2 - textPadding - estimatedTextWidth
+					
+					if textX < healthbarLeft then
+						textX = thresholdX + iconSize/2 + textPadding
+					end
+				end
+				
+				local verticalOffset = -3
+				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+				
+				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+				
+				currentY = healthbarBottom - barSpacing
 			end
 		else
 			-- Single bar for the player's own team
