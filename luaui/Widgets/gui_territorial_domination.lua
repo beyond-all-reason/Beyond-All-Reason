@@ -67,7 +67,6 @@ local MIN_BLINK_VOLUME = 0.15
 local MAX_BLINK_VOLUME = 0.4
 local TEXT_OUTLINE_OFFSET = 0.7
 local TEXT_OUTLINE_ALPHA = 0.35
-local LINE_ALPHA = 0.5
 local BLINK_FRAMES = 10
 local BLINK_INTERVAL = 1
 
@@ -81,6 +80,8 @@ local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
 local RED_BLINK_COLOR = {0.9, 0, 0, 1}
 local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
 local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}
+local COLOR_GREY_LINE = {0.7, 0.7, 0.7, 0.7}
+local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
@@ -132,6 +133,23 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local fillPaddingTop = top
 	local fillPaddingBottom = bottom + borderSize
 	
+	-- Calculate line position
+	local linePos = healthbarScoreRight
+	if exceedsMaxThreshold then
+		-- Calculate how much the bar exceeds the max threshold
+		local overfillRatio = (score - maxThreshold) / maxThreshold
+		-- Cap at 1.0 (100% backfilled)
+		overfillRatio = math.min(overfillRatio, 1)
+		
+		-- Calculate where the line should be when backfilling
+		local maxWidth = originalRight - borderSize - fillPaddingLeft
+		local backfillWidth = maxWidth * overfillRatio
+		linePos = originalRight - borderSize - backfillWidth
+		
+		-- Make sure the line position doesn't go outside the bar
+		linePos = math.max(fillPaddingLeft, linePos)
+	end
+	
 	-- COLOR SETUP - don't change bar color when frozen
 	local baseColor = barColor
 	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
@@ -144,11 +162,11 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		if exceedsMaxThreshold then
 			-- Calculate how much the bar exceeds the max threshold
 			local overfillRatio = (score - maxThreshold) / maxThreshold
+			-- Cap at 1.0 (100% backfilled)
+			overfillRatio = math.min(overfillRatio, 1)
+			
 			local maxBarWidth = originalRight - borderSize - fillPaddingLeft
 			local overfillWidth = maxBarWidth * overfillRatio
-			
-			-- Cap the overfill at the full width of the bar
-			overfillWidth = math.min(overfillWidth, maxBarWidth)
 			
 			-- The point where the bright color starts (from right side)
 			local brightColorStart = originalRight - borderSize - overfillWidth
@@ -306,15 +324,20 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	-- SCORE LINE RENDERING
 	local lineExtension = 3
 	
-	glColor(0, 0, 0, 0.8)
-	glRect(healthbarScoreRight - lineWidth - 1, bottom - lineExtension, 
-		   healthbarScoreRight + lineWidth + 1, top + lineExtension)
+	-- Determine line color based on whether the bar is overfilled
+	local lineColor = exceedsMaxThreshold and COLOR_WHITE_LINE or COLOR_GREY_LINE
 	
-	glColor(COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], LINE_ALPHA)
-	glRect(healthbarScoreRight - lineWidth/2, bottom - lineExtension, 
-		   healthbarScoreRight + lineWidth/2, top + lineExtension)
+	-- Draw shadow/border for the line
+	glColor(0, 0, 0, 0.8)
+	glRect(linePos - lineWidth - 1, bottom - lineExtension, 
+		   linePos + lineWidth + 1, top + lineExtension)
+	
+	-- Draw the actual line with the determined color
+	glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	glRect(linePos - lineWidth/2, bottom - lineExtension, 
+		   linePos + lineWidth/2, top + lineExtension)
 		   
-	return healthbarScoreRight, originalRight, thresholdX
+	return linePos, originalRight, thresholdX
 end
 
 -- TEXT RENDERING FUNCTION
