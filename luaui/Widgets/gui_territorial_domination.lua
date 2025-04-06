@@ -96,8 +96,18 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 	-- Calculate healthbar positions
 	local fullHealthbarLeft = left
 	local fullHealthbarRight = right
-	local healthbarScoreRight = left + (score / maxThreshold) * (right - left)
-	local thresholdX = left + (threshold / maxThreshold) * (right - left)
+	local barWidth = right - left
+	
+	local originalRight = right
+	local exceedsMaxThreshold = score > maxThreshold
+	
+	-- If score exceeds maxThreshold, expand the bar
+	if exceedsMaxThreshold then
+		right = left + (score / maxThreshold) * barWidth
+	end
+	
+	local healthbarScoreRight = left + (score / maxThreshold) * barWidth
+	local thresholdX = left + (threshold / maxThreshold) * barWidth
 	
 	-- Set up skull icon size to fit within the healthbar
 	local iconSize = 25
@@ -120,18 +130,65 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	if fillPaddingLeft < fillPaddingRight then
-		-- Top to bottom gradient with 3-pixel border
-		local vertices = {
-			-- Bottom left
-			{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-			-- Bottom right
-			{v = {fillPaddingRight, fillPaddingBottom}, c = bottomColor},
-			-- Top right
-			{v = {fillPaddingRight, fillPaddingTop}, c = topColor},
-			-- Top left
-			{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
-		}
-		gl.Shape(GL.QUADS, vertices)
+		-- If score exceeds maxThreshold, draw normal part first
+		if exceedsMaxThreshold then
+			-- Normal part (up to originalRight)
+			local normalPartRight = originalRight - borderSize
+			
+			-- Top to bottom gradient with 3-pixel border
+			local vertices = {
+				-- Bottom left
+				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
+				-- Bottom right
+				{v = {normalPartRight, fillPaddingBottom}, c = bottomColor},
+				-- Top right
+				{v = {normalPartRight, fillPaddingTop}, c = topColor},
+				-- Top left
+				{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
+			}
+			gl.Shape(GL.QUADS, vertices)
+			
+			-- Now draw excess part with whiter color (50% whiter)
+			local excessTopColor = {
+				topColor[1] + (1 - topColor[1]) * 0.5,
+				topColor[2] + (1 - topColor[2]) * 0.5,
+				topColor[3] + (1 - topColor[3]) * 0.5,
+				topColor[4]
+			}
+			local excessBottomColor = {
+				bottomColor[1] + (1 - bottomColor[1]) * 0.5,
+				bottomColor[2] + (1 - bottomColor[2]) * 0.5,
+				bottomColor[3] + (1 - bottomColor[3]) * 0.5,
+				bottomColor[4]
+			}
+			
+			-- Draw excess part gradient
+			vertices = {
+				-- Bottom left
+				{v = {normalPartRight, fillPaddingBottom}, c = excessBottomColor},
+				-- Bottom right
+				{v = {fillPaddingRight, fillPaddingBottom}, c = excessBottomColor},
+				-- Top right
+				{v = {fillPaddingRight, fillPaddingTop}, c = excessTopColor},
+				-- Top left
+				{v = {normalPartRight, fillPaddingTop}, c = excessTopColor}
+			}
+			gl.Shape(GL.QUADS, vertices)
+		else
+			-- Standard drawing for normal cases
+			-- Top to bottom gradient with 3-pixel border
+			local vertices = {
+				-- Bottom left
+				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
+				-- Bottom right
+				{v = {fillPaddingRight, fillPaddingBottom}, c = bottomColor},
+				-- Top right
+				{v = {fillPaddingRight, fillPaddingTop}, c = topColor},
+				-- Top left
+				{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
+			}
+			gl.Shape(GL.QUADS, vertices)
+		end
 		
 		-- Add glossiness to top portion (reduced for subtlety)
 		local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
@@ -139,7 +196,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 		
 		-- Top highlight (more subtle)
 		local topGlossBottom = fillPaddingTop - glossHeight
-		vertices = {
+		local vertices = {
 			-- Bottom left
 			{v = {fillPaddingLeft, topGlossBottom}, c = {1, 1, 1, 0}},
 			-- Bottom right
@@ -208,7 +265,8 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, textCol
 	glRect(healthbarScoreRight - lineWidth/2, bottom - lineExtension, 
 		   healthbarScoreRight + lineWidth/2, top + lineExtension)
 		   
-	return healthbarScoreRight
+	-- Return both the score position and the potentially expanded right edge
+	return healthbarScoreRight, right
 end
 
 local function drawDifferenceText(x, y, difference, fontSize, textColor)
@@ -383,6 +441,8 @@ function updateScoreDisplayList()
 	local backgroundLeft = healthbarLeft
 	local backgroundRight = healthbarRight
 	
+	local exceedsMaxThreshold = score > maxThreshold
+	
 	local backgroundDimensions = {
 		left = backgroundLeft,
 		right = backgroundRight,
@@ -390,7 +450,8 @@ function updateScoreDisplayList()
 		bottom = backgroundBottom,
 		healthbarTop = healthbarTop,
 		healthbarBottom = healthbarBottom,
-		textY = textPositionY
+		textY = textPositionY,
+		exceedsMaxThreshold = exceedsMaxThreshold
 	}
 	
 	-- Only recreate the display list if something has changed
@@ -407,7 +468,8 @@ function updateScoreDisplayList()
 		lastBackgroundDimensions.bottom ~= backgroundDimensions.bottom or
 		lastBackgroundDimensions.healthbarTop ~= backgroundDimensions.healthbarTop or
 		lastBackgroundDimensions.healthbarBottom ~= backgroundDimensions.healthbarBottom or
-		lastBackgroundDimensions.textY ~= backgroundDimensions.textY
+		lastBackgroundDimensions.textY ~= backgroundDimensions.textY or
+		lastBackgroundDimensions.exceedsMaxThreshold ~= backgroundDimensions.exceedsMaxThreshold
 	
 	if difference ~= lastDifference or textColorChanged or backgroundChanged then
 		lastDifference = difference
@@ -422,16 +484,27 @@ function updateScoreDisplayList()
 		-- Create a new display list
 		displayList = glCreateList(function()
 			glPushMatrix()
-				-- Draw background and border
+				-- First, calculate the score position and actual width without drawing
+				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+				local actualRight = healthbarRight
+				if score > maxThreshold then
+					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
+				end
+				
+				-- Now we know the actual width, so we can draw the background to match
+				-- If the score exceeds maxThreshold, adjust the background width
+				local adjustedBackgroundRight = exceedsMaxThreshold and actualRight or backgroundRight
+				
+				-- Draw background and border with potentially adjusted width FIRST
 				glColor(borderColor[1], borderColor[2], borderColor[3], borderColor[4])
 				glRect(backgroundLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
-					   backgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
+					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
 					   
 				glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
-				glRect(backgroundLeft, healthbarBottom, backgroundRight, healthbarTop)
+				glRect(backgroundLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
 				
-				-- Draw health bar and get score position
-				local healthbarScoreRight = drawHealthBar(
+				-- Now draw the health bar over the background
+				local healthbarScoreRight, actualRight = drawHealthBar(
 					healthbarLeft, healthbarRight, 
 					healthbarBottom, healthbarTop, 
 					score, threshold, textColor
