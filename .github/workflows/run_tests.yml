@@ -3,10 +3,14 @@ name: Run Tests
 on:
 #  pull_request
   workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - 'master'
 
 jobs:
-  upload-event_file:
-    name: Upload Event File
+  run-tests:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Upload Event File
@@ -15,15 +19,12 @@ jobs:
           name: Event File
           path: ${{ github.event_path }}
 
-  run-tests:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Run Tests
-        run: docker-compose -f tools/headless_testing/docker-compose.yml up
+        run: docker compose -f tools/headless_testing/docker-compose.yml up
+        timeout-minutes: 30
 
       - name: Upload Test Results
         if: always()
