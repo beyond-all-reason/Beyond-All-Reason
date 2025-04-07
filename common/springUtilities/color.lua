@@ -30,7 +30,7 @@ local function ColorString(r, g, b)
 	if r == 37 then r = 38 end	-- 37 = %
 	if g == 37 then g = 38 end	-- 37 = %
 	if b == 37 then b = 38 end	-- 37 = %
-	return colorIndicator .. schar(37) .. schar(g) .. schar(b)
+	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
 end
 
 return {
