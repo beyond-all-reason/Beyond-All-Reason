@@ -17,7 +17,7 @@ CallInsList = {
 	"ConfigureLayout",
 	"ActiveCommandChanged",
 	"MiniMapRotationChanged",
-	"MiniMapMinimizationChanged",
+	"MiniMapStateChanged",
 	"MiniMapGeometryChanged",
 	"CommandNotify",
 

@@ -107,7 +107,7 @@ local flexCallIns = {
 	'MapDrawCmd',
 	'ActiveCommandChanged',
 	'MiniMapRotationChanged',
-	'MiniMapMinimizationChanged',
+	'MiniMapStateChanged',
 	'MiniMapGeometryChanged',
 	'DefaultCommand',
 	'UnitCreated',
@@ -1349,10 +1349,10 @@ function widgetHandler:MiniMapRotationChanged(newRot, oldRot)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:MiniMapMinimizationChanged(isMinimized)
-	tracy.ZoneBeginN("W:MiniMapMinimizationChanged")
-	for _, w in ipairs(self.MiniMapMinimizationChangedList) do
-		w:MiniMapMinimizationChanged(isMinimized)
+function widgetHandler:MiniMapStateChanged(isMinimized, isMaximized)
+	tracy.ZoneBeginN("W:MiniMapStateChanged")
+	for _, w in ipairs(self.MiniMapStateChangedList) do
+		w:MiniMapStateChanged(isMinimized, isMaximized)
 	end
 	tracy.ZoneEnd()
 end

@@ -159,7 +159,7 @@ local callInLists = {
 
 	"ActiveCommandChanged",
 	"MiniMapRotationChanged",
-	"MiniMapMinimizationChanged",
+	"MiniMapStateChanged",
 	"MiniMapGeometryChanged",
 	"CommandNotify",
 
@@ -2167,9 +2167,9 @@ function gadgetHandler:MiniMapRotationChanged(newRot, oldRot)
 	end
 end
 
-function gadgetHandler:MiniMapMinimizationChanged(isMinimized)
-	for _, g in ipairs(self.MiniMapMinimizationChangedList) do
-		g:MiniMapMinimizationChanged(isMinimized)
+function gadgetHandler:MiniMapStateChanged(isMinimized, isMaximized)
+	for _, g in ipairs(self.MiniMapStateChangedList) do
+		g:MiniMapStateChanged(isMinimized, isMaximized)
 	end
 end
 
