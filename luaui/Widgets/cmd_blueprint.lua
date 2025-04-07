@@ -294,36 +294,21 @@ local function isValidBlueprint(blueprint)
 	return true
 end
 
-local function getNextFilteredBlueprintIndex(startIndex, checkStart)
-	local newIndex = startIndex or selectedBlueprintIndex or 1
-	local foundValid = isValidBlueprint(blueprints[newIndex])
-
-	if foundValid and checkStart then
-		return newIndex
-	end
+local function getNextFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex or 0
 
 	for _ = 1, #blueprints do
 		newIndex = nextIndex(newIndex, #blueprints)
 		if isValidBlueprint(blueprints[newIndex]) then
-			foundValid = true
-			break
+			return newIndex
 		end
 	end
 
-	if foundValid then
-		return newIndex
-	else
-		return nil
-	end
+	return nil
 end
 
-local function getPrevFilteredBlueprintIndex(startIndex, checkStart)
-	local newIndex = startIndex or selectedBlueprintIndex or 1
-	local foundValid = isValidBlueprint(blueprints[newIndex])
-
-	if foundValid and checkStart then
-		return newIndex
-	end
+local function getPrevFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex or 0
 
 	for _ = 1, #blueprints do
 		newIndex = prevIndex(newIndex, #blueprints)
