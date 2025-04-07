@@ -1696,9 +1696,33 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v1", "3 raptor_land_assault_spectre_t2_v1" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v2", "3 raptor_land_assault_spectre_t2_v1" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v3", "3 raptor_land_assault_spectre_t2_v1" }, weight = 2 })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_land_assault_basic_t2_v1"},
+		{count = 3, unit = "raptor_land_assault_spectre_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_land_assault_basic_t2_v2"},
+		{count = 3, unit = "raptor_land_assault_spectre_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_land_assault_basic_t2_v3"},
+		{count = 3, unit = "raptor_land_assault_spectre_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_assault_basic_t4_v1", "2 raptor_land_assault_spectre_t4_v1" }})
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_assault_basic_t4_v2", "2 raptor_land_assault_spectre_t4_v1" }})
