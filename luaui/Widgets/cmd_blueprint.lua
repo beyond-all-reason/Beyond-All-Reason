@@ -328,16 +328,11 @@ local function getPrevFilteredBlueprintIndex(startIndex, checkStart)
 	for _ = 1, #blueprints do
 		newIndex = prevIndex(newIndex, #blueprints)
 		if isValidBlueprint(blueprints[newIndex]) then
-			foundValid = true
-			break
+			return newIndex
 		end
 	end
 
-	if foundValid then
-		return newIndex
-	else
-		return nil
-	end
+	return nil
 end
 
 local function getMouseWorldPosition(blueprint, x, y)
