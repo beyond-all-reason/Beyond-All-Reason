@@ -2531,6 +2531,10 @@ local icontypes = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
 	},
+		legmohocon = {
+		bitmap = "icons/mex_t2_con.png",
+		size = 1.20749986
+	},
 	leghastatusalt = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
