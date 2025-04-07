@@ -490,6 +490,7 @@ local function deleteBlueprint(index)
 	elseif index < selectedBlueprintIndex then
 		-- keep the same blueprint selected
 		setSelectedBlueprintIndex(selectedBlueprintIndex - 1)
+		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	end
 end
 
