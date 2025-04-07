@@ -9,11 +9,7 @@ function setup()
 
 	Test.clearMap()
 
-	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
-	if initialWidgetActive then
-		widgetHandler:DisableWidget(widgetName)
-	end
-	widgetHandler:EnableWidget(widgetName, true)
+	widget = Test.prepareWidget(widgetName)
 
 	initialCameraState = Spring.GetCameraState()
 
@@ -25,11 +21,6 @@ end
 function cleanup()
 	Test.clearMap()
 
-	widgetHandler:DisableWidget(widgetName)
-	if initialWidgetActive then
-		widgetHandler:EnableWidget(widgetName, false)
-	end
-
 	Spring.SetCameraState(initialCameraState)
 end
 
@@ -37,13 +28,12 @@ local delay = 5
 function test()
 	VFS.Include("luarules/configs/customcmds.h.lua")
 
-	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
 	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
 
 	-- load test blueprints
-	widget.BLUEPRINT_FILE_PATH = "LuaUI/Widgets/Tests/cmd_blueprint/test_cmd_blueprint_filter_blueprints.json"
+	widget.BLUEPRINT_FILE_PATH = "LuaUI/Tests/cmd_blueprint/test_cmd_blueprint_filter_blueprints.json"
 	widget.loadBlueprintsFromFile()
 
 	Test.clearMap()
