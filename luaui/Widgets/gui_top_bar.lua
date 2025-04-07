@@ -179,6 +179,19 @@ local blinkDirection = true
 local blinkProgress = 0
 local guishaderCheckUpdateRate = 0.5
 
+local function getPlayerLiveAllyCount()
+	local nAllies = 0
+	for _, teamID in ipairs(myAllyTeamList) do
+		if not teamID == myTeamID then
+			local _, _, isDead, hasAI = Spring.GetTeamInfo(teamID,false)
+			if not isDead and not hasAI then
+				nAllies = nAllies + 1
+			end
+		end
+	end
+	return nAllies
+end
+
 
 --------------------------------------------------------------------------------
 
@@ -1247,7 +1260,9 @@ local function drawQuitScreen()
 					if numPlayers < 3 then
 						text = Spring.I18N('ui.topbar.quit.reallyResign')
 					else
-						teamResign = true
+						if getPlayerLiveAllyCount() >= 1 then
+							teamResign = true
+						end
 						text = Spring.I18N('ui.topbar.quit.reallyResignSpectate')
 					end
 				end
