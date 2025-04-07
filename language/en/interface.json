@@ -5,6 +5,10 @@
 			"catchingUp": "Catching up to "
 		},
 		"topbar": {
+			"hint": {
+				"resign": "Resign yourself.",
+				"teamResign": "Call for team resign."
+			},
 			"button": {
 				"quit": "Quit",
 				"resign": "Resign",
@@ -21,6 +25,7 @@
 				"stay": "Stay",
 				"quit": "Quit",
 				"resign": "Resign",
+				"teamResign": "Team Resign",
 				"reallyQuit": "Are you sure you want to quit?",
 				"reallyQuitResign": "Are you sure you want to resign or return to game lobby?",
 				"reallyResign": "Are you sure you want to resign?",
