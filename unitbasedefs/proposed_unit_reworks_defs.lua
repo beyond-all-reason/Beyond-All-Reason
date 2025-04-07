@@ -12,7 +12,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" then
 		uDef.metalcost = uDef.metalcost - 1000
-		uDef.workertime = 400
+		uDef.workertime = 500
+		uDef.buildtime = uDef.buildtime * 2
+		uDef.energycost = uDef.energycost * 1.5
 	end
 	if name == "armvp" or name == "corvp" or name == "armlab" or name == "corlab" or name == "armsy" or name == "corsy"then
 		uDef.metalcost = uDef.metalcost - 50
