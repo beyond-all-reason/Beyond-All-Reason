@@ -1126,10 +1126,10 @@ void main(void){
 		outColor = mix(fogColor.rgb, outColor, fogFactor);
 	}
 	#ifdef REFLECT_DISCARD
-		if ((uint(drawPass) & 4u ) == 4u){ // reflections
-			if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
+		//if ((uint(drawPass) & 4u ) == 4u){ // reflections
+			//if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
 		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
-		}
+		//}
 	#endif
 
 	outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
