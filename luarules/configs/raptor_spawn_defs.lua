@@ -1515,9 +1515,30 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v1" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v2" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v3" }, weight = 2 })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_allterrain_assault_basic_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_allterrain_assault_basic_t2_v2"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	weight = 2,
+	units = {
+		{count = 3, unit = "raptor_allterrain_assault_basic_t2_v3"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptor_allterrain_assault_basic_t4_v1" } })
