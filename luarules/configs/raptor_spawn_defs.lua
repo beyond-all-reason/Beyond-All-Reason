@@ -1857,11 +1857,30 @@ addNewSquad({
 
 --Kamikaze------------------------------------------------------------------------------------------------------
 
-addNewSquad({ type = "special", minAnger = 40, units = 	{ "15 raptor_land_kamikaze_basic_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 40,
+	units = {
+		{count = 15, unit = "raptor_land_kamikaze_basic_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "25 raptor_land_kamikaze_basic_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units = {
+		{count = 25, unit = "raptor_land_kamikaze_basic_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "25 raptor_land_kamikaze_basic_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 25, unit = "raptor_land_kamikaze_basic_t4_v1"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 30, units = 	{ "15 raptor_land_kamikaze_emp_t2_v1" } })
