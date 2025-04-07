@@ -1779,7 +1779,14 @@ addNewSquad({
 
 --Spikers------------------------------------------------------------------------------------------------------
 
-addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptor_land_spiker_basic_t2_v1" }, maxAnger = 30 })
+addNewSquad({
+	type = "special",
+	minAnger = 10,
+	maxAnger = 30,
+	units = {
+		{count = 1, unit = "raptor_land_spiker_basic_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 30, units = 	{ "5 raptor_land_spiker_basic_t2_v1" }, weight = 3 })
 
