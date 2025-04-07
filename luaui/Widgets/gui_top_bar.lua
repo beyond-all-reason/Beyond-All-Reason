@@ -1265,7 +1265,6 @@ local function drawQuitScreen()
 			local buttonWidth = math_floor((w - buttonMargin * maxButtons) / (maxButtons-1)) -- maxButtons+1 margins for maxButtons buttons
 			local buttonHeight = math_floor(h * 0.30)
 
-
 			quitscreenArea = { x, y, x + w, y + h }
 
 			if teamResign then
