@@ -1598,7 +1598,13 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "4 raptor_land_assault_spectre_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 80,
+	units = {
+		{count = 4, unit = "raptor_land_assault_spectre_t4_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 90, units = 	{ "4 raptor_land_assault_spectre_t4_v1" } })
 
