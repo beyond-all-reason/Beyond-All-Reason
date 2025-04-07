@@ -182,7 +182,7 @@ local guishaderCheckUpdateRate = 0.5
 local function getPlayerLiveAllyCount()
 	local nAllies = 0
 	for _, teamID in ipairs(myAllyTeamList) do
-		if not teamID == myTeamID then
+		if teamID ~= myTeamID then
 			local _, _, isDead, hasAI = Spring.GetTeamInfo(teamID,false)
 			if not isDead and not hasAI then
 				nAllies = nAllies + 1
