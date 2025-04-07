@@ -2186,7 +2186,14 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_allterrain_arty_emp_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 2, unit = "raptor_allterrain_arty_emp_t4_v1"}
+	}
+})
 
 
 addNewSquad({
