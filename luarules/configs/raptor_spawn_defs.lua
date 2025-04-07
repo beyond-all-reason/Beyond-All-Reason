@@ -1359,7 +1359,13 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptor_allterrain_swarmer_emp_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	units = {
+		{count = 10, unit = "raptor_allterrain_swarmer_emp_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "20 raptor_allterrain_swarmer_emp_t2_v1" }, maxAnger = 1000 })
 
