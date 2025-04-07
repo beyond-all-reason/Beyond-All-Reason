@@ -368,7 +368,6 @@ static-var  Stunned;
 
 Open()
 {
-
 	if( !opening )
 	{
 		signal SIG_TRANS;
@@ -449,7 +448,6 @@ FireWeapon1()
 
 Shot1(zero)
 {
-
 	if (whichBarrel == 0){
 		emit-sfx 1024 + 0 from leftFlare;
 		whichBarrel = 1;

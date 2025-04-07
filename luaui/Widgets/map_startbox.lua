@@ -184,26 +184,9 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 
-local scavengerAIAllyTeamID
-local raptorsAIAllyTeamID
-local teams = Spring.GetTeamList()
+local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		local scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		local raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 

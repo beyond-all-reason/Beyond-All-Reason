@@ -35,7 +35,7 @@ local warHighLevel = 32500
 local warMeterResetTime = 40 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 60 -- seconds
-local songsSinceEvent = 0
+local songsSinceEvent = 5 -- start with higher number so event track can be played first
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -103,6 +103,8 @@ local function ReloadMusicPlaylists()
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 	local bossFightTracksNew		= {}
+		  bossFightTracksAll 		= {}
+		  bonusTracks				= {}
 
 	if Spring.Utilities.Gametype.IsRaptors() then
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
@@ -133,12 +135,18 @@ local function ReloadMusicPlaylists()
 
 	if newSoundtrackEnabled then
 		-- April Fools --------------------------------------------------------------------------------------------------------------------
-		if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 then
+		if ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
 			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+		elseif (not ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
 		end
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
@@ -486,42 +494,72 @@ local function drawContent()
 	local maxTextWidth = right-textXPadding-textXPadding
 
 	local button = 'playpause'
-	glColor(0.88,0.88,0.88,0.9)
-	if playing then
-		glTexture(pauseTex)
+
+	if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
+		-- track name
+		trackname = currentTrack or ''
+		glColor(0.45,0.45,0.45,1)
+
+		trackname = processTrackname(trackname)
+
+		local text = ''
+		for i = 1, #trackname do
+			local c = string.sub(trackname, i,i)
+			local width = font:GetTextWidth(text..c) * textsize
+			if width > maxTextWidth then
+				break
+			else
+				text = text..c
+			end
+		end
+		trackname = text
+
+		glColor(0.8,0.8,0.8,0.9)
+		glTexture(musicTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
+
+		font:Begin()
+		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:End()
 	else
-		glTexture(playTex)
+		glColor(0.88,0.88,0.88,0.9)
+		if playing then
+			glTexture(pauseTex)
+		else
+			glTexture(playTex)
+		end
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+		button = 'next'
+		glColor(0.88,0.88,0.88,0.9)
+		glTexture(nextTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+		local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
+		local lineHeight = math.floor((1.65 * widgetScale)+0.5)
+
+		local button = 'musicvolumeicon'
+		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
+		glColor(0.8,0.8,0.8,0.9)
+		glTexture(musicTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
+
+		button = 'musicvolume'
+		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+
+		button = 'volumeicon'
+		glColor(0.8,0.8,0.8,0.9)
+		glTexture(volumeTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
+
+		button = 'volume'
+		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 	end
-	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-
-	button = 'next'
-	glColor(0.88,0.88,0.88,0.9)
-	glTexture(nextTex)
-	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-
-	local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
-	local lineHeight = math.floor((1.65 * widgetScale)+0.5)
-
-	local button = 'musicvolumeicon'
-	local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-	glColor(0.8,0.8,0.8,0.9)
-	glTexture(musicTex)
-	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-	glTexture(false)
-
-	button = 'musicvolume'
-	UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-	UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
-
-	button = 'volumeicon'
-	glColor(0.8,0.8,0.8,0.9)
-	glTexture(volumeTex)
-	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-	glTexture(false)
-
-	button = 'volume'
-	UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-	UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 end
 
 local function refreshUiDrawing()
@@ -743,13 +781,19 @@ function widget:Initialize()
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
 		end
 		for k,v in pairs(peaceTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
+			if peaceTracks[k] and not string.find(peaceTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
+			end
 		end
 		for k,v in pairs(warlowTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
+			if warlowTracks[k] and not string.find(warlowTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
+			end
 		end
 		for k,v in pairs(warhighTracks) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+			if warhighTracks[k] and not string.find(warhighTracks[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+			end
 		end
 		for k,v in pairs(bossFightTracksAll) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bossfight'), processTrackname(v), v}
@@ -976,6 +1020,7 @@ function widget:Update(dt)
 	end
 end
 
+local prevShowTrackname = false
 function widget:DrawScreen()
 	if not showGUI then return end
 	updatePosition()
@@ -996,10 +1041,12 @@ function widget:DrawScreen()
 		end
 	end
 
-	if updateDrawing or (useRenderToTexture and mouseover ~= prevMouseover) then
+	showTrackname = not (not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime)
+	if updateDrawing or (useRenderToTexture and mouseover ~= prevMouseover) or showTrackname ~= prevShowTrackname then
 		updateDrawing = false
 		refreshUiDrawing()
 	end
+	prevShowTrackname = showTrackname
 
 	if useRenderToTexture then
 		if uiBgTex then
@@ -1086,7 +1133,7 @@ function PlayNewTrack(paused)
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
-		if #eventWarHighTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventWarHighTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventWarHighTracks
 			currentTrackListString = "eventWarHigh"
 			songsSinceEvent = 0
@@ -1095,7 +1142,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warHigh"
 		end
 	elseif warMeter >= warLowLevel then
-		if #eventWarLowTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventWarLowTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
 			songsSinceEvent = 0
@@ -1104,7 +1151,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warLow"
 		end
 	else
-		if #eventPeaceTracks > 0 and math.random() <= 0.33 and songsSinceEvent > 2 then
+		if #eventPeaceTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
 			songsSinceEvent = 0
@@ -1270,7 +1317,6 @@ function widget:GameFrame(n)
 			else
 				warMeter = 0
 			end
-			Spring.Echo(warMeter)
 		elseif Spring.Utilities.Gametype.IsScavengers() then
 			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
 				warMeter = warHighLevel+1
