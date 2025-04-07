@@ -1899,7 +1899,14 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, maxAnger = 1000, units = {{count = 25, unit = "raptor_land_kamikaze_emp_t4_v1"}}})
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 25, unit = "raptor_land_kamikaze_emp_t4_v1"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 40, units = 	{ "10 raptor_land_kamikaze_basic_t2_v1", "10 raptor_land_kamikaze_emp_t2_v1" } })
