@@ -1836,9 +1836,24 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptor_land_spiker_basic_t4_v1", "5 raptor_land_spiker_spectre_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units = {
+		{count = 5, unit = "raptor_land_spiker_basic_t4_v1"},
+		{count = 5, unit = "raptor_land_spiker_spectre_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_land_spiker_basic_t4_v1", "5 raptor_land_spiker_spectre_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 5, unit = "raptor_land_spiker_basic_t4_v1"},
+		{count = 5, unit = "raptor_land_spiker_spectre_t4_v1"}
+	}
+})
 
 --Kamikaze------------------------------------------------------------------------------------------------------
 
