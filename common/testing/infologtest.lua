@@ -6,6 +6,17 @@ local function skipErrors(line)
 	if string.find(line, 'Could not finalize projectile-texture atlas', nil, true) then
 		return true
 	end
+	-- Errors for engine >= 2025.03.X deprecations, remove these
+	-- at a later date when they're removed from BAR too.
+	if string.find(line, '"AnimationMT" is read-only', nil, true) then
+		return true
+	end
+	if string.find(line, '"UpdateBoundingVolumeMT" is read-only', nil, true) then
+		return true
+	end
+	if string.find(line, '"UpdateWeaponVectorsMT" is read-only', nil, true) then
+		return true
+	end
 end
 
 local function infologTest()
