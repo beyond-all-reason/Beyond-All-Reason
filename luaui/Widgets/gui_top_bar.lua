@@ -179,6 +179,9 @@ local blinkDirection = true
 local blinkProgress = 0
 local guishaderCheckUpdateRate = 0.5
 
+
+--------------------------------------------------------------------------------
+
 local function getPlayerLiveAllyCount()
 	local nAllies = 0
 	for _, teamID in ipairs(myAllyTeamList) do
@@ -191,9 +194,6 @@ local function getPlayerLiveAllyCount()
 	end
 	return nAllies
 end
-
-
---------------------------------------------------------------------------------
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
