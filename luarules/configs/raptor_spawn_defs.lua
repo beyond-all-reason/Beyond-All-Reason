@@ -1939,19 +1939,57 @@ addNewSquad({
 
 --Flamers------------------------------------------------------------------------------------------------------
 
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_swarmer_fire_t2_v1" }, maxAnger = 20 })
+addNewSquad({
+	type = "special",
+	minAnger = 0,
+	maxAnger = 20,
+	units = {
+		{count = 1, unit = "raptor_land_swarmer_fire_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptor_land_swarmer_fire_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 20,
+	units = {
+		{count = 5, unit = "raptor_land_swarmer_fire_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 30, units = 	{ "10 raptor_land_swarmer_fire_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 30,
+	units = {
+		{count = 10, unit = "raptor_land_swarmer_fire_t2_v1"}
+	}
+})
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptor_allterrain_swarmer_fire_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	units = {
+		{count = 10, unit = "raptor_allterrain_swarmer_fire_t2_v1"}
+	}
+})
 
 
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "8 raptor_land_swarmer_fire_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 60,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_fire_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_swarmer_fire_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units ={
+		{count = 10, unit = "raptor_land_swarmer_fire_t4_v1"}
+	}
+})
 
 --Artillery------------------------------------------------------------------------------------------------------
 
