@@ -2101,41 +2101,107 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptor_allterrain_arty_acid_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_acid_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_allterrain_arty_acid_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 80,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_acid_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_allterrain_arty_acid_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 90,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_acid_t4_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_allterrain_arty_acid_t4_v1" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptor_allterrain_arty_emp_t2_v1" }, maxAnger = 50 })
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_arty_emp_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	units = {
+		{count = 3, unit = "raptor_allterrain_arty_emp_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_allterrain_arty_emp_t2_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptor_allterrain_arty_emp_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_emp_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_allterrain_arty_emp_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 80,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_emp_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_allterrain_arty_emp_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 90,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_emp_t4_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_allterrain_arty_emp_t4_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_arty_brood_t2_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 50,
+	units = {
+		{count = 3, unit = "raptor_allterrain_arty_brood_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_allterrain_arty_brood_t2_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units =	{ "1 raptor_allterrain_arty_brood_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units ={{coun
+	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+}
+})
 
-addNewSquad({ type = "special", minAnger = 80, units =	{ "1 raptor_allterrain_arty_brood_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 80,
+	units ={{coun
+	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+}
+})
 
-addNewSquad({ type = "special", minAnger = 90, units =	{ "1 raptor_allterrain_arty_brood_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 90,
+	units ={{coun
+	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+}
+})
 
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_allterrain_arty_brood_t4_v1" }, maxAnger = 1000 })
 
