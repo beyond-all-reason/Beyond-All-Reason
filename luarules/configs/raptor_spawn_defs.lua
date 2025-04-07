@@ -1798,14 +1798,42 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "10 raptor_land_spiker_basic_t4_v1" }, weight = 2 })
+addNewSquad({
+	type = "special",
+	minAnger = 60,
+	weight = 2,
+	units = {
+		{count = 10, unit = "raptor_land_spiker_basic_t4_v1" }
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_spiker_basic_t4_v1" }, weight = 2, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	weight = 2,
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 10, unit = "raptor_land_spiker_basic_t4_v1" }
+	}
+})
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "10 raptor_land_spiker_spectre_t4_v1" } })
+addNewSquad({
+	type = "special",
+	minAnger = 70,
+	units = {
+		{count = 10, unit = "raptor_land_spiker_spectre_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_spiker_spectre_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 10, unit = "raptor_land_spiker_spectre_t4_v1"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptor_land_spiker_basic_t4_v1", "5 raptor_land_spiker_spectre_t4_v1" } })
