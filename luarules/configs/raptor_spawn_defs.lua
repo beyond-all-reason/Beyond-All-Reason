@@ -2182,24 +2182,21 @@ addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_allterrain_a
 addNewSquad({
 	type = "special",
 	minAnger = 70,
-	units ={{coun
-	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+	units ={{count = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
 }
 })
 
 addNewSquad({
 	type = "special",
 	minAnger = 80,
-	units ={{coun
-	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+	units ={{count = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
 }
 })
 
 addNewSquad({
 	type = "special",
 	minAnger = 90,
-	units ={{coun
-	t = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
+	units ={{count = 1, unit = "raptor_allterrain_arty_brood_t4_v1"}
 }
 })
 
