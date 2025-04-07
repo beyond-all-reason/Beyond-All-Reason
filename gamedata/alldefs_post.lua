@@ -587,6 +587,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
 			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
+			uDef.buildoptions[numBuildoptions + 7] = "legmohocon"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -1405,12 +1406,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1445
 			end
 		end
-
-		-- Accurate Lasers
-		
-			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
-				wDef.targetmoveerror = nil
-			end
 
 		----EMP rework
 

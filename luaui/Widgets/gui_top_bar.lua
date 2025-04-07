@@ -442,7 +442,7 @@ local function updateTidal()
 		font2:End()
 	end)
 
-	if WG['tooltip'] and refreshUi then 
+	if WG['tooltip'] and refreshUi then
 		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidalspeedTooltip'), nil, Spring.I18N('ui.topbar.tidalspeed'))
 	end
 end
@@ -643,7 +643,7 @@ local function updateResbar(res)
 		resbarDrawinfo[res].textPull = { "\255\210\100\100" .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
 		resbarDrawinfo[res].textExpense = { "\255\210\100\100" .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }
 		resbarDrawinfo[res].textIncome = { "\255\100\210\100" .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
-	
+
 	else	-- just update values
 		resbarDrawinfo[res].textCurrent[1] = short(r[res][1])
 		resbarDrawinfo[res].textStorage[1] = "\255\150\150\150" .. short(r[res][2])
@@ -1451,6 +1451,7 @@ function widget:DrawScreen()
 			if uiBgList then glDeleteList(uiBgList) end
 			uiBgList = glCreateList(function()
 				drawUiBackground()
+				gl.Color(1, 1, 1, 1)	-- withouth this no guishader effects for other elements
 			end)
 
 			if WG['guishader'] then
@@ -1516,7 +1517,7 @@ function widget:DrawScreen()
 	end
 
 	if showButtons and dlistButtons and buttonsArea['buttons'] then
-		if not useRenderToTexture then 
+		if not useRenderToTexture then
 			glCallList(dlistButtons)
 		end
 
