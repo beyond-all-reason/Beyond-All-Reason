@@ -1317,7 +1317,15 @@ addNewSquad({
 		{count = 10, unit = "raptor_allterrain_swarmer_basic_t2_v1"}
 	}
 })
-addNewSquad({type = "special", weight = 2, minAnger = 80, maxAnger = 1000, units = { "15 raptor_allterrain_swarmer_basic_t2_v1" }})
+addNewSquad({
+	type = "special",
+	weight = 2,
+	minAnger = 80,
+	maxAnger = 1000,
+	units = {
+		{count = 15, unit = "raptor_allterrain_swarmer_basic_t2_v1"}
+	}
+})
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptor_allterrain_swarmer_basic_t3_v1" }, weight = 2, maxAnger = 90 })
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptor_allterrain_swarmer_basic_t3_v1" }, weight = 2, maxAnger = 1000 })
