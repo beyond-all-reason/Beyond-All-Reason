@@ -1336,7 +1336,7 @@ local function drawQuitScreen()
 					font2:Print(Spring.I18N('ui.topbar.quit.teamResign'), quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2), quitscreenTeamResignArea[2] + ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 				if mouseOver and teamResign then
-					font:Print(Spring.I18N('ui.topbar.hint.'..mouseOver), quitscreenTeamResignArea[1] - buttonMargin , quitscreenArea[2] + (2.5*fontSize / 3), fontSize, "cn")
+					font:Print(Spring.I18N('ui.topbar.hint.'..mouseOver), quitscreenTeamResignArea[1] - buttonMargin , quitscreenArea[2] + (2.5*fontSize / 3), fontSize*0.9, "cn")
 				end
 			end
 
