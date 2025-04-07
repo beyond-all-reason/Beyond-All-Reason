@@ -1758,8 +1758,24 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, units = {{count = 3, unit = "raptor_land_assault_basic_t4_v1"},{count = 2, unit = "raptor_land_assault_spectre_t4_v1"}}, maxAnger = 1000})
-addNewSquad({ type = "special", minAnger = 100, units = {{count = 3, unit = "raptor_land_assault_basic_t4_v2"},{count = 2, unit = "raptor_land_assault_spectre_t4_v1"}}, maxAnger = 1000})
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 3, unit = "raptor_land_assault_basic_t4_v1"},
+		{count = 2, unit = "raptor_land_assault_spectre_t4_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 3, unit = "raptor_land_assault_basic_t4_v2"},
+		{count = 2, unit = "raptor_land_assault_spectre_t4_v1"}
+	}
+})
 
 --Spikers------------------------------------------------------------------------------------------------------
 
