@@ -1,7 +1,6 @@
 
 #include "../recoil_common_includes.h"
 
-#define DEBUG
 #include "../debug.h"
 
 
@@ -58,7 +57,6 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk - custom - baked.bl
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:5
-			dbg(isAiming)
 			turn head to y-axis <-11.461231> speed <8.599276> / animSpeed; 
 			turn lfoot to z-axis <-1.039014> speed <55.671662> / animSpeed; 
 			turn lfoot to y-axis <-4.494329> speed <30.549297> / animSpeed; 
