@@ -1278,8 +1278,24 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_basic_t4_v2", "8 raptor_land_swarmer_spectre_t4_v1" }, maxAnger = 1000 })
-addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_basic_t4_v1", "8 raptor_land_swarmer_spectre_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_basic_t4_v2"},
+		{count = 8, unit = "raptor_land_swarmer_spectre_t4_v1"}
+	}
+})
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_basic_t4_v1"},
+		{count = 8, unit = "raptor_land_swarmer_spectre_t4_v1"}
+	}
+})
 
 --All Terrain Swarmers------------------------------------------------------------------------------------------------------
 
