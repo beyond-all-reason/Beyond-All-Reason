@@ -2064,10 +2064,24 @@ addNewSquad({
 	}
 })
 
-addNewSquad({type = "special",minAnger = 100,units = {{count = 2, unit = "raptor_allterrain_arty_basic_t4_v1"}},maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 2, unit = "raptor_allterrain_arty_basic_t4_v1"}
+	}
+})
 
 
-addNewSquad({type = "special",minAnger = 20,units = {{count = 1, unit = "raptor_allterrain_arty_acid_t2_v1"}},maxAnger = 50 })
+addNewSquad({
+	type = "special",
+	minAnger = 20,
+	maxAnger = 50,
+	units = {
+		{count = 1, unit = "raptor_allterrain_arty_acid_t2_v1"}
+	}
+})
 
 addNewSquad({
 	type = "special",
