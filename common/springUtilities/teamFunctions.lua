@@ -138,6 +138,6 @@ return {
 	},
 	GetScavTeamID = function () return getSettings().scavTeamID end,
 	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
-	GetChickenTeamID = function () return getSettings().raptorTeamID end,
-	GetChickenAllyTeamID = function () return getSettings().raptorAllyTeamID end,
+	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
+	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
 }

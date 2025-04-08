@@ -15,6 +15,8 @@
 -- REASON:
 -- AllowUnitBuildStep is damn expensive and is a serious perf hit if it is used for all this.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = 'Builder Priority', 	-- this once was named: Passive Builders v3

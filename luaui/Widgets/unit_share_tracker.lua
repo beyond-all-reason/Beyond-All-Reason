@@ -1,5 +1,7 @@
 local versionNumber = "v1.1"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Share Tracker",

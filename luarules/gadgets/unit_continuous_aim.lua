@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Continuous Aim",
@@ -124,6 +126,7 @@ local convertedUnitsNames = {
     ['legmed'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legbunk'] = 5,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,

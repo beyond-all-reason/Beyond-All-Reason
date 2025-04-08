@@ -5,6 +5,10 @@
 			"catchingUp": "Catching up to "
 		},
 		"topbar": {
+			"hint": {
+				"resign": "Resign yourself.",
+				"teamResign": "Call for team resign."
+			},
 			"button": {
 				"quit": "Quit",
 				"resign": "Resign",
@@ -21,6 +25,7 @@
 				"stay": "Stay",
 				"quit": "Quit",
 				"resign": "Resign",
+				"teamResign": "Team Resign",
 				"reallyQuit": "Are you sure you want to quit?",
 				"reallyQuitResign": "Are you sure you want to resign or return to game lobby?",
 				"reallyResign": "Are you sure you want to resign?",
@@ -88,7 +93,9 @@
 			"hideSpecs": "Click to hide",
 			"showSpecs": "Click to show",
 			"leaderboard": "Leaderboard",
-			"leaderboardTooltip": "Players get ranked by their total unit cost worth + stored resources",
+			"leaderboardTooltip": "Teams are ordered by their total unit cost worth + stored resources",
+			"scoreboard": "Scoreboard",
+			"scoreboardTooltip": "Players are ordered by their combined worth in metal+energy used + damage dealt",
 			"hideEnemies": "Click to hide",
 			"showEnemies": "Click to show",
 			"trackPlayer": "Double-click player name to track",
@@ -132,7 +139,8 @@
 			"warlow": "Conflict",
 			"warhigh": "War",
 			"bossfight": "Boss fight",
-			"gameover": "Game over"
+			"gameover": "Game over",
+			"bonus": "Bonus"
 		},
 		"playerTV": {
 			"playerTV": "TV",
@@ -1146,6 +1154,8 @@
 				"soundtrackcustom_descr": "Add your own .ogg or .mp3 music files to the soundtrack playlist\nPlace these .ogg/.mp3 music files in data/music/custom/ subfolders: peace/warlow/warhigh/bossfight/gameover",
 				"soundtrackaprilfools": "April Fools Soundtrack",
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
+				"soundtrackaprilfoolspostevent": "April Fools Soundtrack Post Event",
+				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
 				"soundtracksilence": "Silence periods",
 				"soundtracksilence_descr": "Adds no-music breaks between tracks\nto give you some time to enjoy pure sound effects\nand to make the music less repetitive.",
 				"soundtrackinterruption": "Interruptions",

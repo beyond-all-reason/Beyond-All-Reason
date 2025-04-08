@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Factory Guard Default On",

@@ -3,6 +3,8 @@
 --	return
 --end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Ecostats",
@@ -586,9 +588,6 @@ end
 
 local areaRect = {}
 local prevAreaRect = {}
-local function createTeamCompositionList()
-	refreshTeamCompositionList = true
-end
 local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
@@ -728,11 +727,13 @@ local function Reinit()
 		end
 	end
 
+	uiElementRects = {}
+
 	processScaling()
 	UpdateAllTeams()
 	UpdateAllies()
 	updateButtons()
-	createTeamCompositionList()
+	refreshTeamCompositionList = true
 end
 
 function widget:GetConfigData(data)
@@ -1167,7 +1168,7 @@ local function drawListStandard()
 					if maxEnergy > 0 then
 						DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
 					end
-					if maxEnergy > 0 then
+					if maxMetal > 0 then
 						DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
 					end
 				end
@@ -1224,7 +1225,7 @@ function widget:PlayerChanged(playerID)
 	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			UpdateAllTeams()
-			createTeamCompositionList()
+			refreshTeamCompositionList = true
 		end
 	end
 	myFullview = select(2, Spring.GetSpectatingState())
@@ -1387,7 +1388,7 @@ function widget:Update(dt)
 			teamData[teamID].isDead = select(3, GetTeamInfo(teamID, false))
 		end
 		UpdateAllies()
-		createTeamCompositionList()
+		refreshTeamCompositionList = true
 	end
 
 	sec1 = sec1 + dt
@@ -1415,15 +1416,16 @@ function widget:Update(dt)
 		if WG.allyTeamRanking then
 			updateDrawPos()
 		end
-		createTeamCompositionList()
+		refreshTeamCompositionList = true
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
-	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
-	if topbarShowButtons ~= prevTopbarShowButtons then
+	topbarShowButtons = WG['topbar'] and WG['topbar'].getShowButtons()
+	if topbarShowButtons ~= prevTopbarShowButtons or not prevTopbar and (WG['topbar'] ~= nil) or prevTopbar ~= (WG['topbar'] ~= nil) then
 		Reinit()
 		lastTextListUpdate = 0
 	end
+	prevTopbar = WG['topbar'] ~= nil and true or false
 end
 
 function widget:DrawScreen()

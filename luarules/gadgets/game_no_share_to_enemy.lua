@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "game_no_share_to_enemy",

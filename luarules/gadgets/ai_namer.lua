@@ -1,5 +1,7 @@
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "AI namer",
@@ -135,7 +137,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Zecrus",
 		"ZephyrSkies",
 
-		-- Supporters ($20+ Donation)
+		-- Supporters ($40+ Donation & personal request)
 		"aeon",
 		"Aknaroth",
 		"badosu",
@@ -144,6 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		"BoT0x",
 		"Canyoudigit84",
 		"catraxx",
+		"Chrono", -- Donater $100
 		"Coresample",
 		"danielquinn",
 		"dallabill",
@@ -152,6 +155,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Diana",
 		"EnJoY",
 		"ewang",
+		"FishouseMike", --Donater $40
 		"FlorisXIV",
 		"fluxtux",
 		"Glass",
@@ -163,6 +167,7 @@ if gadgetHandler:IsSyncedCode() then
 		"kabab",
 		"Kalladin",
 		"kaofeiwei",
+		"Kei", -- Donater $100
 		"keithphw",
 		"Kodiak",
 		"Lightjohn",
@@ -174,6 +179,7 @@ if gadgetHandler:IsSyncedCode() then
 		"MelKaven",
 		"mordante",
 		"MoustacheG",
+		"MVPete", --Donater $50
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
@@ -201,6 +207,7 @@ if gadgetHandler:IsSyncedCode() then
 		"TIMBO",
 		"Titan",
 		"TopHatButcher",
+		"Twardowsky",
 		"Unusual Emphasis",
 		"Woody",
 		"Yavarin",

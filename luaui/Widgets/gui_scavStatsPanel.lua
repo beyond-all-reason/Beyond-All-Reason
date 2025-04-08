@@ -2,6 +2,8 @@ if not (Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gamety
 	return false
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Scav Stats Panel",

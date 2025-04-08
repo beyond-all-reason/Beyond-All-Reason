@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	= "AdvPlayersList Game Info",
@@ -18,7 +20,7 @@ local font
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
-local glPopMatrix	   = gl.PopMatrix
+local glPopMatrix	 = gl.PopMatrix
 local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
@@ -29,7 +31,6 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
-local usedTextWidth = 0
 local textWidthClock = 0
 local gameframe = Spring.GetGameFrame()
 
@@ -68,12 +69,11 @@ local function drawContent()
 	elseif minutes > 9 then
 		extraSpacing = 0.7
 	end
-	--local _,gamespeed,_ = Spring.GetGameSpeed()
-	--gamespeed = string.format("%.2f", gamespeed)
 	local gamespeed = string.format("%.2f", (gameframe-prevGameframe) / 30)
 	local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
 	font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 	local textWidth = font:GetTextWidth(text) * textsize
+	local usedTextWidth = 0
 	if textWidth > usedTextWidth or textWidthClock+30 < os.clock() then
 		usedTextWidth = textWidth
 		textWidthClock = os.clock()

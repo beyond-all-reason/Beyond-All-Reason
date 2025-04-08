@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Scav Defense Spawner",
@@ -19,6 +21,7 @@ end
 Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
 local config = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
+local EnemyLib = VFS.Include('LuaRules/Gadgets/Include/SpawnerEnemyLib.lua')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -127,13 +130,18 @@ if gadgetHandler:IsSyncedCode() then
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
 	local firstSpawn = true
+	local fullySpawned = false
+	local spawnRetries = 0
+	local spawnRetryTimeDiv = 20
+	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
 	local spawnQueue = {}
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
-	local scavTeamID, scavAllyTeamID
+	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local squadsTable = {}
@@ -184,23 +192,16 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 
 	local teams = GetTeamList()
-	for _, teamID in ipairs(teams) do
-		local teamLuaAI = GetTeamLuaAI(teamID)
-		if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-			scavTeamID = teamID
-			scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-			--computerTeams[teamID] = true
-		else
+	for _,teamID in ipairs(teams) do
+		if teamID ~= scavTeamID then
 			humanTeams[teamID] = true
 		end
 	end
-
+	
 	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
 		scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-	else
-		--computerTeams[gaiaTeamID] = nil
 	end
 
 	humanTeams[gaiaTeamID] = nil
@@ -410,7 +411,7 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-	local ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = Spring.GetAllyTeamStartBox(scavAllyTeamID)
+	local ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5)
 
 	--[[
 
@@ -871,6 +872,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		local foundLocation = false
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
 			local spread = config.burrowSize*1.5
@@ -1001,6 +1003,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if canSpawnBurrow then
+				foundLocation = true
 				for name,data in pairs(config.burrowUnitsList) do
 					if math.random() <= config.spawnChance and data.minAnger < math.max(1, techAnger) and data.maxAnger > math.max(1, techAnger) then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
@@ -1018,6 +1021,7 @@ if gadgetHandler:IsSyncedCode() then
 				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
+		return foundLocation
 	end
 
 	function updateBossLife()
@@ -1542,22 +1546,36 @@ if gadgetHandler:IsSyncedCode() then
 			local _, maxH = Spring.GetUnitHealth(unitID)
 			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
-				Spring.DestroyUnit(unitID, true, true)
+			if not UnitDefs[unitDefID].customParams.isscavenger then
+				--Spring.Echo(UnitDefs[unitDefID].name, "unit created swap", UnitDefs[unitDefID].customParams.scav_swap_override_created)
+				if not UnitDefs[unitDefID].customParams.scav_swap_override_created then
+					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
+						Spring.DestroyUnit(unitID, true, true)
+					end
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created ~= "null" then
+					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_created] then
+						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_created, x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
+					end
+					Spring.DestroyUnit(unitID, true, true)
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
+					Spring.DestroyUnit(unitID, true, true)
+				end
+				return
+			else
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
+				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				if UnitDefs[unitDefID].canCloak then
+					Spring.GiveOrderToUnit(unitID,37382,{1},0)
+				end
+				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+					CommandersPopulation = CommandersPopulation + 1
+				end
+				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
+					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
+				end
+				return
 			end
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-			if UnitDefs[unitDefID].canCloak then
-				Spring.GiveOrderToUnit(unitID,37382,{1},0)
-			end
-			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
-				CommandersPopulation = CommandersPopulation + 1
-			end
-			if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
-				DecoyCommandersPopulation = DecoyCommandersPopulation + 1
-			end
-			return
 		end
 
 		capturableUnits[unitID] = true
@@ -1732,10 +1750,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		gadget:SetInitialSpawnBox()
+	end
+
+	function gadget:SetInitialSpawnBox()
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(scavTeamID, false)
 			if luaAllyID then
-				lsx1, lsz1, lsx2, lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
+				lsx1, lsz1, lsx2, lsz2 = ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Scav start box available, Burrow Placement set to 'Avoid Players'")
@@ -1861,7 +1883,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bossID then
 				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
-				Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+				--Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
@@ -1905,6 +1927,29 @@ if gadgetHandler:IsSyncedCode() then
 				lsz1 = math.max(0, math.floor((lsz1 + lsz2) / 2) - 256)
 				lsz2 = lsz1 + 512
 			end
+		end
+	end
+
+	function gadget:TrySpawnBurrow()
+		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
+		local spawned = SpawnBurrow()
+		timeOfLastSpawn = t
+		if not fullySpawned then
+			local burrowCount = SetCount(burrows)
+			if burrowCount > 1 then
+				fullySpawned = true
+			elseif spawnRetries >= maxSpawnRetries or firstSpawn then
+				spawnAreaMultiplier = spawnAreaMultiplier + 1
+				ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
+				gadget:SetInitialSpawnBox()
+				spawnRetries = 0
+			else
+				spawnRetries = spawnRetries + 1
+			end
+		end
+		if firstSpawn and spawned then
+			timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
+			firstSpawn = false
 		end
 	end
 
@@ -1992,27 +2037,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if burrowCount < minBurrows then
-				SpawnBurrow()
-				timeOfLastSpawn = t
-				if firstSpawn then
-					timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
-					firstSpawn = false
-				end
+				gadget:TrySpawnBurrow(t)
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
-				if firstSpawn then
-					SpawnBurrow()
-					timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
-					timeOfLastSpawn = t
-					firstSpawn = false
-				else
-					SpawnBurrow()
-					timeOfLastSpawn = t
-				end
+				gadget:TrySpawnBurrow(t)
 				scavEvent("burrowSpawn")
 				SetGameRulesParam("scav_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
@@ -2184,16 +2216,36 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
-				Spring.DestroyUnit(unitID, true, true)
+			if not UnitDefs[unitDefID].customParams.isscavenger then
+				--Spring.Echo(UnitDefs[unitDefID].name, "unit captured swap", UnitDefs[unitDefID].customParams.scav_swap_override_captured)
+				if not UnitDefs[unitDefID].customParams.scav_swap_override_captured then
+					if UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
+						Spring.DestroyUnit(unitID, true, true)
+					end
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured ~= "null" then
+					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_captured] then
+						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_captured, x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
+					end
+					Spring.DestroyUnit(unitID, true, true)
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_captured == "delete" then
+					Spring.DestroyUnit(unitID, true, true)
+				end
+				return
+			else
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
+				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				if UnitDefs[unitDefID].canCloak then
+					Spring.GiveOrderToUnit(unitID,37382,{1},0)
+				end
+				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+					CommandersPopulation = CommandersPopulation + 1
+				end
+				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
+					DecoyCommandersPopulation = DecoyCommandersPopulation + 1
+				end
+				return
 			end
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-			if UnitDefs[unitDefID].canCloak then
-				Spring.GiveOrderToUnit(unitID,37382,{1},0)
-			end
-			return
 		end
 	end
 
@@ -2204,11 +2256,13 @@ if gadgetHandler:IsSyncedCode() then
 					spawnCreepStructuresWave()
 				end
 			end
-			if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
-				CommandersPopulation = CommandersPopulation - 1
-			end
-			if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
-				DecoyCommandersPopulation = DecoyCommandersPopulation - 1
+			if UnitDefs[unitDefID].isscavenger then
+				if squadSpawnOptions.commanders[UnitDefs[unitDefID].name] then
+					CommandersPopulation = CommandersPopulation - 1
+				end
+				if squadSpawnOptions.decoyCommanders[UnitDefs[unitDefID].name] then
+					DecoyCommandersPopulation = DecoyCommandersPopulation - 1
+				end
 			end
 		end
 
@@ -2238,7 +2292,7 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+			--Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)

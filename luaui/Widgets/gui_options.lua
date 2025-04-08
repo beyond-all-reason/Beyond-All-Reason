@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Options",
@@ -2427,7 +2429,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.4, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
 		  end,
@@ -2435,7 +2437,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.4, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
 		  end,
@@ -2766,14 +2768,23 @@ function init()
 			end
 		},
 		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
 		onchange = function(i, value)
-			Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
+			Spring.SetConfigInt('UseSoundtrackAprilFoolsPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
 				init()
 			end
 		end
-	},
+		},
 		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
@@ -3311,7 +3322,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.014), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -3349,7 +3360,7 @@ function init()
 		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
-		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
+		{ id = "rendertotexture", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
 				Spring.SendCommands("luaui reload")
@@ -5817,8 +5828,15 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 1 then
+		if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
+			options[getOptionByID('soundtrackAprilFools')] = nil
+		else
+			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
+		end
+	else
 		options[getOptionByID('soundtrackAprilFools')] = nil
+		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
