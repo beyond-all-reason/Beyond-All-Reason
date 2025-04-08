@@ -1,15 +1,17 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
-		name = "Exclude features from area set target",
-		desc = "Stops critters and walls from being included in area set target if units are present",
-		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true
+		name 		= "Exclude walls from area set target",
+		desc 		= "Stops walls from being included in area set target if units are present",
+		date		= "April 2025",
+		license 	= "GNU GPL, v2 or later",
+		layer 		= 0,
+		enabled 	= true
 	}
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+--	excludedUnitsDef = {armdrag, armfdrag, armfort, cordrag, corfdrag, corfort}
 local excludedUnitsDefID = {74, 89, 102, 307, 323, 332}
 
 local CMD_SET_TARGET = 34923
@@ -50,7 +52,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID ~= CMD_SET_TARGET or #cmdParams ~= 4 then
 		return
 	end
-
 	local cmdX, cmdY, cmdZ = cmdParams[1], cmdParams[2], cmdParams[3]
 
 	local mouseX, mouseY = Spring.WorldToScreenCoords(cmdX, cmdY, cmdZ)
