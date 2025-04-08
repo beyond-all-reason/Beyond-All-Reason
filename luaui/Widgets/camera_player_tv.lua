@@ -52,7 +52,6 @@ local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
 local toggled2 = not fullview
-local forceRefresh = false
 local drawlist = {}
 local desiredLosmodeChanged = 0
 
@@ -160,12 +159,13 @@ local function refreshUiDrawing()
 		gl.DeleteList(drawlist[i])
 	end
 
-	local buttonOpacity = useRenderToTexture and 0.85 or 0.66
-	local mult = useRenderToTexture and 1.25 or 1
+	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
+	local mult = useRenderToTexture and 1.33 or 1
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
 		local fontSize = (widgetHeight * widgetScale) * 0.5
+		
 		local text, color1, color2
 		font:Begin()
 
@@ -229,9 +229,9 @@ local function refreshUiDrawing()
 	drawlist[2] = gl.CreateList(function()
 		-- Player TV Button highlight
 		if toggled or lockPlayerID then
-			gl.Color(1*mult, 0.2*mult, 0.2*mult, 0.4*mult)
+			gl.Color(1*mult, 0.2*mult, 0.2*mult, buttonOpacity)
 		else
-			gl.Color(0.2*mult, 1*mult, 0.2*mult, 0.4*mult)
+			gl.Color(0.2*mult, 1*mult, 0.2*mult, buttonOpacity)
 		end
 		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 		gl.Color(0, 0, 0, 0.14*mult)
@@ -309,7 +309,7 @@ local function refreshUiDrawing()
 	end
 end
 
-local function updatePosition(force)
+local function updatePosition()
 	local prevPos = parentPos
 	if WG['displayinfo'] ~= nil then
 		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
@@ -329,9 +329,8 @@ local function updatePosition(force)
 		right = parentPos[4]
 		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-			createCountdownLists()
-			updateDrawing = true
+		if prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5] then
+			widget:ViewResize()
 		end
 	end
 end
@@ -782,9 +781,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:ViewResize()
-	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -793,35 +790,32 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
 
-	if forceRefresh or prevVsx ~= vsx or prevVsy ~= vsy then
-		forceRefresh = false
-
-		for i = 1, #drawlistsCountdown do
-			gl.DeleteList(drawlistsCountdown[i])
-		end
-		for i, v in pairs(drawlistsPlayername) do
-			gl.DeleteList(drawlistsPlayername[i])
-		end
-		drawlistsCountdown = {}
-		drawlistsPlayername = {}
-		if WG['guishader'] and backgroundGuishader then
-			WG['guishader'].DeleteDlist('playertv')
-			backgroundGuishader = nil
-			showBackgroundGuishader = nil
-		end
-		for i = 1, #drawlist do
-			drawlist[i] = gl.DeleteList(drawlist[i])
-		end
-
-		updateDrawing = true
+	for i = 1, #drawlistsCountdown do
+		gl.DeleteList(drawlistsCountdown[i])
 	end
-
-	createCountdownLists()
+	for i, v in pairs(drawlistsPlayername) do
+		gl.DeleteList(drawlistsPlayername[i])
+	end
+	drawlistsCountdown = {}
+	drawlistsPlayername = {}
+	if WG['guishader'] and backgroundGuishader then
+		if backgroundGuishader then
+			backgroundGuishader = gl.DeleteList(backgroundGuishader)
+		end
+		showBackgroundGuishader = nil
+	end
+	for i = 1, #drawlist do
+		drawlist[i] = gl.DeleteList(drawlist[i])
+	end
 
 	if uiTex then
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
+
+	updateDrawing = true
+
+	createCountdownLists()
 end
 
 function widget:TextCommand(command)
@@ -879,8 +873,6 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
-		uiBgTex = nil
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
@@ -910,6 +902,5 @@ function widget:SetConfigData(data)
 end
 
 function widget:LanguageChanged()
-	forceRefresh = true
 	widget:ViewResize()
 end
