@@ -11,20 +11,15 @@ function widget:GetInfo()
 	}
 end
 
---	excludedUnitsDef = {armdrag, armfdrag, armfort, cordrag, corfdrag, corfort, legdrag, legfort}
-local excludedUnitsDefID = {74, 89, 102, 312, 328, 337, 558, 575}
-
+local excludedUnitsDefID = {}
 local CMD_SET_TARGET = 34923
 
 local gameStarted
 
-local function contains(table, value)
-	for i, DefID in ipairs(table) do
-		if (DefID == value) then
-		return true
-		end
+for id, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.objectify then
+		table.insert(excludedUnitsDefID, id)
 	end
-	return false
 end
 
 function maybeRemoveSelf()
@@ -52,25 +47,23 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID ~= CMD_SET_TARGET or #cmdParams ~= 4 then
 		return
 	end
-	local cmdX, cmdY, cmdZ = cmdParams[1], cmdParams[2], cmdParams[3]
+	local cmdX, cmdY, cmdZ, cmdRadius = unpack(cmdParams)
 
 	local mouseX, mouseY = Spring.WorldToScreenCoords(cmdX, cmdY, cmdZ)
-
-	local cmdRadius = cmdParams[4]
 
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, -4)
 
 	local newCmds = {}
+	local newCmdOpts = {}
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
-			local newCmdOpts = {}
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if not table.contains(excludedUnitsDefID, unitDefID) then
 			if #newCmds ~= 0 or cmdOpts.shift then
-				newCmdOpts = { "shift" }
+				newCmdOpts = CMD.OPT_SHIFT
 			end
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			if not contains(excludedUnitsDefID, unitDefID) then
-				newCmds[#newCmds + 1] = { CMD_SET_TARGET, { unitID }, newCmdOpts }
-			end
+			newCmds[#newCmds + 1] = {CMD_SET_TARGET, unitID, newCmdOpts}
+		end
 	end
 
 	if #newCmds > 0 then
