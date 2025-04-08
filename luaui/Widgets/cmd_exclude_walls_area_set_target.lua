@@ -13,6 +13,7 @@ end
 
 local excludedUnitsDefID = {}
 local CMD_SET_TARGET = 34923
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local gameStarted
 
@@ -57,7 +58,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local newCmdOpts = {}
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		if not table.contains(excludedUnitsDefID, unitDefID) then
 			if #newCmds ~= 0 or cmdOpts.shift then
 				newCmdOpts = CMD.OPT_SHIFT
