@@ -6,7 +6,7 @@ end
 
 function ScoutBST:Init()
 	self.id = self.unit:Internal():ID()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.target = nil
 	self.attacking = nil
 	self.evading = nil
@@ -23,6 +23,50 @@ function ScoutBST:Init()
 	self.lastUpdateFrame = self.game:Frame()
 	self.ai.scouthst.scouts[self.id] = self
 
+end
+
+function ScoutBST:Update()
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
+		return
+	end
+	
+	if self.active then
+		self.position.x, self.position.y ,self.position.z = self.unit:Internal():GetRawPos()
+		local X,Z = self.ai.maphst:PosToGrid(self.position)
+		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
+		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
+		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
+		local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = self.unit:Internal():GetHealtsParams()
+		if 	relativeHealth < 0.99 and buildProgress == 1 and not self.attacking then
+			self:Evading()
+			return
+		else
+			self.evading = nil
+		end
+		if not self.evading and self.isWeapon then
+			self.attacking = self:ImmediateTarget2()
+		end
+		if self.attacking then
+			self:EchoDebug('attacking',self.attacking)
+			self:Attacking()
+			return
+		end
+		if not self.target  and not self.attacking and not self.evading  then
+			self:EchoDebug('no scout target for:', self.id)
+			self.target = self.ai.scouthst:ClosestSpot2(self)
+			if self.target then
+				self:Scouting()
+			end
+
+		end
+		if self.target then
+			local X,Z = self.ai.maphst:PosToGrid(self.target)
+			self:EchoDebug(self.id,'target:',self.target,X,Z)
+			if not self.ai.scouthst:TargetAvailable(X,Z,self.id) then
+				self.target = nil
+			end
+		end
+	end
 end
 
 function ScoutBST:Priority()
@@ -49,33 +93,33 @@ end
 
 function ScoutBST:Evading()
 	self:EchoDebug('evading')
-	self.target = nil
-	self.evading = true
-	self.attacking = nil
-	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
-	if home then
-		home = home.position
-	else
-		home = self.position
+	if self.evading and game:GetUnitByID(self.evading) and game:GetUnitByID(self.evading):GetPosition() then
+		return
 	end
+	self.target = nil
+	self.attacking = nil
 
-	home = self.ai.tool:RandomAway2(home,300)
+	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
+	
+	
 	if home then
-		self.ai.tool:GiveOrder(self.id,CMD.MOVE, home, 0,'1-1')
-		--self.unit:Internal():Move(home)
+		
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.ai.tool:RandomAway2(home.position,300), 0,'1-1')
+		self.evading = home.id
 	end
 end
 
 function ScoutBST:Attacking()
 	self:EchoDebug('attacking')
 	if not self.attacking then return end
-	if not self.ai.loshst.losEnemy[self.attacking] then
+	if not self.ai.loshst.losEnemy[self.attacking] or not game:GetUnitByID(self.attacking) or not game:GetUnitByID(self.attacking):GetPosition() then
 		self.attacking = nil
 		return
 	end
 	self.target = nil
-	self.ai.tool:GiveOrder(self.id,CMD.FIGHT, self.attacking.POS, 0,'1-1')
-	--self:AttackMove( self.attacking.POS )
+
+	self.ai.tool:GiveOrder(self.id,CMD.FIGHT, game:GetUnitByID(self.attacking):GetPosition(), 0,'1-1')
+	
 end
 
 function ScoutBST:Scouting()
@@ -83,6 +127,18 @@ function ScoutBST:Scouting()
 	local randomAway = self.ai.tool:RandomAway2(self.target,128)
 	self.ai.tool:GiveOrder(self.id,CMD.MOVE, randomAway, 0,'1-1')
 	--self.unit:Internal():Move(randomAway)
+end
+
+function ScoutBST:ImmediateTarget2()
+	local nearestEnemy = Spring.GetUnitNearestEnemy(self.id)
+	if nearestEnemy then
+		local enemyIsUnarm = not self.ai.armyhst.unitTable[game:GetUnitByID(nearestEnemy):Name()].isWeapon
+		if enemyIsUnarm then
+			
+			self:EchoDebug('immediate target',nearestEnemy)
+			return nearestEnemy
+		end
+	end
 end
 
 function ScoutBST:ImmediateTarget()
@@ -112,53 +168,6 @@ function ScoutBST:ImmediateTarget()
 	self:EchoDebug('attack target' ,attack)
 	return attack
 end
-
-
-
-
-function ScoutBST:Update()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
-		return
-	end
-	if self.active then
-		local unit = self.unit:Internal()
-		self.position.x, self.position.y ,self.position.z = unit:GetRawPos()
-		local X,Z = self.ai.maphst:PosToGrid(self.position)
-		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
-		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
-		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
-		local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = unit:GetHealtsParams()
-		if 	relativeHealth < 0.99 and buildProgress == 1 and not self.attacking then
-			self:Evading()
-			return
-		else
-			self.evading = nil
-		end
-		if not self.evading and self.isWeapon then
-			--self.attacking = self:bestAdjacentPos(self.unit:Internal(),nil)
-			self.attacking = self:ImmediateTarget()
-		end
-		if self.attacking then
-			self:Attacking()
-			return
-		end
-		if not self.target  and not self.attacking and not self.evading  then
-			self.target = self.ai.scouthst:ClosestSpot2(self)
-			if self.target then
-				self:Scouting()
-			end
-
-		end
-		if self.target then
-			self:EchoDebug('check',self.id)
-			local X,Z = self.ai.maphst:PosToGrid(self.target)
-			if not self.ai.scouthst:TargetAvailable(X,Z,self.id) then
-				self.target = nil
-			end
-		end
-	end
-end
-
 
 function ScoutBST:bestAdjacentPos(unit,target)
 	local upos = self.position

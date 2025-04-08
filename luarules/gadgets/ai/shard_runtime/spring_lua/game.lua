@@ -175,8 +175,6 @@ local game = {}
 	
 	function game:SendLuaRulesMessage(message) -- sends a message to the engine to give an order
 		message = '@Shard' .. message .. 'Shard@'
-		--Spring.Echo('game:GiveOrder: ' .. message)
-		
 		Spring.SendLuaRulesMsg(message)
 	end
 

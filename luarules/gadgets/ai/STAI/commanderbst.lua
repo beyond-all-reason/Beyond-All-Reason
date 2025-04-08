@@ -28,6 +28,11 @@ function CommanderBST:Update()
 		self.save = false
 	end
 	if self.active and self.save == 1 then
+		
+		print('active ',self.save)
+		if self.safeBuilder and game:GetUnitByID(self.safeBuilder) and game:GetUnitByID(self.safeBuilder):GetPosition() then
+			return
+		end
 		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), 'eco')
 		if self.safeBuilder then
 			self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
@@ -39,12 +44,23 @@ function CommanderBST:Update()
 		end
 	end
 	if self.active and self.save == 2 then
+		print('active ',self.save)
+		if self.safeHouse and game:GetUnitByID(self.safeHouse.id) and game:GetUnitByID(self.safeHouse.id):GetPosition() then
+			return
+		end
 		self.safeHouse = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 		if self.safeHouse then
 			self:HelpFactory()
 		end
+		--[[if self.safeBuilder and game:GetUnitByID(self.safeBuilder) and game:GetUnitByID(self.safeBuilder):GetPosition() then
+			return
+		end
+		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), 'eco')
+		if self.safeBuilder then
+			self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
+		end]]
+		self.unit:ElectBehaviour()
 	end
-	self.unit:ElectBehaviour()
 end
 
 function CommanderBST:OwnerIdle()

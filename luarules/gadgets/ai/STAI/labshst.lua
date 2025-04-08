@@ -339,8 +339,10 @@ function LabsHST:ClosestHighestLevelFactory(builder, maxDist)
 	local minDist = maxDist or math.huge
 	local Lab
 	local maxLevel = 0
+	print('mnxcmncxc')
 	for id, lab in pairs(self.ai.labshst.labs) do
-		if self.ai.maphst:UnitCanGoHere(builder, lab.position) then
+		Spring.Echo('labposhighlevel',lab.position)
+		if self.ai.maphst:UnitCanGoHere(builder, self.ai.tool:RandomAway(lab.position,300)) then
 			local dist = self.ai.tool:distance(builderPos, lab.position)
 			if lab.level >= maxLevel and dist <= minDist then
 				minDist = dist

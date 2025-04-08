@@ -786,31 +786,23 @@ function MapHST:MobilityOfUnit(unit)
 	return mtype, self:MobilityNetworkHere(mtype, position)
 end
 
-function MapHST:UnitCanGoHereBackup(unit, position)
+function MapHST:UnitCanGoHere(unit, position,maxDistance)
 	if not unit  or not position then return false end
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
-	-- check if it's even a valid move order theorically already tested Spring.TestMoveOrder so do not need another
-	local pnet = self:MobilityNetworkHere(mtype, position)
-	if unet == pnet then
-		return true
-	end
-end
-function MapHST:UnitCanGoHere(unit, position)
-	if not unit  or not position then return false end
-	local mtype, unet = self:MobilityOfUnit(unit)
-	if mtype == 'air' then return true end
+	print(unit:Name(),'ask for a pathtest')
+	maxDistance = maxDistance or 128
 	local ux,uy,uz = unit:GetRawPos()
-	local pathtest = map:GetPathObject(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z)
-	if pathtest then
-		local _waypoints = map:GetPathWaypoints(pathtest)
-		if _waypoints then
-			return self.ai.tool:RawDistance(position.x,position.y,position.z,_waypoints[#_waypoints][1],_waypoints[#_waypoints][2],_waypoints[#_waypoints][3]) < self.gridSize
-			--Spring.MarkerAddPoint(_waypoints[#_waypoints][1],_waypoints[#_waypoints][2],_waypoints[#_waypoints][3],'go'	)
-		end
+	if self.ai.tool:RawDistance(ux,uy,uz,position.x,position.y,position.z) < 32  then
+		return 32
 	end
-	return map:PathTest(self.ai.armyhst.unitTable[unit:Name()].mclass ,ux,uy,uz ,position.x,position.y,position.z)
+	local pathtest = map:TestPath(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z,nil,unit:Name())
+	if pathtest < maxDistance then
+		return pathtest
+	end
+	print('too far away',pathtest)
 end
+
 function MapHST:UnitCanGetToUnit(unit1, unit2)
 	local position = unit2:GetPosition()
 	return self:UnitCanGoHere(unit1, position)

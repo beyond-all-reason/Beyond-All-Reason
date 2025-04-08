@@ -56,7 +56,7 @@ end
 function map:CanBuildHere(unittype,position) -- returns boolean
 	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
 	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
-	-- self:EchoDebug(unittype:Name(), newX, newY, newZ, blocked)
+	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
 end
 
@@ -100,6 +100,49 @@ function map:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_
 	end
 	radius = radius or 8
 	return Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+end
+
+
+
+
+
+function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius,uname)
+	local pathObject = self:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not pathObject then return end
+	radius = radius or 64
+	local nextPositionX,nextPositionY,nextPositionZ = self:NextPath(pathObject,end_x, end_y, end_z,radius)
+	if not nextPositionX then return end
+	if nextPositionX and nextPositionY and nextPositionZ then
+		nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+		local x = end_x - nextPositionX
+		local y = end_y - nextPositionY
+		local z = end_z - nextPositionZ
+		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+		Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'next: '..uname)
+		Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+		if dist <= radius * 1.1 then
+			return dist,nextPositionX,nextPositionY,nextPositionZ
+		end
+	end
+	local wp = self:GetPathWaypoints(pathObject)
+	wp = wp[#wp]
+	wp[2] = Spring.GetGroundHeight(wp[1],wp[3])
+	local x = end_x - wp[1]
+	local y = end_y - wp[2]
+	local z = end_z - wp[3]
+	local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+	Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'last: '..uname)
+	Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
+	return dist,wp[1],wp[2],wp[3]
+end
+
+function map:NextPath(pathObject,posx,posy,posz,radius)
+	if not pathObject or not posx or not posy or not posz then
+		return
+	end
+	radius = radius or 64
+	local nextPositionX,nextPositionY,nextPositionZ = pathObject:Next(posx,posy,posz,radius)
+	return nextPositionX,nextPositionY,nextPositionZ
 end
 
 function map:PathTest(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
@@ -275,7 +318,6 @@ function map:EraseCircle(pos, radius, color, label, filled, channel)
 end
 
 function map:DrawLine(pos1, pos2, color, label, arrow, channel)
-	print("map:DrawLine")
 	channel = channel or 1
 	color = color or {}
 	if (Script.LuaUI('ShardDrawAddLine')) then

@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -93,7 +93,7 @@ function BuildersBST:Update()
 		return
 	end
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
-	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress, relativeHealth = self.unit:Internal():GetHealtsParams()
+	local _, _, _, _, buildProgress, relativeHealth = self.unit:Internal():GetHealtsParams()
 
 	if relativeHealth < 0.99 and buildProgress == 1 and not self.isCommander then
 		self:Assist()
@@ -328,14 +328,13 @@ function BuildersBST:ProgressQueue()
 	self:EchoDebug(self.name, " progress queue", self.role, self.idx, #self.queue)
 	
 	local pt = self.unit:Internal():GetPosition()
-	
-	if  not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, 1, true, true,false ) or 
+	--[[if  not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, 1, true, true,false ) or 
 		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, -1, true, true,false ) or 
 		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, 1, true, true,false ) or 
 		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, -1, true, true,false ) then
 		self:Warn('moveorder not pass for builder',self.name, self.id)
 		return
-	end
+	end]]
 	if self.isCommander then
 		self.role = self.ai.buildingshst:SetRole(self.id)
 		self.queue = self.ai.taskshst.roles[self.role]
@@ -417,14 +416,14 @@ function BuildersBST:ProgressQueue()
 end
 
 function BuildersBST:Assist()
-	self:EchoDebug('assistant proc for', self.name)
+	self:EchoDebug('assistant procedure for', self.name,self.role)
 	if self.assistant then 
 		self:EchoDebug('already assist ', self.assistant)
 		return 
 	
 		end
 	local builderPos = self.unit:Internal():GetPosition()
-	if self.role ~= 'eco' then
+	--[[if self.role ~= 'eco' then
 		local bossDist = math.huge
 		local bossTarget
 		for bossID, project in pairs(self.ai.buildingshst.sketch) do
@@ -442,18 +441,22 @@ function BuildersBST:Assist()
 			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
 			self.assistant = bossTarget
 		end
-	else
+	else]]
+	if true then
 		local bossDist = math.huge
 		local bossTarget
 		local bossLevel = 0
+		print('lksjvlskvnaslkdv')
 		for bossID, project in pairs(self.ai.buildingshst.builders) do
 			self:EchoDebug('project',project)
 			if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
 				local builderLevel = self.ai.armyhst.unitTable[project.builderName].techLevel
 				if builderLevel >= bossLevel then
+					print('enough level')
 					bossLevel = builderLevel
 					local dist = self.ai.tool:distance(builderPos, project.position)
 					if dist < bossDist then
+						print('closest')
 						bossDist = dist
 						bossTarget = project.builderID
 						self:EchoDebug('elect a boss',bossID,project)
@@ -463,6 +466,7 @@ function BuildersBST:Assist()
 		end
 		if bossTarget then
 			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
+			print(self.id,'guarding',bossTarget)
 			self.assistant = bossTarget
 			
 		end

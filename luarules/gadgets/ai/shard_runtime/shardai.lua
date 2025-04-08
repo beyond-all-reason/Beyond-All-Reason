@@ -5,7 +5,7 @@ local logRAM = false
 local function tracyZoneBeginMem() return end
 local function tracyZoneEndMem() return end
 
-if tracy and not tracy then
+if tracy then
 	Spring.Echo("Enabled Tracy support for STAI")
 	tracyZoneBeginMem = function(fname)
 		if logRAM then lastGCinfo = gcinfo() end
@@ -80,12 +80,9 @@ function ShardAI:Init()
 			if m == nil then
 				self:Warn("Error! Shard tried to init a nil module!")
 			else
-				local RAM = gcinfo()
-
-				----tracyZoneBeginMem(m:Name())
+				tracyZoneBeginMem(m:Name())
 				m:Init()
-				------tracyZoneEndMem()
-				print (m:Name(),gcinfo() - RAM)
+				tracyZoneEndMem()
 			end
 		end
 
@@ -119,20 +116,10 @@ function ShardAI:Update()
 			self:Warn("nil module!")
 		else
  			--self.game:StartTimer(m:Name() .. ' hst')
-			local RAM = gcinfo()
-
 			--tracyZoneBeginMem('STAI'..m:Name())
 			m:Update()
 			--tracyZoneEndMem('STAI'..m:Name())
  			--self.game:StopTimer(m:Name() .. ' hst')
-			RAM = gcinfo() - RAM
-			if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
-				print (m:Name(),RAM)
-				
-			end
-			if RAM > 20 and m:Name() ~= 'UnitHandler' then
-				Spring.SendCommands('pause')
-			end
 		end
 	end
 	----tracyZoneEndMem()

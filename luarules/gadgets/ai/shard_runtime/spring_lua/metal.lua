@@ -8,7 +8,7 @@ local sqRootThree = math.sqrt(3)
 local halfHexHeight = math.ceil( (sqRootThree * extractorRadiusMetal) / 2 )
 local halfExtractorRadiusMetal = math.ceil( extractorRadiusMetal / 2 )
 
-Spring.Echo(metalmapSizeX, metalmapSizeZ, metalmapSizeX*metalmapSizeZ, extractorRadiusMetal, maxSpotArea, minSpotArea, halfHexHeight, halfExtractorRadiusMetal)
+Spring.Echo('STAI metal map',metalmapSizeX, metalmapSizeZ, metalmapSizeX*metalmapSizeZ, extractorRadiusMetal, maxSpotArea, minSpotArea, halfHexHeight, halfExtractorRadiusMetal)
 
 local mCeil = math.ceil
 
@@ -199,7 +199,7 @@ local function GetSpots()
 			if tharBeMetal then id = id + 1 end
 		end
 	end
-	Spring.Echo(#blobs, "blobs")
+	Spring.Echo(#blobs, "blobs spots")
 	-- isInBlob = {}
 	local spots = {}
 	local spotsCount = 0

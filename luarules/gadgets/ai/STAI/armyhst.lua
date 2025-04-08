@@ -913,7 +913,7 @@ local function getDPS(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
 	end
-	----Spring.Echo('dps',dps)
+	--print('dps',dps)
 	return dps
 end
 
@@ -930,7 +930,7 @@ local function getInterceptor(unitDefID)
 			interceptor  =  weaponDef['interceptor'] == 1
 		end
 	end
-	----Spring.Echo('interceptor',interceptor)
+	--print('interceptor',interceptor)
 	return interceptor
 end
 
@@ -945,7 +945,7 @@ local function getTargetableWeapon(unitDefID)
 			targetable  =  weaponDef['targetable'] == 1
 		end
 	end
-	----Spring.Echo('targetable',targetable)
+	--('targetable',targetable)
 	return targetable
 end
 
@@ -958,7 +958,7 @@ local function getParalyzer(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		paralyzer  =  weaponDef['paralyzer']
 	end
-	----Spring.Echo('paralyzer',paralyzer)
+	--print('paralyzer',paralyzer)
 	return paralyzer
 end
 
@@ -984,11 +984,11 @@ local function getBadTargets(weapons)
 				local  weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
-				----Spring.Echo('defbadtargets', targets[name])
+				----print('defbadtargets', targets[name])
 			end
 		end
 	end
-	----Spring.Echo('badtargets',targets)
+	--print('badtargets',targets)
 	return targets
 end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -999,11 +999,11 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		-- --Spring.Echo(weaponDefID)
-		-- --Spring.Echo(weaponDef["canAttackGround"])
-		-- --Spring.Echo(weaponDef["waterWeapon"])
-		----Spring.Echo(weaponDef["range"])
-		----Spring.Echo(weaponDef["type"])
+		--print(weaponDefID)
+		--print(weaponDef["canAttackGround"])
+		--print(weaponDef["waterWeapon"])
+		--print(weaponDef["range"])
+		--print(weaponDef["type"])
 		local wType = 0
 		if weaponDef["canAttackGround"] == false then
 			wType = 1
@@ -1012,7 +1012,7 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 		else
 			wType = 0
 		end
-		-- --Spring.Echo(wType)
+		-- --print(wType)
 		if wType == GroundAirSubmerged then
 			if weaponDef["range"] > weaponRange then
 				weaponRange = weaponDef["range"]
@@ -1114,18 +1114,16 @@ function ArmyHST:getThreatRange(unitName)
 end
 
 function ArmyHST:GetUnitTable()
-	local builtBy = GetBuiltBy()
-	local unitTable = {}
-	local wrecks = {}
+	--local builtBy = GetBuiltBy()
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
 
 
 
-		-- --Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+		-- --print(unitDef.name, "build slope", unitDef.maxHeightDif)
 		-- if unitDef.moveDef.maxSlope then
-		-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+		-- --print(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
 		-- end
 		self.unitTable[unitDef.name] = {}
 		-- 			Spring:Echo(unitDef.name)

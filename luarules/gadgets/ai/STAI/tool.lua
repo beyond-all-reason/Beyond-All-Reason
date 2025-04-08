@@ -241,7 +241,6 @@ function Tool:TableToStringBackup(t)
 	end
 	if t.x  and t.z then
 		if not t.y then
-			Spring.Echo('TableToString: missing y value')
 			return
 		end
 		table.insert(t,1,t.x)

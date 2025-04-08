@@ -10,9 +10,30 @@ function gadget:GetInfo()
 	}
 end
 
+-- localization
+local spEcho = Spring.Echo
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetTeamLuaAI = Spring.GetTeamLuaAI
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetTeamStartPosition = Spring.GetTeamStartPosition
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetGaiaTeamID = Spring.GetGaiaTeamID()
+local spGiveOrderTounit = Spring.GiveOrderToUnit
+local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
+local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
+local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGameFrame = Spring.GetGameFrame
 local teamList = Spring.GetTeamList()
+local syncTables = {}
+local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
+
+
+
 for i = 1, #teamList do
-	local luaAI = Spring.GetTeamLuaAI(teamList[i])
+	local luaAI = spGetTeamLuaAI(teamList[i])
 	if luaAI ~= "" then
 		if type(luaAI) == "string" and (VFS.FileExists("luarules/gadgets/ai/" .. luaAI .. "/boot.lua")) then
 			shardEnabled = true
@@ -21,11 +42,11 @@ for i = 1, #teamList do
 end
 
 if not shardEnabled then
-	Spring.Echo("[AI Loader] ShardLua bot Deactivated!")
+	spEcho("[AI Loader] ShardLua bot Deactivated!")
 	return false
 end
 
-Spring.Echo("[AI Loader] ShardLua bot Activated!")
+spEcho("[AI Loader] ShardLua bot Activated!")
 
 -- globals
 ShardSpringLua = true
@@ -47,22 +68,7 @@ Shard.AIsByTeamID = {}
 --end
 --math.fmod = math.mod
 
--- localization
-local spEcho = Spring.Echo
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetAllUnits = Spring.GetAllUnits
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetGaiaTeamID = Spring.GetGaiaTeamID()
-local spGiveOrderTounit = Spring.GiveOrderToUnit
-local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
-local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
-local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
-local syncTables = {}
-local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
+
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
@@ -76,10 +82,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- Function to recursively process a table and discard everything that is not a table
 	function gadget:KillTable(t)
 		if not t or type(t) ~= 'table' then
-			Spring.Echo("incorrect type in SIT_TABLE",t)    
+			spEcho("incorrect type in SIT_TABLE",t)    
 			return
 		end
-		--Spring.Echo("SIT_TABLE: Before clearing", t)
+		--spEcho("SIT_TABLE: Before clearing", t)
 		for key, value in pairs(t) do
 			if type(value) == 'table' then
 				gadget:KillTable(value)
@@ -101,7 +107,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deserializedOrder = {}
 	function gadget:DeserializeOrder(str)
 		if not str then
-			Spring.Echo('Deserialize Order missing parameters')
+			spEcho('Deserialize Order missing parameters')
 			return
 		end
 		deserializedOrder = gadget:ResetTable(deserializedOrder)
@@ -113,7 +119,7 @@ if gadgetHandler:IsSyncedCode() then
 				deserializedOrder[key] = tonumber(value) or value
 			end
 		end
-		--Spring.Echo('sync order',order)
+		--spEcho('sync order',order)
 		return deserializedOrder
 	end
 	local StrToTbl = {}
@@ -134,19 +140,19 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(StrToTbl,tonumber(value) or value)
 			end
 		end
-		--Spring.Echo("Sync Deserialized:", t)
+		--spEcho("Sync Deserialized:", t)
 		return StrToTbl
 	end
 
 	function gadget:RecvLuaMsg(msg)
 		
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
-			Spring.Echo('warn:  Shard  receive a old give order protocol',msg)
+			spEcho('warn:  Shard  receive a old give order protocol',msg)
 			cmdCounter.old = cmdCounter.old + 1
 			return
 		end
 		if string.sub(msg,1,12) ~= '@Shard[STGO]' or string.sub(msg,-12,-1) ~= '[STGO]Shard@' then
-			Spring.Echo(string.sub(msg,1,10),string.sub(msg,-10,-1))
+			spEcho(string.sub(msg,1,10),string.sub(msg,-10,-1))
 			return
 			
 		else
@@ -154,17 +160,17 @@ if gadgetHandler:IsSyncedCode() then
 			--print(msg)
 			local order = gadget:RezTable()
 			order = gadget:DeserializeOrder(msg)
-			--Spring.Echo('order',order)
+			--spEcho('order',order)
 			if not order then
-				Spring.Echo('Deserialize Order failed')
+				spEcho('Deserialize Order failed')
 				return
 			end
 			
 			if order.method == '1-1' then
-				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name)
+				print('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
-				--Spring.Echo(order.id,order.cmd,order.parameters,order.options,cmd)
-				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
+				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
+				--spEcho('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
 				local cmdTag = order.cmd
 				if cmdTag < 0 then
@@ -174,7 +180,7 @@ if gadgetHandler:IsSyncedCode() then
 				cmdCounter[cmdTag]	= cmdCounter[cmdTag]  or 0
 				cmdCounter[cmdTag] = cmdCounter[cmdTag] + 1
 				if not cmd then
-					Spring.Echo('GiveOrderToUnit Error:',cmd)
+					spEcho('GiveOrderToUnit Error:',cmd)
 				end
 			elseif order.method == '2-1' then
 				local arrayOfCmd = gadget:RezTable()
@@ -192,15 +198,12 @@ if gadgetHandler:IsSyncedCode() then
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)
 			elseif order.method == '1-2' then
-				--Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
+				--spEcho(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.iz = cmdCounter.iz + 1
 				if not cmd then
-					Spring.Echo('GiveOrderToUnitArray Error:',cmd)	
-				end
-				
-				--Spring.GiveOrderToUnitArray ( unitArray = { [1] = unitID, etc... }, number cmdID, params = { number, etc...}, options = {"alt", "ctrl", "shift", "right"} )
-				
+					spEcho('GiveOrderToUnitArray Error:',cmd)	
+				end	
 			elseif order.method == '2-2' then
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
@@ -217,17 +220,17 @@ if gadgetHandler:IsSyncedCode() then
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)
 			else
-				Spring.Echo('Shard AI Loader: unknown method',order.method)
+				spEcho('Shard AI Loader: unknown method',order.method)
 			end
 			
 		end
-		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
-		--Spring.Echo('cmdCounter',cmdCounter)
+		--spEcho('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
+		--spEcho('cmdCounter',cmdCounter)
 	end
 
 	function gadget:Shutdown()
-		Spring.Echo("Shard AI sync gadget shutdown")
-		Spring.Echo('STAI commands issued:',cmdCounter)
+		spEcho("Shard AI sync gadget shutdown")
+		spEcho('STAI commands issued:',cmdCounter)
 		
 	end
 
@@ -249,12 +252,12 @@ else	-- UNSYNCED CODE
 			end
 		end
 		-- catch up to started game
-		if Spring.GetGameFrame() > 1 then
+		if spGetGameFrame() > 1 then
 			self:GameStart()
 			-- catch up to current units
 			for _, uId in ipairs(spGetAllUnits()) do
-				self:UnitCreated(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
-				self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
+				self:UnitCreated(uId, spGetUnitDefID(uId), spGetUnitTeam(uId))
+				self:UnitFinished(uId, spGetUnitDefID(uId), spGetUnitTeam(uId))
 			end
 		end
 		collectgarbage('collect')
@@ -321,7 +324,7 @@ else	-- UNSYNCED CODE
 			thisAI:Prepare()
 			--thisAI:Init()
 			garbagelimit = math.min(1000000,garbagelimit + pershardmemlimit)
-			Spring.Echo(string.format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
+			spEcho(string.format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
 			numShards = numShards + 1
 
 		end
@@ -344,12 +347,12 @@ else	-- UNSYNCED CODE
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
 				memoryRecord = math.max(memoryRecord,ramuse)
-				Spring.Echo("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
+				spEcho("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
 					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
-					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
+					spEcho(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
 						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
 					garbagelimit = newgarbagelimit
 				end
@@ -480,7 +483,7 @@ else	-- UNSYNCED CODE
 				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		Spring.Echo('uelram',gcinfo()-RAM)
+-- 		spEcho('uelram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 -- 	local RAM = gcinfo()
@@ -491,7 +494,7 @@ else	-- UNSYNCED CODE
 				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		Spring.Echo('ullram',gcinfo()-RAM)
+-- 		spEcho('ullram',gcinfo()-RAM)
 	end
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 -- 	local RAM = gcinfo()
@@ -502,7 +505,7 @@ else	-- UNSYNCED CODE
 				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		Spring.Echo('uerram',gcinfo()-RAM)
+-- 		spEcho('uerram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 -- 		local RAM = gcinfo()
@@ -513,7 +516,7 @@ else	-- UNSYNCED CODE
 				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		Spring.Echo('ulrram',gcinfo()-RAM)
+-- 		spEcho('ulrram',gcinfo()-RAM)
 	end
 
 -- 	function gadget:UnitMoved(a,b,c,d)
@@ -537,14 +540,14 @@ else	-- UNSYNCED CODE
 				-- rseed = rseed + (part*mult)
 				rseed = rseed + part
 			end
-			-- Spring.Echo("randomseed", rseed)
+			-- spEcho("randomseed", rseed)
 			Shard.randomseed = rseed
 		end
 	end
 	
 	function gadget:Shutdown()
-		Spring.Echo("Shard AI unsync gadget shutdown")
-		Spring.Echo('STAI memory record:',memoryRecord)
+		spEcho("Shard AI unsync gadget shutdown")
+		spEcho('STAI memory record:',memoryRecord)
 		gadgetHandler:RemoveSyncAction("shard_debug_position")
 	end
 
@@ -665,7 +668,7 @@ end
 
 
 --[[	function gadget:Initialize()
-		Spring.Echo("Shard AI unsync gadget init")
+		spEcho("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
 		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
 		gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
@@ -686,7 +689,7 @@ end
 ]]
 
 		--[[
-		Spring.Echo("Shard AI unsync gadget init")
+		spEcho("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
 		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)

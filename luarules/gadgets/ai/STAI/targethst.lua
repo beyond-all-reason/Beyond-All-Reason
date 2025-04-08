@@ -87,7 +87,6 @@ function TargetHST:Blobbing(grid,param,x,z,_blobs_,blobref)--rolling on the cell
 		cellCoord.X = x
 		cellCoord.Z = z
 		table.insert(self[_blobs_][blobref].cells,cellCoord)
-		--Spring.Echo( _blobs_ , 'blobs insert ',self[_blobs_][blobref])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
 				if not self.blobchecked[x+X..':'..z+Z] then

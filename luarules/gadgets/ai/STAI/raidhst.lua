@@ -177,18 +177,15 @@ function RaidHST:SquadFindPath(squad,target)
 	self:EchoDebug('search a path for ',squad.squadID,target.X,target.Z)
 	local path
 	if not self.ai.armyhst['airgun'][game:GetUnitByID(squad.leader):Name()] then --TODO workaraund for airgun that do not have mclass
-
 		path = self.ai.maphst:getPath(game:GetUnitByID(squad.leader):Name(),squad.leaderPos,self.ai.maphst:GridToPos(target.X,target.Z),true)
 	end
 
 	if path then
-		--table.insert(path,#path,target.POS)
  		self:EchoDebug("got path of", #path, "nodes ")
 		local step = 1
 		return path,step
 	end
 	self:EchoDebug('path not found')
-	
 end
 
 function RaidHST:SquadAdvance(squad)
@@ -306,15 +303,18 @@ function RaidHST:SquadsTargetUpdate()
 				squad.path[1].x,squad.path[1].y,squad.path[1].z = self.ai.maphst:GridToRawPos(squad.target.X,squad.target.Z)
 				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 			end
-			local offense = self:SquadsTargetAttack(squad)
-			if squad.lock and offense then
-				local path, step = self:SquadFindPath(squad,offense)
-				if path and step then
-					squad.target = offense
-					squad.role = 'offense'
-					squad.path = path
-					squad.step = step
-					self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
+			
+			if squad.lock then
+				local offense = self:SquadsTargetAttack(squad)
+				if offense then
+					local path, step = self:SquadFindPath(squad,offense)
+					if path and step then
+						squad.target = offense
+						squad.role = 'offense'
+						squad.path = path
+						squad.step = step
+						self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
+					end
 				end
 			end
 			if not squad.target then

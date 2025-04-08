@@ -241,7 +241,8 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 	end
 	-- don't build where the builder can't go
  	if pos ~= nil then
- 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
+		print('okkmijnuhb')
+ 		if not self.ai.maphst:UnitCanGoHere(builder,pos) then
  			return nil
  		end
  	end
@@ -523,7 +524,7 @@ function BuildingsHST:SetRole(builderID)
 	local name = builder:Name()
 	local role = nil
 	if self.ai.armyhst.commanderList[name] then
-		local counter,nameCount, roleCount,globalCount = self:RoleCounter(nil,'eco')
+		local _,_, roleCount,_ = self:RoleCounter(nil,'eco')
 		local _,_, expandCount,_ = self:RoleCounter(nil,'expand')
 		if roleCount < 1 then
 			role = 'starter'
@@ -594,6 +595,7 @@ function BuildingsHST:NearestBuilderRole(unit, targetRole)
 		local targetPos = targetUnit:GetPosition()
 
 		if not targetRole or targetRole == role.role  then
+			print('trewq')
 			if self.ai.maphst:UnitCanGoHere(unit,targetPos) then
 				local d = self.ai.tool:DISTANCE(unitPos,targetPos)
 				if d < bestDist then
