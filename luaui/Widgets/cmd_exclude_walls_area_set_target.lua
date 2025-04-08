@@ -11,8 +11,8 @@ function widget:GetInfo()
 	}
 end
 
---	excludedUnitsDef = {armdrag, armfdrag, armfort, cordrag, corfdrag, corfort}
-local excludedUnitsDefID = {74, 89, 102, 307, 323, 332}
+--	excludedUnitsDef = {armdrag, armfdrag, armfort, cordrag, corfdrag, corfort, legdrag, legfort}
+local excludedUnitsDefID = {74, 89, 102, 312, 328, 337, 558, 575}
 
 local CMD_SET_TARGET = 34923
 
