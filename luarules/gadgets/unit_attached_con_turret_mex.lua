@@ -40,9 +40,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
 		Spring.DestroyUnit(unitID, false, true)
 		Spring.AddTeamResource(unitTeam, "metal", metalCost)
+		Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
 	end
 	Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
-	Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
 	if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
 		Spring.DestroyUnit(unitID, false, true)
 		Spring.AddTeamResource(unitTeam, "metal", metalCost)
