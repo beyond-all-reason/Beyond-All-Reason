@@ -114,10 +114,14 @@ local function addAllUnits()
 	end
 end
 
-local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
+local function ChangeUnitTypeAutogroupHandlerAction(_, _, args, data)
 	local gr = args[1]
 	local removeAll = data and data['removeAll']
 
+	ChangeUnitTypeAutogroupHandler(gr, removeAll)
+end
+
+local function ChangeUnitTypeAutogroupHandler(gr, removeAll)
 	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
 
 	if removeAll then
@@ -255,6 +259,18 @@ function widget:Initialize()
 	end
 	WG['autogroup'].getGroups = function()
 		return unit2group
+	end
+	WG['autogroup'].AddCurrentSelectionToAutogroup = function(groupNumber)
+		ChangeUnitTypeAutogroupHandler(groupNumber)
+	end
+	WG['autogroup'].RemoveCurrentSelectionFromAutogroup = function()
+		ChangeUnitTypeAutogroupHandler(nil, true)
+	end
+	WG['autogroup'].RemoveOneUnitFromGroupHandler = function()
+		RemoveOneUnitFromGroupHandler()
+	end
+	WG['autogroup'].loadAutogroupPresetHandler = function()
+		loadAutogroupPresetHandler()
 	end
 	if GetGameFrame() > 0 then
 		addAllUnits()
