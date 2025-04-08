@@ -70,12 +70,7 @@ end
 
 --Remove unit from captureTargets table if destroyed
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if captureTargets ~= nil then
-		if captureTargets[unitID] then
-			captureTargets[unitID] = nil
-		end
-	end
-	return true
+	captureTargets[unitID] = nil
 end
 
 --Deny autotarget if target unit is being captured by player team
