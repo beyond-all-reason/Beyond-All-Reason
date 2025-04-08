@@ -159,8 +159,8 @@ local prevShowButtons = showButtons
 -- Interactions
 local draggingShareIndicatorValue = {}
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
-local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
-local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, quitscreenTeamResignArea, hoveringTopbar, hideQuitWindow
+local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover, teamResign
 
 -- Audio
 local playSounds = true
@@ -181,6 +181,19 @@ local guishaderCheckUpdateRate = 0.5
 
 
 --------------------------------------------------------------------------------
+
+local function getPlayerLiveAllyCount()
+	local nAllies = 0
+	for _, teamID in ipairs(myAllyTeamList) do
+		if teamID ~= myTeamID then
+			local _, _, isDead, hasAI = Spring.GetTeamInfo(teamID,false)
+			if not isDead and not hasAI then
+				nAllies = nAllies + 1
+			end
+		end
+	end
+	return nAllies
+end
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
@@ -1239,6 +1252,7 @@ local function drawQuitScreen()
 
 			local fontSize = h / 6
 			local text = Spring.I18N('ui.topbar.quit.reallyQuit')
+			teamResign = false
 
 			if not spec then
 				text = Spring.I18N('ui.topbar.quit.reallyQuitResign')
@@ -1246,6 +1260,9 @@ local function drawQuitScreen()
 					if numPlayers < 3 then
 						text = Spring.I18N('ui.topbar.quit.reallyResign')
 					else
+						if getPlayerLiveAllyCount() >= 1 then
+							teamResign = true
+						end
 						text = Spring.I18N('ui.topbar.quit.reallyResignSpectate')
 					end
 				end
@@ -1258,14 +1275,25 @@ local function drawQuitScreen()
 
 			local x = math_floor((vsx / 2) - (w / 2))
 			local y = math_floor((vsy / 1.8) - (h / 2))
+			local maxButtons = teamResign and 5 or 4
 			local buttonMargin = math_floor(h / 9)
-			local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
+			local buttonWidth = math_floor((w - buttonMargin * maxButtons) / (maxButtons-1)) -- maxButtons+1 margins for maxButtons buttons
 			local buttonHeight = math_floor(h * 0.30)
 
 			quitscreenArea = { x, y, x + w, y + h }
+
+			if teamResign then
+				quitscreenArea[2] = quitscreenArea[2] - math.floor(fontSize*1.7)
+			end
+
 			quitscreenStayArea   = { x + buttonMargin + 0 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
 			quitscreenResignArea = { x + buttonMargin + 1 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
-			quitscreenQuitArea   = { x + buttonMargin + 2 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
+			local nextButton = 2
+			if teamResign then
+				quitscreenTeamResignArea = { x + buttonMargin + nextButton * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + nextButton * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
+				nextButton = nextButton + 1
+			end
+			quitscreenQuitArea   = { x + buttonMargin + nextButton * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + nextButton * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
 
 			-- window
 			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil)--, useRenderToTexture)
@@ -1297,15 +1325,33 @@ local function drawQuitScreen()
 
 			-- resign button
 			if not spec and not gameIsOver then
+				local mouseOver = false
 				if math_isInRect(mx, my, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
-					color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
+					color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
+					color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
+					mouseOver = 'resign'
 				else
-					color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
+					color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
+					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
 				end
 				UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
 				font2:Print(Spring.I18N('ui.topbar.quit.resign'), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+
+				if teamResign then
+					if math_isInRect(mx, my, quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4]) then
+						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
+						mouseOver = 'teamResign'
+					else
+						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
+					end
+					UiButton(quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					font2:Print(Spring.I18N('ui.topbar.quit.teamResign'), quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2), quitscreenTeamResignArea[2] + ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				end
+				if mouseOver and teamResign then
+					font:Print(Spring.I18N('ui.topbar.hint.'..mouseOver), quitscreenTeamResignArea[1] - buttonMargin , quitscreenArea[2] + (2.5*fontSize / 3), fontSize*0.9, "cn")
+				end
 			end
 
 			-- quit button
@@ -1737,6 +1783,12 @@ function widget:MousePress(x, y, button)
 				if not spec and not gameIsOver and math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
 					Spring.SendCommands("spectator")
+					showQuitscreen = nil
+					if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
+				end
+				if not spec and not gameIsOver and teamResign and math_isInRect(x, y, quitscreenTeamResignArea[1], quitscreenTeamResignArea[2], quitscreenTeamResignArea[3], quitscreenTeamResignArea[4]) then
+					if playSounds then Spring.PlaySoundFile(leftclick, 0.75, 'ui') end
+					Spring.SendCommands("say !cv resign")
 					showQuitscreen = nil
 					if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
 				end

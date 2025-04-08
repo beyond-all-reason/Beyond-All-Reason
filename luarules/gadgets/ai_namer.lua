@@ -167,6 +167,7 @@ if gadgetHandler:IsSyncedCode() then
 		"kabab",
 		"Kalladin",
 		"kaofeiwei",
+		"Kei", -- Donater $100
 		"keithphw",
 		"Kodiak",
 		"Lightjohn",
