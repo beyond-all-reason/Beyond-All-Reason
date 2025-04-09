@@ -35,7 +35,7 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			maxrange = "150",
+			maxrange = "10",
 			unitgroup = 'weapon',
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
@@ -116,6 +116,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",
 				gravityaffected = "true",
