@@ -1,4 +1,4 @@
-name: Block Unclean Script Modifications
+name: Flag Deprecated Animation Scripts
 
 on:
   pull_request:
