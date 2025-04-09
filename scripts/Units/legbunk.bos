@@ -323,7 +323,7 @@ AimWeapon1(heading, pitch)
 	oldHeadingTS = heading;
 	isAiming = TRUE;
     start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 
