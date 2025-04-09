@@ -37,7 +37,6 @@ jobs:
                 echo "❌ File '$file' is a deprecated animation. Please only base changes on the clean counterpart: '$clean_file'."
                 BLOCKED=1
               fi
-            fi
           done
 
           if [[ "$BLOCKED" -eq 1 ]]; then
