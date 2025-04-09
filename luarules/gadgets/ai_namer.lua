@@ -161,6 +161,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Glass",
 		"greggy4485",
 		"Hershy",
+		"ISolox",
 		"Jaedrik",
 		"Jazcash",
 		"JimmiBoy",
