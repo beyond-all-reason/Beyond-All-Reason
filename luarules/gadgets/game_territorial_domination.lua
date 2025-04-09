@@ -15,6 +15,7 @@ end
 -- code cleanup
 -- red text doesn't blink when spectating.
 -- when an allyteam dies, perspective changes to one of the remaining allyteams but the score doesn't refresh until a different one is selected and then the original auto-chosen allyteam is re-selected
+-- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -126,6 +127,7 @@ if SYNCED then
 	local allyTallies = {}
 	local randomizedGridIDs = {}
 	local flyingUnits = {}
+	local powerExemptedUnits = {}
 
 	for _, teamID in ipairs(teams) do
 		local luaAI = spGetTeamLuaAI(teamID)
@@ -135,6 +137,25 @@ if SYNCED then
 			elseif string.sub(luaAI, 1, 12) == 'RaptorsAI' then
 				hordeModeTeams[teamID] = true
 			end
+		end
+	end
+
+	for defID, def in pairs(UnitDefs) do
+		local defData
+
+		if def.power then
+			defData = {power = def.power}
+			if def.speed == 0 then
+				defData.power = defData.power * STATIC_POWER_MULTIPLIER
+			end
+			if def.customParams and def.customParams.objectify then
+				defData.power = 0 -- dragonsteeth and other objectified units aren't targetable automatically, and so aren't counted towards capture for convenience purposes.
+			end
+		end
+		unitWatchDefs[defID] = defData
+
+		if def.customParams and def.customParams.iscommander then
+			commandersDefs[defID] = true
 		end
 	end
 
@@ -217,24 +238,6 @@ if SYNCED then
 		end
 	end
 
-	-- Process unit definitions once during initialization
-	for defID, def in pairs(UnitDefs) do
-		local defData
-
-		if def.power then
-			defData = {power = def.power}
-			if def.speed == 0 then
-				defData.power = defData.power * STATIC_POWER_MULTIPLIER
-				defData.isStatic = true -- Cache this value
-			end
-		end
-		unitWatchDefs[defID] = defData
-
-		if def.customParams and def.customParams.iscommander then
-			commandersDefs[defID] = true
-		end
-	end
-
 	--custom functions
 	local function generateCaptureGrid()
 		local gridData = {}
@@ -314,9 +317,6 @@ if SYNCED then
 				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
 					hasUnits = true
 					local power = unitData.power
-					if unitData.isStatic then
-						power = power * STATIC_UNIT_POWER_MULTIPLIER
-					end
 					if flyingUnits[unitID] then
 						power = power * FLYING_UNIT_POWER_MULTIPLIER
 					end
