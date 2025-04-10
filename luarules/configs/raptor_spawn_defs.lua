@@ -2503,9 +2503,23 @@ addNewSquad({
 
 --Bombers------------------------------------------------------------------------------------------------------
 
-addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptor_air_bomber_basic_t1_v1" }, maxAnger = 20 })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 0,
+	maxAnger = 20,
+	units = {
+		{count = 1, unit = "raptor_air_bomber_basic_t1_v1"}
+	}
+})
 
-addNewSquad({ type = "basicAir", minAnger = 20, units = { "4 raptor_air_bomber_basic_t1_v1" }, maxAnger = 60 })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 20,
+	maxAnger = 60,
+	units = {
+		{count = 4, unit = "raptor_air_bomber_basic_t1_v1"}
+	}
+})
 
 
 addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_bomber_basic_t2_v1", }, weight = 2 })
