@@ -2423,10 +2423,34 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_fighter_basic_t2_v1", } })
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_fighter_basic_t2_v2", } })
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_fighter_basic_t2_v3", } })
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_fighter_basic_t2_v4", } })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_air_fighter_basic_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "basicAir",
+	minAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_air_fighter_basic_t2_v2"}
+	}
+})
+addNewSquad({
+	type = "basicAir",
+	minAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_air_fighter_basic_t2_v3"}
+	}
+})
+addNewSquad({
+type = "basicAir",
+minAnger = 40,
+	units = {
+		{count = 4, unit = "raptor_air_fighter_basic_t2_v4"}
+	}
+})
 
 addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptor_air_fighter_basic_t2_v1", } })
 addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptor_air_fighter_basic_t2_v2", } })
