@@ -19,7 +19,7 @@ local gameStarted
 
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
-		table.insert(excludedUnitsDefID, id)
+		excludedUnitsDefID[id] = true
 	end
 end
 
@@ -59,7 +59,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
-		if not table.contains(excludedUnitsDefID, unitDefID) then
+		if not excludedUnitsDefID[unitDefID] then
 			if #newCmds ~= 0 or cmdOpts.shift then
 				newCmdOpts = CMD.OPT_SHIFT
 			end
