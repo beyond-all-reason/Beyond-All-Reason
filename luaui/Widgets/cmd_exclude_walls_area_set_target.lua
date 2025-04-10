@@ -23,27 +23,6 @@ for id, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-		widgetHandler:RemoveWidget()
-	end
-end
-
-function widget:GameStart()
-	gameStarted = true
-	maybeRemoveSelf()
-end
-
-function widget:PlayerChanged(playerID)
-	maybeRemoveSelf()
-end
-
-function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
-end
-
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID ~= CMD_SET_TARGET or #cmdParams ~= 4 then
 		return
@@ -52,10 +31,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	local mouseX, mouseY = Spring.WorldToScreenCoords(cmdX, cmdY, cmdZ)
 
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, -4)
+	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius)
 
 	local newCmds = {}
-	local newCmdOpts = {}
+	local newCmdOpts = 0
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
