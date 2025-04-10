@@ -2365,13 +2365,42 @@ end
 local airStartAnger = 0 -- needed for air waves to work correctly.
 --Scouts------------------------------------------------------------------------------------------------------
 
-addNewSquad({ type = "basicAir", minAnger = 0, units = { "3 raptor_air_scout_basic_t2_v1" }, maxAnger = 20, weight = 10, })
+addNewSquad({
+	type = "basicAir",
+	weight = 10,
+	minAnger = 0,
+	maxAnger = 20,
+	units = {
+		{count = 3, unit = "raptor_air_scout_basic_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "basicAir", minAnger = 20, units = { "1 raptor_air_scout_basic_t2_v1" }, maxAnger = 40 })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 20,
+	maxAnger = 40,
+	units = {
+		{count = 1, unit = "raptor_air_scout_basic_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "basicAir", minAnger = 33, units = { "1 raptor_air_scout_basic_t3_v1" }, maxAnger = 80 })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 33,
+	maxAnger = 80,
+	units = {
+		{count = 1, unit = "raptor_air_scout_basic_t3_v1"}
+	}
+})
 
-addNewSquad({ type = "basicAir", minAnger = 66, units = { "1 raptor_air_scout_basic_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "basicAir",
+	minAnger = 66,
+	maxAnger = 1000,
+	units = {
+		{count = 1, unit = "raptor_air_scout_basic_t4_v1"}
+	}
+})
 
 --Fighters------------------------------------------------------------------------------------------------------
 
