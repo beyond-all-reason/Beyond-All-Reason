@@ -2307,7 +2307,14 @@ minAnger = 80,
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "16 raptor_land_swarmer_brood_t3_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 16, unit = "raptor_land_swarmer_brood_t3_v1"}
+	}
+})
 
 
 addNewSquad({ type = "special", minAnger = 40, units = 	{ "1 raptor_land_swarmer_brood_t4_v1" } })
