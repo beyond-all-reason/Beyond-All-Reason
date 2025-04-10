@@ -2632,11 +2632,30 @@ addNewSquad({
 })
 
 
-addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptor_air_bomber_acid_t2_v1" } })
+addNewSquad({
+	type = "specialAir",
+	minAnger = 50,
+	units = {
+		{count = 1, unit = "raptor_air_bomber_acid_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "specialAir", minAnger = 70, units = { "4 raptor_air_bomber_acid_t2_v1" } })
+addNewSquad({
+	type = "specialAir",
+	minAnger = 70,
+	units = {
+		{count = 4, unit = "raptor_air_bomber_acid_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptor_air_bomber_acid_t2_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "specialAir",
+	minAnger = 90,
+	maxAnger = 1000,
+	units = {
+	{count = 8, unit = "raptor_air_bomber_acid_t2_v1"}
+	}
+})
 
 
 addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptor_air_bomber_brood_t4_v4" } })
