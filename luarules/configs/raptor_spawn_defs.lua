@@ -2742,17 +2742,80 @@ addNewSquad({
 
 addNewSquad({ type = "healer", minAnger = 0, units = { "1 raptor_land_swarmer_heal_t1_v1" }, maxAnger = 35 })
 
-addNewSquad({ type = "healer", minAnger = 25, units = { "2 raptor_land_swarmer_heal_t1_v1" }, maxAnger = 60 })
-addNewSquad({ type = "healer", minAnger = 25, units = { "1 raptor_land_swarmer_heal_t2_v1" }, maxAnger = 60 })
+addNewSquad({
+	type = "healer",
+	minAnger = 25,
+	maxAnger = 60,
+	units = {
+		{count = 2, unit = "raptor_land_swarmer_heal_t1_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 25,
+	maxAnger = 60,
+	units = {
+		{count = 1, unit = "raptor_land_swarmer_heal_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "healer", minAnger = 50, units = { "4 raptor_land_swarmer_heal_t1_v1" }, maxAnger = 85 })
-addNewSquad({ type = "healer", minAnger = 50, units = { "2 raptor_land_swarmer_heal_t2_v1" }, maxAnger = 85 })
-addNewSquad({ type = "healer", minAnger = 50, units = { "1 raptor_land_swarmer_heal_t3_v1" }, maxAnger = 85 })
+addNewSquad({
+	type = "healer",
+	minAnger = 50,
+	maxAnger = 85,
+	units = {
+		{count = 4, unit = "raptor_land_swarmer_heal_t1_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 50,
+	maxAnger = 85,
+	units = {
+		{count = 2, unit = "raptor_land_swarmer_heal_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 50,
+	maxAnger = 85,
+	units = {
+		{count = 1, unit = "raptor_land_swarmer_heal_t3_v1"}
+	}
+})
 
-addNewSquad({ type = "healer", minAnger = 75, units = { "8 raptor_land_swarmer_heal_t1_v1" }, maxAnger = 100 })
-addNewSquad({ type = "healer", minAnger = 75, units = { "4 raptor_land_swarmer_heal_t2_v1" }, maxAnger = 200 })
-addNewSquad({ type = "healer", minAnger = 75, units = { "2 raptor_land_swarmer_heal_t3_v1" }, maxAnger = 300 })
-addNewSquad({ type = "healer", minAnger = 75, units = { "1 raptor_land_swarmer_heal_t4_v1" }, maxAnger = 400 })
+addNewSquad({
+	type = "healer",
+	minAnger = 75,
+	maxAnger = 100,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_heal_t1_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 75,
+	maxAnger = 200,
+	units = {
+		{count = 4, unit = "raptor_land_swarmer_heal_t2_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 75,
+	maxAnger = 300,
+	units = {
+		{count = 2, unit = "raptor_land_swarmer_heal_t3_v1"}
+	}
+})
+addNewSquad({
+	type = "healer",
+	minAnger = 75,
+	maxAnger = 400,
+	units = {
+		{count = 1, unit = "raptor_land_swarmer_heal_t4_v1"}
+	}
+})
 
 addNewSquad({ type = "healer", minAnger = 100, units = { "8 raptor_land_swarmer_heal_t2_v1" }, maxAnger = 300 })
 addNewSquad({ type = "healer", minAnger = 100, units = { "4 raptor_land_swarmer_heal_t3_v1" }, maxAnger = 400 })
