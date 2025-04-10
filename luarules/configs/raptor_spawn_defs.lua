@@ -2482,9 +2482,24 @@ minAnger = 60,
 })
 
 
-addNewSquad({ type = "basicAir", minAnger = 80, units = { "6 raptor_air_fighter_basic_t4_v1" }, weight = 2 })
+addNewSquad({
+	type = "basicAir",
+	weight = 2,
+	minAnger = 80,
+	units = {
+		{count = 6, unit = "raptor_air_fighter_basic_t4_v1"}
+	}
+})
 
-addNewSquad({ type = "basicAir", minAnger = 100, units = { "8 raptor_air_fighter_basic_t4_v1" }, weight = 2, maxAnger = 1000 })
+addNewSquad({
+	type = "basicAir",
+	weight = 2,
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_air_fighter_basic_t4_v1"}
+	}
+})
 
 --Bombers------------------------------------------------------------------------------------------------------
 
