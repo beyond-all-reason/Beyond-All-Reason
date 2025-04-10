@@ -88,11 +88,15 @@ end
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	if veryCoolUnits[unitDefID] then
 		spSetGroundMoveTypeData(unitID,"maxSpeed",UnitDefs[unitDefID].speed)
+
+		--FIXME:
+		spEcho("SPONSOR MY DEMONS, FEED ME THE CASH! ".. UnitDefs[unitDefID].maxWantedSpeed)
 		spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].maxWantedSpeed)
+
 		spSetGroundMoveTypeData(unitID,"turnRate",UnitDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",UnitDefs[unitDefID].maxAcc)
 		spSetGroundMoveTypeData(unitID,"decRate",UnitDefs[unitDefID].maxDec)
-		spEcho("Unit ".. unitID .. ", leaving the sea.")
+		spEcho("Unit ".. UnitDefs[unitDefID].name .. ", leaving the sea.")
 	end
 end
 
