@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Unit movement characteristics ", --TODO:Change
-		desc = "",
+		name = "Changing Amphibious Unit Movement Characteristics ", --TODO:Change
+		desc = "Allows amphibious units to alter their maximum speed or turnRate between land and water.",
 		author = "Tuerk",
 		date = "2025.4.06",
 		license = "GNU GPL, v2 or later",
@@ -17,7 +17,8 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 -- Set these in customParams to customize, otherwise will grab the standard value
 local waterSpeed
-local waterturnrate
+local waterWantedSpeed
+local waterturnRate
 local waterwatermaxacc
 local waterwatermaxdec
 
@@ -36,6 +37,8 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local spDestroyUnit = Spring.DestroyUnit
 
 local spEcho = Spring.Echo
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
 
@@ -44,22 +47,20 @@ local veryCoolUnits = {}
 local veryCoolUnitWatcher = {}
 local unitWaterMovementDefs = {}
 
-spEcho("Hello World")
 -- TODO: Uhh,need to save a table of all the cool unit's land statistics for hopefully easier restoration. No clue actually how the SetGroundMoveTypeData function works.
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	spEcho(unitDef.name,unitDef.maxAcc)
+	--spEcho(unitDef.name,unitDef.maxAcc)
 		if unitDef.customParams.iswatervariable then
 			veryCoolUnits[unitDefID] = true
-			spEcho(unitDef.name.. " is very cool indeed!")
-			spEcho("Unit Statcheck ".. unitDef.speed .. " " .. unitDef.turnRate.. " ".. unitDef.maxAcc .. " " ..unitDef.maxDec)
 			waterSpeed = unitDef.customParams.waterSpeed or unitDef.speed
-			waterturnrate = unitDef.customParams.waterturnrate or unitDef.turnRate
+			waterWantedSpeed = unitDef.customParams.waterWantedSpeed or unitDef.maxWantedSpeed
+			waterturnRate = unitDef.customParams.waterturnRate or unitDef.turnRate
 			waterwatermaxacc = unitDef.customParams.waterwatermaxacc or unitDef.maxAcc
 			waterwatermaxdec = unitDef.customParams.waterwatermaxdec or unitDef.maxDec
-			spEcho(waterSpeed,waterturnrate,waterwatermaxacc,waterwatermaxdec)
 			unitWaterMovementDefs[unitDefID] = {
 				speed = waterSpeed,
-				turnrate = waterturnrate,
+				maxWantedSpeed = waterWantedSpeed,
+				turnRate = waterturnRate,
 				maxAcc = waterwatermaxacc,
 				maxDec = waterwatermaxdec,
 			}
@@ -68,19 +69,16 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	spEcho("Checking Unit ".. unitID)
 	if veryCoolUnits[unitDefID] then
-		spEcho("Unit ".. unitID .. " is fucking ballin.")
-		veryCoolUnitWatcher[unitID] = true
+		--TODO: Add a check for if the amphib unit was built underwater.
 	end
 end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	if veryCoolUnits[unitDefID] then
-		spEcho("Something cool is in the water")
-		spEcho(unitWaterMovementDefs[unitDefID].speed, unitWaterMovementDefs[unitDefID].turnrate,unitWaterMovementDefs[unitDefID].maxAcc,unitWaterMovementDefs[unitDefID].maxDec)
 		spSetGroundMoveTypeData(unitID, "maxSpeed" , 200)
-		spSetGroundMoveTypeData(unitID,"turnRate",unitWaterMovementDefs[unitDefID].turnrate)
+		spSetGroundMoveTypeData(unitID, "maxWantedSpeed" , 200)
+		spSetGroundMoveTypeData(unitID,"turnRate",unitWaterMovementDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",unitWaterMovementDefs[unitDefID].maxAcc)
 		spSetGroundMoveTypeData(unitID,"decRate",unitWaterMovementDefs[unitDefID].maxDec)
 		spEcho("Unit ".. unitID .. ", going dark.")
@@ -89,16 +87,10 @@ end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	if veryCoolUnits[unitDefID] then
-		spEcho("Something cool left the water")
-		spEcho("Setting maxSpeed")
 		spSetGroundMoveTypeData(unitID,"maxSpeed",UnitDefs[unitDefID].speed)
-		spEcho("Setting turnRate")
-		spEcho(UnitDefs[unitDefID].turnRate)
-		spEcho(type(UnitDefs[unitDefID].turnRate))
-		spSetGroundMoveTypeData(unitID,"turnRate",UnitDefs[unitDefID].turnrate)
-		spEcho("Setting accRate")
+		spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].maxWantedSpeed)
+		spSetGroundMoveTypeData(unitID,"turnRate",UnitDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",UnitDefs[unitDefID].maxAcc)
-		spEcho("Setting decRate")
 		spSetGroundMoveTypeData(unitID,"decRate",UnitDefs[unitDefID].maxDec)
 		spEcho("Unit ".. unitID .. ", leaving the sea.")
 	end
@@ -106,5 +98,4 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	veryCoolUnits[unitID] = nil
-	veryCoolUnitWatcher[unitID] = nil
 end
