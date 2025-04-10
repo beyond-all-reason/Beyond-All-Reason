@@ -27,7 +27,7 @@ return {
 		objectname = "Units/legbunk.s3o",
 		script = "Units/legbunk.cob",
 		selfdestructas = "explosiont3xl",
-		sightdistance = 350,
+		sightdistance = 475,
 		strafetoattack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -35,7 +35,7 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			maxrange = "150",
+			maxrange = "10",
 			unitgroup = 'weapon',
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
@@ -116,6 +116,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",
 				gravityaffected = "true",
@@ -123,8 +124,8 @@ return {
 				impulsefactor = 0.123,
 				name = "Targeting System",
 				noselfdamage = true,
-				range = 550, --Remember to adjust this to the Railgun's attack range!
-				reloadtime = 2.5,
+				range = 650, --Remember to adjust this to the Railgun's attack range!
+				reloadtime = 0.1,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
@@ -137,7 +138,7 @@ return {
 				},
 			},
 			piledriver = {
-				areaofeffect = 65,
+				areaofeffect = 144,
 				avoidfeature = false,
 				cegtag = "gausscannonprojectile",
 				craterboost = 0.5,
@@ -167,14 +168,14 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 600,
 				damage = {
-					commanders = 250,
-					default = 1500,},
+					commanders = 500,
+					default = 3000,},
 				customparams = {
 					overpenetrate = true,
 				},
 			},
 			railgunt2 = {
-				areaofeffect = 32, --Twice that of a Sharpshooter
+				areaofeffect = 64, --Twice that of a Sharpshooter
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = true,
@@ -183,9 +184,10 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cylindertargeting = 1,
 				duration = 0.12,
 				edgeeffectiveness = 0.85,
-				energypershot = 400,
+				energypershot = 250,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 0,
 				hardstop = true,
@@ -197,7 +199,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
-				range = 550,
+				range = 650,
 				reloadtime = 3,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
@@ -210,9 +212,9 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					vtol = 225,
-					commanders = 225,
-					default = 375,
+					vtol = 450,
+					commanders = 450,
+					default = 950,
 				},
 				customparams = {
 					overpenetrate = true,
@@ -222,7 +224,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "AIMHULL",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 340,
 			},
