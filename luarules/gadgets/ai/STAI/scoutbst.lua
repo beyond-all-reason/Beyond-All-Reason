@@ -29,19 +29,24 @@ function ScoutBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
 		return
 	end
-	
 	if self.active then
 		self.position.x, self.position.y ,self.position.z = self.unit:Internal():GetRawPos()
 		local X,Z = self.ai.maphst:PosToGrid(self.position)
 		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
 		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
 		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
-		local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = self.unit:Internal():GetHealtsParams()
+		local _,_,_,_, buildProgress,relativeHealth = self.unit:Internal():GetHealtsParams()
 		if 	relativeHealth < 0.99 and buildProgress == 1 and not self.attacking then
 			self:Evading()
 			return
 		else
 			self.evading = nil
+		end
+		if self:ImmediateDanger() then
+			self:Avoid()
+			return
+		else 
+			self.avoiding = nil
 		end
 		if not self.evading and self.isWeapon then
 			self.attacking = self:ImmediateTarget2()
@@ -100,12 +105,31 @@ function ScoutBST:Evading()
 	self.attacking = nil
 
 	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
-	
-	
 	if home then
-		
 		self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.ai.tool:RandomAway2(home.position,300), 0,'1-1')
 		self.evading = home.id
+	end
+end
+
+function ScoutBST:Avoid()
+	self:EchoDebug('avoid')
+	if self.avoiding and game:GetUnitByID(self.avoiding) then
+		local enemyPos = game:GetUnitByID(self.avoiding):GetPosition()
+		local avoidingX = 1
+		local avoidingZ = 1
+		if self.position.x - enemyPos.x < 0 then
+			avoidingX = -1
+
+		end
+		if self.position.z - enemyPos.z < 0 then
+			avoidingZ = -1	
+		end
+		avoidingX = self.position.x + ( self.keepYourDistance * avoidingX )
+		avoidingZ = self.position.z + ( self.keepYourDistance * avoidingZ )
+		enemyPos.x = avoidingX
+		enemyPos.z = avoidingZ
+		Spring.MarkerAddPoint(enemyPos.x,enemyPos.y,enemyPos.z,'avoiding')
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE, enemyPos, 0,'1-1')
 	end
 end
 
@@ -124,9 +148,7 @@ end
 
 function ScoutBST:Scouting()
 	self:EchoDebug('scouting')
-	local randomAway = self.ai.tool:RandomAway2(self.target,128)
-	self.ai.tool:GiveOrder(self.id,CMD.MOVE, randomAway, 0,'1-1')
-	--self.unit:Internal():Move(randomAway)
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.target, 0,'1-1')
 end
 
 function ScoutBST:ImmediateTarget2()
@@ -139,6 +161,22 @@ function ScoutBST:ImmediateTarget2()
 			return nearestEnemy
 		end
 	end
+end
+
+function ScoutBST:ImmediateDanger()
+	local nearestEnemy = Spring.GetUnitNearestEnemy(self.id,self.ai.armyhst.unitTable[self.name].sightDistance,true)
+	if nearestEnemy then
+		local enemyIsArmed = self.ai.armyhst.unitTable[game:GetUnitByID(nearestEnemy):Name()].isWeapon
+		if enemyIsArmed then
+			local enemyPos = game:GetUnitByID(nearestEnemy):GetPosition()
+			if self.ai.tool:distance(self.position,enemyPos) < self.ai.armyhst.unitTable[game:GetUnitByID(nearestEnemy):Name()].sightDistance then
+				self:EchoDebug('immediate danger',nearestEnemy)
+				self.avoiding = nearestEnemy
+				return nearestEnemy
+			end
+		end
+	end
+	self.avoiding = nil
 end
 
 function ScoutBST:ImmediateTarget()
@@ -208,4 +246,48 @@ function ScoutBST:bestAdjacentPos(unit,target)
 		end
 	end
 	if tg then return tg.pos end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+finestra = nil
+function ScoutBST:Draw()
+	if not self.ai.scouthst.scouts[self.id] then
+		return
+	end
+	if not self.ai.schedulerhst.behaviourTeam == self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
+		return
+	end
+	if not self.active then return end
+	if not self.target then return end
+	local scoutPos = self.position
+	local targetPos = self.target
+	gl.PushMatrix()
+	gl.Color(0,1,0,0.5)
+	gl.LineWidth(2)
+	gl.BeginEnd(GL.LINE_STRIP, function()
+		gl.Vertex(scoutPos.x,scoutPos.y,scoutPos.z)
+		gl.Vertex(targetPos.x,targetPos.y,targetPos.z)
+	end)
+	gl.PopMatrix()
+end
+
+function ScoutBST:OwnerMoveFailed(unit)
+	self:Warn('OWNER MOVE FAILED')
+	self:Evading()
 end

@@ -790,17 +790,19 @@ function MapHST:UnitCanGoHere(unit, position,maxDistance)
 	if not unit  or not position then return false end
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
-	print(unit:Name(),'ask for a pathtest')
+	
 	maxDistance = maxDistance or 128
 	local ux,uy,uz = unit:GetRawPos()
 	if self.ai.tool:RawDistance(ux,uy,uz,position.x,position.y,position.z) < 32  then
+		print(unit:Name(),'ask for a short pathtest: pass')
 		return 32
 	end
 	local pathtest = map:TestPath(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z,nil,unit:Name())
 	if pathtest < maxDistance then
+		print(unit:Name(),'ask for a pathtest: pass')
 		return pathtest
 	end
-	print('too far away',pathtest)
+	print(unit:Name(),'ask for a pathtest: failed',pathtest)
 end
 
 function MapHST:UnitCanGetToUnit(unit1, unit2)

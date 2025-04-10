@@ -557,6 +557,10 @@ else	-- UNSYNCED CODE
 		end
 	end
 
+	function gadget:DrawScreen()--usefull drawing function
+		return
+	end
+
 end
 
 
