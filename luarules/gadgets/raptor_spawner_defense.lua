@@ -706,7 +706,7 @@ if gadgetHandler:IsSyncedCode() then
 				for i, sString in pairs(squad.units) do
 					local nEnd, _ = string.find(sString, " ")
 					if nEnd then
-						local raptorName = squad.units.units
+						local raptorName = squad.units.unit
 						for j = 1, unitNumber, 1 do
 							squadCounter = squadCounter + 1
 							table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
