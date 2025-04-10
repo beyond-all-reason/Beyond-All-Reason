@@ -2703,9 +2703,30 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bomber_brood_t4_v4" }, maxAnger = 1000 })
-addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bomber_brood_t4_v3" }, maxAnger = 1000 })
-addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptor_air_bomber_brood_t4_v2" }, maxAnger = 1000 })
+addNewSquad({
+	type = "specialAir",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 4, unit = "raptor_air_bomber_brood_t4_v4"}
+	}
+})
+addNewSquad({
+	type = "specialAir",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 4, unit = "raptor_air_bomber_brood_t4_v3"}
+	}
+})
+addNewSquad({
+	type = "specialAir",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 4, unit = "raptor_air_bomber_brood_t4_v2"}
+	}
+})
 
 --Kamikaze------------------------------------------------------------------------------------------------------
 
