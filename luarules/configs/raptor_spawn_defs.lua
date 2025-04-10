@@ -2341,7 +2341,14 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor_land_swarmer_brood_t4_v1" }, maxAnger = 1000 })
+addNewSquad({
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 8, unit = "raptor_land_swarmer_brood_t4_v1"}
+	}
+})
 
 --Matriarchs------------------------------------------------------------------------------------------------------
 
