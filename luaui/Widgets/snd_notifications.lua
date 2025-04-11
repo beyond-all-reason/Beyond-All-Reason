@@ -27,6 +27,7 @@ local spoken = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local lowpowerThreshold = 7        -- if there is X secs a low power situation
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
+local updateCommandersFrames = Game.gameSpeed * 5
 
 --------------------------------------------------------------------------------
 
@@ -480,6 +481,10 @@ function widget:GameFrame(gf)
 			end
 		end
 	end
+
+	if gameframe % updateCommandersFrames == 0 then
+		updateCommanders()
+	end
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -686,7 +691,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 						commandersDamages[unitID][gf] = nil
 					end
 				end
-				if totalDamage >= commanders[unitID] * 0.2 then
+				if totalDamage >= commanders[unitID] * 0.2 and spGetUnitHealth(unitID)/commanders[unitID] <= 0.85 then
 					queueNotification('ComHeavyDamage')
 				end
 			end
