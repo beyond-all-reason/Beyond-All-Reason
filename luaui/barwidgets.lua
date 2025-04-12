@@ -438,7 +438,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget()
+		local widget = widgetHandler:NewWidget(enableLocalsAccess)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -460,7 +460,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget()
+	local widget = widgetHandler:NewWidget(enableLocalsAccess)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -567,9 +567,19 @@ local WidgetMeta =
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget()
+function widgetHandler:NewWidget(enableLocalsAccess)
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = setmetatable({}, WidgetMeta)
+	local widget = {}
+	if enableLocalsAccess then
+		-- copy the system calls into the widget table
+		for k, v in pairs(System) do
+			widget[k] = v
+		end
+	else
+		-- use metatable redirection
+		setmetatable(widget, WidgetMeta)
+	end
+
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
