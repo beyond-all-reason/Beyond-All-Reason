@@ -18,8 +18,10 @@ local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
 
 local floor = math.floor
+local ceil = math.ceil
 local format = string.format
 local len = string.len
+local abs = math.abs
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -49,6 +51,7 @@ local glDeleteList = gl.DeleteList
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glTranslate = gl.Translate
+local glScale = gl.Scale
 local max = math.max
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -73,6 +76,11 @@ local TEXT_OUTLINE_OFFSET = 0.7
 local TEXT_OUTLINE_ALPHA = 0.35
 local BLINK_FRAMES = 10
 local BLINK_INTERVAL = 1
+local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
+local WINDUP_SOUND_DURATION = 2
+local ACTIVATE_SOUND_DURATION = 0
+local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
+local CHARGE_SOUND_LOOP_DURATION = 4.75
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -87,12 +95,25 @@ local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}
 local COLOR_GREY_LINE = {0.7, 0.7, 0.7, 0.7}
 local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
+-- Add constants for timer warning
+local TIMER_WARNING_DISPLAY_TIME = 5  -- Display warning for 5 seconds
+local TIMER_COOLDOWN = 180 -- 3 minutes cooldown in seconds
+local TIMER_WARNING_FONT_MULTIPLIER = 1.5
+
 local myCommanders = {}
+local soundQueue = {}
 
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
 local isFreezeWarningVisible = true
 local isSkullFaded = true
+
+-- Add variables for timer warning
+local lastTimerWarningTime = -TIMER_COOLDOWN -- Initialize to allow first warning to show
+local timerWarningMessage = nil
+local timerWarningEndTime = 0
+local timerWarningFadeStart = 0
+local font = nil
 
 local amSpectating = false
 local myAllyID = -1
@@ -110,6 +131,12 @@ local healthbarHeight = 20
 local lineWidth = 2
 local maxThreshold = 256
 local currentTime = os.clock()
+
+local defeatTime = 0
+local gameSeconds = 0
+local lastLoop = 0
+local loopSoundEndTime = 0
+local soundIndex = 1
 
 -- Countdown timer constants
 local COUNTDOWN_WARNING_SECONDS = 15
@@ -431,6 +458,29 @@ local backgroundColor = {COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGRO
 local borderColor = {COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4]}
 local BORDER_WIDTH = 2
 
+-- Add a function to create the timer warning message
+local function createTimerWarningMessage(secondsRemaining, territoriesNeeded)
+	-- Try to get i18n messages, with fallbacks if not available
+	local dominatedMessage = spI18N('ui.territorialDomination.beingDominated')
+	
+	-- Check if we got a valid string from i18n or use fallback
+	if not dominatedMessage or dominatedMessage == "ui.territorialDomination.beingDominated" then
+		dominatedMessage = "We are being dominated!"
+	end
+	
+	-- For the conquer message, we need to pass parameters
+	local params = {seconds = ceil(secondsRemaining), needed = territoriesNeeded}
+	local conquerMessage = spI18N('ui.territorialDomination.conquorNeeded', params) 
+	
+	-- Fallback if i18n fails
+	if not conquerMessage or conquerMessage == "ui.territorialDomination.conquorNeeded" then
+		conquerMessage = "Conquor " .. territoriesNeeded .. " more territories or be extracted in " .. floor(secondsRemaining) .. " seconds."
+	end
+	
+	-- Return as separate messages so we can position them separately
+	return dominatedMessage, conquerMessage
+end
+
 function widget:Initialize()
 	amSpectating = spGetSpectatingState()
 	myAllyID = spGetMyAllyTeamID()
@@ -445,6 +495,13 @@ function widget:Initialize()
 	
 	for _, unitID in ipairs(allUnits) do
 		widget:MetaUnitAdded(unitID,  spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil)
+	end
+	
+	-- Initialize font the same way as in gui_game_type_info
+	local vsx, vsy = Spring.GetViewGeometry()
+	local widgetScale = 0.80 + (vsx * vsy / 6000000)
+	if WG['fonts'] then
+		font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 	end
 end
 
@@ -493,7 +550,36 @@ function widget:Update(dt)
 	-- Force update when countdown is active
 	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 		updateScoreDisplayList()
-	end
+		
+		-- Check if we should show the timer warning
+		local timeRemaining = defeatTime - gameSeconds
+		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		local score = 0
+		
+		for _, teamID in ipairs(spGetTeamList(myAllyID)) do
+			local _, _, isDead = spGetTeamInfo(teamID)
+			if not isDead then
+				local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+				if teamScore then
+					score = teamScore
+					break
+				end
+			end
+		end
+		
+		local difference = score - threshold
+		local territoriesNeeded = abs(difference) + 1  -- Need one more than the negative difference
+		
+		-- Only show warning if difference is negative and only once per cooldown period
+		if difference < 0 and (currentGameTime - lastTimerWarningTime) > TIMER_COOLDOWN then
+			-- Create the warning message - multiple return values packed into a table
+			local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
+			timerWarningMessage = {domMsg, conqMsg}
+			timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
+			timerWarningFadeStart = timerWarningEndTime - 1  -- Start fading 1 second before end
+			lastTimerWarningTime = currentGameTime
+		end
+	end-- 
 end
 
 function updateScoreDisplayList()
@@ -777,7 +863,7 @@ function updateScoreDisplayList()
 		-- Draw countdown timer if active
 		if defeatTime and defeatTime > 0 and gameSeconds then
 			local currentGameTime = spGetGameSeconds() or 0  -- Get most current time
-			local timeRemaining = floor(defeatTime - currentGameTime)
+			local timeRemaining = ceil(defeatTime - currentGameTime)
 			
 			-- Allow displaying 0
 			if timeRemaining >= 0 then  -- Include 0 in the display range
@@ -838,6 +924,57 @@ function widget:DrawScreen()
 	else
 		updateScoreDisplayList()
 	end
+	
+	-- Draw the timer warning if active
+	if timerWarningMessage and currentGameTime < timerWarningEndTime then
+		-- Calculate alpha for fade out
+		local alpha = 1.0
+		if currentGameTime > timerWarningFadeStart then
+			alpha = 1.0 - ((currentGameTime - timerWarningFadeStart) / (timerWarningEndTime - timerWarningFadeStart))
+		end
+		
+		local vsx, vsy = Spring.GetViewGeometry()
+		local widgetScale = 0.80 + (vsx * vsy / 6000000)
+		local fontSize = 22 * widgetScale  -- Increased font size to match gui_game_type_info
+		
+		-- Parse the messages - they're returned as two parts
+		local dominatedMessage, conquerMessage = unpack(timerWarningMessage)
+		
+		-- Position exactly like gui_game_type_info.lua
+		local y = 0.19  -- 19% up from the bottom, exactly like in gui_game_type_info.lua
+		local x = vsx * 0.5
+		
+		-- Apply font size scaling like gui_game_type_info
+		glPushMatrix()
+		glTranslate(x, vsy * y, 0)  -- Same position as gui_game_type_info
+		glScale(1.5, 1.5, 1)
+		
+		-- Calculate positions for the two lines with proper spacing
+		local line1Y = 442  -- Center of first line
+		-- Calculate second line position proportionally to line1Y
+		local lineSpacing = line1Y * 0.06  -- 6% of line1Y seems like a good proportion
+		local line2Y = line1Y - lineSpacing  -- Second line, below first, proportional spacing
+		
+		-- Draw first line (dominated message)
+		-- Text outline (shadow effect)
+		glColor(0, 0, 0, alpha * 0.5)
+		glText(dominatedMessage, 0 - 1, line1Y - 1, fontSize / 1.5, "c")
+		
+		-- Main text - WHITE
+		glColor(1, 1, 1, alpha)
+		glText(dominatedMessage, 0, line1Y, fontSize / 1.5, "c")
+		
+		-- Draw second line (conquer message)
+		-- Text outline (shadow effect)
+		glColor(0, 0, 0, alpha * 0.5)
+		glText(conquerMessage, 0 - 1, line2Y - 1, fontSize / 1.5, "c")
+		
+		-- Main text - WHITE
+		glColor(1, 1, 1, alpha)
+		glText(conquerMessage, 0, line2Y, fontSize / 1.5, "c")
+		
+		glPopMatrix()
+	end
 end
 
 function widget:PlayerChanged(playerID)
@@ -861,15 +998,6 @@ function widget:Shutdown()
 	end
 end
 
-local soundQueue = {}
-local defeatTime = 0
-local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
-local WINDUP_SOUND_DURATION = 2
-local ACTIVATE_SOUND_DURATION = 0
-local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
-local CHARGE_SOUND_LOOP_DURATION = 4.75
-local gameSeconds = 0
-
 local function queueTeleportSounds()
 	soundQueue = {}
 	if defeatTime and defeatTime > 0 then
@@ -878,9 +1006,7 @@ local function queueTeleportSounds()
 	end
 end
 
-local lastLoop = 0
-local loopSoundEndTime = 0
-local soundIndex = 1
+
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
 		local myTeamID = Spring.GetMyTeamID()
@@ -940,5 +1066,15 @@ function widget:GameFrame(frame)
 			end
 			soundIndex = soundIndex + 1
 		end
+	end
+end
+
+function widget:ViewResize()
+	-- Update font when view is resized, similar to gui_game_type_info
+	local vsx, vsy = Spring.GetViewGeometry()
+	local widgetScale = 0.80 + (vsx * vsy / 6000000)
+	
+	if WG['fonts'] then
+		font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 	end
 end

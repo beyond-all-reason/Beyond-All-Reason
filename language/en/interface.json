@@ -667,7 +667,8 @@
 			}
 		},
 		"territorialdomination": {
-			"score": "Controlled: %{controlled} | Needed: %{needed}"
+			"beingDominated": "We are being dominated!",
+			"conquorNeeded": "Conquor %{needed} more territories or be extracted in %{seconds} seconds."
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
