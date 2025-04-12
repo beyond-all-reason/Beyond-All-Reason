@@ -39,6 +39,8 @@ local spDestroyUnit = Spring.DestroyUnit
 local spEcho = Spring.Echo
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+--FIXME: What is UpdateWantedMaxSpeed used for??
+--local spUpdateWantedMaxSpeed = GG.ForceUpdateWantedMaxSpeed
 
 local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
 
@@ -78,6 +80,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	if veryCoolUnits[unitDefID] then
 		spSetGroundMoveTypeData(unitID, "maxSpeed" , 200)
 		spSetGroundMoveTypeData(unitID, "maxWantedSpeed" , 200)
+		spSetGroundMoveTypeData(unitID, "turnAccel" , 200)
 		spSetGroundMoveTypeData(unitID,"turnRate",unitWaterMovementDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",unitWaterMovementDefs[unitDefID].maxAcc)
 		spSetGroundMoveTypeData(unitID,"decRate",unitWaterMovementDefs[unitDefID].maxDec)
@@ -90,8 +93,8 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 		spSetGroundMoveTypeData(unitID,"maxSpeed",UnitDefs[unitDefID].speed)
 
 		--FIXME:
-		spEcho("SPONSOR MY DEMONS, FEED ME THE CASH! ".. UnitDefs[unitDefID].maxWantedSpeed)
-		spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].maxWantedSpeed)
+		--spEcho("SPONSOR MY DEMONS, FEED ME THE CASH! ".. UnitDefs[unitDefID].maxWantedSpeed)
+		--spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].maxWantedSpeed)
 
 		spSetGroundMoveTypeData(unitID,"turnRate",UnitDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",UnitDefs[unitDefID].maxAcc)
