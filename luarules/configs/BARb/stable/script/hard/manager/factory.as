@@ -2,6 +2,7 @@
 #include "../../unit.as"
 #include "../../task.as"
 #include "../misc/commander.as"
+#include "economy.as"
 
 
 namespace Factory {
@@ -40,7 +41,7 @@ string corap   ("corap");
 string coraap  ("coraap");
 string corgant ("corgant");
 
-float switchLimit = MakeSwitchLimit();
+int switchInterval = MakeSwitchInterval();
 
 IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
 {
@@ -57,6 +58,7 @@ void AiTaskRemoved(IUnitTask@ task, bool done)
 
 void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 {
+//	if (!factories.empty() || (this->circuit->GetBuilderManager()->GetWorkerCount() > 2)) return;
 	if (usage != Unit::UseAs::FACTORY)
 		return;
 
@@ -64,6 +66,7 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 	if (userData[facDef.id].attr & Attr::T3 != 0) {
 		// if (ai.teamId != ai.GetLeadTeamId()) then this change affects only target selection,
 		// while threatmap still counts "ignored" here units.
+// 		AiLog("ignore newly created armpw, corak, armflea, armfav, corfav");
 		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav"};
 		for (uint i = 0; i < spam.length(); ++i)
 			ai.GetCircuitDef(spam[i]).SetIgnore(true);
@@ -110,9 +113,8 @@ void AiSave(OStream& ostream)
  */
 bool AiIsSwitchTime(int lastSwitchFrame)
 {
-	const float value = pow((ai.frame - lastSwitchFrame), 0.9) * aiEconomyMgr.metal.income + (aiEconomyMgr.metal.current * 7);
-	if (value > switchLimit) {
-		switchLimit = MakeSwitchLimit();
+	if (lastSwitchFrame + switchInterval <= ai.frame) {
+		switchInterval = MakeSwitchInterval();
 		return true;
 	}
 	return false;
@@ -120,14 +122,22 @@ bool AiIsSwitchTime(int lastSwitchFrame)
 
 bool AiIsSwitchAllowed(CCircuitDef@ facDef)
 {
-	return true;
+	const bool isOK = (aiMilitaryMgr.armyCost > 1.2f * facDef.costM * aiFactoryMgr.GetFactoryCount())
+		|| (aiEconomyMgr.metal.current > facDef.costM);
+	aiFactoryMgr.isAssistRequired = Economy::isSwitchAssist = !isOK;
+	return isOK;
+}
+
+CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isReset)
+{
+	return aiFactoryMgr.DefaultGetFactoryToBuild(pos, isStart, isReset);
 }
 
 /* --- Utils --- */
 
-float MakeSwitchLimit()
+int MakeSwitchInterval()
 {
-	return AiRandom(16000, 30000) * SECOND;
+	return AiRandom(550, 900) * SECOND;
 }
 
 }  // namespace Factory
