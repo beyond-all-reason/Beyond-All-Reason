@@ -16,7 +16,7 @@
 
 "building": {
 	"class_land": {
-		"fac_land": {
+		"fac_veh": {
 			// "type": [<blocker_shape>, <structure_type>]
 			// Available blocker_shape: rectangle, circle.
 			// Available structure_type: factory, mex, geo, pylon, convert, engy_low, engy_mid, engy_high, def_low, def_mid, def_high, special, nano, terra, unknown
@@ -24,13 +24,13 @@
 
 			// Unit of measurement: 1 size/yard/radius = SQUARE_SIZE * 2 = 16 elmos, integer.
 			// Offset in South facing
-			"offset": [0, 4],  // default: [0, 0]
+			"offset": [0, 1],  // default: [0, 0]
 
 			// Size of a blocker without yard
 //			"size": [7, 7],  // default: size of a unit
 
 			// Spacer, blocker_size = size + yard
-			"yard": [4, 4],  // default: [0, 0]
+			"yard": [8, 10],  // default: [0, 0]
 
 			// Integer radius of a blocker or description string.
 			// Available string values: explosion, expl_ally = [radius ~ 1 player .. radius/2 ~ 4+ players]
@@ -42,14 +42,19 @@
 			"ignore": ["def_low"]  // default: ["none"]
 //			"not_ignore": ["all"]  // default: ["all"]
 		},
-		"fac_land2": {
+		"fac_bot": {
 			"type": ["rectangle", "factory"],
-			"offset": [0, 4],
-			"yard": [-2, 42]
+			"offset": [0, 1],
+			"yard": [6, 8]
+		},
+		"fac_bot_pass": {
+			"type": ["rectangle", "factory"],
+			"offset": [0, 2],
+			"yard": [-2, 8]
 		},
 		"fac_air": {
 			"type": ["rectangle", "factory"],
-			"yard": [8, 8]
+			"yard": [-4, 42]
 		},
 		"fac_water": {
 			"type": ["rectangle", "factory"],
@@ -58,18 +63,20 @@
 		},
 		"fac_strider": {
 			"type": ["rectangle", "factory"],
-			"offset": [0, 4],
-			"yard": [6, 8]
+			"offset": [0, 10],
+			"yard": [0, -4]
 		},
 		"solar": {
 			"type": ["rectangle", "engy_low"],
- 			"ignore": ["engy_low", "def_low", "nano"]
+			"ignore": ["engy_low", "def_low", "nano"]
 		},
 		"wind": {
-			"type": ["rectangle", "engy_low"],
 //			"type": ["circle", "engy_low"],
 //			"radius": 4,  // default: "explosion"
-			"not_ignore": ["factory", "engy_low", "convert", "terra"]
+//			"not_ignore": ["factory", "engy_low", "convert", "nano", "terra"]
+			"type": ["rectangle", "engy_low"],
+			"yard": [6, 6],
+			"ignore": ["engy_low"]
 		},
 		"geo": {
 			"type": ["rectangle", "geo"],
@@ -162,8 +169,9 @@
 		}
 	},
 	"instance": {
-		"fac_land": ["armlab", "armalab", "armvp", "armavp", "coralab", "corvp", "coravp"],
-		"fac_land2": ["corlab", "armhp", "armfhp", "corhp", "corfhp"],
+		"fac_veh": ["armvp", "armavp", "corvp", "coravp"],
+		"fac_bot": ["armlab", "armalab", "coralab"],
+		"fac_bot_pass": ["corlab", "armhp", "armfhp", "corhp", "corfhp"],
 		"fac_air": ["armap", "corap", "armaap", "coraap"],
 		"fac_water": ["armsy", "armasy", "armamsub", "armplat", "corsy", "corasy", "coramsub", "corplat"],
 		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw"],
