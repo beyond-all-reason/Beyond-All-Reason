@@ -774,37 +774,17 @@ local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local WINDUP_SOUND_DURATION = 2
 local ACTIVATE_SOUND_DURATION = 0
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
-local CHARGE_SOUND_LOOP_DURATION = 4.8
+local CHARGE_SOUND_LOOP_DURATION = 4.75
 local gameSeconds = 0
 
-local function queueChargeSoundLoop()
-	local lastLoopTime = defeatTime - WINDUP_SOUND_DURATION
-	local volume = 0.30 --starting volume, gains volumeSteps
-	local subtractedVolume = 0.20
-	local minVolume = volume - subtractedVolume
-	local volumeStep = subtractedVolume / ((defeatTime - WINDUP_SOUND_DURATION - gameSeconds) / CHARGE_SOUND_LOOP_DURATION)
-	local maxIterations = 100
-	local iterations = 0
-	while lastLoopTime > gameSeconds and iterations < maxIterations do
-		local loopTime = lastLoopTime - CHARGE_SOUND_LOOP_DURATION
-		Spring.Echo(volume, volumeStep, volume + volumeStep)
-		volume = math.max(minVolume, volume - volumeStep)
-		table.insert(soundQueue, 1, {when = loopTime, sound = "teleport-charge-loop", volume = volume})
-		lastLoopTime = loopTime
-		iterations = iterations + 1
-	end
-	
-	if iterations >= maxIterations then
-		Spring.Echo("Warning: Maximum sound queue iterations reached in gui_territorial_domination.lua")
-	end
-end
 local function queueTeleportSounds()
 	soundQueue = {}
 	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.5})
 	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.5})
-	queueChargeSoundLoop()
 end
 
+local lastLoop = 0
+local loopSoundEndTime = 0
 local soundIndex = 1
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
@@ -812,7 +792,7 @@ function widget:GameFrame(frame)
 		if newDefeatTime ~= 0 then
 			if newDefeatTime ~= defeatTime then
 				defeatTime = newDefeatTime
-				Spring.Echo("newDefeatTime: " .. newDefeatTime)
+				loopSoundEndTime = defeatTime - WINDUP_SOUND_DURATION
 				soundQueue = nil
 				queueTeleportSounds()
 			end
@@ -824,17 +804,42 @@ function widget:GameFrame(frame)
 
 	gameSeconds = spGetGameSeconds()
 
-	local sound = soundQueue and soundQueue[soundIndex]
-	if sound and sound.when < gameSeconds then
-		Spring.Echo("Playing sound: " .. sound.sound .. " with volume: " .. sound.volume)
-		for unitID in pairs(myCommanders) do
-			local x, y, z = spGetUnitPosition(unitID)
-			if x then
-				spPlaySoundFile(sound.sound, sound.volume, x, y, z, 0, 0, 0, "sfx")
-			else
-				spPlaySoundFile(sound.sound, sound.volume)
+	if loopSoundEndTime > gameSeconds then
+		if lastLoop < currentTime then
+			lastLoop = currentTime
+			
+			-- Calculate volume based on time until defeat
+			local timeRange = loopSoundEndTime - (defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
+			local timeLeft = loopSoundEndTime - gameSeconds
+			local minVolume = 0.05
+			local maxVolume = 0.2
+			local volumeRange = maxVolume - minVolume
+			
+			local volumeFactor = 1 - (timeLeft / timeRange)
+			volumeFactor = math.clamp(volumeFactor, 0, 1)
+			local currentVolume = minVolume + (volumeFactor * volumeRange)
+			
+			for unitID in pairs(myCommanders) do
+				local x, y, z = spGetUnitPosition(unitID)
+				if x then
+					spPlaySoundFile("teleport-charge-loop", currentVolume, x, y, z, 0, 0, 0, "sfx")
+				else
+					myCommanders[unitID] = nil
+				end
 			end
 		end
-		soundIndex = soundIndex + 1
+	else
+		local sound = soundQueue and soundQueue[soundIndex]
+		if sound and sound.when < gameSeconds then
+			for unitID in pairs(myCommanders) do
+				local x, y, z = spGetUnitPosition(unitID)
+				if x then
+					spPlaySoundFile(sound.sound, sound.volume, x, y, z, 0, 0, 0, "sfx")
+				else
+					myCommanders[unitID] = nil
+				end
+			end
+			soundIndex = soundIndex + 1
+		end
 	end
 end
