@@ -703,8 +703,8 @@ function widget:Update(dt)
 		local territoriesNeeded = abs(difference)  -- Need one more than the negative difference
 		
 		-- Only show warning if difference is negative and only once per cooldown period
-		if not amSpectating and difference < 0 and freezeExpirationTime > currentGameTime then
-			if (currentGameTime - lastTimerWarningTime) > TIMER_COOLDOWN then
+		if not amSpectating and difference < 0 and freezeExpirationTime < currentGameTime then
+			if currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
 				spPlaySoundFile("warning1", 1)
 				-- Create the warning message
 				local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
@@ -715,7 +715,6 @@ function widget:Update(dt)
 			end
 			lastTimerWarningTime = currentGameTime
 		end
-		Spring.Echo("lastTimerWarningTime: " .. lastTimerWarningTime)
 	end
 end
 
