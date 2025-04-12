@@ -17,12 +17,8 @@ static-var  restore_delay, last_primary_heading;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
 
 PilotLight(Func_Var_1)
 {
@@ -114,7 +110,6 @@ FirePrimary()
 
 Shot1(zero)
 {
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 1 from flare;
 }
 

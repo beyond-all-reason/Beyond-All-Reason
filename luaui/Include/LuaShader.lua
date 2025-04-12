@@ -309,22 +309,112 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+
+			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
+			local printf = nil
+			fsSrcNewLines = string.lines(fsSrcNew)
+			for i, line in ipairs(fsSrcNewLines) do 
+				--Spring.Echo(i,line)
+				local glslvariable = line:match(printfpattern)
+				if glslvariable then 
+					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
+					-- init our printf table
+					
+					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
+
+					-- Figure out wether the glsl variable is a float, vec2-4
+					local glslvarcount = 1 -- default is 1
+					local dotposition = string.find(glslvariable, "%.")
+					local swizzle = 'x'
+					if dotposition then 
+						swizzle = string.sub(glslvariable, dotposition+1)
+						glslvarcount = string.len(swizzle)
+					end
+					if glslvarcount>4 then 
+						glslvarcount = 4
+					end
+					if not printf then printf = {} end 
+					printf["vars"] = printf["vars"] or {}
+					local vardata =  {name = glslvariable, count = glslvarcount, line = i, index = #printf["vars"], swizzle = swizzle, shaderstage = 'f'}
+					table.insert(printf["vars"], vardata)   
+					local replacementstring = string.format('if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;',
+							vardata.index, string.sub('xyzw', 1, vardata.count), vardata.name
+					)
+					Spring.Echo(string.format("Replacing f:%d %s", i, line))   
+					fsSrcNewLines[i] = replacementstring
+				end
+			end
+			
+			-- If any substitutions were made, reassemble the shader source
+			if printf then 
+				-- Define the shader storage buffer object, with at most SSBOSize entries
+				printf.SSBOSize = math.max(#printf['vars'], 16)
+				--Spring.Echo("SSBOSize", printf.SSBOSize)
+				printf.SSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
+				printf.SSBO:Define(printf.SSBOSize, {{id = 0, name = "printfData", size = 4}})
+				local initZeros = {}
+				for i=1, 4 * printf.SSBOSize  do initZeros[i] = 0 end
+				printf.SSBO:Upload(initZeros)--, nil, 0)
+
+				printf.SSBODefinition = [[
+					layout (std430, binding = 7) buffer printfBuffer {
+						vec4 printfData[];
+					};
+				]]
+
+				-- Check shader version string and replace if required:
+				
+				for i, line in ipairs(fsSrcNewLines) do 
+					if string.find(line, "#version", nil, true) then 
+						if line ~= "#version 430 core" then 
+							Spring.Echo("Replacing shader version", line, "with #version 430 core")
+							fsSrcNewLines[i] = ""
+							table.insert(fsSrcNewLines,1, "#version 430 core\n")
+							break
+						end
+					end
+				end
+				
+				-- Add required extensions
+
+				local ssboextensions = {'#extension GL_ARB_shading_language_420pack: require',
+										'#extension GL_ARB_uniform_buffer_object : require', 
+										'#extension GL_ARB_shader_storage_buffer_object : require'}
+				for j, ext in ipairs(ssboextensions) do
+					local found = false
+					for i, line in ipairs(fsSrcNewLines) do 
+						if string.find(line, ext, nil, true) then 
+							found = true
+							break
+						end
+					end
+					if not found then 
+						table.insert(fsSrcNewLines, 2, ext) -- insert at position two as first pos is already taken by #version
+					end
+				end
+
+				-- Reassemble the shader source by joining on newlines:
+				fsSrcNew = table.concat(fsSrcNewLines, '\n')
+				--Spring.Echo(fsSrcNew)
+			end
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
-			if fsSrcNew then 
-				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
-				shadersourcecache.fsSrcComplete = fsSrcNew
-			end
+
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
-			local reinitshader =  LuaShader(
+
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
+			end
+				local reinitshader =  LuaShader(
 				{
 				vertex = vsSrcNew,
 				fragment = fsSrcNew,
@@ -339,6 +429,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
 			end
 			if shaderCompiled then 
+				reinitshader.printf = printf
 				reinitshader.ignoreUnkUniform = true
 				return reinitshader
 			else
@@ -612,6 +703,12 @@ LuaShader.Finalize = LuaShader.Delete
 
 function LuaShader:Activate()
 	if self.shaderObj ~= nil then
+		-- bind the printf SSBO if present
+		if self.printf then 
+			local bindingIndex = self.printf.SSBO:BindBufferRange(7)
+			if bindingIndex <= 0 then Spring.Echo("Failed to bind printfData SSBO for shader", self.shaderName) end
+		end
+		
 		self.active = true
 		return glUseShader(self.shaderObj)
 	else
@@ -644,6 +741,67 @@ end
 function LuaShader:Deactivate()
 	self.active = false
 	glUseShader(0)
+	--Spring.Echo("LuaShader:Deactivate()")
+
+	if self.printf then 
+		--Spring.Echo("self.printf", self.printf)
+		self.printf.SSBO:UnbindBufferRange(7)
+		self.printf.bufferData = self.printf.SSBO:Download(-1, 0, nil, true) -- last param is forceGPURead = true
+		--Spring.Echo(self.printf.bufferData[1],self.printf.bufferData[2],self.printf.bufferData[3],self.printf.bufferData[4])
+
+		if not self.DrawPrintf then 
+			--Spring.Echo("creating DrawPrintf")
+			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
+			local fontSize = 16
+			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
+			
+			local function DrawPrintf(sometimesself, xoffset)
+				--Spring.Echo("attempting to draw printf",xoffset)
+				
+				xoffset = xoffset or 0
+				if type(sometimesself) == 'table' then 
+					xoffset = xoffset or 0
+				elseif type(sometimesself) == 'number' then 
+					xoffset = sometimesself
+				end
+
+				local mx,my = Spring.GetMouseState()
+				mx = mx + xoffset
+				my = my - 32
+
+				gl.PushMatrix()
+				font3:Begin()
+				-- Todo: could really use a monospaced font!
+				--gl.Color(1,1,1,1)
+				gl.Blending(GL.ONE, GL.ZERO)
+				for i, vardata in ipairs(self.printf.vars) do 
+					local message 
+					if vardata.count == 1 then 
+						message = string.format("%s:%d %s = %.3f", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4])
+					elseif vardata.count == 2 then 
+						message = string.format("%s:%d %s = [%.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4])
+					elseif vardata.count == 3 then
+						message = string.format("%s:%d %s = [%10.3f, %10.3f, %10.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4])
+					elseif vardata.count == 4 then
+						message = string.format("%s:%d %s = [%.3f, %.3f, %.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4], self.printf.bufferData[4 + vardata.index * 4])
+					end
+
+					my = my - fontSize
+					local vsx, vsy = Spring.GetViewGeometry()
+					local alignment = ''
+					if mx > (vsx - 400) then alignment = 'r' end
+					--Spring.Echo(my,vsy) 
+					font3:Print(message, math.floor(mx), math.floor(my), fontSize,alignment .."o"  )
+				end
+				
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.PopMatrix()
+				
+				font3:End()
+			end
+			self.DrawPrintf = DrawPrintf
+		end
+	end
 end
 
 
