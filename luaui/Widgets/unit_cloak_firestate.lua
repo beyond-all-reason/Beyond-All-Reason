@@ -21,7 +21,7 @@ end
 -- Speedups
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
-local CMD_CLOAK         = CMD.WANT_CLOAK
+local CMD_WANT_CLOAK    = CMD.WANT_CLOAK
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
