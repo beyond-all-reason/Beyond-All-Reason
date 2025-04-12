@@ -68,6 +68,8 @@ if SYNCED then
 	local FREEZE_DELAY_SECONDS = 60
 	local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 	local MIN_THRESHOLD_DELAY = 1
+	local DEFEAT_DELAY_SECONDS = 60
+	local RESET_DEFEAT_FRAME = 0
 
 	local SCORE_RULES_KEY = "territorialDominationScore"
 	local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
@@ -127,7 +129,7 @@ if SYNCED then
 	local allyTallies = {}
 	local randomizedGridIDs = {}
 	local flyingUnits = {}
-	local powerExemptedUnits = {}
+	local allyDefeatTime = {}
 
 	for _, teamID in ipairs(teams) do
 		local luaAI = spGetTeamLuaAI(teamID)
@@ -138,6 +140,8 @@ if SYNCED then
 				hordeModeTeams[teamID] = true
 			end
 		end
+
+		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 	end
 
 	for defID, def in pairs(UnitDefs) do
@@ -278,10 +282,12 @@ if SYNCED then
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
-		local killDelayFrames = floor(Game.gameSpeed * 0.5)
-		local killFrame = spGetGameFrame() + killDelayFrames
-		killQueue[killFrame] = killQueue[killFrame] or {}
-		killQueue[killFrame][unitID] = true
+		if 1 == 2 then
+			local killDelayFrames = floor(Game.gameSpeed * 0.5)
+			local killFrame = spGetGameFrame() + killDelayFrames
+			killQueue[killFrame] = killQueue[killFrame] or {}
+			killQueue[killFrame][unitID] = true
+		end
 
 		local x, y, z = spGetUnitPosition(unitID)
 		spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
@@ -295,6 +301,23 @@ if SYNCED then
 				queueCommanderTeleportRetreat(unitID)
 			end
 		end
+		for _, teamID in pairs(teams) do
+			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+		end
+	end
+
+	local function setAndCheckAllyDefeatTime(allyID)
+		if not allyDefeatTime[allyID] then
+			allyDefeatTime[allyID] = spGetGameSeconds() + DEFEAT_DELAY_SECONDS
+			for teamID in pairs(allyTeamsWatch[allyID]) do
+				Spring.SetTeamRulesParam( teamID, "defeatTime", allyDefeatTime[allyID])
+			end
+		end
+		local currentSecond = spGetGameSeconds()
+		if allyDefeatTime[allyID] < currentSecond then
+			return true
+		end
+		return false
 	end
 
 	local function getAllyPowersInSquare(gridID)
@@ -694,8 +717,17 @@ if SYNCED then
 					local allyData = sortedAllies[i]
 					
 					if allyData.tally < defeatThreshold and (allyData.tally < highestTally or allyHordesCount > 0) then
-						triggerAllyDefeat(allyData.allyID)
-						setAllyGridToGaia(allyData.allyID)
+						local timerExpired = setAndCheckAllyDefeatTime(allyData.allyID)
+						if timerExpired then
+							triggerAllyDefeat(allyData.allyID)
+							setAllyGridToGaia(allyData.allyID)
+							allyDefeatTime[allyData.allyID] = nil
+						end
+					else
+						allyDefeatTime[allyData.allyID] = nil
+						for teamID in pairs(allyTeamsWatch[allyData.allyID]) do
+							Spring.SetTeamRulesParam( teamID, "defeatTime", RESET_DEFEAT_FRAME)
+						end
 					end
 				end
 			end	
@@ -730,6 +762,10 @@ if SYNCED then
 		end
 
 		setThresholdIncreaseRate()
+		teams = Spring.GetTeamList()
+		for _, teamID in pairs(teams) do
+			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+		end
 	end
 
 else

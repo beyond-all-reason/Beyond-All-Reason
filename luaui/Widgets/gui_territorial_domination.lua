@@ -34,6 +34,7 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetAllyTeamList = Spring.GetAllyTeamList
+local spGetUnitPosition = Spring.GetUnitPosition
 local spPlaySoundFile = Spring.PlaySoundFile
 local spI18N = Spring.I18N
 local glColor = gl.Color
@@ -50,6 +51,9 @@ local glTexRect = gl.TexRect
 local glTranslate = gl.Translate
 local max = math.max
 local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetAllUnits = Spring.GetAllUnits
 
 local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
@@ -83,6 +87,8 @@ local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}
 local COLOR_GREY_LINE = {0.7, 0.7, 0.7, 0.7}
 local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
+local myCommanders = {}
+
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
 local isFreezeWarningVisible = true
@@ -103,7 +109,7 @@ local healthbarWidth = 300
 local healthbarHeight = 20
 local lineWidth = 2
 local maxThreshold = 256
-
+local currentTime = os.clock()
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -299,7 +305,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		
 		if timeUntilUnfreeze <= WARNING_SECONDS then
 			-- Warning period blinking
-			local currentTime = os.clock()
+			currentTime = os.clock()
 			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 			if blinkPhase < 0.33 then
 				skullAlpha = 1.0
@@ -401,6 +407,29 @@ function widget:Initialize()
 	myAllyID = spGetMyAllyTeamID()
 	selectedAllyTeamID = myAllyID
 	gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID()))
+	
+	local allUnits = spGetAllUnits()
+	local myTeamID = spGetMyTeamID()
+	
+	for _, unitID in ipairs(allUnits) do
+		widget:MetaUnitAdded(unitID,  spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil)
+	end
+end
+
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam, builderID)
+	if unitTeam == spGetMyTeamID() then
+		local unitDef = UnitDefs[unitDefID]
+		
+		if unitDef.customParams and unitDef.customParams.iscommander then
+			myCommanders[unitID] = true
+		end
+	end
+end
+
+function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	if myCommanders[unitID] then
+		myCommanders[unitID] = nil
+	end
 end
 
 function widget:Update(dt)
@@ -412,7 +441,7 @@ function widget:Update(dt)
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
-	local currentTime = os.clock()
+	currentTime = os.clock()
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
 		updateScoreDisplayList()
 	elseif currentTime - lastUpdateTime > UPDATE_FREQUENCY then
@@ -736,5 +765,76 @@ function widget:Shutdown()
 	if displayList then
 		glDeleteList(displayList)
 		displayList = nil
+	end
+end
+
+local soundQueue = {}
+local defeatTime = 0
+local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
+local WINDUP_SOUND_DURATION = 2
+local ACTIVATE_SOUND_DURATION = 0
+local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
+local CHARGE_SOUND_LOOP_DURATION = 4.8
+local gameSeconds = 0
+
+local function queueChargeSoundLoop()
+	local lastLoopTime = defeatTime - WINDUP_SOUND_DURATION
+	local volume = 0.30 --starting volume, gains volumeSteps
+	local subtractedVolume = 0.20
+	local minVolume = volume - subtractedVolume
+	local volumeStep = subtractedVolume / ((defeatTime - WINDUP_SOUND_DURATION - gameSeconds) / CHARGE_SOUND_LOOP_DURATION)
+	local maxIterations = 100
+	local iterations = 0
+	while lastLoopTime > gameSeconds and iterations < maxIterations do
+		local loopTime = lastLoopTime - CHARGE_SOUND_LOOP_DURATION
+		Spring.Echo(volume, volumeStep, volume + volumeStep)
+		volume = math.max(minVolume, volume - volumeStep)
+		table.insert(soundQueue, 1, {when = loopTime, sound = "teleport-charge-loop", volume = volume})
+		lastLoopTime = loopTime
+		iterations = iterations + 1
+	end
+	
+	if iterations >= maxIterations then
+		Spring.Echo("Warning: Maximum sound queue iterations reached in gui_territorial_domination.lua")
+	end
+end
+local function queueTeleportSounds()
+	soundQueue = {}
+	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.5})
+	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.5})
+	queueChargeSoundLoop()
+end
+
+local soundIndex = 1
+function widget:GameFrame(frame)
+	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
+		local newDefeatTime = spGetTeamRulesParam(Spring.GetMyTeamID(), "defeatTime")
+		if newDefeatTime ~= 0 then
+			if newDefeatTime ~= defeatTime then
+				defeatTime = newDefeatTime
+				Spring.Echo("newDefeatTime: " .. newDefeatTime)
+				soundQueue = nil
+				queueTeleportSounds()
+			end
+		else
+			soundQueue = nil
+			soundIndex = 1
+		end
+	end
+
+	gameSeconds = spGetGameSeconds()
+
+	local sound = soundQueue and soundQueue[soundIndex]
+	if sound and sound.when < gameSeconds then
+		Spring.Echo("Playing sound: " .. sound.sound .. " with volume: " .. sound.volume)
+		for unitID in pairs(myCommanders) do
+			local x, y, z = spGetUnitPosition(unitID)
+			if x then
+				spPlaySoundFile(sound.sound, sound.volume, x, y, z, 0, 0, 0, "sfx")
+			else
+				spPlaySoundFile(sound.sound, sound.volume)
+			end
+		end
+		soundIndex = soundIndex + 1
 	end
 end
