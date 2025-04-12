@@ -23,7 +23,7 @@
 
 	// Base defence and time to build it, in seconds
 	"base": [
-		[3, 420], [2, 520], [4, 760], [10, 1200], [15,1220], [15, 1320], [11, 1400], [12, 1800]
+		[3, 420], [10, 1200], [15,1220], [14, 1300], [15, 1320], [12, 1800]
 	],
 
 	"superweapon": {
@@ -105,7 +105,7 @@
 //					{"unit": "armmmkr", "category": "convert", "offset": [-60, +16]},
 //					{"unit": "armmmkr", "category": "convert", "offset": [-60, -16]},
 //					{"unit": "armpb", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "armferret", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
 				]
 			]
 		},
@@ -131,7 +131,7 @@
 //					{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
 //					{"unit": "armanni", "category": "defence", "offset": [-180, -180]},
 //					{"unit": "armpb", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "armferret", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
 				]
 			]
 		},
@@ -158,7 +158,7 @@
 //					{"unit": "cormmkr", "category": "convert", "offset": [0, 60]},
 //					{"unit": "cormmkr", "category": "convert", "offset": [0, 100]},
 //					{"unit": "corfmd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
-					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "cormadsam", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
 				]
 			]
 		},
@@ -173,7 +173,7 @@
 //					{"unit": "corfmd", "category": "defence", "offset": [180, -180], "condition": {"chance": 0.5}},
 //					{"unit": "cordoom", "category": "defence", "offset": [-180, 180]},
 //					{"unit": "corvipe", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
-					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "cormadsam", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
 				]
 			]
 		}
@@ -186,24 +186,38 @@
 			"hub": [[{"unit": "corhllt", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
+	"defence": {
+		"armanni": {
+			"hub": [[
+				{"unit": "armjamt", "category": "defence", "offset": {"back": 80}, "condition": {"chance": 0.8}},
+				{"unit": "armgate", "category": "defence", "offset": {"back": 160}, "condition": {"chance": 0.8}}
+			]]
+		},
+		"cordoom" : {
+			"hub": [[
+				{"unit": "corjamt", "category": "defence", "offset": {"back": 80}, "condition": {"chance": 0.8}},
+				{"unit": "corgate", "category": "defence", "offset": {"back": 160}, "condition": {"chance": 0.8}}
+			]]
+		}
+	},
 	"factory": {
 		"armlab": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "normal"}]]
 		},
 		"armvp": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "normal"}]]
 		},
 		"armap": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "normal"}]]
 		},
 		"corlab": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "normal"}]]
 		},
 		"corvp": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"back": 5}, "priority": "normal"}]]
 		},
 		"corap": {
-			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "normal"}]]
 		}
 	},
 	"mex": {
