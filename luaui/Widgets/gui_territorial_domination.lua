@@ -80,7 +80,7 @@ local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local WINDUP_SOUND_DURATION = 2
 local ACTIVATE_SOUND_DURATION = 0
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
-local CHARGE_SOUND_LOOP_DURATION = 4.75
+local CHARGE_SOUND_LOOP_DURATION = 4.7
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -110,7 +110,7 @@ local isFreezeWarningVisible = true
 local isSkullFaded = true
 
 -- Add variables for timer warning
-local lastTimerWarningTime = -TIMER_COOLDOWN -- Initialize to allow first warning to show
+local lastTimerWarningTime = 0
 local timerWarningMessage = nil
 local timerWarningEndTime = 0
 local font = nil
@@ -146,6 +146,19 @@ local timerWarningDisplayList = nil
 local countdownDisplayList = nil
 local lastCountdownValue = -1
 local lastTimerWarningMessages = nil
+
+-- Add tracking variables for display list state
+local lastThreshold = -1
+local lastMaxThreshold = -1
+local lastIsThresholdFrozen = false
+local lastFreezeExpirationTime = -1
+local lastIconSize = -1
+local lastHealthbarWidth = -1
+local lastHealthbarHeight = -1
+local lastMinimapDimensions = {-1, -1, -1}
+local lastAmSpectating = false
+local lastSelectedAllyTeamID = -1
+local lastAllyTeamScores = {}
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -463,21 +476,27 @@ local backgroundColor = {COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGRO
 local borderColor = {COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4]}
 local BORDER_WIDTH = 2
 
--- Add a function to create the timer warning message and its display list
 local function createTimerWarningMessage(secondsRemaining, territoriesNeeded)
-
-	local dominatedMessage = spI18N('ui.territorialDomination.losingWarning1')
-
-	local conquerMessage = spI18N('ui.territorialDomination.losingWarning2', {seconds = ceil(secondsRemaining), needed = territoriesNeeded}) 
-	
-	-- Return as separate messages so we can position them separately
+	local dominatedMessage = spI18N('ui.territorialDomination.losingWarning1', {seconds = ceil(secondsRemaining)})
+	local conquerMessage = spI18N('ui.territorialDomination.losingWarning2', {needed = territoriesNeeded})
 	return dominatedMessage, conquerMessage
 end
 
 local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
+	-- Check if the messages are the same as last time
+	if lastTimerWarningMessages and 
+	   lastTimerWarningMessages[1] == dominatedMessage and 
+	   lastTimerWarningMessages[2] == conquerMessage and
+	   timerWarningDisplayList then
+		return timerWarningDisplayList
+	end
+	
 	if timerWarningDisplayList then
 		glDeleteList(timerWarningDisplayList)
 	end
+
+	-- Store current messages for future comparison
+	lastTimerWarningMessages = {dominatedMessage, conquerMessage}
 
 	-- Create new display list
 	timerWarningDisplayList = glCreateList(function()
@@ -527,9 +546,17 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 end
 
 local function createCountdownDisplayList(timeRemaining)
+	-- Only recreate if the time has changed
+	if countdownDisplayList and lastCountdownValue == timeRemaining then
+		return countdownDisplayList
+	end
+	
 	if countdownDisplayList then
 		glDeleteList(countdownDisplayList)
 	end
+	
+	-- Store current countdown value for future comparison
+	lastCountdownValue = timeRemaining
 	
 	-- Create new display list
 	countdownDisplayList = glCreateList(function()
@@ -632,19 +659,28 @@ function widget:Update(dt)
 	gameSeconds = currentGameTime  -- Update game seconds every frame
 	
 	currentTime = os.clock()
+	
+	-- Check if forced update is needed for warning blinking
+	local needsUpdate = false
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
-		updateScoreDisplayList()
-	elseif currentTime - lastUpdateTime > UPDATE_FREQUENCY then
+		-- Skull is blinking - check if we're in a new blink phase
+		local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
+		local currentBlinkState = blinkPhase < 0.33
+		if isSkullFaded ~= currentBlinkState then
+			needsUpdate = true
+		end
+	end
+	
+	-- Regular update check on interval
+	if needsUpdate or currentTime - lastUpdateTime > UPDATE_FREQUENCY then
 		lastUpdateTime = currentTime
 		updateScoreDisplayList()
 	end
 	
 	-- Force update when countdown is active
-	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
-		-- Check if we need to update countdown display list
+	if defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
-		if timeRemaining >= 0 and timeRemaining ~= lastCountdownValue then
-			lastCountdownValue = timeRemaining
+		if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValue or not countdownDisplayList) then
 			createCountdownDisplayList(timeRemaining)
 		end
 		
@@ -664,15 +700,14 @@ function widget:Update(dt)
 		end
 		
 		local difference = score - threshold
-		local territoriesNeeded = abs(difference) + 1  -- Need one more than the negative difference
+		local territoriesNeeded = abs(difference)  -- Need one more than the negative difference
 		
 		-- Only show warning if difference is negative and only once per cooldown period
-		if not amSpectating and difference < 0 then
+		if not amSpectating and difference < 0 and freezeExpirationTime > currentGameTime then
 			if (currentGameTime - lastTimerWarningTime) > TIMER_COOLDOWN then
+				spPlaySoundFile("warning1", 1)
 				-- Create the warning message
 				local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
-				timerWarningMessage = {domMsg, conqMsg}
-				lastTimerWarningMessages = {domMsg, conqMsg}
 				timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
 				
 				-- Create the display list for the warning
@@ -680,6 +715,7 @@ function widget:Update(dt)
 			end
 			lastTimerWarningTime = currentGameTime
 		end
+		Spring.Echo("lastTimerWarningTime: " .. lastTimerWarningTime)
 	end
 end
 
@@ -705,11 +741,120 @@ function updateScoreDisplayList()
 	end
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+	local currentMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
 	
 	local iconSize = 25
 	local iconHalfWidth = iconSize / 2
 	
+	local oldHealthbarWidth = healthbarWidth
 	healthbarWidth = minimapSizeX - iconHalfWidth * 2
+	
+	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	
+	-- Check if we need to update the spectator mode display
+	local needsUpdate = false
+	if amSpectating then
+		if lastAmSpectating ~= amSpectating or lastSelectedAllyTeamID ~= selectedAllyTeamID then
+			needsUpdate = true
+		else
+			-- Get current scores for comparison
+			local aliveAllyTeams = {}
+			local allyTeamList = spGetAllyTeamList()
+			for _, allyTeamID in ipairs(allyTeamList) do
+				if isAllyTeamAlive(allyTeamID) then
+					table.insert(aliveAllyTeams, allyTeamID)
+				end
+			end
+			
+			local currentAllyTeamScores = {}
+			for _, allyTeamID in ipairs(aliveAllyTeams) do
+				local score = 0
+				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(teamID)
+					if not isDead then
+						local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+						if teamScore then
+							score = teamScore
+							break
+						end
+					end
+				end
+				
+				currentAllyTeamScores[allyTeamID] = score
+			end
+			
+			-- Compare with last scores
+			for allyTeamID, score in pairs(currentAllyTeamScores) do
+				if lastAllyTeamScores[allyTeamID] ~= score then
+					needsUpdate = true
+					break
+				end
+			end
+			
+			-- Check if any ally teams changed state (appeared/disappeared)
+			for allyTeamID, score in pairs(lastAllyTeamScores) do
+				if currentAllyTeamScores[allyTeamID] == nil then
+					needsUpdate = true
+					break
+				end
+			end
+			
+			-- Update reference to current scores
+			if needsUpdate then
+				lastAllyTeamScores = currentAllyTeamScores
+			end
+		end
+	else
+		-- Check if player's own score needs updating
+		local score = 0
+		for _, teamID in ipairs(spGetTeamList(myAllyID)) do
+			local _, _, isDead = spGetTeamInfo(teamID)
+			if not isDead then
+				local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+				if teamScore then
+					score = teamScore
+					break
+				end
+			end
+		end
+		
+		local difference = score - threshold
+		
+		if lastScore ~= score or lastDifference ~= difference or 
+		   lastThreshold ~= threshold or lastMaxThreshold ~= currentMaxThreshold or
+		   lastIsThresholdFrozen ~= isThresholdFrozen or lastFreezeExpirationTime ~= freezeExpirationTime or
+		   lastIconSize ~= iconSize or lastHealthbarWidth ~= healthbarWidth or 
+		   lastHealthbarHeight ~= healthbarHeight or
+		   lastMinimapDimensions[1] ~= currentMinimapDimensions[1] or
+		   lastMinimapDimensions[2] ~= currentMinimapDimensions[2] or
+		   lastMinimapDimensions[3] ~= currentMinimapDimensions[3] or
+		   lastAmSpectating ~= amSpectating then
+			needsUpdate = true
+			lastScore = score
+			lastDifference = difference
+		end
+	end
+	
+	-- Update tracking variables regardless of whether we're recreating the display list
+	lastThreshold = threshold
+	lastMaxThreshold = currentMaxThreshold
+	lastIsThresholdFrozen = isThresholdFrozen
+	lastFreezeExpirationTime = freezeExpirationTime
+	lastIconSize = iconSize
+	lastHealthbarWidth = healthbarWidth
+	lastHealthbarHeight = healthbarHeight
+	lastMinimapDimensions = currentMinimapDimensions
+	lastAmSpectating = amSpectating
+	lastSelectedAllyTeamID = selectedAllyTeamID
+	maxThreshold = currentMaxThreshold
+	
+	-- If no updates needed, return early
+	if not needsUpdate and displayList then
+		return
+	end
 	
 	if displayList then
 		glDeleteList(displayList)
@@ -963,30 +1108,30 @@ end
 
 function widget:DrawScreen()
 	local currentGameTime = spGetGameSeconds()
-	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 	
-	-- Always update display list when countdown is active
-	if defeatTime and defeatTime > 0 and currentGameTime and defeatTime > currentGameTime then
-		updateScoreDisplayList()
-	elseif isSkullFaded or (isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS) then
+	-- Draw the main display list
+	if not displayList then
 		updateScoreDisplayList()
 	end
 	
 	if displayList then
 		glCallList(displayList)
-	else
-		updateScoreDisplayList()
 	end
 	
 	-- Draw the countdown timer display list if active
-	if countdownDisplayList and defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
-		glCallList(countdownDisplayList)
+	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
+		local timeRemaining = ceil(defeatTime - gameSeconds)
+		if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValue or not countdownDisplayList) then
+			createCountdownDisplayList(timeRemaining)
+		end
+		
+		if countdownDisplayList then
+			glCallList(countdownDisplayList)
+		end
 	end
 	
 	-- Draw the timer warning display list if active
-	if timerWarningDisplayList and currentGameTime < timerWarningEndTime then
+	if currentGameTime < timerWarningEndTime then
 		-- Calculate alpha for fade out effect (if needed)
 		local alpha = 1.0
 		-- You could implement fade near the end:
@@ -995,9 +1140,11 @@ function widget:DrawScreen()
 		--     alpha = timeLeft
 		-- end
 		
-		-- Set global alpha only - the display list contains all the drawing commands
-		glColor(1, 1, 1, alpha)
-		glCallList(timerWarningDisplayList)
+		if timerWarningDisplayList then
+			-- Set global alpha only - the display list contains all the drawing commands
+			glColor(1, 1, 1, alpha)
+			glCallList(timerWarningDisplayList)
+		end
 	end
 end
 
@@ -1035,8 +1182,8 @@ end
 local function queueTeleportSounds()
 	soundQueue = {}
 	if defeatTime and defeatTime > 0 then
-		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.5})
-		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.5})
+		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.4})
+		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.225})
 	end
 end
 
@@ -1045,12 +1192,8 @@ function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
 		local myTeamID = Spring.GetMyTeamID()
 		local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
-		Spring.Echo("newDefeatTime B", newDefeatTime, defeatTime)
-		--0, number1
-		--number1, number1
 		if newDefeatTime > 0 then
 			if newDefeatTime ~= defeatTime then
-				Spring.Echo("newDefeatTime C", newDefeatTime, defeatTime)
 				defeatTime = newDefeatTime
 				loopSoundEndTime = defeatTime - WINDUP_SOUND_DURATION
 				soundQueue = nil
@@ -1067,7 +1210,7 @@ function widget:GameFrame(frame)
 	gameSeconds = spGetGameSeconds() or 0
 
 	if loopSoundEndTime and loopSoundEndTime > gameSeconds then
-		if lastLoop < currentTime then
+		if lastLoop <= currentTime then
 			lastLoop = currentTime
 			
 			-- Calculate volume based on time until defeat

@@ -667,8 +667,8 @@
 			}
 		},
 		"territorialDomination": {
-			"losingWarning1": "We are being dominated!",
-			"losingWarning2": "Conquor %{needed} more territories or be extracted in %{seconds} seconds."
+			"losingWarning1": "Allied retreat in %{seconds} seconds!",
+			"losingWarning2": "Capture %{needed} more territories to avoid extraction."
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
