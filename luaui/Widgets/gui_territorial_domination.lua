@@ -111,6 +111,10 @@ local lineWidth = 2
 local maxThreshold = 256
 local currentTime = os.clock()
 
+-- Countdown timer constants
+local COUNTDOWN_WARNING_SECONDS = 15
+local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.7  -- Back to previous size
+
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
 	-- POSITION CALCULATIONS
@@ -373,6 +377,31 @@ local function drawDifferenceText(x, y, difference, fontSize, textColor)
 	glText(formattedDifference, x, y, fontSize, "l")
 end
 
+-- Function to draw countdown text with outline
+local function drawCountdownText(x, y, secondsRemaining, fontSize, textColor)
+	local text
+	if type(secondsRemaining) == "string" then
+		text = secondsRemaining
+	else
+		text = format("%d", secondsRemaining)
+	end
+	
+	-- Text outline
+	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+	glText(text, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "c")  -- Center-aligned
+	glText(text, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(text, x - TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(text, x + TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(text, x - TEXT_OUTLINE_OFFSET, y, fontSize, "c")
+	glText(text, x + TEXT_OUTLINE_OFFSET, y, fontSize, "c")
+	glText(text, x, y - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(text, x, y + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	
+	-- Main text
+	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+	glText(text, x, y, fontSize, "c")  -- Center-aligned
+end
+
 -- Function to check if an ally team is still alive
 local function isAllyTeamAlive(allyTeamID)
 	if allyTeamID == gaiaAllyTeamID then
@@ -408,6 +437,9 @@ function widget:Initialize()
 	selectedAllyTeamID = myAllyID
 	gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID()))
 	
+	gameSeconds = spGetGameSeconds() or 0
+	defeatTime = 0
+	
 	local allUnits = spGetAllUnits()
 	local myTeamID = spGetMyTeamID()
 	
@@ -441,11 +473,25 @@ function widget:Update(dt)
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
+	-- Check for defeatTime updates here too
+	local myTeamID = spGetMyTeamID()
+	local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
+	if newDefeatTime ~= 0 and newDefeatTime ~= defeatTime then
+		defeatTime = newDefeatTime
+	end
+	
+	gameSeconds = currentGameTime  -- Update game seconds every frame
+	
 	currentTime = os.clock()
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
 		updateScoreDisplayList()
 	elseif currentTime - lastUpdateTime > UPDATE_FREQUENCY then
 		lastUpdateTime = currentTime
+		updateScoreDisplayList()
+	end
+	
+	-- Force update when countdown is active
+	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 		updateScoreDisplayList()
 	end
 end
@@ -727,6 +773,50 @@ function updateScoreDisplayList()
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 			glPopMatrix()
 		end
+		
+		-- Draw countdown timer if active
+		if defeatTime and defeatTime > 0 and gameSeconds then
+			local currentGameTime = spGetGameSeconds() or 0  -- Get most current time
+			local timeRemaining = floor(defeatTime - currentGameTime)
+			
+			-- Allow displaying 0
+			if timeRemaining >= 0 then  -- Include 0 in the display range
+				local countdownColor = COLOR_RED  -- Always red
+				
+				-- Get the threshold position to locate the skull
+				local healthbarLeft = minimapPosX + iconHalfWidth
+				local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
+				local healthbarTop = minimapPosY - MINIMAP_GAP
+				local healthbarBottom = healthbarTop - healthbarHeight
+				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+				local barWidth = healthbarRight - healthbarLeft
+				local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
+				local skullOffset = (1 / maxThreshold) * barWidth
+				local skullX = thresholdX - skullOffset
+				
+				-- Use previous size
+				local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
+				
+				-- Position at the skull's center
+				local countdownX = skullX
+				local text = format("%d", timeRemaining)
+				
+				-- Set position to be centered on the skull
+				local countdownY
+				if amSpectating then
+					-- For spectator mode
+					local topY = minimapPosY - MINIMAP_GAP
+					local barHeight = healthbarHeight * 0.7
+					countdownY = topY - barHeight/2 - 10  -- Center on the bar and offset up by 10
+				else
+					-- Regular player view
+					countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7  -- Center on the bar and offset up by 10
+				end
+				
+				-- Center-align the text
+				drawCountdownText(countdownX, countdownY, text, countdownFontSize, countdownColor)
+			end
+		end
 	end)
 end
 
@@ -736,7 +826,10 @@ function widget:DrawScreen()
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 	
-	if isSkullFaded or (isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS) then
+	-- Always update display list when countdown is active
+	if defeatTime and defeatTime > 0 and currentGameTime and defeatTime > currentGameTime then
+		updateScoreDisplayList()
+	elseif isSkullFaded or (isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS) then
 		updateScoreDisplayList()
 	end
 	
@@ -779,8 +872,10 @@ local gameSeconds = 0
 
 local function queueTeleportSounds()
 	soundQueue = {}
-	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.5})
-	table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.5})
+	if defeatTime and defeatTime > 0 then
+		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.5})
+		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.5})
+	end
 end
 
 local lastLoop = 0
@@ -788,7 +883,9 @@ local loopSoundEndTime = 0
 local soundIndex = 1
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
-		local newDefeatTime = spGetTeamRulesParam(Spring.GetMyTeamID(), "defeatTime")
+		local myTeamID = Spring.GetMyTeamID()
+		local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
+		
 		if newDefeatTime ~= 0 then
 			if newDefeatTime ~= defeatTime then
 				defeatTime = newDefeatTime
@@ -797,14 +894,16 @@ function widget:GameFrame(frame)
 				queueTeleportSounds()
 			end
 		else
+			defeatTime = 0
+			loopSoundEndTime = 0
 			soundQueue = nil
 			soundIndex = 1
 		end
 	end
 
-	gameSeconds = spGetGameSeconds()
+	gameSeconds = spGetGameSeconds() or 0
 
-	if loopSoundEndTime > gameSeconds then
+	if loopSoundEndTime and gameSeconds and loopSoundEndTime > gameSeconds then
 		if lastLoop < currentTime then
 			lastLoop = currentTime
 			
@@ -830,7 +929,7 @@ function widget:GameFrame(frame)
 		end
 	else
 		local sound = soundQueue and soundQueue[soundIndex]
-		if sound and sound.when < gameSeconds then
+		if sound and gameSeconds and sound.when < gameSeconds then
 			for unitID in pairs(myCommanders) do
 				local x, y, z = spGetUnitPosition(unitID)
 				if x then
