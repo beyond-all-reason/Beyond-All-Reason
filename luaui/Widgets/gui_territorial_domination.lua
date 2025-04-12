@@ -97,8 +97,9 @@ local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
 -- Add constants for timer warning
 local TIMER_WARNING_DISPLAY_TIME = 5  -- Display warning for 5 seconds
-local TIMER_COOLDOWN = 180 -- 3 minutes cooldown in seconds
+local TIMER_COOLDOWN = 120 -- in seconds
 local TIMER_WARNING_FONT_MULTIPLIER = 1.5
+local MINIMAP_GAP = 3
 
 local myCommanders = {}
 local soundQueue = {}
@@ -112,7 +113,6 @@ local isSkullFaded = true
 local lastTimerWarningTime = -TIMER_COOLDOWN -- Initialize to allow first warning to show
 local timerWarningMessage = nil
 local timerWarningEndTime = 0
-local timerWarningFadeStart = 0
 local font = nil
 
 local amSpectating = false
@@ -141,6 +141,11 @@ local soundIndex = 1
 -- Countdown timer constants
 local COUNTDOWN_WARNING_SECONDS = 15
 local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.7  -- Back to previous size
+
+local timerWarningDisplayList = nil
+local countdownDisplayList = nil
+local lastCountdownValue = -1
+local lastTimerWarningMessages = nil
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -458,27 +463,121 @@ local backgroundColor = {COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGRO
 local borderColor = {COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4]}
 local BORDER_WIDTH = 2
 
--- Add a function to create the timer warning message
+-- Add a function to create the timer warning message and its display list
 local function createTimerWarningMessage(secondsRemaining, territoriesNeeded)
-	-- Try to get i18n messages, with fallbacks if not available
-	local dominatedMessage = spI18N('ui.territorialDomination.beingDominated')
-	
-	-- Check if we got a valid string from i18n or use fallback
-	if not dominatedMessage or dominatedMessage == "ui.territorialDomination.beingDominated" then
-		dominatedMessage = "We are being dominated!"
-	end
-	
-	-- For the conquer message, we need to pass parameters
-	local params = {seconds = ceil(secondsRemaining), needed = territoriesNeeded}
-	local conquerMessage = spI18N('ui.territorialDomination.conquorNeeded', params) 
-	
-	-- Fallback if i18n fails
-	if not conquerMessage or conquerMessage == "ui.territorialDomination.conquorNeeded" then
-		conquerMessage = "Conquor " .. territoriesNeeded .. " more territories or be extracted in " .. floor(secondsRemaining) .. " seconds."
-	end
+
+	local dominatedMessage = spI18N('ui.territorialDomination.losingWarning1')
+
+	local conquerMessage = spI18N('ui.territorialDomination.losingWarning2', {seconds = ceil(secondsRemaining), needed = territoriesNeeded}) 
 	
 	-- Return as separate messages so we can position them separately
 	return dominatedMessage, conquerMessage
+end
+
+local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
+	if timerWarningDisplayList then
+		glDeleteList(timerWarningDisplayList)
+	end
+
+	-- Create new display list
+	timerWarningDisplayList = glCreateList(function()
+		local vsx, vsy = Spring.GetViewGeometry()
+		local widgetScale = 0.80 + (vsx * vsy / 6000000)
+		local fontSize = 22 * widgetScale
+		
+		-- Position exactly like gui_game_type_info
+		local y = 0.19  -- 19% up from the bottom
+		local x = vsx * 0.5
+		
+		-- Apply font size scaling like gui_game_type_info
+		glPushMatrix()
+		glTranslate(x, vsy * y, 0)
+		glScale(1.5, 1.5, 1)
+		
+		-- Calculate positions for the two lines with proper spacing
+		local line1Y = 442  -- Center of first line
+		local lineSpacing = line1Y * 0.06
+		local line2Y = line1Y - lineSpacing
+		
+		-- Alpha is always 1.0 when creating the list - we'll use gl.Color when drawing to fade
+		local alpha = 1.0
+		
+		-- Draw first line (dominated message)
+		-- Text outline (shadow effect)
+		glColor(0, 0, 0, alpha * 0.5)
+		glText(dominatedMessage, 0 - 1, line1Y - 1, fontSize / 1.5, "c")
+		
+		-- Main text - WHITE
+		glColor(1, 1, 1, alpha)
+		glText(dominatedMessage, 0, line1Y, fontSize / 1.5, "c")
+		
+		-- Draw second line (conquer message)
+		-- Text outline (shadow effect)
+		glColor(0, 0, 0, alpha * 0.5)
+		glText(conquerMessage, 0 - 1, line2Y - 1, fontSize / 1.5, "c")
+		
+		-- Main text - WHITE
+		glColor(1, 1, 1, alpha)
+		glText(conquerMessage, 0, line2Y, fontSize / 1.5, "c")
+		
+		glPopMatrix()
+	end)
+	
+	return timerWarningDisplayList
+end
+
+local function createCountdownDisplayList(timeRemaining)
+	if countdownDisplayList then
+		glDeleteList(countdownDisplayList)
+	end
+	
+	-- Create new display list
+	countdownDisplayList = glCreateList(function()
+		local countdownColor = COLOR_RED
+		
+		-- Get minimap dimensions to position the countdown
+		local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+		local iconSize = 25
+		local iconHalfWidth = iconSize / 2
+		
+		-- Ensure we have MINIMAP_GAP defined
+		local miniMapGap = MINIMAP_GAP or 3
+		
+		-- Calculate skull position
+		local healthbarLeft = minimapPosX + iconHalfWidth
+		local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
+		local healthbarTop = minimapPosY - miniMapGap
+		local healthbarBottom = healthbarTop - healthbarHeight
+		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		local barWidth = healthbarRight - healthbarLeft
+		local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
+		local skullOffset = (1 / maxThreshold) * barWidth
+		local skullX = thresholdX - skullOffset
+		
+		-- Use previous size
+		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
+		
+		-- Position at the skull's center
+		local countdownX = skullX
+		local text = format("%d", timeRemaining)
+		
+		-- Set position to be centered on the skull
+		local countdownY
+		if amSpectating then
+			-- For spectator mode
+			local topY = minimapPosY - miniMapGap
+			local barHeight = healthbarHeight * 0.7
+			countdownY = topY - barHeight/2 - 10  -- Center on the bar and offset up by 10
+		else
+			-- Regular player view
+			countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7  -- Center on the bar and offset up by 10
+		end
+		
+		-- Center-align the text
+		drawCountdownText(countdownX, countdownY, text, countdownFontSize, countdownColor)
+	end)
+	
+	return countdownDisplayList
 end
 
 function widget:Initialize()
@@ -530,13 +629,6 @@ function widget:Update(dt)
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
-	-- Check for defeatTime updates here too
-	local myTeamID = spGetMyTeamID()
-	local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
-	if newDefeatTime ~= 0 and newDefeatTime ~= defeatTime then
-		defeatTime = newDefeatTime
-	end
-	
 	gameSeconds = currentGameTime  -- Update game seconds every frame
 	
 	currentTime = os.clock()
@@ -549,10 +641,14 @@ function widget:Update(dt)
 	
 	-- Force update when countdown is active
 	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
-		updateScoreDisplayList()
+		-- Check if we need to update countdown display list
+		local timeRemaining = ceil(defeatTime - gameSeconds)
+		if timeRemaining >= 0 and timeRemaining ~= lastCountdownValue then
+			lastCountdownValue = timeRemaining
+			createCountdownDisplayList(timeRemaining)
+		end
 		
 		-- Check if we should show the timer warning
-		local timeRemaining = defeatTime - gameSeconds
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local score = 0
 		
@@ -571,15 +667,20 @@ function widget:Update(dt)
 		local territoriesNeeded = abs(difference) + 1  -- Need one more than the negative difference
 		
 		-- Only show warning if difference is negative and only once per cooldown period
-		if difference < 0 and (currentGameTime - lastTimerWarningTime) > TIMER_COOLDOWN then
-			-- Create the warning message - multiple return values packed into a table
-			local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
-			timerWarningMessage = {domMsg, conqMsg}
-			timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
-			timerWarningFadeStart = timerWarningEndTime - 1  -- Start fading 1 second before end
+		if not amSpectating and difference < 0 then
+			if (currentGameTime - lastTimerWarningTime) > TIMER_COOLDOWN then
+				-- Create the warning message
+				local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
+				timerWarningMessage = {domMsg, conqMsg}
+				lastTimerWarningMessages = {domMsg, conqMsg}
+				timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
+				
+				-- Create the display list for the warning
+				createTimerWarningDisplayList(domMsg, conqMsg)
+			end
 			lastTimerWarningTime = currentGameTime
 		end
-	end-- 
+	end
 end
 
 function updateScoreDisplayList()
@@ -604,7 +705,6 @@ function updateScoreDisplayList()
 	end
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local MINIMAP_GAP = 3
 	
 	local iconSize = 25
 	local iconHalfWidth = iconSize / 2
@@ -630,7 +730,6 @@ function updateScoreDisplayList()
 					table.insert(aliveAllyTeams, allyTeamID)
 				end
 			end
-			
 			-- Get scores for ally teams and sort by score (highest to lowest)
 			local allyTeamScores = {}
 			for _, allyTeamID in ipairs(aliveAllyTeams) do
@@ -859,50 +958,6 @@ function updateScoreDisplayList()
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 			glPopMatrix()
 		end
-		
-		-- Draw countdown timer if active
-		if defeatTime and defeatTime > 0 and gameSeconds then
-			local currentGameTime = spGetGameSeconds() or 0  -- Get most current time
-			local timeRemaining = ceil(defeatTime - currentGameTime)
-			
-			-- Allow displaying 0
-			if timeRemaining >= 0 then  -- Include 0 in the display range
-				local countdownColor = COLOR_RED  -- Always red
-				
-				-- Get the threshold position to locate the skull
-				local healthbarLeft = minimapPosX + iconHalfWidth
-				local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-				local healthbarTop = minimapPosY - MINIMAP_GAP
-				local healthbarBottom = healthbarTop - healthbarHeight
-				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-				local barWidth = healthbarRight - healthbarLeft
-				local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
-				local skullOffset = (1 / maxThreshold) * barWidth
-				local skullX = thresholdX - skullOffset
-				
-				-- Use previous size
-				local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
-				
-				-- Position at the skull's center
-				local countdownX = skullX
-				local text = format("%d", timeRemaining)
-				
-				-- Set position to be centered on the skull
-				local countdownY
-				if amSpectating then
-					-- For spectator mode
-					local topY = minimapPosY - MINIMAP_GAP
-					local barHeight = healthbarHeight * 0.7
-					countdownY = topY - barHeight/2 - 10  -- Center on the bar and offset up by 10
-				else
-					-- Regular player view
-					countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7  -- Center on the bar and offset up by 10
-				end
-				
-				-- Center-align the text
-				drawCountdownText(countdownX, countdownY, text, countdownFontSize, countdownColor)
-			end
-		end
 	end)
 end
 
@@ -925,55 +980,24 @@ function widget:DrawScreen()
 		updateScoreDisplayList()
 	end
 	
-	-- Draw the timer warning if active
-	if timerWarningMessage and currentGameTime < timerWarningEndTime then
-		-- Calculate alpha for fade out
+	-- Draw the countdown timer display list if active
+	if countdownDisplayList and defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
+		glCallList(countdownDisplayList)
+	end
+	
+	-- Draw the timer warning display list if active
+	if timerWarningDisplayList and currentGameTime < timerWarningEndTime then
+		-- Calculate alpha for fade out effect (if needed)
 		local alpha = 1.0
-		if currentGameTime > timerWarningFadeStart then
-			alpha = 1.0 - ((currentGameTime - timerWarningFadeStart) / (timerWarningEndTime - timerWarningFadeStart))
-		end
+		-- You could implement fade near the end:
+		-- local timeLeft = timerWarningEndTime - currentGameTime
+		-- if timeLeft < 1.0 then
+		--     alpha = timeLeft
+		-- end
 		
-		local vsx, vsy = Spring.GetViewGeometry()
-		local widgetScale = 0.80 + (vsx * vsy / 6000000)
-		local fontSize = 22 * widgetScale  -- Increased font size to match gui_game_type_info
-		
-		-- Parse the messages - they're returned as two parts
-		local dominatedMessage, conquerMessage = unpack(timerWarningMessage)
-		
-		-- Position exactly like gui_game_type_info.lua
-		local y = 0.19  -- 19% up from the bottom, exactly like in gui_game_type_info.lua
-		local x = vsx * 0.5
-		
-		-- Apply font size scaling like gui_game_type_info
-		glPushMatrix()
-		glTranslate(x, vsy * y, 0)  -- Same position as gui_game_type_info
-		glScale(1.5, 1.5, 1)
-		
-		-- Calculate positions for the two lines with proper spacing
-		local line1Y = 442  -- Center of first line
-		-- Calculate second line position proportionally to line1Y
-		local lineSpacing = line1Y * 0.06  -- 6% of line1Y seems like a good proportion
-		local line2Y = line1Y - lineSpacing  -- Second line, below first, proportional spacing
-		
-		-- Draw first line (dominated message)
-		-- Text outline (shadow effect)
-		glColor(0, 0, 0, alpha * 0.5)
-		glText(dominatedMessage, 0 - 1, line1Y - 1, fontSize / 1.5, "c")
-		
-		-- Main text - WHITE
+		-- Set global alpha only - the display list contains all the drawing commands
 		glColor(1, 1, 1, alpha)
-		glText(dominatedMessage, 0, line1Y, fontSize / 1.5, "c")
-		
-		-- Draw second line (conquer message)
-		-- Text outline (shadow effect)
-		glColor(0, 0, 0, alpha * 0.5)
-		glText(conquerMessage, 0 - 1, line2Y - 1, fontSize / 1.5, "c")
-		
-		-- Main text - WHITE
-		glColor(1, 1, 1, alpha)
-		glText(conquerMessage, 0, line2Y, fontSize / 1.5, "c")
-		
-		glPopMatrix()
+		glCallList(timerWarningDisplayList)
 	end
 end
 
@@ -996,6 +1020,16 @@ function widget:Shutdown()
 		glDeleteList(displayList)
 		displayList = nil
 	end
+	
+	if timerWarningDisplayList then
+		glDeleteList(timerWarningDisplayList)
+		timerWarningDisplayList = nil
+	end
+	
+	if countdownDisplayList then
+		glDeleteList(countdownDisplayList)
+		countdownDisplayList = nil
+	end
 end
 
 local function queueTeleportSounds()
@@ -1008,12 +1042,15 @@ end
 
 
 function widget:GameFrame(frame)
-	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
+	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
 		local myTeamID = Spring.GetMyTeamID()
 		local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
-		
-		if newDefeatTime ~= 0 then
+		Spring.Echo("newDefeatTime B", newDefeatTime, defeatTime)
+		--0, number1
+		--number1, number1
+		if newDefeatTime > 0 then
 			if newDefeatTime ~= defeatTime then
+				Spring.Echo("newDefeatTime C", newDefeatTime, defeatTime)
 				defeatTime = newDefeatTime
 				loopSoundEndTime = defeatTime - WINDUP_SOUND_DURATION
 				soundQueue = nil
@@ -1029,7 +1066,7 @@ function widget:GameFrame(frame)
 
 	gameSeconds = spGetGameSeconds() or 0
 
-	if loopSoundEndTime and gameSeconds and loopSoundEndTime > gameSeconds then
+	if loopSoundEndTime and loopSoundEndTime > gameSeconds then
 		if lastLoop < currentTime then
 			lastLoop = currentTime
 			

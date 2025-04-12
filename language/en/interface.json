@@ -666,9 +666,9 @@
 				"endless": "Endless"
 			}
 		},
-		"territorialdomination": {
-			"beingDominated": "We are being dominated!",
-			"conquorNeeded": "Conquor %{needed} more territories or be extracted in %{seconds} seconds."
+		"territorialDomination": {
+			"losingWarning1": "We are being dominated!",
+			"losingWarning2": "Conquor %{needed} more territories or be extracted in %{seconds} seconds."
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
