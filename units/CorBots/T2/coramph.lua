@@ -41,6 +41,9 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
+			iswatervariable = true,
+			waterspeed = 200,
+			waterturnrate = 571.35,
 		},
 		featuredefs = {
 			dead = {

@@ -17,7 +17,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 -- Set these in customParams to customize, otherwise will grab the standard value
 local waterSpeed
-local waterWantedSpeed
 local waterturnRate
 local waterwatermaxacc
 local waterwatermaxdec
@@ -45,23 +44,22 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
 
 --tables
-local veryCoolUnits = {}
-local veryCoolUnitWatcher = {}
-local unitWaterMovementDefs = {}
+local Units = {}
+local unitWaterDefs = {}
 
 -- TODO: Uhh,need to save a table of all the cool unit's land statistics for hopefully easier restoration. No clue actually how the SetGroundMoveTypeData function works.
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	--spEcho(unitDef.name,unitDef.maxAcc)
+	--Remember to only look for *lowercase* params!
 		if unitDef.customParams.iswatervariable then
-			veryCoolUnits[unitDefID] = true
-			waterSpeed = unitDef.customParams.waterSpeed or unitDef.speed
-			waterWantedSpeed = unitDef.customParams.waterWantedSpeed or unitDef.maxWantedSpeed
-			waterturnRate = unitDef.customParams.waterturnRate or unitDef.turnRate
+			Units[unitDefID] = true
+			--spEcho("Returning customParam waterspeed: ".. unitDef.customParams.waterspeed)
+			waterSpeed = unitDef.customParams.waterspeed or unitDef.speed
+			waterturnRate = unitDef.customParams.waterturnrate or unitDef.turnRate
 			waterwatermaxacc = unitDef.customParams.waterwatermaxacc or unitDef.maxAcc
 			waterwatermaxdec = unitDef.customParams.waterwatermaxdec or unitDef.maxDec
-			unitWaterMovementDefs[unitDefID] = {
+			unitWaterDefs[unitDefID] = {
 				speed = waterSpeed,
-				maxWantedSpeed = waterWantedSpeed,
 				turnRate = waterturnRate,
 				maxAcc = waterwatermaxacc,
 				maxDec = waterwatermaxdec,
@@ -71,38 +69,33 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if veryCoolUnits[unitDefID] then
-		--TODO: Add a check for if the amphib unit was built underwater.
+	if Units[unitDefID] then
+		--TODO: Spawning the unit underwater automatically triggers the call-in, but animations become really slow until the unit has a chace to CmdDone on land once. 
 	end
 end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	if veryCoolUnits[unitDefID] then
-		spSetGroundMoveTypeData(unitID, "maxSpeed" , 200)
-		spSetGroundMoveTypeData(unitID, "maxWantedSpeed" , 200)
-		spSetGroundMoveTypeData(unitID, "turnAccel" , 200)
-		spSetGroundMoveTypeData(unitID,"turnRate",unitWaterMovementDefs[unitDefID].turnRate)
-		spSetGroundMoveTypeData(unitID,"accRate",unitWaterMovementDefs[unitDefID].maxAcc)
-		spSetGroundMoveTypeData(unitID,"decRate",unitWaterMovementDefs[unitDefID].maxDec)
-		spEcho("Unit ".. unitID .. ", going dark.")
+	if Units[unitDefID] then
+		spSetGroundMoveTypeData(unitID, "maxSpeed",unitWaterDefs[unitDefID].speed)
+		spSetGroundMoveTypeData(unitID, "maxWantedSpeed" , unitWaterDefs[unitDefID].speed)
+		spSetGroundMoveTypeData(unitID,"turnRate",unitWaterDefs[unitDefID].turnRate)
+		spSetGroundMoveTypeData(unitID,"accRate",unitWaterDefs[unitDefID].maxAcc)
+		spSetGroundMoveTypeData(unitID,"decRate",unitWaterDefs[unitDefID].maxDec)
+		spEcho("Entering Water, returning customParam waterspeed: ".. unitWaterDefs[unitDefID].speed)
 	end
 end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
-	if veryCoolUnits[unitDefID] then
+	if Units[unitDefID] then
 		spSetGroundMoveTypeData(unitID,"maxSpeed",UnitDefs[unitDefID].speed)
-
-		--FIXME:
-		--spEcho("SPONSOR MY DEMONS, FEED ME THE CASH! ".. UnitDefs[unitDefID].maxWantedSpeed)
-		--spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].maxWantedSpeed)
-
+		spSetGroundMoveTypeData(unitID,"maxWantedSpeed",UnitDefs[unitDefID].speed)
 		spSetGroundMoveTypeData(unitID,"turnRate",UnitDefs[unitDefID].turnRate)
 		spSetGroundMoveTypeData(unitID,"accRate",UnitDefs[unitDefID].maxAcc)
 		spSetGroundMoveTypeData(unitID,"decRate",UnitDefs[unitDefID].maxDec)
-		spEcho("Unit ".. UnitDefs[unitDefID].name .. ", leaving the sea.")
+		spEcho("Unit ".. UnitDefs[unitDefID].name .. ", leaving the sea. Returning customParam waterspeed: ".. unitWaterDefs[unitDefID].speed)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	veryCoolUnits[unitID] = nil
+	Units[unitID] = nil
 end
