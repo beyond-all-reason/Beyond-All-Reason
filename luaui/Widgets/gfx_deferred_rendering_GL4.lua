@@ -887,7 +887,9 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			return popElementInstance(lightVBOMap[lightshape], instanceID)
 		else
 			if not noUpload then
-				Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then 
+					Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+				end
 			end
 		end
 	else
