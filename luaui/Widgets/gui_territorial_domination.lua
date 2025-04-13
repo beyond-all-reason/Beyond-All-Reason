@@ -10,9 +10,7 @@ function widget:GetInfo()
 	}
 end
 
---the skull is grey for a weird period of time before the end of frozen threshold period
--- it is possible for the text to clip outside of the healthbar
--- the bar can exceed the max crazy far, it needs to be bounded to some degree to prevent absurd overvalues
+--in spectator mode, the countdown for each allyTeam isn't being displayed correctly. it only displays one. Need to rewrite such that it's drawn for each.
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
