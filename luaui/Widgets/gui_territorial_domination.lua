@@ -509,34 +509,45 @@ end
 
 -- Function to draw rank text with outline using i18n
 local function drawRankTextBox(x, y, width, height, rank, fontSize, textColor)
-	-- Draw background and border
-	glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
-	glRect(x - BORDER_WIDTH, y - BORDER_WIDTH, x + width + BORDER_WIDTH, y + height + BORDER_WIDTH)
-	
-	glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
-	glRect(x, y, x + width, y + height)
-	
 	-- Get i18n formatted rank text
 	local rankText = spI18N('ui.territorialDomination.rank', {rank = rank})
 	
-	-- Center the text in the box
-	local centerX = x + width / 2
-	local centerY = y + height / 2
+	-- Calculate dynamic width based on text
+	local textWidth = glGetTextWidth(rankText) * fontSize * 1.2
+	local extraPadding = 5
+	local finalWidth = math.max(textWidth, width) + extraPadding
+	local finalHeight = height + extraPadding
+	
+	-- Move the box down by 2 pixels
+	local yOffset = -3
+	local adjustedY = y + yOffset
+	
+	-- Draw background and border
+	glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
+	glRect(x - BORDER_WIDTH, adjustedY - BORDER_WIDTH, x + finalWidth + BORDER_WIDTH, adjustedY + finalHeight + BORDER_WIDTH)
+	
+	glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
+	glRect(x, adjustedY, x + finalWidth, adjustedY + finalHeight)
+	
+	-- Position text at bottom of box with padding
+	local centerX = x + finalWidth / 2
+	local bottomPadding = 4
+	local textY = adjustedY + bottomPadding
 	
 	-- Text outline
 	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
-	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY, fontSize, "c")
-	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY, fontSize, "c")
-	glText(rankText, centerX, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
-	glText(rankText, centerX, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, textY, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, textY, fontSize, "c")
+	glText(rankText, centerX, textY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX, textY + TEXT_OUTLINE_OFFSET, fontSize, "c")
 	
 	-- Main text
 	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
-	glText(rankText, centerX, centerY, fontSize, "c")
+	glText(rankText, centerX, textY, fontSize, "c")
 end
 
 -- Function to check if an ally team is still alive
