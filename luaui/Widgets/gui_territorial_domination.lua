@@ -1145,7 +1145,7 @@ function updateScoreDisplayList()
 					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
 					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 					
-					-- Only store ranks when not in spectator mode
+					-- Only store and draw ranks when not in spectator mode
 					if not amSpectating then
 						-- Store for drawing at the end
 						table.insert(ranksToDraw, {
@@ -1154,20 +1154,20 @@ function updateScoreDisplayList()
 							rank = rank,
 							fontSize = fontCache.fontSize
 						})
+						
+						-- Draw rank box to the left of health bar
+						local rankBoxWidth = 80  -- Fixed width for rank box
+						local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
+						drawRankTextBox(
+							healthbarLeft, 
+							healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+							rankBoxWidth, 
+							rankBoxHeight, 
+							rank, 
+							fontCache.fontSize,
+							COLOR_WHITE
+						)
 					end
-					
-					-- Draw rank box to the left of health bar
-					local rankBoxWidth = 80  -- Fixed width for rank box
-					local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
-					drawRankTextBox(
-						healthbarLeft, 
-						healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
-						rankBoxWidth, 
-						rankBoxHeight, 
-						rank, 
-						fontCache.fontSize,
-						COLOR_WHITE
-					)
 				end
 				
 				currentY = healthbarBottom - barSpacing
@@ -1282,7 +1282,7 @@ function updateScoreDisplayList()
 					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
 					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 					
-					-- Only store ranks when not in spectator mode
+					-- Only store and draw ranks when not in spectator mode
 					if not amSpectating then
 						-- Store for drawing at the end
 						table.insert(ranksToDraw, {
@@ -1291,20 +1291,20 @@ function updateScoreDisplayList()
 							rank = rank,
 							fontSize = fontCache.fontSize
 						})
+						
+						-- Draw rank box to the left of health bar
+						local rankBoxWidth = 80  -- Fixed width for rank box
+						local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
+						drawRankTextBox(
+							healthbarLeft, 
+							healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+							rankBoxWidth, 
+							rankBoxHeight, 
+							rank, 
+							fontCache.fontSize,
+							COLOR_WHITE
+						)
 					end
-					
-					-- Draw rank box to the left of health bar
-					local rankBoxWidth = 80  -- Fixed width for rank box
-					local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
-					drawRankTextBox(
-						healthbarLeft, 
-						healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
-						rankBoxWidth, 
-						rankBoxHeight, 
-						rank, 
-						fontCache.fontSize,
-						COLOR_WHITE
-					)
 				end
 			glPopMatrix()
 		end
