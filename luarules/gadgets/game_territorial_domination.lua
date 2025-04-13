@@ -214,6 +214,8 @@ if SYNCED then
 						allyTeamsWatch[allyTeam][teamID] = true
 						
 					end
+				else
+					Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 0)
 				end
 			end
 		end

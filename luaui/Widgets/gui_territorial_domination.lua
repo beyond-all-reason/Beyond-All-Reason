@@ -102,6 +102,7 @@ local TIMER_WARNING_DISPLAY_TIME = 5  -- Display warning for 5 seconds
 local TIMER_COOLDOWN = 120 -- in seconds
 local TIMER_WARNING_FONT_MULTIPLIER = 1.5
 local MINIMAP_GAP = 3
+local BORDER_WIDTH = 2  -- Moving this up to the constants section
 
 local myCommanders = {}
 local soundQueue = {}
@@ -141,7 +142,6 @@ local loopSoundEndTime = 0
 local soundIndex = 1
 
 -- Countdown timer constants
-local COUNTDOWN_WARNING_SECONDS = 15
 local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.6  -- Back to previous size
 
 local timerWarningDisplayList = nil
@@ -507,6 +507,38 @@ local function drawRankText(x, y, rank, fontSize, textColor)
 	glText(rankText, x, y, fontSize, "r")
 end
 
+-- Function to draw rank text with outline using i18n
+local function drawRankTextBox(x, y, width, height, rank, fontSize, textColor)
+	-- Draw background and border
+	glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
+	glRect(x - BORDER_WIDTH, y - BORDER_WIDTH, x + width + BORDER_WIDTH, y + height + BORDER_WIDTH)
+	
+	glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
+	glRect(x, y, x + width, y + height)
+	
+	-- Get i18n formatted rank text
+	local rankText = spI18N('ui.territorialDomination.rank', {rank = rank})
+	
+	-- Center the text in the box
+	local centerX = x + width / 2
+	local centerY = y + height / 2
+	
+	-- Text outline
+	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX - TEXT_OUTLINE_OFFSET, centerY, fontSize, "c")
+	glText(rankText, centerX + TEXT_OUTLINE_OFFSET, centerY, fontSize, "c")
+	glText(rankText, centerX, centerY - TEXT_OUTLINE_OFFSET, fontSize, "c")
+	glText(rankText, centerX, centerY + TEXT_OUTLINE_OFFSET, fontSize, "c")
+	
+	-- Main text
+	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+	glText(rankText, centerX, centerY, fontSize, "c")
+end
+
 -- Function to check if an ally team is still alive
 local function isAllyTeamAlive(allyTeamID)
 	if allyTeamID == gaiaAllyTeamID then
@@ -534,7 +566,6 @@ local fontCache = {
 
 local backgroundColor = {COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4]}
 local borderColor = {COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4]}
-local BORDER_WIDTH = 2
 
 local function createTimerWarningMessage(secondsRemaining, territoriesNeeded)
 	local dominatedMessage = spI18N('ui.territorialDomination.losingWarning1', {seconds = ceil(secondsRemaining)})
@@ -1124,6 +1155,19 @@ function updateScoreDisplayList()
 							fontSize = fontCache.fontSize
 						})
 					end
+					
+					-- Draw rank box to the left of health bar
+					local rankBoxWidth = 80  -- Fixed width for rank box
+					local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
+					drawRankTextBox(
+						healthbarLeft, 
+						healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+						rankBoxWidth, 
+						rankBoxHeight, 
+						rank, 
+						fontCache.fontSize,
+						COLOR_WHITE
+					)
 				end
 				
 				currentY = healthbarBottom - barSpacing
@@ -1248,13 +1292,27 @@ function updateScoreDisplayList()
 							fontSize = fontCache.fontSize
 						})
 					end
+					
+					-- Draw rank box to the left of health bar
+					local rankBoxWidth = 80  -- Fixed width for rank box
+					local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
+					drawRankTextBox(
+						healthbarLeft, 
+						healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+						rankBoxWidth, 
+						rankBoxHeight, 
+						rank, 
+						fontCache.fontSize,
+						COLOR_WHITE
+					)
 				end
 			glPopMatrix()
 		end
 		
 		-- Draw all ranks at the end to ensure they're on top of everything else
 		for _, rankData in ipairs(ranksToDraw) do
-			drawRankText(rankData.x, rankData.y, rankData.rank, rankData.fontSize, COLOR_WHITE)
+			-- No longer needed since we draw directly in each bar's rendering
+			-- drawRankText(rankData.x, rankData.y, rankData.rank, rankData.fontSize, COLOR_WHITE)
 		end
 	end)
 end
@@ -1357,6 +1415,50 @@ function widget:GameFrame(frame)
 			loopSoundEndTime = 0
 			soundQueue = nil
 			soundIndex = 1
+		end
+		
+		-- Check if rank has changed
+		local rankChanged = false
+		local currentRank = nil
+		
+		if amSpectating then
+			-- For spectator mode, check all ranks
+			local allyTeamList = spGetAllyTeamList()
+			for _, allyTeamID in ipairs(allyTeamList) do
+				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(teamID)
+					if not isDead then
+						local newRank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
+						if newRank and lastTeamRanks[teamID] ~= newRank then
+							rankChanged = true
+							break
+						end
+					end
+				end
+				if rankChanged then break end
+			end
+		else
+			-- For player mode, just check own team
+			for _, teamID in ipairs(spGetTeamList(myAllyID)) do
+				local _, _, isDead = spGetTeamInfo(teamID)
+				if not isDead then
+					currentRank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
+					if currentRank and lastTeamRanks[teamID] ~= currentRank then
+						rankChanged = true
+						break
+					end
+				end
+			end
+		end
+		
+		-- If rank changed, force update of display list
+		if rankChanged then
+			if displayList then
+				glDeleteList(displayList)
+				displayList = nil
+			end
+			-- Force update by setting lastUpdateTime to old value
+			lastUpdateTime = 0
 		end
 	end
 
