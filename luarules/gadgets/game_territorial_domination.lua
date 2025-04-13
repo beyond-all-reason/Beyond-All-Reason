@@ -284,12 +284,10 @@ if SYNCED then
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
-		if 1 == 2 then
-			local killDelayFrames = floor(Game.gameSpeed * 0.5)
-			local killFrame = spGetGameFrame() + killDelayFrames
-			killQueue[killFrame] = killQueue[killFrame] or {}
-			killQueue[killFrame][unitID] = true
-		end
+		local killDelayFrames = floor(Game.gameSpeed * 0.5)
+		local killFrame = spGetGameFrame() + killDelayFrames
+		killQueue[killFrame] = killQueue[killFrame] or {}
+		killQueue[killFrame][unitID] = true
 
 		local x, y, z = spGetUnitPosition(unitID)
 		spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
