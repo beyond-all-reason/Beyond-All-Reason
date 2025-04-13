@@ -72,7 +72,7 @@ local updatePanel
 local hasScavEvent = false
 
 local difficultyOption = Spring.GetModOptions().scav_difficulty
-local scav_boss_count = Spring.GetModOptions().scav_boss_count
+local nBosses = Spring.GetModOptions().scav_boss_count
 
 local rules = {
 	"scavBossTime",
@@ -151,20 +151,20 @@ local function CreatePanelDisplayList()
 			time = string.formatTime(totalSeconds)
 			if totalSeconds < 1800 or revealedBossEta then
 				if not revealedBossEta then revealedBossEta = true end
-				font:Print(textColor .. Spring.I18N('ui.scavs.bossETA', { count = scav_boss_count, time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossETA', { count = nBosses, time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth', { count = scav_boss_count, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			if scav_boss_count > 1 then
-				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = scav_boss_count }), panelMarginX, PanelRow(2), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth', { count = nBosses, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if nBosses > 1 then
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
 			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.scavs.bossResistantToList', { count = scav_boss_count}), panelMarginX, PanelRow(12), panelFontSize, "")
+					font:Print(textColor .. Spring.I18N('ui.scavs.bossResistantToList', { count = nBosses}), panelMarginX, PanelRow(12), panelFontSize, "")
 				end
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(12+i), panelFontSize, "")
 			end
@@ -193,7 +193,7 @@ local function getMarqueeMessage(scavEventArgs)
 	--	messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
 	--else
 	if scavEventArgs.type == "boss" then
-		messages[1] = textColor .. Spring.I18N('ui.scavs.bossIsAngry1', { count = scav_boss_count })
+		messages[1] = textColor .. Spring.I18N('ui.scavs.bossIsAngry1', { count = nBosses })
 		messages[2] = textColor .. Spring.I18N('ui.scavs.bossIsAngry2')
 	elseif scavEventArgs.type == "airWave" then
 		messages[1] = textColor .. Spring.I18N('ui.scavs.wave1', {waveNumber = scavEventArgs.waveCount})
@@ -211,7 +211,7 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. (Spring.I18N('ui.scavs.resistanceUnits', { count = scav_boss_count }))
+	messages[1] = textColor .. (Spring.I18N('ui.scavs.resistanceUnits', { count = nBosses }))
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if string.sub(attackerName, -5,-1) == "_scav" then

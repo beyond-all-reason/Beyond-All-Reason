@@ -72,7 +72,7 @@ local updatePanel
 local hasRaptorEvent = false
 
 local difficultyOption = Spring.GetModOptions().raptor_difficulty
-local raptor_queen_count = Spring.GetModOptions().raptor_queen_count
+local nBosses = Spring.GetModOptions().raptor_queen_count
 
 local rules = {
 	"raptorQueenTime",
@@ -191,20 +191,20 @@ local function CreatePanelDisplayList()
 			time = string.formatTime(totalSeconds)
 			if totalSeconds < 1800 or revealedQueenEta then
 				if not revealedQueenEta then revealedQueenEta = true end
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { count = raptor_queen_count, time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { count = nBosses, time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', {count = raptor_queen_count, health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			if raptor_queen_count > 1 then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = raptor_queen_count }), panelMarginX, PanelRow(2), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', {count = nBosses, health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if nBosses > 1 then
+				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
 			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList', {count = raptor_queen_count}), panelMarginX, PanelRow(11), panelFontSize, "")
+					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList', {count = nBosses}), panelMarginX, PanelRow(11), panelFontSize, "")
 				end
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
 			end
@@ -232,7 +232,7 @@ local function getMarqueeMessage(raptorEventArgs)
 		messages[1] = textColor .. Spring.I18N('ui.raptors.firstWave1')
 		messages[2] = textColor .. Spring.I18N('ui.raptors.firstWave2')
 	elseif raptorEventArgs.type == "queen" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.queenIsAngry1', {count = raptor_queen_count})
+		messages[1] = textColor .. Spring.I18N('ui.raptors.queenIsAngry1', {count = nBosses})
 		messages[2] = textColor .. Spring.I18N('ui.raptors.queenIsAngry2')
 	elseif raptorEventArgs.type == "airWave" then
 		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
@@ -250,7 +250,7 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits', {count = raptor_queen_count})
+	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits', {count = nBosses})
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
