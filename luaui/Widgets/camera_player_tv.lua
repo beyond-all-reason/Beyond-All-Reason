@@ -368,9 +368,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	if receateLists then
+	--if receateLists then
 		updateDrawing = true
-	end
+	--end
 end
 
 
