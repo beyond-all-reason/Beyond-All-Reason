@@ -301,7 +301,7 @@ if SYNCED then
 				queueCommanderTeleportRetreat(unitID)
 			end
 		end
-		for _, teamID in pairs(teams) do
+		for _, teamID in ipairs(teams) do
 			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 		end
 	end
@@ -635,6 +635,38 @@ if SYNCED then
 		end
 	end
 
+	local function setAllyTeamRanks(allyTallies)
+		-- Create array of ally teams with their tallies
+		local allyScores = {}
+		for allyID, tally in pairs(allyTallies) do
+			table.insert(allyScores, {allyID = allyID, tally = tally})
+		end
+		
+		-- Sort by tallies in descending order
+		table.sort(allyScores, function(a, b) return a.tally > b.tally end)
+		
+		-- Assign ranks with ties sharing the same rank
+		local currentRank = 1
+		local previousScore = -1
+		
+		for i, allyData in ipairs(allyScores) do
+			-- If score is the same as previous, keep the same rank
+			-- Otherwise, set rank to current position
+			if i > 1 and allyData.tally == previousScore then
+				-- keep the same rank as previous entry
+			else
+				currentRank = i
+			end
+			
+			previousScore = allyData.tally
+			
+			-- Set rank for each team in this ally team
+			for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
+				Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank)
+			end
+		end
+	end
+
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if commandersDefs[unitDefID] then
 			livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
@@ -701,6 +733,9 @@ if SYNCED then
 		elseif frameModulo == 2 then
 			updateTeamRulesScores()
 			
+			-- Set ally team ranks based on territory counts
+			setAllyTeamRanks(allyTallies)
+			
 			local sortedAllies = {}
 			local totalCount = 0
 			for allyID, tally in pairs(allyTallies) do
@@ -710,7 +745,7 @@ if SYNCED then
 			end
 			
 			table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
-			
+
 			if allyCount > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
 				local highestTally = sortedAllies[#sortedAllies].tally
 				for i = 1, #sortedAllies do
@@ -765,6 +800,10 @@ if SYNCED then
 		teams = Spring.GetTeamList()
 		for _, teamID in pairs(teams) do
 			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+		end
+
+		for i, teamID in pairs(teams) do
+			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1)
 		end
 	end
 

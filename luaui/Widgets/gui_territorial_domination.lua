@@ -68,6 +68,7 @@ local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
+local RANK_RULES_KEY = "territorialDominationRank"
 local UPDATE_FREQUENCY = 0.1
 local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
 local MIN_BLINK_VOLUME = 0.15
@@ -84,6 +85,7 @@ local CHARGE_SOUND_LOOP_DURATION = 4.7
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
+local COUNTDOWN_COLOR = {1, 0.2, 0.2, 1}
 local COLOR_YELLOW = {1, 0.8, 0, 1}
 local COLOR_BACKGROUND = {0, 0, 0, 0.5}
 local COLOR_BORDER = {0.2, 0.2, 0.2, 0.2}
@@ -140,7 +142,7 @@ local soundIndex = 1
 
 -- Countdown timer constants
 local COUNTDOWN_WARNING_SECONDS = 15
-local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.7  -- Back to previous size
+local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.6  -- Back to previous size
 
 local timerWarningDisplayList = nil
 local countdownDisplayList = nil
@@ -159,6 +161,43 @@ local lastMinimapDimensions = {-1, -1, -1}
 local lastAmSpectating = false
 local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
+local lastTeamRanks = {}
+
+-- Define ordinal suffixes for ranking display
+local RANK_SUFFIXES = {
+	[1] = "st",
+	[2] = "nd",
+	[3] = "rd",
+	[4] = "th",
+	[5] = "th",
+	[6] = "th",
+	[7] = "th",
+	[8] = "th",
+	[9] = "th",
+	[10] = "th",
+	[11] = "th",
+	[12] = "th",
+	[13] = "th",
+	[14] = "th",
+	[15] = "th",
+	[16] = "th",
+	[17] = "th",
+	[18] = "th",
+	[19] = "th",
+	[20] = "th",
+	[21] = "st",
+	[22] = "nd",
+	[23] = "rd",
+	[24] = "th",
+	[25] = "th",
+	[26] = "th",
+	[27] = "th",
+	[28] = "th",
+	[29] = "th",
+	[30] = "th",
+	[31] = "st",
+	[32] = "nd"
+}
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -447,6 +486,27 @@ local function drawCountdownText(x, y, secondsRemaining, fontSize, textColor)
 	glText(text, x, y, fontSize, "c")  -- Center-aligned
 end
 
+-- Function to draw rank text with outline
+local function drawRankText(x, y, rank, fontSize, textColor)
+	local suffix = RANK_SUFFIXES[rank] or "th"
+	local rankText = rank .. suffix
+	
+	-- Text outline
+	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+	glText(rankText, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
+	glText(rankText, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
+	glText(rankText, x - TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
+	glText(rankText, x + TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
+	glText(rankText, x - TEXT_OUTLINE_OFFSET, y, fontSize, "r")
+	glText(rankText, x + TEXT_OUTLINE_OFFSET, y, fontSize, "r")
+	glText(rankText, x, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
+	glText(rankText, x, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
+	
+	-- Main text
+	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+	glText(rankText, x, y, fontSize, "r")
+end
+
 -- Function to check if an ally team is still alive
 local function isAllyTeamAlive(allyTeamID)
 	if allyTeamID == gaiaAllyTeamID then
@@ -560,7 +620,7 @@ local function createCountdownDisplayList(timeRemaining)
 	
 	-- Create new display list
 	countdownDisplayList = glCreateList(function()
-		local countdownColor = COLOR_RED
+		local countdownColor = COUNTDOWN_COLOR
 		
 		-- Get minimap dimensions to position the countdown
 		local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
@@ -769,20 +829,44 @@ function updateScoreDisplayList()
 			end
 			
 			local currentAllyTeamScores = {}
+			local currentTeamRanks = {}
+			
 			for _, allyTeamID in ipairs(aliveAllyTeams) do
 				local score = 0
-				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-					local _, _, isDead = spGetTeamInfo(teamID)
+				local rank = nil
+				local teamID = nil
+				
+				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(tid)
 					if not isDead then
-						local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
 						if teamScore then
 							score = teamScore
+							teamID = tid
+							
+							-- Get first team's color if we haven't already
+							if not firstTeamFound then
+								local r, g, b = spGetTeamColor(tid)
+								teamColor = {r, g, b, 0.8}
+								firstTeamFound = true
+							end
+							
+							-- Get team rank
+							rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
+							
 							break
 						end
 					end
 				end
 				
 				currentAllyTeamScores[allyTeamID] = score
+				
+				if teamID then
+					currentTeamRanks[teamID] = rank
+					if lastTeamRanks[teamID] ~= rank then
+						needsUpdate = true
+					end
+				end
 			end
 			
 			-- Compare with last scores
@@ -801,20 +885,26 @@ function updateScoreDisplayList()
 				end
 			end
 			
-			-- Update reference to current scores
+			-- Update reference to current scores and ranks
 			if needsUpdate then
 				lastAllyTeamScores = currentAllyTeamScores
+				lastTeamRanks = currentTeamRanks
 			end
 		end
 	else
 		-- Check if player's own score needs updating
 		local score = 0
+		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+		local rank = nil
+		
 		for _, teamID in ipairs(spGetTeamList(myAllyID)) do
 			local _, _, isDead = spGetTeamInfo(teamID)
 			if not isDead then
 				local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
 				if teamScore then
 					score = teamScore
+					rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
 					break
 				end
 			end
@@ -830,10 +920,15 @@ function updateScoreDisplayList()
 		   lastMinimapDimensions[1] ~= currentMinimapDimensions[1] or
 		   lastMinimapDimensions[2] ~= currentMinimapDimensions[2] or
 		   lastMinimapDimensions[3] ~= currentMinimapDimensions[3] or
-		   lastAmSpectating ~= amSpectating then
+		   lastAmSpectating ~= amSpectating or
+		   (teamID and lastTeamRanks[teamID] ~= rank) then
 			needsUpdate = true
 			lastScore = score
 			lastDifference = difference
+			if teamID then
+				Spring.Echo("teamID: " .. teamID .. " rank: " .. rank)
+				lastTeamRanks[teamID] = rank
+			end
 		end
 	end
 	
@@ -861,6 +956,9 @@ function updateScoreDisplayList()
 	
 	-- DISPLAY LIST CREATION
 	displayList = glCreateList(function()
+		-- Store ranks for drawing them at the end
+		local ranksToDraw = {}
+		
 		if amSpectating then
 			-- Show bars for all ally teams when spectating
 			local allyTeamList = spGetAllyTeamList()
@@ -880,21 +978,27 @@ function updateScoreDisplayList()
 				local score = 0
 				local teamColor = {1, 1, 1, 0.8} -- Default color
 				local firstTeamFound = false
+				local rank = nil
+				local teamID = nil
 				
 				-- Find the first team in this ally team to get its color and score
-				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-					local _, _, isDead = spGetTeamInfo(teamID)
+				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(tid)
 					if not isDead then
-						local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
 						if teamScore then
 							score = teamScore
+							teamID = tid
 							
 							-- Get first team's color if we haven't already
 							if not firstTeamFound then
-								local r, g, b = spGetTeamColor(teamID)
+								local r, g, b = spGetTeamColor(tid)
 								teamColor = {r, g, b, 0.8}
 								firstTeamFound = true
 							end
+							
+							-- Get team rank
+							rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
 							
 							break
 						end
@@ -904,7 +1008,9 @@ function updateScoreDisplayList()
 				table.insert(allyTeamScores, {
 					allyTeamID = allyTeamID,
 					score = score,
-					teamColor = teamColor
+					teamColor = teamColor,
+					rank = rank,
+					teamID = teamID
 				})
 			end
 			
@@ -918,10 +1024,11 @@ function updateScoreDisplayList()
 			local currentY = startY
 			
 			-- Draw bars for sorted ally teams
-			for _, allyTeamData in ipairs(allyTeamScores) do
+			for i, allyTeamData in ipairs(allyTeamScores) do
 				local allyTeamID = allyTeamData.allyTeamID
 				local score = allyTeamData.score
 				local teamColor = allyTeamData.teamColor
+				local rank = allyTeamData.rank
 				
 				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 				maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
@@ -999,6 +1106,26 @@ function updateScoreDisplayList()
 				
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 				
+				-- Draw rank if available
+				if rank then
+					-- Position rank safely to the right of all elements
+					-- Include any potential overfill of the bar
+					local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
+					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
+					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+					
+					-- Only store ranks when not in spectator mode
+					if not amSpectating then
+						-- Store for drawing at the end
+						table.insert(ranksToDraw, {
+							x = rankX,
+							y = rankY,
+							rank = rank,
+							fontSize = fontCache.fontSize
+						})
+					end
+				end
+				
 				currentY = healthbarBottom - barSpacing
 			end
 		else
@@ -1006,6 +1133,7 @@ function updateScoreDisplayList()
 			local score = 0
 			local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 			maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+			local rank = nil
 			
 			for _, teamID in ipairs(spGetTeamList(myAllyID)) do
 				local _, _, isDead = spGetTeamInfo(teamID)
@@ -1013,6 +1141,7 @@ function updateScoreDisplayList()
 					local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
 					if teamScore then
 						score = teamScore
+						rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
 						break
 					end
 				end
@@ -1100,7 +1229,32 @@ function updateScoreDisplayList()
 				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 				
 				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+				
+				-- Draw rank if available
+				if rank then
+					-- Position rank safely to the right of all elements
+					-- Include any potential overfill of the bar
+					local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
+					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
+					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+					
+					-- Only store ranks when not in spectator mode
+					if not amSpectating then
+						-- Store for drawing at the end
+						table.insert(ranksToDraw, {
+							x = rankX,
+							y = rankY,
+							rank = rank,
+							fontSize = fontCache.fontSize
+						})
+					end
+				end
 			glPopMatrix()
+		end
+		
+		-- Draw all ranks at the end to ensure they're on top of everything else
+		for _, rankData in ipairs(ranksToDraw) do
+			drawRankText(rankData.x, rankData.y, rankData.rank, rankData.fontSize, COLOR_WHITE)
 		end
 	end)
 end
