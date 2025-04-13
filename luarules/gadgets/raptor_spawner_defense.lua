@@ -139,7 +139,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local queenResistance = {}
 	local queenIDs = {}
-	local bosses = {resistances = queenResistance, statuses = {}}
+	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
@@ -1544,6 +1544,9 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 				end
+			end
+			if attackerTeam and attackerTeam ~= raptorTeamID then
+				bosses.playerDamages[tostring(attackerTeam)] = (bosses.playerDamages[tostring(attackerTeam)] or 0) + damage
 			end
 		end
 		if unitTeam == raptorTeamID or attackerTeam == raptorTeamID then

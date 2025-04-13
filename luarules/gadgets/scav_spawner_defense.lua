@@ -140,7 +140,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
-	local bosses = {resistances = bossResistance, statuses = {}}
+	local bosses = {resistances = bossResistance, statuses = {}, playerDamages = {}}
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
@@ -198,7 +198,7 @@ if gadgetHandler:IsSyncedCode() then
 			humanTeams[teamID] = true
 		end
 	end
-	
+
 	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
@@ -1745,6 +1745,9 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 				end
+			end
+			if attackerTeam and attackerTeam ~= scavTeamID then
+				bosses.playerDamages[tostring(attackerTeam)] = (bosses.playerDamages[tostring(attackerTeam)] or 0) + damage
 			end
 		end
 		if unitTeam == scavTeamID or attackerTeam == scavTeamID then
