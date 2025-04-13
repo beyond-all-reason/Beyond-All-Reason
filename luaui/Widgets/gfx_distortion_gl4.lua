@@ -57,7 +57,7 @@ end
 
 ---------------------------------------------------------------------------------
 ------------------------------ Debug switches ------------------------------
-local autoupdate = true
+local autoupdate = false
 local debugproj = false
 local skipdraw = false
 
