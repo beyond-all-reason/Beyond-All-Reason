@@ -163,42 +163,6 @@ local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
 local lastTeamRanks = {}
 
--- Define ordinal suffixes for ranking display
-local RANK_SUFFIXES = {
-	[1] = "st",
-	[2] = "nd",
-	[3] = "rd",
-	[4] = "th",
-	[5] = "th",
-	[6] = "th",
-	[7] = "th",
-	[8] = "th",
-	[9] = "th",
-	[10] = "th",
-	[11] = "th",
-	[12] = "th",
-	[13] = "th",
-	[14] = "th",
-	[15] = "th",
-	[16] = "th",
-	[17] = "th",
-	[18] = "th",
-	[19] = "th",
-	[20] = "th",
-	[21] = "st",
-	[22] = "nd",
-	[23] = "rd",
-	[24] = "th",
-	[25] = "th",
-	[26] = "th",
-	[27] = "th",
-	[28] = "th",
-	[29] = "th",
-	[30] = "th",
-	[31] = "st",
-	[32] = "nd"
-}
-
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
 	-- POSITION CALCULATIONS
@@ -484,27 +448,6 @@ local function drawCountdownText(x, y, secondsRemaining, fontSize, textColor)
 	-- Main text
 	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
 	glText(text, x, y, fontSize, "c")  -- Center-aligned
-end
-
--- Function to draw rank text with outline
-local function drawRankText(x, y, rank, fontSize, textColor)
-	local suffix = RANK_SUFFIXES[rank] or "th"
-	local rankText = rank .. suffix
-	
-	-- Text outline
-	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
-	glText(rankText, x - TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
-	glText(rankText, x + TEXT_OUTLINE_OFFSET, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
-	glText(rankText, x - TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
-	glText(rankText, x + TEXT_OUTLINE_OFFSET, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
-	glText(rankText, x - TEXT_OUTLINE_OFFSET, y, fontSize, "r")
-	glText(rankText, x + TEXT_OUTLINE_OFFSET, y, fontSize, "r")
-	glText(rankText, x, y - TEXT_OUTLINE_OFFSET, fontSize, "r")
-	glText(rankText, x, y + TEXT_OUTLINE_OFFSET, fontSize, "r")
-	
-	-- Main text
-	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
-	glText(rankText, x, y, fontSize, "r")
 end
 
 -- Function to draw rank text with outline using i18n
