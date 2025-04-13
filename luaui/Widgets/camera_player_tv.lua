@@ -354,7 +354,7 @@ function widget:PlayerChanged(playerID)
 	tsOrderPlayers()
 	local receateLists = false
 	if not rejoining then
-		if playerID ~= currentTrackedPlayer then
+		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
 			receateLists = true
 		end
