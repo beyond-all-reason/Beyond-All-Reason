@@ -300,8 +300,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.15, noiseStrength = 0.3, onlyModelMap = 0,  
-			lifeTime = 16, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 5.0, startRadius = 0.25, shockWidth = -0.70,
+			lifeTime = 12, refractiveIndex = 1.04, decay = 5, rampUp = 1,
+			effectStrength = 5.0, startRadius = 0.3, shockWidth = -0.70,
 			effectType = "airShockwave", },
 
 	},
@@ -363,20 +363,28 @@ local BaseClasses = {
 
 	},
 
+	UnitExploShockWaveXS = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
+			lifeTime = 8, refractiveIndex = 1.08, decay = 4, rampUp = 1,
+			effectStrength = 5.5, startRadius = 0.45, shockWidth = -0.50,
+			effectType = "airShockwave", },
+	},
 	UnitExploShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
+			lifeTime = 13, refractiveIndex = 1.05, decay = 4, rampUp = 2,
+			effectStrength = 4.5, startRadius = 0.35, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
 	UnitExploShockWaveXL = {
 		distortionType = 'point', -- or cone or beam
-		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
+			lifeTime = 16, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 4.0, startRadius = 0.25, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
 	UnitGroundShockWave = {
@@ -941,12 +949,29 @@ local projectileDefDistortions  = {
 						radius = 675
 	
 						end
+
+					-- if weaponDef.customParams.unitexplosion then
+					-- 		effectiveRangeExplo = effectiveRangeExplo * 1.5
+					-- 		explosionDistortions[weaponID] = {GetDistortionClass("ExploUnitAirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
+					-- 		else	
+
 					if weaponDef.customParams.unitexplosion then
 						effectiveRangeExplo = effectiveRangeExplo * 1.5
-						explosionDistortions[weaponID] = {GetDistortionClass("ExploUnitAirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
-						else
-	
+
+						local currentEffectiveRangeExplo = effectiveRangeExplo -- Use the calculated value directly
+
+						if currentEffectiveRangeExplo < 100 then
+							distortionClass = "UnitExploShockWaveXS" -- Small
+						elseif currentEffectiveRangeExplo < 300 then
+							distortionClass = "UnitExploShockWave" -- Medium
+						else -- 500+
+							distortionClass = "UnitExploShockWaveXL" -- Large
 						end
+
+						if distortionClass then
+							explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(currentEffectiveRangeExplo), overrideTable)}
+						end
+					end
 	
 					sizeclass = GetClosestSizeClass(radius*0.5)
 				
@@ -1303,7 +1328,7 @@ muzzleFlashDistortionsNames['armthor_thunder'] = {
 
 explosionDistortionsNames['armbull_arm_bull'] = {
 	--GetDistortionClass("GroundShockWave", "Smallest"),
-	GetDistortionClass("AirShockWaveXS", "Tiny"),
+	GetDistortionClass("AirShockWaveXS", "Tiny"), --original is Tiny
 	--GetDistortionClass("ExplosionHeatXS", "Nano"),
 }
 

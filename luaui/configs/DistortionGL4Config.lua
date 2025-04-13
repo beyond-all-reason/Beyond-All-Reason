@@ -814,12 +814,12 @@ local unitDistortions = {
 
 	['armsnipe'] = {
 		snipecloakbeam = {
-			distortionType = 'beam',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 15,
-							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
+			distortionType = 'point',
+			pieceName = 'head',
+			distortionConfig = { posx = 0, posy = 0, posz = 3, radius = 5,
+							--pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
 							
-							noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+							noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -837,13 +837,20 @@ local unitDistortions = {
 	},
 
 	['armspy'] = {
-		spycloakbeam = {
-			distortionType = 'beam',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 2.5, posz = 0.01, radius = 15,
-							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
+		-- spycloakbeam = {
+		-- 	distortionType = 'beam',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 0, posy = 2.5, posz = 0.01, radius = 15,
+		-- 					pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
 							
-							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		spycloakhead = {
+			distortionType = 'point',
+			pieceName = 'body',
+			distortionConfig = { posx = 0, posy = 5.5, posz = 13, radius = 4.5,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
