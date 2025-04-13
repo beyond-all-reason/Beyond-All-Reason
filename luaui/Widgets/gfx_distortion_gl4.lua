@@ -1087,14 +1087,15 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		glTexture(4, "$map_gbuffer_difftex")
 		glTexture(5, "$model_gbuffer_difftex")
 		glTexture(6, noisetex3dcube)
-
-		local UniformsBufferCopy = WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy()
-		if not UniformsBufferCopy then
-			Spring.Echo("DistortionGL4: UniformsBufferCopy not found")
-			return
+		if shaderConfig.UNIFORMSBUFFERCOPY then 
+			local UniformsBufferCopy = WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy()
+			if not UniformsBufferCopy then
+				Spring.Echo("DistortionGL4: UniformsBufferCopy not found")
+				return
+			end
+			
+			UniformsBufferCopy:BindBufferRange(4)
 		end
-		
-		UniformsBufferCopy:BindBufferRange(4)
 
 		deferredDistortionShader:Activate()
 		deferredDistortionShader:SetUniformFloat("nightFactor", nightFactor)
