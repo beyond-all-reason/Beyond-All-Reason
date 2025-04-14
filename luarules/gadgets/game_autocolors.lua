@@ -434,7 +434,7 @@ if gadgetHandler:IsSyncedCode() then
 		shuffleAllColors()
 	end
 
-	local function setupTeamColor(teamID, allyTeamID, isAI)
+	local function setUpTeamColor(teamID, allyTeamID, isAI)
 		if isAI and string.find(isAI, "Scavenger") then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
@@ -544,7 +544,7 @@ if gadgetHandler:IsSyncedCode() then
 		local teamID = teamList[i]
 		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 		local isAI = Spring.GetTeamLuaAI(teamID)
-		setupTeamColor(teamID, allyTeamID, isAI)
+		setUpTeamColor(teamID, allyTeamID, isAI)
 		local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")
 		local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")
 		local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")
@@ -565,10 +565,9 @@ else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
-	local trueTeamColorsTable = {}	-- run first as if we were specs so when we become specs, we can restore the true intended team colors
 	local teamColorsTable = {}
 
-	local function setupLocalTeamColor(teamID, allyTeamID, isAI)
+	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
 		if anonymousMode ~= "disabled" and anonymousMode ~= "global" then
 			if isAI and string.find(isAI, "Scavenger") then
 				teamColorsTable[teamID] = {
@@ -664,7 +663,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function setupAllLocalTeamColors()
+	local function setUpAllLocalTeamColors()
 		survivalColorNum = 1 -- Starting from color #1
 		survivalColorVariation = 0 -- Current color variation
 		ffaColorNum = 1 -- Starting from color #1
@@ -676,14 +675,14 @@ else	-- UNSYNCED
 			local teamID = teamList[i]
 			local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 			local isAI = Spring.GetTeamLuaAI(teamID)
-			setupLocalTeamColor(teamID, allyTeamID, isAI)
+			setUpLocalTeamColor(teamID, allyTeamID, isAI)
 		end
 	end
 
 	if anonymousMode == "local" then
 		shuffleAllColors()
 	end
-	setupAllLocalTeamColors()
+	setUpAllLocalTeamColors()
 
 	local iconDevModeColors = {
 		armblue = armBlueColor,
@@ -697,12 +696,16 @@ else	-- UNSYNCED
 	local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode
 	local iconDevModeColor = iconDevModeColors[iconDevMode]
 
-	-- shuffle colors for all teams except ourselves
+	local function isDiscoEnabled()
+		return anonymousMode == "disco" and not mySpecState
+	end
+
+	---shuffle colors for all teams except ourselves
 	local function discoShuffle(myTeamID)
 		-- store own color and do regular shuffle
 		local myColor = teamColorsTable[myTeamID]
 		shuffleAllColors()
-		setupAllLocalTeamColors()
+		setUpAllLocalTeamColors()
 
 		-- swap color with any team that might have been assigned own color
 		local teamIDToSwapWith = nil
@@ -724,7 +727,7 @@ else	-- UNSYNCED
 		local myTeamID = Spring.GetMyTeamID()
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-		if anonymousMode == "disco" and not mySpecState then
+		if isDiscoEnabled() then
 			discoShuffle(myTeamID)
 		end
 
@@ -737,14 +740,23 @@ else	-- UNSYNCED
 			local teamID = teamList[i]
 			local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 			dimmingCount[allyTeamID] = dimmingCount[allyTeamID] + 1
-			local r = teamColorsTable[teamID] and teamColorsTable[teamID].r / 255 or 1
-			local g = teamColorsTable[teamID] and teamColorsTable[teamID].g / 255 or 1
-			local b = teamColorsTable[teamID] and teamColorsTable[teamID].b / 255 or 1
+			local r = 1
+			local g = 1
+			local b = 1
+			if teamColorsTable[teamID] then
+				r = teamColorsTable[teamID].r / 255
+				g = teamColorsTable[teamID].g / 255
+				b = teamColorsTable[teamID].b / 255
+			end
 
 			if iconDevModeColor then
-				Spring.SetTeamColor(teamID, hex2RGB(iconDevModeColor)[1] / 255, hex2RGB(iconDevModeColor)[2] / 255, hex2RGB(iconDevModeColor)[3] / 255)
+				Spring.SetTeamColor(
+					teamID,
+					hex2RGB(iconDevModeColor)[1] / 255,
+					hex2RGB(iconDevModeColor)[2] / 255,
+					hex2RGB(iconDevModeColor)[3] / 255
+				)
 
-			-- allred or simpleteamcolors
 			elseif
 				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)
 			then
@@ -808,20 +820,12 @@ else	-- UNSYNCED
 			end
 		end
 	end
-	-- run as if we are specs to be able to restore true team colors later when we become specs at a later point
-	if not mySpecState then
-		mySpecState = true
-		updateTeamColors()
-		trueTeamColorsTable = teamColorsTable
-		teamColorsTable = {}
-		mySpecState = Spring.GetSpectatingState()
-	end
 	updateTeamColors()
 
 	local discoTimer = 0
 	local discoTimerThreshold = 2 * 60 -- shuffle every 2 minutes with disco mode enabled
 	function gadget:Update()
-		if anonymousMode == "disco" and not mySpecState then
+		if isDiscoEnabled() then
 			discoTimer = discoTimer + Spring.GetLastUpdateSeconds()
 			if discoTimer > discoTimerThreshold then
 				discoTimer = 0
@@ -838,11 +842,7 @@ else	-- UNSYNCED
 		if playerID ~= myPlayerID then
 			return
 		end
-		local prevSpecState = mySpecState
 		mySpecState = Spring.GetSpectatingState()
-		if mySpecState ~= prevSpecState then
-			teamColorsTable = trueTeamColorsTable
-		end
 		Spring.SetConfigInt("UpdateTeamColors", 1)
 	end
 end
