@@ -740,7 +740,7 @@ local unitDistortions = {
 			pieceName = 'wheel',
 			distortionConfig = { posx = 0, posy = -2.2, posz = -18, radius = 12,
 								pos2x = 0, pos2y = -2.2, pos2z = 18, radius2 = 12, 
-								noiseStrength = 2.5, noiseScaleSpace = 0.7, distanceFalloff = 0.5,
+								noiseStrength = 2.5, noiseScaleSpace = 0.7, distanceFalloff = 0.75,
 								rampUp = 0, decay = 0,
 								windAffected = -1, riseRate = 1,
 								lifeTime = 0,  effectType = 0},
@@ -813,15 +813,15 @@ local unitDistortions = {
 	-- },
 
 	['armsnipe'] = {
-		snipecloakbeam = {
-			distortionType = 'point',
-			pieceName = 'head',
-			distortionConfig = { posx = 0, posy = 0, posz = 3, radius = 5,
-							--pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
+		-- snipecloakbeam = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'head',
+		-- 	distortionConfig = { posx = 0, posy = 0, posz = 3, radius = 5,
+		-- 					--pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
 							
-							noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
-							lifeTime = 0,  effectType = 0},
-		},
+		-- 					noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
 	},
 
 	['armamex'] = {
@@ -836,16 +836,201 @@ local unitDistortions = {
 		},
 	},
 
-	['armspy'] = {
-		-- spycloakbeam = {
-		-- 	distortionType = 'beam',
+	['corvroc'] = {
+		cloakblobf = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 5.5, posy = 20.6, posz = 22.7, radius = 2.0,
+							lifeTime = 0,  
+							magnificationRate = 1.2, effectType = "magnifier"}, 
+		},
+		cloakmodule1 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 5, posy = 18.5, posz = -10.2, radius = 6.0,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		-- cloakmodule2 = {
+		-- 	distortionType = 'point',
 		-- 	pieceName = 'base',
-		-- 	distortionConfig = { posx = 0, posy = 2.5, posz = 0.01, radius = 15,
-		-- 					pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
-							
-		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+		-- 	distortionConfig = { posx = -16, posy = 14.5, posz = 10.7, radius = 5.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 		-- 					lifeTime = 0,  effectType = 0},
 		-- },
+		-- cloakmodule3 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 16, posy = 14.5, posz = -10.7, radius = 5.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		-- cloakmodule4 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = -16, posy = 14.5, posz = -10.7, radius = 5.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+	},
+
+	['armrectr'] = {
+		cloakmodule = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 27.0, posz = -6.7, radius = 3.3,
+							noiseStrength = 3, noiseScaleSpace = 2.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['cornecro'] = {
+		cloakmodule = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 18.4, posz = -4.2, radius = 3.0,
+							noiseStrength = 3, noiseScaleSpace = 2.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armmerl'] = {
+		cloakblobf = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 6.5, posy = 16.2, posz = 23.7, radius = 2.0,
+							lifeTime = 0,  
+							magnificationRate = 1.2, effectType = "magnifier"}, 
+		},
+		cloakblobb = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 6.5, posy = 16.2, posz = -23.7, radius = 2.0,
+							lifeTime = 0,  
+							magnificationRate = 1.6, effectType = "magnifier"}, 
+		},
+		cloakmodule1 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 16, posy = 14.5, posz = 10.7, radius = 5.0,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		cloakmodule2 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = -16, posy = 14.5, posz = 10.7, radius = 5.0,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		cloakmodule3 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 16, posy = 14.5, posz = -10.7, radius = 5.0,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		cloakmodule4 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = -16, posy = 14.5, posz = -10.7, radius = 5.0,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armmlv'] = {
+		cloakblob = {
+			distortionType = 'point',
+			pieceName = 'turret',
+			distortionConfig = { posx = 0, posy = 3, posz = 15, radius = 1.8,
+							lifeTime = 0,  
+							magnificationRate = 0.6, effectType = "magnifier"}, 
+		},
+		cloakblobdistort = {
+			distortionType = 'point',
+			pieceName = 'turret',
+			distortionConfig = { posx = 0, posy = 3, posz = 15, radius = 1.9,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75,
+							lifeTime = 0,  effectType = 0},
+		},
+
+	},
+
+	['armgremlin'] = {
+		cloakblobf = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 2.8, posz = 10.2, radius = 1.8,
+							lifeTime = 0,  
+							magnificationRate = 0.6, effectType = "magnifier"}, 
+		},
+		cloakblobb = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 2.8, posz = -10.2, radius = 1.8,
+							lifeTime = 0,  
+							magnificationRate = 1.6, effectType = "magnifier"}, 
+		},
+		-- cloakblobsleeve = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'sleeve',
+		-- 	distortionConfig = { posx = 0, posy = 2.8, posz = 0, radius = 2.8,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 1.6, effectType = "magnifier"}, 
+		-- },
+		cloakblobfdistort = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 2.8, posz = 10.2, radius = 2.5,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75,
+							lifeTime = 0,  effectType = 0},
+		},
+		cloakblobbdistort = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 2.8, posz = -10.2, radius = 2.5,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75,
+							lifeTime = 0,  effectType = 0},
+		},
+		-- cloakblobsleevedistort = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'sleeve',
+		-- 	distortionConfig = { posx = 0, posy = 2.8, posz = 0, radius = 2.8,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		-- cloakmodule1 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'blleg',
+		-- 	distortionConfig = { posx = 2.5, posy = 4.5, posz = -3.7, radius = 4.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		-- cloakmodule2 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'frleg',
+		-- 	distortionConfig = { posx = -5.0, posy = 4.5, posz = 3.7, radius = 4.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		-- cloakmodule3 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'brleg',
+		-- 	distortionConfig = { posx = -5.0, posy = 4.5, posz = -3.7, radius = 4.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		-- cloakmodule4 = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'flleg',
+		-- 	distortionConfig = { posx = 5.0, posy = 4.5, posz = 3.7, radius = 4.0,
+		-- 					noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+	},
+
+	['armspy'] = {
 		spycloakhead = {
 			distortionType = 'point',
 			pieceName = 'body',
@@ -1231,7 +1416,7 @@ local unitDistortions = {
 			pieceName = 'turret',
 			distortionConfig = { posx = 0, posy = 6.5, posz = 0, radius = 3,
 							lifeTime = 0,  
-							magnificationRate = 1.2, effectType = "magnifier"}, 
+							magnificationRate = 0.6, effectType = "magnifier"}, 
 		},
 		-- magnifier = {
 		-- 	distortionType = 'point',
@@ -1617,7 +1802,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
 								effectStrength = -1.5, --needed for shockwave
 								lifeTime = 60, rampUp = 20, decay = 15,
-								shockWidth = 0.7, effectType = 'groundShockwave'},
+								shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
 	
 			},
 		},
