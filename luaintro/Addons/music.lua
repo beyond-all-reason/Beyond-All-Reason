@@ -33,49 +33,58 @@ function addon.Initialize()
 		local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 		local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 		local allowedExtensions = "{*.ogg,*.mp3}"
-
-
 		local musicPlaylist = {}
+		local musicPlaylistEvent = {}
+		local musicDirCustom 		= 'music/custom'
+		local musicDirOriginal 		= 'music/original'
+
 		if originalSoundtrackEnabled == 1 then
-			local musicDirOriginal 		= 'music/original'
-			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and
-			((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7 and math.random() <= 0.5) or (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) == 1)) then
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
-			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and math.random() <= 0.25 and
-			(not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
-			else
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', allowedExtensions))
+			-- Events ----------------------------------------------------------------------------------------------------------------------
+
+			-- April Fools
+			---- Day 1 - 100% chance
+			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) == 1) then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
+			---- Day 2-7 - 50% chance
+			elseif Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7 and math.random() <= 0.5) then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
+			---- Post Event - 25% chance
+			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and math.random() <= 0.25) then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			end
+
+			-------------------------------------------------------------------------------------------------------------------------------
+			
+			-- Regular Music
+			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', allowedExtensions))
 		end
 
 		-- Custom Soundtrack List
 		if customSoundtrackEnabled == 1 then
-			local musicDirCustom 		= 'music/custom'
 			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', allowedExtensions))
 		end
 
 		if #musicPlaylist == 0 then
 			if originalSoundtrackEnabled == 1 then
-				local musicDirOriginal 		= 'music/original'
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', allowedExtensions))
 			end
 			if customSoundtrackEnabled == 1 then
-				local musicDirCustom 		= 'music/custom'
 				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', allowedExtensions))
 			end
 		end
 
 		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-		if #musicPlaylist > 1 then
-			local pickedTrack = math.ceil(#musicPlaylist*math.random())
+
+		if #musicPlaylistEvent > 0 then
+			local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
+			Spring.PlaySoundStream(musicPlaylistEvent[pickedTrack], 1)
+			Spring.SetSoundStreamVolume(musicvolume)
+			Spring.SetConfigString('music_loadscreen_track', musicPlaylistEvent[pickedTrack])
+		elseif #musicPlaylist > 0 then
+			local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
 			Spring.PlaySoundStream(musicPlaylist[pickedTrack], 1)
 			Spring.SetSoundStreamVolume(musicvolume)
 			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[pickedTrack])
-		elseif #musicPlaylist == 1 then
-			Spring.PlaySoundStream(musicPlaylist[1], 1)
-			Spring.SetSoundStreamVolume(musicvolume)
-			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[1])
 		end
 	end
 end

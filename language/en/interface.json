@@ -140,7 +140,9 @@
 			"warhigh": "War",
 			"bossfight": "Boss fight",
 			"gameover": "Game over",
-			"bonus": "Bonus"
+			"bonus": "Bonus",
+			"scavengers": "Scavengers",
+			"raptors": "Raptors"
 		},
 		"playerTV": {
 			"playerTV": "TV",
