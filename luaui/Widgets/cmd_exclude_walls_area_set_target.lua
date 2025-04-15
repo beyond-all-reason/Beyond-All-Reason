@@ -26,11 +26,12 @@ for id, unitDef in pairs(UnitDefs) do
 end
 
 local function addNewCommand(newCmds, unitID, cmdOpts)
-	local newCmdOpts = 0
-	if #newCmds ~= 0 or cmdOpts.shift then
-		newCmdOpts = CMD.OPT_SHIFT
+	if #newCmds == 0 and not cmdOpts.shift then
+		-- Need to clear orders if not in shift, since just sending the first one
+		-- as not-shift would sometimes fail if that unit is in the end not valid
+		newCmds[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
 	end
-	newCmds[#newCmds + 1] = {CMD_UNIT_SET_TARGET, unitID, newCmdOpts}
+	newCmds[#newCmds + 1] = {CMD_UNIT_SET_TARGET, unitID, CMD.OPT_SHIFT}
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
