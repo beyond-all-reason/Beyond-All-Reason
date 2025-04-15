@@ -103,19 +103,9 @@ local function ReloadMusicPlaylists()
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 	local bossFightTracksNew		= {}
-		  bossFightTracksAll 		= {}
 		  bonusTracks				= {}
-
-	if Spring.Utilities.Gametype.IsRaptors() then
-		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
-	elseif Spring.Utilities.Gametype.IsScavengers() then
-		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
-	else
-		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
-		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
-	end
-	table.append(bossFightTracksAll, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
-	table.append(bossFightTracksAll, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
+	      scavTracks				= {}
+		  raptorTracks				= {}
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -133,7 +123,30 @@ local function ReloadMusicPlaylists()
 	eventWarLowTracks = {}
 	eventWarHighTracks = {}
 
+	peaceTracks = {}
+	warhighTracks = {}
+	warlowTracks = {}
+	gameoverTracks = {}
+	bossFightTracks = {}
+	menuTracks = {}
+	loadingTracks = {}
+
 	if newSoundtrackEnabled then
+
+		-- Raptors --------------------------------------------------------------------------------------------------------------------
+		if Spring.Utilities.Gametype.IsRaptors() then
+			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
+		end
+		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
+
+		-- Scavengers --------------------------------------------------------------------------------------------------------------------
+		if Spring.Utilities.Gametype.IsScavengers() then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
+			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
+		end
+		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
+
 		-- April Fools --------------------------------------------------------------------------------------------------------------------
 		if ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
 			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
@@ -160,14 +173,6 @@ local function ReloadMusicPlaylists()
 	end
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
-
-	peaceTracks = {}
-	warhighTracks = {}
-	warlowTracks = {}
-	gameoverTracks = {}
-	bossFightTracks = {}
-	menuTracks = {}
-	loadingTracks = {}
 
 	if newSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksNew)
@@ -774,34 +779,72 @@ function widget:Initialize()
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
-		for k,v in pairs(menuTracks) do
+
+		local function sortPlaylist(playlist)
+			table.sort(playlist, function(a, b)
+				local nameA = processTrackname(a) or ""
+				local nameB = processTrackname(b) or ""
+				return string.lower(nameA) < string.lower(nameB)
+			end)
+		end
+
+		local menuTracksSorted = table.copy(menuTracks)
+		sortPlaylist(menuTracksSorted)
+		for k,v in pairs(menuTracksSorted) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
 		end
-		for k,v in pairs(loadingTracks) do
+
+		local loadingTracksSorted = table.copy(loadingTracks)
+		sortPlaylist(loadingTracksSorted)
+		for k,v in pairs(loadingTracksSorted) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
 		end
-		for k,v in pairs(peaceTracks) do
+
+		local peaceTracksSorted = table.copy(peaceTracks)
+		sortPlaylist(peaceTracksSorted)
+		for k,v in pairs(peaceTracksSorted) do
 			if peaceTracks[k] and not string.find(peaceTracks[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
 			end
 		end
-		for k,v in pairs(warlowTracks) do
+
+		local warlowTracksSorted = table.copy(warlowTracks)
+		sortPlaylist(warlowTracksSorted)
+		for k,v in pairs(warlowTracksSorted) do
 			if warlowTracks[k] and not string.find(warlowTracks[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
 			end
 		end
-		for k,v in pairs(warhighTracks) do
+
+		local warhighTracksSorted = table.copy(warhighTracks)
+		sortPlaylist(warhighTracksSorted)
+		for k,v in pairs(warhighTracksSorted) do
 			if warhighTracks[k] and not string.find(warhighTracks[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
 			end
 		end
-		for k,v in pairs(bossFightTracksAll) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bossfight'), processTrackname(v), v}
+
+		local raptorTracksSorted = table.copy(raptorTracks)
+		sortPlaylist(raptorTracksSorted)
+		for k,v in pairs(raptorTracksSorted) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.raptors'), processTrackname(v), v}
 		end
-		for k,v in pairs(gameoverTracks) do
+
+		local scavTracksSorted = table.copy(scavTracks)
+		sortPlaylist(scavTracksSorted)
+		for k,v in pairs(scavTracksSorted) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.scavengers'), processTrackname(v), v}
+		end
+
+		local gameoverTracksSorted = table.copy(gameoverTracks)
+		sortPlaylist(gameoverTracksSorted)
+		for k,v in pairs(gameoverTracksSorted) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
 		end
-		for k,v in pairs(bonusTracks) do
+
+		local bonusTracksSorted = table.copy(bonusTracks)
+		sortPlaylist(bonusTracksSorted)
+		for k,v in pairs(bonusTracksSorted) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bonus'), processTrackname(v), v}
 		end
 		return tracksConfig
@@ -1133,7 +1176,7 @@ function PlayNewTrack(paused)
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
-		if #eventWarHighTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+		if #eventWarHighTracks > 0 and songsSinceEvent > math.random(1,4) then
 			currentTrackList = eventWarHighTracks
 			currentTrackListString = "eventWarHigh"
 			songsSinceEvent = 0
@@ -1142,7 +1185,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warHigh"
 		end
 	elseif warMeter >= warLowLevel then
-		if #eventWarLowTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+		if #eventWarLowTracks > 0 and songsSinceEvent > math.random(1,4) then
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
 			songsSinceEvent = 0
@@ -1151,7 +1194,7 @@ function PlayNewTrack(paused)
 			currentTrackListString = "warLow"
 		end
 	else
-		if #eventPeaceTracks > 0 and math.random() <= 0.6 and songsSinceEvent > 2 then
+		if #eventPeaceTracks > 0 and songsSinceEvent > math.random(1,4) then
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
 			songsSinceEvent = 0
@@ -1285,6 +1328,24 @@ function widget:GameFrame(n)
 		fadeDirection = -5
 	end
 
+	if Spring.Utilities.Gametype.IsRaptors() then
+		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
+			warMeter = warLowLevel+1
+		else
+			warMeter = 0
+		end
+	elseif Spring.Utilities.Gametype.IsScavengers() then
+		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
+			warMeter = warLowLevel+1
+		else
+			warMeter = 0
+		end
+	end
+
 	if n%30 == 15 then
 		if Spring.GetGameRulesParam("BossFightStarted") and Spring.GetGameRulesParam("BossFightStarted") == 1 then
 			bossHasSpawned = true
@@ -1309,23 +1370,7 @@ function widget:GameFrame(n)
 		--	Spring.StopSoundStream()
 		--	return
 		--end
-		if Spring.Utilities.Gametype.IsRaptors() then
-			if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
-				warMeter = warHighLevel+1
-			elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
-				warMeter = warLowLevel+1
-			else
-				warMeter = 0
-			end
-		elseif Spring.Utilities.Gametype.IsScavengers() then
-			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
-				warMeter = warHighLevel+1
-			elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
-				warMeter = warLowLevel+1
-			else
-				warMeter = 0
-			end
-		elseif warMeter > 0 then
+		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
 				warMeter = warHighLevel*3
@@ -1344,7 +1389,7 @@ function widget:GameFrame(n)
 						fadeDirection = -2
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
-					  and ((currentTrackListString == "intro" and n > 9000)
+					  and ((currentTrackListString == "intro" and n > 90)
 						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
 						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
 						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
