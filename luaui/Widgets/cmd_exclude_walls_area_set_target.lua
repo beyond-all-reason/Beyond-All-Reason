@@ -39,7 +39,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local cmdX, cmdY, cmdZ, cmdRadius = unpack(cmdParams)
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius)
+	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
 	local newCmds = {}
 	local somethingWasExcluded = false
