@@ -1,5 +1,3 @@
-VFS.Include("luarules/configs/customcmds.h.lua")
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -13,6 +11,8 @@ function widget:GetInfo()
 		enabled 	= true
 	}
 end
+
+VFS.Include("luarules/configs/customcmds.h.lua")
 
 local excludedUnitsDefID = {}
 
@@ -39,7 +39,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local cmdX, cmdY, cmdZ, cmdRadius = unpack(cmdParams)
+	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
 	local newCmds = {}
