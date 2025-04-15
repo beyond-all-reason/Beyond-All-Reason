@@ -1,3 +1,5 @@
+VFS.Include("luarules/configs/customcmds.h.lua")
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -16,8 +18,6 @@ local excludedUnitsDefID = {}
 local newCmds
 local somethingWasExcluded
 
-local CMD_SET_TARGET = 34923
-
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
 
@@ -32,11 +32,11 @@ local function addNewCommand(unitID, cmdOpts)
 	if #newCmds ~= 0 or cmdOpts.shift then
 		newCmdOpts = CMD.OPT_SHIFT
 	end
-	newCmds[#newCmds + 1] = {CMD_SET_TARGET, unitID, newCmdOpts}
+	newCmds[#newCmds + 1] = {CMD_UNIT_SET_TARGET, unitID, newCmdOpts}
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if cmdID ~= CMD_SET_TARGET or #cmdParams ~= 4 then
+	if cmdID ~= CMD_UNIT_SET_TARGET or #cmdParams ~= 4 then
 		return
 	end
 
