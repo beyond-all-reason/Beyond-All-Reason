@@ -381,12 +381,13 @@ local BaseClasses = {
 	},
 	UnitExploShockWaveXL = {
 		distortionType = 'point', -- or cone or beam
-		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 450,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
 			lifeTime = 20, refractiveIndex = 1.04, decay = 4, rampUp = 4,
 			effectStrength = 4.5, startRadius = 0.30, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
+
 	UnitGroundShockWave = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
@@ -806,7 +807,8 @@ local projectileDefDistortions  = {
 			local radius = ((areaofeffect*0.7) + (areaofeffect * weaponDef.edgeEffectiveness * 1.1))
 			local muzzleflashRadius = radius^0.75 + (weaponRange * 0.015) + (projectileSpeed * 0.045) --for muzzleflashes
 			--local effectiveRangeExplo = ((areaofeffect * 1.2) - ((1 - weaponDef.edgeEffectiveness) * areaofeffect * 0.5)) --+ (weaponImpulse * 1000)
-			local effectiveRangeExplo = areaofeffect * (0.75 + (0.4 * math.sqrt(weaponDef.edgeEffectiveness))) 
+			local effectiveRangeExplo = areaofeffect * (0.75 + (0.4 * math.sqrt(weaponDef.edgeEffectiveness)))
+			local effectiveUnitRangeExplo = areaofeffect * 2 
 			
 			
 			--local radius = (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.55)
@@ -956,17 +958,17 @@ local projectileDefDistortions  = {
 					-- 		explosionDistortions[weaponID] = {GetDistortionClass("ExploUnitAirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
 					-- 		else	
 
-					if weaponDef.customParams.unitexplosion then
-						effectiveRangeExplo = areaofeffect * 2 
+					if weaponDef.customParams.unitexplosion then -- This part does NOT work - the last line with if not weaponDef.customParams.noexplosiondistortion takes over.
+						--effectiveUnitRangeExplo = areaofeffect * 2 
 						--local effectiveUnitRangeExplo = areaofeffect * 2 
-						local currentEffectiveRangeExplo = effectiveRangeExplo  -- Use the calculated value directly
+						currentEffectiveRangeExplo = effectiveUnitRangeExplo  -- Use the calculated value directly
 
-						if currentEffectiveRangeExplo < 250 then
+						if effectiveRangeExplo < 600 then
 							distortionClass = "UnitExploShockWaveXS" -- Small
-						elseif currentEffectiveRangeExplo < 750 then
+						elseif effectiveRangeExplo < 1000 then
 							distortionClass = "UnitExploShockWave" -- Medium
-						else -- 750+
-							distortionClass = "UnitExploShockWaveXL" -- Large
+						else -- 
+							distortionClass = "UnitExploShockWaveXS" -- Large
 						end
 
 						-- if string.find(weaponDef.name, 'advancedFusionExplosion') then
