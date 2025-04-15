@@ -15,8 +15,6 @@ function widget:GetInfo()
 end
 
 local excludedUnitsDefID = {}
-local newCmds
-local somethingWasExcluded
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
@@ -27,7 +25,7 @@ for id, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function addNewCommand(unitID, cmdOpts)
+local function addNewCommand(newCmds, unitID, cmdOpts)
 	local newCmdOpts = 0
 	if #newCmds ~= 0 or cmdOpts.shift then
 		newCmdOpts = CMD.OPT_SHIFT
@@ -43,16 +41,16 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local cmdX, cmdY, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius)
 
-	newCmds = {}
-	somethingWasExcluded = false
+	local newCmds = {}
+	local somethingWasExcluded = false
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 
 		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(unitID, cmdOpts)
+			addNewCommand(newCmds, unitID, cmdOpts)
 		elseif not spGetUnitNeutral(unitID) then	
-			addNewCommand(unitID, cmdOpts)
+			addNewCommand(newCmds, unitID, cmdOpts)
 		else
 			somethingWasExcluded = true
 		end
