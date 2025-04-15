@@ -1,9 +1,5 @@
 local widgetName = "Blueprint"
 
-function skip()
-	return not Platform.gl
-end
-
 function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
