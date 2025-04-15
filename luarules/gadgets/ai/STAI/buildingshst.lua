@@ -201,6 +201,7 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 	-- sanity check: is it REALLY possible to build here?
  	local range = self:GetBuildSpacing(unitTypeToBuild)
   	local neighbours = game:getUnitsInCylinder(pos, range) --security distance between buildings prevent units stuck --TODO refine and TEST
+	
 	for idx, unitID in pairs (neighbours) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		local mobile = self.ai.armyhst.unitTable[unitName].speed > 0
@@ -208,7 +209,7 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 			return nil
 		end
 	end
-
+	
 	local rect
 	if pos ~= nil then
 		rect = {position = pos, unitName = unitTypeToBuild:Name()}
@@ -240,12 +241,11 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 		end
 	end
 	-- don't build where the builder can't go
- 	if pos ~= nil then
-		print('okkmijnuhb')
- 		if not self.ai.maphst:UnitCanGoHere(builder,pos) then
- 			return nil
- 		end
- 	end
+	if pos ~= nil then
+		if not self.ai.maphst:UnitCanGoHere(builder,pos) then
+			return nil
+		end
+	end
 	return true
 end
 

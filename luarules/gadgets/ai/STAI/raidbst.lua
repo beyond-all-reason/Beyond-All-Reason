@@ -42,7 +42,6 @@ function RaidBST:Init()
 end
 
 function RaidBST:OwnerBuilt()
-	self.attacking = false
 	self.ai.raidhst:AddRecruit(self)
 end
 
@@ -60,8 +59,6 @@ function RaidBST:OwnerDamaged(attacker,damage)
 end
 
 function RaidBST:OwnerDead()
-	self.attacking = nil
-	self.active = nil
 	self.unit = nil
 	self.ai.raidhst:RemoveRecruit(self)
 	self.ai.raidhst:RemoveMember(self)
@@ -69,9 +66,6 @@ end
 
 function RaidBST:OwnerIdle()
 	self.idle = true
-	if self.active then
-		self.ai.raidhst:MemberIdle(self)
-	end
 end
 
 function RaidBST:OwnerMoveFailed(unit)
@@ -80,27 +74,22 @@ function RaidBST:OwnerMoveFailed(unit)
 end
 
 function RaidBST:Priority()
-	if not self.attacking then
-		return 0
-	else
+	if self.ai.raidhst:IsSoldier(self.id) then
 		return 200
+	else
+		return 0
 	end
 end
 
 function RaidBST:Activate()
-	self.active = true
 end
 
 function RaidBST:Deactivate()
-	self.active = false
 end
 
 function RaidBST:Update()
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'RaidBST' then return end
-	if not self.active and self.squad and self.target then
-		self.unit:ElectBehaviour()
-	end
 	if not self.mtype then
 		self:Warn('no mtype and network')
 	end
@@ -111,9 +100,7 @@ function RaidBST:Update()
 	end
 end
 
-
 function RaidBST:Free()
-	self.attacking = false
 	self.target = nil
 	self.idle = nil
 	if self.squad and self.squad.disbanding then

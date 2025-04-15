@@ -9,12 +9,12 @@ function ScoutHST:internalName()
 end
 
 function ScoutHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
+	self.scouts = {}
 	self.spotsToScout = {}
 	self.lastCount = {}
 	self.sameCount = {}
 	self.usingStarts = {}
-	self.scouts = {}
 	self.SCOUTED = {}
 	self.perimetralCells = {}
 	self.lastSpotCheck = {}

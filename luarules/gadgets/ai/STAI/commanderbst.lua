@@ -28,8 +28,6 @@ function CommanderBST:Update()
 		self.save = false
 	end
 	if self.active and self.save == 1 then
-		
-		print('active ',self.save)
 		if self.safeBuilder and game:GetUnitByID(self.safeBuilder) and game:GetUnitByID(self.safeBuilder):GetPosition() then
 			return
 		end
@@ -44,7 +42,6 @@ function CommanderBST:Update()
 		end
 	end
 	if self.active and self.save == 2 then
-		print('active ',self.save)
 		if self.safeHouse and game:GetUnitByID(self.safeHouse.id) and game:GetUnitByID(self.safeHouse.id):GetPosition() then
 			return
 		end

@@ -242,6 +242,7 @@ function Unit:ElectBehaviour()
 	local bestScore = -1
 
 	for k,behaviour in pairs(self.behaviours) do
+		Spring.Echo(self:Internal():Name(),'SelectBehaviour',behaviour:Name(),behaviour:Priority())
 		if bestBehaviour == nil then
 			bestBehaviour = behaviour
 			bestScore = behaviour:Priority()
@@ -261,6 +262,7 @@ function Unit:ElectBehaviour()
 				self.activeBehaviour:Deactivate()
 			end
 			self.nextBehaviour = bestBehaviour
+			print('next elected behaviour', bestBehaviour:Name(), 'on', self:Internal():Name())
 		end
 	end
 end

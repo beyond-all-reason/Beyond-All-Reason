@@ -167,7 +167,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			
 			if order.method == '1-1' then
-				print('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name)
+				print('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
 				--spEcho('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)

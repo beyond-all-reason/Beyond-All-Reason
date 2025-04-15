@@ -423,25 +423,6 @@ function BuildersBST:Assist()
 	
 		end
 	local builderPos = self.unit:Internal():GetPosition()
-	--[[if self.role ~= 'eco' then
-		local bossDist = math.huge
-		local bossTarget
-		for bossID, project in pairs(self.ai.buildingshst.sketch) do
-			if project.position then
-				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
-					local dist = self.ai.tool:distance(builderPos, project.position)
-					if dist < bossDist then
-						bossDist = dist
-						bossTarget = project.builderID
-					end
-				end
-			end
-		end
-		if bossTarget then
-			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
-			self.assistant = bossTarget
-		end
-	else]]
 	if true then
 		local bossDist = math.huge
 		local bossTarget

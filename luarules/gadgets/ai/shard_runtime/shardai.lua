@@ -117,6 +117,7 @@ function ShardAI:Update()
 		else
  			--self.game:StartTimer(m:Name() .. ' hst')
 			--tracyZoneBeginMem('STAI'..m:Name())
+			print(m:Name(),'update')
 			m:Update()
 			--tracyZoneEndMem('STAI'..m:Name())
  			--self.game:StopTimer(m:Name() .. ' hst')

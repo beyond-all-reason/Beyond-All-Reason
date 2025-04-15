@@ -17,12 +17,12 @@ function RaidHST:Init()
 	self.squadMassLimit = 0
 	self.countLimit = 4
 	self.squadFreezedTime = 300
-	self.debugChannel = 6
+	self.debugChannel = 6	
 end
 
 
 function RaidHST:SetMassLimit()
-	self.squadMassLimit = math.ceil(100 + self.ai.ecohst.Metal.income * 100)
+	self.squadMassLimit = math.ceil(60 + self.ai.ecohst.Metal.income * 60)
 	self:EchoDebug('squad mass limit',self.squadMassLimit)
 end
 
@@ -61,9 +61,16 @@ end
 function RaidHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
+
 		self:EchoDebug('soldiers',#soldiers	)
+		
+		
+		
+	
 		for index,soldier in pairs(soldiers) do
 			if soldier and soldier.unit and not soldier.squad then
+				
+				
 				for idx,squad in pairs(self.squads) do
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
 					if not squad.lock and squad.mtype == mtype  then
@@ -105,6 +112,7 @@ function RaidHST:DraftAttackSquads()
 				end
 			end
 		end
+	
 	end
 end
 
@@ -419,12 +427,20 @@ function RaidHST:IsRecruit(rdbhvr)
 end
 
 function RaidHST:AddRecruit(rdbhvr)
+	
 	if not self:IsRecruit(rdbhvr) then
-		if rdbhvr.unit ~= nil then
-			local mtype = self.ai.maphst:MobilityOfUnit(rdbhvr.unit:Internal())
-			if self.recruits[mtype] == nil then self.recruits[mtype] = self.ai.tool:ResetTable(self.recruits[mtype]) end
-			table.insert(self.recruits[mtype], rdbhvr)
+		local scoutMtypeCount = 0
+		for scoutID, scout in pairs(self.ai.scouthst.scouts) do
+			if scout.mtype == rdbhvr.mtype then
+				scoutMtypeCount = scoutMtypeCount + 1
+			end
+		end
+		if scoutMtypeCount > 3 and rdbhvr.unit ~= nil then
+			--local mtype = self.ai.maphst:MobilityOfUnit(rdbhvr.unit:Internal())
+			if self.recruits[rdbhvr.mtype] == nil then self.recruits[rdbhvr.mtype] = self.ai.tool:ResetTable(self.recruits[mtype]) end
+			table.insert(self.recruits[rdbhvr.mtype], rdbhvr)
 			rdbhvr:Free()
+			self.ai.scouthst.scouts[rdbhvr.id] = nil
 		else
 			self:EchoDebug("unit is nil!")
 		end
@@ -442,6 +458,20 @@ function RaidHST:RemoveRecruit(rdbhvr)
 	end
 	return false
 end
+
+function RaidHST:IsSoldier(raiderBehaviour)
+	for index, squad in pairs(self.squads) do
+		for i,member in pairs(squad.members) do
+			
+			if member.unit and member.unit:Internal():ID() == raiderBehaviour then
+				Spring.Echo(member.unit:Internal():ID(),'==',raiderBehaviour)
+				return true
+				
+			end
+		end
+	end
+end
+
 
 function RaidHST:MemberIdle(rdbhvr, squad)
 	if not squad then

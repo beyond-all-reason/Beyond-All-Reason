@@ -34,6 +34,18 @@ function TasksHST:startLabsParams()
 			end,
 			numeric = {min = 10,  max = 10,},
 			wave = 1},
+		{category = 'scouts',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 5,max = 10},
+			wave = 5},
+		{category = 'breaks',
+			economy = function()
+				return self.ai.ecohst.Metal.full > 0.9 and self.ai.ecohst.Energy.full > 0.5
+			end,
+			numeric = {max = 40},
+			wave = 10},
 	}
 	self.labs.premode = {
 		{category = 'techs',
@@ -146,12 +158,21 @@ function TasksHST:startLabsParams()
 
 			{category = 'artillerys',
 			economy = function(_,U)
-				local ut = self.ai.armyhst.unitTable[U]
-				return M.income > ut.techLevel * 400
+				--local ut = self.ai.armyhst.unitTable[U]
+				--return M.income > ut.techLevel * 400
+				return true
 			end,
-			numeric = {min = 0,mtype = 10,max = 10},
-			wave = 3},
+			numeric = {min = 3,mtype = 10,max = 10},
+			wave = 2},
 
+			{category = 'rezs',
+			economy = function()
+				if M.income > 100 then
+					return true
+				end
+			end,
+			numeric = {min = 1,  max = 3,},
+			wave = 1},
 
 			{category = 'techs',
 			economy = function()
@@ -173,10 +194,10 @@ function TasksHST:startLabsParams()
 
 			{category = 'breaks',
 			economy = function()
-				return self.ai.ecohst.Metal.full > 0.3 and self.ai.ecohst.Energy.full > 0.3
+				return self.ai.ecohst.Metal.full > 0.1 and self.ai.ecohst.Energy.full > 0.3
 			end,
-			numeric = {min = 0,max = 15},
-			wave = 3},
+			numeric = {min = 0,max = 2},
+			wave = 2},
 
 
 			{category = 'techs',
@@ -709,15 +730,6 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = {min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
-
-		{ 	category = '_popup2_' ,
-			economy = function(_,param,name)--ecofunc()
-					return true
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {list = self.map:GetMetalSpots(),min = 50,neighbours = {'_popup2_'}} ,
-	        },
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc()

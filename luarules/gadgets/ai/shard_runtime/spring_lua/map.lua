@@ -124,6 +124,26 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 			return dist,nextPositionX,nextPositionY,nextPositionZ
 		end
 	end
+	local blocking = Spring.GetUnitsInCylinder(end_x, end_z, 10)
+	if blocking then
+		print('blocking units:',#blocking)
+		for i=1, 4 do
+			nextPositionX,nextPositionY,nextPositionZ = self:NextPath(pathObject,end_x+math.random(-10,10), end_y, end_z+math.random(-10,10),radius)
+			if not nextPositionX then return end
+			if nextPositionX and nextPositionY and nextPositionZ then
+				nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+				local x = end_x - nextPositionX
+				local y = end_y - nextPositionY
+				local z = end_z - nextPositionZ
+				local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+				Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'random: '..uname)
+				Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+				if dist <= radius * 1.1 then
+					return dist,nextPositionX,nextPositionY,nextPositionZ
+				end
+			end
+		end
+	end
 	local wp = self:GetPathWaypoints(pathObject)
 	wp = wp[#wp]
 	wp[2] = Spring.GetGroundHeight(wp[1],wp[3])

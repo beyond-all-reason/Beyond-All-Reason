@@ -35,7 +35,9 @@ function CleanerBST:OwnerBuilt()
 end
 
 function CleanerBST:OwnerIdle()
-	self:Patroling()
+	if  self.unit:Internal():CurrentCommand() ~= CMD.PATROL then
+		self:Patroling()
+	end
 end
 
 function CleanerBST:Activate()
@@ -53,8 +55,7 @@ end
 
 function CleanerBST:Clean(targetId)
 	self:EchoDebug("clean this",targetId)
-	local currentCommand = self.unit:Internal():CurrentCommand()
-	if  currentCommand ~= CMD.RECLAIM then
+	if  self.unit:Internal():CurrentCommand() ~= CMD.RECLAIM then
 		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.RECLAIM,targetId,0,'1-1')
 	end
 end
@@ -99,7 +100,6 @@ function CleanerBST:Search()
 end
 
 function CleanerBST:Patroling()
--- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
 	local currentCommand = self.unit:Internal():CurrentCommand()
 	if currentCommand ~= CMD.PATROL then
 		self.ai.tool:GiveOrder(self.id,CMD.PATROL,self.patrolCommand,0,'1-1')
