@@ -311,7 +311,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,  
 			lifeTime = 7, refractiveIndex = 1.03, decay = 4, rampUp = 3,
-			effectStrength = 0.5, startRadius = 0.20, shockWidth = -0.60, --needed for all distortions
+			effectStrength = 2.0, startRadius = 0.20, shockWidth = -0.60, --needed for all distortions
 			effectType = "airShockwave", },
 	},
 	AirShockWave = {
@@ -367,7 +367,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 8, refractiveIndex = 1.08, decay = 4, rampUp = 1,
+			lifeTime = 5, refractiveIndex = 1.08, decay = 4, rampUp = 1,
 			effectStrength = 5.5, startRadius = 0.45, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
@@ -375,16 +375,16 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 13, refractiveIndex = 1.05, decay = 4, rampUp = 2,
-			effectStrength = 4.5, startRadius = 0.35, shockWidth = -0.50,
+			lifeTime = 10, refractiveIndex = 1.05, decay = 5, rampUp = 4,
+			effectStrength = 5.0, startRadius = 0.38, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
 	UnitExploShockWaveXL = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 16, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 4.0, startRadius = 0.25, shockWidth = -0.50,
+			lifeTime = 20, refractiveIndex = 1.04, decay = 4, rampUp = 4,
+			effectStrength = 4.5, startRadius = 0.30, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
 	UnitGroundShockWave = {
@@ -805,7 +805,9 @@ local projectileDefDistortions  = {
 			local life = 12
 			local radius = ((areaofeffect*0.7) + (areaofeffect * weaponDef.edgeEffectiveness * 1.1))
 			local muzzleflashRadius = radius^0.75 + (weaponRange * 0.015) + (projectileSpeed * 0.045) --for muzzleflashes
-			local effectiveRangeExplo = ((areaofeffect * 1.2) - ((1 - weaponDef.edgeEffectiveness) * areaofeffect * 0.5)) --+ (weaponImpulse * 1000)
+			--local effectiveRangeExplo = ((areaofeffect * 1.2) - ((1 - weaponDef.edgeEffectiveness) * areaofeffect * 0.5)) --+ (weaponImpulse * 1000)
+			local effectiveRangeExplo = areaofeffect * (0.75 + (0.4 * math.sqrt(weaponDef.edgeEffectiveness))) 
+			
 			
 			--local radius = (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.55)
 
@@ -832,7 +834,6 @@ local projectileDefDistortions  = {
 				--projectileDefDistortions[weaponID].yOffset = 64
 	
 				if not weaponDef.paralyzer then
-
 				end
 	
 				if weaponDef.paralyzer then
@@ -956,17 +957,22 @@ local projectileDefDistortions  = {
 					-- 		else	
 
 					if weaponDef.customParams.unitexplosion then
-						effectiveRangeExplo = effectiveRangeExplo * 1.5
+						effectiveRangeExplo = areaofeffect * 2 
+						--local effectiveUnitRangeExplo = areaofeffect * 2 
+						local currentEffectiveRangeExplo = effectiveRangeExplo  -- Use the calculated value directly
 
-						local currentEffectiveRangeExplo = effectiveRangeExplo -- Use the calculated value directly
-
-						if currentEffectiveRangeExplo < 100 then
+						if currentEffectiveRangeExplo < 250 then
 							distortionClass = "UnitExploShockWaveXS" -- Small
-						elseif currentEffectiveRangeExplo < 300 then
+						elseif currentEffectiveRangeExplo < 750 then
 							distortionClass = "UnitExploShockWave" -- Medium
-						else -- 500+
+						else -- 750+
 							distortionClass = "UnitExploShockWaveXL" -- Large
 						end
+
+						-- if string.find(weaponDef.name, 'advancedFusionExplosion') then
+						-- 	radius = 500
+		
+						-- 	end
 
 						if distortionClass then
 							explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(currentEffectiveRangeExplo), overrideTable)}
@@ -1326,11 +1332,11 @@ muzzleFlashDistortionsNames['armthor_thunder'] = {
 	GetDistortionClass("MuzzleShockWave", "Micro")
 }
 
-explosionDistortionsNames['armbull_arm_bull'] = {
-	--GetDistortionClass("GroundShockWave", "Smallest"),
-	GetDistortionClass("AirShockWaveXS", "Tiny"), --original is Tiny
-	--GetDistortionClass("ExplosionHeatXS", "Nano"),
-}
+-- explosionDistortionsNames['armbull_arm_bull'] = {
+-- 	--GetDistortionClass("GroundShockWave", "Smallest"),
+-- 	GetDistortionClass("AirShockWave", "Tiny") --original is Tiny
+-- 	--GetDistortionClass("ExplosionHeatXS", "Nano"),
+-- }
 
 -- muzzleFlashDistortionsNames['armbull_arm_bull'] = {
 -- 	GetDistortionClass("MuzzleShockWave", "Femto")
@@ -1381,6 +1387,14 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
 	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),	
 }
+
+-- This doesnt work - cannot seem to find the explodeAs unitDef param
+
+-- explosionDistortionsNames['armafus_advancedFusionExplosion'] = {
+-- 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+-- 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+-- 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+-- }
 
 projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
