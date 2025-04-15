@@ -383,6 +383,7 @@ local autocompleteCommands = {
 	'luarules removeunitdef',
 	'luarules removenearbyunits',
 	'luarules spawnceg',
+	'luarules spawnunitexplosion',
 	'luarules undo',
 	'luarules unitcallinsgadget',
 	'luarules updatesun',
@@ -842,7 +843,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				textcolor = ColorString(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
-		
+
 		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
@@ -937,10 +938,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=
 			bypassThisMessage = true
 
-			
+
 		elseif ssub(line,1,6) == "[i18n]" then
 			lineColor = msgColor
-			
+
 		elseif ssub(line,1,6) == "[Font]" then
 			lineColor = msgColor
 
@@ -991,7 +992,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				spectator = msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
 			end
 			line = Spring.I18N('ui.chat.connectionattemptfrom', { name = getPlayerColorString(playername, gameFrame)..playername .. spectator, textColor = lineColor, textColor2 = msgColor } )
-		
+
 		elseif gameOver and sfind(line,'left the game', nil, true) then
 			bypassThisMessage = true
 
