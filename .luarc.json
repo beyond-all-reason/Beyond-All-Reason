@@ -13,7 +13,9 @@
   },
   "workspace": {
     "library": [
-      "recoil-lua-library"
+      "recoil-lua-library",
+      "types",
+      "common/luaUtilities"
     ],
     "ignoreDir": [
       ".vscode",

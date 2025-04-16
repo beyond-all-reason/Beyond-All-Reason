@@ -30,7 +30,10 @@ local function interpolate(str, vars)
   str = escapeDoublePercent(str)
   str = interpolateVariables(str, vars)
   str = interpolateFormattedVariables(str, vars)
-  str = string.format(str, unpack(vars))
+  local args = {unpack(vars)}
+  if #args > 0 then
+    str = string.format(str, unpack(args))
+  end
   str = unescapeDoublePercent(str)
   return str
 end
