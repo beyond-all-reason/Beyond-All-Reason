@@ -38,9 +38,9 @@ if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
 end
 
 -- adv map shading
---if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
---	Spring.SetConfigInt("AdvMapShading", 1)
---end
+if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
+	Spring.SetConfigInt("AdvMapShading", 1)
+end
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
