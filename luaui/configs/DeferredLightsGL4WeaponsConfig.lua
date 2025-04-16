@@ -51,10 +51,35 @@ local BaseClasses = {
 		lightType = 'beam', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 100,
-			r = 1, g = 1, b = 1, a = 0.075,
+			r = 1, g = 1, b = 1, a = 0.75,
+			color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 1.6,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
-			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			modelfactor = 1, specular = 0.5, scattering = 1.5, lensflare = 1,
+			lifetime = 15, sustain = 1.5, selfshadowing = 0, 
+		},
+	},
+
+	GreenLaserProjectile = {
+		lightType = 'beam', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 10, posz = 0, radius = 100,
+			r = 1, g = 1, b = 1, a = 1.0,
+			color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 9,
+			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+			modelfactor = 0.3, specular = 0.4, scattering = 2.0, lensflare = 1,
+			lifetime = 20, sustain = 2, selfshadowing = 0, 
+		},
+	},
+
+	BlueLaserProjectile = {
+		lightType = 'beam', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 10, posz = 0, radius = 100,
+			r = 1, g = 1, b = 1, a = 0.75,
+			color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 1.6,
+			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+			modelfactor = 1, specular = 0.5, scattering = 1.5, lensflare = 1,
+			lifetime = 15, sustain = 1.5, selfshadowing = 0, 
 		},
 	},
 
@@ -123,7 +148,32 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.6,
 			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 3, aninmtype = 0, -- unused
+			lifetime = 12, sustain = 3, selfshadowing = 4, 
+		},
+	},
+	ExplosionXL = { -- spawned on explosions
+		lightType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 240,
+			dirx = 0, diry = 5, dirz = 0, theta = 0.93, -- Give explosions a bit of a vertical bounce component
+			r = 2, g = 2, b = 2, a = 0.6,
+			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
+			lifetime = 12, sustain = 3, selfshadowing = 4, 
+		},
+	},
+
+	ExplosionEMP = { -- spawned on explosions
+		lightType = 'point', -- or cone or beam
+		yOffset = 2, -- Y offsets are only ever used for explosions!
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 140,
+			dirx = 0, diry = 0.018, dirz = 0, theta = 0.93,
+			r = 2, g = 2, b = 4, a = 1.8,
+			color2r = 0.3, color2g = 0.3, color2b = 0.6, colortime = 1.4, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.15, specular = 0.15, scattering = 0.6, lensflare = 0,
+			lifetime = 90, sustain = 60, selfshadowing = 0, 
 		},
 	},
 
@@ -135,6 +185,18 @@ local BaseClasses = {
 			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
 			lifetime = 6, sustain = 0.0035, aninmtype = 0, -- unused
+		},
+	},
+
+	MuzzleFlashCone = { -- not used yet - no idea
+		lightType = 'cone', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 150,
+			r = 2, g = 2, b = 2, a = 0.7,
+			dirx = 1, diry = 0, dirz = 1, theta = 0.15,
+			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
+			lifetime = 6, sustain = 0.0035, selfshadowing = 0, 
 		},
 	},
 }
@@ -335,23 +397,39 @@ local function AssignLightsToAllWeapons()
 		-- end
 
 		if weaponDef.type == 'BeamLaser' then
-			muzzleFlash = false
+			--muzzleFlash = true -- doesnt work
 
 
 			if not weaponDef.paralyzer then
-				t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
-				t.color2r, t.color2g, t.color2b = r, g, b
+				local muzzleFlash = true
+				t.color2r, t.color2g, t.color2b = (r *0.1), (g*0.1), (b *0.1)
+				t.r, t.g, t.b = math.min(1, r+0.25), math.min(1, g+0.25), math.min(1, b+0.25)
+				t.life = 4
+				t.colortime = 10 + (weaponDef.beamtime * 50)
+				t.sustain = 1.5 + (weaponDef.beamtime * 10)
+				
 			end
 
-			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
-			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
+			radius = (6.2 * (weaponDef.size * weaponDef.size)) + (4 * radius * orgMult)
+			t.a = (orgMult * 0.12) / (0.25 + weaponDef.beamtime)
 			--projectileDefLights[weaponID].yOffset = 64
 
 			if weaponDef.paralyzer then
 				radius = radius * 0.5
 			end
 			sizeclass = GetClosestSizeClass(radius)
-			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
+			
+			if damage < 100 then
+				--life = 5
+				projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
+				projectileDefLights[weaponID].lightConfig.selfshadowing = 5 -- Screen Space Light Shadows
+			elseif damage < 500 then
+			projectileDefLights[weaponID] = GetLightClass("GreenLaserProjectile", nil, sizeclass, t)
+			projectileDefLights[weaponID].lightConfig.selfshadowing = 5 -- Screen Space Light Shadows
+			else
+			projectileDefLights[weaponID] = GetLightClass("BlueLaserProjectile", nil, sizeclass, t)
+			projectileDefLights[weaponID].lightConfig.selfshadowing = 5 -- Screen Space Light Shadows
+			end
 
 			if not weaponDef.paralyzer then
 				radius = ((orgMult * 2500) + radius) * 0.2
@@ -448,8 +526,8 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'BeamLaser' then
 				local mult = 0.85
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
-				t.colortime = 2
-				t.lifetime = life * 0.5
+				t.colortime = 8
+				t.lifetime = life * 0.6
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
 				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
 				sizeclass = GetClosestSizeClass(radius)
@@ -561,7 +639,7 @@ GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius
 muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
 
 explosionLightsNames["corint_lrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 -- muzzleFlashLightsNames["corint_lrpc"] =
 -- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
@@ -582,7 +660,8 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 20, sustain = 2})
 muzzleFlashLightsNames["armbrtha_lrpc"].yOffset = 8
 explosionLightsNames["armbrtha_lrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {
+	colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 --armvulc
 muzzleFlashLightsNames["armvulc_rflrpc"] =
@@ -593,7 +672,7 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 20, sustain = 2})
 muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
 explosionLightsNames["armvulc_rflrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 --corbuzz
 muzzleFlashLightsNames["corbuzz_rflrpc"] =
@@ -604,7 +683,7 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 20, sustain = 2})
 muzzleFlashLightsNames["corbuzz_rflrpc"].yOffset = 4
 explosionLightsNames["corbuzz_rflrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 
 --corsilo
@@ -639,10 +718,29 @@ GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
 										 sustain = 25, lifetime = 180,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
+										 --armsilo
+explosionLightsNames["armguardnuke_plasma"] =
+GetLightClass("Explosion", nil, "Giga", {r = 3, g = 2.9, b = 2.8, a = 0.18,
+										 posx = 0, posy = 1, posz = 0,
+										 dirx = 0, diry = -0.12, dirz = 0,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
+										 sustain = 25, lifetime = 155, selfshadowing = 3,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+projectileDefLightsNames["armguardnuke_plasma"] =
+GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+projectileDefLightsNames["armguardnuke_plasma_high"] =
+GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+																				
+
+
 --armsilo engine
 projectileDefLightsNames["armsilo_nuclear_missile"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
-													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --armsilo SCAV
 explosionLightsNames["armsilo_scav_nuclear_missile"] =
@@ -779,6 +877,47 @@ GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 projectileDefLightsNames["corvroc_cortruck_rocket"] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
+
+-- armbeamer
+projectileDefLightsNames["armbeamer_armbeamer_weapon"] =
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.20,
+											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											r = 0.1, g = 0.1, b = 1, radius = 110,
+											color2r = 0.03, color2g = 0.05, color2b = 0.3, colortime = 1.6,
+											pos2x = 0, pos2y = 100, pos2z = 0,
+											modelfactor = 0.5, specular = 0.05, scattering = 0.5, lensflare = 16,
+											selfshadowing = 5,
+											lifetime = 6, sustain = 0})
+
+-- corcan
+projectileDefLightsNames["corcan_cor_canlaser"] =
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
+											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											r = 0.3, g = 1, b = 0.3, radius = 110,
+											color2r = 0.1, color2g = 0.5, color2b = 0.1, colortime = 2.5,
+											pos2x = 0, pos2y = 100, pos2z = 0,
+											modelfactor = 0.5, specular = 0.05, scattering = 0.5, lensflare = 16,	
+											lifetime = 4, sustain = 0, selfshadowing = 5,})
+
+-- corsumo
+projectileDefLightsNames["corsumo_corsumo_weapon"] =
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.15,
+											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											r = 0.4, g = 1.0, b = 0.4, radius = 110,
+											color2r = 0.05, color2g = 0.1, color2b = 0.05, colortime = 5.6,
+											pos2x = 0, pos2y = 100, pos2z = 0,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.5, lensflare = 16,	
+											lifetime = 2.8, sustain = 0, selfshadowing = 5,})
+
+--corsumo
+muzzleFlashLightsNames["corsumo_corsumo_weapon"] =
+GetLightClass("MuzzleFlashCone", nil, "Large", {
+	posx = 0, posy = 0, posz = 0, radius = 240,
+	color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
+	r = 1.2, g = 1.0, b = 0.9, a = 0.5,
+	modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+	lifetime = 17, sustain = 2})
+
 
 --corkorg
 projectileDefLightsNames["corkorg_corkorg_laser"] =
