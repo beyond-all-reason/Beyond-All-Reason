@@ -109,6 +109,8 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
+				"sentMetalSimple": "Sent %{amount}m",
+				"sentMetalThreshold": "Sent %{amount}m (%{cumulative}/%{threshold}m allowed by the player send threshold)",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
