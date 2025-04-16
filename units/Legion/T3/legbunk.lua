@@ -3,6 +3,7 @@ return {
 		buildpic = "legbunk.dds",
 		buildtime = 35260,
 		canmove = true,
+		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "55 80 55",
@@ -14,7 +15,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 32,
 		idletime = 1800,
-		health = 16500,
+		health = 9400,
 		speed = 82.0,
 		maxslope = 17,
 		maxacc = 0.253,
@@ -32,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,
-		turnrate = 768.20001,
+		turnrate = 1214,
 		upright = true,
 		customparams = {
 			maxrange = "10",
@@ -175,7 +176,7 @@ return {
 				},
 			},
 			railgunt2 = {
-				areaofeffect = 64, --Twice that of a Sharpshooter
+				areaofeffect = 32, --Twice that of a Sharpshooter
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = true,
@@ -207,7 +208,7 @@ return {
 				soundstart = "railgunxl",
 				soundstartvolume = 26,
 				thickness = 3,
-				tolerance = 6000,
+				tolerance = 3000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
@@ -225,7 +226,7 @@ return {
 				def = "AIMHULL",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
-				maxangledif = 340,
+				maxangledif = 340, --Needed because otherwise targetting logic breaks outside this area.
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",
