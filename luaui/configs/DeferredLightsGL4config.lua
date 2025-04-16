@@ -20051,6 +20051,44 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		}
 	},
+	['legacv']={
+		buildlight1 = { --top spinning light
+			lightType = 'cone',
+			pieceName = 'conLightA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2 = { -- other top spinning light
+			lightType = 'cone',
+			pieceName = 'conLightB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 1, diry = 0, dirz = -1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlareL',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlareR',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legch'] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
