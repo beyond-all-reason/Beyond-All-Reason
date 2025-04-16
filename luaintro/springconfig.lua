@@ -219,7 +219,7 @@ Spring.SetConfigInt("AnimationMT", 1)
 Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
 Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 
-Spring.SetConfigInt("MaxFontTries", 4)
+Spring.SetConfigInt("MaxFontTries", 5)
 Spring.SetConfigInt("UseFontConfigLib", 1)
 
 --local language = Spring.GetConfigString("language", 'en')
