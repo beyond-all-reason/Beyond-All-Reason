@@ -241,6 +241,19 @@ local options = {
 		def		=  true,
 	},
 	{
+		key		= "unit_sharing_mode",
+		name	= "Unit Sharing",
+		desc	= "Controls which units can be shared with allies",
+		type	= "list",
+		section	= "options_main",
+		def		= "enabled",
+		items	= {
+			{ key = "enabled",     name = "Enabled",                     desc = "All unit sharing allowed" },
+			{ key = "t2cons", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = "disabled",    name = "Disabled",                    desc = "No unit sharing allowed" },
+		},
+	},
+	{
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
@@ -251,7 +264,7 @@ local options = {
 		max		= 0.99,
 		step	= 0.01,
 		section	= "options_main",
-		column	= 1,
+		column = 1,
 	},
 	{
 		key		= "disable_unit_sharing",
@@ -267,8 +280,7 @@ local options = {
 		desc	= "Disables assisting allied blueprints and labs.",
 		type	= "bool",
 		section	= "options_main",
-		def		=  false,
-		column	= 1.76,
+		def		= false,
 	},
 	{
 		key		= "unit_market",
@@ -302,7 +314,6 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
-		column	= 1,
 	},
 
     {
@@ -312,7 +323,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
     },
 
     {
@@ -322,7 +332,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 2.33,
     },
 
     {
@@ -332,7 +341,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
     },
 
 	{
@@ -342,7 +350,6 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
-		column	= 1.66,
 	},
 
     {
@@ -352,7 +359,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
     },
 
     {
@@ -362,7 +368,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
     },
 
 	{
@@ -372,7 +377,6 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
-		column	= 2.33,
 	},
 
     {
@@ -382,7 +386,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
     },
 
     {
@@ -392,7 +395,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
     },
 
 	{
@@ -402,7 +404,6 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
-		column	= 2.33,
 	},
 
     {
@@ -412,7 +413,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
     },
 
     {
@@ -422,7 +422,6 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
     },
 
 
