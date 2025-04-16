@@ -165,7 +165,7 @@ local function refreshUiDrawing()
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
 		local fontSize = (widgetHeight * widgetScale) * 0.5
-		
+
 		local text, color1, color2
 		font:Begin()
 
@@ -368,9 +368,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	if receateLists then
+	--if receateLists then
 		updateDrawing = true
-	end
+	--end
 end
 
 
@@ -483,7 +483,7 @@ function widget:Update(dt)
 	if (buttonHovered and buttonHovered ~= prevButtonHovered) or (prevButtonHovered and prevButtonHovered ~= buttonHovered) then
 		updateDrawing = true
 	end
-	
+
 	if (isSpec or lockPlayerID) and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 then
