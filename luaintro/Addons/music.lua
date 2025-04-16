@@ -74,17 +74,16 @@ function addon.Initialize()
 		end
 
 		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-
 		if #musicPlaylistEvent > 0 then
 			local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
-			Spring.PlaySoundStream(musicPlaylistEvent[pickedTrack], 1)
+			Spring.PlaySoundStream(pickedTrack, 1)
 			Spring.SetSoundStreamVolume(musicvolume)
-			Spring.SetConfigString('music_loadscreen_track', musicPlaylistEvent[pickedTrack])
+			Spring.SetConfigString('music_loadscreen_track', pickedTrack)
 		elseif #musicPlaylist > 0 then
 			local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
-			Spring.PlaySoundStream(musicPlaylist[pickedTrack], 1)
+			Spring.PlaySoundStream(pickedTrack, 1)
 			Spring.SetSoundStreamVolume(musicvolume)
-			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[pickedTrack])
+			Spring.SetConfigString('music_loadscreen_track', pickedTrack)
 		end
 	end
 end
