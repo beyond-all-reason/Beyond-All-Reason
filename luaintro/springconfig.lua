@@ -222,7 +222,7 @@ Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 Spring.SetConfigInt("MaxFontTries", 4)
 Spring.SetConfigInt("UseFontConfigLib", 1)
 
-local language = Spring.GetConfigString("language", 'en')
-if language ~= 'en' and language ~= 'fr' then
-	Spring.SetConfigString("language", 'en')
-end
+--local language = Spring.GetConfigString("language", 'en')
+--if language ~= 'en' and language ~= 'fr' then
+--	Spring.SetConfigString("language", 'en')
+--end
