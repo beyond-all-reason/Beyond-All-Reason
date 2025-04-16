@@ -5777,9 +5777,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if not isPotatoGpu and gpuMem <= 4500 then
-		options[getOptionByID('advmapshading')].category = types.basic
-	end
+	--if not isPotatoGpu and gpuMem <= 4500 then
+	--	options[getOptionByID('advmapshading')].category = types.basic
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -5988,9 +5988,9 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				Spring.SendCommands("advmapshading 0")
-			end
+			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+			--	Spring.SendCommands("advmapshading 0")
+			--end
 
 		end
 
@@ -6521,8 +6521,8 @@ function widget:Initialize()
 			Spring.SendCommands("water 0")
 			Spring.SetConfigInt("Water", 0)
 
-			Spring.SetConfigInt("AdvMapShading", 0)
-			Spring.SendCommands("advmapshading 0")
+			--Spring.SetConfigInt("AdvMapShading", 0)
+			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
