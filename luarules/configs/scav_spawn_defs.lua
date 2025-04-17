@@ -1986,7 +1986,20 @@ addNewSquad({
 		{count = 6, unit = "leghades_scav"}
 	}
 }) --T1 Veh Unique
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[3].minAnger, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist_scav","2 legbar_scav","8 leghades_scav"}, weight = 4, maxAnger = tierConfiguration[3].maxAnger}) --T1 Arty/AA
+addNewSquad({
+	type = "specialLand",
+	weight = 4,
+	maxAnger = tierConfiguration[3].maxAnger,
+	minAnger = tierConfiguration[3].minAnger,
+	units = {
+		{count = 1,unit = "armart_scav"},
+		{count = 2, unit = "armsam_scav"},
+		{count = 1, unit = "corwolv_scav"},
+		{count = 2, unit = "cormist_scav"},
+		{count = 2, unit = "legbar_scav"},
+		{count = 8, unit = "leghades_scav"}
+	}
+}) --T1 Arty/AA
 --air
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[2].minAnger, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = 1000}) --T1 Air Scouts
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger, units = { "12 corbw_scav",}, weight = 4, maxAnger = 1000}) --Bladewings
