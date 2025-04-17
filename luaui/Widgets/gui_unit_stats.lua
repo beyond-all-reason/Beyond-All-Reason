@@ -682,7 +682,6 @@ local function drawStats(uDefID, uID)
 				end
 				DrawText(texts.dmg..":", dmgString)
 
-				local modString = ""
 				-- Group armor types by the damage they take.
 				local modifiers = {}
 				local defaultRate = uWep.damages[0] or 0
@@ -709,7 +708,7 @@ local function drawStats(uDefID, uID)
 				local maxDamage = sorted[1]
 
 				if maxDamage ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
-					modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
+					local modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
 					local count = 0
 					for _ in pairs(modifiers) do count = count + 1 end
 					if count > 1 then
