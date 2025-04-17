@@ -59,7 +59,7 @@ end
     -- [ ] handle drawing onto the minimap?
 
 
-local autoreload = true
+local autoreload = false
 
 
 local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels

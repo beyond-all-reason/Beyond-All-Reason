@@ -27,7 +27,7 @@ end
 ---
 --------------------------------------------------------------------------------
 
-local autoreload = true
+local autoreload = false
 
 local shaderConfig = {
     DEBUG = autoreload and 1 or 0,
