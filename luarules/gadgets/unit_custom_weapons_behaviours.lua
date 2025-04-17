@@ -22,8 +22,8 @@ if not gadgetHandler:IsSyncedCode() then return false end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local random = math.random
-local math_sqrt = math.sqrt
+local mathRandom = math.random
+local mathSqrt = math.sqrt
 local mathCos = math.cos
 local mathSin = math.sin
 local mathPi = math.pi
@@ -80,7 +80,7 @@ weaponSpecialEffect.cruise = function(proID)
 		local infos = projectiles[proID]
 		local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
 		local projectileVelX, projectileVelY, projectileVelZ, speed = SpGetProjectileVelocity(proID)
-		if tonumber(infos.lockon_dist) < math_sqrt((projectilePosX - targetPosX) ^ 2 + (projectilePosY - targetPosY) ^ 2 + (projectilePosZ - targetPosZ) ^ 2) then
+		if tonumber(infos.lockon_dist) < mathSqrt((projectilePosX - targetPosX) ^ 2 + (projectilePosY - targetPosY) ^ 2 + (projectilePosZ - targetPosZ) ^ 2) then
 			local groundNormX, groundNormY, groundNormZ = Spring.GetGroundNormal(projectilePosX, projectilePosZ)
 			local cruisePosY = SpGetGroundHeight(projectilePosX, projectilePosZ) + tonumber(infos.cruise_min_height)
 			local correction = groundNormY *
@@ -126,9 +126,9 @@ weaponSpecialEffect.sector_fire = function(proID)
 	local infos = projectiles[proID]
 
 	local maxRangeReduction = tonumber(infos.max_range_reduction)
-	local transformXZ = 1 - (random() ^ (1 + maxRangeReduction)) * maxRangeReduction
+	local transformXZ = 1 - (mathRandom() ^ (1 + maxRangeReduction)) * maxRangeReduction
 
-	local angleXZ = tonumber(infos.spread_angle) * (random() - 0.5) * mathPi / 180
+	local angleXZ = tonumber(infos.spread_angle) * (mathRandom() - 0.5) * mathPi / 180
 	local transformX = mathCos(angleXZ)
 	local transformZ = mathSin(angleXZ)
 
@@ -157,9 +157,9 @@ weaponSpecialEffect.split = function(proID)
 		}
 		for _ = 1, tonumber(infos.number) do
 			projectileParams.speed = {
-				projectileVelX - speed * (random(-100, 100) / 880),
-				projectileVelY - speed * (random(-100, 100) / 440),
-				projectileVelZ - speed * (random(-100, 100) / 880)
+				projectileVelX - speed * (mathRandom(-100, 100) / 880),
+				projectileVelY - speed * (mathRandom(-100, 100) / 440),
+				projectileVelZ - speed * (mathRandom(-100, 100) / 880)
 			}
 			Spring.SpawnProjectile(projectileDefID, projectileParams)
 		end
