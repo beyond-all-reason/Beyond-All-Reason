@@ -136,7 +136,6 @@ return {
 				customparams = {
 					max_range_reduction = "0.30",
 					speceffect = "sector_fire",
-					speceffect_when = "always",
 					spread_angle = "22",
 				},
 				damage = {

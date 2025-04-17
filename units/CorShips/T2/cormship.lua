@@ -192,7 +192,6 @@ return {
 					number = "8",
 					speceffect = "split",
 					speceffect_def = "cormship_rocket_split",
-					speceffect_when = "at apex",
 					splitexplosionceg = "genericshellexplosion-medium",
 				},
 				damage = {

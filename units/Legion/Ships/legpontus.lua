@@ -151,7 +151,6 @@ return {
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
-					speceffect_when = "at water level",
 				},
 			},
 
