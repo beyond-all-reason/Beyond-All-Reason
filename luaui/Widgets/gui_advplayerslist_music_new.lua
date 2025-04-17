@@ -1344,6 +1344,15 @@ function widget:GameFrame(n)
 		else
 			warMeter = 0
 		end
+	elseif warMeter > 0 then
+		warMeter = math.floor(warMeter - (warMeter * 0.04))
+		if warMeter > warHighLevel*3 then
+			warMeter = warHighLevel*3
+		end
+		warMeterResetTimer = warMeterResetTimer + 1
+		if warMeterResetTimer > warMeterResetTime then
+			warMeter = 0
+		end
 	end
 
 	if n%30 == 15 then
@@ -1370,16 +1379,6 @@ function widget:GameFrame(n)
 		--	Spring.StopSoundStream()
 		--	return
 		--end
-		if warMeter > 0 then
-			warMeter = math.floor(warMeter - (warMeter * 0.04))
-			if warMeter > warHighLevel*3 then
-				warMeter = warHighLevel*3
-			end
-			warMeterResetTimer = warMeterResetTimer + 1
-			if warMeterResetTimer > warMeterResetTime then
-				warMeter = 0
-			end
-		end
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
