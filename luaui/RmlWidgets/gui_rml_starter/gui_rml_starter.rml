@@ -1,0 +1,82 @@
+<rml>
+<head>
+    <title>Rml Starter</title>
+
+    <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../palette-red.rcss" type="text/rcss" />
+    <style>
+        #rml-starter-widget {
+            pointer-events: auto;
+            width: 400dp;
+            right: 0;
+            top: 50%;
+            transform: translateY(-90%);
+            position: absolute;
+            margin-right: 10dp;
+        }
+        #main-content {
+            padding: 10dp;
+            border-radius: 8dp;
+            z-index: 1;
+        }
+        #expanding-content {
+            transform: translateY(0%);
+            transition: top 0.1s linear-in-out;
+            z-index: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0dp;
+            left: 0dp;
+            border-radius: 8dp;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 20dp;
+        }
+        /* This is just a checkbox sitting above the entirety of the expanding content */
+        /* It is bound directly with data-checked attr to the expanded value */
+        #expanding-content>input {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            position: absolute;
+            top: 0dp;
+            left: 0dp;
+        }
+        #expanding-content.expanded {
+            top: 90%;
+        }
+        #expanding-content:hover {
+            background-color: rgba(255, 0, 0, 125);
+        }
+    </style>
+</head>
+<body>
+    <div id="rml-starter-widget" class="relative" data-model="starter_model">
+        <div id="main-content" class="flex flex-col gap-4 bg-surface">
+            <h1 class="text-primary">Welcome to an Rml Starter Widget</h1>
+            <p class="text-secondary m-1">This is a simple example of an RMLUI widget.</p>
+            <p class="text-secondary m-1">Each rml widget must reside in a folder of the same name in the <span class="pl-1 pr-1 text-white bg-accent rounded">luaui/RmlWidgets/</span> directory
+                and contain at least a <span class="text-white bg-accent rounded pl-1 pr-1">widget.lua</span> file and a
+                <span class="text-white bg-accent rounded pl-1 pr-1">widget.rml</span>file.
+            </p>
+            <p class="text-secondary m-1">
+                The widget.lua file is the main entry point for the widget and is responsible for loading the rml file and creating the widget.
+                The widget.rml file is the main layout file for the widget and contains the structure and styling of the widget.
+                The widget.lua file can also contain any additional logic or functionality that you want to add to your widget.
+            </p>
+            <div class="actions flex flex-row gap-2 h-10 m-1">
+                <button class="bg-primary text-center p-2" onclick="widget:Reload()">reload widget</button>
+            </div>
+        </div>
+        <div id="expanding-content" data-class-expanded="expanded" class="absolute bg-accent-50 flex flex-col items-end">
+            <input type="checkbox" value="expanded" data-checked="expanded"/>
+            <p>{{message}}</p>
+        </div>
+    </div>
+</body>
+</rml>

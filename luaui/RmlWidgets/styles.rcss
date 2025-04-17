@@ -1,0 +1,9 @@
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Exo 2";
+    font-size: 16dp;
+    pointer-events: none;
+    position: relative;
+}
