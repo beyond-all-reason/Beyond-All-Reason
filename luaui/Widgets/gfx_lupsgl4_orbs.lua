@@ -834,16 +834,13 @@ end
 -- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished 
 local shieldFinishFrames = {} -- unitID to gameframe
 
-
-local lastDrawFrame = -1
-function widget:DrawWorldPreParticles() 
+function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction) 
 	if next(shieldFinishFrames) then shieldFinishFrames = {} end
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
 	-- If water is present on the map, then it gets called again between the two for the refraction pass
 	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
-	local thisDrawFrame = Spring.GetDrawFrame()
-	if lastDrawFrame ~= thisDrawFrame then 
-		lastDrawFrame = thisDrawFrame
+	
+	if drawBelowWater and not drawReflection and not drawRefraction then
 		DrawOrbs(false) 
 	end
 end
