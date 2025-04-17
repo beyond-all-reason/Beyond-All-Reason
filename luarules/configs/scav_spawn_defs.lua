@@ -2021,8 +2021,27 @@ addNewSquad({
 		{count = 12, unit = "corbw_scav"}
 	}
 }) --Bladewings
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = 1000}) --Fighters
-addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[3].minAnger, units = { "20 armsfig_scav","20 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[3].minAnger,
+	units = 
+	{
+		{count = 20, unit = "armfig_scav"},
+		{count = 20, unit = "corveng_scav"}
+	}
+}) --Fighters
+addNewSquad({
+	type = "specialAirSea",
+	weight = 5,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[3].minAnger,
+	units = {
+		{count = 20, unit = "armsfig_scav"},
+		{count = 20, unit = "corsfix_scav"}
+	}
+}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 1000}) --Bombers
 ------Tier 2 25-60%
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
