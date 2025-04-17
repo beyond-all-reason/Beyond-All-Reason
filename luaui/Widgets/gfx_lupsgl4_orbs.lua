@@ -840,7 +840,7 @@ function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflec
 	-- If water is present on the map, then it gets called again between the two for the refraction pass
 	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
 	
-	if drawBelowWater and not drawReflection and not drawRefraction then
+	if drawAboveWater and not drawReflection and not drawRefraction then
 		DrawOrbs(false) 
 	end
 end
