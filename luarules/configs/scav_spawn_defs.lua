@@ -2054,7 +2054,17 @@ addNewSquad({
 	}
 }) --Bombers
 ------Tier 2 25-60%
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({
+	type = "specialLand",
+	weight = 6,
+	maxAnger = tierConfiguration[4].maxAnger,
+	minAnger = tierConfiguration[4].minAnger,
+	units = {
+		{count = 10, unit = "armfav_scav"},
+		{count = 10, unit = "corfav_scav"},
+		{count = 25, unit = "armzapper_scav"}
+	}
+}) --Rover and EMP Rover/Whole Tier Length
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","2 legaheattank_scav","2 armyork_scav","2 corsent_scav","2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
