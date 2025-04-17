@@ -43,7 +43,6 @@ local targetedUnit = string.byte('u')
 local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
 local weaponSpecialEffect = {}
-
 local weaponCustomParams = {}
 
 local projectiles = {}
@@ -225,6 +224,10 @@ function gadget:Initialize()
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
 			else
 				weaponCustomParams[weaponDefID] = weaponDef.customParams
+			end
+			if weaponDef.customParams.when then
+				local message = "Used deprecated customparam 'when': " .. weaponDef.name
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, message)
 			end
 		end
 	end
