@@ -32,7 +32,7 @@ end
 -- Other gadgets initiating transfers that need to bypass sharing rules should:
 -- 1. Choose a unique, descriptive flag name (string) using snake_case.
 -- 2. Add the name to this table.
--- 3. Call Spring.SetUnitRulesParam(unitID, flagName, 1, {private=true}) BEFORE calling TransferUnit.
+-- 3. Call Spring.SetUnitRulesParam(unitID, flagName, 1) BEFORE calling TransferUnit.
 -- This gadget will detect the flag, allow the transfer, and clear the flag by setting it to nil.
 local transferOverrideFlags = {
 	"transfer_override_market",
@@ -80,7 +80,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		local flagValue = Spring.GetUnitRulesParam(unitID, flagName)
 		if flagValue and flagValue == 1 then
 			-- Clear the flag after checking
-			Spring.SetUnitRulesParam(unitID, flagName, nil, {private=true})
+			Spring.SetUnitRulesParam(unitID, flagName, nil)
 			return true
 		end
 	end
