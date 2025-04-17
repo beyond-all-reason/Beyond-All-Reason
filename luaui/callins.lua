@@ -16,6 +16,9 @@ CallInsList = {
 	"LayoutButtons",
 	"ConfigureLayout",
 	"ActiveCommandChanged",
+	"MiniMapRotationChanged",
+	"MiniMapStateChanged",
+	"MiniMapGeometryChanged",
 	"CommandNotify",
 
 	"KeyPress",
