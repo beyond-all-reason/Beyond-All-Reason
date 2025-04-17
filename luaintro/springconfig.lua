@@ -4,6 +4,11 @@
 
 Spring.SetConfigString("SplashScreenDir", "./MenuLoadscreens")
 
+-- ghost icons dimming, override engine default but allow user setting
+if Spring.GetConfigFloat("UnitGhostIconsDimming", 0.5) == 0.5 then
+	Spring.SetConfigFloat("UnitGhostIconsDimming", 0.75)
+end
+
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.75)
 Spring.SetConfigFloat("tonemapB", 0.75)
