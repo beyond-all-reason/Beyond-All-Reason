@@ -281,10 +281,9 @@ return {
 					cruise_max_height = "20",
 					cruise_min_height = "15",
 					lockon_dist = "150",
-					speceffect = "cruise",
-					when = "distance>0",
-					projectile_destruction_method = "descend",
 					overrange_distance = 750,
+					projectile_destruction_method = "descend",
+					speceffect = "cruise",
 				},
 				damage = {
 					default = 200,
