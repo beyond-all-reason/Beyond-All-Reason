@@ -139,40 +139,43 @@ weaponSpecialEffect.sector_fire = function(proID)
 	return true
 end
 
+local function split(proID)
+	local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
+	local projectileVelX, projectileVelY, projectileVelZ, speed = SpGetProjectileVelocity(proID)
+	local ownerID = Spring.GetProjectileOwnerID(proID)
+	local infos = projectiles[proID]
+	local projectileDefID = WeaponDefNames[infos.speceffect_def].id
+	local projectileParams = {
+		pos     = { projectilePosX, projectilePosY, projectilePosZ },
+		owner   = ownerID,
+		ttl     = 3000,
+		gravity = gravityPerFrame,
+		model   = infos.model,
+		cegTag  = infos.cegtag,
+	}
+	for _ = 1, tonumber(infos.number) do
+		projectileParams.speed = {
+			projectileVelX - speed * (mathRandom(-100, 100) / 880),
+			projectileVelY - speed * (mathRandom(-100, 100) / 440),
+			projectileVelZ - speed * (mathRandom(-100, 100) / 880)
+		}
+		Spring.SpawnProjectile(projectileDefID, projectileParams)
+	end
+	Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ)
+	Spring.DeleteProjectile(proID)
+end
+
 weaponSpecialEffect.split = function(proID)
 	if velocityIsNegative(proID) then
-		local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
-		local projectileVelX, projectileVelY, projectileVelZ, speed = SpGetProjectileVelocity(proID)
-		local ownerID = Spring.GetProjectileOwnerID(proID)
-		local infos = projectiles[proID]
-		local projectileDefID = WeaponDefNames[infos.speceffect_def].id
-		local projectileParams = {
-			pos     = { projectilePosX, projectilePosY, projectilePosZ },
-			owner   = ownerID,
-			ttl     = 3000,
-			gravity = gravityPerFrame,
-			model   = infos.model,
-			cegTag  = infos.cegtag,
-		}
-		for _ = 1, tonumber(infos.number) do
-			projectileParams.speed = {
-				projectileVelX - speed * (mathRandom(-100, 100) / 880),
-				projectileVelY - speed * (mathRandom(-100, 100) / 440),
-				projectileVelZ - speed * (mathRandom(-100, 100) / 880)
-			}
-			Spring.SpawnProjectile(projectileDefID, projectileParams)
-		end
-		Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ)
-		Spring.DeleteProjectile(proID)
+		split(proID)
 		return true
 	end
 end
 
 -- Water penetration behaviors
 
-weaponSpecialEffect.cannonwaterpen = function(proID)
-	if elevationIsNonpositive(proID) then
-		local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
+local function cannonWaterPen(proID)
+	local projectilePosX, projectilePosY, projectilePosZ = SpGetProjectilePosition(proID)
 		local projectileVelX, projectileVelY, projectileVelZ = SpGetProjectileVelocity(proID)
 		local ownerID = Spring.GetProjectileOwnerID(proID)
 		local infos = projectiles[proID]
@@ -188,24 +191,33 @@ weaponSpecialEffect.cannonwaterpen = function(proID)
 		Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
 		Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ)
 		Spring.DeleteProjectile(proID)
+end
+
+weaponSpecialEffect.cannonwaterpen = function(proID)
+	if elevationIsNonpositive(proID) then
+		cannonWaterPen(proID)
 		return true
 	end
 end
 
+local function torpedoWaterPen(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = SpGetProjectileVelocity(proID)
+	local targetType, targetID = SpGetProjectileTarget(proID)
+	-- Only dive below surface if the target is at an appreciable depth.
+	local diveSpeed = 0
+	if targetType == targetedUnit and targetID then
+		local _, unitPosY = Spring.GetUnitPosition(targetID)
+		if unitPosY and unitPosY < -10 then
+			diveSpeed = projectileVelY / 6
+		end
+	end
+	-- Brake without halting, else torpedoes may overshoot close targets.
+	SpSetProjectileVelocity(proID, projectileVelX / 1.3, diveSpeed, projectileVelZ / 1.3)
+end
+
 weaponSpecialEffect.torpwaterpen = function(proID)
 	if elevationIsNonpositive(proID) then
-		local projectileVelX, projectileVelY, projectileVelZ = SpGetProjectileVelocity(proID)
-		local targetType, targetID = SpGetProjectileTarget(proID)
-		-- Only dive below surface if the target is at an appreciable depth.
-		local diveSpeed = 0
-		if targetType == targetedUnit and targetID then
-			local _, unitPosY = Spring.GetUnitPosition(targetID)
-			if unitPosY and unitPosY < -10 then
-				diveSpeed = projectileVelY / 6
-			end
-		end
-		-- Brake without halting, else torpedoes may overshoot close targets.
-		SpSetProjectileVelocity(proID, projectileVelX / 1.3, diveSpeed, projectileVelZ / 1.3)
+		torpedoWaterPen(proID)
 		return true
 	end
 end
