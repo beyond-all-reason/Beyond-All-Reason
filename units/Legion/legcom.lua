@@ -97,6 +97,7 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			combatradius = 600,
+			maxrange = 300,
 			iscommander = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
