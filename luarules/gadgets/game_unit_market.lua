@@ -174,7 +174,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if (current < price) then return end
 
     -- Set flag to allow unit_sharing_mode to ignore this specific market transfer
-    spSetUnitRulesParam(unitID, "marketTransferInProgress", 1, {private=true})
+    spSetUnitRulesParam(unitID, "transfer_override_market", 1, {private=true})
     TransferUnit(unitID, msgFromTeamID)
 
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
