@@ -293,6 +293,7 @@ local function updateButtons()
 	if WG['teamstats'] then addButton('stats', Spring.I18N('ui.topbar.button.stats')) end
 	if gameIsOver then addButton('graphs', Spring.I18N('ui.topbar.button.graphs')) end
 	if WG['scavengerinfo'] then addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers')) end
+	if WG['objectives_info'] then addButton('objectives', Spring.I18N('ui.topbar.button.objectives')) end
 	if isSinglePlayer and allowSavegame and WG['savegame'] then addButton('save', Spring.I18N('ui.topbar.button.save')) end
 
 	buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
@@ -1720,6 +1721,8 @@ local function applyButtonAction(button)
 		end
 	elseif button == 'scavengers' then
 		toggleWindow('scavengerinfo')
+	elseif button == 'objectives' then
+		toggleWindow('objectives_info')
 	elseif button == 'keybinds' then
 		toggleWindow('keybinds')
 	elseif button == 'changelog' then
