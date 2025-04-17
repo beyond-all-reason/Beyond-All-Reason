@@ -4,12 +4,6 @@ if not math.isInRect then
 	end
 end
 
-if not math.round then
-	function math.round(num, idp)
-		return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
-	end
-end
-
 if not math.cross_product then
 	function math.cross_product (px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
