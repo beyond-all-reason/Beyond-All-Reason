@@ -228,7 +228,6 @@ end
 function gadget:Initialize()
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.customParams.speceffect then
-			local speceffect = weaponDef.customParams.speceffect
 			local def = weaponDef.customParams.speceffect_def
 			if def and not WeaponDefNames[def] then
 				local message = "Custom weapon has bad custom params: " .. weaponDef.name
