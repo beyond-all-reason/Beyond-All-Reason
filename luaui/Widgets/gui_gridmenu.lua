@@ -48,13 +48,13 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
+local CMD_STOP_PRODUCTION = CMD.STOP_PRODUCTION
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
-VFS.Include('luarules/configs/customcmds.h.lua')
 -------------------------------------------------------------------------------
 --- STATIC VALUES
 -------------------------------------------------------------------------------

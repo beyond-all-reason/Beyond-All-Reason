@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include('luarules/configs/customcmds.h.lua')
-
 --------------------------------------------------------------------------------
 --config
 --------------------------------------------------------------------------------
@@ -57,6 +55,7 @@ local GetUnitStates = Spring.GetUnitStates
 local TraceScreenRay = Spring.TraceScreenRay
 local CMD_ATTACK = CMD.ATTACK
 local CMD_MANUALFIRE = CMD.MANUALFIRE
+local CMD_MANUAL_LAUNCH = CMD.MANUAL_LAUNCH
 local g = Game.gravity
 local GAME_SPEED = 30
 local g_f = g / GAME_SPEED / GAME_SPEED
