@@ -2001,7 +2001,17 @@ addNewSquad({
 	}
 }) --T1 Arty/AA
 --air
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[2].minAnger, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = 1000}) --T1 Air Scouts
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	minAnger = tierConfiguration[2].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 3, unit = "armpeep_scav"},
+		{count = 3, unit = "corfink_scav"},
+		{count = 9, unit = "legfig_scav"}
+	}
+}) --T1 Air Scouts
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger, units = { "12 corbw_scav",}, weight = 4, maxAnger = 1000}) --Bladewings
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = 1000}) --Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[3].minAnger, units = { "20 armsfig_scav","20 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
