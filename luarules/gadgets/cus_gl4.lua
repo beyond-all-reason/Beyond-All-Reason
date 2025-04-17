@@ -493,24 +493,31 @@ end
 
 local function SetFixedStatePre(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	end
 end
 
 local function SetFixedStatePost(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	end
 end
 
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
-	if drawPass <= 2 then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
+
+	-- The clip plane is used for above/below water, for the reflection and refraction cameras only
+	if HasBit(drawPass, 4) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 1.0, 0.0, 0.0)
+	elseif HasBit(drawPass, 8) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, -1.0, 0.0, 0.0)
+	else
+		-- This will cull stuff that are not in view of the camera. Not too useful methinks
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 0.0, 0.0, 1.0)
 	end
 
 	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do
@@ -521,11 +528,7 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 		end
 	end
 
-	if HasBit(drawPass, 4) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 1.0, 0.0, 0.0)
-	elseif HasBit(drawPass, 8) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, -1.0, 0.0, 0.0)
-	end
+
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
@@ -2282,6 +2285,7 @@ local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, dr
 end
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	
 	if unitDrawBins == nil then return end
 	if preloadedTextures == false then PreloadTextures() end
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)

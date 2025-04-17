@@ -28,7 +28,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local languageCodes = { 'en', 'fr' }--, 'ru' }
+local languageCodes = { 'en', 'fr', 'ru' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -2319,12 +2319,12 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
+		--{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+		--	  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		--  end,
+		--},
 
 		-- luaintro sets grounddetail to 200 every launch anyway
 		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
@@ -2429,7 +2429,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.4, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
 		  end,
@@ -2437,7 +2437,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.4, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
 		  end,
@@ -3322,7 +3322,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.014), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -5777,9 +5777,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if not isPotatoGpu and gpuMem <= 4500 then
-		options[getOptionByID('advmapshading')].category = types.basic
-	end
+	--if not isPotatoGpu and gpuMem <= 4500 then
+	--	options[getOptionByID('advmapshading')].category = types.basic
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -5834,6 +5834,9 @@ function init()
 		else
 			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 		end
+	else
+		options[getOptionByID('soundtrackAprilFools')] = nil
+		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -5985,9 +5988,9 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				Spring.SendCommands("advmapshading 0")
-			end
+			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+			--	Spring.SendCommands("advmapshading 0")
+			--end
 
 		end
 
@@ -6518,8 +6521,8 @@ function widget:Initialize()
 			Spring.SendCommands("water 0")
 			Spring.SetConfigInt("Water", 0)
 
-			Spring.SetConfigInt("AdvMapShading", 0)
-			Spring.SendCommands("advmapshading 0")
+			--Spring.SetConfigInt("AdvMapShading", 0)
+			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)

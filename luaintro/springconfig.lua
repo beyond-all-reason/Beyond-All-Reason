@@ -38,9 +38,9 @@ if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
 end
 
 -- adv map shading
---if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
---	Spring.SetConfigInt("AdvMapShading", 1)
---end
+if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
+	Spring.SetConfigInt("AdvMapShading", 1)
+end
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
@@ -219,11 +219,10 @@ Spring.SetConfigInt("AnimationMT", 1)
 Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
 Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 
--- Breaking/limiting the curse of RA 𓀀 𓀁 𓀂 𓀃 𓀄 𓀅 𓀆 𓀇 𓀈 𓀉 𓀊 𓀋 𓀌 𓀍 𓀎 𓀏 𓀐 𓀑 𓀒 𓀓 𓀔 𓀕 𓀖
-Spring.SetConfigInt("MaxFontTries", 0)
-Spring.SetConfigInt("UseFontConfigLib", 0)
+Spring.SetConfigInt("MaxFontTries", 5)
+Spring.SetConfigInt("UseFontConfigLib", 1)
 
-local language = Spring.GetConfigString("language", 'en')
-if language ~= 'en' and language ~= 'fr' then
-	Spring.SetConfigString("language", 'en')
-end
+--local language = Spring.GetConfigString("language", 'en')
+--if language ~= 'en' and language ~= 'fr' then
+--	Spring.SetConfigString("language", 'en')
+--end

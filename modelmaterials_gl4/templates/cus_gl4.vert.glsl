@@ -118,9 +118,10 @@ const float treadsvelocity = 0.5;
 uniform int bitOptions;
 //int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
 
-uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
-uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
-uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
+//uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
+//uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
+//uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
+uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 
 
 /***********************************************************************/
@@ -606,11 +607,12 @@ void main(void)
 		// are we drawing reflection pass, if yes, use reflection camera!
 		if ((uint(drawPass) & 4u ) == 4u){
 			gl_Position = reflectionViewProj * worldPos;
-			gl_ClipDistance[2] = dot(worldPos, clipPlane2);
+			// Dot world position against vec4(0,0,1,0), which will result in negative for underwater, discarding it
+			gl_ClipDistance[0] = dot(worldPos, clipPlane0);
 		}
 		else{
 			gl_Position = cameraViewProj * worldPos;
-			gl_ClipDistance[0] = dot(worldPos, vec4(0.0, -1.0, 0.0, -1.0));
+			//gl_ClipDistance[0] = dot(worldPos, vec4(0.0, -1.0, 0.0, -1.0));
 		}
 		%%VERTEX_POST_TRANSFORM%%
 	

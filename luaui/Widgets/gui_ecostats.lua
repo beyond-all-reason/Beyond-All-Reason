@@ -1168,7 +1168,7 @@ local function drawListStandard()
 					if maxEnergy > 0 then
 						DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
 					end
-					if maxEnergy > 0 then
+					if maxMetal > 0 then
 						DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
 					end
 				end
