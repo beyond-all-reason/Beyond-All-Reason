@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Commands FX",
@@ -222,7 +224,8 @@ local unitCommand = {} -- most recent key in command table of order for unitID
 local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
@@ -519,10 +522,9 @@ local function ExtractTargetLocation(a, b, c, d, cmdID)
 end
 
 local function getCommandsQueue(unitID)
-	local q = spGetCommandQueue(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
 	local our_qCount = 0
-	local cmd
 	for i = 1, #q do
 		if CONFIG[q[i].id] or q[i].id < 0 then
 			if q[i].id < 0 then
@@ -621,8 +623,8 @@ function widget:Update(dt)
 						if commands[i].draw == false then
 							monitorCommands[i] = nil
 						else
-							local q = spGetCommandQueue(commands[i].unitID, 35) or {}
-							if qsize ~= #q then
+							local q = spGetUnitCommandCount(commands[i].unitID)
+							if qsize ~= q then
 								local our_q = getCommandsQueue(commands[i].unitID)
 								commands[i].queue = our_q
 								commands[i].queueSize = #our_q

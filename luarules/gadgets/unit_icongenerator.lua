@@ -22,6 +22,8 @@ example usage (need cheats):
 --2. fix the culling of floating structures
 --3. make units get their default stance (e.g. armcom)
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "IconGenerator",
@@ -93,9 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 					if env then
 						lus = true
 					end
-					local undefid = Spring.GetUnitDefID(uid)
 
-					--Spring.Echo("Processing unit :- ",undefid)
 					if lus then
 						if env.Activate then
 							Spring.UnitScript.CallAsUnit(uid, env.Activate)

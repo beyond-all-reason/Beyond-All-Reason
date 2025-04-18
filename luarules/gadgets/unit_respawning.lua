@@ -1,5 +1,7 @@
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Unit Respawning",
@@ -78,7 +80,6 @@ if gadgetHandler:IsSyncedCode() then
 
     function ReturnToBase(unitID, friendlyFire)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
-		local team = spGetUnitTeam(unitID)
 
 
 		if respawnMetaList[unitID].effigyID then

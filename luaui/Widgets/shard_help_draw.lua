@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	= "Shard Help: Draw and timer",
@@ -394,8 +396,6 @@ end
 
 local function DrawInterface()
 	local viewX, viewY, posX, posY = spGetViewGeometry()
-	local centerX = mCeil(viewX/2)
-	local centerY = mCeil(viewY/2)
 	local quarterX = mCeil(viewX * 0.25)
 	local threeQuartersY = mCeil(viewY * 0.75)
 	myMonoFont:Begin()

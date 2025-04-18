@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Test Runner",
@@ -39,7 +41,6 @@ local config = {
 	gameStartTestPatterns = nil,
 	testResultsFilePath = nil,
 	testRoots = {
-		"LuaUI/Widgets/tests",
 		"LuaUI/Tests",
 	},
 	scenarioRoots = {
@@ -772,7 +773,7 @@ Test = {
 	clearMap = function()
 		SyncedRun(function()
 			for _, unitID in ipairs(Spring.GetAllUnits()) do
-				Spring.DestroyUnit(unitID, false, true, nil, true)
+				Spring.DestroyUnit(unitID, false, true, nil, false)
 			end
 			for _, featureID in ipairs(Spring.GetAllFeatures()) do
 				Spring.DestroyFeature(featureID)

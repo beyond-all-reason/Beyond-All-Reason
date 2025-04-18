@@ -130,7 +130,6 @@ return {
 				soundstart = "heatray3burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -143,8 +142,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
-
+				},
 			},
 		},
 		weapons = {

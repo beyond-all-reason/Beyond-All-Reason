@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Unit Group Number",
@@ -50,7 +52,7 @@ end
 
 local unitGroupVBO = nil
 local unitGroupShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local vbocachetables = {} -- A table of tables for speed
 
 local function initGL4()

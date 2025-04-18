@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "CUS GL4",
@@ -496,28 +498,32 @@ end
 
 local function SetFixedStatePre(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	end
 end
 
 local function SetFixedStatePost(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	end
 end
 
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	--if true then return end
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
-	if drawPass <= 2 then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
-	elseif drawPass == 16 then
-		--gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
-		-- set properly by default
+
+	-- The clip plane is used for above/below water, for the reflection and refraction cameras only
+	if HasBit(drawPass, 4) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 1.0, 0.0, 0.0)
+	elseif HasBit(drawPass, 8) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, -1.0, 0.0, 0.0)
+	else
+		-- This will cull stuff that are not in view of the camera. Not too useful methinks
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 0.0, 0.0, 1.0)
 	end
 
 	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do
@@ -529,15 +535,11 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 		end
 	end
 
-	if HasBit(drawPass, 4) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 1.0, 0.0, 0.0)
-	elseif HasBit(drawPass, 8) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, -1.0, 0.0, 0.0)
-	end
+
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
@@ -1519,7 +1521,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
-		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 
 		if math_bit_and(drawFlag, 34) > 0 then -- has alpha (2) or alphashadow(32) flag 
@@ -2302,36 +2303,14 @@ local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, dr
 end
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	
 	if unitDrawBins == nil then return end
 	if preloadedTextures == false then PreloadTextures() end
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
 	local batches, units = ExecuteDrawPass(drawPass)
 end
 
-function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(false, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
 	local batches, units = ExecuteDrawPass(16)
-end
-
-function gadget:DrawShadowFeaturesLua() -- These are drawn together with units
-	if unitDrawBins == nil then return end
-	--ExecuteDrawPass(16)
 end

@@ -3,6 +3,8 @@ if not Spring.GetModOptions().unit_market then
 end
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name    = "Unit Market - Backend",
@@ -162,13 +164,7 @@ local function getAIdiscount(newTeamID, oldTeamID, price)
     end
 end
 
-
-
-
-
-
-local function tryToBuyUnit(unitID, buyerTeamID)
-
+local function tryToBuyUnit(unitID, msgFromTeamID)
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
@@ -189,7 +185,7 @@ local function tryToBuyUnit(unitID, buyerTeamID)
     end
 
     if (current < price) then return end
-
+    
     if disable_unit_sharing_enabled then
         saleWhitelist[unitID] = true
     end

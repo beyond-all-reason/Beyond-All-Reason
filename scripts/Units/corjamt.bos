@@ -21,7 +21,7 @@ Stop()
 	return (0);
 }
 SetStunned(State)
-{c
+{
     Stunned = State;
 	if (Stunned) {
 	    call-script Stop();

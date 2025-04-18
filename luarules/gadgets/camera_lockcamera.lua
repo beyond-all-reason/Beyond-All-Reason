@@ -1,4 +1,4 @@
-local versionNumber = "v2.91"
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
@@ -12,11 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-------------------------------------------------
-
 local broadcastPeriod = 0.12	-- will send packet in this interval (s)
-
-------------------------------------------------
 
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
@@ -47,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-else
+else	-- UNSYNCED
 
 
 	local GetCameraState = Spring.GetCameraState
@@ -182,7 +178,6 @@ else
 
 	-- does not allow spaces in keys; values are numbers
 	local function CameraStateToPacket(s)
-
 		local name = s.name
 		local stateFormat = CAMERA_STATE_FORMATS[name]
 		local cameraID = CAMERA_IDS[name]
@@ -279,10 +274,6 @@ else
     end
 
 	function gadget:Update()
-		if Spring.GetGameFrame() == 0 then
-			return
-		end
-
 		local dt = GetLastUpdateSeconds()
 		totalTime = totalTime + dt
 		timeSinceBroadcast = timeSinceBroadcast + dt

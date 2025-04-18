@@ -1,5 +1,7 @@
 local versionNum = '5.00'
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Auto Group",
@@ -58,20 +60,19 @@ local unit2group = presets[currPreset] -- list of unit types to group
 local mobileBuilders = {}
 local builtInPlace = {}
 
-local unitHealth = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not def.isFactory then
 		if def.buildOptions and #def.buildOptions > 0 then
 			mobileBuilders[udefID] = true
 		end
 	end
-	unitHealth[udefID] = def.health
 end
 
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
 local toBeAddedLater = {}
+local prevHealth = {}
 
 local gameStarted
 
@@ -158,8 +159,7 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
-					if finishedBuilding then
+					if immediate or not GetUnitIsBeingBuilt(unitID) then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end
@@ -219,7 +219,7 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(uID)
 		local group = unit2group[unitDefID]
-		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last 
+		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last
 			SetUnitGroup(uID, -1)
 		end
 
@@ -276,7 +276,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and Spring.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)
@@ -286,14 +286,20 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	builtInPlace[unitID] = nil
 end
 
-function widget:GameFrame()
-	for unitID, unitDefID in pairs(toBeAddedLater) do
-		if unitHealth[unitDefID] and GetUnitHealth(unitID) == unitHealth[unitDefID] then
-			local gr = unit2group[unitDefID]
-			if gr ~= nil and GetUnitGroup(unitID) == nil then
-				SetUnitGroup(unitID, gr)
+function widget:GameFrame(n)
+	if n % 10 == 0 then
+		for unitID, unitDefID in pairs(toBeAddedLater) do
+			local health = GetUnitHealth(unitID)
+			if health <= prevHealth[unitID] then -- stopped healing
+				local group = unit2group[unitDefID]
+				if group ~= nil and GetUnitGroup(unitID) == nil then
+					SetUnitGroup(unitID, group)
+				end
+				toBeAddedLater[unitID] = nil
+				prevHealth[unitID] = nil
+			else
+				prevHealth[unitID] = health
 			end
-			toBeAddedLater[unitID] = nil
 		end
 	end
 end
@@ -309,6 +315,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 	if GetUnitRulesParam(unitID, "resurrected") then
 		toBeAddedLater[unitID] = unitDefID
+		prevHealth[unitID] = 0
 		return
 	end
 
@@ -325,6 +332,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	createdFrame[unitID] = nil
 	builtInPlace[unitID] = nil
 	toBeAddedLater[unitID] = nil
+	prevHealth[unitID] = nil
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeamID, teamID)
@@ -338,6 +346,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeamID, teamID)
 	createdFrame[unitID] = nil
 	builtInPlace[unitID] = nil
 	toBeAddedLater[unitID] = nil
+	prevHealth[unitID] = nil
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, teamID)

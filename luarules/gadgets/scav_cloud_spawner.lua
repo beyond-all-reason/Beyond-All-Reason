@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
     name = "Scav Cloud Spawner",
@@ -15,15 +17,7 @@ if not gadgetHandler:IsSyncedCode() or not Spring.Utilities.Gametype.IsScavenger
 end
 
 local teams = Spring.GetTeamList()
-for _, teamID in ipairs(teams) do
-    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-    if (teamLuaAI and string.find(teamLuaAI, "Scavengers")) then
-        scavTeamID = teamID
-        scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-        break
-    end
-end
-
+local scavTeamID = Spring.Utilities.GetScavTeamID()
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 local cloudMult = math.ceil((math.ceil(((mapx+mapz)*0.5)/512)^2)/18)
@@ -121,6 +115,7 @@ function gadget:GameFrame(frame)
             local posx, posy, posz = Spring.GetFeaturePosition(featureID)
             if GG.IsPosInRaptorScum(posx, posy, posz) then
                 --Spring.Echo("isInScum", GG.IsPosInRaptorScum(posx, posy, posz))
+                aliveWrecks[featureID].resurrectable = Spring.GetFeatureResurrect(featureID)
                 if data.resurrectable and data.resurrectable ~= "" then
                     --Spring.Echo("resurrectable", data.resurrectable)
                     if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then

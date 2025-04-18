@@ -13,6 +13,7 @@ return {
 		"corstorm",
 		"corcrash",
 		"legkark",
+		"corkark",
 		"leggob",
 		"legbal",
 		"legcen",

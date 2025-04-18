@@ -1,5 +1,7 @@
 
 --------------------------------------------------------------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Infolos API",
@@ -65,12 +67,12 @@ local infoTextures = {} -- A table of allyteam/texture mappings
 local currentAllyTeam = nil
 
 local texX, texY
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/infolos.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/infolos.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/infolos.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/infolos.frag.glsl"
 
 local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels
 
@@ -207,7 +209,7 @@ function widget:DrawWorldPreUnit()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
-	-- outputAlpha = math.min(1.0, math.max(0.07,deltat))
+	-- outputAlpha = math.clamp(deltat, 0.07, 1)
 	-- Spring.Echo(deltat,outputAlpha)
 
 

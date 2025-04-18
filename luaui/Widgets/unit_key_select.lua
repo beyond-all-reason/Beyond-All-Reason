@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "KeySelect",
@@ -10,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
+local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
 local function handleSetCommand(_, commandDef)
 	local command = selectApi.getCommand(commandDef)

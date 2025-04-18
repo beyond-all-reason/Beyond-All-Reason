@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -671,7 +673,7 @@ end)
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	drawCursorText.invalidate()
 end
 

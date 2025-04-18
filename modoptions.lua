@@ -304,7 +304,6 @@ local options = {
         section = "options_main",
         def     = false,
     },
-	
 	{
 		key		= "unit_market",
 		name	= "Unit Market",
@@ -649,6 +648,18 @@ local options = {
     },
 
     {
+        key		= "raptor_queen_count",
+        name	= "Raptor Queen Count",
+        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "raptor_defense_options",
+    },
+
+    {
         key		= "raptor_spawncountmult",
         name	= "Unit Spawn Per Wave Multiplier",
         desc	= "(Range: 1 - 5). How many times more raptors will spawn per wave.",
@@ -804,6 +815,18 @@ local options = {
         min		= 0.1,
         max		= 2,
         step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_boss_count",
+        name	= "Scavengers Boss Count",
+        desc	= "(Range: 1 - 20). Number of bosses that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
         section	= "scav_defense_options",
     },
 
@@ -1274,16 +1297,6 @@ local options = {
     },
 
     {
-        key   	= "accuratelasers",
-        name   	= "Accurate Lasers",
-        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
-        type   	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -1349,7 +1362,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

@@ -21,6 +21,8 @@ for i = 1, #teams do
 end
 teams = nil
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "SimpleAI",
@@ -114,14 +116,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 	-- stockpilers
-	--if unitDef.canStockpile then
-	--	skip = true
-	--end
 	if unitDef.weapons then
 		for i = 1, #unitDef.weapons do
 			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-			-- stockpilers
-			if wDef.stockpile then
+			if wDef.stockpile and wDef.interceptor == 0 then
 				skip = true
 				break
 			end
@@ -177,7 +175,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetTeamResources = Spring.GetTeamResources
@@ -415,7 +413,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 				end
 			end
 		elseif type == "Factory" then
-			if #Spring.GetFullBuildQueue(unitID, 0) < 5 then
+			if #Spring.GetFullBuildQueue(unitID) < 5 then
 				local r = random(0, 5)
 				local luaAI = Spring.GetTeamLuaAI(unitTeam)
 				if r == 0 or mcurrent > mstorage*0.9 or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI' then
@@ -482,9 +480,9 @@ if gadgetHandler:IsSyncedCode() then
 						local unitDefID = spGetUnitDefID(unitID)
 						local unitTeam = teamID
 						local unitHealth, unitMaxHealth, _, _, _ = spGetUnitHealth(unitID)
-						local unitCommands = spGetCommandQueue(unitID, 0)
+						local unitCommandCount = spGetUnitCommandCount(unitID)
 						local unitposx, unitposy, unitposz = spGetUnitPosition(unitID)
-						--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommands, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
+						--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommandCount, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
 						-- Commanders
 						if SimpleCommanderDefs[unitDefID] then
 							local nearestEnemyCloak = spGetUnitNearestEnemy(unitID, 2000, false)
@@ -541,7 +539,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 
-						if unitCommands == 0 then
+						if unitCommandCount == 0 then
 							if SimpleConstructorDefs[unitDefID] then
 								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Builder")
 							end

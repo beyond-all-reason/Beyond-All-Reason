@@ -7,6 +7,8 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Map Grass GL4",
@@ -215,7 +217,7 @@ local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
 local grassPatchCount = 0
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local grassRowInstance = {0} -- a table of row, instanceidx from top side of the view
 
@@ -256,9 +258,9 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	  {id = 4, name = "texcoords0", size = 2},
 	  {id = 5, name = "texcoords1", size = 2},
 	  {id = 6, name = "pieceindex", size = 1},} --khm, this should be unsigned int
-  
-	local VBOData = VFS.Include("LuaUI/Widgets/Include/grassPatches.lua")
-	
+
+	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
 		VBOData = VBOData[1]
@@ -329,7 +331,7 @@ local function grassPatchMultToByte(grasspatchsize) -- converts instancebuffer s
 	if grasspatchsize < grassConfig.grassMinSize then return 0 end
 	local grassbyte = (grasspatchsize - grassConfig.grassMinSize)
 	grassbyte = grassbyte / (grassConfig.grassMaxSize - grassConfig.grassMinSize) *254.0
-	return math.floor(math.max(1, math.min(254,grassbyte)))
+	return math.clamp(grassbyte, 1, 254)
 end
 
 local function world2grassmap(wx, wz) -- returns an index into the elements of a vbo
@@ -699,8 +701,8 @@ local function makeGrassInstanceVBO()
 	end
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/map_grass_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 
@@ -726,9 +728,9 @@ local function makeShaderVAO()
 		shaderConfig = grassConfig.grassShaderParams,
 		silent = true,
 	}
-  
+
   grassShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-  
+
   if not grassShader then goodbye("Failed to compile grassShader GL4 ") end
 end
 
@@ -1016,8 +1018,7 @@ function widget:DrawWorldPreUnit()
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
 
-  local globalgrassfade = math.max(0.0,math.min(1.0,
-		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
+  local globalgrassfade = math.clamp(((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult)), 0, 1)
 
   local expFactor = math.min(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
   smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor
@@ -1052,7 +1053,7 @@ function widget:DrawWorldPreUnit()
 
     grassShader:Activate()
     --Spring.Echo("globalgrassfade",globalgrassfade)
-    local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
+    local windStrength = math.clamp(math.abs(windDirX) + math.abs(windDirZ), 4, grassConfig.maxWindSpeed)
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])

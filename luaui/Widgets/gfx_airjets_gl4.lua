@@ -3,6 +3,8 @@
 --https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
 
 --------------------------------------------OLD AIRJETS---------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Airjets GL4",
@@ -34,6 +36,7 @@ local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
+local spIsUnitInLos = Spring.IsUnitInLos
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -392,6 +395,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
+	["leglts"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+	},
 	-- construction
 	["armca"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },
@@ -526,7 +533,7 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 local jetInstanceVBO = nil
 local jetShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -747,7 +754,7 @@ local function initGL4()
     },
     "jetShader GL4"
   )
-  shaderCompiled = jetShader:Initialize()
+  local shaderCompiled = jetShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
   local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
   local jetInstanceVBOLayout = {
@@ -897,9 +904,9 @@ local function Deactivate(unitID, unitDefID, who)
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
-		airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
+		local airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
 		if jetInstanceVBO.instanceIDtoIndex[airjetkey] then
-			popElementInstance(jetInstanceVBO,tostring(unitID).."_"..tostring(effectDef.piecenum))
+			popElementInstance(jetInstanceVBO, airjetkey)
 		end
 	end
 end
@@ -1022,9 +1029,15 @@ function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 

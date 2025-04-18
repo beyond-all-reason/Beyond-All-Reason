@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Notifications",
@@ -25,6 +27,7 @@ local spoken = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local lowpowerThreshold = 7        -- if there is X secs a low power situation
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
+local updateCommandersFrames = Game.gameSpeed * 5
 
 --------------------------------------------------------------------------------
 
@@ -130,8 +133,10 @@ local unitsOfInterestNames = {
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
+	leglrpc = 'LrpcDetected',
 	corbuzz = 'LrpcDetected',
 	armvulc = 'LrpcDetected',
+	legstarfall = 'LrpcDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
@@ -143,8 +148,13 @@ local unitsOfInterestNames = {
 	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
+	leglts = 'AirTransportDetected',
+	armhvytrans = 'AirTransportDetected',
+	corhvytrans = 'AirTransportDetected',
+	legatrans = 'AirTransportDetected',
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
+	legstronghold = 'SeaTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
 }
@@ -471,6 +481,10 @@ function widget:GameFrame(gf)
 			end
 		end
 	end
+
+	if gameframe % updateCommandersFrames == 0 then
+		updateCommanders()
+	end
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -677,7 +691,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 						commandersDamages[unitID][gf] = nil
 					end
 				end
-				if totalDamage >= commanders[unitID] * 0.2 then
+				if totalDamage >= commanders[unitID] * 0.2 and spGetUnitHealth(unitID)/commanders[unitID] <= 0.85 then
 					queueNotification('ComHeavyDamage')
 				end
 			end
@@ -763,8 +777,8 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+		if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
 		-- process sound queue

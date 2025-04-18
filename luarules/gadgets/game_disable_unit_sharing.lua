@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = 'Disable Unit Sharing',
@@ -75,6 +77,3 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	end
 	return unitTypeAllowedToBeShared(unitDefID)
 end
-
-
-

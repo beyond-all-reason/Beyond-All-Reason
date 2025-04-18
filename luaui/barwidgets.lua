@@ -19,7 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -106,6 +106,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -301,6 +303,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -314,59 +317,49 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
+local function loadWidgetFiles(folder, vfsMode)
+	local fromZip = vfsMode ~= VFS.RAW
+	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
+
+	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+
+	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	-- create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
-	local unsortedWidgets = {}
-
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
-			end
-		end
-	end
-
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -384,7 +377,6 @@ function widgetHandler:Initialize()
 		end
 	end)
 
-	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -394,8 +386,7 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 
-	-- Since Initialize is run out of the normal callin wrapper by InsertWidget,
-	-- we, need to reorder explicitly here.
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
@@ -449,7 +440,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget()
+		local widget = widgetHandler:NewWidget(enableLocalsAccess)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -471,7 +462,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget()
+	local widget = widgetHandler:NewWidget(enableLocalsAccess)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -572,28 +563,31 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
-function widgetHandler:NewWidget()
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
+function widgetHandler:NewWidget(enableLocalsAccess)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
-	if true then
+	if enableLocalsAccess then
 		-- copy the system calls into the widget table
 		for k, v in pairs(System) do
 			widget[k] = v
 		end
 	else
 		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
+		setmetatable(widget, WidgetMeta)
 	end
+
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -803,14 +797,18 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
+			table.remove(t, i)
 		end
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --- Safe reordering
@@ -1348,6 +1346,22 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneBeginN("W:ActiveCommandChanged")
 	for _, w in ipairs(self.ActiveCommandChangedList) do
 		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
 	end
 	tracy.ZoneEnd()
 end
@@ -2343,10 +2357,10 @@ function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return

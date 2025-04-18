@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "UnitCallinsWidget",
@@ -164,9 +166,9 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 	if showcallins then addEvent(unitID, "UnitCommand") end 
 end
 
-function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if enabledcallins.UnitCmdDone == nil then return end
-	if printcallins then Spring.Echo("w:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts) end
+	if printcallins then Spring.Echo("w:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag) end
 	if showcallins then addEvent(unitID, "UnitCmdDone") end 
 end
 

@@ -1,5 +1,7 @@
 local versionNumber = "v1.1"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Share Tracker",
@@ -12,7 +14,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 ----------------------------------------------------------------
 -- config
