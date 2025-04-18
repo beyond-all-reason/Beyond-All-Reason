@@ -2236,7 +2236,19 @@ addNewSquad({
 		{count = 2, unit = "legvflak_scav"}
 	}
 }) --T3 Assault/AA
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav","2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Arty/AA
+addNewSquad({
+	type = "specialLand",
+	weight = 4,
+	maxAnger = tierConfiguration[6].maxAnger,
+	minAnger = tierConfiguration[6].minAnger,
+	units = {
+		{count = 2, unit = "armvang_scav"},
+		{count = 2, unit = "corcat_scav"},
+		{count = 1, unit = "armyork_scav"},
+		{count = 1, unit = "corsent_scav"},
+		{count = 2, unit = "legvflak_scav"}
+	}
+}) --T3 Arty/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 addNewSquad({ type = "specialSea", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 --air
