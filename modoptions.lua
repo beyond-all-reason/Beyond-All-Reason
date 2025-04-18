@@ -244,9 +244,9 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommend: [0.4]. (Ranges: 0 - 0.99)\n"..
-                    "Enable [Unit Market] to allow buying t2 cons\n"..
-					"*Disables: Reclaiming of Allied Units, [Economy and Lab Sharing] and [Assisting Ally Construction] to prevent loopholes\n",
+        "Set to [0] to turn off. Recommend: [0.4]. (Ranges: 0 - 0.99)\n"..
+        "Enable [Unit Market] to allow buying t2 cons\n"..
+        "Disables reclaiming allied units, [Economy and Lab Sharing] and [Assisting Ally Construction] to prevent loopholes\n",
 		type	= "number",
 		def		= 0,
 		min		= 0,

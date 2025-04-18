@@ -103,7 +103,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	if (cmdID == CMD.REPAIR and #cmdParams == 1) then
 		local targetID = cmdParams[1]
 
-		if not targetID or Spring.GetUnitDefID(targetID) == nil then -- ignore ill-formed calls
+		if not Spring.ValidUnitID(targetID) then
 			return true
 		end
 
