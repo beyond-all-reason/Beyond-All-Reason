@@ -2149,8 +2149,31 @@ addNewSquad({
 		{count = 20, unit = "corvamp_scav"}
 	}
 }) --Fighters
-addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[5].minAnger, units = { "20 armsfig_scav","20 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = 1000}) --T2 Gunships
+addNewSquad({
+	type = "specialAirSea",
+	weight = 5,
+	minAnger = tierConfiguration[5].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 20, unit = "armsfig_scav"},
+		{count = 20, unit = "corsfix_scav"}
+	}
+}) --T2 Fighters
+
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	minAnger = tierConfiguration[5].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 15, unit = "armblade_scav"},
+		{count = 15, unit = "armbrawl_scav"},
+		{count = 1, unit = "legfort_scav"},
+		{count = 1, unit = "corcrw_scav"},
+		{count = 1, unit = "corcrwh_scav"},
+		{count = 15, unit = "corape_scav"}
+	}
+}) --T2 Gunships
 ------Tier 3 60-80%
 --Dilluters
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
