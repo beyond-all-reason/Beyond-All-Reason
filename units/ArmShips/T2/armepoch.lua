@@ -198,6 +198,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					noattackrangearc = 1,
+				},
 			},
 			heavyplasma = {
 				accuracy = 600,
@@ -227,6 +230,9 @@ return {
 				damage = {
 					default = 437,
 					vtol = 200,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 			mediumplasma = {

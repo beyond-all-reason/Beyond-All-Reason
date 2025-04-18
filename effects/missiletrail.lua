@@ -1183,7 +1183,7 @@ local definitions = {
                 sidetexture        = [[muzzleside]],
                 size               = 3.8,
                 sizegrowth         = [[0.2 r0.3]],
-                ttl                = 2,
+                ttl                = 3,
                 drawOrder          = 2,
             },
         },

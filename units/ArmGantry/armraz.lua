@@ -23,7 +23,7 @@ return {
 		metalcost = 3800,
 		movementclass = "HBOT4",
 		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/armraz.cob",
+		script = "Units/armraz_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 450,

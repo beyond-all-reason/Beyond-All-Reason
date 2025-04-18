@@ -115,6 +115,7 @@ return {
 				alphadecay = 0.1,
 				areaofeffect = 144,
 				avoidfeature = false,
+				cegtag = "impulse-trail",
 				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,

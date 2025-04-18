@@ -2,19 +2,26 @@
 #include "../recoil_common_includes.h"
 
 piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe, lftoe, rbtoe, rftoe, aimy1,
-	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail;
+	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail,
+	lfootstepf, rfootstepf, lfootstepb, rfootstepb;
 	
 
 static-var  isMoving, restore_delay, mainturretheading;
 // Generated for N:\animations\corjugg_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, stepcount;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
 }
+
+lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
+{
+	return 0;
+}
+
 #define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corjugg_anim_walk_v2.blend 
 	set-signal-mask SIGNAL_MOVE;
@@ -88,6 +95,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:20
+			emit-sfx 4096 + 4 from rfootstepf;
+			//call-script lua_UnitScriptDistortion(2, (get PIECE_XZ(rfootstepf) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepf) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(2, stepcount);
+			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <-40.396259> speed <355.397726> / animSpeed; //delta=11.85 
 			turn lbfoot to z-axis <0.054497> speed <3.355363> / animSpeed; //delta=0.11 
 			turn lbleg to x-axis <-1.272532> speed <116.740392> / animSpeed; //delta=-3.89 
@@ -116,6 +127,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:25
+			emit-sfx 4096 + 4 from lfootstepb;
+			//call-script lua_UnitScriptDistortion(3, (get PIECE_XZ(lfootstepb) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepb) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(3, stepcount);
+			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <-38.214478> speed <65.453430> / animSpeed; //delta=-2.18 
 			turn lbleg to x-axis <2.913103> speed <125.569060> / animSpeed; //delta=-4.19 
 			turn lbleg to y-axis <-0.069229> speed <5.041008> / animSpeed; //delta=0.17 
@@ -322,6 +337,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:60
+			emit-sfx 4096 + 4 from lfootstepf;
+			//call-script lua_UnitScriptDistortion(1, (get PIECE_XZ(lfootstepf) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepf) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(1, stepcount);
+			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <39.275179> speed <428.187650> / animSpeed; //delta=-14.27 
 			turn lbleg to x-axis <6.702107> speed <59.494619> / animSpeed; //delta=1.98 
 			turn lbleg to z-axis <-1.009790> speed <9.694171> / animSpeed; //delta=-0.32 
@@ -354,6 +373,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:65
+			emit-sfx 4096 + 4 from rfootstepb;
+			//call-script lua_UnitScriptDistortion(4, (get PIECE_XZ(rfootstepb) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfootstepb) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(4, stepcount);
+			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <39.119150> speed <4.680865> / animSpeed; //delta=0.16 
 			turn lbfoot to z-axis <-0.333592> speed <25.425057> / animSpeed; //delta=-0.85 
 			turn lbfoot to y-axis <0.140686> speed <11.121313> / animSpeed; //delta=-0.37 
@@ -636,6 +659,7 @@ Create()
 	animSpeed = 5;
 	mainturretheading = 0;
 	restore_delay = 3000;
+	stepcount = 0;
 }
 
 SetMaxReloadTime(reloadMS)

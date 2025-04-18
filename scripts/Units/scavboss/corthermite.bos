@@ -5,7 +5,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, turretr, borer, barrelr, flameflarer;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, randTemp, chillshots, isreset, rollingchill;
+static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -241,14 +241,14 @@ StopMoving()
 #define UNITSIZE 8
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare1;
 	hide flare2;
 	hide aimy1;
-	randTemp = 0;
+	rand = 0;
 	moving = FALSE;
 	//firing = FALSE;
 	isreset = TRUE;
@@ -267,10 +267,6 @@ Create()
 	//start-script puff();
 }
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
 lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
@@ -305,10 +301,10 @@ puff() {
 			set-signal-mask SIG_PUFF;
 			emit-sfx 1024 + 1 from flameflarer;
 			sleep 5000;
-			randTemp = Rand( 3, 5 );
-			sleep randTemp * 1000;
-			randTemp = Rand( 1, 5 );
-			if (randTemp<5) start-script puff();
+			rand = Rand( 3, 5 );
+			sleep rand * 1000;
+			rand = Rand( 1, 5 );
+			if (rand<5) start-script puff();
 		}
 
 }// nothing to see here */
@@ -486,8 +482,6 @@ QuerySecondary(piecenum)
 Shot2() {
 	shotcount2 = shotcount2 + 1;
 	call-script lua_UnitScriptLight(3, shotcount2);
-
-	call-script lua_FlameShot(2);
 	emit-sfx 1024 + 0 from flameflarer;
 }
 

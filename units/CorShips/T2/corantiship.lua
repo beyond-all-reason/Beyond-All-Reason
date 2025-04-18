@@ -36,7 +36,7 @@ return {
 		objectname = "Units/CORANTISHIP.s3o",
 		radardistance = 2950,
 		radaremitheight = 56,
-		script = "Units/CORANTISHIP.cob",
+		script = "Units/CORANTISHIP_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
 		sightdistance = 1000,

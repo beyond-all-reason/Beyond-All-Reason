@@ -417,6 +417,11 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
+lua_UnitScriptDistortion(lightIndex, count)
+{
+	return 0;
+}
+
 
 RestoreAfterDelay()
 {
@@ -494,6 +499,10 @@ FireWeapon1()
 	// only triggered on first salvo!
 	gun_1 = 0;
 	//dbg(gun_1);
+	call-script lua_UnitScriptLight(3, shotcount);
+	call-script lua_UnitScriptLight(4, shotcount);
+	call-script lua_UnitScriptLight(5, shotcount);
+	call-script lua_UnitScriptLight(6, shotcount);
 	turn aimy1 to x-axis <-1> now;
 	turn aimy1 to x-axis <0> speed <5>;
 }
@@ -505,6 +514,8 @@ Shot1()
 	gun_1 = (gun_1  + 1) %6;
 	if (gun_1 <= 1) {
 		call-script lua_UnitScriptLight(2 - gun_1, shotcount);
+		//call-script lua_UnitScriptDistortion(1, shotcount);
+		call-script lua_UnitScriptDistortion(2 - gun_1, shotcount);
 		shotcount = shotcount + 1;
 	}
 

@@ -24,7 +24,7 @@ return {
 		noautofire = true,
 		objectname = "Units/CORFMD.s3o",
 		radardistance = 50,
-		script = "Units/CORFMD.cob",
+		script = "Units/CORFMD_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 195,

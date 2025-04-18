@@ -200,13 +200,10 @@ local luaShaderDir = "LuaUI/Include/"
 -----------------------------------------------------------------
 
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local vsx, vsy, vpx, vpy
 local texPaddingX, texPaddingY = 0,0
-
-
-local screenQuadList
-local screenWideList
 
 local gbuffFuseFBO
 local ssaoFBO
@@ -222,6 +219,10 @@ local gaussianBlurShader
 local ssaoShaderCache
 local gbuffFuseShaderCache
 local gaussianBlurShaderCache
+
+local texrectShader = nil
+local texrectFullVAO = nil
+local texrectPaddedVAO = nil
 
 local unitStencilTexture
 
@@ -440,7 +441,7 @@ local function InitGL()
 	end
 
 	gbuffFuseShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."gbuffFuse.frag.glsl",
 		uniformInt = {
 			modelDepthTex = 1,
@@ -457,7 +458,7 @@ local function InitGL()
 	gbuffFuseShader = LuaShader.CheckShaderUpdates(gbuffFuseShaderCache)
 
 	ssaoShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."ssao.frag.glsl",
 		uniformInt = {
 			viewPosTex = 5,
@@ -492,7 +493,7 @@ local function InitGL()
 
 
 	gaussianBlurShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."gaussianBlur.frag.glsl",
 		uniformInt = {
 			tex = 0,
@@ -516,43 +517,29 @@ local function InitGL()
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
 	end)
 
+	texrectShader = LuaShader.CheckShaderUpdates({
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
+		fssrcpath = shadersDir.."texrect_screen.frag.glsl",
+		uniformInt = {
+			tex = 0,
+		},
+		uniformFloat = {
+			uniformparams = {0,0,0,0},
+		},
+		silent = true, -- suppress compilation messages
+		shaderConfig = {},
+		shaderName = widgetName..": texrect",
+	})
+	
+	texrectFullVAO = MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
+
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0, 1.0, 1.0)
-	--screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1000, 1000, 0.0, 0.0,
-	--	1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-	screenWideList = gl.CreateList(function()
+	texrectPaddedVAO = MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
 
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PushMatrix()
-		gl.LoadIdentity()
-
-			gl.MatrixMode(GL.PROJECTION)
-			gl.PushMatrix()
-			gl.LoadIdentity()
-
-
-			gl.TexRect(-1, -1, 1, 1, 0.0, 0.0,
-				1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-
-			gl.MatrixMode(GL.PROJECTION)
-			gl.PopMatrix()
-
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PopMatrix()
-		end
-	)
 
 end
 
 local function CleanGL()
-
-	if screenQuadList then
-		gl.DeleteList(screenQuadList)
-	end
-
-	if screenWideList then
-		gl.DeleteList(screenWideList)
-	end
 
 	gl.DeleteTexture(ssaoTex)
 	if gbuffFuseViewPosTex then gl.DeleteTexture(gbuffFuseViewPosTex) end
@@ -566,6 +553,7 @@ local function CleanGL()
 	ssaoShader:Finalize()
 	gbuffFuseShader:Finalize()
 	gaussianBlurShader:Finalize()
+	texrectShader:Finalize()
 end
 
 
@@ -668,8 +656,8 @@ local function DoDrawSSAO()
 			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 			glTexture(1, "$model_gbuffer_zvaltex")
 			glTexture(4, "$map_gbuffer_zvaltex")
-
-			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+			
+			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
 			glTexture(1, false)
 			glTexture(4, false)
@@ -689,8 +677,8 @@ local function DoDrawSSAO()
 				glTexture(5, gbuffFuseViewPosTex)
 			end
 			glTexture(0, "$model_gbuffer_normtex")
-
-			gl.CallList(screenQuadList)
+			
+			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
 			for i = 0, 6 do glTexture(i,false) end
 		ssaoShader:Deactivate()
@@ -703,14 +691,14 @@ local function DoDrawSSAO()
 
 				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 				prevFBO = gl.RawBindFBO(ssaoBlurFBO)
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+				texrectFullVAO:DrawArrays(GL.TRIANGLES)
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoBlurTex)
 
 				gaussianBlurShader:SetUniform("strengthMult", shaderConfig.SSAO_ALPHA_POW/ 7.0) --vertical blur
 				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 				prevFBO = gl.RawBindFBO(ssaoFBO)
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+				texrectFullVAO:DrawArrays(GL.TRIANGLES)
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoTex)
 
@@ -732,9 +720,10 @@ local function DoDrawSSAO()
 		end
 	end
 	-- Already bound
-	--glTexture(0, ssaoBlurTexes[1])
+	texrectShader:Activate()
+	texrectPaddedVAO:DrawArrays(GL.TRIANGLES)
+	texrectShader:Deactivate()
 
-	gl.CallList(screenWideList)
 
 	glTexture(0, false)
 	glTexture(1, false)
@@ -745,27 +734,16 @@ local function DoDrawSSAO()
 	glTexture(6, false)
 	glTexture(7, false)
 
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.DepthMask(true) --"BK OpenGL state resets", already commented out
+	-- Extremely important, this is the state that we have to leave when exiting DrawWorldPreParticles!
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(false) --"BK OpenGL state resets", already commented out
 	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
-local drawFrame = -1
---function widget:DrawWorldPreParticles()
--- NOTE THAT DrawWorldPreParticles is called multiple times per frame, and also has a bug where only the buttom half of the screen gets SSAO
-function widget:DrawWorld()
-	local df = Spring.GetDrawFrame()
-	if df == drawFrame then
-		return
-	else
-		drawFrame = df
-	end
+function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	if shaderConfig.ENABLE == 0 then return end
-	DoDrawSSAO(false)
-
-	if delayedUpdateSun and os.clock() > delayedUpdateSun then
-		Spring.SendCommands("luarules updatesun")
-		delayedUpdateSun = nil
+	if drawAboveWater and not drawReflection and not drawRefraction then
+		DoDrawSSAO()
 	end
 end
 
