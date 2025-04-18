@@ -2130,8 +2130,25 @@ addNewSquad({
 		{count = 3, unit = "corawac_scav"}
 	}
 }) --T2 Air Scouts
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = 1000}) --EMP Bombers
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = 1000}) --Fighters
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	minAnger = tierConfiguration[5].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 2, unit = "armstil_scav"}
+	}
+}) --EMP Bombers
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	minAnger = tierConfiguration[5].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 20, unit = "armhawk_scav"},
+		{count = 20, unit = "corvamp_scav"}
+	}
+}) --Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[5].minAnger, units = { "20 armsfig_scav","20 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 4, maxAnger = 1000}) --T2 Gunships
 ------Tier 3 60-80%
