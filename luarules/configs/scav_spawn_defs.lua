@@ -2120,7 +2120,16 @@ addNewSquad({
 	}
 }) --T2 Arty/AA
 --air
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = 1000}) --T2 Air Scouts
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	minAnger = tierConfiguration[5].minAnger,
+	maxAnger = 1000,
+	units = {
+		{count = 3, unit = "armawac_scav"},
+		{count = 3, unit = "corawac_scav"}
+	}
+}) --T2 Air Scouts
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = 1000}) --EMP Bombers
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = 1000}) --Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[5].minAnger, units = { "20 armsfig_scav","20 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
