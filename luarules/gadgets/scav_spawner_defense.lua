@@ -712,18 +712,20 @@ if gadgetHandler:IsSyncedCode() then
 		if scavType then
 			if not count then count = 1 end
 			squad = { count .. " " .. scavType }
-			for i, sString in pairs(squad) do
-				local nEnd, _ = string.find(sString, " ")
-				if nEnd then
-					local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-					local unitNumber = total and math.random(1, total) or 1
-					local scavName = string.sub(sString, (nEnd + 1))
+			for i, squadTable in pairs(squad.units) do
+				local unitNumber = squadTable.count
+				local scavName = squadTable.unit
+				if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 					for j = 1, unitNumber, 1 do
 						if mRandom() <= config.spawnChance or j == 1 then
 							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
 						end
 					end
+				elseif not UnitDefNames[scavName] then
+					Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+				else
+					Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 				end
 			end
 		else
@@ -791,18 +793,20 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if squad then
-				for i, sString in pairs(squad.units) do
-					local nEnd, _ = string.find(sString, " ")
-					if nEnd then
-						local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-						local unitNumber = total and math.random(1, total) or 1
-						local scavName = string.sub(sString, (nEnd + 1))
+				for i, squadTable in pairs(squad.units) do
+					local unitNumber = squadTable.count
+					local scavName = squadTable.unit
+					if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 						for j = 1, unitNumber, 1 do
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
 							end
 						end
+					elseif not UnitDefNames[scavName] then
+						Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+					else
+						Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 					end
 				end
 			end
@@ -824,18 +828,20 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if squad then
-					for i, sString in pairs(squad.units) do
-						local nEnd, _ = string.find(sString, " ")
-						if nEnd then
-							local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-							local unitNumber = total and math.random(1, total) or 1
-							local scavName = string.sub(sString, (nEnd + 1))
+					for i, squadTable in pairs(squad.units) do
+						local unitNumber = squadTable.count
+						local scavName = squadTable.unit
+						if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 							for j = 1, unitNumber, 1 do
 								if mRandom() <= config.spawnChance or j == 1 then
 									squadCounter = squadCounter + 1
 									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
 								end
 							end
+						elseif not UnitDefNames[scavName] then
+							Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+						else
+							Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 						end
 					end
 				end
@@ -1330,19 +1336,20 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if squad then
-						for i, sString in pairs(squad.units) do
-							local nEnd, _ = string.find(sString, " ")
-							if nEnd then
-								local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-								local unitNumber = total and math.random(1, total) or 1
-								local scavName = string.sub(sString, (nEnd + 1))
+						for i, squadTable in pairs(squad.units) do
+							local unitNumber = squadTable.count
+							local scavName = squadTable.unit
+							if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 								for j = 1, unitNumber, 1 do
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
 										table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-										cCount = cCount + 1
 									end
 								end
+							elseif not UnitDefNames[scavName] then
+								Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+							else
+								Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 							end
 						end
 					end
@@ -1364,19 +1371,20 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 						if squad then
-							for i, sString in pairs(squad.units) do
-								local nEnd, _ = string.find(sString, " ")
-								if nEnd then
-									local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-									local unitNumber = total and math.random(1, total) or 1
-									local scavName = string.sub(sString, (nEnd + 1))
+							for i, squadTable in pairs(squad.units) do
+								local unitNumber = squadTable.count
+								local scavName = squadTable.unit
+								if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 									for j = 1, unitNumber, 1 do
 										if mRandom() <= config.spawnChance or j == 1 then
 											squadCounter = squadCounter + 1
 											table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-											cCount = cCount + 1
 										end
 									end
+								elseif not UnitDefNames[scavName] then
+									Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+								else
+									Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 								end
 							end
 						end
