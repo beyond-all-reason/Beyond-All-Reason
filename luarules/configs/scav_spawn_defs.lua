@@ -2301,8 +2301,24 @@ addNewSquad({
 	}
 }) --T2 Gunships
 ------Tier 4 80%+
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
-addNewSquad({ type = "specialSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({
+	type = "specialLand",
+	weight = 3,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[7].minAnger,
+	units = {
+		{count = 10 , unit = "armvadert4_scav"}
+	}
+}) --Epic Tumbleweeds
+addNewSquad({
+	type = "specialSea",
+	weight = 3,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[7].minAnger,
+	units = {
+		{count = 10, unit = "armvadert4_scav"}
+	}
+}) --Epic Tumbleweeds
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
