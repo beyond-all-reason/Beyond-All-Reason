@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = 'Attached Construction Turret',
@@ -173,7 +175,6 @@ local function auto_repair_routine(unitID,unitDefID)
 
 	for XX, near_unit in pairs(near_units) do
 		-- check for nanoframe to build
-		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
 			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
 				if SpGetUnitIsBeingBuilt(near_unit) then

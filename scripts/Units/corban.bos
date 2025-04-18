@@ -135,8 +135,6 @@ AimPrimary(heading, pitch)
 	// logic to reset gun to neutral if the target heading has been
 	// out of firing arc for ~3 seconds
 	ourheading = heading;
-	if (heading < -24576) ourheading = -24576;
-	if (heading > 24576) ourheading = 24576;
 
 
 	turn turret to y-axis ourheading speed <125.000000>;

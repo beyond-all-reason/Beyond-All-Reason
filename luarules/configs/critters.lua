@@ -1,7 +1,4 @@
 local rnd = math.random
-local ceil = math.ceil
-local multiplier = rnd(1, 100) / 100        -- use this if you want a bit of uniformity amongst multiple randoms
-
 
 -- USE LOWERCASE MAPNAMES (partial mapnames work too!)
 local critterConfig = {
@@ -116,7 +113,7 @@ local critterConfig = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 6100 }, unitNames = { ["critter_gull"] = rnd(7, 12) } },
 	},
 
-	["neurope_a7"] = {
+	["neurope"] = {
 		{ spawnBox = { x1 = 14400, z1 = 20, x2 = 16200, z2 = 1250 }, unitNames = { ["critter_penguin"] = rnd(5, 10) } },
 		{ spawnCircle = { x = 3950, z = 580, r = 600 }, unitNames = { ["critter_penguin"] = rnd(6, 14) } },
 		{ spawnCircle = { x = 3950, z = 580, r = 850 }, unitNames = { ["critter_gull"] = rnd(0, 2) } },
@@ -203,29 +200,6 @@ local critterConfig = {
 		{ spawnCircle = { x = 6600, z = 6200, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
 		{ spawnCircle = { x = 4000, z = 4800, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
 		{ spawnCircle = { x = 11800, z = 7300, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
-	},
-
-	["supreme battlefield"] = {
-		{ spawnCircle = { x = 11500, z = 12500, r = 2700 }, unitNames = { ["critter_goldfish"] = rnd(3, 10) } },
-		{ spawnCircle = { x = 15000, z = 10500, r = 300 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 4700, z = 3900, r = 2700 }, unitNames = { ["critter_goldfish"] = rnd(3, 10) } },
-		{ spawnCircle = { x = 1700, z = 5700, r = 300 }, unitNames = { ["critter_goldfish"] = rnd(0, 2) } },
-		{ spawnCircle = { x = 13950, z = 2900, r = 900 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 2450, z = 13450, r = 900 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
-		{ spawnBox = { x1 = 100, z1 = 100, x2 = 16200, z2 = 16200 }, unitNames = { ["critter_gull"] = rnd(10, 20) } },
-		{ spawnBox = { x1 = 100, z1 = 100, x2 = 16200, z2 = 16200 }, unitNames = { ["critter_goldfish"] = rnd(66, 150) } },
-	},
-
-	["small supreme battlefield"] = {
-		{ spawnCircle = { x = 5800, z = 6250, r = 1300 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 7500, z = 5200, r = 200 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 2350, z = 1950, r = 1300 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 850, z = 2850, r = 200 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 7000, z = 1450, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
-		{ spawnCircle = { x = 1220, z = 6720, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
-		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(7, 12) } },
-		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(50, 100) } },
-		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 	["supreme crossing"] = {

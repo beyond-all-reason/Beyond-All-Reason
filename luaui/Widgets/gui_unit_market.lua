@@ -2,6 +2,8 @@ if not Spring.GetModOptions().unit_market then
     return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo() return {
     name    = "Unit Market",
     desc    = "Allows players to trade units with each other. Allies only. Fair price!",
@@ -84,9 +86,6 @@ local spGetGameFrame        = Spring.GetGameFrame
 local spGetUnitHealth       = Spring.GetUnitHealth
 
 local myTeamID              = Spring.GetMyTeamID()
-local myAllyTeamID          = Spring.GetMyAllyTeamID()
-local gaiaTeamID            = Spring.GetGaiaTeamID()
-local myPlayerID            = Spring.GetMyPlayerID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -112,7 +111,6 @@ local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 
 local unitMarket = Spring.GetModOptions().unit_market
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local math_sqrt = math.sqrt
@@ -166,7 +164,7 @@ local uiScale = (0.7 + (vsx * vsy / 6500000))
 
 local fontSize = fontfileSize * 0.4
 
-local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiPadding, uiScale
+local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiScale
 
 local uiElementRect = {0,0,0,0}
 local buyButtons = {}
@@ -654,16 +652,6 @@ local function DrawT2TradeDock()
     t2conDockShown = true
 end
 
-local function DoIhaveAllies()
-    local alliedTeams = spGetTeamList(myAllyTeamID)
-    for i = 1, #alliedTeams do
-        if myTeamID ~= alliedTeams[i] then
-            return true
-        end
-    end
-    return false
-end
-
 local function updatedSeePrices(value)
     if value then
         DrawUnitTradeInfo = function()
@@ -723,7 +711,6 @@ local function getIgnoreList()
         ignoreTeam[teamID] = false
 	end
     -- if you are debugging, comment this section
-    loneTeamPlayer = not DoIhaveAllies()
     for _, allyTeamID in ipairs(spGetAllyTeamList()) do
         local allyTeamTeams = spGetTeamList(allyTeamID)
         local hasHumanPlayers = false
@@ -797,11 +784,8 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged(playerID)
-    myPlayerID = Spring.GetMyPlayerID()
 	myTeamID = Spring.GetMyTeamID()
-    myAllyTeamID = Spring.GetMyAllyTeamID()
     isSpectating, fullview = spGetSpectatingState()
-    loneTeamPlayer = not DoIhaveAllies()
     InitFindSales()
 end
 
@@ -975,8 +959,7 @@ function widget:ViewResize(n_vsx, n_vsy)
 	UiButton = WG.FlowUI.Draw.Button
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math_floor(elementPadding * 4.5)
-    
+
     -- I'll dynamically resize it before showing it...
 	uiElementRect = {
 		(vsx * 0.7), vsy * 0.959 - 80,

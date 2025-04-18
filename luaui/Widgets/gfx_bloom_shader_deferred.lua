@@ -7,6 +7,8 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader Deferred", --(v0.5)
@@ -579,7 +581,6 @@ local function Bloom()
 		glUniform(   brightShaderFragLoc, glowAmplifier)
 		--glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
 		--glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
-		local gf = Spring.GetGameFrame()
 		glUniform(   brightShaderTimeLoc, df)
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")

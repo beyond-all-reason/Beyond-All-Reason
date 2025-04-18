@@ -42,9 +42,8 @@
 		},
 		"fac_strider": {                        //t3 factory 9x9
 			"type": ["rectangle", "factory"],
-			"size": [9, 9],
-			"yard":[20, 5],
-			"offset": [0, 5],
+			"offset": [0, 4],
+			"yard": [6, 8],
 			"ignore":["none"]
 		},
 		"solar": {
@@ -168,7 +167,7 @@
 		"fac_land_t1": ["armlab", "armvp", "armhp", "corlab", "corvp", "corhp"],
 		"fac_water": ["armsy", "armasy", "corsy", "corasy"],
 		"fac_air":["armap","armaap", "corap", "coraap"],
-		"fac_strider": ["armshltx", "corgant"],
+		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw"],
 		"solar": ["armsolar", "corsolar"],
 		"advsolar":["armadvsol", "coradvsol"],
 		"wind": ["armwin", "corwin", "armtide", "cortide"],

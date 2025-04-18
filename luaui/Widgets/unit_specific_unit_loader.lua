@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name		= "Specific Unit Loader",
@@ -18,7 +20,7 @@ local allyTeam = Spring.GetMyAllyTeamID()
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords

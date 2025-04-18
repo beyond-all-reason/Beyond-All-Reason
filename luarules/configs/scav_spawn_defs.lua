@@ -275,6 +275,7 @@ local LandUnitsList = {
 			["corpyro_scav"] = 4,
 			["corseal_scav"] = 3,
 			["coramph_scav"] = 3,
+			["corphantom_scav"] = 3,
 			--Legion
 			["legmrv_scav"] = 4,
 			["legstr_scav"] = 4,
@@ -384,8 +385,10 @@ local LandUnitsList = {
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
-			["legpede_scav"] = 2,
+			["legpede_scav"] = 1,
 			["legkeres_scav"] = 4,
+			["legeshotgunmech_scav"] = 2,
+			["legbunk_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -401,7 +404,9 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
-			["legerailtank_scav"] = 2,
+			["legerailtank_scav"] = 3,
+			["legeheatraymech_scav"] = 2,
+			["legelrpcmech_scav"] = 3,
 		},
 	},
 	Support = {
@@ -1247,6 +1252,7 @@ local Turrets = {
 		["coruwadves_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 3},
 		["armmmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["cormmkr_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["legadveconv_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["armuwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		["coruwmmm_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		-- Factories
@@ -1306,6 +1312,7 @@ local Turrets = {
 		--Eco
 		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["legafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Factories
 		["armshltx_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1315,6 +1322,7 @@ local Turrets = {
 		--misc
 		["armgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["corgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["leggatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
 	[7] = {
 		--Epic Bulwark and Pulsar/rag/cal
@@ -1323,6 +1331,13 @@ local Turrets = {
 		["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		--Eco
+		["armafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["corafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["legafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["armmmkrt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["cormmkrt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["legadveconvt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
 	},
 }
 
@@ -2014,9 +2029,17 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 	["corageo"] = true,
 	["armafus"] = true,
 	["corafus"] = true,
+	["legafus"] = true,
+	["armafust3"] = true,
+	["corafust3"] = true,
+	["legafust3"] = true,
 	-- T2 Metal Makers
 	["armmmkr"] = true,
 	["cormmkr"] = true,
+	["legadveconv"] = true,
+	["armmmkrt3"] = true,
+	["cormmkrt3"] = true,
+	["legadveconvt3"] = true,
 	["armuwmmm"] = true,
 	["coruwmmm"] = true,
 	-- T2 Metal Extractors

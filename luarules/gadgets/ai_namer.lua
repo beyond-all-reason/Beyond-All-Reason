@@ -1,5 +1,7 @@
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "AI namer",
@@ -19,6 +21,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- Contributors
 		"AF",
 		"ACowAdonis",
+		"AidanNaut",
+		"Ambulatory Cortex",
 		"AKU",
 		"AlexS",
 		"AlKo",
@@ -28,16 +32,23 @@ if gadgetHandler:IsSyncedCode() then
 		"bluejay",
 		"Borg King",
 		"Born2Crawl",
+		"BONELESS DRAGON HAM",
+		"BrassCode",
+		"Calm Phill",
+		"chesiren",
 		"ChrisFloofyKitsune",
+		"Chirick2051",
 		"citrine",
 		"CMDR*Zod",
 		"Damgam",
 		"deadlypants",
 		"Devious Null",
 		"Doo",
+		"duke_of_gloat",
 		"drivver44",
 		"DrWizzard",
 		"EnderRobo",
+		"Endorphins",
 		"Errrrrrr",
 		"Fireball",
 		"FireStorm",
@@ -72,6 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Mist-e-Fire",
 		"Monty",
 		"Moose",
+		"mupersega",
 		"Nathan Sharples",
 		"Nightmare",
 		"Nihilore",
@@ -99,8 +111,10 @@ if gadgetHandler:IsSyncedCode() then
 		"Scopa",
 		"SethDGamre",
 		"Shadhunter",
+		"Shadowisperke",
 		"Skymirrh",
 		"skynet",
+		"smellymoo",
 		"smile",
 		"sprEEEzy",
 		"Sprung",
@@ -121,8 +135,9 @@ if gadgetHandler:IsSyncedCode() then
 		"Yaribz",
 		"Zagupi",
 		"Zecrus",
+		"ZephyrSkies",
 
-		-- Supporters ($20+ Donation)
+		-- Supporters ($40+ Donation & personal request)
 		"aeon",
 		"Aknaroth",
 		"badosu",
@@ -131,6 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		"BoT0x",
 		"Canyoudigit84",
 		"catraxx",
+		"Chrono", -- Donater $100
 		"Coresample",
 		"danielquinn",
 		"dallabill",
@@ -139,15 +155,20 @@ if gadgetHandler:IsSyncedCode() then
 		"Diana",
 		"EnJoY",
 		"ewang",
+		"FishouseMike", --Donater $40
 		"FlorisXIV",
 		"fluxtux",
 		"Glass",
 		"greggy4485",
 		"Hershy",
+		"ISolox",
+		"Jaedrik",
 		"Jazcash",
 		"JimmiBoy",
+		"kabab",
 		"Kalladin",
 		"kaofeiwei",
+		"Kei", -- Donater $100
 		"keithphw",
 		"Kodiak",
 		"Lightjohn",
@@ -159,6 +180,7 @@ if gadgetHandler:IsSyncedCode() then
 		"MelKaven",
 		"mordante",
 		"MoustacheG",
+		"MVPete", --Donater $50
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
@@ -175,6 +197,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Rikerss", --Merch $20+
 		"Sovgut", --Tourney prize $50
 		"Shadowisper",
+		"SkyFire",
 		"[SMRT]Felnious", --Donater $50
 		"[SMRT]RobotRobert03", --Donater $50
 		"Spanker",
@@ -185,6 +208,8 @@ if gadgetHandler:IsSyncedCode() then
 		"TIMBO",
 		"Titan",
 		"TopHatButcher",
+		"Twardowsky",
+		"Unusual Emphasis",
 		"Woody",
 		"Yavarin",
 		"Zagupi",

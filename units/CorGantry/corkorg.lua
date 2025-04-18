@@ -12,8 +12,8 @@ return {
 		energymake = 300,
 		energystorage = 5000,
 		explodeas = "korgExplosion",
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 6,
+		footprintz = 6,
 		health = 149000,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -23,7 +23,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 12,
 		metalcost = 29000,
-		movementclass = "VBOT5",
+		movementclass = "VBOT6",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
 		script = "Units/corkorg.cob",
@@ -165,7 +165,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 6,
 				tolerance = 10000,
 				turret = true,
@@ -217,6 +216,10 @@ return {
 				weaponvelocity = 2600,
 				damage = {
 					default = 800,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
 				},
 			},
 			krogfootstep = {

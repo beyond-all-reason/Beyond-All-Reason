@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage',
@@ -48,6 +50,8 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
 		
 		['armmine1'] = true,
 		['armmine2'] = true,

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Options",
@@ -309,6 +311,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
+
 	widgetScale = (vsy / 1080)
 
 	screenHeight = math.floor(screenHeightOrg * widgetScale)
@@ -2316,12 +2319,12 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
+		--{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+		--	  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		--  end,
+		--},
 
 		-- luaintro sets grounddetail to 200 every launch anyway
 		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
@@ -2426,7 +2429,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.4, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
 		  end,
@@ -2434,7 +2437,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.4, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
 		  end,
@@ -2763,6 +2766,24 @@ function init()
 					init()
 				end
 			end
+		},
+		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackAprilFoolsPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
 		},
 		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
 			onchange = function(i, value)
@@ -3203,7 +3224,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', '.lockcamera', 'SetLockTransitionTime', { 'transitionTime' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetTransitionTime', { 'transitionTime' }, value)
 		  end,
 		},
 
@@ -3220,7 +3241,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetHideEnemies', { 'lockcameraHideEnemies' }, value)
 		  end,
 		},
 		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_los'), type = "bool", value = (WG.lockcamera and WG.lockcamera.GetLos()), description = Spring.I18N('ui.settings.option.lockcamera_los_descr'),
@@ -3228,7 +3249,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_los", { 'lockcameraLos' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLockLos', { 'lockcameraLos' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLos', { 'lockcameraLos' }, value)
 		  end,
 		},
 
@@ -3301,7 +3322,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.014), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -3339,6 +3360,12 @@ function init()
 		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
+		{ id = "rendertotexture", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
+				Spring.SendCommands("luaui reload")
+			end,
+		},
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onload = function(i)
@@ -3898,18 +3925,14 @@ function init()
 			  saveOptionValue('Health Bars GL4', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
-		{ id = "healthbarsheight", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsheight'), type = "slider", min = 0.7, max = 2, step = 0.1, value = 0.9, description = '',
+		{ id = "healthbarsheight", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsheight'), type = "slider", min = 0.7, max = 2, step = 0.1, value = (WG['healthbar'] ~= nil and WG['healthbar'].getHeight() or 0.9), description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars GL4", "healthbarsheight", { 'barHeight' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] >= 0.5 then
-				  widgetHandler:DisableWidget("Health Bars GL4")
-				  saveOptionValue('Health Bars GL4', nil, nil, { 'barHeight' }, value)
-				  widgetHandler:EnableWidget("Health Bars GL4")
-			  else
-				  saveOptionValue('Health Bars GL4', nil, nil, { 'barHeight' }, value)
-			  end
+			saveOptionValue('Health Bars GL4', "healthbars", "setHeight", { 'barHeight' }, value)
+			widgetHandler:DisableWidget("Health Bars GL4")
+			widgetHandler:EnableWidget("Health Bars GL4")
 		  end,
 		},
 		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.healthbarsvariable'), type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = Spring.I18N('ui.settings.option.healthbarsvariable_descr'),
@@ -4725,7 +4748,7 @@ function init()
 		  end,
 		},
 
-		{ id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = Spring.I18N('ui.settings.option.autocheat'), type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = Spring.I18N('ui.settings.option.autocheat_descr') },
+		{ id = "autocheat", group = "dev", category = types.dev, widget = "Dev Auto cheat", name = Spring.I18N('ui.settings.option.autocheat'), type = "bool", value = GetWidgetToggleValue("Dev Auto cheat"), description = Spring.I18N('ui.settings.option.autocheat_descr') },
 		{ id = "restart", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
@@ -5754,9 +5777,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if not isPotatoGpu and gpuMem <= 4500 then
-		options[getOptionByID('advmapshading')].category = types.basic
-	end
+	--if not isPotatoGpu and gpuMem <= 4500 then
+	--	options[getOptionByID('advmapshading')].category = types.basic
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -5803,6 +5826,17 @@ function init()
 		options[getOptionByID('spectator_hud_metric_utilityValue')] = nil
 		options[getOptionByID('spectator_hud_metric_economyValue')] = nil
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
+	end
+
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 1 then
+		if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
+			options[getOptionByID('soundtrackAprilFools')] = nil
+		else
+			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
+		end
+	else
+		options[getOptionByID('soundtrackAprilFools')] = nil
+		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -5954,9 +5988,9 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				Spring.SendCommands("advmapshading 0")
-			end
+			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+			--	Spring.SendCommands("advmapshading 0")
+			--end
 
 		end
 
@@ -6487,8 +6521,8 @@ function widget:Initialize()
 			Spring.SendCommands("water 0")
 			Spring.SetConfigInt("Water", 0)
 
-			Spring.SetConfigInt("AdvMapShading", 0)
-			Spring.SendCommands("advmapshading 0")
+			--Spring.SetConfigInt("AdvMapShading", 0)
+			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)

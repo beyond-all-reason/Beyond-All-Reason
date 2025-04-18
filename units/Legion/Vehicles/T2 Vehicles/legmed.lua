@@ -144,6 +144,10 @@ return {
 					commanders = 200,
 					default = 500,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
+				},
 			},
 			laser = {
 				areaofeffect = 8,
@@ -170,7 +174,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "beamershot2",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 1.4,
 				tolerance = 10000,
 				turret = true,
@@ -185,13 +188,13 @@ return {
 			[1] = {
 				def = "LASER",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "LEGMED_MISSILE",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 				slaveto = 1,
 			},

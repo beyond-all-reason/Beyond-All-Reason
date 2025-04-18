@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "API Resource Spot Builder (mex/geo)",
@@ -142,7 +144,7 @@ local function spotHasExtractorQueued(spot, builders)
 
 	else
 		for i=1, #builders do
-			local hasOrder = checkQueue(Spring.GetCommandQueue(builders[i], 100))
+			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100))
 			if hasOrder then
 				return true
 			end
@@ -305,7 +307,7 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 
 	local function hasExistingGuardOrder(uid)
-		local queue = Spring.GetCommandQueue(uid, 10)
+		local queue = Spring.GetUnitCommands(uid, 10)
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then

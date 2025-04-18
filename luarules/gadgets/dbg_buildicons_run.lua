@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Build Icons Slowy (/luarules buildiconslow or buildiconanim or buildiconanimslow)",

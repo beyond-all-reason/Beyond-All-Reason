@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
@@ -42,6 +44,8 @@ local commanderNameList = {}
 local usedFontSize = fontSize
 
 local widgetScale = (1 + (vsx * vsy / 5500000))
+local startPosRatio = 0.0001
+local startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
@@ -180,26 +184,9 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 
-local scavengerAIAllyTeamID
-local raptorsAIAllyTeamID
-local teams = Spring.GetTeamList()
+local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		local scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		local raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
@@ -311,6 +298,9 @@ local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+
+	startConeShader:SetUniformFloat("startPosScale", startPosScale)
+
 	startConeVBOTable:draw()
 	startConeShader:Deactivate()
 end
@@ -559,6 +549,8 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = x, y
 	widgetScale = (0.75 + (vsx * vsy / 7500000))
+
+	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))

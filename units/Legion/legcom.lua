@@ -97,6 +97,7 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			combatradius = 600,
+			maxrange = 300,
 			iscommander = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
@@ -203,8 +204,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray1",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
-				thickness = 2,
+				--thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

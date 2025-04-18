@@ -144,6 +144,10 @@ return {
 					default = 300,
 					subs = 150,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 817,
+				},
 			},
 		},
 		weapons = {

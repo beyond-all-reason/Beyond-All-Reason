@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Continuous Aim",
@@ -33,6 +35,7 @@ local convertedUnitsNames = {
 	['corcrash'] = 5,
 	['legkark'] = 2,
 	['corkark'] = 2,
+	['cordeadeye'] =2,
 	['armsnipe'] = 2,
 	['armfido'] = 3,
 	['armfboy'] = 2,
@@ -123,8 +126,11 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
     ['legmed'] = 5,
 	['legaheattank'] = 3,
+	['legeheatraymech'] = 1,
+	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,
+	['legeshotgunmech'] = 3,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',

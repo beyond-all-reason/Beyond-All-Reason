@@ -1,5 +1,7 @@
 local versionNum = '5.00'
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Auto Group",
@@ -157,8 +159,7 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
-					if finishedBuilding then
+					if immediate or not GetUnitIsBeingBuilt(unitID) then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end
@@ -218,7 +219,7 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(uID)
 		local group = unit2group[unitDefID]
-		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last 
+		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last
 			SetUnitGroup(uID, -1)
 		end
 
@@ -275,7 +276,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and Spring.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)
