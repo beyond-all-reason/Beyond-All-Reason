@@ -121,11 +121,26 @@ local options = {
         def		= "com",
         section	= "options_main",
         items	= {
-            { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated"},
-            { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses"},
-            { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses" },
-            { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!"},
-            { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign."},
+            { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated", lock = {"territorial_domination_config"} },
+            { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses", lock = {"territorial_domination_config"} },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
+            { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses", lock = {"territorial_domination_config"} },
+            { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!", lock = {"territorial_domination_config"} },
+            { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign.", lock = {"territorial_domination_config"} },
+        }
+    },
+
+    {
+        key		= "territorial_domination_config",
+        name	= "Territorial Domination Duration",
+        desc	= "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+        type	= "list",
+        def		= "default",
+        section	= "options_main",
+        items	= {
+            { key= "short", 	name= "Short", 		desc= "6 minutes grace period, 18 minute until the maximum territory is required" },
+            { key= "default", 	name= "Default", 	desc= "6 minutes grace period, 24 minute until the maximum territory is required" },
+            { key= "long", 		name= "Long", 		desc= "6 minutes grace period, 36 minute until the maximum territory is required" },
         }
     },
 
