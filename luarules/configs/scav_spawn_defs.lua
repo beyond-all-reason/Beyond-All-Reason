@@ -2280,6 +2280,8 @@ addNewSquad({
 }) --T2 Fighters
 addNewSquad({
 	type = "specialAirSea",
+	weight = 5,
+	maxAnger = 1000,
 	minAnger = tierConfiguration[6].minAnger,
 	units = {
 		{count = 40, unit = "armsfig_scav"},
