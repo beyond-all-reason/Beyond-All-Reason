@@ -706,7 +706,9 @@ if gadgetHandler:IsSyncedCode() then
 				for i, sString in pairs(squad.units) do
 					local nEnd, _ = string.find(sString, " ")
 					if nEnd then
-						local raptorName = squad.units.unit
+						local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+						local unitNumber = total and math.random(1, total) or 1
+						local raptorName = string.sub(sString, (nEnd + 1))
 						for j = 1, unitNumber, 1 do
 							squadCounter = squadCounter + 1
 							table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
