@@ -133,3 +133,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, {0}, 0)
 	end
 end
+
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+	if(capture) then
+		return true
+	end
+	return not Spring.GetUnitIsBeingBuilt(unitID)
+end
