@@ -2268,9 +2268,38 @@ addNewSquad({
 	}
 }) --Epic Tumbleweeds
 --air
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
-addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[6].minAnger, units = { "40 armsfig_scav","40 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
-addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = 1000}) --T2 Gunships
+addNewSquad({
+	type = "specialAirLand",
+	weight = 4,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[6].minAnger,
+	units = {
+		{count = 40, unit = "armfig_scav"},
+		{count = 40, unit = "corveng_scav"}
+	}
+}) --T2 Fighters
+addNewSquad({
+	type = "specialAirSea",
+	minAnger = tierConfiguration[6].minAnger,
+	units = {
+		{count = 40, unit = "armsfig_scav"},
+		{count = 40, unit = "corsfix_scav"}
+	}
+}) --T2 Fighters
+addNewSquad({
+	type = "specialAirLand",
+	weight = 2,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[6].minAnger,
+	units = {
+		{count = 15, unit = "armblade_scav"},
+		{count = 15, unit = "armbrawl_scav"},
+		{count = 1, unit = "legfort_scav"},
+		{count = 1, unit = "corcrw_scav"},
+		{count = 1, unit = "corcrwh_scav"},
+		{count = 15, unit = "corape_scav"}
+	}
+}) --T2 Gunships
 ------Tier 4 80%+
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 addNewSquad({ type = "specialSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
