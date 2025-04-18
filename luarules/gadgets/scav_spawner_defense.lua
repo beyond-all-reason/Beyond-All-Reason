@@ -712,7 +712,7 @@ if gadgetHandler:IsSyncedCode() then
 		if scavType then
 			if not count then count = 1 end
 			squad = { count .. " " .. scavType }
-			for i, squadTable in pairs(squad.units) do
+			for _, squadTable in pairs(squad.units) do
 				local unitNumber = squadTable.count
 				local scavName = squadTable.unit
 				if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
@@ -793,7 +793,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if squad then
-				for i, squadTable in pairs(squad.units) do
+				for _, squadTable in pairs(squad.units) do
 					local unitNumber = squadTable.count
 					local scavName = squadTable.unit
 					if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
@@ -828,7 +828,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if squad then
-					for i, squadTable in pairs(squad.units) do
+					for _, squadTable in pairs(squad.units) do
 						local unitNumber = squadTable.count
 						local scavName = squadTable.unit
 						if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
@@ -1336,7 +1336,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if squad then
-						for i, squadTable in pairs(squad.units) do
+						for _, squadTable in pairs(squad.units) do
 							local unitNumber = squadTable.count
 							local scavName = squadTable.unit
 							if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
@@ -1371,7 +1371,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 						if squad then
-							for i, squadTable in pairs(squad.units) do
+							for _, squadTable in pairs(squad.units) do
 								local unitNumber = squadTable.count
 								local scavName = squadTable.unit
 								if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then

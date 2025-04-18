@@ -670,7 +670,7 @@ if gadgetHandler:IsSyncedCode() then
 		if raptorType then
 			if not count then count = 1 end
 			squad = { count .. " " .. raptorType }
-			for i, squadTable in pairs(squad.units) do
+			for _, squadTable in pairs(squad.units) do
 				local unitNumber = squadTable.count
 				local raptorName = squadTable.unit
 				if UnitDefNames[raptorName] and unitNumber and unitNumber > 0 then
@@ -707,7 +707,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if squad then
-				for i, squadTable in pairs(squad.units) do
+				for _, squadTable in pairs(squad.units) do
 					local unitNumber = squadTable.count
 					local raptorName = squadTable.unit
 					if UnitDefNames[raptorName] and unitNumber and unitNumber > 0 then
@@ -1122,7 +1122,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if squad then
-						for i, squadTable in pairs(squad.units) do
+						for _, squadTable in pairs(squad.units) do
 							local unitNumber = squadTable.count
 							local raptorName = squadTable.unit
 							if UnitDefNames[raptorName] and unitNumber and unitNumber > 0 then
