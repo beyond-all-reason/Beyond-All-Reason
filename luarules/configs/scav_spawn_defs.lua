@@ -2176,8 +2176,28 @@ addNewSquad({
 }) --T2 Gunships
 ------Tier 3 60-80%
 --Dilluters
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
+addNewSquad({
+	type = "specialLand",
+	weight = 8,
+	minAnger = tierConfiguration[6].minAnger,
+	maxAnger = tierConfiguration[6].maxAnger,
+	units = {
+		{count = 15, unit = "armfav_scav"},
+		{count = 15, unit = "corfav_scav"},
+		{count = 15, unit = "legscout_scav"}
+	}
+}) --Rover Whole Tier Length
+
+addNewSquad({
+	type = "specialLand",
+	weight = 3,
+	minAnger = tierConfiguration[6].minAnger,
+	maxAnger = tierConfiguration[6].maxAnger,
+	units = {
+		{count = 6, unit = "cortorch_scav"},
+		{count = 6, unit = "legmrv_scav"}
+	}
+}) --T2 Veh Raid
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav"," 2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
