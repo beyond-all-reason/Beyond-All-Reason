@@ -2258,7 +2258,15 @@ addNewSquad({
 		{count = 5, unit = "armvadert4_scav"}
 	}
 }) --Epic Tumbleweeds
-addNewSquad({ type = "specialSea", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({
+	type = "specialSea",
+	weight = 3,
+	maxAnger = 1000,
+	minAnger = tierConfiguration[6].minAnger,
+	units = {
+		{count = 5, unit = "armvadert4_scav"}
+	}
+}) --Epic Tumbleweeds
 --air
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[6].minAnger, units = { "40 armsfig_scav","40 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
