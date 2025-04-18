@@ -41,6 +41,16 @@ function addon.Initialize()
 		if originalSoundtrackEnabled == 1 then
 			-- Events ----------------------------------------------------------------------------------------------------------------------
 
+			-- Raptors
+			if Spring.Utilities.Gametype.IsRaptors() then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/raptors/loading', allowedExtensions))
+			end
+
+			-- Scavengers
+			if Spring.Utilities.Gametype.IsScavengers() then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/scavengers/loading', allowedExtensions))
+			end
+
 			-- April Fools
 			---- Day 1 - 100% chance
 			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) == 1) then
