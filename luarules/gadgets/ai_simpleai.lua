@@ -116,14 +116,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 	-- stockpilers
-	--if unitDef.canStockpile then
-	--	skip = true
-	--end
 	if unitDef.weapons then
 		for i = 1, #unitDef.weapons do
 			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-			-- stockpilers
-			if wDef.stockpile then
+			if wDef.stockpile and wDef.interceptor == 0 then
 				skip = true
 				break
 			end
