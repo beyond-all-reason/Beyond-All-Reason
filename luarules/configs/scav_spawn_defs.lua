@@ -2103,7 +2103,22 @@ addNewSquad({
 		{count = 1, unit = "legvcarry_scav"}
 	}
 }) --T2 Veh Unique
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","2 legvflak_scav","1 leginf_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Arty/AA
+addNewSquad({
+	type = "specialLand",
+	weight = 4,
+	maxAnger = tierConfiguration[5].maxAnger,
+	minAnger = tierConfiguration[5].minAnger,
+	units = {
+		{coun = 3, unit = "armmart_scav"},
+		{count = 1, unit = "armmerl_scav"},
+		{count = 1, unit = "armyork_scav"},
+		{count = 3, unit = "cormart_scav"},
+		{count = 1, unit = "corvroc_scav"},
+		{count = 1, unit = "corsent_scav"},
+		{count = 2, unit = "legvflak_scav"},
+		{count = 1, unit = "leginf_scav"}
+	}
+}) --T2 Arty/AA
 --air
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = 1000}) --T2 Air Scouts
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armstil_scav",}, weight = 4, maxAnger = 1000}) --EMP Bombers
