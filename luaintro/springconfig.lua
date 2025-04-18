@@ -38,14 +38,14 @@ Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 Spring.SetConfigInt("GrassDetail", 0)
 
 -- adv unit shading
-if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
+if not tonumber(Spring.GetConfigInt("AdvUnitShading", 0) or 0) then
 	Spring.SetConfigInt("AdvUnitShading", 1)
 end
 
 -- adv map shading
-if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
+--if not tonumber(Spring.GetConfigInt("AdvMapShading", 0) or 0) then
 	Spring.SetConfigInt("AdvMapShading", 1)
-end
+--end
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
