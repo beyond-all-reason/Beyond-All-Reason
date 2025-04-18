@@ -705,17 +705,16 @@ local function drawStats(uDefID, uID)
 				local sorted = {}
 				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
 				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-				local maxDamage = sorted[1]
 
-				if maxDamage ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
-					local modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
+				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
+					local modString = "default = "..yellow.."100%"
 					local count = 0
 					for _ in pairs(modifiers) do count = count + 1 end
 					if count > 1 then
 						for _, rate in pairs(sorted) do
 							if rate ~= defaultRate then
 								local armors = table.concat(modifiers[rate], ", ")
-								local percent = format("%d", floor(100 * rate / maxDamage))
+								local percent = format("%d", floor(100 * rate / defaultRate))
 								if armors and percent then
 									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
 								end
