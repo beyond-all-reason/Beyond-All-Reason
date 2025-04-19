@@ -14,6 +14,7 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local displayFeatureCount = false
 
@@ -49,7 +50,7 @@ end
 
 
 local function drawBackground()
-	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTextureBg)
 end
 
 local function drawContent()
@@ -79,8 +80,8 @@ local function refreshUiDrawing()
 		WG['guishader'].InsertDlist(guishaderList, 'unittotals', true)
 	end
 
-	if useRenderToTexture then
-		if right-left >= 1 and top-bottom >= 1 then
+	if right-left >= 1 and top-bottom >= 1 then
+		if useRenderToTextureBg then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
 					target = GL.TEXTURE_2D,
@@ -97,8 +98,17 @@ local function refreshUiDrawing()
 					gl.PopMatrix()
 				end)
 			end
+		else
+			if drawlist[1] ~= nil then
+				glDeleteList(drawlist[1])
+			end
+			drawlist[1] = glCreateList( function()
+				drawBackground()
+			end)
+		end
+		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(right-left)*(vsy<1600 and 2 or 1), math.floor(top-bottom)*(vsy<1600 and 2 or 1), {
+				uiTex = gl.CreateTexture(math.floor(right-left)*(vsy<1400 and 2 or 1), math.floor(top-bottom)*(vsy<1400 and 2 or 1), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -113,20 +123,14 @@ local function refreshUiDrawing()
 				drawContent()
 				gl.PopMatrix()
 			end)
+		else
+			if drawlist[2] ~= nil then
+				glDeleteList(drawlist[2])
+			end
+			drawlist[2] = glCreateList( function()
+				drawContent()
+			end)
 		end
-	else
-		if drawlist[1] ~= nil then
-			glDeleteList(drawlist[1])
-		end
-		drawlist[1] = glCreateList( function()
-			drawBackground()
-		end)
-		if drawlist[2] ~= nil then
-			glDeleteList(drawlist[2])
-		end
-		drawlist[2] = glCreateList( function()
-			drawContent()
-		end)
 	end
 end
 
@@ -222,7 +226,7 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 	end
 
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if uiBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
@@ -230,6 +234,8 @@ function widget:DrawScreen()
 			gl.TexRect(left, bottom, right, top, false, true)
 			gl.Texture(false)
 		end
+	end
+	if useRenderToTexture then
 		if uiTex then
 			-- content
 			gl.Color(1,1,1,1)
@@ -238,9 +244,11 @@ function widget:DrawScreen()
 			gl.Texture(false)
 		end
 	else
-		if drawlist[1] then
+		if drawlist[2] then
 			glPushMatrix()
-			glCallList(drawlist[1])
+			if not useRenderToTextureBg and drawlist[1] then
+				glCallList(drawlist[1])
+			end
 			glCallList(drawlist[2])
 			glPopMatrix()
 		end
