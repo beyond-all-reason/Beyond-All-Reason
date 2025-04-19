@@ -17,7 +17,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local cfgResText = true
 local cfgSticktotopbar = true
@@ -633,7 +633,7 @@ local function makeTeamCompositionList()
 			if uiTex then
 				gl.DeleteTextureFBO(uiTex)
 			end
-			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
+			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1])*(vsy<1400 and 2 or 1), math.floor(areaRect[4]-areaRect[2])*(vsy<1400 and 2 or 1), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -1100,10 +1100,10 @@ function DrawTeamComposition()
 					hasCom = tData.hasCom
 					if GetGameSeconds() > 0 then
 						if not tData.isDead then
-							alpha = tData.active and 1 or 0.3
+							alpha = tData.active and 1 or (useRenderToTexture and 0.6 or 0.3)
 							DrawTeamCompositionTeam(posx, posy + floor(tH * 0.125), r, g, b, alpha, not hasCom, Button[tID].mouse, t, false, tID)
 						else
-							alpha = 0.8
+							alpha = useRenderToTexture and 0.9 or 0.8
 							DrawTeamCompositionTeam(posx, posy + floor(tH * 0.125), r, g, b, alpha, true, Button[tID].mouse, t, true, tID) --dead, big icon
 						end
 					else
@@ -1365,7 +1365,9 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font = WG['fonts'].getFont()
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1)
+
 	Reinit()
 end
 

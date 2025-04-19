@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -343,7 +344,9 @@ function widget:ViewResize()
 		((posX + width) * viewSizeX) - activeBgpadding,
 		(posY * viewSizeY) - activeBgpadding
 	}
-	displayListOrders = gl.DeleteList(displayListOrders)
+	if displayListOrders then
+		displayListOrders = gl.DeleteList(displayListOrders)
+	end
 
 	checkGuiShader(true)
 	setupCellGrid(true)
@@ -417,10 +420,14 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('ordermenu')
 		displayListGuiShader = nil
 	end
-	displayListOrders = gl.DeleteList(displayListOrders)
-	if ordermenuTex then
+	if displayListOrders then
+		displayListOrders = gl.DeleteList(displayListOrders)
+	end
+	if ordermenuBgTex then
 		gl.DeleteTextureFBO(ordermenuBgTex)
 		ordermenuBgTex = nil
+	end
+	if ordermenuTex then
 		gl.DeleteTextureFBO(ordermenuTex)
 		ordermenuTex = nil
 	end
@@ -712,7 +719,7 @@ end
 local function drawOrdersBackground()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 end
 
 local function drawOrders()
@@ -790,61 +797,73 @@ function widget:DrawScreen()
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
 		end
-		if doUpdate then
+		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
 		end
-		if not displayListOrders then
+
+		if not displayListOrders and not useRenderToTexture then
 			displayListOrders = gl.CreateList(function()
-				if not useRenderToTexture then
+				if not useRenderToTextureBg then
 					drawOrdersBackground()
+				end
+				if not useRenderToTexture then
 					drawOrders()
 				end
 			end)
-			if useRenderToTexture then
-				if not ordermenuBgTex then
-					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX)*(viewSizeY<1600 and 2 or 1), math_floor(height*viewSizeY)*(viewSizeY<1600 and 2 or 1), {
-						target = GL.TEXTURE_2D,
-						format = GL.ALPHA,
-						fbo = true,
-					})
-					ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
-						target = GL.TEXTURE_2D,
-						format = GL.ALPHA,
-						fbo = true,
-					})
-					if ordermenuBgTex then
-						gl.RenderToTexture(ordermenuBgTex, function()
-							gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-							gl.Color(1,1,1,1)
-							gl.PushMatrix()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
-							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-							drawOrdersBackground()
-							gl.PopMatrix()
-						end)
-					end
-				end
-				if ordermenuTex then
-					gl.RenderToTexture(ordermenuTex, function()
+		end
+
+		if useRenderToTextureBg then
+			if not ordermenuBgTex then
+				ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+				if ordermenuBgTex then
+					gl.RenderToTexture(ordermenuBgTex, function()
 						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 						gl.Color(1,1,1,1)
 						gl.PushMatrix()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
 						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawOrders()
+						drawOrdersBackground()
 						gl.PopMatrix()
 					end)
 				end
 			end
 		end
+		if useRenderToTexture then
+			if not ordermenuTex then
+				ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX)*(viewSizeY<1400 and 2 or 1), math_floor(height*viewSizeY)*(viewSizeY<1400 and 2 or 1), {
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+			end
+		end
+		if ordermenuTex then
+			gl.RenderToTexture(ordermenuTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.Color(1,1,1,1)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+				drawOrders()
+				gl.PopMatrix()
+			end)
+		end
 
-		if useRenderToTexture and ordermenuTex then
+		if useRenderToTextureBg and ordermenuBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 			gl.Texture(ordermenuBgTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.Texture(false)
+			gl.Color(1,1,1,1)
+		end
+		if useRenderToTexture and ordermenuTex then
 			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(ordermenuTex)
