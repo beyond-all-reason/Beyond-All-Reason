@@ -3,7 +3,15 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, gun, flare, flare1, flare2, flare3, flare4, flare5, flare6, hatch1, hatch2, hatch3, hatch4, hatch5, hatch6, wheel1, wheel2, wheel3, wheel4, smoke, pillar;
+// piece  base, turret, gun, flare, flare1, flare2, flare3, flare4, flare5, flare6, hatch1, hatch2, hatch3, hatch4, hatch5, hatch6, wheel1, wheel2, wheel3, wheel4, smoke, pillar;
+piece chassis, backTracks, lTrack, plateFrontLeft, plateMidLeft, plateRearLeft, plateFrontRight, plateMidRight, plateRearRight, rTrack, 
+sleeve1, barrel1, flare1,
+sleeve2, barrel2, flare2,
+sleeve3, barrel3, flare3,
+sleeve4, barrel4, flare4,
+sleeve5, barrel5, flare5,
+sleeve6, barrel6, flare6,
+trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
 static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving;
 
@@ -13,7 +21,7 @@ static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, sh
 #define SIG_MOVE			8
 #define SIG_OPEN			16
 
-#define BASEPIECE base
+#define BASEPIECE chassis
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
@@ -21,33 +29,62 @@ static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, sh
 
 Create()
 {
-	hide flare;
 	hide flare1;
 	hide flare2;
 	hide flare3;
 	hide flare4;
 	hide flare5;
 	hide flare6;
-	hide smoke;
+	hide targetFlare;
+
+	move lTrack to x-axis [0.3] now;
+	move rTrack to x-axis [-0.3] now;
+
+	move barrel6 to y-axis [-6] now;
+	move sleeve6 to y-axis [-1.7] now;
+	move barrel5 to y-axis [-1.4] now;
+	move sleeve5 to y-axis [-1.7] now;
+	move barrel4 to y-axis [-6] now;
+	move sleeve4 to y-axis [-1.7] now;
+	move barrel3 to y-axis [-6] now;
+	move sleeve3 to y-axis [-1.7] now;
+	move barrel2 to y-axis [-6] now;
+	move sleeve2 to y-axis [-1.7] now;
+	move barrel1 to y-axis [-6] now;
+	move sleeve1 to y-axis [-2.8] now;
+	turn plateRearRight to z-axis <30> now;
+	turn plateMidRight to z-axis <30> now;
+	turn plateFrontRight to z-axis <30> now;
+	turn plateRearLeft to z-axis <-30> now;
+	turn plateMidLeft to z-axis <-30> now;
+	turn plateFrontLeft to z-axis <-30> now;
+	move plateFrontLeft to z-axis [-1] now;
+	move plateRearLeft to z-axis [1] now;
+	move plateFrontRight to z-axis [-1] now;
+	move plateRearRight to z-axis [1] now;
+
+
+
+	//hide smoke;
 	restore_delay = 3000;
 	weapon = 0;
 	return (0);
 }
 
-Raise()
-{
-	sleep 1000;
-	if(moving == 0)
-	{
-		move pillar to y-axis [10] speed [4.000000];
-	}
-}
+// Raise()
+// {
+// 	sleep 1000;
+// 	if(moving == 0)
+// 	{
+// 		move pillar to y-axis [10] speed [4.000000];
+// 	}
+// }
 
-Lower()
-{
+// Lower()
+// {
 
-	move pillar to y-axis [0] speed [5.000000];
-}
+// 	move pillar to y-axis [0] speed [5.000000];
+// }
 
 Steering(currentSpeed)
 {
@@ -57,10 +94,10 @@ Steering(currentSpeed)
 	{
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		spin wheel1 around x-axis speed currentSpeed;
-		spin wheel2 around x-axis speed currentSpeed;
-		spin wheel3 around x-axis speed currentSpeed;
-		spin wheel4 around x-axis speed currentSpeed;
+		// spin wheel1 around x-axis speed currentSpeed;
+		// spin wheel2 around x-axis speed currentSpeed;
+		// spin wheel3 around x-axis speed currentSpeed;
+		// spin wheel4 around x-axis speed currentSpeed;
 		sleep 66;
 	}
 }
@@ -69,17 +106,17 @@ StartMoving()
 {
 	moving = 1;
 	start-script Steering();
-	start-script Lower();
+	//start-script Lower();
 }
 
 StopMoving()
 {
-	start-script Raise();
+	//start-script Raise();
 	signal SIG_MOVE;
-	stop-spin wheel1 around x-axis;
-	stop-spin wheel2 around x-axis;
-	stop-spin wheel3 around x-axis;
-	stop-spin wheel4 around x-axis;
+	// stop-spin wheel1 around x-axis;
+	// stop-spin wheel2 around x-axis;
+	// stop-spin wheel3 around x-axis;
+	// stop-spin wheel4 around x-axis;
 	moving = 0;
 }
 
@@ -114,17 +151,59 @@ Close()
 {
 	opened = 0;
 	sleep 1000;
-	turn hatch5 to z-axis <0.000000> speed <90.000000>;
-	sleep 250;
-	turn hatch6 to z-axis <0.000000> speed <90.000000>;
-	sleep 250;
-	turn hatch3 to z-axis <0.000000> speed <90.000000>;
-	sleep 250;
-	turn hatch4 to z-axis <0.000000> speed <90.000000>;
-	sleep 250;
-	turn hatch1 to z-axis <0.000000> speed <90.000000>;
-	sleep 250;
-	turn hatch2 to z-axis <0.000000> speed <90.000000>;
+	move barrel1 to y-axis [-6] speed [12];
+	sleep 100;
+	move sleeve1 to y-axis [-2.8] speed [5.6];
+	turn sleeve1 to x-axis <10> speed <25>;
+	move barrel2 to y-axis [-6] speed [12];
+	sleep 100;
+	move sleeve2 to y-axis [-1.7] speed [3.4];
+	move barrel3 to y-axis [-6] speed [12];
+	sleep 100;
+	move sleeve3 to y-axis [-1.7] speed [3.4];
+	move barrel4 to y-axis [-6] speed [12];
+	sleep 100;
+	move sleeve4 to y-axis [-1.7] speed [3.4];
+	move barrel5 to y-axis [-1.4] speed [12];
+	sleep 100;
+	move sleeve5 to y-axis [-1.7] speed [3.4];
+	move barrel6 to y-axis [-6] speed [12];
+	sleep 100;
+	move sleeve6 to y-axis [-1.7] speed [3.4];
+	sleep 100;
+	turn plateFrontLeft to z-axis <-30> speed <30>;
+	sleep 200;
+	turn plateMidLeft to z-axis <-30> speed <30>;
+	sleep 200;
+	turn plateRearLeft to z-axis <-30> speed <30>;
+	sleep 200;
+	turn plateFrontRight to z-axis <30> speed <30>;
+	sleep 200;
+	turn plateMidRight to z-axis <30> speed <30>;
+	sleep 200;
+	turn plateRearRight to z-axis <30> speed <30>;
+	wait-for-turn plateRearRight around z-axis;
+	move plateFrontLeft to z-axis [-1] speed [4];
+	sleep 50;
+	move plateRearLeft to z-axis [1] speed [4];
+	sleep 50;
+	move plateFrontRight to z-axis [-1] speed [4];
+	sleep 50;
+	move plateRearRight to z-axis [1] speed [4];
+
+
+
+	// turn hatch5 to z-axis <0.000000> speed <90.000000>;
+	// sleep 250;
+	// turn hatch6 to z-axis <0.000000> speed <90.000000>;
+	// sleep 250;
+	// turn hatch3 to z-axis <0.000000> speed <90.000000>;
+	// sleep 250;
+	// turn hatch4 to z-axis <0.000000> speed <90.000000>;
+	// sleep 250;
+	// turn hatch1 to z-axis <0.000000> speed <90.000000>;
+	// sleep 250;
+	// turn hatch2 to z-axis <0.000000> speed <90.000000>;
 }
 
 Open()
@@ -136,17 +215,56 @@ Open()
 		return (0);
 	}
 	opened = 1;
-	turn hatch5 to z-axis <90.000000> speed <90.000000>;
-	sleep 400;
-	turn hatch6 to z-axis <-90.000000> speed <90.000000>;
-	sleep 400;
-	turn hatch3 to z-axis <90.000000> speed <90.000000>;
-	sleep 400;
-	turn hatch4 to z-axis <-90.000000> speed <90.000000>;
-	sleep 400;
-	turn hatch1 to z-axis <90.000000> speed <90.000000>;
-	sleep 400;
-	turn hatch2 to z-axis <-90.000000> speed <90.000000>;
+	move plateFrontLeft to z-axis [0] speed [4];
+	sleep 50;
+	move plateRearLeft to z-axis [0] speed [4];
+	sleep 50;
+	move plateFrontRight to z-axis [0] speed [4];
+	sleep 50;
+	move plateRearRight to z-axis [0] speed [4];
+	wait-for-move plateRearRight along z-axis;
+	turn plateRearRight to z-axis <0> speed <30>;
+	sleep 200;
+	turn plateMidRight to z-axis <0> speed <30>;
+	sleep 200;
+	turn plateFrontRight to z-axis <0> speed <30>;
+	sleep 200;
+	turn plateRearLeft to z-axis <0> speed <30>;
+	sleep 200;
+	turn plateMidLeft to z-axis <0> speed <30>;
+	sleep 200;
+	turn plateFrontLeft to z-axis <0> speed <30>;
+	sleep 100;
+	move sleeve6 to y-axis [0] speed [3.4];
+	sleep 100;
+	move barrel6 to y-axis [0] speed [12];
+	move sleeve5 to y-axis [0] speed [3.4];
+	sleep 100;
+	move barrel5 to y-axis [5] speed [12];
+	move sleeve4 to y-axis [0] speed [3.4];
+	sleep 100;
+	move barrel4 to y-axis [0] speed [12];
+	move sleeve3 to y-axis [0] speed [3.4];
+	sleep 100;
+	move barrel3 to y-axis [0] speed [12];
+	move sleeve2 to y-axis [0] speed [3.4];
+	sleep 100;
+	move barrel2 to y-axis [0] speed [12];
+	turn sleeve1 to x-axis <0> speed <25>;
+	move sleeve1 to y-axis [0] speed [5.6];
+	sleep 100;
+	move barrel1 to y-axis [0] speed [12];
+	// turn hatch5 to z-axis <90.000000> speed <90.000000>;
+	// sleep 400;
+	// turn hatch6 to z-axis <-90.000000> speed <90.000000>;
+	// sleep 400;
+	// turn hatch3 to z-axis <90.000000> speed <90.000000>;
+	// sleep 400;
+	// turn hatch4 to z-axis <-90.000000> speed <90.000000>;
+	// sleep 400;
+	// turn hatch1 to z-axis <90.000000> speed <90.000000>;
+	// sleep 400;
+	// turn hatch2 to z-axis <-90.000000> speed <90.000000>;
 	sleep 1200;
 	if(shot == 0)														//Closes if no shot was taken (attack command canceled)
 	{
@@ -158,8 +276,8 @@ AimPrimary(heading, pitch)												//Beamer script
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <500.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <250.000000>;
+	turn trackingHeadingPivot to y-axis heading speed <500.000000>;
+	//turn gun to x-axis <0.000000> - pitch speed <250.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( ( get ABS ( lastheading - heading ) < 3000 ) AND ( get ABS ( lastpitch - pitch ) < 1500 ) )
 	{
@@ -169,8 +287,8 @@ AimPrimary(heading, pitch)												//Beamer script
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
 	// seems to take 3 frames for wait-for-turn to process
-	wait-for-turn turret around y-axis;
-	wait-for-turn gun around x-axis;
+	wait-for-turn trackingHeadingPivot around y-axis;
+	//wait-for-turn gun around x-axis;
 	// after waiting for the turn, set the lastheading and lastpitch variables
 	lastheading = heading;
 	lastpitch = pitch;
@@ -179,7 +297,7 @@ AimPrimary(heading, pitch)												//Beamer script
 
 AimFromPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = targetFlare;
 }
 
 FirePrimary()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next milisecond, so its 1 whenever the laser is firing and 0 when it isn't
@@ -191,7 +309,7 @@ FirePrimary()														//Sets target to 1 and just as the laser shot ends se
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = targetFlare;
 }
 
 AimSecondary(heading, pitch)
@@ -212,7 +330,7 @@ AimSecondary(heading, pitch)
 
 AimFromSecondary(piecenum)
 {
-	piecenum = flare;
+	piecenum = targetFlare;
 }
 
 FireSecondary()
@@ -257,18 +375,18 @@ QuerySecondary(piecenum)
 	}
 	else if( weapon == 4 )
 	{
-	    piecenum = flare1;
+	    piecenum = flare2;
 	}
 	else if( weapon == 5 )
 	{
-	    piecenum = flare2;
+	    piecenum = flare1;
 	}
 	return (0);
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = chassis;
 }
 
 Killed(severity, corpsetype)
@@ -276,10 +394,10 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode trackingTower type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -287,11 +405,11 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode trackingTower type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode backTracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
 		//explode flare2 type FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -299,21 +417,21 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type SMOKE | FALL | NOHEATCLOUD;
-		explode hatch1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode trackingTower type SMOKE | FALL | NOHEATCLOUD;
+		explode backTracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode hatch1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode hatch5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode trackingTower type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode backTracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
