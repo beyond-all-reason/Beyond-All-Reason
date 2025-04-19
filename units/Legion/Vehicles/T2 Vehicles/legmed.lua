@@ -7,7 +7,7 @@ return {
 		buildpic = "LEGMED.DDS",
 		buildtime = 22500,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 -12 0",
 		collisionvolumescales = "48 31 69",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -45,7 +45,7 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 0 0",
+				collisionvolumeoffsets = "0 -10 0",
 				collisionvolumescales = "46 31 65",
 				collisionvolumetype = "Box",
 				damage = 1897,
