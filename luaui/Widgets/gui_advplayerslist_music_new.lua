@@ -1127,10 +1127,16 @@ function widget:DrawScreen()
 		end
 	else
 		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
-			glCallList(drawlist[3])
+			if drawlist[3] then
+				glCallList(drawlist[3])
+			end
 		else
-			glCallList(drawlist[2])
-			glCallList(drawlist[4])
+			if drawlist[2] then
+				glCallList(drawlist[2])
+			end
+			if drawlist[4] then
+				glCallList(drawlist[4])
+			end
 		end
 	end
 	if drawlist[2] ~= nil or uiTex then
