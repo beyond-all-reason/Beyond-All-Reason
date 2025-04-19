@@ -32,6 +32,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.495,
 		turnrate = 120,
+		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Protar, Tharsis",
@@ -121,7 +122,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				--proximitypriority = -1,
-				range = 750,
+				range = 725,
 				reloadtime = .033,
 				rgbcolor = "1 0.55 0",
 				rgbcolor2 = "0.9 1.0 0.5",

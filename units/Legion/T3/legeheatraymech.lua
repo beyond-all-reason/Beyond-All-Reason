@@ -175,8 +175,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					commanders = 18,
-					default = 36,
+					commanders = 17,
+					default = 33,
 					vtol = 14,
 				},
 				customparams = {

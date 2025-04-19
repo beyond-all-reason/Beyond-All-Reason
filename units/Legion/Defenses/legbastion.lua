@@ -144,6 +144,7 @@ return {
 				weaponvelocity = 1500,
 				damage = {
 					default = 155,
+					vtol = 15,
 				},
 				
 				customparams = {
