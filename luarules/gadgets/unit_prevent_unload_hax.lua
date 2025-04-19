@@ -30,7 +30,6 @@ local SpGetUnitPosition = Spring.GetUnitPosition
 local SpGetGameFrame = Spring.GetGameFrame
 local SpSetUnitPhysics = Spring.SetUnitPhysics
 local SpSetUnitDirection = Spring.SetUnitDirection
-local SpGetUnitIsDead = Spring.GetUnitIsDead
 
 local unloadedUnits = {}
 

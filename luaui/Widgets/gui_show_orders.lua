@@ -42,7 +42,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spDrawUnitCommands = Spring.DrawUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetSpecState = Spring.GetSpectatingState
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
@@ -55,7 +54,6 @@ local spGetUnitStates = Spring.GetUnitStates
 local glColor			= gl.Color
 local glTexture			= gl.Texture
 local glTexRect			= gl.TexRect
-local glText			= gl.Text
 local glRect			= gl.Rect
 
 -----------------------------------------------------

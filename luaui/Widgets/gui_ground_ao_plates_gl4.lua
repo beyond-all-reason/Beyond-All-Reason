@@ -37,8 +37,6 @@ local GL_LEQUAL = GL.LEQUAL
 local GL_POINTS = GL.POINTS
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
-local spGetGameFrame = Spring.GetGameFrame
-local glGetAtlasTexture = gl.GetAtlasTexture
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 	local gf = spGetGameFrame()
