@@ -720,6 +720,7 @@ if gadgetHandler:IsSyncedCode() then
 						if mRandom() <= config.spawnChance or j == 1 then
 							squadCounter = squadCounter + 1
 							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+							cCount = cCount + 1
 						end
 					end
 				elseif not UnitDefNames[scavName] then
@@ -801,6 +802,7 @@ if gadgetHandler:IsSyncedCode() then
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+								cCount = cCount + 1
 							end
 						end
 					elseif not UnitDefNames[scavName] then
@@ -836,6 +838,7 @@ if gadgetHandler:IsSyncedCode() then
 								if mRandom() <= config.spawnChance or j == 1 then
 									squadCounter = squadCounter + 1
 									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+									cCount = cCount + 1
 								end
 							end
 						elseif not UnitDefNames[scavName] then
@@ -1344,6 +1347,7 @@ if gadgetHandler:IsSyncedCode() then
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
 										table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+										cCount = cCount + 1
 									end
 								end
 							elseif not UnitDefNames[scavName] then
@@ -1379,6 +1383,7 @@ if gadgetHandler:IsSyncedCode() then
 										if mRandom() <= config.spawnChance or j == 1 then
 											squadCounter = squadCounter + 1
 											table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+											cCount = cCount + 1
 										end
 									end
 								elseif not UnitDefNames[scavName] then
