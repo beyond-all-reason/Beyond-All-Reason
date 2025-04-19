@@ -1869,7 +1869,15 @@ for tier, _ in pairs(LandUnitsList.Healer) do
 					scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
 				end
 			end
-			addNewSquad({ type = "healerLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({
+				type = "healerLand",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
 		end
 	end
 end
