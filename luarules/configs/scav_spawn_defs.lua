@@ -2004,8 +2004,24 @@ for tier, _ in pairs(AirUnitsList.Land) do
 	for unitName, _ in pairs(AirUnitsList.Land[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = AirUnitsList.Land[tier][unitName]
-			addNewSquad({ type = "basicAirLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-			addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({
+				type = "basicAirLand",
+				weight = unitWeight,
+				maxAnger = 1000,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialAirLand",
+				weight = unitWeight,
+				maxAnger = 1000,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
+				}
+			})
 		end
 	end
 end
@@ -2014,8 +2030,24 @@ for tier, _ in pairs(AirUnitsList.Sea) do
 	for unitName, _ in pairs(AirUnitsList.Sea[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = AirUnitsList.Sea[tier][unitName]
-			addNewSquad({ type = "basicAirSea", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-			addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({
+				type = "basicAirSea",
+				weight = unitWeight,
+				maxAnger = 1000,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialAirSea",
+				weight = unitWeight,
+				maxAnger = 1000,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
+				}
+			})
 		end
 	end
 end
