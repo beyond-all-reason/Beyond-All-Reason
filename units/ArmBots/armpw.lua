@@ -39,6 +39,8 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
+			faction = "armada",
+			movementType = "bot",
 		},
 		featuredefs = {
 			dead = {

@@ -46,6 +46,8 @@ return {
 			techlevel = 2,
 			unitgroup = "emp",
 			crashable = 0,
+			faction = "armada",
+			movementType = "air",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
