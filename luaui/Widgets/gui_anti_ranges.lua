@@ -10,7 +10,7 @@ function widget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 4,
         layer     = 5,
-        enabled   = true
+        enabled   = false
     }
 end
 

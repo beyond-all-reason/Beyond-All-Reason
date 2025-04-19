@@ -132,6 +132,9 @@ return {
 					vtol = 30,
 					sub = 30,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 
 			},
 		},

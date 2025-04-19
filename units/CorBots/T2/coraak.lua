@@ -141,6 +141,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					bogus = 1
+				},
 			},
 			bogus_missile = {
 				areaofeffect = 48,
