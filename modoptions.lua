@@ -1263,16 +1263,6 @@ local options = {
     },
 
     {
-        key   	= "accuratelasers",
-        name   	= "Accurate Lasers",
-        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
-        type   	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -1338,7 +1328,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

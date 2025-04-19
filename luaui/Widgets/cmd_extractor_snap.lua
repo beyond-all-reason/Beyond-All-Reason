@@ -284,6 +284,7 @@ function widget:MousePress(x, y, button)
 
 	if button == 1 and buildCmd and buildCmd[1] then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		shift = Spring.GetInvertQueueKey() and (not shift) or shift
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 			handleBuildMenu(shift)
