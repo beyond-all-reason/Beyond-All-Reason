@@ -596,11 +596,16 @@
 			"firstWave2": "Get ready to defend yourself!",
 			"airWave1": "Flying Raptors, incoming!",
 			"airWave2": "%{unitCount} Raptors!",
-			"queenIsAngry1": "The Queen is here!",
-			"queensAreAngry1": "The Queens are here!",
+			"queenIsAngry1": {
+				"one"   : "The Queen is here!",
+				"other" : "The Queens are here!"
+			},
 			"queenIsAngry2": "Prepare yourself for the final battle!",
 			"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
-			"resistanceUnits": "The Queen is becoming resistant to:",
+			"resistanceUnits":{
+				"one"   : "The Queen is becoming resistant to:",
+				"other" : "The Queens are becoming resistant to:"
+			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Raptors!",
 			"raptorCount": "Raptors: %{count}",
@@ -611,11 +616,19 @@
 			"queenAngerBase": "Base: +%{value}%%/s",
 			"queenAngerAggression": "Player Aggression: +%{value}%%/s",
 			"queenAngerEco": "Economy: +%{value}%%/s",
-			"queenETA": "Queen arrives in: %{time}.",
-			"queenHealth": "Queen Health: %{health}%%",
-			"queenHealths": "Queen Healths: %{health}%%",
-			"queenResistantToList": "Queen is resistant to:",
-			"queensResistantToList": "Queens are resistant to:",
+			"queenETA": {
+				"one"   : "Queen arrives in: %{time}.",
+				"other" : "%{count} queens arrive in: %{time}"
+			},
+			"queenHealth": {
+				"one"   : "Queen Health: %{health}%%",
+				"other" : "Queen Healths: %{health}%%"
+			},
+			"queensKilled": "Queens Killed: %{nKilled}/%{nTotal}",
+			"queenResistantToList": {
+				"one"   : "Queen is resistant to:",
+				"other" : "Queens are resistant to:"
+			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
 			"burrowKillCount": "Burrows Killed: %{count}",
@@ -637,11 +650,16 @@
 		"scavs": {
 			"firstWave1": "The Scavengers have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
-			"bossIsAngry1": "The Boss is here!",
-			"bossesAreAngry1": "The Bosses are here!",
+			"bossIsAngry1": {
+				"one"   : "The Boss is here!",
+				"other" : "The Bosses are here!"
+			},
 			"bossIsAngry2": "Prepare yourself for the final battle!",
 			"bossResistant": "The Boss is becoming resistant to %{unit} attacks!",
-			"resistanceUnits": "The Boss is becoming resistant to:",
+			"resistanceUnits": {
+				"one"   : "The Boss is becoming resistant to:",
+				"other" : "The Bosses are becoming resistant to:"
+			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Scavs!",
 			"scavCount": "Scavs: %{count}",
@@ -652,11 +670,19 @@
 			"bossAngerBase": "Base: +%{value}%%/s",
 			"bossAngerAggression": "Player Aggression: +%{value}%%/s",
 			"bossAngerEco": "Economy: +%{value}%%/s",
-			"bossETA": "Boss arrives in: %{time}.",
-			"bossHealth": "Boss Health: %{health}%%",
-			"bossHealths": "Boss Healths: %{health}%%",
-			"bossResistantToList": "Boss is resistant to:",
-			"bossesResistantToList": "Bosses are resistant to:",
+			"bossETA": {
+				"one"   : "Boss arrives in: %{time}.",
+				"other" : "%{count} bosses arrive in: %{time}"
+			},
+			"bossHealth": {
+				"one"   : "Boss Health: %{health}%%",
+				"other" : "Boss Healths: %{health}%%"
+			},
+			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
+			"bossResistantToList": {
+				"one"   : "Boss is resistant to:",
+				"other" : "Bosses are resistant to:"
+			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
 			"burrowKillCount": "Burrows Killed: %{count}",

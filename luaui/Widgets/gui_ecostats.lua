@@ -87,7 +87,7 @@ local maxMetal, maxEnergy = 0, 0
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local maxTeamsize = 0
-for i=1, #Spring.GetAllyTeamList()-1 do
+for i=0, #Spring.GetAllyTeamList()-1 do
 	if #Spring.GetTeamList(i) > maxTeamsize then
 		maxTeamsize = #Spring.GetTeamList(i)
 	end
@@ -1082,6 +1082,7 @@ function DrawTeamComposition()
 					teamWidth = -(WBadge * (i)) - (WBadge * 0.3)
 				end
 			end
+			teamWidth = teamWidth + floor((playerScale-1)*14)
 
 			if type(data.tE) == "number" and drawpos and #(data.teams) > 0 then
 				DrawBackground(posy - (4 * sizeMultiplier), aID, math.floor(teamWidth))
