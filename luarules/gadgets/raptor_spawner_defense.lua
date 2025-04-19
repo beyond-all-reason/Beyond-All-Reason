@@ -678,6 +678,7 @@ if gadgetHandler:IsSyncedCode() then
 						if mRandom() <= config.spawnChance or j == 1 then
 							squadCounter = squadCounter + 1
 							table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+							cCount = cCount + 1
 						end
 					end
 				elseif not UnitDefNames[raptorName] then
@@ -715,6 +716,7 @@ if gadgetHandler:IsSyncedCode() then
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+								cCount = cCount + 1
 							end
 						end
 					elseif not UnitDefNames[raptorName] then
@@ -1130,6 +1132,7 @@ if gadgetHandler:IsSyncedCode() then
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
 										table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+										cCount = cCount + 1
 									end
 								end
 							elseif not UnitDefNames[raptorName] then
@@ -1159,6 +1162,7 @@ if gadgetHandler:IsSyncedCode() then
 									for j = 1, unitNumber, 1 do
 										squadCounter = squadCounter + 1
 										table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+										cCount = cCount + 1
 									end
 									cCount = cCount + unitNumber
 								end
@@ -1439,6 +1443,7 @@ if gadgetHandler:IsSyncedCode() then
 										for j = 1, unitNumber, 1 do
 											squadCounter = squadCounter + 1
 											table.insert(spawnQueue, { burrow = unitID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+											cCount = cCount + 1
 										end
 									end
 								end
