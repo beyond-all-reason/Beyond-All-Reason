@@ -1918,7 +1918,7 @@ for tier, _ in pairs(SeaUnitsList.Assault) do
 				maxAnger = tierConfiguration[tier].maxAnger,
 				minAnger = tierConfiguration[tier].minAnger,
 				units = {
-					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.5) , unit =unitName}
+					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.5), unit = unitName}
 				}
 			})
 		end
@@ -1949,7 +1949,7 @@ for tier, _ in pairs(SeaUnitsList.Support) do
 				maxAnger = tierConfiguration[tier].maxAnger,
 				minAnger = tierConfiguration[tier].minAnger,
 				units = {
-					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.5) , unit = unitName}
+					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.5), unit = unitName}
 				}
 			})
 		end
