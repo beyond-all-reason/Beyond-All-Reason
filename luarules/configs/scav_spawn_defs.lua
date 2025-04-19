@@ -1836,8 +1836,24 @@ for tier, _ in pairs(LandUnitsList.Support) do
 				scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
 				scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
 			end
-			addNewSquad({ type = "basicLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
-			addNewSquad({ type = "specialLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({
+				type = "basicLand",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialLand",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
+				}
+			})
 		end
 	end
 end
