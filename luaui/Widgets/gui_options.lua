@@ -5485,7 +5485,18 @@ function init()
 		  end,
 		},
 
-		{ id = "skyaxisangle_x", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.skybox') .. widgetOptionColor .. "  x", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		{ id = "skyaxisangle_angle", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.skybox') .. widgetOptionColor .. "  "..Spring.I18N('ui.settings.option.angle'), type = "slider", min = -3.14, max = 3.14, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = angle
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  angle = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   x", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
 		  onload = function(i)
 			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 			  options[i].value = x
@@ -5518,19 +5529,8 @@ function init()
 			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
 		  end,
 		},
-		{ id = "skyaxisangle_angle", group = "dev", category = types.dev, name = widgetOptionColor .. "   angle", type = "slider", min = -3.14, max = 3.14, step = 0.01, value = 0, description = "",
-		  onload = function(i)
-			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
-			  options[i].value = angle
-		  end,
-		  onchange = function(i, value)
-			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
-			  angle = value
-			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
-		  end,
-		},
 
-		{ id = "skyaxisangle_reset", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.sunlighting_reset'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.sunlighting_reset_descr'),
+		{ id = "skyaxisangle_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.reset'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.sunlighting_reset_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
