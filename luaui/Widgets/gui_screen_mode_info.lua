@@ -54,7 +54,7 @@ end
 local function updateKeys()
 	currentLayout = spGetConfigString("KeyboardLayout", "qwerty")
 	screenModeOverviewTable.keyset = getActionHotkey("toggleoverview")
-	metalKey = getActionHotkey("showmetalmap")
+	metalKey = getActionHotkey("showinfometal")
 	heightKey = getActionHotkey("showelevation")
 	pathKey = getActionHotkey("showpathtraversability")
 end
@@ -83,7 +83,7 @@ function widget:DrawScreen()
 	local screenmodeChanged = newScreenmode ~= screenmode
 	screenmode = newScreenmode
 
-	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
+	if WG.metalView or (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		if (screenmodeChanged) then updateKeys() end
 
 		local description, title = '', ''
@@ -100,7 +100,7 @@ function widget:DrawScreen()
 		elseif screenmode == 'pathTraversability' then
 			title = i18n('ui.screenMode.pathingTitle')
 			description = i18n('ui.screenMode.pathing', { keyset = pathKey })
-		elseif screenmode == 'metal' then
+		elseif WG.metalView then
 			title = i18n('ui.screenMode.resourcesTitle')
 			description = i18n('ui.screenMode.resources', { keyset = metalKey })
 		end

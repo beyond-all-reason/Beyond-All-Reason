@@ -83,7 +83,6 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
 
@@ -613,7 +612,7 @@ do
 	local function onMapDrawMode()
 		-- todo: would be nice to set only when it changes
 		-- todo: eg widget:MapDrawModeChanged(newMode, oldMode)
-		return actionActive == true or spGetMapDrawMode() == 'metal'
+		return actionActive == true or WG.metalView
 	end
 
 	local function onSelectReclaimer()
