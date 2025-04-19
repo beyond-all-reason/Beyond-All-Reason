@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local alwaysShow = false
 
@@ -585,11 +586,12 @@ function widget:ViewResize()
 	doUpdate = true
 	if dlistInfo then
 		dlistInfo = gl.DeleteList(dlistInfo)
-		dlistInfo = nil
 	end
-	if infoTex then
+	if infoBgTex then
 		gl.DeleteTextureFBO(infoBgTex)
 		infoBgTex = nil
+	end
+	if infoTex then
 		gl.DeleteTextureFBO(infoTex)
 		infoTex = nil
 	end
@@ -726,10 +728,11 @@ function widget:Shutdown()
 	Spring.SendCommands("tooltip 1")
 	if dlistInfo then
 		dlistInfo = gl.DeleteList(dlistInfo)
-		dlistInfo = nil
+	end
+	if infoBgTex then
+		gl.DeleteTextureFBO(infoBgTex)
 	end
 	if infoTex then
-		gl.DeleteTextureFBO(infoBgTex)
 		gl.DeleteTextureFBO(infoTex)
 	end
 	if WG['guishader'] and dlistGuishader then
@@ -803,7 +806,6 @@ function widget:Update(dt)
 		else
 			if dlistInfo then
 				dlistInfo = gl.DeleteList(dlistInfo)
-				dlistInfo = nil
 			end
 		end
 		doUpdate = nil
@@ -1687,7 +1689,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfoBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 end
 
 local function drawInfo()
@@ -1901,7 +1903,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if not infoBgTex then
 			infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 				target = GL.TEXTURE_2D,
@@ -1917,8 +1919,10 @@ function widget:DrawScreen()
 				gl.PopMatrix()
 			end)
 		end
+	end
+	if useRenderToTexture then
 		if not infoTex then
-			infoTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1600 and 2 or 1), math_floor(height*vsy)*(vsy<1600 and 2 or 1), {
+			infoTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {
 				target = GL.TEXTURE_2D,
 				format = GL.RGBA,
 				fbo = true,
@@ -1939,7 +1943,9 @@ function widget:DrawScreen()
 		if not dlistInfo then
 			dlistInfo = gl.CreateList(function()
 				if not useRenderToTexture then
-					drawInfoBackground()
+					if not useRenderToTextureBg then
+						drawInfoBackground()
+					end
 					drawInfo()
 				end
 			end)
@@ -1947,17 +1953,20 @@ function widget:DrawScreen()
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
-		if useRenderToTexture and infoTex then
+		if useRenderToTextureBg and infoBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 			gl.Texture(infoBgTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+		end
+		if useRenderToTexture and infoTex then
 			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(infoTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 			gl.Texture(false)
-		elseif dlistInfo then
+		end
+		if dlistInfo then
 			gl.CallList(dlistInfo)
 		end
 	elseif dlistGuishader then

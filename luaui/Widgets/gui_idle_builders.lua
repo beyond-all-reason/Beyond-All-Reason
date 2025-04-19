@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -149,7 +150,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 end
 
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 end
 
 local function drawContent()
@@ -398,7 +399,7 @@ local function updateList(force)
 			uiBgTex = nil
 		end
 
-		if useRenderToTexture then
+		if useRenderToTextureBg then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
@@ -415,6 +416,8 @@ local function updateList(force)
 					gl.PopMatrix()
 				end)
 			end
+		end
+		if useRenderToTexture then
 			if not uiTex then
 				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
@@ -433,7 +436,9 @@ local function updateList(force)
 			end)
 		else
 			dlist = gl.CreateList(function()
-				drawBackground()
+				if not useRenderToTextureBg then
+					drawBackground()
+				end
 				drawContent()
 			end)
 		end
@@ -578,8 +583,10 @@ function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
 	end
-	if uiTex then
+	if uiBgTex then
 		gl.DeleteTextureFBO(uiBgTex)
+	end
+	if uiTex then
 		gl.DeleteTextureFBO(uiTex)
 	end
 	if WG['guishader'] then
@@ -684,13 +691,17 @@ function widget:DrawScreen()
 		doUpdateForce = nil
 	end
 	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
-		if useRenderToTexture then
+		if useRenderToTextureBg then
 			if uiBgTex then
 				-- background element
 				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 				gl.Texture(uiBgTex)
 				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+				gl.Texture(false)
+				gl.Color(1,1,1,1)
 			end
+		end
+		if useRenderToTexture then
 			if uiTex then
 				--content
 				gl.Color(1,1,1,1)

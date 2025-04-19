@@ -607,7 +607,7 @@ function widget:DrawScreen()
 				uiTexTopExtra = math.floor(vsy*0.06)
 				uiTexLeftExtra = math.floor(vsy*0.06)
 				if not uiTex then
-					uiTex = gl.CreateTexture(math.floor(right-left)+uiTexLeftExtra, math.floor(top-bottom)+uiTexTopExtra, {
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra)*(vsy<1400 and 2 or 1), (math.floor(top-bottom)+uiTexTopExtra)*(vsy<1400 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -787,8 +787,9 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
-	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.2 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.5 or 1), 0.2 * (useRenderToTexture and 1.2*outlineMult or 1), 1.3+(outlineMult*0.25))
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
