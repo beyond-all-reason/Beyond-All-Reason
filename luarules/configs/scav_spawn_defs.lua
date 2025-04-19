@@ -1983,7 +1983,15 @@ for tier, _ in pairs(SeaUnitsList.Healer) do
 					scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
 				end
 			end
-			addNewSquad({ type = "healerSea", minAnger = tierConfiguration[tier].minAnger, units = { math.ceil(tierConfiguration[tier].maxSquadSize*0.25) .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({
+				type = "healerSea",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.25), unit = unitName}
+				}
+			})
 		end
 	end
 end
