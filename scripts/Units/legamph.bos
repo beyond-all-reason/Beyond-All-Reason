@@ -416,6 +416,7 @@ StopWalking() {
 	move base to x-axis [0.000000] speed [21.691681] / animSpeed;
 	move base to y-axis [0.000000] speed [29.182339] / animSpeed;
 	turn base to y-axis <0.000000> speed <132.563809> / animSpeed;
+	turn base to x-axis <0.000000> speed <118.511386> / animSpeed;
 	turn ldownbackleg to x-axis <0.000000> speed <1725.602033> / animSpeed;
 	turn ldownbackleg to y-axis <0.000000> speed <6.050154> / animSpeed;
 	turn ldownloeg to x-axis <0.000000> speed <2126.695853> / animSpeed;
@@ -549,9 +550,7 @@ OpenMouth(){
 	turn rcheek to y-axis <32.732408> speed <49.098612> ; 
 	turn topcheek to x-axis <39.999985> speed <59.999978> ; 
 	
-	sleep 659;
-
-	gun_deploy = TRUE;
+	wait-for-turn topcheek around x-axis ;
 }
 
 CloseMouth(){
@@ -561,9 +560,7 @@ CloseMouth(){
 	turn rcheek to x-axis <-0.000000> speed <36.606742> ; 
 	turn rcheek to z-axis <0.000007> speed <10.901383> ; 
 	turn rcheek to y-axis <-0.000000> speed <49.098607> ; 
-	turn topcheek to x-axis <-0.000000> speed <59.999978> ; 
-	
-	sleep 659;
+	turn topcheek to x-axis <-0.000000> speed <59.999978> ;
 }
 
 Create()
@@ -574,7 +571,7 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 4;
-	restore_delay = 3000;
+	restore_delay = 2000;
 	// Initializing with large negative values, to ensure first aim does wait-for-turn
 	gun_lasthead = -1000000;
 	torp_lasthead = -1000000;
@@ -589,26 +586,18 @@ Movement()
 {
 	while( TRUE ){
 		isInWater = get IN_WATER;
+		dbg(isInWater)
 		if( !inWaterForm ){
-			dbg(isAiming,gun_deploy)
-			if (isAiming) {
-				if (!gun_deploy) {
-					start-script OpenHeatsinks();
-					start-script OpenMouth();
-				}
-			else {
-				gun_deploy = FALSE;
-				call-script CloseHeatsinks();
-				call-script CloseMouth();
-				}
-			}
+			call-script OpenHeatsinks();
 			if( isInWater == 1 ){
 				call-script transform();
+				call-script CloseHeatsinks();
 				inWaterForm = 1;
 			}
 		} else {
 			if( isInWater == 0 ) {
 				call-script reform();
+				call-script OpenHeatsinks();
 				inWaterForm = 0;
 			}
 		}
@@ -616,6 +605,7 @@ Movement()
 		if( isMoving ) {
 			if( inWaterForm )
 				{
+					signal SIGNAL_MOVE;
 					call-script swim();
 				} else {
 					call-script walk();
@@ -725,7 +715,6 @@ reform()
 swim()
 {
 	if (TRUE) { //Frame:15
-			move base to y-axis [-8.999583] speed [269.987497] / animSpeed;
 			turn base to x-axis <-3.690362> speed <110.710869> / animSpeed; 
 			move lfin1 to y-axis [-2.000000] speed [60.000000] / animSpeed; 
 			turn lfin1 to x-axis <37.002437> speed <1110.073114> / animSpeed; 
@@ -1375,11 +1364,6 @@ StopMoving()
 	call-script StopWalking();
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
-}
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -1397,6 +1381,8 @@ RestoreAfterDelayGun()
     }
 	gun_lasthead = -1000000;
 	gun_lastpitch = -1000000;
+	call-script CloseMouth();
+	gun_deploy = FALSE;
 	turn neck to y-axis <0.000000> speed <90.000000>;
 	turn neck to x-axis <0.000000> speed <50.000000>;
 	isAiming = FALSE;
@@ -1412,9 +1398,16 @@ AimSecondary(heading, pitch)
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
 	
-	
+	// checks if the mouth is deployed
 	turn neck to y-axis heading speed <200.000000>;
 	turn neck to x-axis <0.000000> - pitch speed <100.000000>;
+	if (gun_deploy == FALSE)
+	{
+		//if not, move it up to the deploy position, and wait
+		call-script OpenMouth();
+		// after moving, set variable to true, so deploy is skipped on future aims 
+		gun_deploy = TRUE;
+	}
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( (get ABS(gun_lasthead - heading)<1200) AND (get ABS(gun_lastpitch - pitch)<600) )
 	{
