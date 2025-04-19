@@ -1811,7 +1811,7 @@ for tier, _ in pairs(LandUnitsList.Assault) do
 				maxAnger = tierConfiguration[tier].maxAnger,
 				minAnger = tierConfiguration[tier].minAnger,
 				units = {
-					{ count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
 				}
 			})
 			addNewSquad({
@@ -1820,7 +1820,7 @@ for tier, _ in pairs(LandUnitsList.Assault) do
 				maxAnger = tierConfiguration[tier].maxAnger,
 				minAnger = tierConfiguration[tier].minAnger,
 				units = {
-					{ count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
+					{count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
 				}
 			})
 		end
