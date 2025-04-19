@@ -1934,8 +1934,24 @@ for tier, _ in pairs(SeaUnitsList.Support) do
 				scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
 				scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
 			end
-			addNewSquad({ type = "basicSea", minAnger = tierConfiguration[tier].minAnger, units = { math.ceil(tierConfiguration[tier].maxSquadSize*0.25) .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
-			addNewSquad({ type = "specialSea", minAnger = tierConfiguration[tier].minAnger, units = { math.ceil(tierConfiguration[tier].maxSquadSize*0.5) .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({
+				type = "basicSea",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.25), unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialSea",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{count = math.ceil(tierConfiguration[tier].maxSquadSize*0.5) , unit = unitName}
+				}
+			})
 		end
 	end
 end
