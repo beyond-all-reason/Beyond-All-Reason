@@ -1805,8 +1805,24 @@ for tier, _ in pairs(LandUnitsList.Assault) do
 			if not scavBehaviours.BERSERK[UnitDefNames[unitName].id] then
 				scavBehaviours.BERSERK[UnitDefNames[unitName].id] = {distance = 2000, chance = 0.01}
 			end
-			addNewSquad({ type = "basicLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
-			addNewSquad({ type = "specialLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({ 
+				type = "basicLand",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{ count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialLand",
+				weight = unitWeight,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				minAnger = tierConfiguration[tier].minAnger,
+				units = {
+					{ count = tierConfiguration[tier].maxSquadSize*2, unit = unitName}
+				}
+			})
 		end
 	end
 end
