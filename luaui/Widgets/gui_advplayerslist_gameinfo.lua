@@ -234,7 +234,7 @@ function widget:ViewResize(newX,newY)
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	updateDrawing = tonumber
+	updateDrawing = true
 	if uiBgTex then
 		gl.DeleteTextureFBO(uiBgTex)
 		uiBgTex = nil
