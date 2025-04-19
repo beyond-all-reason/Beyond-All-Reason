@@ -818,7 +818,7 @@ function widget:DrawScreen()
 			refreshBuildmenu = false
 			if useRenderToTexture then
 				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1600 and 2 or 1), math_floor(height*vsy)*(vsy<1600 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,

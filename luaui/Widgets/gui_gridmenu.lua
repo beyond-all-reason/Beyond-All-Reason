@@ -1444,7 +1444,7 @@ function widget:ViewResize()
 
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2, 0.28, 1.6)
+	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2 * (useRenderToTexture and 1.6 or 1), 0.28, 1.6)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -2569,7 +2569,7 @@ function widget:DrawScreen()
 					end)
 				end
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*(vsy<1600 and 2 or 1), math_floor(backgroundRect.yEnd-backgroundRect.y)*(vsy<1600 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,

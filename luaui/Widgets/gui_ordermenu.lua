@@ -302,7 +302,7 @@ function widget:ViewResize()
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(fontFile)
+	font = WG['fonts'].getFont(fontFile, 1.1 * (useRenderToTexture and 1.6 or 1), 0.18 * (useRenderToTexture and 1.4 or 1), useRenderToTexture and 2 or 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -802,7 +802,7 @@ function widget:DrawScreen()
 			end)
 			if useRenderToTexture then
 				if not ordermenuBgTex then
-					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX)*(viewSizeY<1600 and 2 or 1), math_floor(height*viewSizeY)*(viewSizeY<1600 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.ALPHA,
 						fbo = true,

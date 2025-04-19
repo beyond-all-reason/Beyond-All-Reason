@@ -596,9 +596,10 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	font, loadedFontSize = WG['fonts'].getFont(fontfile, 1.1 * (useRenderToTexture and 1.3 or 1), 0.18 * (useRenderToTexture and 1.3 or 1))
-	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
-	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.6+(outlineMult*0.25))
+	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.6+(outlineMult*0.25))
 end
 
 function GetColor(colormap, slider)
@@ -1147,7 +1148,7 @@ local function drawUnitInfo()
 	local energyColor = '\255\255\255\000'
 	local healthColor = '\255\100\255\100'
 
-	local labelColor = '\255\205\205\205'
+	local labelColor = useRenderToTexture and '\255\212\212\212' or '\255\205\205\205'
 	local valueColor = '\255\255\255\255'
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
@@ -1917,7 +1918,7 @@ function widget:DrawScreen()
 			end)
 		end
 		if not infoTex then
-			infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			infoTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1600 and 2 or 1), math_floor(height*vsy)*(vsy<1600 and 2 or 1), {
 				target = GL.TEXTURE_2D,
 				format = GL.RGBA,
 				fbo = true,
