@@ -781,7 +781,7 @@ local function rankTeamPlayers()
                     end
                 end
             end
-            
+
             if scores[allyTeamID] then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
@@ -2002,7 +2002,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainListTex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-					mainListTex = gl.CreateTexture(width, height, {
+					mainListTex = gl.CreateTexture(width*(vsy<1600 and 2 or 1), height*(vsy<1600 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2037,7 +2037,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainList2Tex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-						mainList2Tex = gl.CreateTexture(width, height, {
+						mainList2Tex = gl.CreateTexture(width*(vsy<1600 and 2 or 1), height*(vsy<1600 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -3810,8 +3810,9 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-    font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.25*outlineMult or 1), math.max(4.5, 6 / widgetScale)+(outlineMult*0.25))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

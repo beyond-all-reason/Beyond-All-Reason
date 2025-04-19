@@ -636,7 +636,7 @@ local function refreshUiDrawing()
 				end)
 			end
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+				uiTex = gl.CreateTexture(math.floor(right-left)*(vsy<1600 and 2 or 1), math.floor(top-bottom)*(vsy<1600 and 2 or 1), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -915,7 +915,8 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.2 or 1), 0.35 * (useRenderToTexture and 1.2 or 1), 1.25)
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
