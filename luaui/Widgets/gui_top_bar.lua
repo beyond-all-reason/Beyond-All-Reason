@@ -1402,7 +1402,7 @@ local function drawUiBackground()
 end
 
 local function drawUi()
-	if dlistButtons then
+	if showButtons and dlistButtons then
 		glCallList(dlistButtons)
 	end
 	if dlistResbar.energy and dlistResbar.energy[1] then
