@@ -1776,8 +1776,24 @@ for tier, _ in pairs(LandUnitsList.Raid) do
 	for unitName, _ in pairs(LandUnitsList.Raid[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = LandUnitsList.Raid[tier][unitName]
-			addNewSquad({ type = "basicLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
-			addNewSquad({ type = "specialLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
+			addNewSquad({
+				type = "basicLand",
+				weight = unitWeight,
+				minAnger = tierConfiguration[tier].minAnger,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize, unit = unitName}
+				}
+			})
+			addNewSquad({
+				type = "specialLand",
+				weight = unitWeight,
+				minAnger = tierConfiguration[tier].minAnger,
+				maxAnger = tierConfiguration[tier].maxAnger,
+				units = {
+					{count = tierConfiguration[tier].maxSquadSize * 2, unit = unitName}
+				}
+			})
 		end
 	end
 end
