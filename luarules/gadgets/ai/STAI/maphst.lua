@@ -578,9 +578,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 	local counter = 0
 	local testUnitName = testUnit.unit:Internal():Name()
 	local testUnitPos = testUnit.unit:Internal():GetPosition()
-	local className = UnitDefNames[testUnitName].moveDef.name
-	local classID = UnitDefNames[testUnitName].id
-	local parsed = {}
 	self.ttt={trampled = 0}
 	local last 
 	local first,firstX,firstZ
@@ -594,7 +591,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 		
 		waypoints = self:getPath(testUnitName,testUnitPos,POS1,true)
 		if  waypoints then
-			local waypointsNumber = #waypoints
 			last = waypoints[#waypoints]
 			counter = counter + 1
 			first = table.remove(waypoints)
@@ -719,11 +715,8 @@ end
 function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest free metal spot for the request unittype
 	position = position or builder:GetPosition()
 	local layer, net = self:MobilityOfUnit(builder)
-	local builderName = builder:Name()
-	local builderPos = builder:GetPosition()
 	local uname = unittype:Name()
 	local spotPosition = nil
-	local spotDistance = math.huge
 
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
@@ -738,16 +731,6 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
 							return spot
--- 							local distance = self.ai.tool:distance(position,spot)
--- 							--print(distance-Distance)
---  							--if distance < 300 then
---  							--	return spot
---  							--else
--- 								if distance < spotDistance then
--- 									spotPosition = spot
--- 									spotDistance = distance
--- 								end
- 							--end
 						else
 							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
 						end
@@ -771,7 +754,6 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest fre
 	self:EchoDebug("closestfreegeo for " .. unittype:Name() .. " by " .. builder:Name())
 	if not position then position = builder:GetPosition() end
 	local layer, net = self:MobilityOfUnit(builder)
-	local bname = builder:Name()
 	local uname = unittype:Name()
 	local bestDistance, bestPos
 	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do
