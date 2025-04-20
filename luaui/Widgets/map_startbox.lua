@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
 
 if Game.startPosType ~= 2 then
 	return false
@@ -42,10 +42,15 @@ local infotextFontsize = 13
 
 local commanderNameList = {}
 local usedFontSize = fontSize
-
+Spring.Echo(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
-local startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+local startPosScale
+if getMiniMapRotationOptions() == 1 or getMiniMapRotationOptions() == 3 then
+	startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+else
+	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+end
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
@@ -58,6 +63,7 @@ local amPlaced = false
 local gaiaTeamID
 
 local startTimer = Spring.GetTimer()
+local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local infotextList
 
@@ -171,8 +177,8 @@ end
 
 -- TODO:
 -- [ ] Handle overlapping of boxes and myAllyTeamID
--- [X] Handle Minimap drawing too 
-	-- [X] handle flipped minimaps 
+-- [X] Handle Minimap drawing too
+	-- [X] handle flipped minimaps
 -- [ ] Pass in my team too
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
@@ -181,14 +187,11 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
-
-
 local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
-local autoReload = false -- refresh shader code every second (disable in production!)
+local autoReload = true -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
@@ -205,9 +208,9 @@ local shaderSourceCache = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
 			isMiniMap = 0,
-			flipMiniMap = 0,
+			roationMiniMap = 0,
 			mapNormals = 1,
-			heightMapTex = 2, 
+			heightMapTex = 2,
 			scavTexture = 3,
 			raptorTexture = 4,
 		},
@@ -236,7 +239,7 @@ local coneShaderSourceCache = {
 	fssrcpath = "LuaUI/Shaders/map_startcone_gl4.frag.glsl",
 	uniformInt = {
 		mapDepths = 0,
-		flipMiniMap = 0,
+		rotationMiniMap = 0,
 	},
 	uniformFloat = {
 		isMiniMap = 0,
@@ -251,21 +254,21 @@ local coneShaderSourceCache = {
 local startConeVBOTable = nil
 local startConeShader = nil
 
-local function DrawStartPolygons(inminimap)	
+local function DrawStartPolygons(inminimap)
 
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
 
-	if advMapShading then 
+	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
 			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
-		else 
+		else
 			Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
 		end
 	end
-	
+
 	gl.Texture(1, "$normals")
 	gl.Texture(2, "$heightmap")-- Texture file
 	gl.Texture(3, scavengerStartBoxTexture)
@@ -281,8 +284,8 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
-	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
+	startPolygonShader:SetUniformInt("rotationMiniMap", getMiniMapRotationOptions() or 0)
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -297,7 +300,7 @@ end
 local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
-	startConeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+	startConeShader:SetUniformInt("rotationMiniMap", getMiniMapRotationOptions() or 0)
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
@@ -308,18 +311,18 @@ end
 
 local function InitStartPolygons()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then 
+	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then 
+		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
-	
+
 	if autoReload and false then
 		-- MANUAL OVERRIDE FOR DEBUGGING
 		-- lets add a bunch of silly StartPolygons:
@@ -329,7 +332,7 @@ local function InitStartPolygons()
 			local y0 = math.random(0, Game.mapSizeZ)
 			local polygon = {{x0, y0}}
 
-			for j = 2, math.ceil(math.random() * 10) do 
+			for j = 2, math.ceil(math.random() * 10) do
 				local x1 = math.random(0, Game.mapSizeX / 5)
 				local y1 = math.random(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
@@ -345,7 +348,7 @@ local function InitStartPolygons()
 	if waterlevel > 0 then
 		minY = minY - waterlevel
 		maxY = maxY - waterlevel
-	end	
+	end
 	shaderSourceCache.shaderConfig.MINY = minY - 1024
 	shaderSourceCache.shaderConfig.MAXY = maxY + 1024
 
@@ -367,8 +370,8 @@ local function InitStartPolygons()
 		end
 	end
 
-	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
-	if numvertices % 4 ~= 0 then 
+	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data
+	if numvertices % 4 ~= 0 then
 		for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
@@ -410,14 +413,14 @@ local function InitStartPolygons()
 	startConeVBOTable.VAO = makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
-	
+
 	if not startConeShader then
 		Spring.Echo("Error: startConeShader shader not initialized")
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-end	
+end
 
 --------------------------------------------------------------------------------
 
@@ -493,7 +496,7 @@ function widget:DrawWorld()
 				cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
 				cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
 				pushElementInstance(startConeVBOTable,
-					cacheTable, 
+					cacheTable,
 					nil, nil, true)
 				if teamID == myTeamID then
 					amPlaced = true
@@ -501,7 +504,7 @@ function widget:DrawWorld()
 			end
 		end
 	end
-	
+
 	uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
@@ -550,7 +553,12 @@ function widget:ViewResize(x, y)
 	vsx, vsy = x, y
 	widgetScale = (0.75 + (vsx * vsy / 7500000))
 
-	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	local currRot = getMiniMapRotationOptions()
+	if currRot == 1 or currRot == 3 then
+		startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+	else
+		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	end
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -569,6 +577,12 @@ end
 
 local sec = 0
 function widget:Update(delta)
+	local currRot = getMiniMapRotationOptions()
+	if lastRot ~= currRot then
+		lastRot = currRot
+		widget:ViewResize(vsx, vsy)
+		return
+	end
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 	end
