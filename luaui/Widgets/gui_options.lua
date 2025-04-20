@@ -177,6 +177,10 @@ local defaultSunLighting = {
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
 
+local defaultSkyAxisAngle = {
+	gl.GetAtmosphere("skyAxisAngle"),
+}
+
 -- Correct some maps fog
 if Game.mapName == "Nine_Metal_Islands_V1" then
 	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
@@ -186,6 +190,7 @@ local defaultMapFog = {
 	fogEnd = gl.GetAtmosphere("fogEnd"),
 	fogColor = { gl.GetAtmosphere("fogColor") },
 }
+
 local options = {}
 local customOptions = {}
 local optionGroups = {}
@@ -5161,7 +5166,8 @@ function init()
 			  local r, g, b, a = gl.GetMapRendering("splatTexScales")
 			  Spring.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
 		  end,
-		}, { id = "map_splattexacales_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+		},
+		{ id = "map_splattexacales_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
 			 onload = function(i)
 				 local r, g, b, a = gl.GetMapRendering("splatTexScales")
 				 options[i].value = a
@@ -5479,6 +5485,61 @@ function init()
 		  end,
 		},
 
+		{ id = "skyaxisangle_angle", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.skybox') .. widgetOptionColor .. "  "..Spring.I18N('ui.settings.option.angle'), type = "slider", min = -3.14, max = 3.14, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = angle
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  angle = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   x", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = x
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  x = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_y", group = "dev", category = types.dev, name = widgetOptionColor .. "   y", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = y
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  y = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   z", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = z
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  z = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+
+		{ id = "skyaxisangle_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.reset'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.sunlighting_reset_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  options[getOptionByID('skyaxisangle_reset')].value = false
+			  Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
+			  Spring.Echo('resetted skyAxisAngle atmosphere')
+			  init()
+		  end,
+		},
 		{ id = "label_dev_water", group = "dev", name = Spring.I18N('ui.settings.option.label_water'), category = types.dev },
 		{ id = "label_dev_water_spacer", group = "dev", category = types.dev },
 
@@ -6813,6 +6874,7 @@ function widget:GetConfigData()
 		mapChecksum = Game.mapChecksum,
 		defaultMapFog = defaultMapFog,
 		defaultMapSunPos = defaultMapSunPos,
+		defaultSkyAxisAngle = defaultSkyAxisAngle,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
 		version = version,
@@ -6891,6 +6953,9 @@ function widget:SetConfigData(data)
 		end
 		if data.defaultMapFog ~= nil then
 			defaultMapFog = data.defaultMapFog
+		end
+		if data.defaultSkyAxisAngle ~= nil then
+			defaultSkyAxisAngle = data.defaultSkyAxisAngle
 		end
 	end
 	if data.useNetworkSmoothing then

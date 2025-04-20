@@ -142,7 +142,7 @@ return {
 				},
 				customparams = {
 					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 900,
+					engagementrange = 1000,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 10, 			--Spawnrate roughly in seconds.
 					maxunits = 4,				--Will spawn units until this amount has been reached.
