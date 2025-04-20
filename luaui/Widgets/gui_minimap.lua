@@ -15,6 +15,8 @@ end
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
+local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+
 
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
@@ -26,7 +28,8 @@ local minimized = false
 local maximized = false
 
 local maxHeight = maxAllowedHeight
-local maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
+local ratio = Game.mapX / Game.mapY
+local maxWidth = math.min(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 local backgroundRect = { 0, 0, 0, 0 }
@@ -34,6 +37,7 @@ local backgroundRect = { 0, 0, 0, 0 }
 local delayedSetup = false
 local sec = 0
 local sec2 = 0
+local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local spGetCameraState = Spring.GetCameraState
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -99,10 +103,16 @@ function widget:ViewResize()
 		local topbarArea = WG['topbar'].GetPosition()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
-
-	maxWidth = math.min(maxAllowedHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
+	local currRot = getMiniMapRotationOptions()
+	if currRot == 1 or currRot == 3 then
+		-- 90 or 270 degrees
+		ratio = Game.mapY / Game.mapX
+	else
+		ratio = Game.mapX / Game.mapY
+	end
+	maxWidth = math.min(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
 	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
-		maxHeight = maxWidth / (Game.mapX / Game.mapY)
+		maxHeight = maxWidth / ratio
 	else
 		maxHeight = maxAllowedHeight
 	end
@@ -167,6 +177,12 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	local currRot = getMiniMapRotationOptions()
+	if lastRot ~= currRot then
+		lastRot = currRot
+		widget:ViewResize()
+		return
+	end
 	if not delayedSetup then
 		sec = sec + dt
 		if sec > 2 then
