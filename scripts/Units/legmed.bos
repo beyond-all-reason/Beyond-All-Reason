@@ -164,7 +164,7 @@ Close()
 	move barrel4 to y-axis [-6] speed [12];
 	sleep 100;
 	move sleeve4 to y-axis [-1.7] speed [3.4];
-	move barrel5 to y-axis [-1.4] speed [12];
+	move barrel5 to y-axis [-6] speed [12];
 	sleep 100;
 	move sleeve5 to y-axis [-1.7] speed [3.4];
 	move barrel6 to y-axis [-6] speed [12];
@@ -240,7 +240,7 @@ Open()
 	move barrel6 to y-axis [0] speed [12];
 	move sleeve5 to y-axis [0] speed [3.4];
 	sleep 100;
-	move barrel5 to y-axis [5] speed [12];
+	move barrel5 to y-axis [0] speed [12];
 	move sleeve4 to y-axis [0] speed [3.4];
 	sleep 100;
 	move barrel4 to y-axis [0] speed [12];
