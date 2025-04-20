@@ -14,7 +14,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
 
 ----------------------------------------------------------------
 -- config
@@ -289,21 +289,24 @@ function widget:DrawInMiniMap(sx, sy)
 	end
 	glLineWidth(lineWidth)
 
-	local ratioX = sx / mapX
-	local ratioY = sy / mapY
-
-	local flipped = getMiniMapFlipped()
+	local currRot = getMiniMapRotationOptions()
 
 	for unitID, defs in pairs(mapPoints) do
 		if defs.x then
 			local x, y
 
-			if flipped then
-				x = (mapX - defs.x) * ratioX
-				y = sy - (mapY - defs.z) * ratioY
-			else
-				x = defs.x * ratioX
-				y = sy - defs.z * ratioY
+			if currRot == 0 then
+				x = defs.x * sx / mapX
+				y = sy - defs.z * sy / mapY
+			elseif currRot == 1 then
+				x = defs.z * sx / mapY
+				y = defs.x * sy / mapX
+			elseif currRot == 2 then
+				x = sx - defs.x * sx / mapX
+				y = defs.z * sy / mapY
+			elseif currRot == 3 then
+				x = sx - defs.z * sx / mapY
+				y = sy - defs.x * sy / mapX
 			end
 
 			local expired = timeNow > defs.time
