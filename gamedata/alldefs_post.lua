@@ -431,180 +431,320 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Release candidate units
-	if modOptions.releasecandidates or modOptions.experimentalextraunits then
+	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
+	if modOptions.experimentalextraunits then
+		-- Armada T1 Land Constructors
+		if name == "armca" or name == "armck" or name == "armcv" then
+			local numBuildoptions = #uDef.buildoptions
+		end
 
-		--Shockwave mex
+		-- Armada T1 Sea Constructors
+		if name == "armcs" or name == "armcsa" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armgplat" -- Gun Platform - Light Plasma Defense
+			uDef.buildoptions[numBuildoptions + 2] = "armfrock" -- Scumbag - Anti Air Missile Battery
+		end
+
+		-- Armada T1 Vehicle Factory
+		if name == "armvp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armzapper" -- Zapper - Light EMP Vehicle
+		end
+
+		-- Armada T1 Aircraft Plant
+		if name == "armap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armfify" -- Firefly - Resurrection Aircraft
+		end
+
+		-- Armada T2 Land Constructors
 		if name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armshockwave"
+			uDef.buildoptions[numBuildoptions + 1] = "armshockwave" -- Shockwave - T2 EMP Armed Metal Extractor
+			uDef.buildoptions[numBuildoptions + 2] = "armwint2" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 3] = "armnanotct2" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 4] = "armlwall" -- Dragon's Fury - T2 Pop-up Wall Turret
+			uDef.buildoptions[numBuildoptions + 5] = "armgatet3" -- Asylum - Advanced Shield Generator
 		end
 
-		--Printer
-
-		if name == "coravp" then
+		-- Armada T2 Sea Constructors
+		if name == "armacsub" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corvac" --corprinter
-			uDef.buildoptions[numBuildoptions + 2] = "corphantom"
-			uDef.buildoptions[numBuildoptions + 3] = "corsiegebreaker"
-		end
-		if name == "legavp" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corvac" --corprinter
+			uDef.buildoptions[numBuildoptions + 1] = "armfgate" -- Aurora - Floating Plasma Deflector
+			uDef.buildoptions[numBuildoptions + 2] = "armnanotc2plat" -- Floating T2 Constructor Turret
 		end
 
-		--Drone Carriers
-
+		-- Armada T2 Shipyard
 		if name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armdronecarry"
+			uDef.buildoptions[numBuildoptions + 1] = "armexcalibur" -- Excalibur - Coastal Assault Submarine
+			uDef.buildoptions[numBuildoptions + 2] = "armseadragon" -- Seadragon - Nuclear ICBM Submarine
 		end
+
+		-- Armada T3 Gantry
+		if name == "armshltx" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armmeatball" -- Meatball - Amphibious Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Battle Mech
+		end
+
+		-- Armada T3 Underwater Gantry
+		if name == "armshltxuw" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armmeatball" -- Meatball - Amphibious Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Battle Mech
+		end
+
+		-- Cortex T1 Land Constructors
+		if name == "corca" or name == "corck" or name == "corcv" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+	
+		-- Cortex T1 Sea Constructors
+		if name == "corcs" or name == "corcsa" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corgplat" -- Gun Platform - Light Plasma Defense
+			uDef.buildoptions[numBuildoptions + 2] = "corfrock" -- Janitor - Anti Air Missile Battery
+		end
+
+		-- Cortex T1 Bots Factory 
+		if name == "corlab" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Cortex T2 Land Constructors
+		if name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corwint2" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 2] = "cornanotct2" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 3] = "cormwall" -- Dragon's Rage - T2 Pop-up Wall Turret
+			uDef.buildoptions[numBuildoptions + 4] = "corgatet3" -- Sanctuary - Advanced Shield Generator
+		end
+
+		-- Cortex T2 Sea Constructors
+		if name == "coracsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corfgate" -- Atoll - Floating Plasma Deflector
+			uDef.buildoptions[numBuildoptions + 2] = "cornanotc2plat" -- Floating T2 Constructor Turret
+		end
+
+		-- Cortex T2 Bots Factory 
+		if name == "coralab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
+		end
+
+		-- Cortex T2 Vehicle Factory
+		if name == "coravp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corvac" -- Printer - Armored Field Engineer
+			uDef.buildoptions[numBuildoptions + 2] = "corphantom" -- Phantom - Amphibious Stealth Scout
+			uDef.buildoptions[numBuildoptions + 3] = "corsiegebreaker" -- Siegebreaker - Heavy Long Range Destroyer
+			uDef.buildoptions[numBuildoptions + 4] = "corforge" -- Forge - Flamethrower Combat Engineer
+			uDef.buildoptions[numBuildoptions + 5] = "cortorch" -- Torch - Fast Flamethrower Tank
+		end
+
+		-- Cortex T2 Aircraft Plant
+		if name == "coraap" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Cortex T2 Shipyard
 		if name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "cordronecarry"
+			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3" -- Adjudictator - Ultra Heavy Heatray Battleship
+			uDef.buildoptions[numBuildoptions + 2] = "coronager" -- Onager - Coastal Assault Submarine
+			uDef.buildoptions[numBuildoptions + 3] = "cordesolator" -- Desolator - Nuclear ICBM Submarine
+		end
+
+		-- Cortex T3 Gantry
+		if name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Cortex T3 Underwater Gantry
+		if name == "corgantuw" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Legion T1 Land Constructors
+		if name == "legca" or name == "legck" or name == "legcv" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Legion T2 Land Constructors
+		if name == "legaca" or name == "legack" or name == "legacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "legmohocon" -- Advanced Metal Fortifier - Metal Extractor with Constructor Turret
+			uDef.buildoptions[numBuildoptions + 2] = "legwint2" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 4] = "legrwall" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
+			uDef.buildoptions[numBuildoptions + 5] = "leggatet3" -- Elysium - Advanced Shield Generator
+		end
+
+		-- Legion T3 Gantry
+		if name == "leggant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
 		end
 	end
 
-	-- Add scav units to normal factories and builders
-	if modOptions.experimentalextraunits then
+	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
+	if modOptions.scavunitsforplayers then
+		-- Armada T1 Land Constructors
+		if name == "armca" or name == "armck" or name == "armcv" then
+			local numBuildoptions = #uDef.buildoptions
+		end
 
+		-- Armada T1 Sea Constructors
+		if name == "armcs" or name == "armcsa" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Armada T1 Vehicle Factory
+		if name == "armvp" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Armada T1 Aircraft Plant
+		if name == "armap" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Armada T2 Constructors
+		if name == "armaca" or name == "armack" or name == "armacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armapt3" -- T3 Aircraft Gantry
+			uDef.buildoptions[numBuildoptions + 2] = "armminivulc" -- Mini Ragnarok
+			uDef.buildoptions[numBuildoptions + 3] = "armbotrail" -- Pawn Launcher
+			uDef.buildoptions[numBuildoptions + 4] = "armannit3" -- Epic Pulsar
+			uDef.buildoptions[numBuildoptions + 5] = "armafust3" -- Epic Fusion Reactor
+			uDef.buildoptions[numBuildoptions + 6] = "armmmkrt3" -- Epic Energy Converter
+		end
+
+		-- Armada T2 Shipyard
+		if name == "armasy" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armdronecarry" -- Nexus - Drone Carrier
+			uDef.buildoptions[numBuildoptions + 2] = "armptt2" -- Epic Skater
+			uDef.buildoptions[numBuildoptions + 3] = "armdecadet3" -- Epic Dolphin
+			uDef.buildoptions[numBuildoptions + 4] = "armpshipt3" -- Epic Ellysaw
+			uDef.buildoptions[numBuildoptions + 5] = "armserpt3" -- Epic Serpent
+			uDef.buildoptions[numBuildoptions + 6] = "armtrident" -- Trident - Depth Charge Drone Carrier
+		end
+
+		-- Armada T3 Gantry
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armrattet4"
-			uDef.buildoptions[numBuildoptions + 2] = "armsptkt4"
-			uDef.buildoptions[numBuildoptions + 3] = "armpwt4"
-			uDef.buildoptions[numBuildoptions + 4] = "armvadert4"
-			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
-			uDef.buildoptions[numBuildoptions + 6] = "armmeatball"
-			uDef.buildoptions[numBuildoptions + 7] = "armassimilator"
-			uDef.buildoptions[numBuildoptions + 8] = "armdronecarryland"
-		elseif name == "armap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armfify"
-		elseif name == "armshltxuw" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armrattet4"
-			uDef.buildoptions[numBuildoptions + 2] = "armpwt4"
-			uDef.buildoptions[numBuildoptions + 3] = "armvadert4"
-			uDef.buildoptions[numBuildoptions + 4] = "armmeatball"
-		elseif name == "corgantuw" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corgolt4"
-			uDef.buildoptions[numBuildoptions + 2] = "corakt4"
-		elseif name == "armvp" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armzapper"
-		elseif name == "legavp" then
-			local numBuildoptions = #uDef.buildoptions
-		elseif name == "coravp" then
-			local printerpresent = false
-
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "corvac" then
-					printerpresent = true
-				end
-			end
-
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
-			uDef.buildoptions[numBuildoptions+2] = "corforge"
-			uDef.buildoptions[numBuildoptions+3] = "corftiger"
-			uDef.buildoptions[numBuildoptions+4] = "cortorch"
-			uDef.buildoptions[numBuildoptions+5] = "corphantom"
-			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
-
-			end
-		elseif name == "corlab" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corkark"
-		elseif name == "coralab" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
-		elseif name == "coraap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corcrw"
-		elseif name == "corgant" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4"
-			uDef.buildoptions[numBuildoptions + 2] = "corgolt4"
-			uDef.buildoptions[numBuildoptions + 3] = "corakt4"
-			uDef.buildoptions[numBuildoptions + 4] = "corthermite"
-			uDef.buildoptions[numBuildoptions + 5] = "cormandot4"
-		elseif name == "leggant" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
-			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
-			uDef.buildoptions[numBuildoptions + 3] = "legpede"
-			uDef.buildoptions[numBuildoptions + 4] = "legbunk"
-		elseif name == "armca" or name == "armck" or name == "armcv" then
-			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "corca" or name == "corck" or name == "corcv" then
-			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "legca" or name == "legck" or name == "legcv" then
-			--local numBuildoptions = #uDef.buildoptions
-		elseif name == "corcs" or name == "corcsa" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corgplat"
-			uDef.buildoptions[numBuildoptions + 2] = "corfrock"
-		elseif name == "armcs" or name == "armcsa" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armgplat"
-			uDef.buildoptions[numBuildoptions + 2] = "armfrock"
-		elseif name == "coracsub" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corfgate"
-			uDef.buildoptions[numBuildoptions + 2] = "cornanotc2plat"
-		elseif name == "armacsub" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armfgate"
-			uDef.buildoptions[numBuildoptions + 2] = "armnanotc2plat"
-		elseif name == "armaca" or name == "armack" or name == "armacv" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armapt3"
-			uDef.buildoptions[numBuildoptions + 2] = "armminivulc"
-			uDef.buildoptions[numBuildoptions + 3] = "armwint2"
-			uDef.buildoptions[numBuildoptions + 5] = "armbotrail"
-			uDef.buildoptions[numBuildoptions + 6] = "armannit3"
-			uDef.buildoptions[numBuildoptions + 7] = "armnanotct2"
-			uDef.buildoptions[numBuildoptions + 8] = "armlwall"
-			uDef.buildoptions[numBuildoptions + 9] = "armgatet3"
-		elseif name == "coraca" or name == "corack" or name == "coracv" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corapt3"
-			uDef.buildoptions[numBuildoptions + 2] = "corminibuzz"
-			uDef.buildoptions[numBuildoptions + 3] = "corwint2"
-			uDef.buildoptions[numBuildoptions + 4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions + 6] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions + 7] = "cornanotct2"
-			uDef.buildoptions[numBuildoptions + 8] = "cormwall"
-			uDef.buildoptions[numBuildoptions + 9] = "corgatet3"
-		elseif name == "legaca" or name == "legack" or name == "legacv" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "legapt3"
-			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
-			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
-			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
-			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
-			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
-			uDef.buildoptions[numBuildoptions + 7] = "legmohocon"
-		elseif name == "armasy" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
-			uDef.buildoptions[numBuildoptions + 2] = "armdecadet3"
-			uDef.buildoptions[numBuildoptions + 3] = "armpshipt3"
-			uDef.buildoptions[numBuildoptions + 4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions + 5] = "armexcalibur"
-			uDef.buildoptions[numBuildoptions + 6] = "armseadragon"
-			uDef.buildoptions[numBuildoptions + 7] = "armtrident"
-		elseif name == "corasy" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
-			uDef.buildoptions[numBuildoptions + 2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions + 3] = "coronager"
-			uDef.buildoptions[numBuildoptions + 4] = "cordesolator"
-			uDef.buildoptions[numBuildoptions + 5] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
+			uDef.buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
+			uDef.buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
+			uDef.buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
+			uDef.buildoptions[numBuildoptions + 5] = "armdronecarryland" -- Nexus Terra - Drone Carrier
 		end
+
+		-- Armada T3 Underwater Gantry
+		if name == "armshltxuw" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
+			uDef.buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
+			uDef.buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
+			uDef.buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
+		end
+
+		-- Cortex T1 Bots Factory 
+		if name == "corlab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos
+		end
+
+		-- Cortex T2 Land Constructors
+		if name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corapt3" -- T3 Aircraft Gantry
+			uDef.buildoptions[numBuildoptions + 2] = "corminibuzz" -- Mini Calamity
+			uDef.buildoptions[numBuildoptions + 3] = "corhllllt" -- Quad Guard - Quad Light Laser Turret
+			uDef.buildoptions[numBuildoptions + 4] = "cordoomt3" -- Epic Bulwark
+			uDef.buildoptions[numBuildoptions + 5] = "corafust3" -- Epic Fusion Reactor
+			uDef.buildoptions[numBuildoptions + 6] = "cormmkrt3" -- Epic Energy Converter
+		end
+
+		-- Cortex T2 Sea Constructors
+		if name == "coracsub" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Cortex T2 Bots Factory
+		if name == "coralab" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Cortex T2 Vehicle Factory
+		if name == "coravp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap" -- Laser Tiger
+			uDef.buildoptions[numBuildoptions+2] = "corftiger" -- Heat Tiger
+		end
+
+		-- Cortex T2 Aircraft Plant
+		if name == "coraap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corcrw" -- Archaic Dragon
+		end
+
+		-- Cortex T2 Shipyard
+		if name == "corasy" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "cordronecarry" -- Dispenser - Drone Carrier
+			uDef.buildoptions[numBuildoptions + 2] = "corslrpc" -- Leviathan - LRPC Ship
+			uDef.buildoptions[numBuildoptions + 3] = "corsentinel" -- Sentinel - Depth Charge Drone Carrier
+		end
+
+		-- Cortex T3 Gantry
+		if name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
+			uDef.buildoptions[numBuildoptions + 2] = "corgolt4" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 3] = "corakt4" -- Epic Grunt
+			uDef.buildoptions[numBuildoptions + 4] = "corthermite" -- Thermite/Epic Termite
+			uDef.buildoptions[numBuildoptions + 5] = "cormandot4" -- Epic Commando
+		end
+
+		-- Cortex T3 Underwater Gantry
+		if name == "corgantuw" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
+			uDef.buildoptions[numBuildoptions + 2] = "corgolt4" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 3] = "corakt4" -- Epic Grunt
+			uDef.buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
+		end
+
+		-- Legion T1 Land Constructors
+		if name == "legca" or name == "legck" or name == "legcv" then
+			local numBuildoptions = #uDef.buildoptions
+		end
+
+		-- Legion T2 Land Constructors
+		if name == "legaca" or name == "legack" or name == "legacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "legapt3" -- T3 Aircraft Gantry
+			uDef.buildoptions[numBuildoptions + 2] = "legministarfall" -- Mini Starfall
+			uDef.buildoptions[numBuildoptions + 3] = "legafust3" -- Epic Fusion Reactor
+			uDef.buildoptions[numBuildoptions + 4] = "legadveconvt3" -- Epic Energy Converter
+		end
+
+		-- Legion T3 Gantry
+		if name == "leggant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
+			uDef.buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
+			uDef.buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
+		end
+	end
+
+	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------
+	if modOptions.releasecandidates or modOptions.experimentalextraunits then
+
 	end
 
 	if string.find(name, "raptor") and uDef.health then

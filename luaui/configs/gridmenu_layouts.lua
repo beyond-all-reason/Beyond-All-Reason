@@ -2036,7 +2036,7 @@ local unitGrids = {
 
 unitGrids["dummycom"] = unitGrids["armcom"]
 
-if Spring.GetModOptions().experimentalextraunits then
+if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
 	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
 		local faction = builder:sub(1, 3)
 		unitGrids[builder][1][3][3] =  faction .. "wint2"
