@@ -1365,7 +1365,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
 	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1)
 
 	Reinit()

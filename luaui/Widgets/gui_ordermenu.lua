@@ -303,7 +303,7 @@ function widget:ViewResize()
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	local outlineMult = math.max(1.2, 1/(viewSizeY/1700))
+	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
 	font = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.33 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
