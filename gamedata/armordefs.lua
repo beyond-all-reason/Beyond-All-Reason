@@ -180,6 +180,7 @@ local armorDefs = {
 		"corageo",
 		"legageo",
 		"armconsul",
+		"legafcv",
 		"coraak",
 		"corack",
 		"coracv",
