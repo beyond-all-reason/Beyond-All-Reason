@@ -1,0 +1,221 @@
+#include "../recoil_common_includes.h"
+
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
+
+// piece base, mlwheel, mrwheel, blwheel, brwheel, flwheel, frwheel, arml, armr, lpanel, rpanel, solar, cylinderdeco, loturret, upturret, nano, beam, cagelight, cagelight_emit;
+piece chassis, buildlight1Base, buildlight1, conLight1, cannisterLightL, cannisterLightR, 
+lBackSuspension, lBackTyre, lFrontSuspension, lFrontTyre, rBackSuspension, rBackTyre, rFrontSuspension, rFrontTyre,
+nanoStrut, nanoHeadingPivot, nanoTurret, nanoTube,
+plateLStrut, plateRStrut, plateL, plateR, nanoFlare;
+
+static-var  restore_delay, readyToBuild, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
+
+#define TB_BASE chassis 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
+// Controls wheel spinning and steering
+Steering(heading, steery, currentSpeed)
+{
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*4;
+		
+		turn lFrontSuspension to y-axis (steery)/2 speed <120>;
+		turn rFrontSuspension to y-axis (steery)/2 speed <120>;
+		turn rBackSuspension to y-axis (0 - steery)/2 speed <120>;
+		turn lBackSuspension to y-axis (0 - steery)/2 speed <120>;
+		
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = currentSpeed * 30; //original speed 7
+		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing	
+		
+		spin rFrontTyre around x-axis speed  (<1> * wheelSpeed);
+		spin lFrontTyre around x-axis speed  (<1> * wheelSpeed);
+		spin rBackTyre around x-axis speed  (<1> * wheelSpeed);         
+		spin lBackTyre around x-axis speed  (<1> * wheelSpeed);			
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Steering();
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	
+    stop-spin rFrontTyre around x-axis;
+    stop-spin lFrontTyre around x-axis;
+    stop-spin rBackTyre around x-axis;
+    stop-spin lBackTyre around x-axis;
+	
+	STOP_TILTBANK;
+}
+
+#define BASEPIECE chassis
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide nanoFlare;
+    hide conLight1;
+	restore_delay = 6000;
+	readyToBuild = 0;
+	call-script TB_Init();
+	moveSpeed = get MAX_SPEED;
+	oldheading = get HEADING;
+	start-script Steering();
+	SLEEP_UNTIL_UNITFINISHED;
+	// spin cylinderdeco around x-axis speed <30>;
+    turn buildlight1Base to x-axis <28> now;
+    //// now closing the damned thing
+    move buildlight1 to y-axis [-0.5] now;
+    turn plateLStrut to y-axis <20> now;
+    turn plateRStrut to y-axis <-20> now;
+    move nanoTube to z-axis [-3] now;
+    turn nanoStrut to x-axis <-12> now;
+
+	set INBUILDSTANCE to FALSE;
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
+	if (!readyToBuild){
+
+        turn plateRStrut to y-axis <0> speed <50>;
+        turn plateLStrut to y-axis <0> speed <50>;
+        // wait-for-turn plateRStrut around y-axis;
+        sleep 250;
+        turn nanoStrut to x-axis <0> speed <10>;
+        wait-for-turn nanoStrut around x-axis;
+        move nanoTube to z-axis [0] speed [6];
+        wait-for-move nanoTube along z-axis;
+
+		// turn arml to z-axis <30> speed <180>;
+		// turn armr to z-axis <-30> speed <180>;
+		// turn lpanel to z-axis <-20> speed <120>;
+		// turn rpanel to z-axis <20> speed <120>;
+		// turn solar to x-axis <-25> speed <50>;
+		
+		// sleep (100);
+		
+		// move loturret to y-axis [4] speed [12];
+		// move upturret to y-axis [4] speed [12];
+		// wait-for-move loturret along y-axis;
+
+		// move nano to z-axis [3] speed [12];
+		// move cagelight to y-axis [2] speed [12];
+		// move loturret to y-axis [4] speed [12];
+		// move upturret to y-axis [5] speed [12];
+		readyToBuild = 1;
+	}
+	
+	turn nanoHeadingPivot to y-axis heading speed <160>;
+	wait-for-turn nanoHeadingPivot around y-axis;
+
+	set INBUILDSTANCE to TRUE;
+
+    move buildlight1 to y-axis [0] speed [0.5];
+	show conLight1;
+    show nanoFlare;
+	//spin conLight1 around y-axis speed <250>;
+	spin buildlight1 around y-axis speed <240> accelerate <10>;
+	
+	readyToBuild = 1;
+}
+
+StopBuilding()
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
+	hide conLight1;
+    hide nanoFlare;
+	stop-spin buildlight1 around y-axis decelerate <20>;
+    move buildlight1 to y-axis [-0.5] speed [0.5];
+
+	sleep 6000;
+	set INBUILDSTANCE to FALSE;
+    
+    turn nanoHeadingPivot to y-axis <0> speed <200>;
+    move nanoTube to z-axis [-3] speed [6];
+    wait-for-turn nanoHeadingPivot around y-axis;
+    wait-for-move nanoTube along z-axis;
+    turn nanoStrut to x-axis <-12> speed <10>;
+    move buildlight1 to y-axis [-0.5] speed [1];
+    wait-for-turn nanoStrut around x-axis;
+    turn plateLStrut to y-axis <20> speed <30>;
+    turn plateRStrut to y-axis <-20> speed <30>;
+	
+	readyToBuild = 0;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = nanoFlare;
+
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode plateR type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode plateL type BITMAPONLY | NOHEATCLOUD;
+		explode rBackSuspension type BITMAPONLY | NOHEATCLOUD;
+		explode lBackSuspension type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode plateR type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode plateL type FALL | NOHEATCLOUD;
+		explode rBackSuspension type FALL | NOHEATCLOUD;
+		explode lBackSuspension type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode plateR type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode plateL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rBackSuspension type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lBackSuspension type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode plateR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rBackSuspension type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode plateL type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lBackSuspension type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rFrontSuspension type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
+
+
