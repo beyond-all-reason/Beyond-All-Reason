@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-#define DEBUG
+//#define DEBUG
 #include "../debug.h"
 
 piece  base, heatray, heatrayaim, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaim;
