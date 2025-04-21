@@ -2573,7 +2573,7 @@ function widget:DrawScreen()
 			end
 			if useRenderToTexture then
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*(vsy<1400 and 2 or 1), math_floor(backgroundRect.yEnd-backgroundRect.y)*(vsy<1400 and 2 or 1), {
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(backgroundRect.yEnd-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
