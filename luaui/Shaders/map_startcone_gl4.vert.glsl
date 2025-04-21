@@ -48,17 +48,11 @@ void main()
 		if (rotationMiniMap == 0) {
 			ndcxy.y *= -1;
 		}else if (rotationMiniMap == 1) {
-			float tmp = ndcxy.x;
-			ndcxy.x = ndcxy.y;
-			ndcxy.y = tmp;
-			ndcxy.y *= -1;
+			ndcxy.xy = ndcxy.yx;
 		}else if (rotationMiniMap == 2) {
 			ndcxy.x *= -1;
 		}else if (rotationMiniMap == 3) {
-			float tmp = ndcxy.x;
-			ndcxy.x = ndcxy.y;
-			ndcxy.y = tmp;
-			ndcxy.x *= -1;
+			ndcxy.xy = -ndcxy.yx;
 		}
 		gl_Position = vec4(ndcxy, 0.0, 1.0);
 	}
