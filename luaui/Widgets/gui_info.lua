@@ -1374,7 +1374,7 @@ local function drawUnitInfo()
 
 		local text = ''
 		local separator = ''
-		local infoFontsize = fontSize * 0.86
+		local infoFontsize = fontSize * 0.89
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
 			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
@@ -1577,7 +1577,7 @@ local function drawUnitInfo()
 		font:Begin()
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0.1, 0.1, 0.1, 1)
-		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
+		font:Print(text, customInfoArea[3] - width + (width*0.025), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
 	end
