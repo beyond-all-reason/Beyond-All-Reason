@@ -385,7 +385,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 }
 
 StopWalking() {
-	animSpeed = 1; // tune restore speed here, higher values are slower restore speeds
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move base to x-axis [0.000000] speed [22.365041] / animSpeed;
 	move base to y-axis [0.000000] speed [28.306007] / animSpeed;
 	turn base to y-axis <0.000000> speed <136.678702> / animSpeed;
@@ -970,62 +970,8 @@ swim() {
 			turn tailbase to x-axis <4.281140> speed <56.643958> / animSpeed; 
 			turn tailtip to x-axis <0.924964> speed <12.227887> / animSpeed; 
 		sleep ((33*animSpeed) -1);
-		}
-		if (isMoving) { //Frame:75
-			turn base to x-axis <-0.735662> speed <94.688451> / animSpeed; 
-			turn ldownbackleg to x-axis <-35.623617> speed <199.075289> / animSpeed; 
-			turn ldownloeg to x-axis <-34.797191> speed <93.436783> / animSpeed; 
-			turn lfin1 to x-axis <10.182257> speed <273.157924> / animSpeed; 
-			turn lfin1 to z-axis <8.654897> speed <454.614873> / animSpeed; 
-			turn lfin1 to y-axis <-6.976246> speed <226.058280> / animSpeed; 
-			turn lfin2 to x-axis <2.822769> speed <55.824153> / animSpeed; 
-			turn lfin2 to z-axis <1.580318> speed <496.633932> / animSpeed; 
-			turn lfin2 to y-axis <-11.833447> speed <194.826391> / animSpeed; 
-			turn lfin3 to x-axis <1.348867> speed <78.441289> / animSpeed; 
-			turn lfin3 to z-axis <-14.052354> speed <316.408658> / animSpeed; 
-			turn lfin3 to y-axis <-17.968303> speed <54.835832> / animSpeed; 
-			turn lfin4 to x-axis <2.886091> speed <77.535411> / animSpeed; 
-			turn lfin4 to z-axis <-23.071100> speed <85.720291> / animSpeed; 
-			turn lfin4 to y-axis <-20.703620> speed <139.497376> / animSpeed; 
-			turn lfin5 to x-axis <3.050499> speed <134.157400> / animSpeed; 
-			turn lfin5 to z-axis <-21.855466> speed <116.588768> / animSpeed; 
-			turn lfin5 to y-axis <-19.164783> speed <310.199453> / animSpeed; 
-			turn lfoot to x-axis <-31.257408> speed <69.426448> / animSpeed; 
-			turn lfootback to x-axis <-31.904036> speed <25.532579> / animSpeed; 
-			turn lupbackleg to x-axis <67.527649> speed <224.604077> / animSpeed; 
-			turn lupbackleg to z-axis <-0.259845> speed <7.370136> / animSpeed; 
-			turn lupbackleg to y-axis <0.199693> speed <6.516173> / animSpeed; 
-			turn lupleg to x-axis <66.051522> speed <24.008593> / animSpeed; 
-			turn neck to x-axis <0.735661> speed <94.688390> / animSpeed; 
-			turn rdownbackleg to x-axis <-35.623480> speed <199.059716> / animSpeed; 
-			turn rdownleg to x-axis <-34.796952> speed <93.406457> / animSpeed; 
-			turn rfin1 to x-axis <10.201009> speed <273.676617> / animSpeed; 
-			turn rfin1 to z-axis <-8.670135> speed <452.880858> / animSpeed; 
-			turn rfin1 to y-axis <6.927029> speed <228.516188> / animSpeed; 
-			turn rfin2 to x-axis <2.825418> speed <56.098714> / animSpeed; 
-			turn rfin2 to z-axis <-1.638407> speed <495.534062> / animSpeed; 
-			turn rfin2 to y-axis <11.826389> speed <197.384868> / animSpeed; 
-			turn rfin3 to x-axis <1.334362> speed <78.583123> / animSpeed; 
-			turn rfin3 to z-axis <13.960596> speed <315.998412> / animSpeed; 
-			turn rfin3 to y-axis <18.042703> speed <56.593462> / animSpeed; 
-			turn rfin4 to x-axis <2.870811> speed <77.802698> / animSpeed; 
-			turn rfin4 to z-axis <22.963844> speed <86.289314> / animSpeed; 
-			turn rfin4 to y-axis <20.827269> speed <139.000224> / animSpeed; 
-			turn rfin5 to x-axis <3.030334> speed <134.509056> / animSpeed; 
-			turn rfin5 to z-axis <21.758242> speed <117.967834> / animSpeed; 
-			turn rfin5 to y-axis <19.281477> speed <309.603587> / animSpeed; 
-			turn rfoot to x-axis <-31.257237> speed <69.445709> / animSpeed; 
-			turn rfootback to x-axis <-31.903978> speed <25.512088> / animSpeed; 
-			turn rupbackleg to x-axis <67.527348> speed <224.568014> / animSpeed; 
-			turn rupbackleg to z-axis <0.259611> speed <7.437876> / animSpeed; 
-			turn rupbackleg to y-axis <-0.199147> speed <6.542645> / animSpeed; 
-			turn rupleg to x-axis <66.051126> speed <23.957981> / animSpeed; 
-			turn tail1 to x-axis <0.485544> speed <62.494163> / animSpeed; 
-			turn tail2 to x-axis <0.291330> speed <37.496412> / animSpeed; 
-			turn tailbase to x-axis <0.809228> speed <104.157333> / animSpeed; 
-			turn tailtip to x-axis <0.174800> speed <22.504934> / animSpeed; 
-		sleep ((33*animSpeed) -1);
-	}}
+	}
+}
 // Only here to get base positions from!
 StopSwim() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
@@ -1122,6 +1068,7 @@ Create()
 	hide torpaim;
 	hide heatrayaim;
 	isMoving = FALSE;
+	//isMoving = -1;
 	isAiming = FALSE;
 	restore_delay = 2000;
 	// Initializing with large negative values, to ensure first aim does wait-for-turn
@@ -1401,8 +1348,22 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	call-script StopWalking();
+	if(inWaterForm) {call-script StopSwim();}
+	else {call-script StopWalking();}
 }
+
+
+
+/*StartMoving()
+{
+	isMoving = isMoving * -1;
+}
+
+StopMoving()
+{
+	isMoving = isMoving * -1;
+	call-script StopWalking();
+}*/
 
 SweetSpot(piecenum)
 {
