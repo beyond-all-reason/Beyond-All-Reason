@@ -84,7 +84,7 @@ layout (location = 1) in vec4 worldposradius;
 layout (location = 2) in vec4 colorlife;
 
 uniform float isMiniMap;
-uniform float cameraFlipped;
+uniform float mapRotation;
 
 out DataVS {
 	vec4 blendedcolor;
@@ -101,16 +101,16 @@ void main()
 
   float viewratio = 1.0;
   if (isMiniMap > 0.5) {
-    if (cameraFlipped == 0) {
+    if (mapRotation == 0) {
         worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
         viewratio = mapSize.x / mapSize.y;
-    }else if (cameraFlipped == 1) { // 90 degrees rotation
+    }else if (mapRotation == 1) { // 90 degrees rotation
 		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
         viewratio = mapSize.y / mapSize.x;
-    }else if (cameraFlipped == 2) { // 180 degrees rotation
+    }else if (mapRotation == 2) { // 180 degrees rotation
         worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
         viewratio = mapSize.x / mapSize.y;
-    }else if (cameraFlipped == 3) { // 270 degrees rotation
+    }else if (mapRotation == 3) { // 270 degrees rotation
 		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
         viewratio = mapSize.y / mapSize.x;
     }
@@ -203,7 +203,7 @@ local function initGL4()
         },
 	uniformFloat = {
         isMiniMap = 0,
-        cameraFlipped = 0,
+        mapRotation = 0,
       },
     },
     "mapMarkShader GL4"
@@ -236,7 +236,7 @@ function DrawMapMarksWorld(isMiniMap)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("cameraFlipped", getMiniMapRotationOptions() or 0)
+		mapMarkShader:SetUniform("mapRotation", getMiniMapRotationOptions() or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
