@@ -27,13 +27,15 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 	x = ((x - px) / sx)
 	local z = (1 - (y - py + vpy)/sy)
 
-	if getMiniMapRotationOptions() == 1 then
+	local currRot = getMiniMapRotationOptions()
+
+	if currRot == 1 then
 		x,z = z,x
 		x = 1 - x
-	elseif getMiniMapRotationOptions() == 2 then
+	elseif currRot == 2 then
 		x = 1 - x
 		z = 1 - z
-	elseif getMiniMapRotationOptions() == 3 then
+	elseif currRot == 3 then
 		x, z = z, x
 		z = 1 - z
 	end
