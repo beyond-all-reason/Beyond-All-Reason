@@ -598,10 +598,10 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
-	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.25+(outlineMult*0.25))
-	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.25+(outlineMult*0.25))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.6)
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.45 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.15+(outlineMult*0.25) or 1.25)
+	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
+	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
 end
 
 function GetColor(colormap, slider)
