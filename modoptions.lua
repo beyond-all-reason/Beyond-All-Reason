@@ -884,7 +884,16 @@ local options = {
     {
         key    	= "experimentalextraunits",
         name   	= "Extra Units Pack",
-        desc   	= "Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various \"fun\" units",
+        desc   	= "Pack of units that didn't make it to the main game roster. Balanced for PvP",
+        type   	= "bool",
+        section = "options_extra",
+        def  	= false,
+    },
+
+    {
+        key    	= "scavunitsforplayers",
+        name   	= "Scavengers Units Pack",
+        desc   	= "Units made for Scavengers, mostly silly and unbalanced for PvP.",
         type   	= "bool",
         section = "options_extra",
         def  	= false,
@@ -1318,7 +1327,7 @@ local options = {
         name   	= "Release Candidate Units",
         desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
         type   	= "bool",
-        hidden 	= false,
+        hidden 	= true,
         section = "options_experimental",
         def  	= false,
     },
