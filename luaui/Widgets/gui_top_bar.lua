@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true	--Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 -- Configuration
 local relXpos = 0.3
@@ -1402,7 +1402,7 @@ local function drawUiBackground()
 end
 
 local function drawUi()
-	if dlistButtons then
+	if showButtons and dlistButtons then
 		glCallList(dlistButtons)
 	end
 	if dlistResbar.energy and dlistResbar.energy[1] then
