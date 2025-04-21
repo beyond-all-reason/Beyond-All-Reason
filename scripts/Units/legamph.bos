@@ -3,7 +3,7 @@
 //#define DEBUG
 #include "../debug.h"
 
-piece  base, heatray, heatrayaim, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaim;
+piece  base, heatray, heatrayaim, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaim, torpaimx;
 
 static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy;
 
@@ -21,7 +21,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 		if (isMoving) { //Frame:21
-		dbg(21)
 			move base to x-axis [-0.083429] speed [13.419025] / animSpeed; 
 			turn base to y-axis <-0.509862> speed <82.007221> / animSpeed; 
 			turn ldownbackleg to x-axis <2.735654> speed <253.314122> / animSpeed; 
@@ -58,7 +57,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:27
-		dbg(27)
 			move base to x-axis [-0.499866] speed [12.493104] / animSpeed; 
 			move base to y-axis [0.180323] speed [16.845646] / animSpeed; 
 			turn base to y-axis <-3.054815> speed <76.348585> / animSpeed; 
@@ -95,7 +93,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:33
-		dbg(33)
 			move base to x-axis [-0.731381] speed [6.945443] / animSpeed; 
 			move base to y-axis [0.499685] speed [9.580879] / animSpeed; 
 			turn base to y-axis <-4.469662> speed <42.445410> / animSpeed; 
@@ -134,7 +131,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:39
-		dbg(39)
 			move base to y-axis [0.148016] speed [10.550079] / animSpeed; 
 			turn base to y-axis <-4.230989> speed <7.160198> / animSpeed; 
 			turn ldownbackleg to x-axis <17.008732> speed <271.787451> / animSpeed; 
@@ -169,7 +165,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:45
-		dbg(45)
 			move base to x-axis [-0.397149] speed [8.855297] / animSpeed; 
 			move base to y-axis [-0.402428] speed [16.513309] / animSpeed; 
 			turn base to y-axis <-2.427088> speed <54.117030> / animSpeed; 
@@ -206,7 +201,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:51
-		dbg(51)
 			move base to x-axis [0.044950] speed [13.262969] / animSpeed; 
 			turn base to y-axis <0.274696> speed <81.053531> / animSpeed; 
 			turn ldownbackleg to x-axis <-24.014981> speed <507.323297> / animSpeed; 
@@ -242,7 +236,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:57
-		dbg(57)
 			move base to x-axis [0.470419] speed [12.764083] / animSpeed; 
 			move base to y-axis [0.131418] speed [16.315784] / animSpeed; 
 			turn base to y-axis <2.874857> speed <78.004819> / animSpeed; 
@@ -279,7 +272,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:63
-		dbg(63)
 			move base to x-axis [0.721861] speed [7.543251] / animSpeed; 
 			move base to y-axis [0.498796] speed [11.021347] / animSpeed; 
 			turn base to y-axis <4.411486> speed <46.098866> / animSpeed; 
@@ -313,7 +305,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:69
-		dbg(69)
 			move base to y-axis [0.196333] speed [9.073906] / animSpeed; 
 			turn ldownbackleg to x-axis <3.999218> speed <849.536188> / animSpeed; 
 			turn ldownbackleg to y-axis <0.013969> speed <3.412806> / animSpeed; 
@@ -346,7 +337,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:75
-		dbg(75)
 			move base to x-axis [0.429376] speed [8.306370] / animSpeed; 
 			move base to y-axis [-0.369787] speed [16.983604] / animSpeed; 
 			turn base to y-axis <2.624031> speed <50.762519> / animSpeed; 
@@ -464,7 +454,6 @@ StopWalking() {
 
 
 swim() {
-	dbg()
 		if (isMoving) { //Frame:15
 			turn base to x-axis <-0.147507> speed <4.425215> / animSpeed; 
 			turn ldownbackleg to x-axis <-34.361165> speed <9.538974> / animSpeed; 
@@ -976,9 +965,6 @@ swim() {
 StopSwim() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move base to y-axis [-8.999583] speed [-40.907197] / animSpeed;
-	move torpedolauncha to y-axis [-3.299997] speed [-14.999988] / animSpeed;
-	move torpedotube to y-axis [0.700001] speed [-3.181822] / animSpeed;
-	move torpedotube to z-axis [-7.999999] speed [-36.363630] / animSpeed;
 	turn base to x-axis <0.000000> speed <169.586307> / animSpeed;
 	turn ldownbackleg to x-axis <-34.043200> speed <367.616832> / animSpeed;
 	turn ldownbackleg to y-axis <-0.154335> speed <-0.701522> / animSpeed;
@@ -1082,6 +1068,8 @@ Create()
 	start-script Movement();
 	start-script UnitSpeed();
 	call-script StopWalking();
+	
+	call-script CloseTorpedoLauncher();
 }
 
 Movement() {
@@ -1119,10 +1107,8 @@ Movement() {
 
 transform() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	call-script CloseTorpedoLauncher();
 	move base to y-axis [-8.999583] speed [-40.907197] / animSpeed;
-	move torpedolauncha to y-axis [-3.299997] speed [-14.999988] / animSpeed;
-	move torpedotube to y-axis [0.700001] speed [-3.181822] / animSpeed;
-	move torpedotube to z-axis [-7.999999] speed [-36.363630] / animSpeed;
 	turn base to x-axis <0.000000> speed <169.586307> / animSpeed;
 	turn ldownbackleg to x-axis <-34.043200> speed <367.616832> / animSpeed;
 	turn ldownbackleg to y-axis <-0.154335> speed <-0.701522> / animSpeed;
@@ -1293,19 +1279,23 @@ CloseHeatsinks(){
 	sleep 100;
 }
 
-OpenTorpedoLauncher(){
-	move torpedolauncha to y-axis [-3.299999] speed [98.999977] / animSpeed;
-	sleep 100;
-	move torpedotube to z-axis [-8.000000] speed [239.999986] / animSpeed;
-	move torpedotube to y-axis [0.699999] speed [20.999966] / animSpeed;
+CloseTorpedoLauncher(){
+	turn torpedolauncha to y-axis <0> speed <25.000000>;
+	turn torpaimx to x-axis <0> speed <25.000000>;
+	turn torpedotube to x-axis [0] speed <25.000000>;
+
+	sleep 500;
+	move torpedolauncha to y-axis [-3.3] speed [-15];
+	move torpedotube to y-axis [0.7] speed [-3.181822];
+	move torpedotube to z-axis [-8] speed [-36.363630];
+	move torpaimx to x-axis [0] speed [-36.363630];
 	sleep 100;
 }
 
-CloseTorpedoLauncher(){
-	move torpedotube to y-axis [0.699999] speed [20.999966] / animSpeed;
-	move torpedotube to z-axis [-8.000000] speed [239.999986] / animSpeed;
-	sleep 100;
-	move torpedolauncha to y-axis [-3.299999] speed [98.999977] / animSpeed;
+OpenTorpedoLauncher(){
+	move torpedolauncha to y-axis [0] speed [-15];
+	move torpedotube to y-axis [0] speed [-3.181822];
+	move torpedotube to z-axis [0] speed [-36.363630];
 	sleep 100;
 }
 
@@ -1348,8 +1338,12 @@ StartMoving()
 StopMoving()
 {
 	isMoving = FALSE;
-	if(inWaterForm) {call-script StopSwim();}
-	else {call-script StopWalking();}
+	if(inWaterForm) {
+		call-script StopSwim();
+	}
+	else {
+		call-script StopWalking();
+	}
 }
 
 
@@ -1390,7 +1384,7 @@ RestoreAfterDelayGun()
 }
 
 //Heatray
-AimSecondary(heading, pitch)
+AimPrimary(heading, pitch)
 { 
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -1429,17 +1423,17 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FirePrimary()
 {
 
 }
 
-AimFromSecondary(piecenum)
+AimFromPrimary(piecenum)
 {
 	piecenum = heatray;
 }
 
-QuerySecondary(piecenum)
+QueryPrimary(piecenum)
 {
 	piecenum = heatrayaim;
 }
@@ -1451,16 +1445,18 @@ RestoreAfterDelayTorp()
         return (1);
     }
 	torp_lasthead = -1000000;
-	turn torpedolauncha to y-axis <0> speed <200.000000>;
-	wait-for-turn torpedolauncha around y-axis;
+	turn torpedolauncha to y-axis <0> speed <25.000000>;
+	turn torpaimx to x-axis <0> speed <25.000000>;
+	turn torpedotube to x-axis [0] speed <25.000000>;
+	sleep restore_delay;
+	call-script CloseTorpedoLauncher();
 	// torpedo tube has started moving down, set variable to FALSE to redeploy on next aim call
 	torp_deploy = FALSE;
-	move torpedolauncha to y-axis [0] speed [25];
 }
 
-AimPrimary(heading, pitch)
+AimSecondary(heading, pitch)
 {
-	if ( get IN_WATER(0) == 0 )
+	if ( get IN_WATER(0) == 1 )
     {
      return (0);
     }	
@@ -1470,7 +1466,7 @@ AimPrimary(heading, pitch)
 	if (torp_deploy == FALSE)
 	{
 		//if not, move it up to the deploy position, and wait
-		move torpedolauncha to y-axis [5] speed [25];
+		call-script OpenTorpedoLauncher();
 		wait-for-move torpedolauncha along y-axis;
 		// after moving, set variable to true, so deploy is skipped on future aims 
 		torp_deploy = TRUE;
@@ -1479,6 +1475,8 @@ AimPrimary(heading, pitch)
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn torpedolauncha to y-axis heading speed <200.000000>;
+	//turn torpedotube to x-axis pitch speed <200.000000>;
+	turn torpaimx to x-axis pitch speed <200.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if (get ABS(torp_lasthead - heading) < 1200)
 	{
@@ -1497,16 +1495,21 @@ AimPrimary(heading, pitch)
 
 }
 
-FirePrimary()
+FireSecondary()
 {
+	move torpedotube to z-axis [-4] speed [-50];
+	
+	sleep 500;
+	
+	move torpedotube to z-axis [0] speed [-15];
 }
 
-AimFromPrimary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = torpedotube;
 }
 
-QueryPrimary(piecenum)
+QuerySecondary(piecenum)
 {
 	
 	piecenum = torpaim;
