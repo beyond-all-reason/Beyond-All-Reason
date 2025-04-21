@@ -1,6 +1,6 @@
 
 #include "../recoil_common_includes.h"
-
+//#define DEBUG
 #include "../debug.h"
 
 
@@ -12,10 +12,11 @@ static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_las
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
-
+//Remember to if (!isAiming) all parts of the right arm!!!
 Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
-	if (isMoving) { //Frame:3
+	while(isMoving) {
+		if (isMoving) { //Frame:3
 			turn head to y-axis <-11.815068> speed <354.452035> / animSpeed; 
 			turn lfoot to x-axis <-54.736651> speed <1642.099532> / animSpeed; 
 			turn lfoot to z-axis <-2.104542> speed <63.136267> / animSpeed; 
@@ -42,9 +43,9 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.bl
 			turn rleg to x-axis <69.774433> speed <2093.232980> / animSpeed; 
 			turn rleg to z-axis <0.721141> speed <21.634225> / animSpeed; 
 			turn rleg to y-axis <-1.417278> speed <42.518331> / animSpeed; 
-			turn rloarm to x-axis <-24.892642> speed <746.779245> / animSpeed; 
-			turn rloarm to z-axis <-72.442728> speed <2173.281841> / animSpeed; 
-			turn rloarm to y-axis <-82.746704> speed <2482.401108> / animSpeed; //WARNING: possible gimbal lock issue detected in frame 3 bone rloarm
+			if (!isAiming) turn rloarm to x-axis <-24.892642> speed <746.779245> / animSpeed; 
+			if (!isAiming) turn rloarm to z-axis <-72.442728> speed <2173.281841> / animSpeed; 
+			if (!isAiming) turn rloarm to y-axis <-82.746704> speed <2482.401108> / animSpeed; //WARNING: possible gimbal lock issue detected in frame 3 bone rloarm
 
 			turn rthigh to x-axis <-93.030284> speed <2790.908527> / animSpeed; 
 			turn rthigh to z-axis <42.195491> speed <1265.864743> / animSpeed; //WARNING: possible gimbal lock issue detected in frame 3 bone rthigh
@@ -58,7 +59,6 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.bl
 			turn torso to z-axis <0.561036> speed <16.831085> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 	}
-	while(isMoving) {
 		if (isMoving) { //Frame:5
 			turn head to y-axis <-11.326531> speed <14.656109> / animSpeed; 
 			turn lfoot to x-axis <-55.387425> speed <19.523208> / animSpeed; 
@@ -300,7 +300,7 @@ UnitSpeed(){
   animSpeed = (maxSpeed * 2) / animSpeed; 
   //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<1) animSpeed=1;
-  if (animspeed>4) animSpeed = 4;
+  if (animspeed>8) animSpeed = 8;
   sleep 65;
  }
 }
@@ -319,7 +319,6 @@ StartMoving(reversing){
   set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
-	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
@@ -338,10 +337,12 @@ Create()
 	turn flare to x-axis <90.0> now;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	animSpeed = 2;
+	animSpeed = 3;
 	restore_delay = 3000;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
+
+	start-script UnitSpeed();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -401,8 +402,12 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
 	turn rloarm to x-axis <0> speed <400>;
+	turn rloarm to y-axis <0> speed <400>;
+	turn rloarm to z-axis <0> speed <400>;
 	turn aimy1 to y-axis heading speed <400>;
-	turn ruparm to x-axis <-80>  - pitch speed <500>;
+	turn ruparm to x-axis <-90> - pitch speed <500>;
+	turn ruparm to y-axis <0> speed <500>;
+	turn ruparm to z-axis <0> speed <500>;
 	//turn ruparm to x-axis <90> - pitch speed <500>;
 
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <19>))
