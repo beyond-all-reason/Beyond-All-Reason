@@ -193,8 +193,8 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     TransferUnit(unitID, buyerTeamID)
     if buyerTeamID ~= sellerTeamID and price > 0 then -- don't send resources to yourself
         
-        Spring.AddTeamResource(sellerTeamID, "metal", price) -- adjust metal manually to avoid resource share tax
-        Spring.AddTeamResource(sellerTeamID, "metal", -1 * price) -- adjust metal manually to avoid resource share tax
+        Spring.AddTeamResource(sellerTeamID, "metal", price) -- adjust metal manually so that unit market bypasses resource share tax
+        Spring.AddTeamResource(sellerTeamID, "metal", -1 * price)
     end
     setNotForSale(unitID)
     UnitSoldBroadcast(unitID, price, sellerTeamID, buyerTeamID)
