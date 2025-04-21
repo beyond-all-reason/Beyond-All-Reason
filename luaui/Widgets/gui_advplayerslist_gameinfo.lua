@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = true
 
 local timeNotation = 24
@@ -45,7 +45,7 @@ local function drawBackground()
 end
 
 local function drawContent()
-	local textsize = 11*widgetScale
+	local textsize = 11*widgetScale * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
 	local textXPadding = 10*widgetScale
 
 	local fps = Spring.GetFPS()
@@ -63,7 +63,8 @@ local function drawContent()
 	local time = minutes..':'..seconds
 
 	font:Begin()
-	font:Print(valueColor..time, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+	font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+	font:Print(valueColor..time, left+textXPadding, bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	local extraSpacing = 0
 	if minutes > 99 then
 		extraSpacing = 1.34
@@ -72,7 +73,7 @@ local function drawContent()
 	end
 	local gamespeed = string.format("%.2f", (gameframe-prevGameframe) / 30)
 	local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
-	font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+	font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	local textWidth = font:GetTextWidth(text) * textsize
 	local usedTextWidth = 0
 	if textWidth > usedTextWidth or textWidthClock+30 < os.clock() then
@@ -85,7 +86,7 @@ local function drawContent()
 	else
 		clock = os.date("%I:%M %p")
 	end
-	font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+	font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 
 	font:End()
 end
@@ -228,7 +229,7 @@ function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
 	local outlineMult = math.max(1.2, 1/(vsy/1700))
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.6 or 1), 0.25 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.25) or 1.2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
