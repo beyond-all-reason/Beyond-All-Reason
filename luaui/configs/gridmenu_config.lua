@@ -214,11 +214,11 @@ function homeOptionsForBuilder(builderId, buildOptions)
 		-- if the unit doesn't have a predefined grid we still want the "home" page to have units
 		-- So we build all the categories and grab the first 3 items from each one
 		local categoryOptions = {}
-		for cat = 1, 4 do
+		for cat = 1, 6 do
 			categoryOptions[cat] = getGridForCategory(builderId, buildOptions, categories[cat])
 		end
 		local optionsInRow = 0
-		for cat = 1, 4 do
+		for cat = 1, 6 do
 			for _, opt in pairs(categoryOptions[cat]) do
 				if optionsInRow >= 3 then
 					break
