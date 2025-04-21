@@ -2,50 +2,50 @@ return {
 	legvcarry	= {
 		maxacc = 0.02,
 		maxdec = 0.04,
-		energycost = 6000,
-		metalcost = 300,
+		energycost = 9000,
+		metalcost = 400,
 		buildpic = "LEGVCARRY.DDS",
-		buildtime = 6000,
+		buildtime = 9000,
 		canmove = true,
-		collisionvolumeoffsets = "0 10 0",
-		collisionvolumescales = "44 38 44",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "55 37 67",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
-		footprintx = 2,
-		footprintz = 2,
+		footprintx = 3,
+		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 1200,
+		health = 1400,
 		maxslope = 10,
 		speed = 45.0,
 		maxwaterdepth = 12,
-		movementclass = "TANK3",
-		name = "Gattling",
+		movementclass = "MTANK3",
+		name = "Mantis",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGVCARRY.s3o",
 		script = "Units/LEGVCARRY.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
-		trackoffset = 3,
+		trackoffset = 6,
 		trackstrength = 6,
 		tracktype = "armstump_tracks",
-		trackwidth = 38,
+		trackwidth = 56,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.952,
-		turnrate = 300,
+		turnrate = 360,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.4",
 			lumamult = "1.2",
-			model_author = "Flaka",
-			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "ArmVehicles",
+			model_author = "ZephyrSkies (model), Johnathan Crimson (concept)",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
 			inheritxpratemultiplier = 1,
@@ -58,14 +58,14 @@ return {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "44 38 44",
+				collisionvolumescales = "55 37 67",
 				collisionvolumetype = "Box",
 				damage = 1056,
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				metal = 200,
+				metal = 210,
 				object = "Units/legvcarry_dead.s3o",
 				reclaimable = true,
 			},
@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			targeting = {
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -126,7 +126,7 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Drone Targeting System",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 2.5,
@@ -141,14 +141,14 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
+					engagementrange = 1100,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 10, 			--Spawnrate roughly in seconds.
-					maxunits = 4,				--Will spawn units until this amount has been reached.
+					spawnrate = 10, 				--Spawnrate roughly in seconds.
+					maxunits = 6,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1200,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
@@ -156,15 +156,15 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpieces = "5 7 9 11",
-					dockingradius = 120,			--The range at which the units snap to the carrier unit when docking.
+					dockingpieces = "8 10 12 14 16 18",
+					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "targeting",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
