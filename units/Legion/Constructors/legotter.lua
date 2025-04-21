@@ -1,14 +1,13 @@
-
 return {
 	legotter = {
 		maxacc = 0.01722,
 		maxdec = 0.10332,
-		energycost = 3500,
-		metalcost = 170,
+		energycost = 3100,
+		metalcost = 150,
 		builddistance = 110,
 		builder = true,
 		buildpic = "LEGOTTER.DDS",
-		buildtime = 6860,
+		buildtime = 6540,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "22 16 41",
@@ -21,9 +20,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 1110,
+		health = 950,
 		maxslope = 16,
-		speed = 40.5,
+		speed = 43.5,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		objectname = "Units/LEGOTTER.s3o",
@@ -40,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 300,
-		workertime = 80,
+		workertime = 75,
 		buildoptions = {
 			[1] = "legsolar",
 			[2] = "legadvsol",

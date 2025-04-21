@@ -41,6 +41,16 @@ function addon.Initialize()
 		if originalSoundtrackEnabled == 1 then
 			-- Events ----------------------------------------------------------------------------------------------------------------------
 
+			-- Raptors
+			if Spring.Utilities.Gametype.IsRaptors() then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/raptors/loading', allowedExtensions))
+			end
+
+			-- Scavengers
+			if Spring.Utilities.Gametype.IsScavengers() then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/scavengers/loading', allowedExtensions))
+			end
+
 			-- April Fools
 			---- Day 1 - 100% chance
 			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) == 1) then
@@ -49,8 +59,8 @@ function addon.Initialize()
 			elseif Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7 and math.random() <= 0.5) then
 				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			---- Post Event - 25% chance
-			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and math.random() <= 0.25) then
-				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
+			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7))) then
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			end
 
 			-------------------------------------------------------------------------------------------------------------------------------
@@ -74,17 +84,16 @@ function addon.Initialize()
 		end
 
 		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-
 		if #musicPlaylistEvent > 0 then
 			local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
-			Spring.PlaySoundStream(musicPlaylistEvent[pickedTrack], 1)
+			Spring.PlaySoundStream(pickedTrack, 1)
 			Spring.SetSoundStreamVolume(musicvolume)
-			Spring.SetConfigString('music_loadscreen_track', musicPlaylistEvent[pickedTrack])
+			Spring.SetConfigString('music_loadscreen_track', pickedTrack)
 		elseif #musicPlaylist > 0 then
 			local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
-			Spring.PlaySoundStream(musicPlaylist[pickedTrack], 1)
+			Spring.PlaySoundStream(pickedTrack, 1)
 			Spring.SetSoundStreamVolume(musicvolume)
-			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[pickedTrack])
+			Spring.SetConfigString('music_loadscreen_track', pickedTrack)
 		end
 	end
 end

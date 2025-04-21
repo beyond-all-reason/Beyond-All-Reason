@@ -106,6 +106,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -1348,6 +1350,22 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneEnd()
 end
 
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
@@ -2339,10 +2357,10 @@ function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return

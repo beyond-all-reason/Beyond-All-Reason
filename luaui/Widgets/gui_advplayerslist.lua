@@ -64,6 +64,7 @@ end
 local vsx, vsy = Spring.GetViewGeometry()
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local customScale = 1
 local pointDuration = 45
@@ -781,7 +782,7 @@ local function rankTeamPlayers()
                     end
                 end
             end
-            
+
             if scores[allyTeamID] then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
@@ -937,8 +938,10 @@ function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
     end
-	if mainListTex then
+	if mainListBgTex then
 		gl.DeleteTextureFBO(mainListBgTex)
+	end
+	if mainListTex then
 		gl.DeleteTextureFBO(mainListTex)
 		gl.DeleteTextureFBO(mainList2Tex)
 	end
@@ -1587,7 +1590,7 @@ function widget:DrawScreen()
 	--AdvPlayersListAtlas:DrawToScreen()
 
     -- draw the background element
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if mainListBgTex then
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 			gl.Texture(mainListBgTex)
@@ -1765,10 +1768,6 @@ function CreateBackground()
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
 		if useRenderToTexture then
-			if mainListBgTex then
-				gl.DeleteTextureFBO(mainListBgTex)
-				mainListBgTex = nil
-			end
 			if mainListTex then
 				gl.DeleteTextureFBO(mainListTex)
 				mainListTex = nil
@@ -1776,6 +1775,12 @@ function CreateBackground()
 			if mainList2Tex then
 				gl.DeleteTextureFBO(mainList2Tex)
 				mainList2Tex = nil
+			end
+		end
+		if useRenderToTextureBg then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
 			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 			if not mainListBgTex and width > 0 and height > 0 then
@@ -1789,7 +1794,7 @@ function CreateBackground()
 					gl.PushMatrix()
 					gl.Translate(-1, -1, 0)
 					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
-					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 					gl.PopMatrix()
 				end)
 			end
@@ -2002,7 +2007,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainListTex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-					mainListTex = gl.CreateTexture(width, height, {
+					mainListTex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2037,7 +2042,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainList2Tex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-						mainList2Tex = gl.CreateTexture(width, height, {
+						mainList2Tex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -3810,8 +3815,9 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-    font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.25*outlineMult or 1), math.max(4.5, 6 / widgetScale)+(outlineMult*0.25))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

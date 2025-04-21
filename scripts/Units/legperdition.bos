@@ -3,26 +3,26 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece   base, aimy1, aimx1, turret, sleeve, sleeve2, barrel, flare, fflap, lflap, rflap, lflaph, rflaph;
+piece   base, aimy1, aimx1, turret, sleeve, sleeve2, barrel, flare, fflap, lflap, rflap, lflaph, rflaph, dir;
 
-static-var  deployed, restore_delay, statechg_DesiredState, statechg_StateChanging, tilt;
+static-var  deployed, restore_delay, upright, cauface;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_TRANS			4
+#define SIG_RESTORE			8
 
-
-activatescr()
+Open()
 {
+	signal SIG_TRANS;
 	turn lflaph to x-axis <100> speed <50>;
 	turn rflaph to x-axis <100> speed <50>;
 	turn fflap to x-axis <100> speed <50>;
 	wait-for-turn fflap around x-axis;
 
-
 	move aimy1 to y-axis [20] speed [20];
 	wait-for-move aimy1 along y-axis;
 	
-	wait-for-move aimy1 along y-axis;
 	move sleeve to y-axis [10] speed [33];
 	wait-for-move sleeve along y-axis;
 	
@@ -35,13 +35,11 @@ activatescr()
 	return (0);
 }
 
-deactivatescr()//jesus this is a daisy chain
+Close()
 {
-
+	signal SIG_TRANS;
+	set-signal-mask SIG_TRANS;
 	deployed = 0;
-	
-	turn aimy1 to y-axis <0> speed <30>;
-	turn aimx1 to x-axis <0> speed <30>;
 	
 	move aimy1 to y-axis [0] speed [10];
 	wait-for-move aimy1 along y-axis;
@@ -53,57 +51,6 @@ deactivatescr()//jesus this is a daisy chain
 	turn lflaph to x-axis <0> speed <50>;
 	turn rflaph to x-axis <0> speed <50>;
 	turn fflap to x-axis <0> speed <50>;
-	
-
-	sleep 1000;
-	return (0);
-
-}
-
-Go()
-{
-	call-script activatescr();
-	return (0);
-}
-
-Stop()
-{
-	sleep 4000;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 	return (0);
 }
 
@@ -113,28 +60,39 @@ Create()
 	turn lflap to y-axis <-120> now;
 	turn rflaph to y-axis <-120> now;
 	turn rflap to y-axis <120> now;
+	upright = 1;
 	
 	hide flare;
+	hide dir;
 	deployed = 0;
 	restore_delay = 3000;
-	call-script InitState();
+	
+	var hull_xz;												//since this is a building it doesnt rotate and I can get its rotation upon create
+    hull_xz = get PIECE_XZ(fflap);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(base);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+	
+	cauface = get ATAN(face_z, face_x);						//use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+	
 	return (0);
 }
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-
-Activate()
-{
-	start-script RequestState(0);
-	return (0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-	return (0);
-}
 
 SetMaxReloadTime(Func_Var_1)
 {
@@ -148,8 +106,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	set-signal-mask SIG_RESTORE;
+	start-script Close();
+	turn aimy1 to x-axis <0> speed <30>;
+	wait-for-turn aimy1 around x-axis;
+	upright = 1;
 }
 SetStunned(State)
 {
@@ -160,26 +121,85 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( deployed==0 )//deny until deployed
-	{
-		sleep 250;
-	}
-
-	turn aimy1 to y-axis heading speed <50>;
-	tilt = (pitch/4);//this should not be needed yet here we are
-	turn aimx1 to x-axis tilt speed <30>;
-	
-	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
+	if( deployed==0 )											//deny until deployed
+	{
+		start-script Open();
+		return (0);
+	}
+	
+	var gun_xz;
+    gun_xz = get PIECE_XZ(dir);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+    
+    var turret_xz;
+    turret_xz = get PIECE_XZ(base);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+    
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+ 
+	var cauaim;
+	cauaim = get ATAN(aim_z, aim_x);  						//use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+	
+	var trueaim;											//angle of turret relative to the base
+    trueaim = (cauaim - cauface) * (-1);
+	if( trueaim < (-32768))									//prevents trueaim overflow above 32768 (180°) and makes its positive/negative arcs match that of heading
+	{
+		trueaim = 32768 + (trueaim % 32768);
+	}
+	if( trueaim > 32768)
+	{
+		trueaim = (trueaim % 32768) - 32768;
+	}
+	
+	//lots of if arguments to determine if it can skip rotation by pitching up to upright position and insta rotating to pitch back down in the correct direction
+	//first line is for when heading and trueaim are both not positive or negative and in the frontal arcs
+	//second line is for when heading < 0 and trueaim > 0 in the rear arc
+	//third line is for when heading > 0 and trueaim < 0 in the rear arc (yes they are seperate, didnt work otherwise)
+	//forth line is for when both heading and trueaim are positive or negative
+	
+	if (((((trueaim < 0) AND (heading > 0)) OR ((trueaim > 0) AND (heading < 0))) AND ( get ABS(trueaim - heading) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) < 32768) AND (upright == 0)) 
+	OR (((trueaim < 0) AND (heading > 0)) AND ((((trueaim - heading) % 32768) + 32768) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) > 32768) AND (upright == 0)) 
+	OR (((trueaim > 0) AND (heading < 0)) AND (((((trueaim - heading) % 32768) - 32768) * (-1)) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) > 32768) AND (upright == 0)) 
+	OR ((((trueaim < 0) AND (heading < 0)) OR ((trueaim > 0) AND (heading > 0))) AND ( get ABS(trueaim - heading) > 15000) AND (upright == 0)))
+	{
+		turn aimy1 to x-axis <0> speed <30>;
+		wait-for-turn aimy1 around x-axis;
+		upright = 1;
+	}
+	
+	if( upright == 1)											//instantly rotates the cannon when vertical so it can pitch down in any direction without moving at all
+	{
+		turn aimy1 to y-axis heading now;
+		turn aimx1 to y-axis <0> - heading now;
+	}
+	
+	turn aimy1 to y-axis heading speed <50>;					//same as above but slow so it turns around instead of snapping to the direction, only applies when not vertical
+	turn aimx1 to y-axis <0> - heading speed <50>;
+	turn aimy1 to x-axis <90.000000> - pitch speed <20>;		//pitch off vertical
+	upright = 0;
+	
+	wait-for-turn aimy1 around x-axis;
+	wait-for-turn aimy1 around y-axis;
 	return (1);
 }
 
@@ -194,8 +214,6 @@ FirePrimary()
 	move sleeve to y-axis [10] speed [5];
 	move sleeve2 to y-axis [10] speed [4];
 	move barrel to y-axis [10] speed [3];
-	
-	start-script RequestState(1);
 	return (0);
 }
 
