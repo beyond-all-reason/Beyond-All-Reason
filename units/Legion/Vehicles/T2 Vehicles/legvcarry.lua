@@ -21,7 +21,7 @@ return {
 		maxslope = 10,
 		speed = 45.0,
 		maxwaterdepth = 12,
-		movementclass = "TANK3",
+		movementclass = "HTANK4",
 		name = "Gattling",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGVCARRY.s3o",
