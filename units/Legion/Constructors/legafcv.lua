@@ -5,7 +5,7 @@ return {
 		buildpic = "legafcv.DDS",
 		buildtime = 4000,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "20 17 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
