@@ -190,14 +190,11 @@ void main(void)
 		if (rotationMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
 		}else if (rotationMiniMap == 1){
-			float temp = mapWorldPos.x;
-			mapWorldPos.x = mapWorldPos.z;
-			mapWorldPos.z = temp;
+			mapWorldPos.xz = mapWorldPos.zx;
 		}else if (rotationMiniMap == 2){
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}else if (rotationMiniMap == 3){
-			float temp = mapWorldPos.x;
-			mapWorldPos.z = 1.0 - temp;
+			mapWorldPos.z = 1.0 - mapWorldPos.x;
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}
 		mapWorldPos.xz *= mapSize.xy;

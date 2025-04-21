@@ -103,13 +103,7 @@ function widget:ViewResize()
 		local topbarArea = WG['topbar'].GetPosition()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
-	local currRot = getMiniMapRotationOptions()
-	if currRot == 1 or currRot == 3 then
-		-- 90 or 270 degrees
-		ratio = Game.mapY / Game.mapX
-	else
-		ratio = Game.mapX / Game.mapY
-	end
+
 	maxWidth = math.min(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
 	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
 		maxHeight = maxWidth / ratio
@@ -179,6 +173,12 @@ end
 function widget:Update(dt)
 	local currRot = getMiniMapRotationOptions()
 	if lastRot ~= currRot then
+		if currRot == 1 or currRot == 3 then
+			-- 90 or 270 degrees
+			ratio = Game.mapY / Game.mapX
+		else
+			ratio = Game.mapX / Game.mapY
+		end
 		lastRot = currRot
 		widget:ViewResize()
 		return

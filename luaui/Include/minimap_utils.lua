@@ -31,11 +31,11 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 		x,z = z,x
 		x = 1 - x
 	elseif getMiniMapRotationOptions() == 2 then
-		x = 1.0 - x
-		z = 1.0 - z
+		x = 1 - x
+		z = 1 - z
 	elseif getMiniMapRotationOptions() == 3 then
 		x, z = z, x
-		z = 1.0 - z
+		z = 1 - z
 	end
 
 	x = x * mapWidth

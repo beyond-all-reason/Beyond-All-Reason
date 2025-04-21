@@ -67,9 +67,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local yp = math.floor(viewSizeY * ymax) - yoff - 2
   local limitAspect = (xp / yp)
   local currRot = getMiniMapRotationOptions()
-  local mapAspect = (Game.mapSizeX / Game.mapSizeZ)
+  local mapAspect
   if currRot == 1 or currRot == 3 then
-	mapAspect = (Game.mapSizeZ / Game.mapSizeX)
+    mapAspect = (Game.mapSizeZ / Game.mapSizeX)
+  else
+    mapAspect = (Game.mapSizeX / Game.mapSizeZ)
   end
 
   local sx, sy
