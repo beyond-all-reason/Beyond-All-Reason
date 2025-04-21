@@ -143,6 +143,7 @@ local function createCountdownLists()
 	while i < playerChangeDelay do
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
@@ -164,10 +165,11 @@ local function refreshUiDrawing()
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 
 		local text, color1, color2
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 
 		-- Player TV Button
 		if not toggled and not lockPlayerID then
@@ -191,7 +193,7 @@ local function refreshUiDrawing()
 
 		-- Player Camera Button
 		if isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
 			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 			textWidth = math.floor(font:GetTextWidth(text) * fontSize)
@@ -205,11 +207,11 @@ local function refreshUiDrawing()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
 			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 		else
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
 			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
 			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
 		end
@@ -241,9 +243,10 @@ local function refreshUiDrawing()
 		if not toggled and not lockPlayerID then
 			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -262,9 +265,10 @@ local function refreshUiDrawing()
 		if not toggled2 then
 			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -281,9 +285,10 @@ local function refreshUiDrawing()
 			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
 
 			local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			local fontSize = (widgetHeight * widgetScale) * 0.5
+			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 			local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:Print(text, toggleButton3[3] - (textWidth / 2), toggleButton3[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 			font:End()
 		end)
@@ -787,9 +792,9 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.6 or 1), 0.2 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
-	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.6 or 1), 0.2 * (useRenderToTexture and 1.2*outlineMult or 1), 1.3+(outlineMult*0.25))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.6 or 1), 0.42 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.6 or 1), 0.22 * (useRenderToTexture and 1.2*outlineMult or 1), 1.3+(outlineMult*0.25))
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])

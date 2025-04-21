@@ -317,7 +317,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
 	font2 = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.5+(outlineMult*0.2) or 1.5)
 
 	if WG['minimap'] then

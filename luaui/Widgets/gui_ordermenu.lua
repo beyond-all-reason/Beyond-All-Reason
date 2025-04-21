@@ -64,7 +64,7 @@ local isStateCommand = {}
 
 local disabledCommand = {}
 
-local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -287,23 +287,23 @@ local function refreshCommands()
 end
 
 function widget:ViewResize()
-	viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * uiScale
 
-	width = width / (viewSizeX / viewSizeY) * 1.78        -- make smaller for ultrawide screens
+	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
 	width = width * uiScale
 
 	-- make pixel aligned
-	width = math.floor(width * viewSizeX) / viewSizeX
-	height = math.floor(height * viewSizeY) / viewSizeY
+	width = math.floor(width * vsx) / vsx
+	height = math.floor(height * vsy) / vsy
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
 	font = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.33 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
@@ -321,29 +321,29 @@ function widget:ViewResize()
 	end
 	if stickToBottom then
 		posY = height
-		posX = width + (widgetSpaceMargin/viewSizeX)
+		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/viewSizeY)
+			posY = height + height + (widgetSpaceMargin/vsy)
 		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
+			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (minimapHeight / viewSizeY) - (widgetSpaceMargin/viewSizeY)
+				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end
 	end
 
-	backgroundRect = { posX * viewSizeX, (posY - height) * viewSizeY, (posX + width) * viewSizeX, posY * viewSizeY }
+	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
-		(posX * viewSizeX) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
-		((posY - height) * viewSizeY) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
-		((posX + width) * viewSizeX) - activeBgpadding,
-		(posY * viewSizeY) - activeBgpadding
+		(posX * vsx) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
+		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
+		((posX + width) * vsx) - activeBgpadding,
+		(posY * vsy) - activeBgpadding
 	}
 	if displayListOrders then
 		displayListOrders = gl.DeleteList(displayListOrders)
@@ -815,7 +815,7 @@ function widget:DrawScreen()
 
 		if useRenderToTextureBg then
 			if not ordermenuBgTex then
-				ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+				ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 					target = GL.TEXTURE_2D,
 					format = GL.ALPHA,
 					fbo = true,
@@ -826,7 +826,7 @@ function widget:DrawScreen()
 						gl.Color(1,1,1,1)
 						gl.PushMatrix()
 						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 						drawOrdersBackground()
 						gl.PopMatrix()
@@ -836,7 +836,7 @@ function widget:DrawScreen()
 		end
 		if useRenderToTexture then
 			if not ordermenuTex then
-				ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX)*(viewSizeY<1400 and 2 or 1), math_floor(height*viewSizeY)*(viewSizeY<1400 and 2 or 1), {
+				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {
 					target = GL.TEXTURE_2D,
 					format = GL.ALPHA,
 					fbo = true,
@@ -849,7 +849,7 @@ function widget:DrawScreen()
 				gl.Color(1,1,1,1)
 				gl.PushMatrix()
 				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 				drawOrders()
 				gl.PopMatrix()
