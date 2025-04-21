@@ -16,7 +16,7 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
 
 ----------------------------------------------------------------
 --speedups
@@ -101,12 +101,19 @@ void main()
 
   float viewratio = 1.0;
   if (isMiniMap > 0.5) {
-    if (cameraFlipped > 0.5) {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
-    } else {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+    if (cameraFlipped == 0) {
+        worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (cameraFlipped == 1) { // 90 degrees rotation
+		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
+    }else if (cameraFlipped == 2) { // 180 degrees rotation
+        worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (cameraFlipped == 3) { // 270 degrees rotation
+		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
     }
-    viewratio = mapSize.x / mapSize.y;
   } else {
     worldPosInCamSpace  = cameraViewProj * vec4(worldposradius.xyz, 1.0);
     viewratio = viewGeometry.x / viewGeometry.y;
@@ -229,7 +236,7 @@ function DrawMapMarksWorld(isMiniMap)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped() and 1 or 0)
+		mapMarkShader:SetUniform("cameraFlipped", getMiniMapRotationOptions() or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
