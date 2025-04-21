@@ -205,7 +205,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
 	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.6 or 1), 0.25 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.25) or 1.2)
 
 	elementCorner = WG.FlowUI.elementCorner

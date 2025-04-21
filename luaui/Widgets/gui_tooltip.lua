@@ -146,7 +146,7 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
 	font, loadedFontSize = WG['fonts'].getFont(nil, 1.1, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
 	font2 = WG['fonts'].getFont(fontfile2, 1.35, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
 
