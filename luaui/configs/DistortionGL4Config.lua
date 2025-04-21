@@ -41,7 +41,26 @@ local unitDistortions = {
 	-- 	},
 	-- },
 
-	
+	['armcom'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'biggun',
+			distortionConfig = { posx = 0, posy = -5, posz = 19, radius = 4,
+							noiseStrength = 0.6, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0, rampUp = 30, decay = -1.2,
+							effectType = 0},
+		},
+	},
+	['corcom'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'biggun',
+			distortionConfig = { posx = 0, posy = -4.9, posz = 16, radius = 2.7,
+							noiseStrength = 2, noiseScaleSpace = -1.6, distanceFalloff = 0.5,
+							windAffected = -0.5, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
 	['armmakr'] = {
 		distortion = {
 			distortionType = 'point',
@@ -1060,7 +1079,7 @@ local unitDistortions = {
 		spycloakhead = {
 			distortionType = 'point',
 			pieceName = 'body',
-			distortionConfig = { posx = -0.3, posy = 5.7, posz = 10, radius = 4.4,
+			distortionConfig = { posx = -0.3, posy = 5.7, posz = 13, radius = 4.4,
 							noiseStrength = 12, noiseScaleSpace = -1.7, distanceFalloff = 0.75, onlyModelMap = -1,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
@@ -1069,7 +1088,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'pelvis',
 			distortionConfig = { posx = -6.0, posy = 0, posz = 0, radius = 3.0,
-							noiseStrength = 12, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1077,7 +1096,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'pelvis',
 			distortionConfig = { posx = 5.0, posy = 0, posz = 0, radius = 3.0,
-							noiseStrength = 12, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
+							noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.75, onlyModelMap = -1,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1096,7 +1115,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'head',
 			distortionConfig = { posx = -7.5, posy = 4.8, posz = 0, radius = 5.5,
-							noiseStrength = 12, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+							noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -1104,7 +1123,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'head',
 			distortionConfig = { posx = 7.5, posy = 4.8, posz = 0, radius = 5.5,
-							noiseStrength = 12, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+							noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},

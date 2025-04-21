@@ -54,7 +54,7 @@ local BaseClasses = {
 			r = 1, g = 1, b = 1, a = 0.75,
 			color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = 1.6,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
-			modelfactor = 1, specular = 0.5, scattering = 1.5, lensflare = 1,
+			modelfactor = 1, specular = 0.5, scattering = 2.5, lensflare = 1,
 			lifetime = 15, sustain = 1.5, selfshadowing = 0, 
 		},
 	},
@@ -136,7 +136,7 @@ local BaseClasses = {
 			r = 1.0, g = 0.9, b = 0.5, a = 0.6,
 			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.3, lensflare = 0,
-			lifetime = 33, sustain = 15, selfshadowing = 4, 
+			lifetime = 33, sustain = 15, selfshadowing = 2, 
 		},
 	},
 
@@ -154,13 +154,13 @@ local BaseClasses = {
 
 	FlameProjectileDragon = {
 		lightType = 'point', -- or cone or beam
-		fraction = 4, -- only spawn every nth light
+		fraction = 8, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
 			r = 0.3, g = 0.2, b = 0.09, a = 0.096,
 			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
-			lifetime = 33, sustain = 10, selfshadowing = 5, 
+			lifetime = 33, sustain = 10, selfshadowing = 2, 
 		},
 	},
 
@@ -435,8 +435,8 @@ local function AssignLightsToAllWeapons()
 				
 			end
 
-			radius = (6.2 * (weaponDef.size * weaponDef.size)) + (4 * radius * orgMult)
-			t.a = (orgMult * 0.12) / (0.25 + weaponDef.beamtime)
+			radius = (6.3 * (weaponDef.size * weaponDef.size)) + (4 * radius * orgMult)
+			t.a = (orgMult * 0.14) / (0.25 + weaponDef.beamtime)
 			--projectileDefLights[weaponID].yOffset = 64
 
 			if weaponDef.paralyzer then
@@ -1072,7 +1072,7 @@ GetLightClass("FlameProjectile", nil, "Smallish", {
 
 projectileDefLightsNames["corcrwh_dragonmawh"] =
 GetLightClass("FlameProjectileDragon", nil, "Medium", {
-						r = 0.7, g = 0.7, b = 0.65, a = 0.06, 
+						r = 0.7, g = 0.7, b = 0.65, a = 0.12, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 70, sustain = 30,
 												})
