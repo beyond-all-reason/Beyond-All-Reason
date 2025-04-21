@@ -191,7 +191,7 @@ local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
-local autoReload = true -- refresh shader code every second (disable in production!)
+local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
