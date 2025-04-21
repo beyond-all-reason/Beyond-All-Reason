@@ -851,16 +851,16 @@ function widget:DrawInMiniMap(sx, sy)
 		if currRot == 0 then
 			gl.Translate(0, 1, 0)
 			gl.Scale(1 / msx, -1 / msz, 1)
-		elseif currRot == 1 then -- 90° rotation (swap X/Z, flip Y)
-			gl.Scale(-1 / msz, 1 / msx, 1) -- Swap axes via scaling
+		elseif currRot == 1 then
+			gl.Scale(-1 / msz, 1 / msx, 1)
 			gl.Rotate(90, 0, 0, 1)
 		elseif currRot == 2 then
 			gl.Translate(1, 0, 0)
 			gl.Scale(1 / msx, 1 / msz, 1)
 			gl.Rotate(180, 0, 1, 0)
-		elseif currRot == 3 then -- 270° rotation (swap X/Z, flip both)
+		elseif currRot == 3 then
 			gl.Translate(1, 1, 0)
-			gl.Scale(-1 / msz, 1 / msx, 1) -- Swap and flip axes
+			gl.Scale(-1 / msz, 1 / msx, 1)
 			gl.Rotate(-90, 0, 0, 1)
 		end
 
