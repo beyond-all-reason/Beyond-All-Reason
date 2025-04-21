@@ -104,13 +104,13 @@ void main()
     if (mapRotation == 0) {
         worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
         viewratio = mapSize.x / mapSize.y;
-    }else if (mapRotation == 1) { // 90 degrees rotation
+    }else if (mapRotation == 1) {
 		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
         viewratio = mapSize.y / mapSize.x;
-    }else if (mapRotation == 2) { // 180 degrees rotation
+    }else if (mapRotation == 2) {
         worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
         viewratio = mapSize.x / mapSize.y;
-    }else if (mapRotation == 3) { // 270 degrees rotation
+    }else if (mapRotation == 3) {
 		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
         viewratio = mapSize.y / mapSize.x;
     }
