@@ -1007,7 +1007,7 @@ local function DrawBox(hOffset, vOffset, r, g, b)
 			widgetPosX + hOffset + dx,
 			widgetPosY + widgetHeight - vOffset + dy + h,
 			h * 0.055,
-			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 0.4 }, { r, g, b, 0.4 }
+			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, useRenderToTexture and 0.8 or 0.4 }, { r, g, b, useRenderToTexture and 0.8 or 0.4 }
 	)
 	glColor(1, 1, 1, 1)
 end
