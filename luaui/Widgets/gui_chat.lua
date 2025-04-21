@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 local LineTypes = {
 	Console = -1,
 	Player = 1,
@@ -58,6 +60,7 @@ local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1
 local I18N = {}
 local maxLinesScroll = maxLinesScrollFull
 local hide = false
+local refreshUi = true
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
 local usedConsoleFontSize = usedFontSize*consoleFontSizeMult
@@ -70,6 +73,9 @@ local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
 local currentConsoleLine = 0
 local historyMode = false
+local prevCurrentConsoleLine = -1
+local prevCurrentChatLine = -1
+local prevHistoryMode = false
 local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
@@ -701,6 +707,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	widgetHandler:DisownText()
+	updateDrawUi = true
 end
 
 local function commonUnitName(unitIDs)
@@ -842,7 +849,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				textcolor = ColorString(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
-		
+
 		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
@@ -937,10 +944,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=
 			bypassThisMessage = true
 
-			
+
 		elseif ssub(line,1,6) == "[i18n]" then
 			lineColor = msgColor
-			
+
 		elseif ssub(line,1,6) == "[Font]" then
 			lineColor = msgColor
 
@@ -991,7 +998,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 				spectator = msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
 			end
 			line = Spring.I18N('ui.chat.connectionattemptfrom', { name = getPlayerColorString(playername, gameFrame)..playername .. spectator, textColor = lineColor, textColor2 = msgColor } )
-		
+
 		elseif gameOver and sfind(line,'left the game', nil, true) then
 			bypassThisMessage = true
 
@@ -1249,6 +1256,7 @@ function widget:Update(dt)
 						chatLines[i].lineDisplayList = nil
 					end
 				end
+				updateDrawUi = true
 			end
 			-- reprocessing not implemented yet for consoleLines, maybe not really that needed anyway
 			--for i, _ in ipairs(consoleLines) do
@@ -1269,6 +1277,7 @@ function widget:Update(dt)
 					for i=1, #chatLines do
 						if chatLines[i].playerName == name then
 							chatLines[i].ignore = nil
+							updateDrawUi = true
 						end
 					end
 				end
@@ -1278,6 +1287,7 @@ function widget:Update(dt)
 					for i=1, #chatLines do
 						if chatLines[i].playerName == name then
 							chatLines[i].ignore = true
+							updateDrawUi = true
 						end
 					end
 				end
@@ -1413,6 +1423,7 @@ local function drawChatInput()
 
 			-- button text
 			usedFont:Begin()
+			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
 			elseif inputMode == 'a:' then
@@ -1526,22 +1537,11 @@ end
 function widget:FontsChanged()
 	clearDisplayLists()
 	textInputDlist = glDeleteList(textInputDlist)
+	refreshUi = true
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then return end
-	if not chatLines[1] and not consoleLines[1] then return end
-
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local x,y,b = Spring.GetMouseState()
-	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if hovering and WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
-	end
-
-	-- draw chat input
+local drawTextInput = function()
 	if handleTextInput then
-
 		if showTextInput and updateTextInputDlist then
 			drawChatInput()
 		end
@@ -1549,6 +1549,7 @@ function widget:DrawScreen()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
+			local x,y,b = Spring.GetMouseState()
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
@@ -1560,98 +1561,57 @@ function widget:DrawScreen()
 			textInputDlist = glDeleteList(textInputDlist)
 		end
 	end
+end
 
-	if hide and not historyMode then
-		return
-	end
+local function drawUi()
+	local _, ctrl, _, _ = Spring.GetModKeyState()
+	local x,y,b = Spring.GetMouseState()
 
-	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
-		hovering = true
-		if historyMode then
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+
+	if not historyMode then
+
+		-- draw background
+		if backgroundOpacity > 0 and displayedChatLines > 0 then
+			glColor(1,1,1,0.1*backgroundOpacity*(useRenderToTexture and 2 or 1))
+			local borderSize = 1
+			RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
+
+			glColor(0,0,0,backgroundOpacity*(useRenderToTexture and 2 or 1))
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
+			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
+				font:Begin()
+				font:SetTextColor(0.1,0.1,0.1,0.66)
+				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
+				font:End()
 			end
+		end
 
-			-- player name background
-			if historyMode == 'chat' then
-				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
-				-- vertical line at start and end
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
-			end
-
-			local totalUnignoredChatLines = 0
-			for i=1, #chatLines do
-				if not chatLines[i].ignore then
-					totalUnignoredChatLines = totalUnignoredChatLines + 1
+		-- draw console lines
+		if consoleLines[1] then
+			glPushMatrix()
+			glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
+			local checkedLines = 0
+			local i = #consoleLines
+			while i > 0 do
+				if clock() - consoleLines[i].startTime < lineTTL then
+					processConsoleLineGL(i)
+					glCallList(consoleLines[i].lineDisplayList)
+				else
+					break
 				end
+				checkedLines = checkedLines + 1
+				if checkedLines >= maxConsoleLines then
+					break
+				end
+				glTranslate(0, consoleLineHeight, 0)
+				i = i - 1
 			end
-
-			local scrollbarMargin = floor(16 * widgetScale)
-			local scrollbarWidth = floor(11 * widgetScale)
-			UiScroller(
-				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
-				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
-				floor(activationArea[3]-scrollbarMargin),
-				floor(activationArea[4]-scrollbarMargin),
-				historyMode == 'console' and #consoleLines*lineHeight or totalUnignoredChatLines*lineHeight,
-				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
-			)
-		end
-	else
-		if not showHistoryWhenChatInput or not showTextInput then
-			hovering = false
-			historyMode = false
-			setCurrentChatLine(#chatLines)
+			glPopMatrix()
 		end
 	end
 
-	-- draw background
-	if not historyMode and backgroundOpacity > 0 and displayedChatLines > 0 then
-		glColor(1,1,1,0.1*backgroundOpacity)
-		local borderSize = 1
-		RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
-
-		glColor(0,0,0,backgroundOpacity)
-		--RectRound(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], elementCorner)
-		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
-		if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-			font:Begin()
-			font:SetTextColor(0.1,0.1,0.1,0.66)
-			font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
-			font:End()
-		end
-	end
-
-	-- draw console lines
-	if not historyMode and consoleLines[1] then
-		glPushMatrix()
-		glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
-		local checkedLines = 0
-		local i = #consoleLines
-		while i > 0 do
-			if clock() - consoleLines[i].startTime < lineTTL then
-				processConsoleLineGL(i)
-				glCallList(consoleLines[i].lineDisplayList)
-			else
-				break
-			end
-			checkedLines = checkedLines + 1
-			if checkedLines >= maxConsoleLines then
-				break
-			end
-			glTranslate(0, consoleLineHeight, 0)
-			i = i - 1
-		end
-		glPopMatrix()
-	end
-
-	-- draw chat lines or chat/console ui panel
+	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
 			font:Begin()
@@ -1782,6 +1742,124 @@ function widget:DrawScreen()
 				glPopMatrix()
 			end
 		end
+	end
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then return end
+	if not chatLines[1] and not consoleLines[1] then return end
+
+	local _, ctrl, _, _ = Spring.GetModKeyState()
+	local x,y,b = Spring.GetMouseState()
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+	if hovering and WG['guishader'] then
+		WG['guishader'].RemoveRect('chat')
+	end
+
+	-- draw chat input
+	drawTextInput()
+
+	if hide and not historyMode then
+		return
+	end
+
+	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
+		hovering = true
+		if historyMode then
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+			end
+
+			-- player name background
+			if historyMode == 'chat' then
+				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
+				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
+				glColor(1,1,1,0.045)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
+				-- vertical line at start and end
+				glColor(1,1,1,0.045)
+				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
+			end
+
+			local totalUnignoredChatLines = 0
+			for i=1, #chatLines do
+				if not chatLines[i].ignore then
+					totalUnignoredChatLines = totalUnignoredChatLines + 1
+				end
+			end
+
+			local scrollbarMargin = floor(16 * widgetScale)
+			local scrollbarWidth = floor(11 * widgetScale)
+			UiScroller(
+				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
+				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
+				floor(activationArea[3]-scrollbarMargin),
+				floor(activationArea[4]-scrollbarMargin),
+				historyMode == 'console' and #consoleLines*lineHeight or totalUnignoredChatLines*lineHeight,
+				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
+			)
+		end
+	else
+		if not showHistoryWhenChatInput or not showTextInput then
+			hovering = false
+			historyMode = false
+			setCurrentChatLine(#chatLines)
+		end
+	end
+
+	if currentChatLine ~= prevCurrentChatLine or currentConsoleLine ~= prevCurrentConsoleLine or historyMode ~= prevHistoryMode then -- or showTextInput ~= prevShowTextInput or displayedChatLines ~= prevDisplayedChatLines
+		updateDrawUi = true
+	end
+	prevCurrentConsoleLine = currentConsoleLine
+	prevCurrentChatLine = currentChatLine
+	prevHistoryMode = historyMode
+	--prevShowTextInput = showTextInput
+	--prevDisplayedChatLines = displayedChatLines
+
+	if useRenderToTexture then
+		if refreshUi then
+			refreshUi = false
+			updateDrawUi = true
+			if uiTex then
+				gl.DeleteTextureFBO(uiTex)
+				uiTex = nil
+			end
+			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
+			uiTex = gl.CreateTexture(math.floor(rttArea[3]-rttArea[1])*(vsy<1400 and 2 or 1), math.floor(rttArea[4]-rttArea[2])*(vsy<1400 and 2 or 1), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+		end
+		if uiTex then
+			if updateDrawUi ~= nil then
+				gl.RenderToTexture(uiTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
+					gl.Translate(-rttArea[1], -rttArea[2], 0)
+					drawUi()
+					gl.PopMatrix()
+				end)
+
+				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
+				if updateDrawUi == false then
+					updateDrawUi = nil
+				elseif updateDrawUi then
+					updateDrawUi = false	-- update once more after this
+				end
+			end
+
+			gl.Color(1, 1, 1, 1)
+			gl.Texture(uiTex)
+			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
+			gl.Texture(false)
+		end
+	else
+		drawUi()
 	end
 end
 
@@ -2192,12 +2270,14 @@ function widget:ViewResize()
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
+	charSize = 21.5 - (3.5 * ((vsx/vsy) - 1.78))
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.19, 1.75)
-	font2 = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.19, 1.75)
-	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.19, 1.75)
+
+	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+    font2 = WG['fonts'].getFont(fontfile2, 1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font3 = WG['fonts'].getFont(fontfile3, 1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
@@ -2242,6 +2322,7 @@ function widget:ViewResize()
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
 	clearDisplayLists()
+	refreshUi = true
 end
 
 function widget:PlayerChanged(playerID)
@@ -2361,6 +2442,10 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chat')
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
+	end
+	if uiTex then
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
 	end
 end
 
