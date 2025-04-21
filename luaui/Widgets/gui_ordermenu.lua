@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -303,7 +303,8 @@ function widget:ViewResize()
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(fontFile, 1.1 * (useRenderToTexture and 1.6 or 1), 0.18 * (useRenderToTexture and 1.4 or 1), useRenderToTexture and 2 or 1.25)
+	local outlineMult = math.max(1.2, 1/(viewSizeY/1700))
+	font = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.33 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -842,7 +843,7 @@ function widget:DrawScreen()
 				})
 			end
 		end
-		if ordermenuTex then
+		if ordermenuTex and doUpdate then
 			gl.RenderToTexture(ordermenuTex, function()
 				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 				gl.Color(1,1,1,1)

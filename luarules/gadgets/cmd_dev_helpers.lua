@@ -1238,13 +1238,15 @@ else	-- UNSYNCED
 		end
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
-		local n = 0
-		local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
-		local x, y, z = ox, oy, oz
-		local msg = "spawnceg " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
+		if type(pos) == 'table' then
+			local n = 0
+			local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
+			local x, y, z = ox, oy, oz
+			local msg = "spawnceg " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
 
-		Spring.Echo('Spawning CEG:', line, playerID, msg)
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+			Spring.Echo('Spawning CEG:', line, playerID, msg)
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+		end
 	end
 
 	function GiveCat(_, line, words, playerID)
@@ -1445,16 +1447,18 @@ else	-- UNSYNCED
 
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
-		local n = 0
-		local ox, oz = math.floor(pos[1]), math.floor(pos[3])
-		local x, z = ox, oz
+		if type(pos) == 'table' then
+			local n = 0
+			local ox, oz = math.floor(pos[1]), math.floor(pos[3])
+			local x, z = ox, oz
 
-		local msg = "givecat " .. x .. " " .. z .. " " .. teamID
-		for _, uDID in ipairs(giveUnits) do
-			msg = msg .. " " .. uDID
+			local msg = "givecat " .. x .. " " .. z .. " " .. teamID
+			for _, uDID in ipairs(giveUnits) do
+				msg = msg .. " " .. uDID
+			end
+
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 		end
-
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
 
 end

@@ -23,7 +23,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = true
 
 -------------------------------------------------------------------------------
@@ -1425,6 +1425,8 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	iconMargin = math.floor((bgpadding * 0.5) + 0.5)
@@ -1443,9 +1445,8 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2 * (useRenderToTexture and 1.6 or 1), 0.28, 1.6)
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.1 * (useRenderToTexture and 1.6 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
