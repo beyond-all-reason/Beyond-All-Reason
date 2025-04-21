@@ -24,21 +24,22 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 	if dualScreen == "left" then
 		x = x + sx + px
 	end
-	x = ((x - px) / sx) * mapWidth
-	local z = (1 - (y - py + vpy)/sy) * mapHeight
+	x = ((x - px) / sx)
+	local z = (1 - (y - py + vpy)/sy)
 
 	if getMiniMapRotationOptions() == 1 then
-		local temp = x
-		x = mapWidth - z
-		z = temp
+		x,z = z,x
+		x = 1 - x
 	elseif getMiniMapRotationOptions() == 2 then
-		x = mapWidth - x
-		z = mapHeight - z
+		x = 1.0 - x
+		z = 1.0 - z
 	elseif getMiniMapRotationOptions() == 3 then
-		local temp = x
-		x = z
-		z = mapHeight - temp
+		x, z = z, x
+		z = 1.0 - z
 	end
+
+	x = x * mapWidth
+	z = z * mapHeight
 
 	y = spGetGroundHeight(x, z)
 
