@@ -12,7 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
@@ -487,7 +488,7 @@ local function processTrackname(trackname)
 end
 
 local function drawBackground()
-	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTextureBg)
 	borderPadding = bgpadding
 	borderPaddingRight = borderPadding
 	if right >= vsx-0.2 then
@@ -501,11 +502,8 @@ end
 
 local function drawContent()
 	local trackname
-	local padding = math.floor(2.75 * widgetScale) -- button background margin
 	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
-	local volumeWidth = math.floor(50 * widgetScale)
-	local heightoffset = -math.floor(0.9 * widgetScale)
-	local textsize = 11 * widgetScale
+	local textsize = 11 * widgetScale * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
 	local textXPadding = 10 * widgetScale
 	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
 	local maxTextWidth = right-textXPadding-textXPadding
@@ -531,13 +529,14 @@ local function drawContent()
 		end
 		trackname = text
 
-		glColor(0.8,0.8,0.8,0.9)
+		glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		glTexture(false)
 
 		font:Begin()
-		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 		font:End()
 	else
 		glColor(0.88,0.88,0.88,0.9)
@@ -558,7 +557,7 @@ local function drawContent()
 
 		local button = 'musicvolumeicon'
 		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-		glColor(0.8,0.8,0.8,0.9)
+		glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		glTexture(false)
@@ -617,8 +616,8 @@ local function refreshUiDrawing()
 			glDeleteList(drawlist[i])
 		end
 	end
-	if useRenderToTexture then
-		if right-left >= 1 and top-bottom >= 1 then
+	if right-left >= 1 and top-bottom >= 1 then
+		if useRenderToTextureBg then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
 					target = GL.TEXTURE_2D,
@@ -635,8 +634,14 @@ local function refreshUiDrawing()
 					gl.PopMatrix()
 				end)
 			end
+		else
+			drawlist[1] = glCreateList( function()
+				drawBackground()
+			end)
+		end
+		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+				uiTex = gl.CreateTexture(math.floor(right-left)*(vsy<1400 and 2 or 1), math.floor(top-bottom)*(vsy<1400 and 2 or 1), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -651,83 +656,80 @@ local function refreshUiDrawing()
 				drawContent()
 				gl.PopMatrix()
 			end)
-		end
-	else
-		drawlist[1] = glCreateList( function()
-			drawBackground()
-		end)
-		drawlist[2] = glCreateList( function()
-			local button = 'playpause'
-			glColor(0.88,0.88,0.88,0.9)
-			if playing then
-				glTexture(pauseTex)
-			else
-				glTexture(playTex)
-			end
-			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-
-			button = 'next'
-			glColor(0.88,0.88,0.88,0.9)
-			glTexture(nextTex)
-			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		end)
-		drawlist[3] = glCreateList( function()
-			-- track name
-			trackname = currentTrack or ''
-			glColor(0.45,0.45,0.45,1)
-
-			trackname = processTrackname(trackname)
-
-			local text = ''
-			for i = 1, #trackname do
-				local c = string.sub(trackname, i,i)
-				local width = font:GetTextWidth(text..c) * textsize
-				if width > maxTextWidth then
-					break
+		else
+			drawlist[2] = glCreateList( function()
+				local button = 'playpause'
+				glColor(0.88,0.88,0.88,0.9)
+				if playing then
+					glTexture(pauseTex)
 				else
-					text = text..c
+					glTexture(playTex)
 				end
-			end
-			trackname = text
+				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 
-			local button = 'playpause'
-			glColor(0.8,0.8,0.8,0.9)
-			glTexture(musicTex)
-			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-			glTexture(false)
+				button = 'next'
+				glColor(0.88,0.88,0.88,0.9)
+				glTexture(nextTex)
+				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+			end)
+			drawlist[3] = glCreateList( function()
+				-- track name
+				trackname = currentTrack or ''
+				glColor(0.45,0.45,0.45,1)
 
-			font:Begin()
-			font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
-			font:End()
-		end)
-		drawlist[4] = glCreateList( function()
+				trackname = processTrackname(trackname)
 
-			local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
-			local lineHeight = math.floor((1.65 * widgetScale)+0.5)
+				local text = ''
+				for i = 1, #trackname do
+					local c = string.sub(trackname, i,i)
+					local width = font:GetTextWidth(text..c) * textsize
+					if width > maxTextWidth then
+						break
+					else
+						text = text..c
+					end
+				end
+				trackname = text
 
-			local button = 'musicvolumeicon'
-			local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-			glColor(0.8,0.8,0.8,0.9)
-			glTexture(musicTex)
-			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-			glTexture(false)
+				local button = 'playpause'
+				glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+				glTexture(musicTex)
+				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+				glTexture(false)
 
-			button = 'musicvolume'
-			UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-			UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+				font:Begin()
+				font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+				font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
+				font:End()
+			end)
+			drawlist[4] = glCreateList( function()
 
-			button = 'volumeicon'
-			glColor(0.8,0.8,0.8,0.9)
-			glTexture(volumeTex)
-			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-			glTexture(false)
+				local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
+				local lineHeight = math.floor((1.65 * widgetScale)+0.5)
 
-			button = 'volume'
-			UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-			UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
-		end)
+				local button = 'musicvolumeicon'
+				local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
+				glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+				glTexture(musicTex)
+				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+				glTexture(false)
+
+				button = 'musicvolume'
+				UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+				UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+
+				button = 'volumeicon'
+				glColor(0.8,0.8,0.8,0.9)
+				glTexture(volumeTex)
+				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+				glTexture(false)
+
+				button = 'volume'
+				UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+				UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+			end)
+		end
 	end
-
 	if WG['tooltip'] ~= nil and trackname then
 		if trackname and trackname ~= '' then
 			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
@@ -901,9 +903,11 @@ function widget:Shutdown()
 		glDeleteList(drawlist[i])
 	end
 	if guishaderList then glDeleteList(guishaderList) end
-	if uiTex then
+	if uiBgTex then
 		gl.DeleteTextureFBO(uiBgTex)
 		uiBgTex = nil
+	end
+	if uiTex then
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
@@ -915,7 +919,8 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.2 or 1), 0.35 * (useRenderToTexture and 1.2 or 1), 1.25)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.7 or 1), 0.4 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.25) or 1.2)
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -1103,7 +1108,7 @@ function widget:DrawScreen()
 	end
 	prevShowTrackname = showTrackname
 
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if uiBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
@@ -1111,6 +1116,10 @@ function widget:DrawScreen()
 			gl.TexRect(left, bottom, right, top, false, true)
 			gl.Texture(false)
 		end
+	else
+		glCallList(drawlist[1])
+	end
+	if useRenderToTexture then
 		if uiTex then
 			-- content
 			gl.Color(1,1,1,1)
@@ -1119,15 +1128,20 @@ function widget:DrawScreen()
 			gl.Texture(false)
 		end
 	else
-		glCallList(drawlist[1])
 		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
-			glCallList(drawlist[3])
+			if drawlist[3] then
+				glCallList(drawlist[3])
+			end
 		else
-			glCallList(drawlist[2])
-			glCallList(drawlist[4])
+			if drawlist[2] then
+				glCallList(drawlist[2])
+			end
+			if drawlist[4] then
+				glCallList(drawlist[4])
+			end
 		end
 	end
-	if drawlist[1] ~= nil or uiTex then
+	if drawlist[2] ~= nil or uiTex then
 		if mouseover then
 			-- display play progress
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
