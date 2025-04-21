@@ -2269,15 +2269,15 @@ function widget:ViewResize()
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
-
-	charSize = 21.5 - (3.5 * ((vsx/vsy) - 1.78))
+	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
+	charSize = charSize * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.2)	-- increase for small resolutions
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
 	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-    font2 = WG['fonts'].getFont(fontfile2, 1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-	font3 = WG['fonts'].getFont(fontfile3, 1 * (useRenderToTexture and 1.6 or 1), (useRenderToTexture and 0.88 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+    font2 = WG['fonts'].getFont(fontfile2, 1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font3 = WG['fonts'].getFont(fontfile3, 1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
