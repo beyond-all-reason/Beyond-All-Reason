@@ -62,6 +62,7 @@ local unitOrderTable = {
 	['legaceb']        = 003250,
 
 	['armconsul']      = 003300, --VEH
+	['legafcv']        = 003305, --VEH
 	['corprinter']     = 003325, --VEH
 	['corvac']		   = 003326, --VEH
 	['corvacct']       = 003327, --VEH

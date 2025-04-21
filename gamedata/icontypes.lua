@@ -2251,6 +2251,10 @@ local icontypes = {
 		bitmap = "icons/legceb.png",
 		size = 1.25
 	},
+	legafcv = {
+		bitmap = "icons/armconsul_1.35.png",
+		size = 1.0
+	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999
