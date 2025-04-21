@@ -2397,6 +2397,26 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legvcarry'] = {
+		lightglowtarget = {
+			lightType = 'point',
+			pieceName = 'targetLightGlow',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 48,
+							color2r = 0.2, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 0.2, g = 1, b = 0.2, a = 0.15,
+							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		lightflashtarget = {
+			lightType = 'point',
+			pieceName = 'targetLightFlash',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 4,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+							r = 0.2, g = 1, b = 0.2, a = 1,
+							modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['armack'] = {
 		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
