@@ -491,7 +491,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	local outlineMult = math.clamp(1/(vsy/1700), 1, 2)
 	rttSizeMult = vsy<1400 and 2 or 1
 	local rttAdjust = useRenderToTexture and rttSizeMult > 1
 	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.6 or 1), 0.35 * (rttAdjust and 1.5 or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
