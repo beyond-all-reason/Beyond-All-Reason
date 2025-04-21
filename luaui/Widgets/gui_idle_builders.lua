@@ -14,6 +14,7 @@ end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = true
+local rttSizeMult
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -181,7 +182,8 @@ local function drawContent()
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 		local style = 'c'
 		font2:Begin()
-		font2:SetTextColor(1,1,1,useRenderToTexture and 0.7 or 0.2)
+		font2:SetOutlineColor(0.35,0.35,0.35,useRenderToTexture and 0.35 or 0.15)
+		font2:SetTextColor(0.5,0.5,0.5,useRenderToTexture and 1 or 0.5)
 		offset = (fontSize*0.6)
 		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
@@ -419,7 +421,7 @@ local function updateList(force)
 		end
 		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*rttSizeMult, math.floor(backgroundRect[4]-backgroundRect[2])*rttSizeMult, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -489,8 +491,11 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.25)
+	local outlineMult = math.max(1.2, 1/(vsy/1700))
+	rttSizeMult = vsy<1400 and 2 or 1
+	local rttAdjust = useRenderToTexture and rttSizeMult > 1
+	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.6 or 1), 0.35 * (rttAdjust and 1.5 or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.6 or 1), 0.35 * (rttAdjust and 1.5 or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
