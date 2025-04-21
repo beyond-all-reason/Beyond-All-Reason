@@ -871,14 +871,14 @@ local options = {
 	-- 	},
 	-- 	section	= "options_extra",
 	-- },
-	{
-		key		= "easter_egg_hunt",
-		name	= "Easter Eggs Hunt",
-		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (4 metal 40 energy per)",
-		type	= "bool",
-		def		= true,
-		section	= "options_extra",
-	},
+	--{
+	--	key		= "easter_egg_hunt",
+	--	name	= "Easter Eggs Hunt",
+	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+	--	type	= "bool",
+	--	def		= false,
+	--	section	= "options_extra",
+	--},
 
 
     {
