@@ -633,7 +633,7 @@ local function makeTeamCompositionList()
 			if uiTex then
 				gl.DeleteTextureFBO(uiTex)
 			end
-			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1])*(vsy<1400 and 2 or 1), math.floor(areaRect[4]-areaRect[2])*(vsy<1400 and 2 or 1), {
+			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -1366,7 +1366,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1)
+	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.4 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.2) or 1)
 
 	Reinit()
 end
@@ -1379,7 +1379,7 @@ function widget:Update(dt)
 	if not inSpecMode or not myFullview then
 		return
 	end
-	
+
 	local gf = Spring.GetGameFrame()
 	if not gamestarted and gf > 0 then
 		gamestarted = true
@@ -1435,11 +1435,11 @@ function widget:DrawScreen()
 	if not myFullview or not inSpecMode then
 		return
 	end
-	
+
 	if aliveAllyTeams > 16 then
 		return
 	end
-	
+
 	if refreshTeamCompositionList then
 		refreshTeamCompositionList = false
 		makeTeamCompositionList()
