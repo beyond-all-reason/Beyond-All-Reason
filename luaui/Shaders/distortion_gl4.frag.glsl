@@ -1001,6 +1001,143 @@ void main(void)
 		fragColor.rgba = vec4(noiseSampleNorm.ra * EFFECTSTRENGTH, 0.0,  distortionAttenuation);
 	}
 
+// ------------------------ BEGIN FILLED DISTORTION CIRCLE (Updated ONLYMODELMAP & Y-Offset) ----------------
+else if (effectType == 13) { // Keeping type 13
+    // Simulates an expanding circle using noise displacement within a static max radius.
+    // Expansion controlled by timeFraction/STARTRADIUS. Intensity affected by RAMPUP and DISTANCEFALLOFF.
+    // Optionally restricted to model/map geometry via ONLYMODELMAP. Includes Y-offset for noise.
+
+    // --- Lifetime & Timing ---
+    float lifeStart = SPAWNFRAME;
+    float lifeTime = LIFETIME;
+    // Calculate elapsed time fraction (0 to 1 over lifetime), clamped.
+    float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
+
+    // Ramp-up factor based on elapsed time vs RAMPUP uniform (0 to 1 over ramp-up duration)
+    float elapsed = currentTime - lifeStart;
+    float rampFactor = 1.0;
+    if (RAMPUP > 0.0) {
+        rampFactor = clamp(elapsed / RAMPUP, 0.0, 1.0);
+    }
+
+    // --- Check Max Radius & Calculate Distance ---
+    // Use distortionRadius as the static maximum world-space radius for the effect volume.
+    float maxRadius = distortionRadius; // Make sure distortionRadius is correctly defined/passed
+
+    // Calculate the world-space distance from the fragment to the emission center
+    float distWorld = distance(fragWorldPos.xyz, distortionEmitPosition.xyz);
+
+    // If fragment is outside the maximum possible radius, exit early.
+    if (distWorld > maxRadius || maxRadius <= 0.0) { // Added check for maxRadius > 0
+        fragColor.rgba = vec4(0.0);
+        return;
+    }
+
+    // --- ONLYMODELMAP Check ---
+    // Apply filtering based on ONLYMODELMAP setting compared against model depths.
+    // ONLYMODELMAP > 0.5: Show only on map (discard model fragments)
+    // ONLYMODELMAP < -0.5: Show only on models (discard map fragments)
+    // Otherwise: Show on both
+    if (abs(ONLYMODELMAP) > 0.5) { // Check if filtering is active
+        // Sample the model depth map at the fragment's screen UV
+        float modelDepthValue = texture(modelDepths, v_screenUV).r;
+
+        // --- CRITICAL: Depth Linearization ---
+        // Ensure fragDistance and modelDepthValue are comparable (linear depth).
+        // Replace 'LinearizeDepth' with your actual depth linearization function.
+        // float linearModelDepth = LinearizeDepth(modelDepthValue, cameraNearPlane, cameraFarPlane);
+        float linearModelDepth = modelDepthValue; // Placeholder: Assumes comparable linear depth
+        // --- End Depth Linearization Note ---
+
+        // Define epsilon for depth comparison tolerance
+        float depthEpsilon = 0.1; // Adjust based on world scale and depth precision
+
+        if (ONLYMODELMAP > 0.5) { // Only show on MAP (discard if fragment IS model)
+            // Discard if the fragment's depth is very close to the model's depth
+            if (abs(fragDistance - linearModelDepth) < depthEpsilon) {
+                fragColor.rgba = vec4(0.0);
+                return; // Fragment is part of the model surface, discard
+            }
+        } else { // ONLYMODELMAP < -0.5: Only show on MODEL (discard if fragment IS map/background)
+            // Discard if the fragment's depth is significantly further than the model's depth
+            // (This logic seemed to work according to the user, keeping it)
+            if (fragDistance > linearModelDepth + depthEpsilon) {
+                fragColor.rgba = vec4(0.0);
+                return; // Fragment is behind the model's surface, discard
+            }
+        }
+    }
+    // --- END ONLYMODELMAP Check ---
+
+
+    // --- Intensity based on Simulated Expansion (Time) ---
+    // Use the existing STARTRADIUS define (v_baseparams.z), assumed percentage (0.0 to 1.0).
+    // Intensity starts increasing *after* timeFraction passes STARTRADIUS.
+    float expansionIntensity = smoothstep(STARTRADIUS, 1.0, timeFraction); // Using STARTRADIUS define
+
+    // --- Intensity based on Distance Falloff ---
+    // Calculate normalized distance (0 at center, 1 at edge)
+    float normalizedDist = distWorld / maxRadius; // Already checked maxRadius > 0
+    // Base distance attenuation (1.0 at center, smoothly falling to 0.0 at edge)
+    float baseDistAtten = 1.0 - smoothstep(0.0, 1.0, normalizedDist);
+    // Apply the DISTANCEFALLOFF logic (similar to effectType 0)
+    float distanceFalloffFactor = baseDistAtten;
+    if (DISTANCEFALLOFF >= 0.0) {
+        // Positive DISTANCEFALLOFF acts as an exponent, shaping the falloff curve
+        distanceFalloffFactor = pow(baseDistAtten, DISTANCEFALLOFF);
+    } else {
+        // Negative DISTANCEFALLOFF uses a p-curve to make center weak and edge stronger (inverted effect)
+        float dist_from_edge = baseDistAtten;
+        float dist_from_center = 1.0 - dist_from_edge;
+        distanceFalloffFactor = pow(dist_from_center, -DISTANCEFALLOFF) * dist_from_edge;
+        distanceFalloffFactor = clamp(distanceFalloffFactor, 0.0, 1.0);
+    }
+
+    // --- Combine Attenuations & Check ---
+    // Combine time-based expansion, ramp-up, and distance-based falloff
+    float distortionAttenuation = expansionIntensity * rampFactor * distanceFalloffFactor;
+
+    // If the effect hasn't expanded/ramped up enough, or is fully attenuated by distance, exit.
+    if (distortionAttenuation <= 0.0) { // Check combined attenuation
+        fragColor.rgba = vec4(0.0);
+        return;
+    }
+
+    // --- Noise Calculation (Adapted from effectType 0 / previous version) ---
+    vec3 noisePosition = MidPoint.xyz; // Using MidPoint like heat distortion
+
+    // <<< ADDED Y-OFFSET >>>
+    noisePosition += vec3(0.0, 5.0, 0.0); // Apply 5-unit Y offset before scaling/offsetting
+
+    if (NOISESCALESPACE < 0.0) {
+        noisePosition -= v_worldPosRad.xyz; // Apply offset if needed
+    }
+    noisePosition *= abs(NOISESCALESPACE) * 0.03; // Apply noise scale
+    vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+    vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0)) * 2.0 - 1.0; // Range [-1, 1]
+    float distanceToCameraFactor = clamp(300.0 / length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
+    noiseSampleNorm *= distanceToCameraFactor * LIFESTRENGTH * NOISESTRENGTH;
+    // --- End Noise Calculation ---
+
+    // --- Occlusion Check (Standard Scene Depth) ---
+    // This check remains relevant even with ONLYMODELMAP, ensuring the effect
+    // doesn't draw in front of closer scene objects that might occlude the effect volume.
+    if (fragDistance < nearFarDistances.x) {
+        fragColor.rgba = vec4(0.0); // Hard cut for now
+        return;
+    }
+    // --- End Occlusion Check ---
+
+    // --- Final Displacement & Output ---
+    vec2 displacementAmount = noiseSampleNorm.ra * EFFECTSTRENGTH;
+
+    // Output: rg = displacement, a = combined attenuation
+    fragColor.rgba = vec4(displacementAmount, 0.0, distortionAttenuation);
+}
+// ------------------------ END FILLED DISTORTION CIRCLE (Updated ONLYMODELMAP & Y-Offset) ------------------
+
+
+
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
 	// Debugging check attenuations for each distortion source type:
 	// Draw attenuation as a color Green

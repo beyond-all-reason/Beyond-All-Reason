@@ -659,13 +659,37 @@ local BaseClasses = {
 		},
 	},
 
-	JunoHeat = { -- spawned on explosions
+	JunoHeat = { -- unused
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10,
 			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
 			lifeTime = 60, rampUp = 30, decay = 30, effectType = 7,
+		},
+	},
+
+	JunoShockWave = { -- big distorted shockwave
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 10,
+			noiseStrength = 2.5, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 1,
+			lifeTime = 40, effectStrength = -11, startRadius = 0.1,
+			rampUp = 10, decay = 30,  shockWidth = 14, effectType = 2,
+		},
+	},
+
+	JunoNoise = { -- spawned on explosions
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 600,
+			noiseStrength = 0.45, noiseScaleSpace = 1.5, distanceFalloff = 0.1, onlyModelMap = 1,
+			startRadius = 0.90, shockWidth = 20, refractiveIndex = -1.2,
+			effectStrength = 0.7,
+			windAffected = -0.5,  riseRate = 2,
+			lifeTime = 675, rampUp = 100, decay = 500, effectType = 13,
 		},
 	},
 
@@ -1043,9 +1067,9 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					--if string.find(weaponDef.name, 'largeexplosiongeneric') then
-					--	Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
-					--end
+					-- if string.find(weaponDef.name, 'armadvbomb') then
+					-- 	Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
+					-- end
 
 					if not weaponDef.customParams.noexplosionlight and areaofeffect > 15 then --need to add noexplosiondistortion to units - now used same as lights
 						explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
@@ -1105,6 +1129,15 @@ explosionDistortionsNames['armmav_armmav_weapon'] = {
 }
 
 explosionDistortionsNames['armstil_stiletto_bomb'] = {
+	-- JUNO SHOCK
+	GetDistortionClass("JunoShockWave", "Small", {
+		lifeTime = 20, rampUp = 10, decay = 10,
+		effectStrength = -3,
+	}),
+	GetDistortionClass("JunoNoise", "Small", {
+		lifeTime = 80, rampUp = 10, decay = 30,
+	}),
+
 	-- Electric Ground Decals - not perfect yet
 	-- GetDistortionClass("GroundShockWave", "Small", {
 	-- 	noiseStrength = 125.0, noiseScaleSpace = 0.13, distanceFalloff = 0.9, onlyModelMap = 1,
@@ -1122,14 +1155,14 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	-- }),
 
 	-- Noised/electric Shockwave
-	GetDistortionClass("GroundShockWave", "SmallMedium", {
-		noiseStrength = 6.0, noiseScaleSpace = 0.32, distanceFalloff = 0.1, onlyModelMap = 0,
-		lifeTime = 59, effectStrength = 6,
-		windAffected = -1, riseRate = -1,
-		rampUp = 70, decay = 3, shockWidth = 1.05,
-	}),
-	GetDistortionClass("AirShockWaveEMP", "Small", {
-	})
+	-- GetDistortionClass("GroundShockWave", "SmallMedium", {
+	-- 	noiseStrength = 6.0, noiseScaleSpace = 0.32, distanceFalloff = 0.1, onlyModelMap = 0,
+	-- 	lifeTime = 59, effectStrength = 6,
+	-- 	windAffected = -1, riseRate = -1,
+	-- 	rampUp = 70, decay = 3, shockWidth = 1.05,
+	-- }),
+	-- GetDistortionClass("AirShockWaveEMP", "Small", {
+	-- })
 
 	--
 	-- GetDistortionClass("ExplosionHeat", "SmallMedium", {
@@ -1189,11 +1222,15 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 	-- 	noiseStrength = 6.5, noiseScaleSpace = 0.5, distanceFalloff = -0.1,
 	-- 	lifeTime = 900, rampUp = 0, decay = 0, onlyModelMap = 0,
 	-- }),
-	GetDistortionClass("GroundShockWave", "Larger", {
-		noiseStrength = 5.0, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 0,
-		lifeTime = 65, effectStrength = -20,
-		rampUp = 30, decay = 35, shockWidth = 14,
+	GetDistortionClass("JunoShockWave", "Juno", {
 	}),
+	GetDistortionClass("JunoNoise", "Juno", {
+	}),
+	-- GetDistortionClass("GroundShockWave", "Larger", {
+	-- 	noiseStrength = 5.0, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 0,
+	-- 	lifeTime = 35, effectStrength = -20,
+	-- 	rampUp = 30, decay = 35, shockWidth = 14,
+	-- }),
 	-- GetDistortionClass("ExplosionHeat", "Juno", {
 	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
 	-- 	effectStrength = 3.0, -- don't use, doesn't fade out correct
@@ -1393,8 +1430,8 @@ projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
 GetDistortionClass("TachyonBeam3", "Banthlaser", {
 })
 
--- projectileDefDistortionsNames["corhlt_cor_laserh1"] =
--- 	GetDistortionClass("LaserBeamHeat", "Atto")
+projectileDefDistortionsNames["corhlt_cor_laserh1"] =
+	GetDistortionClass("LaserBeamHeat", "Atto")
 
 -- Heatrays should all get this class
 projectileDefDistortionsNames["corsala_cor_heat_laser"] =
@@ -1477,6 +1514,12 @@ explosionDistortionsNames['armliche_arm_pidr'] = {
 		}),
 }
 
+explosionDistortionsNames['armlichet4_nuclear_missile'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+}
+
 explosionDistortionsNames['armsilo_nuclear_missile'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
@@ -1486,14 +1529,6 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
 	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),
 }
-
--- This doesnt work - cannot seem to find the explodeAs unitDef param
-
--- explosionDistortionsNames['armafus_customfusionexplo'] = {
--- 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
--- 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
--- 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
--- }
 
 projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
