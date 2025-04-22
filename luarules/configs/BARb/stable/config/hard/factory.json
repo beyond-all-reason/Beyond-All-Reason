@@ -137,7 +137,7 @@
 
 	// ARMADA Aircraft
 	"armap": {
-		"importance": [0.5, 0.1],
+		"importance": [0.5, 0.0],
 		"require_energy": false,
 		"income_tier": [30],
 		"unit":      ["armca", "armfig", "armpeep", "armthund", "armkam"],
@@ -301,7 +301,7 @@
 	},
 
 	"coralab": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 0.8],
 		"require_energy": true,
 		"income_tier": [40],
 		"unit":      ["corack", "cortermite", "corpyro", "corsumo", "corcan", "corfast", "cormort", "corhrk", "coraak", "cormando", "corsktl", "corvoyr", "coramph", "corspy"],
@@ -343,7 +343,7 @@
 	},
 
 	"coravp": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 0.8],
 		"require_energy": true,
 		"income_tier": [40],
 		"unit":      ["coracv", "correap", "corgol", "cormart", "corsent", "corvroc", "corban", "cortrem", "corvrad"],
@@ -359,7 +359,7 @@
 	},
 
 	"corhp": {
-		"importance": [0.2, 0.0],
+		"importance": [0.2, 0.1],
 		"require_energy": false,
 		"income_tier": [20, 30, 40],
 		"unit":      ["corch", "corsh", "corsnap", "cormh", "corah", "corhal"],
@@ -399,7 +399,7 @@
 
 	// CORTEX Aircraft
 	"corap": {
-		"importance": [0.5, 0.1],
+		"importance": [0.5, 0.0],
 		"require_energy": false,
 		"income_tier": [30],
 		"unit":      ["corca", "corveng", "corfink", "corshad", "corbw"],
@@ -415,7 +415,7 @@
 	},
 	
 	"coraap": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 0.7],
 		"require_energy": true,
 		"income_tier": [50],
 		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrwh"],
@@ -575,7 +575,7 @@
 	},
 	//LEGION
 	"legap": {
-		"importance": [0.1, 0.1],
+		"importance": [0.2, 0.0],
 		"require_energy": true,	
 		"income_tier": [20, 40],	
 		"unit":      ["legca", "legfig", "legmos", "legcib", "legkam", "leglts", "legatrans"],	
