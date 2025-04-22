@@ -26,11 +26,11 @@ void AiMain()
 	}
 
 	// Example of user-assigned custom attributes
-	array<string> names = {Factory::armalab, Factory::coralab, Factory::armavp, Factory::coravp,
-		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy};
+	array<string> names = {Factory::armalab, Factory::coralab, Factory::legalab, Factory::armavp, Factory::coravp, Factory::legavp,
+		Factory::armaap, Factory::coraap, Factory::legaap, Factory::armasy, Factory::corasy};
 	for (uint i = 0; i < names.length(); ++i)
 		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T2;
-	names = {Factory::armshltx, Factory::corgant};
+	names = {Factory::armshltx, Factory::corgant, Factory::leggant};
 	for (uint i = 0; i < names.length(); ++i)
 		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T3;
 }
