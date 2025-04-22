@@ -319,7 +319,8 @@
 				{"unit": "armnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
 				{"unit": "armnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
 				{"unit": "armnanotc", "category": "nano", "offset": {"right": 5}, "priority": "now"},
-				{"unit": "armnanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"}
+				{"unit": "armnanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"},
+				{"unit": "armaap", "category": "factory", "offset": {"right": 25}, "priority": "now"}
 			]]
 		},
 		"armaap": {
@@ -401,7 +402,8 @@
 				{"unit": "cornanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
 				{"unit": "cornanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
 				{"unit": "cornanotc", "category": "nano", "offset": {"right": 5}, "priority": "now"},
-				{"unit": "cornanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"}
+				{"unit": "cornanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"},
+				{"unit": "coraap", "category": "factory", "offset": {"right": 25}, "priority": "now"}
 			]]
 		},
 		"coraap": {
@@ -483,7 +485,8 @@
 				{"unit": "legnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
 				{"unit": "legnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
 				{"unit": "legnanotc", "category": "nano", "offset": {"right": 5}, "priority": "now"},
-				{"unit": "legnanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"}
+				{"unit": "legnanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"},
+				{"unit": "legaap", "category": "factory", "offset": {"right": 25}, "priority": "now"}
 			]]
 		},
 		"legaap": {
