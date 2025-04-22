@@ -15,7 +15,12 @@
 			"corsolar": [80, 120],
 			"coradvsol": [80, 120],
 			"corfus": [30, 40],
-			"corafus": [200, 300]
+			"corafus": [200, 300],
+			"legwin": [200, 300],
+			"legsolar": [80, 120],
+			"legadvsol": [80, 120],
+			"legfus": [30, 40],
+			"legafus": [200, 300]
 		},
 		"water": {
 			"armtide": [140, 250],
@@ -47,11 +52,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "leggeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "legmex"
 	},
 	"mex_up": 3,  // maximum number of simultaneous mex upgrades
 
@@ -92,13 +99,15 @@
 	//"terra": "armsy",
 	"assist": {
 		"armada": "armnanotc",
-		"cortex": "cornanotc"
+		"cortex": "cornanotc",
+		"legion": "legnanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "legwin"
 	}
 }
 }
