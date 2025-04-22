@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
@@ -612,7 +612,7 @@ function widget:DrawScreen()
 				uiTexTopExtra = math.floor(vsy*0.06)
 				uiTexLeftExtra = math.floor(vsy*0.06)
 				if not uiTex then
-					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra)*(vsy<1400 and 2 or 1), (math.floor(top-bottom)+uiTexTopExtra)*(vsy<1400 and 2 or 1), {
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -793,8 +793,8 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.6 or 1), 0.42 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
-	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.6 or 1), 0.22 * (useRenderToTexture and 1.2*outlineMult or 1), 1.3+(outlineMult*0.25))
+	font = WG['fonts'].getFont(nil, 1.4, 0.4 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(fontfile2, 2.5, 0.4 * (useRenderToTexture and 1.2*outlineMult or 1), 1+(outlineMult*0.2))
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])

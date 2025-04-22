@@ -23,8 +23,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = true
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
