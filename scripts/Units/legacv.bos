@@ -129,7 +129,7 @@ StartBuilding(heading, pitch)
 	sleep 100;
 	turn nanoOpeningArm to x-axis <0> speed <10>;
 	wait-for-turn nanoOpeningArm around x-axis;
-	turn nanoHeadingPivot to y-axis heading speed <45>;
+	turn nanoHeadingPivot to y-axis heading speed <90>;
 	move nanoSleeve to z-axis [3] speed [6];
 	wait-for-move nanoSleeve along z-axis;
 	move nano to z-axis [3] speed [6];

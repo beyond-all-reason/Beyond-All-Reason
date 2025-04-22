@@ -42,7 +42,7 @@ Create()
 
 	move barrel6 to y-axis [-6] now;
 	move sleeve6 to y-axis [-1.7] now;
-	move barrel5 to y-axis [-1.4] now;
+	move barrel5 to y-axis [-6] now;
 	move sleeve5 to y-axis [-1.7] now;
 	move barrel4 to y-axis [-6] now;
 	move sleeve4 to y-axis [-1.7] now;
