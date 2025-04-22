@@ -1,8 +1,8 @@
 local labGrids = {
 	-- T1 bot
 	armlab = {
-		"armck", "armrectr", "armpw", "armflea",                -- T1 con, rez bot, peewee, flea
-		"armrock", "armham", "armwar", "",                     -- rocko, hammer, warrior
+		"armck", "armrectr", "armpw", "armflea", "", "",               -- T1 con, rez bot, peewee, flea
+		"armrock", "armham", "armwar", "", "", "",                    -- rocko, hammer, warrior
 		"", "", "armjeth",                                         -- aa bot
 	},
 
