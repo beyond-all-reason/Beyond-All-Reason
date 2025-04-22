@@ -12,8 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = true
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
@@ -1116,7 +1116,7 @@ function widget:DrawScreen()
 			gl.TexRect(left, bottom, right, top, false, true)
 			gl.Texture(false)
 		end
-	else
+	elseif drawlist[1] then
 		glCallList(drawlist[1])
 	end
 	if useRenderToTexture then
