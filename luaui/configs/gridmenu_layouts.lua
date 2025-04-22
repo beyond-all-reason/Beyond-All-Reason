@@ -39,8 +39,8 @@ local labGrids = {
 	},
 	-- T1 vehicle
 	armvp = {
-		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
+		"armcv", "armmlv", "armflash", "armfav", "", "",        -- T1 con, minelayer, flash, scout
+		"armstump", "armjanus", "armart", "", "", "",         -- stumpy, janus, arty
 		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
 	},
 
