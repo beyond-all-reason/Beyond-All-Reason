@@ -1129,11 +1129,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
 
-	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 6) then
 		return
 	end
 
-	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
+	local uDefID = cellRects[(row - 1) * 6 + col].opts.uDefID -- cellRects iterate row then column
 	if not uDefID or units.unitRestricted[uDefID] then
 		return
 	end
