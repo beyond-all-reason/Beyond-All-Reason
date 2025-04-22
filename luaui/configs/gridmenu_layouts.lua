@@ -18,9 +18,9 @@ local labGrids = {
 	},
 	-- T2 bot
 	armalab = {
-		"armack", "armfark", "armfast", "armspy",             -- T2 con, fark, zipper, spy
-		"armmark", "armaser", "armzeus", "armmav",             -- radar bot, jammer bot, zeus, maverick
-		"armfido", "armsnipe", "armaak", "armfboy",            -- fido, sniper, AA bot, fatboi
+		"armack", "armfark", "armfast", "armspy", "armsptk", "armspid",             -- T2 con, fark, zipper, spy, recluse, webber
+		"armmark", "armaser", "armzeus", "armmav", "armdecom", "armscab",            -- radar bot, jammer bot, zeus, maverick, decoycom, mobile anti-nuke
+		"armfido", "armsnipe", "armaak", "armfboy", "armamph", "armvader",           -- fido, sniper, AA bot, fatboi, platypus, tumbleweed
 	},
 
 	coralab = {
