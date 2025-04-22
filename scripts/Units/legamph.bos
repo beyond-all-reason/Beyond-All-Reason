@@ -3,9 +3,9 @@
 //#define DEBUG
 #include "../debug.h"
 
-piece  base, heatray, heatrayaim, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaim, torpaimx;
+piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy;
 
-static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy;
+static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, ldamage, lshieldup, rdamage, rshieldup, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime;
 
 static-var  Stunned;
 
@@ -17,7 +17,11 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM				2
 #define SIG_AIM_3			8
 #define SIG_MOVE			16
+#define SIG_REPAIR			32
+#define SIG_RESTORE			64
+#define SIG_LIGHT			128
 
+//Very important, keep the turn neck to y-axis while aiming, it counter-rotates the head, so the heatray stays on target. Without, the head would be rotated by the torso and the heatray must constantly retarget.
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 		if (isMoving) { //Frame:21
@@ -37,7 +41,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to z-axis <0.030579> speed <6.562236> / animSpeed; 
 			turn lupleg to y-axis <0.625642> speed <82.960124> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <2.386885> speed <7.890508> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <0.694664> speed <102.769979> / animSpeed; 
+			turn neck to y-axis <0.694664> speed <102.769979> / animSpeed; 
 			turn rdownbackleg to x-axis <-27.275568> speed <595.109089> / animSpeed; 
 			turn rdownleg to x-axis <-2.174142> speed <296.592032> / animSpeed; 
 			turn rfoot to x-axis <20.424335> speed <210.073601> / animSpeed; 
@@ -72,7 +76,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to x-axis <-39.692196> speed <393.836648> / animSpeed; 
 			turn lupleg to y-axis <3.158515> speed <75.986194> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <5.596304> speed <96.282583> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <3.867580> speed <95.187479> / animSpeed; 
+			turn neck to y-axis <3.867580> speed <95.187479> / animSpeed; 
 			turn rdownbackleg to x-axis <-36.386074> speed <273.315176> / animSpeed; 
 			turn rdownleg to x-axis <-1.279775> speed <26.831034> / animSpeed; 
 			turn rfoot to x-axis <5.592332> speed <444.960089> / animSpeed; 
@@ -112,7 +116,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to z-axis <0.294147> speed <6.132300> / animSpeed; 
 			turn lupleg to y-axis <4.834635> speed <50.283597> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <7.442105> speed <55.374017> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <5.612395> speed <52.344461> / animSpeed; 
+			turn neck to y-axis <5.612395> speed <52.344461> / animSpeed; 
 			turn rdownbackleg to x-axis <-7.867069> speed <855.570148> / animSpeed; 
 			turn rdownbackleg to y-axis <0.028810> speed <4.227543> / animSpeed; 
 			turn rdownleg to x-axis <-18.206452> speed <507.800305> / animSpeed; 
@@ -145,7 +149,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to x-axis <-55.305544> speed <392.442316> / animSpeed; 
 			turn lupleg to y-axis <4.486914> speed <10.431620> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <5.445523> speed <59.897463> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <5.275190> speed <10.116155> / animSpeed; 
+			turn neck to y-axis <5.275190> speed <10.116155> / animSpeed; 
 			turn rdownbackleg to x-axis <3.567823> speed <343.046748> / animSpeed; 
 			turn rdownleg to x-axis <-32.261207> speed <421.642655> / animSpeed; 
 			turn rfoot to x-axis <36.441395> speed <151.965835> / animSpeed; 
@@ -179,7 +183,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to x-axis <-34.981507> speed <609.721118> / animSpeed; 
 			turn lupleg to y-axis <2.605030> speed <56.456527> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <2.287826> speed <94.730897> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <2.986972> speed <68.646539> / animSpeed; 
+			turn neck to y-axis <2.986972> speed <68.646539> / animSpeed; 
 			turn rdownbackleg to x-axis <-5.472184> speed <271.200198> / animSpeed; 
 			turn rdownleg to x-axis <-28.570184> speed <110.730668> / animSpeed; 
 			turn rfoot to x-axis <39.684123> speed <97.281838> / animSpeed; 
@@ -215,7 +219,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to x-axis <-17.952269> speed <510.877130> / animSpeed; 
 			turn lupleg to z-axis <0.023276> speed <3.242445> / animSpeed; 
 			turn lupleg to y-axis <-0.125408> speed <81.913133> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <-0.400808> speed <101.633410> / animSpeed; 
+			turn neck to y-axis <-0.400808> speed <101.633410> / animSpeed; 
 			turn rdownbackleg to x-axis <2.394468> speed <235.999573> / animSpeed; 
 			turn rdownleg to x-axis <-17.664438> speed <327.172379> / animSpeed; 
 			turn rfoot to x-axis <48.511173> speed <264.811488> / animSpeed; 
@@ -253,7 +257,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to z-axis <-0.170192> speed <5.804051> / animSpeed; 
 			turn lupleg to y-axis <-2.724978> speed <77.987098> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <5.315840> speed <93.187618> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <-3.644280> speed <97.304157> / animSpeed; 
+			turn neck to y-axis <-3.644280> speed <97.304157> / animSpeed; 
 			turn rdownbackleg to x-axis <28.907451> speed <795.389467> / animSpeed; 
 			turn rdownleg to x-axis <-4.711082> speed <388.600706> / animSpeed; 
 			turn rfoot to x-axis <39.266372> speed <277.344032> / animSpeed; 
@@ -289,7 +293,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to z-axis <-0.403464> speed <6.998155> / animSpeed; 
 			turn lupleg to y-axis <-4.180215> speed <43.657120> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <7.435043> speed <63.576097> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <-5.543293> speed <56.970386> / animSpeed; 
+			turn neck to y-axis <-5.543293> speed <56.970386> / animSpeed; 
 			turn rdownbackleg to x-axis <25.977013> speed <87.913141> / animSpeed; 
 			turn rdownleg to x-axis <15.973480> speed <620.536846> / animSpeed; 
 			turn rfoot to x-axis <18.830097> speed <613.088230> / animSpeed; 
@@ -319,7 +323,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupbackleg to y-axis <-7.634291> speed <19.926795> / animSpeed; 
 			turn lupleg to x-axis <5.324726> speed <46.920774> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <5.721226> speed <51.414509> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <-5.385531> speed <4.732847> / animSpeed; 
+			turn neck to y-axis <-5.385531> speed <4.732847> / animSpeed; 
 			turn rdownbackleg to x-axis <16.603461> speed <281.206555> / animSpeed; 
 			turn rdownleg to x-axis <32.103303> speed <483.894690> / animSpeed; 
 			turn rfoot to x-axis <23.223149> speed <131.791539> / animSpeed; 
@@ -355,7 +359,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - walk - baked.ble
 			turn lupleg to z-axis <-0.219866> speed <7.693463> / animSpeed; 
 			turn lupleg to y-axis <-2.524613> speed <47.049871> / animSpeed; 
 			if (!isAiming) turn neck to x-axis <2.475934> speed <97.358780> / animSpeed; 
-			if (!isAiming) turn neck to y-axis <-3.235186> speed <64.510358> / animSpeed; 
+			turn neck to y-axis <-3.235186> speed <64.510358> / animSpeed; 
 			turn rdownbackleg to x-axis <-7.986830> speed <737.708711> / animSpeed; 
 			turn rdownleg to x-axis <7.876474> speed <726.804861> / animSpeed; 
 			turn rfoot to x-axis <26.965529> speed <112.271405> / animSpeed; 
@@ -411,7 +415,7 @@ StopWalking() {
 	turn lupleg to y-axis <0.215908> speed <138.266873> / animSpeed;
 	turn lupleg to z-axis <0.000000> speed <12.822438> / animSpeed;
 	if (!isAiming) turn neck to x-axis <5.164970> speed <162.264633> / animSpeed;
-	if (!isAiming) turn neck to y-axis <0.000000> speed <171.283298> / animSpeed;
+	turn neck to y-axis <0.000000> speed <171.283298> / animSpeed;
 	turn rdownbackleg to x-axis <-2.240984> speed <1425.950247> / animSpeed;
 	turn rdownbackleg to y-axis <0.000000> speed <7.045905> / animSpeed;
 	turn rdownleg to x-axis <-2.240994> speed <1211.341434> / animSpeed;
@@ -1050,13 +1054,21 @@ UnitSpeed(){
 
 Create()
 {
+	timeLeft = 0;
+    isfiring = 0;
+	timer = 0;
+	targetswap = 0;
+	firetime = 54;
+	lastfired = get(GAME_FRAME)-200;	
 	animspeed = 6;
-	hide torpaim;
-	hide heatrayaim;
+	hide torpaimflare;
+	hide heatrayaimflare;
+	hide torpaimx;
+	hide heatray_xy;
 	isMoving = FALSE;
 	//isMoving = -1;
 	isAiming = FALSE;
-	restore_delay = 2000;
+	restore_delay = 3000;
 	// Initializing with large negative values, to ensure first aim does wait-for-turn
 	gun_lasthead = -1000000;
 	torp_lasthead = -1000000;
@@ -1064,12 +1076,46 @@ Create()
 	gun_deploy = FALSE;
 	inWaterForm = 0;
 	isInWater = FALSE;
+	ldamage = 0;
+	lshieldup = 1;
+	rdamage = 0;
+	rshieldup = 1;
+	set ARMORED to 1;
 	
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+
 	start-script Movement();
 	start-script UnitSpeed();
 	call-script StopWalking();
-	
 	call-script CloseTorpedoLauncher();
+	start-script SweepFire();
+}
+
+SweepFire()
+{
+	signal SIG_LIGHT;
+	set-signal-mask SIG_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			emit-sfx 2048 from heatrayaimflare;
+			timer = timer + 1;
+		}
+		if (timer > 150)
+		{
+			//signal SIGNAL_AIM;
+			//timer = 0;
+			//start-script RestoreAfterDelay();
+		}
+		sleep 20;
+	}
 }
 
 Movement() {
@@ -1328,7 +1374,7 @@ CloseMouth(){
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+//#include "unit_hitbyweaponid_and_smoke.h"
 
 StartMoving()
 {
@@ -1344,6 +1390,109 @@ StopMoving()
 	else {
 		call-script StopWalking();
 	}
+}
+
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+}
+
+// Disable armored state when 1500 damage is taken
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	signal SIG_REPAIR;
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	//get PRINT(anglex, anglez, weaponid, dmg);
+	if (anglez < 0)
+	{
+		ldamage = dmg + ldamage;
+	}
+	if (anglez > 0)
+	{
+		rdamage = dmg + rdamage;
+	}
+	start-script repairShield();
+	if ((ldamage > 30000) AND (lshieldup == 1))
+	{
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide lfin2;
+		hide lfin3;
+		hide lfin4;
+		// End Animation
+		set ARMORED to 0;
+		lshieldup = 0;
+	}
+	if ((rdamage > 30000) AND (rshieldup == 1))
+	{
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide rfin1;
+		hide rfin3;
+		hide lfin5;
+		// End Animation
+		set ARMORED to 0;
+		rshieldup = 0;
+	}
+	return (100); //return damage percent
+}
+
+// Restore this units hume shield after 15000ms / 15 seconds, restore armored state
+repairShield()
+{
+	set-signal-mask SIG_REPAIR;
+	sleep 11000;
+	if (lshieldup == 0)
+	{
+		show lfin2;
+		emit-sfx 1024 + 0 from lfin2;
+		sleep 1000;
+
+		show lfin3;
+		emit-sfx 1024 + 0 from lfin3;
+		sleep 1000;
+
+		show lfin4;
+		emit-sfx 1024 + 0 from lfin4;
+		sleep 1000;
+	}
+	if (rshieldup == 0)
+	{
+		show rfin1;
+		emit-sfx 1024 + 0 from rfin1;
+		sleep 1000;
+		
+		show rfin3;
+		emit-sfx 1024 + 0 from rfin3;
+		sleep 1000;
+		
+		show lfin5;
+		emit-sfx 1024 + 0 from rfin5;
+		sleep 1000;
+	}
+	// Reset shield status 
+	lshieldup = 1;
+	rshieldup = 1;
+	set ARMORED to 1;
+	ldamage = 0;
+	rdamage = 0;
 }
 
 
@@ -1368,9 +1517,20 @@ SetStunned(State)
 {
     Stunned = State;
 }
-RestoreAfterDelayGun()
+RestoreAfterDelayGun(addTime)
 {
-	sleep restore_delay;
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    }
+    timeLeft = 0;
+    isfiring = 0;
+	timer = 0;
+	targetswap = 0;
 	if (Stunned) {
         return (1);
     }
@@ -1378,8 +1538,8 @@ RestoreAfterDelayGun()
 	gun_lastpitch = -1000000;
 	call-script CloseMouth();
 	gun_deploy = FALSE;
-	turn neck to y-axis <0.000000> speed <90.000000>;
-	turn neck to x-axis <0.000000> speed <50.000000>;
+	turn heatray_xy to y-axis <0.000000> speed <90.000000>;
+	turn heatray_xy to x-axis <0.000000> speed <50.000000>;
 	isAiming = FALSE;
 }
 
@@ -1388,14 +1548,25 @@ AimPrimary(heading, pitch)
 { 
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
+	if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelayGun();
+    }
+	timeLeft = restore_delay;
+	if (get ABS(gun_lasthead - heading) > 500)
+	{
+		targetswap = 1;
+	}
+	gameframe = get(GAME_FRAME);
 	isAiming = TRUE;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
 	
 	// checks if the mouth is deployed
-	turn neck to y-axis heading speed <200.000000>;
-	turn neck to x-axis <0.000000> - pitch speed <100.000000>;
+	turn neck to x-axis <0> speed <50>; //Fix leftover rotation from walk anim
+	turn heatray_xy to y-axis heading speed <100.000000>;
+	turn heatray_xy to x-axis <0.000000> - pitch speed <50.000000>;
 	if (gun_deploy == FALSE)
 	{
 		//if not, move it up to the deploy position, and wait
@@ -1409,23 +1580,27 @@ AimPrimary(heading, pitch)
 		gun_lasthead = heading;
 		gun_lastpitch = pitch;
 		// start the restore to neutral script
-		start-script RestoreAfterDelayGun();
+		//start-script RestoreAfterDelayGun();
+		isfiring = 1;
 		return (1);
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
 	// seems to take 3 frames for wait-for-turn to process
-	wait-for-turn neck around y-axis;
-	wait-for-turn neck around x-axis;
+	wait-for-turn heatray_xy around y-axis;
+	wait-for-turn heatray_xy around x-axis;
 	gun_lasthead = heading;
 	gun_lastpitch = pitch;
 	// start the restore to neutral script
-	start-script RestoreAfterDelayGun();
+	//start-script RestoreAfterDelayGun();
+	isfiring = 1;
 	return (1);
 }
 
 FirePrimary()
 {
-
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
+	return (0);
 }
 
 AimFromPrimary(piecenum)
@@ -1435,7 +1610,7 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = heatrayaim;
+	piecenum = heatrayaimflare;
 }
 
 RestoreAfterDelayTorp()
@@ -1512,7 +1687,7 @@ AimFromSecondary(piecenum)
 QuerySecondary(piecenum)
 {
 	
-	piecenum = torpaim;
+	piecenum = torpaimflare;
 
 }
 
