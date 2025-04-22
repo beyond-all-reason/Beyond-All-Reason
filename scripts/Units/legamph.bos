@@ -3,7 +3,7 @@
 //#define DEBUG
 #include "../debug.h"
 
-piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy;
+piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
 
 static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, ldamage, lshieldup, rdamage, rshieldup, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime;
 
@@ -1049,6 +1049,13 @@ UnitSpeed(){
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 197;
+		
+		if (isInWater AND isMoving)
+		{
+			// bubble effect should always play when moving and underwater
+			emit-sfx 1024 + 1 from lvent;
+			emit-sfx 1024 + 1 from rvent;
+		}
 	}
 }
 

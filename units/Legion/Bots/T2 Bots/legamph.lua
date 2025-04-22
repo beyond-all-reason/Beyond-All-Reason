@@ -78,6 +78,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:selfrepair-sparks",
+				[2] = "custom:subbubbles",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -150,6 +152,7 @@ return {
 				}
 			},
 			coax_depthcharge = {
+				areaofeffect = 32,
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
