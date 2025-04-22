@@ -306,6 +306,7 @@ local BaseClasses = {
 						effectStrength = 1.2, --needed for shockwaves
 						windAffected = -0.5, riseRate = 6, --used for width of shockwave
 						shockWidth = 6, refractiveIndex = -1.2, startRadius = 0.5,
+						onlyModelMap = 1,
 						effectType = 'groundShockwave'},
 	},
 
@@ -1191,14 +1192,14 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 	GetDistortionClass("GroundShockWave", "Larger", {
 		noiseStrength = 5.0, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 0,
 		lifeTime = 65, effectStrength = -20,
-		rampUp = 30, decay = -10, shockWidth = 14,
+		rampUp = 30, decay = 35, shockWidth = 14,
 	}),
-	GetDistortionClass("ExplosionHeat", "Juno", {
-		noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
-		effectStrength = 3.0, -- don't use, doesn't fade out correct
-		windAffected = -1, riseRate = 9,
-		lifeTime = 900, rampUp = 100, decay = 150, onlyModelMap = 1,
-	}),
+	-- GetDistortionClass("ExplosionHeat", "Juno", {
+	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
+	-- 	effectStrength = 3.0, -- don't use, doesn't fade out correct
+	-- 	windAffected = -1, riseRate = 9,
+	-- 	lifeTime = 900, rampUp = 100, decay = 150, onlyModelMap = 1,
+	-- }),
 
 }
 
