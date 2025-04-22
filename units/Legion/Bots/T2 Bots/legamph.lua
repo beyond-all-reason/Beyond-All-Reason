@@ -172,7 +172,7 @@ return {
 				noselfdamage = true,
 				numbounce = 1,
 				range = 600,
-				reloadtime = 0.45,
+				reloadtime = 5,
 				soundhit = "xplodep2",
 				soundhitvolume = 3,
 				soundhitwet = "splsmed",
