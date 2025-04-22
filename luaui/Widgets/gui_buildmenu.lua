@@ -18,7 +18,7 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -317,7 +317,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font2 = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.33 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.5+(outlineMult*0.2) or 1.5)
 
 	if WG['minimap'] then
 		minimapHeight = WG['minimap'].getHeight()
@@ -818,7 +819,7 @@ function widget:DrawScreen()
 			refreshBuildmenu = false
 			if useRenderToTexture then
 				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,

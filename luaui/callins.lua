@@ -16,6 +16,8 @@ CallInsList = {
 	"LayoutButtons",
 	"ConfigureLayout",
 	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
 	"CommandNotify",
 
 	"KeyPress",

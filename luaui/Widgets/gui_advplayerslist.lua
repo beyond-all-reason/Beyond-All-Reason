@@ -63,7 +63,8 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = true
 
 local customScale = 1
 local pointDuration = 45
@@ -781,7 +782,7 @@ local function rankTeamPlayers()
                     end
                 end
             end
-            
+
             if scores[allyTeamID] then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
@@ -937,8 +938,10 @@ function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
     end
-	if mainListTex then
+	if mainListBgTex then
 		gl.DeleteTextureFBO(mainListBgTex)
+	end
+	if mainListTex then
 		gl.DeleteTextureFBO(mainListTex)
 		gl.DeleteTextureFBO(mainList2Tex)
 	end
@@ -1587,7 +1590,7 @@ function widget:DrawScreen()
 	--AdvPlayersListAtlas:DrawToScreen()
 
     -- draw the background element
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if mainListBgTex then
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 			gl.Texture(mainListBgTex)
@@ -1765,10 +1768,6 @@ function CreateBackground()
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
 		if useRenderToTexture then
-			if mainListBgTex then
-				gl.DeleteTextureFBO(mainListBgTex)
-				mainListBgTex = nil
-			end
 			if mainListTex then
 				gl.DeleteTextureFBO(mainListTex)
 				mainListTex = nil
@@ -1776,6 +1775,12 @@ function CreateBackground()
 			if mainList2Tex then
 				gl.DeleteTextureFBO(mainList2Tex)
 				mainList2Tex = nil
+			end
+		end
+		if useRenderToTextureBg then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
 			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 			if not mainListBgTex and width > 0 and height > 0 then
@@ -1789,7 +1794,7 @@ function CreateBackground()
 					gl.PushMatrix()
 					gl.Translate(-1, -1, 0)
 					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
-					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 					gl.PopMatrix()
 				end)
 			end
@@ -2002,7 +2007,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainListTex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-					mainListTex = gl.CreateTexture(width, height, {
+					mainListTex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2037,7 +2042,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainList2Tex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-						mainList2Tex = gl.CreateTexture(width, height, {
+						mainList2Tex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2092,7 +2097,8 @@ function DrawLabel(text, vOffset, drawSeparator)
     end
 
     font:Begin()
-    font:SetTextColor(0.87, 0.87, 0.87, 1)
+    font:SetTextColor(0.88, 0.88, 0.88, 1)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX, widgetPosY + widgetHeight - vOffset + 7.5, 12, "on")
     font:End()
 end
@@ -2103,7 +2109,8 @@ function DrawLabelTip(text, vOffset, xOffset)
     end
 
     font:Begin()
-    font:SetTextColor(0.9, 0.9, 0.9, 0.66)
+    font:SetTextColor(0.8, 0.8, 0.8, useRenderToTexture and 1 or 0.75)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
     font:End()
 end
@@ -2482,10 +2489,11 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 end
 
 function DrawIncome(energy, metal, posY, dead)
-    local fontsize = dead and 4.5 or 8.5
+    local fontsize = (dead and 4.5 or 8.5) * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
     font:Begin()
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if energy > 0 then
         font:Print(
                 '\255\255\255\050' .. string.formatSI(math.floor(energy)),
@@ -2685,13 +2693,13 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 
     font2:Begin()
-    local fontsize = isAbsent and 9 or 14
+    local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
+        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(useRenderToTexture and 0.95 or 0.8, 0.75 * widgetScale))
     else
-        font2:SetTextColor(0, 0, 0, 0.4)
-        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetTextColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
+        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
@@ -2702,7 +2710,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetTextColor(Spring_GetTeamColor(team))
     end
     if isAbsent then
-        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
     font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, dark and "o" or "n")
@@ -2754,13 +2762,14 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
     end
 
-    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-    local alphaMult = useRenderToTexture and 2.2 or 1
+	if useRenderToTexture then
+  		alpha = alpha + ((1-alpha)*0.2)
+	end
 
     font2:Begin()
-    font2:SetOutlineColor(0, 0, 0, 0.3*alphaMult)
-    font2:SetTextColor(1, 1, 1, math.min(0.9, alpha*alphaMult))
-    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale), "n")
+    font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), useRenderToTexture and 1 or 0.55)
+    font2:SetTextColor(alpha, alpha, alpha, 1)
+    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
     font2:End()
 
     if ignored then
@@ -2781,25 +2790,24 @@ function DrawID(playerID, posY, dark, dead)
     if playerID < 10 then
         spacer = " "
     end
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
     font:Begin()
-    if dead then
-        font:SetTextColor(0.7, 0.7, 0.7, 0.5)
-    else
-        font:SetTextColor(0.7, 0.7, 0.7, 1)
-    end
+	font:SetTextColor(0.7, 0.7, 0.7, 1)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
 function DrawSkill(skill, posY, dark)
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
     font:Begin()
     font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
+	local fontScale = math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+	
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
@@ -2814,6 +2822,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 
     -- display user fps
     font:Begin()
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if fps ~= nil then
         if fps > 99 then
             fps = 99
@@ -2825,20 +2834,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
         end
         if spec then
             font:SetTextColor(grayvalue*0.7, grayvalue*0.7, grayvalue*0.7, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale, "ro")
+            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale*fontScale, "ro")
         else
             font:SetTextColor(grayvalue, grayvalue, grayvalue, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale, "ro")
+            font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale*fontScale, "ro")
         end
     else
         grayvalue = 0.7 + (cpu / 135)
         gl_Texture(pics["cpuPic"])
         if spec then
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
-            DrawRect(m_cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale))
+            DrawRect(m_cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale*fontScale))
         else
             gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
-            DrawRect(m_cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale))
+            DrawRect(m_cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale*fontScale))
         end
         gl_Color(1, 1, 1, 1)
     end
@@ -3810,8 +3819,9 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-    font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.4 or 1), 0.25 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.25) or 1.2)
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.6 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.25*outlineMult or 1), math.max(4.5, 6 / widgetScale)+(outlineMult*0.25))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

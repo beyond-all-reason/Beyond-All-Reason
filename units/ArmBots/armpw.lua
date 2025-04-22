@@ -1,7 +1,7 @@
 return {
 	armpw = {
 		buildpic = "ARMPW.DDS",
-		buildtime = 1420,
+		buildtime = 1650,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "22 30 22",

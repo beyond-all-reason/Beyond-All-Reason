@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_WAIT = CMD.WAIT
 	local EMPTY = {}
-	local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
+	local DEQUEUE_OPTS = CMD.OPT_RIGHT -- right: dequeue, ctrl+shift: 100
 
 	local stopProductionCmdDesc = {
 		id = CMD_STOP_PRODUCTION,
@@ -50,21 +50,21 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function orderDequeue(unitID, buildDefID, count)
 		while count > 0 do
-			-- The commented code below might still be useful in some circumstance we need 'perfect' dequeue
-			--
-			-- if count >= 100 then
-			count = count - 100
-			-- elseif count >= 20 then
-			-- 	opts = { "ctrl" }
-			-- 	count = count - 20
-			-- elseif count >= 5 then
-			-- 	opts = { "shift" }
-			-- 	count = count - 5
-			-- else
-			-- 	count = count - 1
-			-- end
+			local opts = DEQUEUE_OPTS
+			if count >= 100 then
+				count = count - 100
+				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
+			elseif count >= 20 then
+				count = count - 20
+				opts = opts + CMD.OPT_CTRL
+			elseif count >= 5 then
+				count = count - 5
+				opts = opts + CMD.OPT_SHIFT
+			else
+				count = count - 1
+			end
 
-			spGiveOrderToUnit(unitID, -buildDefID, EMPTY, DEQUEUE_OPTS)
+			spGiveOrderToUnit(unitID, -buildDefID, EMPTY, opts)
 		end
 	end
 
@@ -77,8 +77,24 @@ if gadgetHandler:IsSyncedCode() then
 		-- As opposed to removing each build command individually
 		local queue = spGetRealBuildQueue(unitID)
 		if queue ~= nil then
+			local total = 0
+			for _, buildPair in ipairs(queue) do
+				local _, count = next(buildPair, nil)
+				total = total + count
+			end
+			local keepDefID
+			if total > 1 then
+				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
+				local firstID = firstCommand[1]['id']
+				if firstID < 0 then
+					keepDefID = -firstID
+				end
+			end
 			for _, buildPair in ipairs(queue) do
 				local buildUnitDefID, count = next(buildPair, nil)
+				if keepDefID == buildUnitDefID then
+					count = count - 1
+				end
 				orderDequeue(unitID, buildUnitDefID, count)
 			end
 		end

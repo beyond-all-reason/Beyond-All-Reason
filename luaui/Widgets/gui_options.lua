@@ -28,7 +28,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local languageCodes = { 'en', 'fr' }--, 'ru' }
+local languageCodes = { 'en', 'fr', 'ru' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -177,6 +177,10 @@ local defaultSunLighting = {
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
 
+local defaultSkyAxisAngle = {
+	gl.GetAtmosphere("skyAxisAngle"),
+}
+
 -- Correct some maps fog
 if Game.mapName == "Nine_Metal_Islands_V1" then
 	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
@@ -186,6 +190,7 @@ local defaultMapFog = {
 	fogEnd = gl.GetAtmosphere("fogEnd"),
 	fogColor = { gl.GetAtmosphere("fogColor") },
 }
+
 local options = {}
 local customOptions = {}
 local optionGroups = {}
@@ -2319,12 +2324,12 @@ function init()
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
+		--{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+		--	  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		--  end,
+		--},
 
 		-- luaintro sets grounddetail to 200 every launch anyway
 		--{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
@@ -3360,12 +3365,12 @@ function init()
 		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
-		{ id = "rendertotexture", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
-				Spring.SendCommands("luaui reload")
-			end,
-		},
+		--{ id = "rendertotexture", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("ui_rendertotexture", (value and '1' or '0'))
+		--		Spring.SendCommands("luaui reload")
+		--	end,
+		--},
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onload = function(i)
@@ -5161,7 +5166,8 @@ function init()
 			  local r, g, b, a = gl.GetMapRendering("splatTexScales")
 			  Spring.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
 		  end,
-		}, { id = "map_splattexacales_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+		},
+		{ id = "map_splattexacales_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
 			 onload = function(i)
 				 local r, g, b, a = gl.GetMapRendering("splatTexScales")
 				 options[i].value = a
@@ -5479,6 +5485,61 @@ function init()
 		  end,
 		},
 
+		{ id = "skyaxisangle_angle", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.skybox') .. widgetOptionColor .. "  "..Spring.I18N('ui.settings.option.angle'), type = "slider", min = -3.14, max = 3.14, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = angle
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  angle = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   x", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = x
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  x = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_y", group = "dev", category = types.dev, name = widgetOptionColor .. "   y", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = y
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  y = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+		{ id = "skyaxisangle_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   z", type = "slider", min = -1, max = 1, step = 0.01, value = 0, description = "",
+		  onload = function(i)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  options[i].value = z
+		  end,
+		  onchange = function(i, value)
+			  local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+			  z = value
+			  Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, angle } })
+		  end,
+		},
+
+		{ id = "skyaxisangle_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.reset'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.sunlighting_reset_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  options[getOptionByID('skyaxisangle_reset')].value = false
+			  Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
+			  Spring.Echo('resetted skyAxisAngle atmosphere')
+			  init()
+		  end,
+		},
 		{ id = "label_dev_water", group = "dev", name = Spring.I18N('ui.settings.option.label_water'), category = types.dev },
 		{ id = "label_dev_water_spacer", group = "dev", category = types.dev },
 
@@ -5777,9 +5838,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if not isPotatoGpu and gpuMem <= 4500 then
-		options[getOptionByID('advmapshading')].category = types.basic
-	end
+	--if not isPotatoGpu and gpuMem <= 4500 then
+	--	options[getOptionByID('advmapshading')].category = types.basic
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -5988,9 +6049,9 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				Spring.SendCommands("advmapshading 0")
-			end
+			--if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+			--	Spring.SendCommands("advmapshading 0")
+			--end
 
 		end
 
@@ -6521,8 +6582,8 @@ function widget:Initialize()
 			Spring.SendCommands("water 0")
 			Spring.SetConfigInt("Water", 0)
 
-			Spring.SetConfigInt("AdvMapShading", 0)
-			Spring.SendCommands("advmapshading 0")
+			--Spring.SetConfigInt("AdvMapShading", 0)
+			--Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
 			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
@@ -6813,6 +6874,7 @@ function widget:GetConfigData()
 		mapChecksum = Game.mapChecksum,
 		defaultMapFog = defaultMapFog,
 		defaultMapSunPos = defaultMapSunPos,
+		defaultSkyAxisAngle = defaultSkyAxisAngle,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
 		version = version,
@@ -6891,6 +6953,9 @@ function widget:SetConfigData(data)
 		end
 		if data.defaultMapFog ~= nil then
 			defaultMapFog = data.defaultMapFog
+		end
+		if data.defaultSkyAxisAngle ~= nil then
+			defaultSkyAxisAngle = data.defaultSkyAxisAngle
 		end
 	end
 	if data.useNetworkSmoothing then

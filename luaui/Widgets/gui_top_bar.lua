@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true	--Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 -- Configuration
 local relXpos = 0.3
@@ -223,8 +223,9 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	font = WG['fonts'].getFont(fontfile, 1.1 * (useRenderToTexture and 1.3 or 1), 0.18 * (useRenderToTexture and 1.3 or 1))
-	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.5 or 1), 0.2 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1)
+	font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.5+(outlineMult*0.25))
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
@@ -1402,7 +1403,7 @@ local function drawUiBackground()
 end
 
 local function drawUi()
-	if dlistButtons then
+	if showButtons and dlistButtons then
 		glCallList(dlistButtons)
 	end
 	if dlistResbar.energy and dlistResbar.energy[1] then
@@ -1435,7 +1436,7 @@ function widget:DrawScreen()
 				gl.DeleteTextureFBO(uiTex)
 				uiTex = nil
 			end
-			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
+			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1])*(vsy<1400 and 2 or 1), math.floor(topbarArea[4]-topbarArea[2])*(vsy<1400 and 2 or 1), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
