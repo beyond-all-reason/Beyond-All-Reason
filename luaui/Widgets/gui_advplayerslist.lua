@@ -2007,7 +2007,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainListTex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-					mainListTex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
+					mainListTex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2042,7 +2042,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainList2Tex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-						mainList2Tex = gl.CreateTexture(width*(vsy<1400 and 2 or 1), height*(vsy<1400 and 2 or 1), {
+						mainList2Tex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2807,7 +2807,7 @@ end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 	local fontScale = math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
-	
+
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
@@ -3820,8 +3820,8 @@ function widget:ViewResize()
     updateWidgetScale()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.4 or 1), 0.25 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.25) or 1.2)
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.6 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.25*outlineMult or 1), math.max(4.5, 6 / widgetScale)+(outlineMult*0.25))
+	font = WG['fonts'].getFont(nil, 1.3, 0.5 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.2)
+    font2 = WG['fonts'].getFont(fontfile2, 1.8, 0.7 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.2))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

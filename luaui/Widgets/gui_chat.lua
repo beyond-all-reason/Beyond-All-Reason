@@ -1827,7 +1827,7 @@ function widget:DrawScreen()
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
-			uiTex = gl.CreateTexture(math.floor(rttArea[3]-rttArea[1])*(vsy<1400 and 2 or 1), math.floor(rttArea[4]-rttArea[2])*(vsy<1400 and 2 or 1), {
+			uiTex = gl.CreateTexture(math.floor(rttArea[3]-rttArea[1]), math.floor(rttArea[4]-rttArea[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -2276,8 +2276,8 @@ function widget:ViewResize()
 
 	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
 	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-    font2 = WG['fonts'].getFont(fontfile2, 1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-	font3 = WG['fonts'].getFont(fontfile3, 1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font3 = WG['fonts'].getFont(fontfile3, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'

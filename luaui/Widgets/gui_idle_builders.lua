@@ -494,8 +494,8 @@ function widget:ViewResize()
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
 	rttSizeMult = vsy<1400 and 2 or 1
 	local rttAdjust = useRenderToTexture and rttSizeMult > 1
-	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.6 or 1), 0.35 * (rttAdjust and 1.5 or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
-	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.6 or 1), 0.35 * (rttAdjust and 1.5 or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding

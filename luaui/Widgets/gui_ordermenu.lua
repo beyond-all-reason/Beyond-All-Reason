@@ -304,7 +304,7 @@ function widget:ViewResize()
 	end
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(fontFile, 1 * (useRenderToTexture and 1.5 or 1), 0.33 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+	font = WG['fonts'].getFont(fontFile, 1.7, 0.4 * (useRenderToTexture and outlineMult or 1), 1.25+(outlineMult*0.2))
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -836,7 +836,7 @@ function widget:DrawScreen()
 		end
 		if useRenderToTexture then
 			if not ordermenuTex then
-				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {
+				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
 					format = GL.ALPHA,
 					fbo = true,
