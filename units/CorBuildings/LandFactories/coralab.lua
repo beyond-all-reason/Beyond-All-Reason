@@ -49,6 +49,7 @@ return {
 			[15] = "corspy",
 			[16] = "corspec",
 			[17] = "cormando",
+			[18] = "armzeus",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
