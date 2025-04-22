@@ -165,6 +165,8 @@ if Spring.GetConfigInt("version", 0) < version then
 end
 version = 7
 if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
 	Spring.SetConfigInt("ui_rendertotexture", 1)
 end
 
@@ -176,6 +178,8 @@ if oldMinCamHeight ~= -1 then
 	Spring.SetConfigInt("OverheadMinZoomDistance", oldMinCamHeight)
 end
 
+-- in case we forget to save it once again
+Spring.SetConfigInt("version", version)
 
 Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
