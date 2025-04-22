@@ -1440,6 +1440,7 @@
 			},
 			"armuwadvms" : {
 				"role": ["static"],
+				"since": 9999,
 				"build_mod": 200
 			},
 			"armgmm" : {
@@ -2769,7 +2770,6 @@
 			},
 			"legelrpcmech": {
 				"role": ["artillery"],
-				"attribute": ["siege"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0, "vs": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0}}
 			},
 			"legerailtank": {
@@ -2875,6 +2875,7 @@
 			},
 			"legfig": {
 				"role": ["anti_air", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0, "vs": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0}},
 				"power": 0.5,
 				"retreat": 0.25
 			},
