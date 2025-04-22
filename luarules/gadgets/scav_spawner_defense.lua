@@ -704,7 +704,7 @@ if gadgetHandler:IsSyncedCode() then
 		return nearestBurrow, nearestDistance
 	end
 
-	function SpawnRandomOffWaveSquad(burrowID, attackNearestEnemy, scavType, count)
+	function SpawnRandomOffWaveSquad(burrowID, scavType, count)
 		if gameOver then
 			return
 		end
@@ -715,22 +715,18 @@ if gadgetHandler:IsSyncedCode() then
 		local squadCounter = 0
 		if scavType then
 			if not count then count = 1 end
-			squad = { count .. " " .. scavType }
-			for _, squadTable in pairs(squad.units) do
-				local unitNumber = squadTable.count
-				local scavName = squadTable.unit
-				if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
-					for j = 1, unitNumber, 1 do
+			for i = 1, count do
+				if UnitDefNames[scavType] and count and count > 0 then
+					for j = 1, count, 1 do
 						if mRandom() <= config.spawnChance or j == 1 then
 							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-							cCount = cCount + 1
+							table.insert(spawnQueue, { burrow = burrowID, unitName = scavType, team = scavTeamID, squadID = squadCounter })
 						end
 					end
-				elseif not UnitDefNames[scavName] then
-					Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+				elseif not UnitDefNames[scavType] then
+					Spring.Echo("[ERROR] Invalid Scav Unit Name", scavType)
 				else
-					Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
+					Spring.Echo("[ERROR] Invalid Scav Squad", scavType)
 				end
 			end
 		else
@@ -806,7 +802,6 @@ if gadgetHandler:IsSyncedCode() then
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-								cCount = cCount + 1
 							end
 						end
 					elseif not UnitDefNames[scavName] then
@@ -842,7 +837,6 @@ if gadgetHandler:IsSyncedCode() then
 								if mRandom() <= config.spawnChance or j == 1 then
 									squadCounter = squadCounter + 1
 									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-									cCount = cCount + 1
 								end
 							end
 						elseif not UnitDefNames[scavName] then
@@ -1555,7 +1549,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitName = UnitDefs[unitDefID].name
 		if config.scavMinions[unitName] then
 			local minion = config.scavMinions[unitName][mRandom(1,#config.scavMinions[unitName])]
-			SpawnRandomOffWaveSquad(unitID, true, minion, 4)
+			SpawnRandomOffWaveSquad(unitID, minion, 4)
 		end
 	end
 
@@ -1634,7 +1628,7 @@ if gadgetHandler:IsSyncedCode() then
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
 					for i = 1, SetCount(humanTeams) do
 						if mRandom() <= config.spawnChance then
-							SpawnRandomOffWaveSquad(burrow, true)
+							SpawnRandomOffWaveSquad(burrow)
 							burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 						end
 					end
@@ -1875,24 +1869,10 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitAlwaysVisible(unitID, true)
 				end
 
-				if defs.attackNearestEnemy then
-					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-					if nearestEnemy then
-						local tx,ty,tz = Spring.GetUnitPosition(nearestEnemy)
-						if tx then
-							--Spring.Echo("Gave Defensive Order")
-							GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-							GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
-							GiveOrderToUnit(unitID, CMD.FIGHT, { tx + mRandom(-128, 128), ty, tz + mRandom(-128, 128) }, { "shift" })
-							GiveOrderToUnit(unitID, CMD.FIGHT, { tx + mRandom(-128, 128), ty, tz + mRandom(-128, 128) }, { "shift" })
-						end
-					end
-				else
-					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
-					GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-					GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-				end
+				GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
 
 				setScavXP(unitID)
 			end
@@ -2197,7 +2177,7 @@ if gadgetHandler:IsSyncedCode() then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
 										for i = 1, SetCount(humanTeams) do
 											if mRandom() <= config.spawnChance then
-												SpawnRandomOffWaveSquad(burrow, true)
+												SpawnRandomOffWaveSquad(burrow)
 												burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 											end
 										end
