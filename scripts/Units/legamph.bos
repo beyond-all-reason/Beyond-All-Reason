@@ -1423,7 +1423,8 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		rdamage = dmg + rdamage;
 	}
 	start-script repairShield();
-	if ((ldamage > 30000) AND (lshieldup == 1))
+	//750, about 1/4th of max HP
+	if ((ldamage > 75000) AND (lshieldup == 1))
 	{
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
 		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -1437,7 +1438,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		set ARMORED to 0;
 		lshieldup = 0;
 	}
-	if ((rdamage > 30000) AND (rshieldup == 1))
+	if ((rdamage > 75000) AND (rshieldup == 1))
 	{
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
 		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
