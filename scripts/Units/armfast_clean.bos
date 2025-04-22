@@ -38,7 +38,7 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.bl
 			turn pelvis to x-axis <14.582898> speed <437.486935> / animSpeed; 
 			turn pelvis to z-axis <-0.555322> speed <16.659653> / animSpeed; 
 			turn pelvis to y-axis <16.819897> speed <504.596925> / animSpeed; 
-			turn rfoot to x-axis <-4.085432> speed <122.562946> / animSpeed; 
+			turn rfoot to x-axis <-4.085432> now; 
 			turn rfoot to z-axis <-0.873561> speed <26.206834> / animSpeed; 
 			turn rleg to x-axis <69.774433> speed <2093.232980> / animSpeed; 
 			turn rleg to z-axis <0.721141> speed <21.634225> / animSpeed; 
@@ -58,7 +58,6 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.bl
 
 			turn torso to z-axis <0.561036> speed <16.831085> / animSpeed; 
 		sleep ((33*animSpeed) -1);
-	}
 		if (isMoving) { //Frame:5
 			turn head to y-axis <-11.326531> speed <14.656109> / animSpeed; 
 			turn lfoot to x-axis <-55.387425> speed <19.523208> / animSpeed; 
@@ -247,6 +246,7 @@ Walk() {// For S:\Projects\BeyondAllReason\armfast_anim_walk2- custom - baked.bl
 		sleep ((33*animSpeed) -1);
 		}
 	}
+	}
 }
 // Call this from StopMoving()!
 StopWalking() {
@@ -359,13 +359,17 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.0> speed <90.021978>;
+	turn aimy1 to y-axis <0.0> speed <500>;
 	if (isMoving) {
-		turn ruparm to x-axis <-85.017243> speed <45>; // Turn RArm to running appropriate pose
-		turn rloarm to x-axis <-84.951256> speed <90>;
+		turn ruparm to x-axis <-85.017243> speed <500>; // Turn RArm to running appropriate pose
+		turn ruparm to y-axis <83.246913> speed <2497.407375>;
+		turn ruparm to z-axis <79.835144> speed <2395.054327>;
+		turn rloarm to x-axis <-84.951256> speed <500>;
+		turn rloarm to z-axis <-72.442728> speed <2173.281841>;
+		turn rloarm to y-axis <-82.746704> speed <2482.401108>;
 	} else {
-		turn ruparm to x-axis <0.0> speed <45>; // Turn RArm to standing still appropriate pose
-		turn rloarm to x-axis <0.0> speed <90>;
+		turn ruparm to x-axis <0.0> speed <500>; // Turn RArm to standing still appropriate pose
+		turn rloarm to x-axis <0.0> speed <500>;
 	}
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn ruparm around x-axis;
