@@ -63,6 +63,9 @@ function addon.Initialize()
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			end
 
+			-- Map Music
+			table.append(musicPlaylistEvent, VFS.DirList('music/map/loading', allowedExtensions))
+
 			-------------------------------------------------------------------------------------------------------------------------------
 			
 			-- Regular Music
