@@ -1439,17 +1439,20 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 							if squad then
-								for i, sString in pairs(squad.units) do
-									local nEnd, _ = string.find(sString, " ")
-				 					if nEnd then
-										local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-										local unitNumber = total and math.random(1, total) or 1
-										local raptorName = string.sub(sString, (nEnd + 1))
+								for _, squadTable in pairs(squad.units) do
+									local unitNumber = squadTable.count
+									local raptorName = squadTable.unit
+									if UnitDefNames[raptorName] and unitNumber and unitNumber > 0 then
 										for j = 1, unitNumber, 1 do
-											squadCounter = squadCounter + 1
-											table.insert(spawnQueue, { burrow = unitID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
-											cCount = cCount + 1
+											if mRandom() <= config.spawnChance or j == 1 then
+												squadCounter = squadCounter + 1
+												table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+											end
 										end
+									elseif not UnitDefNames[raptorName] then
+										Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorName)
+									else
+										Spring.Echo("[ERROR] Invalid Raptor Squad", raptorName)
 									end
 								end
 							end
