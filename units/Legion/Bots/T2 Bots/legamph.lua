@@ -12,8 +12,8 @@ return {
 		damagemodifier = 0.5,
 		energycost = 19000,
 		explodeas = "smallExplosionGeneric-phib",
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 3,
+		footprintz = 3,
 		health = 3500,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -36,6 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.221,
 		turnrate = 450,
+		usepiececollisionvolumes = 1,
 		upright = false,
 		customparams = {
 			maxrange = 450,
