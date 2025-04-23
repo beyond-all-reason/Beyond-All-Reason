@@ -1,5 +1,8 @@
 local widget = widget ---@type Widget
 
+-- makes the intent of our usage of Spring.Echo clear
+local FeedbackForUser = Spring.Echo
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -261,6 +264,8 @@ for builderUnitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local selectedBuilderSide = nil
+
 local function getSelectedBlueprint()
 	return blueprints[selectedBlueprintIndex]
 end
@@ -273,7 +278,7 @@ local function setSelectedBlueprintIndex(index)
 	end
 
 	if blueprintPlacementActive and index ~= nil and index > 0 then
-		Spring.Echo("[Blueprint] selected blueprint #" .. selectedBlueprintIndex)
+		FeedbackForUser("[Blueprint] selected blueprint #" .. selectedBlueprintIndex)
 	end
 end
 
@@ -389,7 +394,7 @@ end
 
 local function createBlueprint(unitIDs, ordered)
 	if #unitIDs > BLUEPRINT_UNIT_LIMIT then
-		Spring.Echo(string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs))
+		FeedbackForUser(string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs))
 		return true
 	end
 
@@ -399,7 +404,7 @@ local function createBlueprint(unitIDs, ordered)
 	end)
 
 	if #buildableUnits == 0 then
-		Spring.Echo("[Blueprint] no units saved")
+		FeedbackForUser("[Blueprint] no units saved")
 		return
 	end
 
@@ -441,7 +446,7 @@ local function createBlueprint(unitIDs, ordered)
 
 	blueprints[#blueprints + 1] = blueprint
 
-	Spring.Echo("[Blueprint] saved " .. #blueprint.units .. " units into blueprint #" .. #blueprints)
+	FeedbackForUser("[Blueprint] saved " .. #blueprint.units .. " units into blueprint #" .. #blueprints)
 
 	if #blueprints == 1 then
 		setSelectedBlueprintIndex(1)
@@ -456,7 +461,7 @@ local function deleteBlueprint(index)
 
 	table.remove(blueprints, index)
 
-	Spring.Echo("[Blueprint] deleted blueprint #" .. index)
+	FeedbackForUser("[Blueprint] deleted blueprint #" .. index)
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
@@ -627,9 +632,9 @@ function widget:Update(dt)
 	if blueprint ~= state.blueprint or blueprint.dirty then
 		blueprintChanged = true
 		state.blueprint = blueprint
-		blueprint.dirty = false
+		state.blueprint.dirty = false
 
-		WG["api_blueprint"].setActiveBlueprint(blueprint)
+		WG["api_blueprint"].setActiveBlueprint(blueprint, selectedBuilderSide)
 		updateBuildingGridState(true, blueprint)
 	end
 
@@ -774,6 +779,25 @@ function widget:SelectionChanged(selection)
 				getNextFilteredBlueprintIndex(startIndex)
 			)
 		end
+
+		-- Determine faction based on selected builders
+		-- Reset faction when no builders are selected
+		selectedBuilderSide = nil
+		
+		-- Try to determine faction from the first builder if any exist
+		if #builders > 0 then
+			local firstBuilderID = builders[1]
+			local firstBuilderDefID = Spring.GetUnitDefID(firstBuilderID)
+			local firstBuilderDef = firstBuilderDefID and UnitDefs[firstBuilderDefID]
+			local builderName = firstBuilderDef and firstBuilderDef.name
+			
+			-- Use blueprint substitution logic to get side prefix if available
+			if builderName and WG.BlueprintSubstitutionLogic and WG.BlueprintSubstitutionLogic.getSideFromUnitName then
+				selectedBuilderSide = WG.BlueprintSubstitutionLogic.getSideFromUnitName(builderName)
+			elseif builderName then
+				FeedbackForUser("BlueprintSubstitutionLogic not available for faction detection.")
+			end
+		end
 	end
 
 	-- track selection order (skip if we're still box selecting)
@@ -819,7 +843,7 @@ local function handleBlueprintNextAction()
 	end
 
 	if #blueprints == 0 then
-		Spring.Echo("[Blueprint] no saved blueprints")
+		FeedbackForUser("[Blueprint] no saved blueprints")
 		return
 	end
 
@@ -837,7 +861,7 @@ local function handleBlueprintPrevAction()
 	end
 
 	if #blueprints == 0 then
-		Spring.Echo("[Blueprint] no blueprints")
+		FeedbackForUser("[Blueprint] no blueprints")
 		return
 	end
 
@@ -866,12 +890,12 @@ local function handleBlueprintDeleteAction()
 	end
 
 	if #blueprints == 0 then
-		Spring.Echo("[Blueprint] no blueprints to delete")
+		FeedbackForUser("[Blueprint] no blueprints to delete")
 		return
 	end
 
 	if selectedBlueprintIndex == nil then
-		Spring.Echo("[Blueprint] no blueprint selected")
+		FeedbackForUser("[Blueprint] no blueprint selected")
 		return
 	end
 
@@ -996,10 +1020,11 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		local selectedBlueprint = getSelectedBlueprint()
+		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
+		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
 
 		if not selectedBlueprint then
-			Spring.Echo("[Blueprint] no active blueprints")
+			FeedbackForUser("[Blueprint] No active blueprint ready for placement.")
 			return false
 		end
 
@@ -1036,10 +1061,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		-- combine the units from all blueprints into a single list
 		for i, pos in ipairs(state.buildPositions) do
 			if i > buildPositionsLimit then
-				Spring.Echo(string.format(
-					"[Blueprint] limiting orders to no more than %d",
-					BLUEPRINT_ORDER_LIMIT
-				))
+				FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
 				break
 			end
 			local facing = pos[4] or 0
@@ -1157,14 +1179,14 @@ local function loadBlueprintsFromFile()
 	local content = VFS.LoadFile(BLUEPRINT_FILE_PATH)
 
 	if not content then
-		Spring.Echo("Failed to read blueprints file: " .. BLUEPRINT_FILE_PATH)
+		FeedbackForUser("Failed to read blueprints file: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
 
 	local decoded = Json.decode(content)
 
 	if decoded == nil then
-		Spring.Echo("Failed to decode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
+		FeedbackForUser("Failed to decode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
 
@@ -1185,7 +1207,7 @@ local function saveBlueprintsToFile()
 	local file = io.open(BLUEPRINT_FILE_PATH, "w")
 
 	if not file then
-		Spring.Echo("Failed to open blueprints file for writing: " .. BLUEPRINT_FILE_PATH)
+		FeedbackForUser("Failed to open blueprints file for writing: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
 
@@ -1201,7 +1223,7 @@ local function saveBlueprintsToFile()
 	})
 
 	if encoded == nil then
-		Spring.Echo("Failed to encode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
+		FeedbackForUser("Failed to encode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
 

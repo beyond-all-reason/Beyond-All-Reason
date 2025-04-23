@@ -1,5 +1,17 @@
 local widget = widget ---@type Widget
 
+local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
+VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+
+local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
+
+local reportFunctions = nil
+
+local activeBlueprint = nil
+
+-- makes the intent of our usage of Spring.Echo clear
+local FeedbackForUser = Spring.Echo
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint API",
@@ -270,7 +282,6 @@ local BUILD_MODES = enum(
 	"AROUND"
 )
 
-local activeBlueprint = nil
 local activeBuildPositions = {}
 local activeBuilderBuildOptions = {}
 
@@ -690,13 +701,40 @@ end
 -- api
 -- ===
 
-local function setActiveBlueprint(bp)
-	if bp then
-		bp = rotateBlueprint(bp, bp.facing)
+local function setActiveBlueprint(bp, targetSide)
+	if not bp then
+		activeBlueprint = nil
+		clearInstances()
+		updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
+		return
 	end
 
-	activeBlueprint = bp
+	-- modifies the structure; crucially, also prevents
+	-- saving it back to file at shutdown
+	local blueprintToProcess = table.copy(bp)
 
+	local sourceInfo = WG.BlueprintSubstitutionLogic.analyzeBlueprintSides(blueprintToProcess)
+	blueprintToProcess.sourceInfo = sourceInfo -- Store analysis on the copy
+	
+	if not targetSide then
+		Spring.Log("BlueprintAPI", LOG.ERROR, "setActiveBlueprint called without a valid targetSide. No substitution performed.")
+	elseif sourceInfo.primarySourceSide ~= targetSide or sourceInfo.numSourceSides > 1 then
+		local result = WG.BlueprintSubstitutionLogic.processBlueprintSubstitution(blueprintToProcess, targetSide)
+		if result then
+			blueprintToProcess.units = result.units
+			if result.substitutionFailed then 
+				FeedbackForUser("[Blueprint API] " .. result.summaryMessage)
+			end
+		else
+			Spring.Log("BlueprintAPI", LOG.WARNING, "processBlueprintSubstitution returned nil for targetSide: " .. tostring(targetSide))
+			FeedbackForUser("[Blueprint API] Substitution processing failed for target side: " .. tostring(targetSide))
+		end
+	else
+		Spring.Log("BlueprintAPI", LOG.DEBUG, "No substitution needed for copy. Source side " .. (sourceInfo.primarySourceSide or 'N/A') .. " matches target side " .. targetSide)
+	end
+	
+
+	activeBlueprint = rotateBlueprint(blueprintToProcess, blueprintToProcess.facing)
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
 end
@@ -759,11 +797,33 @@ function widget:Initialize()
 		end
 	end
 
+    -- Conditionally load report functions based on the flag
+    if ENABLE_REPORTS then
+        Spring.Log("BlueprintAPI", LOG.INFO, "Reports ARE enabled. Proceeding with loading.")
+        local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
+        
+        if VFS.FileExists(reportPath) then
+            local includedReports = VFS.Include(reportPath)
+            
+            if includedReports and type(includedReports.SetDependencies) == 'function' then
+                includedReports.SetDependencies(WG.BlueprintSubstitutionLogic)
+                reportFunctions = includedReports
+                Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set.")
+            else
+                Spring.Log("BlueprintAPI", LOG.ERROR, "Failed to load reports or SetDependencies is missing in " .. reportPath)
+            end
+        else
+            Spring.Log("BlueprintAPI", LOG.WARNING, "Report file not found at: " .. reportPath)
+        end
+    else
+         Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
+    end
+
 	WG["api_blueprint"] = {
+		getActiveBlueprint = function() return activeBlueprint end,
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
-
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
@@ -775,6 +835,15 @@ function widget:Initialize()
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
 	}
+
+    if reportFunctions then
+        Spring.Log("BlueprintAPI", LOG.INFO, "Adding report actions...")
+        widgetHandler:AddAction("blueprintmapreport", reportFunctions.generateMappingReport, nil, "t")
+        widgetHandler:AddAction("blueprintcategorylist", reportFunctions.generateCategoryListReport, nil, "t")
+    else
+        Spring.Log("BlueprintAPI", LOG.INFO, "reportFunctions not loaded, skipping action registration.")
+    end
+	
 end
 
 function widget:Shutdown()
@@ -791,4 +860,10 @@ function widget:Shutdown()
 	if outlineShader then
 		outlineShader:Finalize()
 	end
+    -- Conditionally remove report commands
+    if reportFunctions and widgetHandler and widgetHandler.RemoveAction then
+       widgetHandler:RemoveAction("blueprintmapreport")
+       widgetHandler:RemoveAction("blueprintcategorylist")
+    end
+    reportFunctions = nil
 end
