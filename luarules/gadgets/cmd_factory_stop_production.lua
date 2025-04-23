@@ -94,6 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 				local buildUnitDefID, count = next(buildPair, nil)
 				if keepDefID == buildUnitDefID then
 					count = count - 1
+					keepDefID = nil
 				end
 				orderDequeue(unitID, buildUnitDefID, count)
 			end

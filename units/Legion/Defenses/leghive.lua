@@ -3,7 +3,7 @@ return {
 		maxacc = 0,
 		maxdec = 4.5,
 		buildangle = 4096,
-		energycost = 9000,
+		energycost = 7500,
 		metalcost = 300,
 		buildpic = "leghive.DDS",
 		buildtime = 6000,
