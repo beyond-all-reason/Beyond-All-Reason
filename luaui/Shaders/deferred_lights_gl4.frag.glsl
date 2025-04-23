@@ -618,11 +618,11 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 		return sign(quadVector);
 	}
 
-	vec4 quadGather(float input){
-		float inputadjx = input - dFdx(input) * quadVector.x;
-		float inputadjy = input - dFdy(input) * quadVector.y;
+	vec4 quadGather(float inputthis){
+		float inputadjx = inputthis - dFdx(inputthis) * quadVector.x;
+		float inputadjy = inputthis - dFdy(inputthis) * quadVector.y;
 		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-		return vec4(input, inputadjx, inputadjy, inputdiag);
+		return vec4(inputthis, inputadjx, inputadjy, inputdiag);
 	}
 
 	float rand(vec2 co){
