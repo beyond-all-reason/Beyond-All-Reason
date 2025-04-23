@@ -44,6 +44,8 @@ return {
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
+			iswatervariable = true,
+			waterspeed = 68,
 		},
 		featuredefs = {
 			dead = {
@@ -54,11 +56,11 @@ return {
 				collisionvolumetype = "CylY",
 				damage = 1056,
 				featuredead = "HEAP",
-				footprintx = 2,
-				footprintz = 2,
+				footprintx = 3,
+				footprintz = 3,
 				height = 20,
 				metal = 330,
-				object = "Units/coramph_dead.s3o",
+				object = "Units/legamph_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

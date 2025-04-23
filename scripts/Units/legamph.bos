@@ -1072,6 +1072,8 @@ Create()
 	hide heatrayaimflare;
 	hide torpaimx;
 	hide heatray_xy;
+	hide lvent;
+	hide rvent;
 	isMoving = FALSE;
 	//isMoving = -1;
 	isAiming = FALSE;
@@ -1433,17 +1435,17 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	{
 		// Start Animation: Break Shield;
 		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		
 		hide rfin1;
 		hide lfin2;
 		hide rfin3;
 		hide lfin3;
-		hide lfin5;
+		hide rfin5;
 		hide lfin4;
 		// End Animation
 		set ARMORED to 0;
@@ -1468,16 +1470,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
 		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		
 		hide rfin1;
 		hide rfin3;
-		hide lfin5;
+		hide rfin5;
 		// End Animation
 		set ARMORED to 0;
 		rshieldup = 0;
-	}
-	return (100); //return damage percent*/
+	}*/
+	return (100); //return damage percent
 }
 
 // Restore this units hume shield after 15000ms / 15 seconds, restore armored state
@@ -1486,6 +1488,33 @@ repairShield()
 	set-signal-mask SIG_REPAIR;
 	sleep 11000;
 	if (lshieldup == 0)
+	{
+		show lfin2;
+		emit-sfx 1024 + 0 from lfin2;
+		sleep 1000;
+
+		show lfin3;
+		emit-sfx 1024 + 0 from lfin3;
+		sleep 1000;
+
+		show lfin4;
+		emit-sfx 1024 + 0 from lfin4;
+		sleep 1000;
+		
+		//FIXME:Directional Armor
+		show rfin1;
+		emit-sfx 1024 + 0 from rfin1;
+		sleep 1000;
+		
+		show rfin3;
+		emit-sfx 1024 + 0 from rfin3;
+		sleep 1000;
+		
+		show rfin5;
+		emit-sfx 1024 + 0 from rfin5;
+		sleep 1000;
+	}
+	/*if (lshieldup == 0)
 	{
 		show lfin2;
 		emit-sfx 1024 + 0 from lfin2;
@@ -1509,10 +1538,10 @@ repairShield()
 		emit-sfx 1024 + 0 from rfin3;
 		sleep 1000;
 		
-		show lfin5;
+		show rfin5;
 		emit-sfx 1024 + 0 from rfin5;
 		sleep 1000;
-	}
+	}*/
 	// Reset shield status 
 	lshieldup = 1;
 	rshieldup = 1;
@@ -1724,12 +1753,17 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode torpedolauncha type BITMAPONLY | NOHEATCLOUD;
+		call-script DeathAnim();
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tailbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tailtip type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torpedolauncha type FIRE | SMOKE | FALL | NOHEATCLOUD;
 
 		return(corpsetype);
@@ -1740,6 +1774,14 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torpedolauncha type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode neck type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode tailbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tailtip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode heatray type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lcheek type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode topcheek type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 
 		return(corpsetype);
 	}
@@ -1748,6 +1790,285 @@ Killed(severity, corpsetype)
 		explode torpedolauncha type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torpedotube type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode tailbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tail2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tailtip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lcheek type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode topcheek type FIRE | SMOKE | FALL | NOHEATCLOUD;
 
 	return corpsetype;
+}
+
+//use call-script DeathAnim(); from Killed()
+DeathAnim() {// For S:\Projects\BeyondAllReason\Shrimp\Telchine v2 - death anim - baked.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
+	call-script StopWalking();
+	turn heatray_xy to x-axis <0> speed <120>;
+	turn heatray_xy to y-axis <0> speed <120>;
+	turn torpaimx to x-axis <0> speed <120>;
+		if (TRUE) { //Frame:21
+			move base to x-axis [-0.253614] speed [1.268068] ; 
+			move base to z-axis [-1.718311] speed [8.591555] ; 
+			move base to y-axis [1.086458] speed [5.432291] ; 
+			turn base to x-axis <-4.008475> speed <20.042377> ; 
+			turn base to z-axis <0.718540> speed <3.592702> ; 
+			turn base to y-axis <-0.228011> speed <1.140056> ; 
+			turn ldownbackleg to x-axis <-0.068245> speed <10.863941> ; 
+			turn lfootback to x-axis <5.185874> speed <19.860570> ; 
+			turn lfootback to z-axis <-0.850962> speed <3.875591> ; 
+			turn lfootback to y-axis <-0.501298> speed <6.332761> ; 
+			turn lupbackleg to x-axis <-1.111344> speed <10.688685> ; 
+			turn lupbackleg to y-axis <0.790758> speed <7.745336> ; 
+			explode lupleg type FALL|SMOKE|FIRE|NOHEATCLOUD;
+			hide lupleg;
+			explode ldownloeg type FALL|SMOKE|FIRE|NOHEATCLOUD;
+			hide ldownloeg;
+			explode lfoot type FALL|SMOKE|FIRE|NOHEATCLOUD;
+			hide lfoot;
+			turn neck to x-axis <-6.487895> speed <32.439472> ; 
+			turn neck to y-axis <-0.242634> speed <1.213171> ; 
+			turn rdownbackleg to x-axis <1.518117> speed <18.795507> ; 
+			turn rfootback to x-axis <4.550314> speed <16.665799> ; 
+			turn rfootback to z-axis <-0.851790> speed <3.795710> ; 
+			turn rfootback to y-axis <-0.456316> speed <6.310725> ; 
+			turn rupbackleg to x-axis <-2.062216> speed <15.424142> ; 
+			turn rupbackleg to y-axis <0.753035> speed <7.839326> ; 
+			turn rupleg to x-axis <-23.024586> speed <115.122898> ; 
+			turn rupleg to z-axis <-1.018163> speed <5.090814> ; 
+			turn rupleg to y-axis <-1.328498> speed <6.642491> ; 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:27
+			move base to x-axis [-0.507227] speed [1.268068] ; 
+			move base to z-axis [-3.436622] speed [8.591554] ; 
+			move base to y-axis [2.172915] speed [5.432281] ; 
+			turn base to x-axis <-8.015130> speed <20.033271> ; 
+			turn base to z-axis <1.447706> speed <3.645828> ; 
+			turn base to y-axis <-0.354640> speed <0.633146> ; 
+			turn lcheek to x-axis <-24.404505> speed <122.022516> ; 
+			turn lcheek to z-axis <-7.267597> speed <36.337951> ; 
+			turn lcheek to y-axis <-32.732418> speed <163.662086> ; 
+			turn ldownbackleg to x-axis <3.327938> speed <16.980913> ; 
+			turn lfin4 to x-axis <65.381091> speed <249.465377> ; 
+			turn lfin4 to z-axis <-45.119198> speed <366.186462> ; 
+			turn lfin4 to y-axis <62.224533> speed <234.976061> ; //WARNING: possible gimbal lock issue detected in frame 27 bone lfin4
+
+			turn lfin5 to x-axis <68.716450> speed <266.142129> ; 
+			turn lfin5 to z-axis <-45.341528> speed <367.298110> ; 
+			turn lfin5 to y-axis <59.743767> speed <222.572224> ; //WARNING: possible gimbal lock issue detected in frame 27 bone lfin5
+
+			turn lfootback to x-axis <8.034818> speed <14.244718> ; 
+			turn lfootback to z-axis <-1.648919> speed <3.989782> ; 
+			turn lupbackleg to x-axis <-3.358398> speed <11.235272> ; 
+			turn lupbackleg to y-axis <1.003423> speed <1.063325> ; 
+			turn neck to x-axis <-12.975750> speed <32.439277> ; 
+			turn neck to y-axis <-0.506085> speed <1.317255> ; 
+			turn rcheek to x-axis <-24.404503> speed <122.022508> ; 
+			turn rcheek to z-axis <7.267601> speed <36.337964> ; 
+			turn rcheek to y-axis <32.732418> speed <163.662089> ; 
+			turn rdownbackleg to x-axis <6.719405> speed <26.006441> ; 
+			turn rfin4 to x-axis <72.199280> speed <325.938710> ; 
+			turn rfin4 to z-axis <24.199195> speed <283.351721> ; 
+			turn rfin4 to y-axis <-53.618187> speed <161.220357> ; //WARNING: possible gimbal lock issue detected in frame 27 bone rfin4
+
+			turn rfin5 to x-axis <75.739613> speed <344.952653> ; 
+			turn rfin5 to z-axis <22.351297> speed <272.142305> ; 
+			turn rfin5 to y-axis <-50.000939> speed <139.166633> ; //WARNING: possible gimbal lock issue detected in frame 27 bone rfin5
+
+			turn rfootback to x-axis <6.508335> speed <9.790105> ; 
+			turn rfootback to z-axis <-1.617843> speed <3.830261> ; 
+			turn rfootback to y-axis <-0.338180> speed <0.590682> ; 
+			turn rupbackleg to x-axis <-5.223692> speed <15.807377> ; 
+			turn rupbackleg to y-axis <0.947955> speed <0.974600> ; 
+			turn rupleg to x-axis <-46.049159> speed <115.122864> ; 
+			turn rupleg to z-axis <-2.036325> speed <5.090813> ; 
+			turn rupleg to y-axis <-2.656996> speed <6.642489> ; 
+			turn tail1 to x-axis <0.977823> speed <34.889103> ; 
+			turn tail1 to y-axis <0.185833> speed <0.929162> ; 
+			turn tail2 to x-axis <0.586606> speed <20.933031> ; 
+			turn tail2 to y-axis <0.111504> speed <0.557517> ; 
+			turn tailbase to x-axis <1.629714> speed <58.148572> ; 
+			turn tailbase to y-axis <0.309707> speed <1.548531> ; 
+			turn tailtip to x-axis <0.351935> speed <12.559632> ; 
+			turn topcheek to x-axis <39.999995> speed <199.999981> ; 
+			turn torpedotube to x-axis <-28.308615> speed <141.543080> ; 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:33
+			move base to z-axis [1.563378] speed [25.000001] ; 
+			move base to y-axis [-2.493752] speed [23.333330] ; 
+			turn base to x-axis <-4.598673> speed <17.082282> ; 
+			turn ldownbackleg to x-axis <-24.038253> speed <136.830955> ; 
+			turn ldownbackleg to y-axis <-0.098398> speed <0.550226> ; 
+			turn lfin4 to x-axis <68.152112> speed <13.855107> ; 
+			turn lfin4 to z-axis <-30.328389> speed <73.954044> ; 
+			turn lfin4 to y-axis <48.199877> speed <70.123281> ; 
+			turn lfootback to x-axis <2.416997> speed <28.089105> ; 
+			turn lfootback to z-axis <-2.141744> speed <2.464125> ; 
+			turn lfootback to y-axis <-0.195023> speed <1.157431> ; 
+			turn lupbackleg to x-axis <26.211022> speed <147.847100> ; 
+			turn lupbackleg to z-axis <0.723230> speed <2.961586> ; 
+			turn lupbackleg to y-axis <0.487280> speed <2.580715> ; 
+			turn neck to y-axis <-0.116003> speed <1.950412> ; 
+			turn rdownbackleg to x-axis <-21.665891> speed <141.926482> ; 
+			turn rdownbackleg to y-axis <0.086920> speed <0.551122> ; 
+			turn rfin4 to x-axis <71.603878> speed <2.977006> ; 
+			turn rfin4 to z-axis <3.583507> speed <103.078438> ; 
+			turn rfin4 to y-axis <-34.538211> speed <95.399882> ; 
+			turn rfoot to x-axis <-48.551925> speed <242.759608> ; 
+			turn rfootback to x-axis <2.090842> speed <22.087466> ; 
+			turn rfootback to z-axis <-2.264224> speed <3.231905> ; 
+			turn rfootback to y-axis <-0.202375> speed <0.679024> ; 
+			turn rupbackleg to x-axis <24.162937> speed <146.933140> ; 
+			turn rupbackleg to z-axis <0.814686> speed <3.537189> ; 
+			turn rupbackleg to y-axis <0.318644> speed <3.146557> ; 
+			turn rupleg to x-axis <-69.073737> speed <115.122890> ; 
+			turn rupleg to z-axis <-3.054487> speed <5.090811> ; 
+			turn rupleg to y-axis <-3.985495> speed <6.642496> ; 
+			turn tail1 to x-axis <7.955644> speed <34.889103> ; 
+			turn tail1 to y-axis <0.367760> speed <0.909639> ; 
+			turn tail2 to x-axis <4.773356> speed <20.933747> ; 
+			turn tail2 to y-axis <0.220637> speed <0.545663> ; 
+			turn tailbase to x-axis <13.259428> speed <58.148573> ; 
+			turn tailbase to y-axis <0.615887> speed <1.530900> ; 
+			turn tailtip to x-axis <2.863995> speed <12.560300> ; 
+			turn torpedolauncha to y-axis <-14.666014> speed <73.330072> ; 
+			turn torpedotube to x-axis <-37.057277> speed <43.743306> ; 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:39
+			move base to z-axis [6.563378] speed [24.999998] ; 
+			move base to y-axis [-7.160419] speed [23.333340] ; 
+			turn base to x-axis <-1.182282> speed <17.081958> ; 
+			turn ldownbackleg to x-axis <-29.928400> speed <29.450734> ; 
+			turn lfin4 to x-axis <69.125544> speed <4.867159> ; 
+			turn lfin4 to z-axis <-12.844243> speed <87.420731> ; 
+			turn lfin4 to y-axis <31.495139> speed <83.523685> ; 
+			turn lfootback to x-axis <-26.863744> speed <146.403701> ; 
+			turn lfootback to z-axis <-3.008895> speed <4.335755> ; 
+			turn lfootback to y-axis <-0.862023> speed <3.334999> ; 
+			turn lupbackleg to x-axis <57.968840> speed <158.789092> ; 
+			turn lupbackleg to z-axis <2.020254> speed <6.485118> ; 
+			turn lupbackleg to y-axis <-0.434305> speed <4.607926> ; 
+			turn neck to x-axis <9.100641> speed <110.382256> ; 
+			turn neck to y-axis <0.303194> speed <2.095985> ; 
+			turn rdownbackleg to x-axis <-28.680702> speed <35.074054> ; 
+			turn rfin4 to x-axis <68.870252> speed <13.668131> ; 
+			turn rfin4 to z-axis <-13.647505> speed <86.155061> ; 
+			turn rfin4 to y-axis <-18.774411> speed <78.819000> ; 
+			turn rfoot to x-axis <-63.680470> speed <75.642723> ; 
+			turn rfootback to x-axis <-25.628323> speed <138.595823> ; 
+			turn rfootback to z-axis <-3.197973> speed <4.668746> ; 
+			turn rfootback to y-axis <-0.926845> speed <3.622351> ; 
+			turn rupbackleg to x-axis <55.479390> speed <156.582266> ; 
+			turn rupbackleg to z-axis <2.333664> speed <7.594886> ; 
+			turn rupbackleg to y-axis <-0.783172> speed <5.509079> ; 
+			turn rupleg to x-axis <-65.205289> speed <19.342242> ; 
+			turn rupleg to z-axis <-26.974606> speed <119.600593> ; 
+			turn rupleg to y-axis <-28.086336> speed <120.504202> ; 
+			turn tail1 to x-axis <2.540663> speed <27.074904> ; 
+			turn tail1 to y-axis <0.227960> speed <0.699003> ; 
+			turn tail2 to x-axis <1.524394> speed <16.244809> ; 
+			turn tailbase to x-axis <4.234446> speed <45.124910> ; 
+			turn tailbase to y-axis <0.380127> speed <1.178799> ; 
+			turn tailtip to x-axis <0.914981> speed <9.745068> ; 
+			turn torpedolauncha to y-axis <-29.332036> speed <73.330106> ; 
+			turn torpedotube to x-axis <-45.805936> speed <43.743298> ; 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:45
+			move base to z-axis [11.563378] speed [25.000002] ; 
+			move base to y-axis [-11.827084] speed [23.333321] ; 
+			turn base to x-axis <2.234034> speed <17.081580> ; 
+			turn ldownbackleg to x-axis <-12.392565> speed <87.679173> ; 
+			turn lfin2 to x-axis <13.250990> speed <11.185199> ; 
+			turn lfin2 to z-axis <22.720887> speed <26.986026> ; 
+			turn lfin2 to y-axis <14.845766> speed <1.917772> ; 
+			turn lfin3 to z-axis <8.098081> speed <100.100029> ; 
+			turn lfin3 to y-axis <16.015122> speed <3.928989> ; 
+			turn lfin4 to x-axis <68.077226> speed <5.241590> ; 
+			turn lfin4 to z-axis <4.525689> speed <86.849661> ; 
+			turn lfin4 to y-axis <14.920728> speed <82.872060> ; 
+			turn lfootback to x-axis <-66.381987> speed <197.591217> ; 
+			turn lfootback to z-axis <-5.626771> speed <13.089383> ; 
+			turn lfootback to y-axis <-3.627559> speed <13.827682> ; 
+			turn lupbackleg to x-axis <76.570594> speed <93.008769> ; 
+			turn lupbackleg to z-axis <3.553608> speed <7.666773> ; 
+			turn lupbackleg to y-axis <-1.712248> speed <6.389713> ; 
+			turn neck to x-axis <31.177078> speed <110.382188> ; 
+			turn neck to y-axis <0.673888> speed <1.853472> ; 
+			turn rdownbackleg to x-axis <-12.305714> speed <81.874942> ; 
+			turn rdownleg to x-axis <34.583621> speed <172.918106> ; 
+			turn rfin2 to x-axis <9.929095> speed <11.185156> ; 
+			turn rfin2 to z-axis <-27.274231> speed <26.986001> ; 
+			turn rfin2 to y-axis <-20.828845> speed <1.917746> ; 
+			turn rfin3 to x-axis <17.354729> speed <51.400832> ; 
+			turn rfin3 to z-axis <-7.010644> speed <127.844911> ; 
+			turn rfin3 to y-axis <-19.925883> speed <5.662534> ; 
+			turn rfin4 to x-axis <64.672800> speed <20.987259> ; 
+			turn rfin4 to z-axis <-26.002943> speed <61.777191> ; 
+			turn rfin4 to y-axis <-7.814953> speed <54.797289> ; 
+			turn rfoot to x-axis <-78.808997> speed <75.642638> ; 
+			turn rfootback to x-axis <-64.562903> speed <194.672899> ; 
+			turn rfootback to z-axis <-5.540305> speed <11.711662> ; 
+			turn rfootback to y-axis <-3.365493> speed <12.193239> ; 
+			turn rupbackleg to x-axis <74.651427> speed <95.860185> ; 
+			turn rupbackleg to z-axis <4.127021> speed <8.966789> ; 
+			turn rupbackleg to y-axis <-2.315495> speed <7.661615> ; 
+			turn rupleg to x-axis <-118.663144> speed <267.289276> ; 
+			turn rupleg to z-axis <24.866328> speed <259.204672> ; 
+			turn rupleg to y-axis <18.551301> speed <233.188182> ; //WARNING: possible gimbal lock issue detected in frame 45 bone rupleg
+
+			turn tail1 to x-axis <-2.874316> speed <27.074895> ; 
+			turn tail1 to y-axis <0.083874> speed <0.720429> ; 
+			turn tail2 to x-axis <-1.724588> speed <16.244910> ; 
+			turn tailbase to x-axis <-4.790537> speed <45.124917> ; 
+			turn tailbase to y-axis <0.139703> speed <1.202122> ; 
+			turn tailtip to x-axis <-1.034755> speed <9.748678> ; 
+			turn topcheek to x-axis <-5.037711> speed <225.188496> ; 
+			turn topcheek to z-axis <-1.106925> speed <5.534637> ; 
+			turn topcheek to y-axis <-1.671051> speed <8.355220> ; 
+			turn torpedolauncha to y-axis <3.922819> speed <166.274272> ; 
+			turn torpedotube to x-axis <-28.033106> speed <88.864151> ; 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:51
+			turn lfin4 to x-axis <65.278877> speed <13.991745> ; 
+			turn lfin4 to z-axis <19.071188> speed <72.727494> ; 
+			turn lfin4 to y-axis <1.189658> speed <68.655349> ; 
+			turn lfootback to z-axis <-5.343195> speed <1.417881> ; 
+			turn lfootback to y-axis <-3.894573> speed <1.335069> ; 
+			turn lupbackleg to z-axis <1.298077> speed <11.277658> ; 
+			turn lupbackleg to y-axis <0.608580> speed <11.604137> ; 
+			move rcheek to x-axis [-4.207173] speed [21.035867] ; 
+			move rcheek to z-axis [4.370972] speed [21.854830] ; 
+			move rcheek to y-axis [-6.572241] speed [32.861195] ; 
+			turn rdownleg to x-axis <69.167249> speed <172.918140> ; 
+			turn rfin4 to x-axis <59.606111> speed <25.333445> ; 
+			turn rfin4 to z-axis <-34.462966> speed <42.300113> ; 
+			turn rfin4 to y-axis <-0.675904> speed <35.695243> ; 
+			turn rfoot to x-axis <-93.937538> speed <75.642706> ; 
+			turn rfootback to z-axis <-5.185929> speed <1.771881> ; 
+			turn rfootback to y-axis <-3.755047> speed <1.947770> ; 
+			turn rupbackleg to z-axis <1.484756> speed <13.211326> ; 
+			turn rupbackleg to y-axis <0.426495> speed <13.709949> ; 
+			turn tail1 to x-axis <-8.289318> speed <27.075011> ; 
+			turn tail1 to y-axis <-0.062036> speed <0.729552> ; 
+			turn tail2 to x-axis <-4.973591> speed <16.245017> ; 
+			turn tailbase to x-axis <-13.815521> speed <45.124919> ; 
+			turn tailbase to y-axis <-0.105436> speed <1.225691> ; 
+			turn tailtip to x-axis <-2.984154> speed <9.746999> ; 
+			turn torpedolauncha to y-axis <37.177669> speed <166.274251> ; 
+			turn torpedotube to x-axis <-10.260279> speed <88.864138> ; 
+			turn lfin4 to x-axis <56.449359> speed <44.147594> ; 
+			turn lfin4 to z-axis <38.096521> speed <95.126666> ; 
+			turn lfin4 to y-axis <-16.138670> speed <86.641637> ; 
+			turn rfin4 to x-axis <48.150248> speed <57.279315> ; 
+			turn rfin4 to z-axis <-44.418510> speed <49.777719> ; 
+			turn rfin4 to y-axis <6.884064> speed <37.799842> ; 
+			turn torpedotube to x-axis <7.512545> speed <88.864116> ; 
+		sleep 197;
+		}
 }
