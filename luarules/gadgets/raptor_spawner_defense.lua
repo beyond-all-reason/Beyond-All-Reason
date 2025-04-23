@@ -673,19 +673,17 @@ if gadgetHandler:IsSyncedCode() then
 		local squadCounter = 0
 		if raptorType then
 			if not count then count = 1 end
-			for i = 1, count do
-				if UnitDefNames[raptorType] and count and count > 0 then
-					for j = 1, count, 1 do
-						if mRandom() <= config.spawnChance or j == 1 then
-							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = raptorType, team = raptorTeamID, squadID = squadCounter })
-						end
+			if UnitDefNames[raptorType] then
+				for j = 1, count, 1 do
+					if mRandom() <= config.spawnChance or j == 1 then
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = raptorType, team = raptorTeamID, squadID = squadCounter })
 					end
-				elseif not UnitDefNames[raptorType] then
-					Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorType)
-				else
-					Spring.Echo("[ERROR] Invalid Raptor Squad", raptorType)
 				end
+			elseif not UnitDefNames[raptorType] then
+				Spring.Echo("[ERROR] Invalid Raptor Unit Name", raptorType)
+			else
+				Spring.Echo("[ERROR] Invalid Raptor Squad", raptorType)
 			end
 		else
 			squadCounter = 0
