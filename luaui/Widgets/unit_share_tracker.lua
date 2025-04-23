@@ -14,7 +14,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 -- config
@@ -289,7 +289,7 @@ function widget:DrawInMiniMap(sx, sy)
 	end
 	glLineWidth(lineWidth)
 
-	local currRot = getMiniMapRotationOptions()
+	local currRot = getCurrentMiniMapRotationOption()
 
 	for unitID, defs in pairs(mapPoints) do
 		if defs.x then

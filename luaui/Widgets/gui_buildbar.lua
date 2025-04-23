@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -847,7 +847,7 @@ function widget:DrawInMiniMap(sx, sy)
 
 		gl.LoadIdentity()
 
-		local currRot = getMiniMapRotationOptions()
+		local currRot = getCurrentMiniMapRotationOption()
 		if currRot == 0 then
 			gl.Translate(0, 1, 0)
 			gl.Scale(1 / msx, -1 / msz, 1)

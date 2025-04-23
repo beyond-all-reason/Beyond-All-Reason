@@ -15,7 +15,7 @@ end
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 
 local maxAllowedWidth = 0.26
@@ -171,7 +171,7 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	local currRot = getMiniMapRotationOptions()
+	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
 		if currRot == 1 or currRot == 3 then
 			-- 90 or 270 degrees

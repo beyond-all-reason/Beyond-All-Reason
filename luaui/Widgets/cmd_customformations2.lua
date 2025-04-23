@@ -23,7 +23,7 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
 
@@ -836,7 +836,7 @@ function widget:DrawInMiniMap()
     glPushMatrix()
     glLoadIdentity()
 
-	local currRot = getMiniMapRotationOptions()
+	local currRot = getCurrentMiniMapRotationOption()
 	if currRot == 0 then
 		gl.Translate(0, 1, 0)
 		gl.Scale(1 / mapSizeX, -1 / mapSizeZ, 1)

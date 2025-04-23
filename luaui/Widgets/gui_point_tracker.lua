@@ -16,7 +16,7 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapRotationOptions = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapRotationOptions
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -236,7 +236,7 @@ function DrawMapMarksWorld(isMiniMap)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("mapRotation", getMiniMapRotationOptions() or 0)
+		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
