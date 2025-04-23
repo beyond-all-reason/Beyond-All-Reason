@@ -9,6 +9,7 @@ return {
 		collisionvolumescales = "32 29 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
+		damagemodifier = 0.5,
 		energycost = 19000,
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 4,

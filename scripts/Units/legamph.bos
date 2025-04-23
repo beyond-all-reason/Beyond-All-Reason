@@ -1421,17 +1421,35 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	signal SIG_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	//get PRINT(anglex, anglez, weaponid, dmg);
-	if (anglez < 0)
-	{
-		ldamage = dmg + ldamage;
-	}
-	if (anglez > 0)
-	{
-		rdamage = dmg + rdamage;
-	}
+	//FIXME: Directional Armor.
+	ldamage = dmg + ldamage;
+	/*if (anglez < 0) {
+		ldamage = dmg + ldamage;  }
+	if (anglez > 0) {
+		rdamage = dmg + rdamage; }*/
 	start-script repairShield();
 	//750, about 1/4th of max HP
 	if ((ldamage > 75000) AND (lshieldup == 1))
+	{
+		// Start Animation: Break Shield;
+		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide rfin1;
+		hide lfin2;
+		hide rfin3;
+		hide lfin3;
+		hide lfin5;
+		hide lfin4;
+		// End Animation
+		set ARMORED to 0;
+		lshieldup = 0;
+	}
+/*	if ((ldamage > 75000) AND (lshieldup == 1))
 	{
 		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
 		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -1459,7 +1477,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		set ARMORED to 0;
 		rshieldup = 0;
 	}
-	return (100); //return damage percent
+	return (100); //return damage percent*/
 }
 
 // Restore this units hume shield after 15000ms / 15 seconds, restore armored state
