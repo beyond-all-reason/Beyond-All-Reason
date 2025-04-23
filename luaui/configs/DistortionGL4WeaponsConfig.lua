@@ -337,16 +337,6 @@ local BaseClasses = {
 			effectType = "airShockwave", },
 
 	},
-
-	AirShockWaveEMP = {
-		distortionType = 'point', -- or cone or beam
-		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.1, noiseStrength = 0.1, onlyModelMap = 1,
-			lifeTime = 10, refractiveIndex = 1.03, decay = 4, rampUp = 8,
-			effectStrength = 1.75, --needed for airshockwaves
-			effectType = "airShockwave", },
-
-	},
 	AirShockWaveDgun = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
@@ -669,13 +659,59 @@ local BaseClasses = {
 		},
 	},
 
+	EMPShockWave = { -- Short distortion wave for EMP
+		distortionType = 'point', 
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200,
+			noiseStrength = 2.5, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 1,
+			lifeTime = 20, effectStrength = -1.5, startRadius = 0.4,
+			rampUp = 5, decay = 15, shockWidth = 8, effectType = 2,
+		},
+	},
+
+	EMPNoise = { -- Circle area-distortion-effect for EMP
+		distortionType = 'point',
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200,
+			noiseStrength = 0.85, noiseScaleSpace = 0.1, distanceFalloff = 0.1, onlyModelMap = 1,
+			startRadius = 0.60, shockWidth = 20, refractiveIndex = -1.2,
+			effectStrength = 0.7,
+			windAffected = -0.95, riseRate = -0.95,
+			lifeTime = 80, rampUp = 10, decay = 30, effectType = 13,
+		},
+	},
+	EMPRipples = { -- Circle area-distortion-effect for EMP
+		distortionType = 'point',
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200,
+			noiseStrength = 6.0, noiseScaleSpace = 0.38, distanceFalloff = 0.1, onlyModelMap = -1,
+			startRadius = 0.5, shockWidth = 1.05, refractiveIndex = -1.2,
+			effectStrength = 5,
+			windAffected = -1, riseRate = -1,
+			lifeTime = 59, rampUp = 19, decay = 40, effectType = 'groundShockwave',
+		},
+	},
+
+	AirShockWaveEMP = { -- Noised/electric Shockwave ripple on units
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.15, noiseStrength = 0.8, onlyModelMap = 0,
+			lifeTime = 12, refractiveIndex = 1.03, decay = 4, rampUp = 8,
+			effectStrength = 1.75, shockWidth = -0.30, --needed for airshockwaves
+			effectType = "airShockwave", },
+
+	},
+
 	JunoShockWave = { -- big distorted shockwave
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10,
 			noiseStrength = 2.5, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 1,
-			lifeTime = 40, effectStrength = -11, startRadius = 0.1,
+			lifeTime = 40, effectStrength = -11, startRadius = 0.2,
 			rampUp = 10, decay = 30,  shockWidth = 14, effectType = 2,
 		},
 	},
@@ -1128,50 +1164,27 @@ explosionDistortionsNames['armmav_armmav_weapon'] = {
 	}),
 }
 
+explosionDistortionsNames['armemp_armemp_weapon'] = {
+	GetDistortionClass("EMPShockWave", "Medium", {
+	effectStrength = -2.5,
+	}),
+	GetDistortionClass("EMPNoise", "SmallMedium", {
+	}),	
+ 	GetDistortionClass("EMPRipples", "Medium", {
+	}),
+	GetDistortionClass("AirShockWaveEMP", "Tiny", {
+	}),
+}
+
 explosionDistortionsNames['armstil_stiletto_bomb'] = {
-	-- JUNO SHOCK
-	GetDistortionClass("JunoShockWave", "Small", {
-		lifeTime = 20, rampUp = 10, decay = 10,
-		effectStrength = -3,
+	GetDistortionClass("EMPShockWave", "Smaller", {
 	}),
-	GetDistortionClass("JunoNoise", "Small", {
-		lifeTime = 80, rampUp = 10, decay = 30,
+	GetDistortionClass("EMPNoise", "Smaller", {
+	}),	
+ 	GetDistortionClass("EMPRipples", "SmallMedium", {
 	}),
-
-	-- Electric Ground Decals - not perfect yet
-	-- GetDistortionClass("GroundShockWave", "Small", {
-	-- 	noiseStrength = 125.0, noiseScaleSpace = 0.13, distanceFalloff = 0.9, onlyModelMap = 1,
-	-- 	lifeTime = 190, effectStrength = 3,
-	-- 	windAffected = -1, riseRate = 6,
-	-- 	rampUp = 50, decay = 0, shockWidth = 10,
-	-- }),
-
-	-- Heat Radiation
-	-- GetDistortionClass("ExplosionHeat", "Smallish", {
-	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.25, distanceFalloff = -0.05,
-	-- 	--effectStrength = 1.0, -- don't use, doesn't fade out correct
-	-- 	windAffected = -1, riseRate = 1,
-	-- 	lifeTime = 140, rampUp = 50, decay = 90, onlyModelMap = 1,
-	-- }),
-
-	-- Noised/electric Shockwave
-	-- GetDistortionClass("GroundShockWave", "SmallMedium", {
-	-- 	noiseStrength = 6.0, noiseScaleSpace = 0.32, distanceFalloff = 0.1, onlyModelMap = 0,
-	-- 	lifeTime = 59, effectStrength = 6,
-	-- 	windAffected = -1, riseRate = -1,
-	-- 	rampUp = 70, decay = 3, shockWidth = 1.05,
-	-- }),
-	-- GetDistortionClass("AirShockWaveEMP", "Small", {
-	-- })
-
-	--
-	-- GetDistortionClass("ExplosionHeat", "SmallMedium", {
-	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
-	-- 	effectStrength = 1.0, -- don't use, doesn't fade out correct
-	-- 	windAffected = -1, riseRate = 9,
-	-- 	lifeTime = 200, rampUp = 50, decay = 50, onlyModelMap = 1,
-	-- }),
-
+	GetDistortionClass("AirShockWaveEMP", "Micro", {
+	}),
 }
 
 -- OLD ACIDBOMB EXPLOSION DISTORTIONS
@@ -1545,6 +1558,18 @@ explosionDistortionsNames['corsilo_crblmssl'] = {
 
 projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['nuketest_nuketest'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+}
+
+explosionDistortionsNames['nuketestcor_nuketestcor'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+}
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),

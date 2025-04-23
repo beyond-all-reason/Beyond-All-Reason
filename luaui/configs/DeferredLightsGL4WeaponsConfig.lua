@@ -106,6 +106,17 @@ local BaseClasses = {
 		},
 	},
 
+	MissileProjectileEMP = {
+		lightType = 'point', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 150,
+			r = 1, g = 1, b = 2, a = 0.7,
+			color2r = 0.2, color2g = 0.2, color2b = 0.5, colortime = 8, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.3, specular = 0.1, scattering = 0.5, lensflare = 8,
+			lifetime = 0, sustain = 0, selfshadowing = 3, 
+		},
+	},
+
 	LaserAimProjectile = {
 		lightType = 'cone', -- or cone or beam
 		lightConfig = {
@@ -191,14 +202,15 @@ local BaseClasses = {
 
 	ExplosionEMP = { -- spawned on explosions
 		lightType = 'point', -- or cone or beam
-		yOffset = 2, -- Y offsets are only ever used for explosions!
+		yOffset = 12, -- Y offsets are only ever used for explosions!
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 140,
-			dirx = 0, diry = 0.018, dirz = 0, theta = 0.93,
-			r = 2, g = 2, b = 4, a = 1.8,
-			color2r = 0.3, color2g = 0.3, color2b = 0.6, colortime = 1.4, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.15, specular = 0.15, scattering = 0.6, lensflare = 0,
-			lifetime = 90, sustain = 60, selfshadowing = 0, 
+			--dirx = 0, diry = 0.018, dirz = 0, theta = 0.93,
+			dirx = 0, diry = 0.2, dirz = 0, theta = 0.93,
+			r = 2, g = 2, b = 4, a = 1.2,
+			color2r = 0.3, color2g = 0.3, color2b = 0.6, colortime = 1.5, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.3, specular = -0.5, scattering = 0.5, lensflare = 0,
+			lifetime = 90, sustain = 50, selfshadowing = 2, 
 		},
 	},
 
@@ -264,6 +276,7 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Fire  = 	{r = 0.8, g = 0.3, b = 0.05},
 	Warm  = 	{r = 0.7, g = 0.7, b = 0.1},
 	Cold  = 	{r = 0.5, g = 0.75, b = 1.0},
+	Emp  = 		{r = 0.5, g = 0.5, b = 1.0},
 	Team  = 	{r = -1, g = -1, b = -1},
 }
 
@@ -490,6 +503,10 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.5, 0.75, 1.0
 				t.color2r, t.color2g, t.color2b = 0.22, 0.37, 0.79
 				projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Cold", sizeclass, t)
+			elseif weaponDef.paralyzer then
+				t.a = orgMult * 1.2
+				sizeclass = GetClosestSizeClass(radius * 0.4)
+				projectileDefLights[weaponID] = GetLightClass("MissileProjectileEMP", "Warm", sizeclass, t)
 			else	
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
@@ -705,6 +722,13 @@ GetLightClass("ExplosionXL", nil, "Large", {colortime = 4, sustain = 12, lifetim
 explosionLightsNames["armstil_stiletto_bomb"] =
 GetLightClass("ExplosionEMP", nil, "Medium", {
 })
+
+-- --armemp
+-- projectileDefLightsNames["armemp_armemp_weapon"] =
+-- GetLightClass("MissileProjectile", "Emp", "Small", {
+-- 	a = 1.6,
+-- 	modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0,
+-- })
 
 --armbrtha
 muzzleFlashLightsNames["armbrtha_lrpc"] =
