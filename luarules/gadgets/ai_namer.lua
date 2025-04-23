@@ -184,6 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
+		"Nunnsey",
 		"obliterator",
 		"OmegaWolf",
 		"outerorbit",
