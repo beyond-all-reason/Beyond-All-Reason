@@ -16495,6 +16495,7 @@ local unitLights = {
 
 	},
 
+
 	['armvader'] = {
 		-- redlight = {
 		-- 	lightType = 'point',
@@ -23380,6 +23381,7 @@ local unitEventLightsNames = {
 				lifetime = 200, sustain = 15, animtype = 0},
 			},
 		},
+
 
 		['cordemon'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
