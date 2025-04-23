@@ -16158,6 +16158,9 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legamph'] = {
+
+	},
 	['legionnaire'] = {
 		thruster1 = {
 			lightType = 'point',
@@ -22855,6 +22858,10 @@ local unitEventLightsNames = {
 					modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0,
 					lifetime = 80, sustain = 5},
 			},
+		},
+
+		['legamph'] = {
+
 		},
 		['legelrpcmech'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
