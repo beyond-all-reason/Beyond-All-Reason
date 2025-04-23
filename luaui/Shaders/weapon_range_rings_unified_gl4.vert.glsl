@@ -65,6 +65,7 @@ out DataVS {
 		SUniformsBuffer uni[];
 	};
 
+	#define UNITUNIFORMS uni[instData.y]
 	#define UNITID (uni[instData.y].composite >> 16)
 #endif
 
@@ -348,7 +349,7 @@ void main() {
 	if (ISDGUN > 0.5) {
 		FADEALPHA  = clamp((FADEEND + fadeDistOffset + 1000 - distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
 	} else {
-		FADEALPHA  = clamp((FADEEND + fadeDistOffset - distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
+		FADEALPHA  = clamp((FADEEND + fadeDistOffset -        distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
 	}
 		// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
@@ -436,14 +437,21 @@ void main() {
 	}
 	// Additional unituniform based selectedness metrics:
 
-	float vs_selunitcount = selUnitCount;
+	// 0 = unit is un selected, 1 = unit is selected, 0.5 =  ally also selected unit, +2 = its mouseovered
+	float selectedness = 0.0;
+	
+	#if (STATICUNITS == 0)
+		selectedness = UNITUNIFORMS.userDefined[1].z;
+	#endif
+
+	float selectedUnitCount = selUnitCount;
 	// -- nano is 2
 	if(WEAPONTYPE == 2.0) {
-		vs_selunitcount = selBuilderCount;
+		selectedUnitCount = selBuilderCount;
 	}
-	vs_selunitcount = clamp(selUnitCount, 1, 25);
+	selectedUnitCount = clamp(selUnitCount, 1, 25);
 
-	float innerRingDim = GROUPSELECTIONFADESCALE * 0.1 * vs_selunitcount;
+	float innerRingDim = GROUPSELECTIONFADESCALE * 0.1 * selectedUnitCount;
 	float finalAlpha = drawAlpha;
 	if(drawMode == 2.0) {
 		finalAlpha = drawAlpha / pow(innerRingDim, 2);

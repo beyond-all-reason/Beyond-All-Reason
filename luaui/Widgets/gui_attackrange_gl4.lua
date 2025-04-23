@@ -17,6 +17,35 @@ function widget:GetInfo()
 		depends = {'gl4'},
 	}
 end
+---------------------------
+
+--[[
+Notes 2025.04.21
+Could we try to disable all engine range rings - and add them where needed?
+
+- [ ] attack
+	- Should already be completely handled by attack range gl4
+build
+radar
+- [ ] Needs a circle within radarpreview
+- [ ] Needs a circle when mouseovered?
+sonar
+seismic
+jammer
+sonarjammer
+shield
+
+decloak (already in widget Cloak/EMP range?)
+extract
+	- [ ] I dont think this is needed at all any more with mex snap
+Kamikaze? (do we use that)
+SelfDestruct
+InterceptorOn
+InterceptorOff
+
+
+]]--
+
 
 -------------------------------------
 local autoReload = false
@@ -451,31 +480,6 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local function makeCircleVBO(circleSegments)
-	circleSegments  = circleSegments - 1 -- for po2 buffers
-	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
-
-	local VBOLayout = {
-		{ id = 0, name = "position", size = 4 },
-	}
-
-	local VBOData = {}
-
-	for i = 0, circleSegments do -- this is +1
-		VBOData[#VBOData + 1] = math.sin(math.pi * 2 * i / circleSegments) -- X
-		VBOData[#VBOData + 1] = math.cos(math.pi * 2 * i / circleSegments) -- Y
-		VBOData[#VBOData + 1] = i / circleSegments -- circumference [0-1]
-		VBOData[#VBOData + 1] = 0
-	end
-
-	circleVBO:Define(
-		circleSegments + 1,
-		VBOLayout
-	)
-	circleVBO:Upload(VBOData)
-	return circleVBO
-end
 
 local cacheTable = {}
 for i = 1, 24 do cacheTable[i] = 0 end
@@ -524,7 +528,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					if weaponDef.range > 2000 then 
+					if weaponDef.range < 700 then 
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					elseif weaponDef.range > 2000 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
@@ -1007,6 +1013,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
 				glStencilMask(stencilMask) -- only allow these bits to get written
+				-- Bitwise AND the stencil buffer with stencilMask when GL_NOTEQUAL:
 				glStencilFunc(GL_NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
 				iT.VAO:DrawArrays(primitiveType, iT.numVertices, 0, iT.usedElements, 0) -- +1!!!
 			end
@@ -1047,45 +1054,52 @@ function widget:DrawWorld(inMiniMap)
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		glTexture(2, '$normals')
- 
 		-- Stencil Setup
-		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+		-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
-			glClear(GL_STENCIL_BUFFER_BIT)   -- clear prev stencil
-			glDepthTest(false)               -- always draw
+			glClear(GL_STENCIL_BUFFER_BIT)   -- clear previous stencil
+			glDepthTest(false)               -- always draw, ignore depth test
+
+			-- Draw the filled circles onto the stencil buffer 
 			glStencilTest(true)              -- enable stencil test
-			glStencilMask(255)               -- all 8 bits
-			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+			glStencilMask(255)               -- set all 8 bits to writeable
+
+			-- 1. Stencil test fails: GL_KEEP existing stencil value
+			-- 2. Z test fails: GL_KEEP existing stencil value
+			-- 3. Both tests pass: GL_REPLACE stencil value with desired number
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To [mask] Where Draw Any Polygon
 
 			attackRangeShader:Activate()
-			
 			attackRangeShader:SetUniform("selUnitCount", selUnitCount)
 			attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
 			attackRangeShader:SetUniform("drawMode", 0.0)
 			attackRangeShader:SetUniform("inMiniMap", inMiniMap and 1.0 or 0.0)
-
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
+
+			-- Draw the outside rings by testing the stencil buffer
 			glLineWidth(math.max(0.1, 4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true) -- re-enable color drawing
 			glStencilMask(0) 
-
-			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.externalalpha)
-
 			glDepthTest(GL_LEQUAL) -- test for depth on these outside cases
 
+			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.externalalpha)
 			attackRangeShader:SetUniform("drawMode", 1.0)
 			attackRangeShader:SetUniform("drawAlpha", 1.0)
+
 			DRAWRINGS(GL_LINE_LOOP, inMiniMap and 'minimapexternallinethickness' or 'externallinethickness') -- DRAW THE OUTER RINGS
+			
 			-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
-			glStencilTest(false)
-			glStencilMask(255)
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-			glClear(GL_STENCIL_BUFFER_BIT)
-			-- All the above are needed :()
+			glStencilTest(false) -- Disable the stencil test
+			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
+			glClear(GL_STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
+			-- All the above are needed :O
 		end 
 
+		-- After all the stenciled drawings, we have disabled the stencil test, so we can draw the inner rings
 		if colorConfig.drawInnerRings then
 			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.internalalpha)
 			attackRangeShader:SetUniform("drawMode", 2.0)
@@ -1106,31 +1120,6 @@ function widget:DrawInMiniMap()
 	-- do a sanity check and dont draw here if there are too many units selected...
 	widget:DrawWorld(true) 
 end
-
-
--- Need to add all the callins for handling unit creation/destruction/gift of builders
-
---[[
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
-		builders[unitID] = true
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if newTeam == myAllyTeam and unitBuilder[unitDefID] then
-		builders[unitID] = true
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
-		builders[unitID] = nil
-		RemoveSelectedUnit(unitID, false)
-	end
-end
-]]--
-
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID and unitBuilder[unitDefID] then
