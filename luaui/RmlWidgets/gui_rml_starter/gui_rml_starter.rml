@@ -76,6 +76,9 @@
         <div id="expanding-content" data-class-expanded="expanded" class="absolute bg-accent-50 flex flex-col items-end">
             <input type="checkbox" value="expanded" data-checked="expanded"/>
             <p>{{message}}</p>
+            <div class="actions flex flex-col gap-2 h-10 m-1">
+                <span data-for="test, i: testArray">name:{{test.name}} index:{{i}}</span>
+            </div>
         </div>
     </div>
 </body>

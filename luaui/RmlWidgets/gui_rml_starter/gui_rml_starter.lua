@@ -21,6 +21,11 @@ local dm_handle
 local init_model = {
     expanded = false,
     message = "Hello, find my text in the data model!",
+    testArray = {
+        { name = "Item 1", value = 1 },
+        { name = "Item 2", value = 2 },
+        { name = "Item 3", value = 3 },
+    },
 }
 
 local main_model_name = "starter_model"
