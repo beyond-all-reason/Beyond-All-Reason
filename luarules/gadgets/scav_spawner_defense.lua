@@ -715,19 +715,17 @@ if gadgetHandler:IsSyncedCode() then
 		local squadCounter = 0
 		if scavType then
 			if not count then count = 1 end
-			for i = 1, count do
-				if UnitDefNames[scavType] and count and count > 0 then
-					for j = 1, count, 1 do
-						if mRandom() <= config.spawnChance or j == 1 then
-							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = scavType, team = scavTeamID, squadID = squadCounter })
-						end
+			if UnitDefNames[scavType] then
+				for j = 1, count, 1 do
+					if mRandom() <= config.spawnChance or j == 1 then
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = scavType, team = scavTeamID, squadID = squadCounter })
 					end
-				elseif not UnitDefNames[scavType] then
-					Spring.Echo("[ERROR] Invalid Scav Unit Name", scavType)
-				else
-					Spring.Echo("[ERROR] Invalid Scav Squad", scavType)
 				end
+			elseif not UnitDefNames[scavType] then
+				Spring.Echo("[ERROR] Invalid Scav Unit Name", scavType)
+			else
+				Spring.Echo("[ERROR] Invalid Scav Squad", scavType)
 			end
 		else
 			squadCounter = 0
