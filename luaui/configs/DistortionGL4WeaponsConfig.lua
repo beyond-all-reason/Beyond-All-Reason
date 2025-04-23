@@ -1176,6 +1176,18 @@ explosionDistortionsNames['armemp_armemp_weapon'] = {
 	}),
 }
 
+explosionDistortionsNames['spybombx'] = {
+	GetDistortionClass("EMPShockWave", "Medium", {
+	effectStrength = -2.5,
+	}),
+	GetDistortionClass("EMPNoise", "SmallMedium", {
+	}),	
+ 	GetDistortionClass("EMPRipples", "Medium", {
+	}),
+	GetDistortionClass("AirShockWaveEMP", "Tiny", {
+	}),
+}
+
 explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	GetDistortionClass("EMPShockWave", "Smaller", {
 	}),
@@ -1186,6 +1198,8 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	GetDistortionClass("AirShockWaveEMP", "Micro", {
 	}),
 }
+
+
 
 -- OLD ACIDBOMB EXPLOSION DISTORTIONS
 -- explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
@@ -1545,6 +1559,30 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 
 projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['customfusionexplo'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+}
+
+explosionDistortionsNames['korgexplosion'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+}
+
+explosionDistortionsNames['korgexplosionselfd'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+}	
+
+explosionDistortionsNames['advancedfusionexplosionselfd'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+}	
 
 explosionDistortionsNames['corsilo_crblmssl'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
