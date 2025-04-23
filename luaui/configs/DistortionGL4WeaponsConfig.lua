@@ -623,7 +623,7 @@ local BaseClasses = {
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10,
 			noiseStrength = 75, noiseScaleSpace = 0.034, distanceFalloff = 0.5, onlyModelMap = 0,
-			windAffected = -1,  riseRate = 0.3,
+			windAffected = -1,  riseRate = 0.3, startRadius = 0.4,
 			lifeTime = 12, rampUp = 2, decay = 10, effectType = 0,
 		},
 	},
@@ -1547,6 +1547,16 @@ explosionDistortionsNames['armlichet4_nuclear_missile'] = {
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 }
 
+explosionDistortionsNames['commanderexplosion'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Large"),
+	GetDistortionClass("AirShockWaveNuke", "Large", {
+		lifeTime = 80, decay = 25, rampUp = 50,
+		effectStrength = 10.0,
+		refractiveIndex = 1.25, shockWidth = -0.5,
+		}),
+	GetDistortionClass("GroundShockWaveNuke", "Mega"),
+}
+
 explosionDistortionsNames['armsilo_nuclear_missile'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
@@ -1562,8 +1572,13 @@ projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
 
 explosionDistortionsNames['customfusionexplo'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
-	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
-	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke", {
+		lifeTime = 20, decay = 15, rampUp = 5,
+		effectStrength = 10.0,
+		}),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke", {
+		lifeTime = 50, decay = 40, rampUp = 10,
+		}),
 }
 
 explosionDistortionsNames['korgexplosion'] = {
