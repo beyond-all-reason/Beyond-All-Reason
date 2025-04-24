@@ -10,7 +10,13 @@ function widget:GetInfo()
 	}
 end
 
-local mode = 2 -- 1 = manual, 2 = auto flip, 3 = auto rotate
+local CameraRotationModes = {
+	manual = 1,
+	autoFlip = 2,
+	autoRotate = 3,
+}
+
+local mode
 local prevSnap
 
 
@@ -24,7 +30,7 @@ local spGetMiniRot		= 	Spring.GetMiniMapRotation
 --------------------------------------------------------------------------------
 
 local function manual_rotate(_,_,_, clock)
-	if mode ~= 1 then return end
+	if mode ~= CameraRotationModes.manual then return end
 	local currentRadians = spGetMiniRot()
 	local currRotOption = math.floor((currentRadians / (math.pi / 2) + 0.5) % 4)
 	local newOption = (clock[1]) and ((currRotOption + 1) % 4) or ((currRotOption - 1) % 4)
@@ -35,7 +41,7 @@ end
 
 
 local function reloadBindings()
-	if mode ~= 1 then
+	if mode ~= CameraRotationModes.manual then
 		widgetHandler:RemoveAction("rotate_minimap_clockwise")
 		widgetHandler:RemoveAction("rotate_minimap_counterclockwise")
 	else
@@ -44,18 +50,25 @@ local function reloadBindings()
 	end
 end
 
+local function isValidOption(num)
+	if num == nil then return false end
+	if num < CameraRotationModes.manual or num > CameraRotationModes.autoRotate then return false end
+	return true
+end
 
 function widget:Initialize()
 	WG['minimaprotationmanager'] = {}
 	WG['minimaprotationmanager'].setMode = function(newMode)
-		mode = newMode
-		reloadBindings()
+		if isValidOption(newMode) then
+			mode = newMode
+			reloadBindings()
+		end
 	end
 	WG['minimaprotationmanager'].getMode = function()
 		return mode
 	end
 	local temp = WG['options'].getOptionValue("minimaprotation")
-	if temp ~= nil then -- Sync up when the widget was unloaded
+	if isValidOption(temp) then -- Sync up when the widget was unloaded
 		mode = temp
 	end
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
@@ -71,11 +84,11 @@ function widget:Shutdown()
 end
 
 function widget:CameraRotationChanged(_, roty)
-	if mode == 1 then return end
+	if mode == CameraRotationModes.manual then return end
 	local newRot
-	if mode == 2 then
+	if mode == CameraRotationModes.autoFlip then
 		newRot = math.pi * math.floor((roty/math.pi) + 0.5)
-	elseif mode == 3 then
+	elseif mode == CameraRotationModes.autoRotate then
 		newRot = math.pi/2 * (math.floor((roty/(math.pi/2)) + 0.5) % 4)
 	end
 	if newRot ~= prevSnap then
