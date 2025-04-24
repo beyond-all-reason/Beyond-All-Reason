@@ -56,14 +56,14 @@ function widget:Initialize()
 		return mode
 	end
 	mode = WG['options'].getOptionValue("minimaprotation") -- Sync up when the widget was unloaded
-	oldRotation = Spring.GetConfigInt("MiniMapCanFlip", 0) -- Store engine legacy behavior
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 	reloadBindings()
 end
 
 function widget:Shutdown()
 	WG['minimaprotationmanager'] = nil
-	Spring.SetConfigInt("MiniMapCanFlip", oldRotation)
+	if mode == 3 then mode = 2 end
+	Spring.SetConfigInt("MiniMapCanFlip", mode-1) -- keep behavior as the settings tab shows it while removing 90* option
 end
 
 function widget:CameraRotationChanged(_, roty)
