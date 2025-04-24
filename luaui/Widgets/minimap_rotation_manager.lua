@@ -36,11 +36,11 @@ end
 
 local function reloadBindings()
 	if mode ~= 1 then
-		widgetHandler:RemoveAction("rotate_clockwise")
-		widgetHandler:RemoveAction("rotate_counterclockwise")
+		widgetHandler:RemoveAction("rotate_minimap_clockwise")
+		widgetHandler:RemoveAction("rotate_minimap_counterclockwise")
 	else
-		widgetHandler:AddAction("rotate_clockwise", manual_rotate, {true}, "p")
-		widgetHandler:AddAction("rotate_counterclockwise", manual_rotate, {false}, "p")
+		widgetHandler:AddAction("rotate_minimap_clockwise", manual_rotate, {true}, "p")
+		widgetHandler:AddAction("rotate_minimap_counterclockwise", manual_rotate, {false}, "p")
 	end
 end
 
@@ -65,8 +65,8 @@ end
 function widget:Shutdown()
 	WG['minimaprotationmanager'] = nil
 	if mode == 1 then
-		widgetHandler:RemoveAction("rotate_clockwise")
-		widgetHandler:RemoveAction("rotate_counterclockwise")
+		widgetHandler:RemoveAction("rotate_minimap_clockwise")
+		widgetHandler:RemoveAction("rotate_minimap_counterclockwise")
 	end
 end
 
