@@ -47,7 +47,6 @@ end
 
 
 function widget:Initialize()
-	mode = WG['options'].getOptionValue("minimaprotation") -- Sync up when the widget was unloaded
 	WG['rotationmanager'] = {}
 	WG['rotationmanager'].setMode = function(newMode)
 		mode = newMode
@@ -56,8 +55,10 @@ function widget:Initialize()
 	WG['rotationmanager'].getMode = function()
 		return mode
 	end
+	mode = WG['options'].getOptionValue("minimaprotation") -- Sync up when the widget was unloaded
 	oldRotation = Spring.GetConfigInt("MiniMapCanFlip", 0) -- Store engine legacy behavior
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
+	reloadBindings()
 end
 
 function widget:Shutdown()
@@ -66,9 +67,9 @@ function widget:Shutdown()
 end
 
 function widget:CameraRotationChanged(_, roty)
+	if mode == 1 then return end
 	local newRot
-	if mode == 1 then return
-	elseif mode == 2 then
+	if mode == 2 then
 		newRot = math.pi * math.floor((roty/math.pi) + 0.5)
 	elseif mode == 3 then
 		newRot = math.pi/2 * (math.floor((roty/(math.pi/2)) + 0.5) % 4)
