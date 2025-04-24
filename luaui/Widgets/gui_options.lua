@@ -3412,8 +3412,8 @@ function init()
 		onchange = function(i, value)
 			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
 				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
-			  elseif value ~= 3 then
-				  Spring.SetConfigInt("MiniMapCanFlip", value-1)
+			  else
+				widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
 			  end
 		  end,
 		},
