@@ -42,6 +42,9 @@ if gadgetHandler:IsSyncedCode() then
 			if wd.type == "MissileLauncher" then
 				Script.SetWatchExplosion(wdid, true)
 			end
+            if wd.type == "AircraftBomb" then
+                Script.SetWatchExplosion(wdid, true)
+            end
         end
     end
     function gadget:Shutdown()
