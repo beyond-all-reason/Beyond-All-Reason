@@ -1676,7 +1676,7 @@ local function drawUi()
 									translatedY + (lineHeight*checkedLines) + lineHeight
 								}
 								if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
-									UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, useRenderToTexture and (b and 0.7 or 0.6) or(b and 0.33 or 0.23))
+									UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, useRenderToTexture and (b and 0.65 or 0.55) or(b and 0.33 or 0.23))
 									if b then
 										-- mapmark highlight
 										if chatLines[i].coords then
@@ -1814,7 +1814,8 @@ function widget:DrawScreen()
 	end
 
 	-- TODO: get some mouseover-click logic of drawUi() in here instead of doing updateDrawUi every frame
-	if historyMode and historyMode == 'chat' then
+	local ctrlHover = enableShortcutClick and ctrl and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4])
+	if ctrlHover or (historyMode and historyMode == 'chat') then
 		updateDrawUi = true
 	end
 
