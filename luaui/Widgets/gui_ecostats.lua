@@ -73,7 +73,7 @@ local lastPlayerChange = 0
 local aliveAllyTeams = 0
 local right = true
 local widgetHeight = 0
-local widgetWidth = 130
+local widgetWidth = 125
 local tH = 40 -- team row height
 local WBadge = 14 -- width of player badge (team rect)
 local HBadge = 14 -- width of player badge (team rect)
@@ -269,7 +269,7 @@ local function updateButtons()
 end
 
 local function setDefaults()
-	widgetWidth = 120    -- just the bars area
+	widgetWidth = 125    -- just the bars area
 	right = true
 	tH = 32
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
@@ -653,18 +653,6 @@ local function makeTeamCompositionList()
 				gl.PopMatrix()
 			end)
 		end
-		--if uiTex then
-		--	gl.RenderToTexture(uiTex, function()
-		--		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		--		gl.Color(1,1,1,1)
-		--		gl.PushMatrix()
-		--		gl.Translate(-1, -1, 0)
-		--		gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-		--		gl.Translate(-areaRect[1], -areaRect[2], 0)
-		--		DrawTeamComposition()
-		--		gl.PopMatrix()
-		--	end)
-		--end
 	else
 		if teamCompositionList then
 			gl.DeleteList(teamCompositionList)
@@ -796,7 +784,7 @@ local function DrawEBar(tE, tEp, vOffset)
 	local barheight = 1 + math.floor(tH * 0.08)
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 1.95)
+		maxW = (widgetWidth / 2.15)
 	end
 
 	-- background
@@ -894,7 +882,7 @@ local function DrawMBar(tM, tMp, vOffset)
 
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 1.95)
+		maxW = (widgetWidth / 2.15)
 	end
 	-- background
 	glColor(0.8, 0.8, 0.8, useRenderToTexture and 0.55 or 0.13)
@@ -1463,10 +1451,9 @@ function widget:DrawScreen()
 	if uiTex then
 		if os.clock() > lastBarsUpdate + 0.15 then
 			gl.RenderToTexture(uiTex, function()
-				if os.clock() > lastTextListUpdate + 0.5 then
-					--gl.Scissor(widgetWidth - (23 * sizeMultiplier), 0, widgetWidth, widgetHeight)
-				else
-					gl.Scissor(widgetWidth - (93 * sizeMultiplier), 0, widgetWidth - (48 * sizeMultiplier), widgetHeight)
+				if cfgResText and os.clock() <= lastTextListUpdate + 0.5 then
+					-- only clean non text area
+					gl.Scissor(0, 0, areaRect[3]-areaRect[1] - (48 * sizeMultiplier), widgetHeight)
 				end
 				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 				gl.Scissor(false)
