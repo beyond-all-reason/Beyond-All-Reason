@@ -39,7 +39,6 @@ local function reloadBindings()
 	if mode ~= 1 then
 		widgetHandler:RemoveAction("rotate_clockwise")
 		widgetHandler:RemoveAction("rotate_counterclockwise")
-		return
 	else
 		widgetHandler:AddAction("rotate_clockwise", manual_rotate, {true}, "p")
 		widgetHandler:AddAction("rotate_counterclockwise", manual_rotate, {false}, "p")
@@ -67,7 +66,6 @@ function widget:Shutdown()
 end
 
 function widget:CameraRotationChanged(_, roty)
-	Spring.Echo(mode)
 	local newRot
 	if mode == 1 then return
 	elseif mode == 2 then
@@ -75,7 +73,6 @@ function widget:CameraRotationChanged(_, roty)
 	elseif mode == 3 then
 		newRot = math.pi/2 * (math.floor((roty/(math.pi/2)) + 0.5) % 4)
 	end
-	Spring.Echo(newRot, prevSnap)
 	if newRot ~= prevSnap then
 		prevSnap = newRot
 		spSetMiniRot(newRot)
