@@ -324,12 +324,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	RemovePrimitive(unitID, "UnitDestroyed")
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	end
-end
-
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	if not IsUnitAllied(unitID) and not GetSpectatingState() then
 		unitRanks[unitID] = nil
@@ -337,6 +331,11 @@ function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
 end
 ]]--
+
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	unitRanks[unitID] = nil
+	RemovePrimitive(unitID, "UnitDestroyed")
+end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if IsUnitAllied(unitID) or GetSpectatingState() then
