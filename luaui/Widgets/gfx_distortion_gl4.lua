@@ -576,6 +576,18 @@ end
 
 
 local function LoadDistortionConfig()
+	local effectTypes = {}
+	local function findeffecttypes(t, res)
+		if not autoupdate then return end
+		for k, v in pairs(t) do 
+			if type(v) == 'table' then
+				findeffecttypes(v, res)
+			elseif k == 'effectType' then
+				res[v] = (res[v] or 0) + 1
+			end
+		end
+		return res
+	end
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DistortionGL4Config.lua')
 	--Spring.Echo("Loading GL4 distortion config", success, result)
 	if success then
@@ -584,6 +596,9 @@ local function LoadDistortionConfig()
 		unitEventDistortions = result.unitEventDistortions
 		featureDefDistortions = result.featureDefDistortions
 		--projectileDefDistortions = result.projectileDefDistortions
+		findeffecttypes(unitDefDistortions, effectTypes)
+		findeffecttypes(unitEventDistortions, effectTypes)
+		findeffecttypes(featureDefDistortions, effectTypes)
 
 	else
 		Spring.Echo("Failed to load GL4 Unit distortion config", success, result)
@@ -613,8 +628,19 @@ local function LoadDistortionConfig()
 		for weaponID, distortionTable in pairs(projectileDefDistortions) do
 			InitializeDistortion(distortionTable)
 		end
+		
+		findeffecttypes(gibDistortion, effectTypes)
+		findeffecttypes(muzzleFlashDistortions, effectTypes)
+		findeffecttypes(explosionDistortions, effectTypes)
+		findeffecttypes(projectileDefDistortions, effectTypes)
 	else
 		Spring.Echo("Failed to load GL4 weapon distortion config", success2, result2)
+	end
+	if autoupdate and false then 
+		Spring.Echo("GL4 Distortion effect types found:")
+		for k,v in pairs(effectTypes) do
+			Spring.Echo(k,v)
+		end
 	end
 	return success and success2
 end
