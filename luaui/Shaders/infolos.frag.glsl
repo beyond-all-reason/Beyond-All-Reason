@@ -81,7 +81,7 @@ vec4 getTexel(in sampler2D tex, in vec2 p, in vec2 sizes)
 		off = (vec2(rand(p.st + off.st), rand(p.ts - off.ts)) * 2.0 - 1.0); 
 		off = off / sizes;
 		//off = (off * abs(off)) / sizes;
-		c += texture2D(tex, p + off * RESOLUTION);
+		c += texture(tex, p + off * RESOLUTION);
 		// USE DFDX!
 		
 	}
@@ -99,7 +99,7 @@ float getTexelF(in sampler2D tex, in vec2 p, in vec2 sizes)
 		off = (vec2(rand(p.st + off.st), rand(p.ts - off.ts)) * 2.0 - 1.0); 
 		off = off / sizes;
 		//off = (off * abs(off)) / sizes;
-		float t = texture2D(tex, p + off * RESOLUTION).r;
+		float t = texture(tex, p + off * RESOLUTION).r;
 		//float tx = dFdx(t);
 		//float ty = dFdy(t);
 		//vec4 neighbours = vec4(t, t + tx, t + ty, t + tx + ty);
