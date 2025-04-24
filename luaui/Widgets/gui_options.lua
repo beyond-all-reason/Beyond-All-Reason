@@ -3401,7 +3401,7 @@ function init()
 		},
 		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_manual'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
 		onload = function(i)
-			if WG['rotationmanager'] ~= nil and WG['rotationmanager'].getMode ~= nil then
+			if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].getMode ~= nil then
 				loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
 			elseif Spring.GetConfigInt("MiniMapCanFlip", 0) == 1 then
 				options[i].value = 2
@@ -3410,8 +3410,8 @@ function init()
 			end
 		end,
 		onchange = function(i, value)
-			  if WG['rotationmanager'] ~= nil and WG['rotationmanager'].setMode ~= nil then
-				  saveOptionValue("Minimap Rotation Manager", "rotationmanager", "setMode", { 'mode' }, value)
+			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
+				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
 			  elseif value ~= 3 then
 				  Spring.SetConfigInt("MiniMapCanFlip", value-1)
 			  end

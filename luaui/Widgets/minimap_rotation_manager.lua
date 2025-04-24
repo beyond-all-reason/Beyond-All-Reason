@@ -47,12 +47,12 @@ end
 
 
 function widget:Initialize()
-	WG['rotationmanager'] = {}
-	WG['rotationmanager'].setMode = function(newMode)
+	WG['minimaprotationmanager'] = {}
+	WG['minimaprotationmanager'].setMode = function(newMode)
 		mode = newMode
 		reloadBindings()
 	end
-	WG['rotationmanager'].getMode = function()
+	WG['minimaprotationmanager'].getMode = function()
 		return mode
 	end
 	mode = WG['options'].getOptionValue("minimaprotation") -- Sync up when the widget was unloaded
@@ -62,7 +62,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['rotationmanager'] = nil
+	WG['minimaprotationmanager'] = nil
 	Spring.SetConfigInt("MiniMapCanFlip", oldRotation)
 end
 
