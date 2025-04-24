@@ -55,15 +55,20 @@ function widget:Initialize()
 	WG['minimaprotationmanager'].getMode = function()
 		return mode
 	end
-	mode = WG['options'].getOptionValue("minimaprotation") -- Sync up when the widget was unloaded
+	local temp = WG['options'].getOptionValue("minimaprotation")
+	if temp ~= nil then -- Sync up when the widget was unloaded
+		mode = temp
+	end
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 	reloadBindings()
 end
 
 function widget:Shutdown()
 	WG['minimaprotationmanager'] = nil
-	if mode == 3 then mode = 2 end
-	Spring.SetConfigInt("MiniMapCanFlip", mode-1) -- keep behavior as the settings tab shows it while removing 90* option
+	if mode == 1 then
+		widgetHandler:RemoveAction("rotate_clockwise")
+		widgetHandler:RemoveAction("rotate_counterclockwise")
+	end
 end
 
 function widget:CameraRotationChanged(_, roty)
