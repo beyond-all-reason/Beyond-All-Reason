@@ -1320,7 +1320,7 @@
 				"minimapiconsize": "icon scale",
 				"minimapleftclick": "left click moves camera",
 				"minimapleftclick_descr": "Left mouse button will move the camera (it is middle mouse by default)\nwhen disabled: left click(drag) will be selecting units.",
-				"minimaprotation": "Minimap Rotation",
+				"minimaprotation": "rotation mode",
 				"minimaprotation_descr": "Choose between manually rotating or automatic flipping (180 degree) or automatic rotation (90 degree)",
 				"minimaprotation_manual": "Manual",
 				"minimaprotation_autoflip": "Auto Flip 180 Degree",
