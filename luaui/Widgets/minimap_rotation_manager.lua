@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 local mode = 2 -- 1 = manual, 2 = auto flip, 3 = auto rotate
-local oldRotation
 local prevSnap
 
 
