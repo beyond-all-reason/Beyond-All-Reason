@@ -132,10 +132,11 @@ local BaseClasses = {
 		lightType = 'cone', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 100,
-			r = 1, g = 1, b = 1, a = 1,
+			r = 0, g = 0, b = 0, a = 1,
+			color2r = 1, color2g = 0.55, color2b = 0.12, colortime = 30,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	selfshadowing = 0, 
+			lifetime = 0, sustain = 1, 	selfshadowing = 4, 
 		},
 	},
 
@@ -534,6 +535,7 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
+			t.r, t.g, t.b = 0.1, 0.2, 0.5
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass, t)
 
 		elseif weaponDef.type == 'Shield' then
@@ -586,6 +588,13 @@ local function AssignLightsToAllWeapons()
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'Flame' then
 				t.a = orgMult*0.22
+			elseif weaponDef.type == 'TorpedoLauncher' then
+				-- t.r = t.r * 0.5	-- make more red
+				-- t.g = t.g * 0.5	-- make more red
+				-- t.b = t.b * 1.4	-- make more red
+				-- t.color2r = 0.9
+				-- t.color2g = 0.6
+				-- t.color2b = 0.8
 			elseif weaponDef.type == 'BeamLaser' then
 				local mult = 0.85
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult

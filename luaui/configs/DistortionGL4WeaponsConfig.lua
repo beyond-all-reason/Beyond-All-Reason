@@ -366,6 +366,14 @@ local BaseClasses = {
 			effectType = "airShockwave", },
 
 	},
+	TorpedoShockWave = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
+			lifeTime = 10, refractiveIndex = 1.2, decay = 3, rampUp = 3,
+			effectStrength = 2.5, startRadius = 0.25, shockWidth = -0.95,
+			effectType = "airShockwave", },
+	},
 
 	-- ALL CANNON explosion Classes
 
@@ -1048,7 +1056,10 @@ local projectileDefDistortions  = {
 
 				elseif weaponDef.type == 'Flame' then
 					explosionDistortions[weaponID] = {GetDistortionClass("FireHeat", GetClosestSizeClass(radius), overrideTable)}
-
+				
+				elseif weaponDef.type == 'TorpedoLauncher' then
+					explosionDistortions[weaponID] = {GetDistortionClass("TorpedoShockWave", GetClosestSizeClass(radius), overrideTable)}
+		
 				elseif weaponDef.type == 'BeamLaser' then
 					sizeclass = GetClosestSizeClass(radius*0.15) -- works
 					overrideTable = {lifeTime = 2} -- doesnt work
@@ -1061,7 +1072,8 @@ local projectileDefDistortions  = {
 						if weaponDef.paralyzer then
 
 						else
-
+							-- something should be here to config aircraft bombs
+							-- I'd like to add multiple explostions distortions to bombs, but I don't know how to do that yet 
 						end
 					end
 
@@ -1418,6 +1430,9 @@ projectileDefDistortionsNames["corban_banisher"] =
 projectileDefDistortionsNames["armsubk_armsmart_torpedo"] =
 	GetDistortionClass("TorpedoProjectile", "SmallMedium")
 
+explosionDistortionsNames["armsubk_armsmart_torpedo"] = {
+	GetDistortionClass("TorpedoShockWave", "Nano")}
+
 -- projectileDefDistortionsNames['armmanni_atam'] =
 -- 	GetDistortionClass("AirShockWaveBeam", "Small")
 
@@ -1513,7 +1528,7 @@ muzzleFlashDistortionsNames['armthor_thunder'] = {
 
 explosionDistortionsNames['armthund_armbomb'] = {
 	GetDistortionClass("AirShockWave", "Nano", {
-		lifeTime = 11, effectStrength = 0.4, }),
+		lifeTime = 15, effectStrength = 1.6, }),
 	GetDistortionClass("GroundShockWave", "Tiny", {
 		lifeTime = 12, }),
 	GetDistortionClass("ExplosionHeat", "Pico"),
