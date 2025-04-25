@@ -150,6 +150,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "armmg_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				burstControlWhenOutOfArc = 2,
 			},
 		},
 	},
