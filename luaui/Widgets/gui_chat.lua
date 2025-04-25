@@ -685,7 +685,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	end
 
 	-- play sound for new player/spectator chat
-	if #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
+	if not ignore and #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
 		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
 	end
 end
