@@ -369,9 +369,9 @@ local BaseClasses = {
 	TorpedoShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
+			noiseScaleSpace = 1.2, noiseStrength = 0.8, onlyModelMap = 0,
 			lifeTime = 10, refractiveIndex = 1.2, decay = 3, rampUp = 3,
-			effectStrength = 2.5, startRadius = 0.25, shockWidth = -0.95,
+			effectStrength = 2.2, startRadius = 0.25, shockWidth = -0.95,
 			effectType = "airShockwave", },
 	},
 
@@ -1072,8 +1072,9 @@ local projectileDefDistortions  = {
 						if weaponDef.paralyzer then
 
 						else
-							-- something should be here to config aircraft bombs
-							-- I'd like to add multiple explostions distortions to bombs, but I don't know how to do that yet 
+							explosionDistortions[weaponID] = {GetDistortionClass("AirShockWave", GetClosestSizeClass(radius), overrideTable)}
+							explosionDistortions[weaponID] = {GetDistortionClass("GroundShockWave", GetClosestSizeClass(radius), overrideTable)}
+							explosionDistortions[weaponID] = {GetDistortionClass("ExplosionHeat", GetClosestSizeClass(radius), overrideTable)}
 						end
 					end
 
@@ -1661,10 +1662,10 @@ explosionDistortionsNames['armguardnuke_plasma_high'] = { --cornuke
 	--GetDistortionClass("ExplosionHeat", "Smallest"),
 }
 
-explosionDistortionsNames['corton_cortron_weapon'] = {
-	GetDistortionClass("GroundShockWave", "Medium"),
-	GetDistortionClass("AirShockWave", "Mega"),
-	GetDistortionClass("ExplosionHeat", "Smallest"),
+explosionDistortionsNames['cortron_cortron_weapon'] = {
+	GetDistortionClass("GroundShockWaveNuke", "MediumLarge"),
+	GetDistortionClass("AirShockWaveNuke", "SmallMedium"),
+	GetDistortionClass("ExplosionHeatNuke", "Medium"),
 }
 
 -- muzzleFlashDistortionsNames['armstump_arm_lightcannon'] = {
