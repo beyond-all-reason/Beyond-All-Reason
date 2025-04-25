@@ -173,7 +173,7 @@ return {
 				gravityaffected = "true",
 				groundbounce = true,
 				impulsefactor = 0.123,
-				model = "legmediumtorpedo.s3o",
+				model = "legtorpedo.s3o",
 				mygravity = 0.2,
 				name = "Depthcharge launcher",
 				noselfdamage = true,
