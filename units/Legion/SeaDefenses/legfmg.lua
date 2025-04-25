@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 525,
-		waterline = 3,
+		waterline = 0,
 		yardmap = "ooooooooo",
 		customparams = {
 			unitgroup = 'weaponaa',
