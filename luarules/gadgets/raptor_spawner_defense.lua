@@ -1444,7 +1444,7 @@ if gadgetHandler:IsSyncedCode() then
 										for j = 1, unitNumber, 1 do
 											if mRandom() <= config.spawnChance or j == 1 then
 												squadCounter = squadCounter + 1
-												table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+												table.insert(spawnQueue, { burrow = unitID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
 											end
 										end
 									elseif not UnitDefNames[raptorName] then
