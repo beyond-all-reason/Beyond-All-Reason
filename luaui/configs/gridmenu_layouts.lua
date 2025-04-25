@@ -68,11 +68,11 @@ local labGrids = {
 	},
 	legavp = {
 		-- page1
-		"legacv", "legmed", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
+		"legacv", "legafcv", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
 		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
-		"legmrv", "legfloat", "legvflak", "legavroc",            -- Quickshot, new triton, AA, boreas
+		"legmrv", "legfloat", "legvflak", "legmed",            -- Quickshot, new triton, AA, boreas
 		-- page2
-		"legvcarry", "cormabm",					-- mantis, veh antinuke
+		"legvcarry", "legavroc", "cormabm",					-- mantis, chiron, veh antinuke
 	},
 	-- T1 air
 	armap = {
@@ -1914,6 +1914,30 @@ local unitGrids = {
 		}
 	},
 
+	--aceso
+    legafcv = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
+			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "corjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "coralab", },                      -- nano, T2 lab
+			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	},
+
 	--consul
 	armconsul = {
 		{
@@ -2036,7 +2060,7 @@ local unitGrids = {
 
 unitGrids["dummycom"] = unitGrids["armcom"]
 
-if Spring.GetModOptions().experimentalextraunits then
+if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
 	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
 		local faction = builder:sub(1, 3)
 		unitGrids[builder][1][3][3] =  faction .. "wint2"

@@ -100,7 +100,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_bot_rocket = {
+			leg_bot_rocket = {
 				areaofeffect = 70,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BOT_ROCKET",
+				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

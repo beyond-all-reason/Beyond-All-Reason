@@ -106,6 +106,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -438,7 +440,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget()
+		local widget = widgetHandler:NewWidget(enableLocalsAccess)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -460,7 +462,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget()
+	local widget = widgetHandler:NewWidget(enableLocalsAccess)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -567,9 +569,19 @@ local WidgetMeta =
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget()
+function widgetHandler:NewWidget(enableLocalsAccess)
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = setmetatable({}, WidgetMeta)
+	local widget = {}
+	if enableLocalsAccess then
+		-- copy the system calls into the widget table
+		for k, v in pairs(System) do
+			widget[k] = v
+		end
+	else
+		-- use metatable redirection
+		setmetatable(widget, WidgetMeta)
+	end
+
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
@@ -1334,6 +1346,22 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneBeginN("W:ActiveCommandChanged")
 	for _, w in ipairs(self.ActiveCommandChangedList) do
 		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
 	end
 	tracy.ZoneEnd()
 end
@@ -2329,10 +2357,10 @@ function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return
