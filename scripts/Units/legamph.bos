@@ -9,6 +9,14 @@ static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasth
 
 static-var  Stunned;
 
+#define TB_BASE base 
+#define TB_TURNRATE <35.0> 
+#define TB_TILT_X <0.5>
+#define TB_BANK_Z <1.2> // Do not define this if you dont want banking
+#define TB_FRAMES 3 // how frequently you want updates
+#include "../tilt_bank_submarine.h"
+
+
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
@@ -459,7 +467,7 @@ StopWalking() {
 
 swim() {
 		if (isMoving) { //Frame:15
-			turn base to x-axis <-0.147507> speed <4.425215> / animSpeed; 
+			//turn base to x-axis <-0.147507> speed <4.425215> / animSpeed; 
 			turn ldownbackleg to x-axis <-34.361165> speed <9.538974> / animSpeed; 
 			turn ldownloeg to x-axis <-34.195089> speed <4.557410> / animSpeed; 
 			turn lfin1 to x-axis <12.274752> speed <368.242546> / animSpeed; 
@@ -501,7 +509,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 	}
 		if (isMoving) { //Frame:21
-			turn base to x-axis <3.198514> speed <100.380642> / animSpeed; 
+			//turn base to x-axis <3.198514> speed <100.380642> / animSpeed; 
 			turn ldownbackleg to x-axis <-27.008829> speed <220.570099> / animSpeed; 
 			turn ldownloeg to x-axis <-30.671009> speed <105.722415> / animSpeed; 
 			turn lfin1 to x-axis <25.011007> speed <382.087664> / animSpeed; 
@@ -554,7 +562,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:27
-			turn base to x-axis <5.361268> speed <64.882607> / animSpeed; 
+			//turn base to x-axis <5.361268> speed <64.882607> / animSpeed; 
 			turn ldownbackleg to x-axis <-22.088181> speed <147.619427> / animSpeed; 
 			turn ldownloeg to x-axis <-28.324574> speed <70.393039> / animSpeed; 
 			turn lfin1 to x-axis <32.696426> speed <230.562581> / animSpeed; 
@@ -605,7 +613,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:33
-			turn base to x-axis <5.540655> speed <5.381630> / animSpeed; 
+			//turn base to x-axis <5.540655> speed <5.381630> / animSpeed; 
 			turn ldownbackleg to x-axis <-21.673561> speed <12.438594> / animSpeed; 
 			turn ldownloeg to x-axis <-28.128181> speed <5.891807> / animSpeed; 
 			turn lfin1 to x-axis <31.051351> speed <49.352249> / animSpeed; 
@@ -650,7 +658,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:39
-			turn base to x-axis <3.670320> speed <56.110077> / animSpeed; 
+			//turn base to x-axis <3.670320> speed <56.110077> / animSpeed; 
 			turn ldownbackleg to x-axis <-25.947342> speed <128.213425> / animSpeed; 
 			turn ldownloeg to x-axis <-30.162901> speed <61.041606> / animSpeed; 
 			turn lfin1 to x-axis <21.177416> speed <296.218047> / animSpeed; 
@@ -701,7 +709,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:45
-			turn base to x-axis <0.442171> speed <96.844442> / animSpeed; 
+			//turn base to x-axis <0.442171> speed <96.844442> / animSpeed; 
 			turn ldownbackleg to x-axis <-33.086775> speed <214.182984> / animSpeed; 
 			turn ldownloeg to x-axis <-33.585679> speed <102.683356> / animSpeed; 
 			turn lfin1 to x-axis <9.567707> speed <348.291290> / animSpeed; 
@@ -754,7 +762,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:51
-			turn base to x-axis <-2.949555> speed <101.751784> / animSpeed; 
+			//turn base to x-axis <-2.949555> speed <101.751784> / animSpeed; 
 			turn ldownbackleg to x-axis <-40.301934> speed <216.454774> / animSpeed; 
 			turn ldownloeg to x-axis <-37.004466> speed <102.563589> / animSpeed; 
 			turn lfin1 to x-axis <2.735841> speed <204.955967> / animSpeed; 
@@ -809,7 +817,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:57
-			turn base to x-axis <-5.250113> speed <69.016746> / animSpeed; 
+			//turn base to x-axis <-5.250113> speed <69.016746> / animSpeed; 
 			turn ldownbackleg to x-axis <-45.046720> speed <142.343567> / animSpeed; 
 			turn ldownloeg to x-axis <-39.179997> speed <65.265941> / animSpeed; 
 			turn lfin1 to x-axis <0.432584> speed <69.097711> / animSpeed; 
@@ -864,7 +872,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:63
-			turn base to x-axis <-5.608429> speed <10.749493> / animSpeed; 
+			//turn base to x-axis <-5.608429> speed <10.749493> / animSpeed; 
 			turn ldownbackleg to x-axis <-45.775593> speed <21.866202> / animSpeed; 
 			turn ldownloeg to x-axis <-39.506186> speed <9.785680> / animSpeed; 
 			turn lfin1 to x-axis <-0.807544> speed <37.203856> / animSpeed; 
@@ -912,7 +920,7 @@ swim() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:69
-			turn base to x-axis <-3.891944> speed <51.494563> / animSpeed; 
+			//turn base to x-axis <-3.891944> speed <51.494563> / animSpeed; 
 			turn ldownbackleg to x-axis <-42.259460> speed <105.484007> / animSpeed; 
 			turn ldownloeg to x-axis <-37.911750> speed <47.833078> / animSpeed; 
 			turn lfin1 to x-axis <1.076993> speed <56.536125> / animSpeed; 
@@ -969,7 +977,7 @@ swim() {
 StopSwim() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move base to y-axis [-8.999583] speed [-40.907197] / animSpeed;
-	turn base to x-axis <0.000000> speed <169.586307> / animSpeed;
+	//turn base to x-axis <0.000000> speed <169.586307> / animSpeed;
 	turn ldownbackleg to x-axis <-34.043200> speed <367.616832> / animSpeed;
 	turn ldownbackleg to y-axis <-0.154335> speed <-0.701522> / animSpeed;
 	turn ldownloeg to x-axis <-34.043176> speed <176.204025> / animSpeed;
@@ -1047,7 +1055,7 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 100) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>4) animSpeed = 4;
+		if (animspeed>3) animSpeed=3;
 		sleep 197;
 		
 		if (isInWater AND isMoving)
@@ -1091,10 +1099,8 @@ Create()
 	rshieldup = 1;
 	set ARMORED to 1;
 	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script Movement();
 	start-script UnitSpeed();
@@ -1136,12 +1142,14 @@ Movement() {
 				call-script transform();
 				call-script CloseHeatsinks();
 				inWaterForm = 1;
+				start-script StartMoving(0);
 			}
 		} else {
 			if( isInWater == 0 ) {
 				call-script reform();
 				call-script OpenHeatsinks();
 				inWaterForm = 0;
+				start-script StartMoving(0);
 			}
 		}
 
@@ -1385,9 +1393,17 @@ CloseMouth(){
 
 //#include "unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
 	isMoving = TRUE;
+	if (inWaterForm) {
+		signal SIG_MOVE;
+		set-signal-mask SIG_MOVE;
+		START_TILTBANK; //I don't have a StartSwimming()...
+	} else {
+		signal SIG_MOVE;
+		STOP_TILTBANK; //I don't have a StartSwimming()...
+	}
 }
 
 StopMoving()
@@ -1395,6 +1411,8 @@ StopMoving()
 	isMoving = FALSE;
 	if(inWaterForm) {
 		call-script StopSwim();
+		signal SIG_MOVE;
+		STOP_TILTBANK;
 	}
 	else {
 		call-script StopWalking();
