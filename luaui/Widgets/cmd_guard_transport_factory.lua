@@ -39,18 +39,16 @@ local transport_states = {
 	approaching=1,
 	picking_up=2,
 	loaded=3, 
-	arrived=4,
-	move_to_retreatpoint=5,
-	unloaded=6
+	unloaded=4
 }
 
-function unitName(unitID)
+local function unitName(unitID)
 	local unitDefID=Spring.GetUnitDefID(unitID)
     local createdUnitDefs = UnitDefs[unitDefID]
     return createdUnitDefs.translatedHumanName
 end
 
-function IsFab(unitID)
+local function IsFab(unitID)
 	local Index=Spring.GetUnitDefID(unitID)
 	local IsFactory=false
 	
@@ -61,7 +59,7 @@ function IsFab(unitID)
 	return IsFactory
 end
 
-function IsTransport(unitID)
+local function IsTransport(unitID)
     local Index=Spring.GetUnitDefID(unitID)
     if Index~=nil then
         return UnitDefs[Index].isTransport
@@ -70,7 +68,7 @@ function IsTransport(unitID)
     end
 end
 
-function Distance(Point1,Point2)
+local function Distance(Point1,Point2)
 	local Distance=-1
 	if Point1~=nil and Point2~=nil then
         local ResultX=Point1[1]-Point2[1]
@@ -83,12 +81,12 @@ function Distance(Point1,Point2)
 	return Distance
 end
 
-function timeToTarget(start, endpoint, speed)
+local function timeToTarget(start, endpoint, speed)
     local distance = Distance(start, endpoint)
     return distance/speed
 end
 
-function getFirstMoveCommandDestination(unitID)
+local function getFirstMoveCommandDestination(unitID)
 	local unitCommands = Spring.GetUnitCommands(unitID,-1)
     if unitCommands == nil then
         Log("Nil commands!\n", debugLog)
@@ -102,22 +100,7 @@ function getFirstMoveCommandDestination(unitID)
     return destination
 end
 
-
-function getFirstGuardCommand(unitID)
-	local unitCommands = Spring.GetUnitCommands(unitID,-1)
-    if unitCommands == nil then
-        Log("Nil commands!\n", debugLog)
-        return nil
-    end
-    if unitCommands[1].id ~= CMD.GUARD then
-        Log("First command is not a move!\n", debugLog)
-        return nil;
-    end
-    return unitCommands[1]
-end
-
-
-function getSecondMoveCommandDestination(unitID)
+local function getSecondMoveCommandDestination(unitID)
 	local unitCommands = Spring.GetUnitCommands(unitID,-1)
     if unitCommands == nil then
         Log("Nil commands!\n", debugLog)
@@ -136,13 +119,13 @@ function getSecondMoveCommandDestination(unitID)
     return dest
 end
 
-function getUnitPositionTuple(unitID)
+local function getUnitPositionTuple(unitID)
     local x1, y1, z1 = Spring.GetUnitPosition(unitID)
     local unitLocation = {x1, y1, z1}
     return unitLocation
 end
 
-function worthTransporting(unitID, transportID)
+local function worthTransporting(unitID, transportID)
 	local Unit = allUnits[unitID]
 	local Transport = transports[transportID]
     if Transport == nil then
@@ -191,7 +174,6 @@ Unit=
 {
     firstOrderCompleted=false,
     waiting=false,
-    hasInsertedCmd=false
 }
 function Unit:new(unitid)
 	o = {}
@@ -346,11 +328,6 @@ function widget:GameFrame(frame)
                         if isWaiting(target) then
                             Spring.GiveOrderToUnit(watchedTransports[transportID], CMD.WAIT , {}, { "alt" } )
                         end
-                        local unitID = watchedTransports[transportID]
-                        if allUnits[unitID].hasInsertedCmd then
-                            Spring.GiveOrderToUnit(unitID, CMD.REMOVE, 1, CMD.OPT_ALT) 
-                            allUnits[unitID].hasInsertedCmd = false
-                        end                        
                         Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT , transports[transportID].destination, CMD.OPT_RIGHT )
                     end
                 end
@@ -379,10 +356,8 @@ function widget:GameFrame(frame)
             -- Check if unit has left transport
             local carriedUnits = Spring.GetUnitIsTransporting(transportID)
             if carriedUnits == nil or #carriedUnits == 0 and transports[transportID].state == transport_states.loaded then
-                Log(carriedUnits, debugLog)
                 Log("Transport " .. transportID .. " UNLOADED", debugLog)
                 transports[transportID].state = transport_states.unloaded
-                factoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
                 Spring.GiveOrderToUnit(transportID, CMD.GUARD ,transports[transportID].guardedFactoryID, { "shift" } )-- go back to base
             end
 
@@ -447,8 +422,7 @@ function inactivateTransport(unitID)
     if transports[unitID] == nil then
         return
     end
-    local transport = transports[unitID]
-    local guardedFactoryID = transport.guardedFactoryID
+    local guardedFactoryID = transports[unitID].guardedFactoryID
     if guardedFactoryID ~= nil  and factories[guardedFactoryID] ~= nil then
         -- Awful awful awful
         for i, v in ipairs(factories[guardedFactoryID].guardingTransports) do
@@ -457,7 +431,6 @@ function inactivateTransport(unitID)
                 break
             end
         end
-
     end
     transports[unitID] = nil
     if watchedTransports[unitID] ~= nil then
@@ -587,6 +560,7 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) 
     selectedUnits = Spring.GetSelectedUnits()
+
     for _,orderedUnit in ipairs(selectedUnits) do
         local unitDefID = Spring.GetUnitDefID(orderedUnit)
         local orderedUnitDefs = UnitDefs[unitDefID]
