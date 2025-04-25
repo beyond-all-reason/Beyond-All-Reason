@@ -1,12 +1,12 @@
 return {
-	legmg = {
+	legfmg = {
 		maxacc = 0,
 		airsightdistance = 650,
 		maxdec = 0,
 		buildangle = 32768,
 		energycost = 5500,
 		metalcost = 420,
-		buildpic = "legmg.DDS",
+		buildpic = "legfmg.DDS",
 		buildtime = 8400,
 		canrepeat = false,
 		cantbetransported = false,
@@ -21,25 +21,20 @@ return {
 		idletime = 1800,
 		mass = 7500,
 		health = 2350,
-		maxslope = 10,
-		maxwaterdepth = 0,
-		objectname = "Units/LEGMG.s3o",
-		script = "Units/LEGMG.cob",
+		minwaterdepth = 5,
+		objectname = "Units/legfmg.s3o",
+		script = "Units/legfmg.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 525,
+		waterline = 0,
 		yardmap = "ooooooooo",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legmg_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
-			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weaponaa',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "ArmBuildings/LandDefenceOffence",
+			subfolder = "Legion/SeaDefenses",
 		},
 		featuredefs = {
 			dead = {
@@ -54,22 +49,8 @@ return {
 				footprintz = 2,
 				height = 50,
 				metal = 114,
-				object = "Units/legmg_dead.s3o",
+				object = "Units/legfmg_dead.s3o",
 				reclaimable = true,
-			},
-			heap = {
-				blocking = false,
-				category = "heaps",
-				collisionvolumescales = "35.0 4.0 6.0",
-				collisionvolumetype = "cylY",
-				damage = 387,
-				footprintx = 2,
-				footprintz = 2,
-				height = 4,
-				metal = 46,
-				object = "Units/arm2X2A.s3o",
-				reclaimable = true,
-				resurrectable = 0,
 			},
 		},
 		sfxtypes = {
@@ -105,7 +86,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armmg_weapon = {
+			gatling_gun = {
 				accuracy = 7,
 				areaofeffect = 16,
 				avoidfeature = false,
@@ -122,7 +103,7 @@ return {
 				firestarter = 0,
 				impulsefactor = 1.5,
 				intensity = 0.8,
-				name = "Rapid-fire a2g machine guns",
+				name = "Rapid-Fire Gatling Gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
@@ -148,7 +129,8 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "armmg_WEAPON",
+				def = "gatling_gun",
+				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 2,
 			},
