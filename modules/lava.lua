@@ -163,6 +163,20 @@ local mapLavaConfig = getLavaConfig(mapName)
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
 
+	if Spring.GetModOptions().map_lavahastides and Spring.GetModOptions().map_tidesovermap then
+		local lowRhym = {Spring.GetModOptions().map_lavalowlevel, 0.25, Spring.GetModOptions().map_lavalowdwell} --450 elmo/min
+		local highRhym = {Spring.GetModOptions().map_lavahighlevel, 0.15, Spring.GetModOptions().map_lavahighdwell} --270 emlo/min
+		if (Spring.GetModOptions().map_lavatidemode == 'lavastartlow') then
+			level = lowRhym[1] + 3
+			grow = lowRhym[2]
+			tideRhym = {lowRhym, highRhym}
+		elseif (Spring.GetModOptions().map_lavatidemode == 'lavastarthigh') then
+			level = highRhym[1] + 3
+			grow = highRhym[2]
+			tideRhym = {highRhym, lowRhym}		
+		end
+	end
+
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	isLavaMap = true
 	grow = 0
@@ -191,9 +205,26 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
-	level = 4
-	tideRhym = { { 4, 0.05, 5*6000 } }
+
+	if Spring.GetModOptions().map_lavahastides then
+		local lowRhym = {Spring.GetModOptions().map_lavalowlevel, 0.25, Spring.GetModOptions().map_lavalowdwell}
+		local highRhym = {Spring.GetModOptions().map_lavahighlevel, 0.15, Spring.GetModOptions().map_lavahighdwell}
+		if (Spring.GetModOptions().map_lavatidemode == 'lavastartlow') then
+			level = lowRhym[1] + 3
+			grow = lowRhym[2]
+			tideRhym = {lowRhym, highRhym}
+		elseif (Spring.GetModOptions().map_lavatidemode == 'lavastarthigh') then
+			level = highRhym[1] + 3
+			grow = highRhym[2]
+			tideRhym = {highRhym, lowRhym}		
+		end
+	else
+		level = 4
+		tideRhym = { { 4, 0.05, 5*6000 } }
+	end
+	
 end
+
 
 
 return {

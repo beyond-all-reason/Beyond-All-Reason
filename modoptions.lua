@@ -925,6 +925,93 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
+        unlock = {"map_lavahastides", "map_tidesovermap", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+    },
+
+    {
+        key    	= "map_lavahastides",
+        name   	= "Lava Has Tides",
+        desc   	= "Lava will periodicially cycle between high and low tide.",
+        type   	= "bool",
+        def    	= false,
+        section	= "options_extra",
+        column	= 1.0,
+    },
+
+    {
+        key    	= "map_tidesovermap",
+        name   	= "Tides Override Map",
+        desc   	= "Settings will override the map settings on existing lava maps",
+        type   	= "bool",
+        def    	= false,
+        section	= "options_extra",
+        column	= 1,
+    },
+
+    {
+        key     = "map_lavatidemode",
+        name	= "Lava Start Position",
+        desc	= "Toggle whether lava starts at high or low tide",
+        hidden	= false,
+        type	= "list",
+        def		= "lavastartlow",
+        section	= "options_extra",
+        items	= {
+            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+        }
+    },
+
+    {
+        key 	= "map_lavahighlevel",
+        name 	= "Lava High Tide Level",
+        desc 	= "Lava level at high tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= -10000,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },
+
+    {
+        key 	= "map_lavahighdwell",
+        name 	= "Lava High Tide Time",
+        desc 	= "Time in seconds lava waits at high tide",
+        type 	= "number",
+        def 	= 60,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        --column	= 2.0,
+    },
+
+    {
+        key 	= "map_lavalowlevel",
+        name 	= "Lava Low Tide Level",
+        desc 	= "Lava level at low tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= -10000,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },  
+
+    {
+        key 	= "map_lavalowdwell",
+        name 	= "Lava Low Tide Time",
+        desc 	= "Time in seconds lava waits at low tide",
+        type 	= "number",
+        def 	= 300,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        --column	= 2.0,
     },
 
     {
@@ -932,7 +1019,6 @@ local options = {
         section = "options_extra",
         type    = "separator",
     },
-
 
     {
         key 	= "ruins",
