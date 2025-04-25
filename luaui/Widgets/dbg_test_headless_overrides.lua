@@ -14,6 +14,8 @@ if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePla
 	return
 end
 
+Spring.SetConfigInt("ui_rendertotexture", 0)
+
 -- PushMatrix and PopMatrix still perform accounting and can generate errors on headless.
 -- Problem here is CallList won't really call dlists, so when a PushMatrix or PopMatrix
 -- is placed inside a display list, this can cause problems.
@@ -23,11 +25,3 @@ gl.PopMatrix = function() end
 gl.CreateTexture = function() end
 gl.RenderToTexture = function() end
 
-local SetConfigInt = Spring.SetConfigInt
-Spring.SetConfigInt = function(section, value)
-	if section ~= "ui_rendertotexture" then
-		SetConfigInt(section, value)
-	else
-		SetConfigInt(section, 0)
-	end
-end
