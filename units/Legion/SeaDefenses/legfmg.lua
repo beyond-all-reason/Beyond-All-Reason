@@ -132,6 +132,7 @@ return {
 				def = "gatling_gun",
 				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
+				burstControlWhenOutOfArc = 2,
 			},
 		},
 	},
