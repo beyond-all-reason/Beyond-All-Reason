@@ -22,3 +22,12 @@ gl.PopMatrix = function() end
 
 gl.CreateTexture = function() end
 gl.RenderToTexture = function() end
+
+local SetConfigInt = Spring.SetConfigInt
+Spring.SetConfigInt = function(section, value)
+	if section ~= "ui_rendertotexture" then
+		SetConfigInt(section, value)
+	else
+		SetConfigInt(section, 0)
+	end
+end
