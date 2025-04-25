@@ -122,6 +122,7 @@ local flexCallIns = {
 	'UnitCommand',
 	'UnitCmdDone',
 	'UnitDamaged',
+	"UnitStunned",
 	'UnitEnteredRadar',
 	'UnitEnteredLos',
 	'UnitLeftRadar',
@@ -2375,6 +2376,15 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	return
 end
 
+function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	tracy.ZoneBeginN("W:UnitStunned")
+	for _, w in ipairs(self.UnitStunnedList) do
+		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:UnitEnteredRadar(unitID, unitTeam)
 	tracy.ZoneBeginN("W:UnitEnteredRadar")
 	for _, w in ipairs(self.UnitEnteredRadarList) do
@@ -2460,8 +2470,7 @@ function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
 								  transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
-		w:UnitLoaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2471,8 +2480,7 @@ function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam,
 									transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
-		w:UnitUnloaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2524,8 +2532,7 @@ end
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	tracy.ZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
-		w:StockpileChanged(unitID, unitDefID, unitTeam,
-			weaponNum, oldCount, newCount)
+		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
 	tracy.ZoneEnd()
 	return
