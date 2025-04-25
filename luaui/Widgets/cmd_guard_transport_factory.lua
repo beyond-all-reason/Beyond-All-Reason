@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = "Transport Factory Guard",
@@ -7,13 +9,13 @@ function widget:GetInfo()
         version   = "0.2.4",
         license   = "GNU GPL, v3 or later",
         layer     = 0,
-        enabled   = true,  --  loaded by default?
-        handler   = true
+        enabled   = true  --  loaded by default?
+        -- handler   = true
     }
 end
 
 -- Toggle this for debug printing
-debugLog = false
+debugLog = true
 
 -- Polls every 10 frames. Set to a different number to poll more/less often.
 POLLING_RATE=10 
@@ -321,7 +323,7 @@ function widget:GameFrame(frame)
     if frameIndex % POLLING_RATE ~= 0 then
         return
     end
-    
+    return
     for transportID, target in pairs(watchedTransports) do
         -- Check if transport has loaded unit
         if allUnits[target] == nil and transports[transportID].state ~= transport_states.unloaded and transports[transportID].previousEngagement == false then
