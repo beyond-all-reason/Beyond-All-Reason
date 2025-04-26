@@ -683,5 +683,7 @@ function script.QueryNanoPiece()
 end
 
 function script.Killed()
+	-- buffer time to avoid dgunning own corpse
+	Sleep(200)
 	return 1
 end

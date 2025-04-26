@@ -1235,6 +1235,8 @@ StopDance() {
 
 Killed( severity, corpsetype )
 {
+	// buffer time to avoid dgunning own corpse
+	Sleep(200);
 	corpsetype = 1;
 	return(corpsetype);
 }

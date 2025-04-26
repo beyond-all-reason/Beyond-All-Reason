@@ -1098,5 +1098,7 @@ end
 
 
 function script.Killed()
+	-- dgun time to live estimate to prevent destroying own corpse
+	Sleep(200)
 	return 1
 end
