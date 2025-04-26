@@ -116,49 +116,6 @@ local function getUnitPositionTuple(unitID)
     return unitLocation
 end
 
-local function worthTransporting(unitID, transportID)
-	local Unit = allUnits[unitID]
-	local Transport = transports[transportID]
-    if Transport == nil then
-        Log("Nil transport!\n", debugLog)
-        return false
-    end
-	local unitCommands = Spring.GetUnitCommands(unitID,-1)
-    if unitCommands == nil then
-        Log("Nil commands!\n", debugLog)
-        return false
-    end
-    if unitCommands[1].id ~= CMD.MOVE then
-        Log("First command is not a move!\n", debugLog)
-        return false
-    end
-	local destination = getSecondMoveCommandDestination(unitID)
-    if destination == nil then
-        Log("First command is nonmove", debugLog)
-        return false
-    end
-    local x1, y1, z1 = Spring.GetUnitPosition(unitID)
-    local unitLocation = {x1, y1, z1}
-
-    local x2, y2, z2 = Spring.GetUnitPosition(transportID)
-    local transportLocation = {x2, y2, z2}
-	local pickupTime = timeToTarget(transportLocation, unitLocation, Transport.UnitDEFS.speed)
-    local transportTime = timeToTarget(unitLocation, destination, Transport.UnitDEFS.speed)
-    local walkingTime = timeToTarget(unitLocation, destination, Unit.UnitDEFS.speed)
-    -- This also covers the case of builders guarding their factory
-    if walkingTime < 10 then
-        Log("Trivial distance " .. unitName(unitID), debugLog)
-        return false
-    end
-    if pickupTime + transportTime < walkingTime then
-        return true
-    else
-        Log("Transport time: " .. pickupTime + transportTime .. " Walk time: " .. timeToTarget(unitLocation, destination, Unit.UnitDEFS.speed) .. "unit: " .. unitName(unitID), debugLog)
-    end
-
-    return false
-end
-
 -- =================Unit Class Def==============
 Unit=
 {
@@ -205,7 +162,7 @@ function Factory:new(unitid)
 end
 
 function Factory:registerTransport(unitID)
-    table.insert(self.guardingTransports, unitID)
+    self.guardingTransports[unitID] = true
     transports[unitID].guardedFactoryID = self.unitID
 end
 
@@ -219,7 +176,6 @@ local function registerUnit(unitID)
             transports[unitID] = Transporter:new(unitID)
         end
     elseif IsFab(unitID) == true then
-        Log("Factory finished " .. unitID, debugLog)
         if factories[unitID] == nil then
             factories[unitID] = Factory:new(unitID)
         end
@@ -320,16 +276,11 @@ function widget:GameFrame(frame)
                 end
             end
     
-            -- Check if transport has returned to the factory
+            -- Become available once unloaded
             if transports[transportID].state == transport_states.unloaded then 
-                local boundFactoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
-                local boundFactoryDistance = Distance(getUnitPositionTuple(transportID), boundFactoryLocation)
-                if boundFactoryDistance < 400 and transports[transportID].state == transport_states.unloaded then
-                    Log("Transport " .. transportID .. " IDLE with distance " .. boundFactoryDistance, debugLog)
-                    transports[transportID].state   = transport_states.idle
-                    watchedUnits[target]            = nil
-                    watchedTransports[transportID]  = nil
-                end            
+                transports[transportID].state   = transport_states.idle
+                watchedUnits[target]            = nil
+                watchedTransports[transportID]  = nil
             end
     
             -- If trans was carrying a unit when told to guard, unload it right on the ground
@@ -387,13 +338,7 @@ local function inactivateTransport(unitID)
     end
     local guardedFactoryID = transports[unitID].guardedFactoryID
     if guardedFactoryID ~= nil  and factories[guardedFactoryID] ~= nil then
-        -- Awful awful awful
-        for i, v in ipairs(factories[guardedFactoryID].guardingTransports) do
-            if v == unitID then
-                table.remove(factories[guardedFactoryID].guardingTransports, i)
-                break
-            end
-        end
+        factories[guardedFactoryID].guardingTransports[unitID] = nil
     end
     transports[unitID] = nil
     if watchedTransports[unitID] ~= nil then
@@ -459,7 +404,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
     local factory = factories[factID]
     if unitTeam == myTeam then
         -- TODO Make this more efficient
-
         if createdUnitDefs.isTransport then
             registerUnit(createdUnitID)
             -- Handle case where transport is rallied to another lab
@@ -490,33 +434,50 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             if commands ~= nil and next(commands) ~= nil then
                 allUnits[createdUnitID].initialCommandTag = commands[1].tag
             end
-            for _, transportID in ipairs(factory.guardingTransports) do
-                if worthTransporting(createdUnitID, transportID) then
-                    local destination = getSecondMoveCommandDestination(createdUnitID)
-                    if destination == nil then
-                        Log("Second destination not a move command", debugLog)
-                        return
-                    end
-                    if transports[transportID].state == transport_states.idle and CanTransport(transportID, createdUnitID) then                   
-                        Log("Transport " .. transportID .. " APPROACHING " .. createdUnitID, debugLog)
-                        transports[transportID].state = transport_states.approaching
-                        transports[transportID].destination = destination
+            local destination = getSecondMoveCommandDestination(createdUnitID)
+            if destination == nil then
+                Log("Second destination not a move command", debugLog)
+                return
+            end
+            local bestTransportID = -1
+            local bestTransportTime = math.huge
+            for transportID, _ in pairs(factory.guardingTransports) do
+                if transports[transportID].state == transport_states.idle and CanTransport(transportID, createdUnitID) then 
+                    local Unit = allUnits[unitID]
+                    local Transport = transports[transportID]
+                    local unitCommands = Spring.GetUnitCommands(unitID,-1)
+                    local destination = getSecondMoveCommandDestination(unitID)
+                    if Transport ~= nil and unitCommands ~= nil and unitCommands[1].id == CMD.MOVE and destination ~= nil then
+                        local x1, y1, z1          = Spring.GetUnitPosition(unitID)
+                        local unitLocation        = {x1, y1, z1}
+                        local x2, y2, z2          = Spring.GetUnitPosition(transportID)
+                        local transportLocation   = {x2, y2, z2}
 
-                        local transportLocation           = getUnitPositionTuple(transportID)
-                        local unitLocation                = getUnitPositionTuple(createdUnitID)
-                        local unitWaitDestination         = getFirstMoveCommandDestination(createdUnitID)
-                        local transportDestination        = unitLocation
-                        Spring.GiveOrderToUnit(transportID, CMD.MOVE ,unitWaitDestination,{ "right" } )--Load Unit
-                        Spring.GiveOrderToUnit(transportID, CMD.GUARD ,factID,{ "shift" } )--Load Unit
-
-                        watchedTransports[transportID] = createdUnitID
-                        watchedUnits[createdUnitID] = transportID
-                        return
+                        local pickupTime    = timeToTarget(transportLocation, unitLocation, Transport.UnitDEFS.speed)
+                        local transportTime = timeToTarget(unitLocation, destination, Transport.UnitDEFS.speed)
+                        local walkingTime   = timeToTarget(unitLocation, destination, Unit.UnitDEFS.speed)
+                        -- This also covers the case of builders guarding their factory
+                        if walkingTime > 10 and pickupTime < 3 and pickupTime + transportTime < walkingTime then
+                            if pickupTime + transportTime < bestTransportTime then
+                                bestTransportID   = transportID
+                                bestTransportTime = pickupTime + transportTime
+                            end
+                        end
                     end
-                else
-                    Log("Not worth transporting", debugLog)
                 end
-            end            
+            end 
+            if bestTransportID > -1 then
+                Log("Transport " .. bestTransportID .. " APPROACHING " .. createdUnitID, debugLog)
+                transports[bestTransportID].state = transport_states.approaching
+                transports[bestTransportID].destination = destination
+
+                local unitWaitDestination         = getFirstMoveCommandDestination(createdUnitID)
+                Spring.GiveOrderToUnit(bestTransportID, CMD.MOVE ,unitWaitDestination,{ "right" } )--Load Unit
+                Spring.GiveOrderToUnit(bestTransportID, CMD.GUARD ,factID,{ "shift" } )--Load Unit
+
+                watchedTransports[bestTransportID] = createdUnitID
+                watchedUnits[createdUnitID] = bestTransportID
+            end
         end
     end
 end
