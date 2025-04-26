@@ -80,12 +80,13 @@ local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+local hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 local lastMapmarkCoords
 local lastUnitShare
 local lastLineUnitShare
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-local isSpec = Spring.GetSpectatingState()
+local mySpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
@@ -144,7 +145,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local inputMode = ''
-if isSpec then
+if mySpec then
 	inputMode = 's:'
 else
 	if #Spring.GetTeamList(myAllyTeamID) > 1 then
@@ -422,6 +423,7 @@ local autocompleteCommands = {
 	'playertv',
 	'playerview',
 	'hidespecchat',
+	'hideSpecchatplayer',
 	'speclist',
 }
 
@@ -577,7 +579,7 @@ end
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
 		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
-			if not isSpec and anonymousMode ~= "disabled" then
+			if not mySpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
 				return ColorString(playernames[playername][5][1], playernames[playername][5][2], playernames[playername][5][3])
@@ -799,7 +801,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		-- filter specs
-		if hideSpecChat then
+		if hideSpecChat and (not hideSpecChatPlayer or not mySpec) then
 			skipThisMessage = true
 		end
 
@@ -839,7 +841,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			namecolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 
-			if hideSpecChat then
+			if hideSpecChat and (not hideSpecChatPlayer or not mySpec) then
 				skipThisMessage = true
 			end
 		else
@@ -873,7 +875,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if playernames[name] ~= nil then
 			spectator = playernames[name][2]
 		end
-		if hideSpecChat and (not playernames[name] or spectator) then
+		if hideSpecChat and (not playernames[name] or spectator) and (not hideSpecChatPlayer or not mySpec) then
 			skipThisMessage = true
 		end
 
@@ -1108,7 +1110,7 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 
 	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
 	local captured = (captureProgress == 1)
-	if (not isSpec and not allyTeamShare) or selfShare or captured then
+	if (not mySpec and not allyTeamShare) or selfShare or captured then
 		return
 	end
 
@@ -1303,8 +1305,9 @@ function widget:Update(dt)
 				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
 			end
 		end
-		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
+		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 			for i=1, #chatLines do
 				if chatLines[i].lineType == LineTypes.Spectator then
 					if hideSpecChat then
@@ -1994,7 +1997,7 @@ function widget:KeyPress(key)
 				-- switch mode
 				if ctrl then
 					inputMode = ''
-				elseif alt and not isSpec then
+				elseif alt and not mySpec then
 					inputMode = (inputMode == 'a:' and '' or 'a:')
 				else
 					inputMode = (inputMode == 's:' and '' or 's:')
@@ -2027,7 +2030,7 @@ function widget:KeyPress(key)
 			if ctrl then
 				inputMode = ''
 			elseif alt then
-				inputMode = isSpec and 's:' or 'a:'
+				inputMode = mySpec and 's:' or 'a:'
 			elseif shift then
 				inputMode = 's:'
 			end
@@ -2141,7 +2144,7 @@ function widget:MousePress(x, y, button)
 		if inputMode == 'a:' then
 			inputMode = ''
 		elseif inputMode == 's:' then
-			inputMode = isSpec and '' or 'a:'
+			inputMode = mySpec and '' or 'a:'
 		else
 			inputMode = 's:'
 		end
@@ -2252,6 +2255,23 @@ function widget:TextCommand(command)
 			Spring.Echo("Showing all spectator chat again")
 		end
 	end
+	if string.sub(command, 1, 17) == 'hidespecchatplayer' then
+		if string.sub(command, 19, 19) ~= '' then
+			if string.sub(command, 19, 19) == '0' then
+				hideSpecChatPlayer = false
+			elseif string.sub(command, 19, 19) == '1' then
+				hideSpecChatPlayer = true
+			end
+		else
+			hideSpecChatPlayer = not hideSpecChatPlayer
+		end
+		Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
+		if hideSpecChat then
+			Spring.Echo("Hiding all spectator chat when player")
+		else
+			Spring.Echo("Showing all spectator chat when player again")
+		end
+	end
 	if string.sub(command, 1, 18) == 'preventhistorymode' then
 		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
 		enableShortcutClick = not enableShortcutClick
@@ -2333,10 +2353,10 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
+	mySpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	if isSpec and inputMode == 'a:' then
+	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
 	end
 	local name, _, isSpec = spGetPlayerInfo(playerID, false)

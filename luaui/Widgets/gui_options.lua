@@ -73,6 +73,8 @@ local cameraPanTransitionTime = 0.03
 
 local optionColor = '\255\255\255\255'
 local widgetOptionColor = '\255\160\160\160'
+local advOptionColor = '\255\180\160\140'
+local advMainOptionColor = '\255\255\235\200'
 local devOptionColor = '\255\200\110\100'
 local devMainOptionColor = '\255\245\166\140'
 
@@ -586,9 +588,9 @@ function DrawWindow()
 	if devMode or devUI then
 		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
 	elseif advSettings then
-		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
+		title = color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
 	else
-		title = "" .. color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
+		title = color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
 	end
 	local titleFontSize = 18 * widgetScale
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
@@ -3625,14 +3627,37 @@ function init()
 		  end,
 		},
 
-		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.console') .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_hidespecchat'), type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = Spring.I18N('ui.settings.option.console_hidespecchat_descr'),
+		{ id = "console_fontsize", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.console') .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_fontsize'), type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
+		  end,
+		},
+		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_backgroundopacity'), type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = Spring.I18N('ui.settings.option.console_backgroundopacity_descr'),
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
+		  end,
+		},
+		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_hidespecchat'), type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = Spring.I18N('ui.settings.option.console_hidespecchat_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
 		  end,
 		},
-		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_hide'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = Spring.I18N('ui.settings.option.console_hide_descr'),
+		{ id = "console_hidespecchatplayer", group = "ui", category = types.basic, name = widgetOptionColor .. "      " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_hidespecchatplayer'), type = "bool", value = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1), description = Spring.I18N('ui.settings.option.console_hidespecchatplayer_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("HideSpecChatPlayer", value and 1 or 0)
+		  end,
+		},
+		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_hide'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = Spring.I18N('ui.settings.option.console_hide_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_hide", { 'hide' })
 		  end,
@@ -3654,22 +3679,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
-		  end,
-		},
-		{ id = "console_fontsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_fontsize'), type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
-		  onload = function(i)
-			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
-		  end,
-		},
-		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_backgroundopacity'), type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = Spring.I18N('ui.settings.option.console_backgroundopacity_descr'),
-		  onload = function(i)
-			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
 		  end,
 		},
 		{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_handleinput'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = Spring.I18N('ui.settings.option.console_handleinput_descr'),
@@ -6423,8 +6432,12 @@ function init()
 				option.value = option.max
 			end
 		end
-		if option.name and option.category == types.dev then
-			option.name = devMainOptionColor..string.gsub(option.name, widgetOptionColor, devOptionColor)
+		if option.name then
+			if option.category == types.dev then
+				option.name = devMainOptionColor..string.gsub(option.name, widgetOptionColor, devOptionColor)
+			elseif (devMode or devUI) and option.category == types.advanced then
+				option.name = advMainOptionColor..string.gsub(option.name, widgetOptionColor, advOptionColor)
+			end
 		end
 		processedOptionsCount = processedOptionsCount + 1
 		processedOptions[processedOptionsCount] = option

@@ -1405,6 +1405,8 @@
 				"console_hide_descr": "Hides chat and console. (scrollable ui interface still available)",
 				"console_hidespecchat": "hide spectator chat",
 				"console_hidespecchat_descr": "Not showing any spectator chat",
+				"console_hidespecchatplayer": "as player only",
+				"console_hidespecchatplayer_descr": "Not showing any spectator chat when being a player",
 				"console_showbackground": "show background",
 				"console_showbackground_descr": "Always show background (faintly)",
 				"console_backgroundopacity": "background opacity",
