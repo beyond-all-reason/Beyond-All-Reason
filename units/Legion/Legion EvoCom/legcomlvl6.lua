@@ -89,7 +89,7 @@ return {
 			"legvcarry",
 			"legmg",
 			"corjuno",
-			"cordl",
+			"legctl",
 			"corenaa",
             "legbastion",
 			"legeyes",

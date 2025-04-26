@@ -1363,6 +1363,10 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
+	legctl = {
+		bitmap = "icons/defence_1_naval.png",
+		size = 1.10249984
+	},
 	cordoom = {
 		bitmap = "icons/cordoom.png",
 		size = 2.0474999

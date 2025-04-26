@@ -90,7 +90,7 @@ return {
 			 "legvcarry",
 			 "legmg",
 			 "corjuno",
-			 "cordl",
+			 "legctl",
 			 "corenaa",
 			 "legeyes",
 			 "legavrad",

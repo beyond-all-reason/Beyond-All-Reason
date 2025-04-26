@@ -76,7 +76,7 @@ return {
 			"legdrag",
 			"leglht",
 			"legrl",
-			"cordl",
+			"legctl",
 			"legtide",
 			"coruwms",
 			"coruwes",

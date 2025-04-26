@@ -89,7 +89,7 @@ return {
 			"legdtr",
 			"legrl",
 			"corjuno",
-			"cordl",
+			"legctl",
 			"corfrt",
 			"legeyes",
 			"legavrad",

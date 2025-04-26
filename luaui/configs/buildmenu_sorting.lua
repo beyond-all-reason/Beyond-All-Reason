@@ -692,6 +692,7 @@ local unitOrderTable = {
    --DEFENSES TO WATER
    ['armdl']          = 155000,
    ['cordl']          = 155500,
+   ['legctl']         = 155501,
 
    --DEFENSES MISSILE LAUNCHERS
    ['armemp']         = 165000,
@@ -780,7 +781,7 @@ local unitOrderTable = {
    ['corfdrag']       = 230200,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
-   ['legfmg']        = 230400,
+   ['legfmg']        = 230401,
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
