@@ -3681,22 +3681,22 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
 		  end,
 		},
-		{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_handleinput'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = Spring.I18N('ui.settings.option.console_handleinput_descr'),
-		  onload = function(i)
-			  loadWidgetData("Chat", "console_handleinput", { 'handleTextInput' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
-		  end,
-		},
-		{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_inputbutton'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = Spring.I18N('ui.settings.option.console_inputbutton_descr'),
-		  onload = function(i)
-			  loadWidgetData("Chat", "console_inputbutton", { 'inputButton' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
-		  end,
-		},
+		--{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_handleinput'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = Spring.I18N('ui.settings.option.console_handleinput_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Chat", "console_handleinput", { 'handleTextInput' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
+		--  end,
+		--},
+		--{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_inputbutton'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = Spring.I18N('ui.settings.option.console_inputbutton_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Chat", "console_inputbutton", { 'inputButton' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
+		--  end,
+		--},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
 		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
@@ -4321,7 +4321,7 @@ function init()
 		  end,
 		},
 
-		{ id = "spectator_hud_config", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.spectator_hud_config'), type = "select", options = spectatorHUDConfigOptions, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getConfig ~= nil and WG['spectator_hud'].getConfig()) or 1, description = Spring.I18N('ui.settings.option.spectator_hud_config_descr'),
+		{ id = "spectator_hud_config", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.spectator_hud_config'), type = "select", options = spectatorHUDConfigOptions, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getConfig ~= nil and WG['spectator_hud'].getConfig()) or 1, description = Spring.I18N('ui.settings.option.spectator_hud_config_descr'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_config", { 'config' })
 			end,
@@ -4331,7 +4331,7 @@ function init()
 			end,
 		},
 
-		{ id = "spectator_hud_metric_metalIncome", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalIncome')) or 1, description = Spring.I18N('ui.spectator_hud.metalIncome_tooltip'),
+		{ id = "spectator_hud_metric_metalIncome", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.metalIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalIncome')) or 1, description = Spring.I18N('ui.spectator_hud.metalIncome_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalIncome", { 'metricsEnabled', 'metalIncome' })
 			end,
@@ -4339,7 +4339,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalIncome' }, value, { 'metalIncome', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_energyIncome", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyIncome')) or 1, description = Spring.I18N('ui.spectator_hud.energyIncome_tooltip'),
+		{ id = "spectator_hud_metric_energyIncome", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.energyIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyIncome')) or 1, description = Spring.I18N('ui.spectator_hud.energyIncome_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyIncome", { 'metricsEnabled', 'energyIncome' })
 			end,
@@ -4347,7 +4347,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyIncome' }, value, { 'energyIncome', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_buildPower", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.buildPower_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('buildPower')) or 1, description = Spring.I18N('ui.spectator_hud.buildPower_tooltip'),
+		{ id = "spectator_hud_metric_buildPower", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.buildPower_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('buildPower')) or 1, description = Spring.I18N('ui.spectator_hud.buildPower_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_buildPower", { 'metricsEnabled', 'buildPower' })
 			end,
@@ -4355,7 +4355,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'buildPower' }, value, { 'buildPower', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_metalProduced", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalProduced')) or 1, description = Spring.I18N('ui.spectator_hud.metalProduced_tooltip'),
+		{ id = "spectator_hud_metric_metalProduced", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.metalProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalProduced')) or 1, description = Spring.I18N('ui.spectator_hud.metalProduced_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalProduced", { 'metricsEnabled', 'metalProduced' })
 			end,
@@ -4363,7 +4363,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalProduced' }, value, { 'metalProduced', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_energyProduced", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyProduced')) or 1, description = Spring.I18N('ui.spectator_hud.energyProduced_tooltip'),
+		{ id = "spectator_hud_metric_energyProduced", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.energyProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyProduced')) or 1, description = Spring.I18N('ui.spectator_hud.energyProduced_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyProduced", { 'metricsEnabled', 'energyProduced' })
 			end,
@@ -4371,7 +4371,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyProduced' }, value, { 'energyProduced', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_metalExcess", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalExcess')) or 1, description = Spring.I18N('ui.spectator_hud.metalExcess_tooltip'),
+		{ id = "spectator_hud_metric_metalExcess", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.metalExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalExcess')) or 1, description = Spring.I18N('ui.spectator_hud.metalExcess_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalExcess", { 'metricsEnabled', 'metalExcess' })
 			end,
@@ -4379,7 +4379,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalExcess' }, value, { 'metalExcess', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_energyExcess", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyExcess')) or 1, description = Spring.I18N('ui.spectator_hud.energyExcess_tooltip'),
+		{ id = "spectator_hud_metric_energyExcess", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.energyExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyExcess')) or 1, description = Spring.I18N('ui.spectator_hud.energyExcess_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyExcess", { 'metricsEnabled', 'energyExcess' })
 			end,
@@ -4387,7 +4387,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyExcess' }, value, { 'energyExcess', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_armyValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.armyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('armyValue')) or 1, description = Spring.I18N('ui.spectator_hud.armyValue_tooltip'),
+		{ id = "spectator_hud_metric_armyValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.armyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('armyValue')) or 1, description = Spring.I18N('ui.spectator_hud.armyValue_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_armyValue", { 'metricsEnabled', 'armyValue' })
 			end,
@@ -4395,7 +4395,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'armyValue' }, value, { 'armyValue', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_defenseValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.defenseValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('defenseValue')) or 1, description = Spring.I18N('ui.spectator_hud.defenseValue_tooltip'),
+		{ id = "spectator_hud_metric_defenseValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.defenseValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('defenseValue')) or 1, description = Spring.I18N('ui.spectator_hud.defenseValue_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_defenseValue", { 'metricsEnabled', 'defenseValue' })
 			end,
@@ -4403,7 +4403,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'defenseValue' }, value, { 'defenseValue', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_utilityValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.utilityValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('utilityValue')) or 1, description = Spring.I18N('ui.spectator_hud.utilityValue_tooltip'),
+		{ id = "spectator_hud_metric_utilityValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.utilityValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('utilityValue')) or 1, description = Spring.I18N('ui.spectator_hud.utilityValue_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_utilityValue", { 'metricsEnabled', 'utilityValue' })
 			end,
@@ -4411,7 +4411,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'utilityValue' }, value, { 'utilityValue', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_economyValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.economyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('economyValue')) or 1, description = Spring.I18N('ui.spectator_hud.economyValue_tooltip'),
+		{ id = "spectator_hud_metric_economyValue", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.economyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('economyValue')) or 1, description = Spring.I18N('ui.spectator_hud.economyValue_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_economyValue", { 'metricsEnabled', 'economyValue' })
 			end,
@@ -4419,7 +4419,7 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'economyValue' }, value, { 'economyValue', value })
 			end,
 		},
-		{ id = "spectator_hud_metric_damageDealt", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.damageDealt_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('damageDealt')) or 1, description = Spring.I18N('ui.spectator_hud.damageDealt_tooltip'),
+		{ id = "spectator_hud_metric_damageDealt", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.damageDealt_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('damageDealt')) or 1, description = Spring.I18N('ui.spectator_hud.damageDealt_tooltip'),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_damageDealt", { 'metricsEnabled', 'damageDealt' })
 			end,
