@@ -2,11 +2,11 @@ return {
 	leginfestor = {
 		maxacc = 0.25,
 		maxdec = 0.65,
-		energycost = 5000,
-		metalcost = 300,
+		energycost = 5200,
+		metalcost = 250,
 		buildpic = "LEGINFESTOR.DDS",
 		builddistance = 175,
-		buildtime = 4500,
+		buildtime = 2250,
 		builder = true,
 		canassist = true,
 		canreclaim = true,
@@ -38,7 +38,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
-		workertime = 150,
+		workertime = 75,
 		buildoptions = {
 			[1] = "leginfestor"
 		},
