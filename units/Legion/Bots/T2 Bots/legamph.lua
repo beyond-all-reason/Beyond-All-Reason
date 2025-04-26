@@ -2,7 +2,7 @@ return {
 	legamph = {
 		activatewhenbuilt = true,
 		brakerate = 0.5,
-		buildpic = "CORAMPH.DDS",
+		buildpic = "LEGAMPH.DDS",
 		buildtime = 19000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 0",
