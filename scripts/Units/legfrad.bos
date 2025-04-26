@@ -118,7 +118,7 @@ Create()
 	{
 		sleep 400;
 	}
-
+    start-script FloatMotion();
 	call-script Go();
 
 
