@@ -2543,6 +2543,10 @@ local icontypes = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
 	},
+	legamph = {
+		bitmap = "icons/amph_torp.png",
+		size = 1.65999997
+	},
 	legamphtank = {
 		bitmap = "icons/amphib_tank.png",
 		size = 1.35000002

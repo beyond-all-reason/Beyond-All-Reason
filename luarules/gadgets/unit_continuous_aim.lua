@@ -118,6 +118,7 @@ local convertedUnitsNames = {
 	['legcomt2off'] = 5,
 	['legcomt2com'] = 5,
 	['legstr'] = 5,
+	['legamph'] = 4,
 	['legbart'] = 5,
 	['legmrv'] = 5,
 	['legsco'] = 5,

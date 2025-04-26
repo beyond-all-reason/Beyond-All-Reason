@@ -266,6 +266,7 @@ local unitOrderTable = {
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
 	['coramph']        = 006910,
+	['legamph']        = 006915,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
 	['corsala']        = 006935,

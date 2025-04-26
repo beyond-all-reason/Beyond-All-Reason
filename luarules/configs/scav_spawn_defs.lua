@@ -371,6 +371,7 @@ local LandUnitsList = {
 			["corgatreap_scav"] = 4,
 			--Legion
 			["legaheattank_scav"] = 4,
+			["legamph_scav"] = 3,
 			["leginc_scav"] = 2,
 			["legfloat_scav"] = 4,
 		},

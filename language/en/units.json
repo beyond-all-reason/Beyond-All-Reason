@@ -897,7 +897,8 @@
 			"legrampart": "Rampart",
 			"legabm": "Aegis",
 			"legrwall": "Dragon's Constitution",
-			"legjav": "Javelin"
+			"legjav": "Javelin",
+			"legamph": "Telchine"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1789,7 +1790,8 @@
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
 			"legabm": "Anti-Nuke System",
 			"legrwall": "Railgun Defense Wall",
-			"legjav": "Amphibious Raider"
+			"legjav": "Amphibious Raider",
+			"legamph": "T2 Amphibious Assault Bot/Coast Guard"
 		}
 	}
 }
