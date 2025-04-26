@@ -270,11 +270,6 @@ function widget:Update(dt)
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.append, mods.any }
-	if mods.all then
-		-- backwards compatibility
-		mods.any = true
-		mods.append = true
-	end
 	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
@@ -349,7 +344,7 @@ function widget:Update(dt)
 		end
 		mouseSelection = tmp
 
-	elseif selectBuildingsWithMobile == false and mods.any == false and mods.deselect == false then
+	elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) and mods.deselect == false then
 		-- only select mobile units, not buildings
 		local mobiles = false
 		for i = 1, #mouseSelection do
@@ -403,7 +398,7 @@ function widget:Update(dt)
 		selectedUnits = newSelection
 		spSelectUnitArray(selectedUnits)
 
-	elseif mods.append then  -- append units inside selection rectangle to current selection
+	elseif (mods.append or mods.all) then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
 		selectedUnits = Spring.GetSelectedUnits()
