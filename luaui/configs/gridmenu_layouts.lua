@@ -34,7 +34,7 @@ local labGrids = {
 		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
 		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
 		-- page2
-		"coramph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
+		"legamph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
 		"legdecom",					-- decoycom
 	},
 	-- T1 vehicle
@@ -153,7 +153,7 @@ local labGrids = {
 
 	legamsub = {
 		"legotter", "legdecom", "legamphtank", "", 		-- amphibious con, decoy com, t1 amphibious tank, idk
-		"",         "legfloat", "",            "", 		-- idk, t2 floating tank, idk, idk
+		"",         "legfloat", "legamph",            "", 		-- idk, t2 floating tank, idk, idk
 		"",         "corcrash", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
 	},
 	-- hover labs
