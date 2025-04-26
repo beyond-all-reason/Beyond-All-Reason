@@ -1348,9 +1348,9 @@ CloseTorpedoLauncher(){
 	turn torpedotube to x-axis [0] speed <25.000000>;
 
 	sleep 500;
-	move torpedolauncha to y-axis [-3.3] speed [-15];
-	move torpedotube to y-axis [0.7] speed [-3.181822];
-	move torpedotube to z-axis [-8] speed [-36.363630];
+	move torpedolauncha to y-axis [-2.5] speed [-15];
+	move torpedotube to y-axis [0.355] speed [-3.181822];
+	move torpedotube to z-axis [-6] speed [-36.363630];
 	move torpaimx to x-axis [0] speed [-36.363630];
 	sleep 100;
 }
@@ -1771,6 +1771,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode torpedolauncha type BITMAPONLY | NOHEATCLOUD;
+		start-script OpenTorpedoLauncher();
 		call-script DeathAnim();
 		return(corpsetype);
 	}
