@@ -22,7 +22,7 @@ local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport lan
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
 local CONST_BENEFIT_LIMIT = 5  -- what is the lowest benefit treshold to use transport (in sec difference with transport against without it)
 local CONST_TRANSPORT_STOPDISTANCE = 150 -- how close by has transport be to stop the unit
-local CONST_UNLOAD_RADIUS = 200 -- how big is the radious for unload command for factory transports
+local CONST_UNLOAD_RADIUS = 400 -- how big is the radious for unload command for factory transports
 
 local idleTransports = {} -- list of idle transports key = id, value = {defid}
 local waitingUnits = {} -- list of units waiting for traqnsport - key = unitID, {unit state, unitDef, factory}

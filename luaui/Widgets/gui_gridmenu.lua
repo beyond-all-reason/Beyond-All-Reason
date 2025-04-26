@@ -23,8 +23,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = true
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
@@ -1424,6 +1424,8 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	iconMargin = math.floor((bgpadding * 0.5) + 0.5)
@@ -1442,9 +1444,8 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2 * (useRenderToTexture and 1.6 or 1), 0.28, 1.6)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.7, 0.33 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -2571,7 +2572,7 @@ function widget:DrawScreen()
 			end
 			if useRenderToTexture then
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*(vsy<1400 and 2 or 1), math_floor(backgroundRect.yEnd-backgroundRect.y)*(vsy<1400 and 2 or 1), {
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(backgroundRect.yEnd-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,

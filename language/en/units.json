@@ -669,6 +669,7 @@
 			"legeyes": "Argus",
 			"leegmech": "Praetorian",
 			"legaceb": "Proteus",
+			"legafcv": "Aceso",
 			"legacluster": "Eviscerator",
 			"legamcluster": "Cleaver",
 			"legalab": "Legion Advanced Bot Lab",
@@ -786,6 +787,7 @@
 			"legmohoconct": "Advanced Metal Fortifier",
 			"legmohoconin": "Advanced Metal Fortifier",
 			"legmg": "Cacophony",
+			"legfmg": "Gelasma",
 			"legmh": "Salacia",
 			"legmineb": "Harbinger",
 			"legministarfall": "Mini Starfall",
@@ -895,7 +897,8 @@
 			"legrampart": "Rampart",
 			"legabm": "Aegis",
 			"legrwall": "Dragon's Constitution",
-			"legjav": "Javelin"
+			"legjav": "Javelin",
+			"legamph": "Telchine"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1562,6 +1565,7 @@
 			"legeyes": "Perimeter Camera",
 			"leegmech": "Armored Assault Mech",
 			"legaceb": "All-Terrain Combat Engineer",
+			"legafcv": "Light Construction Buggy",
 			"legacluster": "Pop-up Cluster Plasma Artillery",
 			"legamcluster": "Mobile Cluster Artillery Vehicle",
 			"legalab": "Advanced Bot Lab",
@@ -1673,7 +1677,8 @@
 			"legmohocon": "Advanced Metal Extractor and Construction Turret",
 			"legmohoconct": "Advanced Metal Extractor and Construction Turret",
 			"legmohoconin": "You aren't supposed to see this one",
-			"legmg": "Heavy Land & Air Defense",
+			"legmg": "Heavy Land/Air Gatling Gun Turret",
+			"legfmg": "Heavy Land/Air Floating Gatling Gun Turret",
 			"legmh": "Hovercraft Rocket Launcher",
 			"legmineb": "Deploys a Line of Light Mines onto Target Area",
 			"legministarfall": "Clockwork Starfall; 'Armageddon, but you're on a budget'",
@@ -1785,7 +1790,8 @@
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
 			"legabm": "Anti-Nuke System",
 			"legrwall": "Railgun Defense Wall",
-			"legjav": "Amphibious Raider"
+			"legjav": "Amphibious Raider",
+			"legamph": "T2 Amphibious Assault Bot/Coast Guard"
 		}
 	}
 }

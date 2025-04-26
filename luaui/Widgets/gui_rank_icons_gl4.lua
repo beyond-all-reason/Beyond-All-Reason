@@ -305,6 +305,11 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	end
 end
 
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	unitRanks[unitID] = nil
+	RemovePrimitive(unitID, "UnitDestroyed")
+end
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if IsUnitAllied(unitID) or GetSpectatingState() then
 		updateUnitRank(unitID, GetUnitDefID(unitID))
