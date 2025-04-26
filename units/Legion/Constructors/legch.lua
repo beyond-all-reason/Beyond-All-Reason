@@ -78,7 +78,7 @@ return {
 			[38] = "corfdrag",
 			[39] = "legfrad",
 			[40] = "legfmg",
-			[41] = "corfrt",
+			[41] = "legfrl",
 			[42] = "legtl",
 			[43] = "coruwgeo",
 			[44] = "corasy",

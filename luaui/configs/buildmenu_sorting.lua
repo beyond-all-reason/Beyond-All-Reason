@@ -790,6 +790,7 @@ local unitOrderTable = {
    --WATER DEFENSES AA
    ['armfrt']         = 255100,
    ['corfrt']         = 255200,
+   ['legfrl']         = 255200,
    ['armfflak']       = 255300,
    ['corenaa']        = 255400,
 

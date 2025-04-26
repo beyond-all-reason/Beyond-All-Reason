@@ -265,7 +265,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
-			{ "legrl", "corfrt", },                          -- basic AA, floating AA
+			{ "legrl", "legfrl", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
 		{
@@ -333,7 +333,7 @@ local unitGrids = {
 		},
 		{
 			{ "corllt", "legtl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
+			{ "corrl", "legfrl", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
 		{
@@ -798,7 +798,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
-			{ "legrl", "corfrt", },                          -- basic AA, floating AA
+			{ "legrl", "legfrl", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
 		{
@@ -820,7 +820,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legtl", "leggob", "leglob",},       -- LLT, offshore torp launcher, goblin, lobber
-			{ "legrl", "corfrt", "legrail", "legbar",},             -- basic AA, floating AA, blank, barrage
+			{ "legrl", "legfrl", "legrail", "legbar",},             -- basic AA, floating AA, blank, barrage
 			{ "legctl", },                                    -- coastal torp launcher
 		},
 		{
@@ -1315,7 +1315,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
-			{ "legrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, rhapsis, t1.5 flak, floating AA
+			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, rhapsis, t1.5 flak, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
 		},
 		{
@@ -1432,7 +1432,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
-			{ "legrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, SAM, eradicator, floating AA
+			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{

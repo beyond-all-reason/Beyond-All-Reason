@@ -1511,6 +1511,10 @@ local icontypes = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
+	legfrl = {
+		bitmap = "icons/aa.png",
+		size = 0.89249998
+	},
 	corfship = {
 		bitmap = "icons/ship_t2_flame.png",
 		size = 1.89999998
