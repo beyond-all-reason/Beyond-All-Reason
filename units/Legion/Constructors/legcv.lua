@@ -68,7 +68,7 @@ return {
 			"legrl",
 			"legrhapsis",
 			"leglupara",
-			"cordl",
+			"legctl",
 			"legjam",
 			"corjuno",
 			"corsy",

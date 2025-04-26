@@ -52,6 +52,9 @@ if gadgetHandler:IsSyncedCode() then
 		['corvrad'] = true,
 		['legarad'] = true,
 		['legajam'] = true,
+		['legavrad'] = true,
+		['legavjam'] = true,
+		['legfrad'] = true,
 		
 		['armmine1'] = true,
 		['armmine2'] = true,
