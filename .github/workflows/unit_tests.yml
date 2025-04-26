@@ -1,0 +1,25 @@
+name: Unit Tests (busted)
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['*']
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Lua 5.1 and luarocks
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lua5.1 luarocks
+
+    - name: Install busted
+      run: luarocks --lua-version=5.1 install busted --local
+
+    - name: Run busted
+      run: ~/.luarocks/bin/busted
