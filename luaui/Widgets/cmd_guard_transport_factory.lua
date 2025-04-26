@@ -176,7 +176,7 @@ Unit=
     waiting=false,
 }
 function Unit:new(unitid)
-	o = {}
+	local o = {}
 	setmetatable(o, {__index=self})
     o.UnitDEFS=UnitDefs[Spring.GetUnitDefID(unitid)]
 	o.Mass=o.UnitDEFS.mass
@@ -221,7 +221,7 @@ function Factory:registerTransport(unitID)
     transports[unitID].guardedFactoryID = self.unitID
 end
 
-function registerUnit(unitID)
+local function registerUnit(unitID)
     local unitDefID = Spring.GetUnitDefID(unitID)
     local createdUnitDefs = UnitDefs[unitDefID]
 
@@ -280,7 +280,7 @@ function widget:UnitFinished(unitID, unitDefID, teamId, builderID)
 end
 
   
-function isWaiting(unitID)
+local function isWaiting(unitID)
     local cmds = Spring.GetUnitCommands(unitID, 1)
 
     if cmds ~= nil and cmds[1] ~= nil and cmds[1].id == CMD.WAIT then
@@ -303,7 +303,7 @@ function widget:GameFrame(frame)
             transports[transportID].state = transport_states.unloaded
             Spring.GiveOrderToUnit(transportID, CMD.GUARD ,transports[transportID].guardedFactoryID, { "shift" } )-- go back to base
         else
-            targetUnit = allUnits[target]
+            local targetUnit = allUnits[target]
 
             -- Order the built unit to stop if it's out of the factory
             local transported = Spring.GetUnitIsTransporting(transportID) or {}
@@ -335,8 +335,8 @@ function widget:GameFrame(frame)
     
             -- Check if transport has returned to the factory
             if transports[transportID].state == transport_states.unloaded then 
-                boundFactoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
-                boundFactoryDistance = Distance(getUnitPositionTuple(transportID), boundFactoryLocation)
+                local boundFactoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
+                local boundFactoryDistance = Distance(getUnitPositionTuple(transportID), boundFactoryLocation)
                 if boundFactoryDistance < 400 and transports[transportID].state == transport_states.unloaded then
                     Log("Transport " .. transportID .. " IDLE with distance " .. boundFactoryDistance, debugLog)
                     transports[transportID].state = transport_states.idle 
@@ -387,7 +387,7 @@ function widget:GameFrame(frame)
     end
 end
 
-function commandName(id)
+local function commandName(id)
     local cmdName = "other"
     if id==CMD.GUARD then
         cmdName = "GUARD"
@@ -407,7 +407,7 @@ function commandName(id)
     return cmdName
 end
 
-function inactivateUnit(unitID)
+local function inactivateUnit(unitID)
     Log("Inactivated unit", debugLog)
     if allUnits[unitID] ~= nil then
         return
@@ -418,7 +418,7 @@ function inactivateUnit(unitID)
     end
 end
 
-function inactivateTransport(unitID)
+local function inactivateTransport(unitID)
     if transports[unitID] == nil then
         return
     end
@@ -539,10 +539,10 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                         transports[transportID].state = transport_states.approaching
                         transports[transportID].destination = destination
 
-                        transportLocation           = getUnitPositionTuple(transportID)
-                        unitLocation                = getUnitPositionTuple(createdUnitID)
-                        local unitWaitDestination   = getFirstMoveCommandDestination(createdUnitID)
-                        transportDestination        = unitLocation
+                        local transportLocation           = getUnitPositionTuple(transportID)
+                        local unitLocation                = getUnitPositionTuple(createdUnitID)
+                        local unitWaitDestination         = getFirstMoveCommandDestination(createdUnitID)
+                        local transportDestination        = unitLocation
                         Spring.GiveOrderToUnit(transportID, CMD.MOVE ,unitWaitDestination,{ "right" } )--Load Unit
                         Spring.GiveOrderToUnit(transportID, CMD.GUARD ,factID,{ "shift" } )--Load Unit
 
@@ -559,7 +559,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) 
-    selectedUnits = Spring.GetSelectedUnits()
+    local selectedUnits = Spring.GetSelectedUnits()
 
     for _,orderedUnit in ipairs(selectedUnits) do
         local unitDefID = Spring.GetUnitDefID(orderedUnit)
