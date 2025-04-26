@@ -79,7 +79,7 @@ return {
 			[39] = "corfrad",
 			[40] = "legfmg",
 			[41] = "corfrt",
-			[42] = "cortl",
+			[42] = "legtl",
 			[43] = "coruwgeo",
 			[44] = "corasy",
 			[45] = "leghive",

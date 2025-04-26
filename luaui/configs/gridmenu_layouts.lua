@@ -264,7 +264,7 @@ local unitGrids = {
 			{ "corestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "leglht", "cortl", },                          -- LLT, offshore torp launcher
+			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
 			{ "legrl", "corfrt", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
@@ -332,7 +332,7 @@ local unitGrids = {
 			{ "legestor", "cormstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
+			{ "corllt", "legtl", },                          -- LLT, offshore torp launcher
 			{ "corrl", "corfrt", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
@@ -797,7 +797,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "leglht", "cortl", },                          -- LLT, offshore torp launcher
+			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
 			{ "legrl", "corfrt", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
@@ -819,7 +819,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "leglht", "cortl", "leggob", "leglob",},       -- LLT, offshore torp launcher, goblin, lobber
+			{ "leglht", "legtl", "leggob", "leglob",},       -- LLT, offshore torp launcher, goblin, lobber
 			{ "legrl", "corfrt", "legrail", "legbar",},             -- basic AA, floating AA, blank, barrage
 			{ "legctl", },                                    -- coastal torp launcher
 		},
@@ -843,7 +843,7 @@ local unitGrids = {
 		{
 			{ "leggat", "legbar", "legkark", "legcen", },     -- decurion, barrage, karkinos, centaur
 			{ "corrl", "legrail", "legmg", "legdtr", },       -- basic AA, lance, cacophony, dragon maw
-			{ "legctl", "leghive", "cortl", "", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
+			{ "legctl", "leghive", "legtl", "", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
 		},
 		{
 			{ "legavrad", "legeyes", "legdrag", "legavjam", }, -- radar bot, perimeter camera, dragon's teeth, jammer bot
@@ -1316,7 +1316,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, rhapsis, t1.5 flak, floating AA
-			{ "legctl", "legcluster", "cortl", "legfmg", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
+			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1433,7 +1433,7 @@ local unitGrids = {
 		{
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, SAM, eradicator, floating AA
-			{ "legctl", "legcluster", "cortl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer

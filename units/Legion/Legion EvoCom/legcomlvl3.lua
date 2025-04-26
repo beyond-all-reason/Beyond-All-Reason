@@ -84,7 +84,7 @@ return {
 			"leginfestor",
 			"legrail",
 			"legmg",
-			"cortl",
+			"legtl",
 			"leghive",
 			"legdtr",
 			"legrl",

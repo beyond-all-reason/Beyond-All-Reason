@@ -83,7 +83,7 @@ return {
 			[20] = "legfmkr",
 			[21] = "corsy",
 			[22] = "corfdrag",
-			[23] = "cortl",
+			[23] = "legtl",
 			[24] = "corfrt",
 			[25] = "corfrad",
 			-- Experimental:

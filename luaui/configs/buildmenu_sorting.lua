@@ -795,6 +795,7 @@ local unitOrderTable = {
    --WATER DEFENSES NAVAL
    ['armtl']          = 260300,
    ['cortl']          = 260400,
+   ['legtl']          = 260401,
    ['armatl']         = 260500,
    ['coratl']         = 260600,
 }
