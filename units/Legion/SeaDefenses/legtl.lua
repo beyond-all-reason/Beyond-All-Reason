@@ -97,7 +97,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.8,
 				impulsefactor = 0.123,
-				model = "cortorpedo.s3o",
+				model = "legbasictorpedo.s3o",
 				name = "Torpedo Launcher",
 				noselfdamage = true,
 				predictboost = 1,
