@@ -780,6 +780,7 @@ local unitOrderTable = {
    ['corfdrag']       = 230200,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
+   ['legfmg']        = 230400,
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
