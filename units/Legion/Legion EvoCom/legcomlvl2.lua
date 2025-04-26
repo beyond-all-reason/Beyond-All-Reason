@@ -85,7 +85,7 @@ return {
 			"corfdrag",
 			"legtl",
 			"corfrt",
-			"corfrad",
+			"legfrad",
 			"leghp",
 			"legfhp",
 			"leggob",

@@ -85,7 +85,7 @@ return {
 			[22] = "corfdrag",
 			[23] = "legtl",
 			[24] = "corfrt",
-			[25] = "corfrad",
+			[25] = "legfrad",
 			-- Experimental:
 			[26] = "leghp",
 			[27] = "legfhp",

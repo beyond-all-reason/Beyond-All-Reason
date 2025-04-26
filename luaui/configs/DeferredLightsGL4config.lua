@@ -22551,6 +22551,26 @@ local unitLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legfrad'] = {
+		greenblobA = {
+			lightType = 'point',
+			pieceName = 'dishA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobB = {
+			lightType = 'point',
+			pieceName = 'dishB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legjam'] = {
 		cloaklightred = {
 			lightType = 'point',

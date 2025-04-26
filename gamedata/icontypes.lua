@@ -2463,6 +2463,10 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legfrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
+	},
 	legrwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999

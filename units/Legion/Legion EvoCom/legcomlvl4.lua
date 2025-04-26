@@ -97,7 +97,7 @@ return {
 			 "legavjam",
 			 "legdrag",
 			 "legarad",
-			 "corfrad",
+			 "legfrad",
         	 "legstronghold",
         	 "legforti",
 			 "corfdrag",

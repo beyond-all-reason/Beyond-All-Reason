@@ -270,7 +270,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -338,7 +338,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -803,7 +803,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
 		{
@@ -825,7 +825,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                            -- empty
 		},
 		{
@@ -847,7 +847,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legdrag", "legavjam", }, -- radar bot, perimeter camera, dragon's teeth, jammer bot
-			{ "corfrad", "corfdrag",},                       -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag",},                       -- floating radar, shark's teeth
 			{ "corjuno", "legrad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -869,7 +869,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -891,7 +891,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -913,7 +913,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legajam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -935,7 +935,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -957,7 +957,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -979,7 +979,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1001,7 +1001,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "corfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
 			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1320,7 +1320,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
 		{
@@ -1437,7 +1437,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
+			{ "legfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
 		{

@@ -328,6 +328,7 @@ local armorDefs = {
 		"coreter",
 		"coreyes",
 		"corfrad",
+		"legfrad",
 		"corjamt",
 		"corrad",
 		"corshroud",

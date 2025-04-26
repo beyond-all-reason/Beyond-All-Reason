@@ -770,6 +770,7 @@ local unitOrderTable = {
    ['armfasp']        = 220000,
    ['corfasp']        = 220050,
    ['armfrad']        = 220100,
+   ['legfrad']        = 220101,
    ['corfrad']        = 220150,
    ['armason']        = 220200,
    ['corason']        = 220250,
