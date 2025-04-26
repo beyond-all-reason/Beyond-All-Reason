@@ -13,12 +13,39 @@
   },
   "workspace": {
     "library": [
-      "recoil-lua-library"
+      "recoil-lua-library",
+      "luarules/",
+      "luaui/",
+      "spec/",
+      "./types/busted/library",
+      "./types/luassert/library"
     ],
     "ignoreDir": [
       ".vscode",
       "luaui/Tests",
       "luaui/TestsExamples"
     ]
+  },
+  "diagnostics": {
+    "globals": [
+      "VFS",
+      "Spring",
+      "Game",
+      "CMD",
+      "gadget",
+      "widget",
+      "GG",
+      "WG",
+      "gadgetHandler",
+      "widgetHandler"
+    ],
+    "type": {
+      "definition": [
+        "luaui/types/"
+      ]
+    }
+  },
+  "semantic": {
+    "enable": true
   }
 }
