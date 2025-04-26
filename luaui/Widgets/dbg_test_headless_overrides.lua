@@ -22,6 +22,3 @@ Spring.SetConfigInt("ui_rendertotexture", 0)
 gl.PushMatrix = function() end
 gl.PopMatrix = function() end
 
-gl.CreateTexture = function() end
-gl.RenderToTexture = function() end
-
