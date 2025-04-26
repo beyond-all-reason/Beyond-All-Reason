@@ -59,15 +59,6 @@ local function IsFab(unitID)
 	return IsFactory
 end
 
-local function IsTransport(unitID)
-    local Index=Spring.GetUnitDefID(unitID)
-    if Index~=nil then
-        return UnitDefs[Index].isTransport
-    else
-        return false
-    end
-end
-
 local function Distance(Point1,Point2)
 	local Distance=-1
 	if Point1~=nil and Point2~=nil then
@@ -166,14 +157,12 @@ local function worthTransporting(unitID, transportID)
     end
 
     return false
-
 end
 
 -- =================Unit Class Def==============
 Unit=
 {
     firstOrderCompleted=false,
-    waiting=false,
 }
 function Unit:new(unitid)
 	local o = {}
@@ -191,7 +180,6 @@ Transporter=
 }
 
 function Transporter:new(unitid)
-
 	o = {}
 	setmetatable(o, {__index=self})
     o.UnitDEFS=UnitDefs[Spring.GetUnitDefID(unitid)]
@@ -261,7 +249,7 @@ function widget:Initialize()
         local unitDefID = Spring.GetUnitDefID(unitID)
         local orderedUnitDefs = UnitDefs[unitDefID]
         
-        if  isGuarding and orderedUnitDefs.isTransport then
+        if isGuarding and orderedUnitDefs.isTransport then
             local targetUnitID = unitCommands[1].params[1]
             registerUnit(targetUnitID)
             registerUnit(unitID)
@@ -308,16 +296,15 @@ function widget:GameFrame(frame)
             -- Order the built unit to stop if it's out of the factory
             local transported = Spring.GetUnitIsTransporting(transportID) or {}
             if transports[transportID].state == transport_states.picking_up then    
-                local factoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
-                local unitLocation = getUnitPositionTuple(target)
-                local isFarFromFactory = Distance(factoryLocation, unitLocation) > 300
-
-                local readyForPickup = isFarFromFactory or targetUnit.firstOrderCompleted
+                local factoryLocation   = getUnitPositionTuple(transports[transportID].guardedFactoryID)
+                local unitLocation      = getUnitPositionTuple(target)
+                local isFarFromFactory  = Distance(factoryLocation, unitLocation) > 300
+                local readyForPickup    = isFarFromFactory or targetUnit.firstOrderCompleted
 
                 if readyForPickup then
                     if isWaiting(target) == false then
-                            Log("Issuing wait " .. watchedTransports[transportID], debugLog)
-                            Spring.GiveOrderToUnit(watchedTransports[transportID], CMD.WAIT , {}, { "alt" } )
+                        Log("Issuing wait " .. watchedTransports[transportID], debugLog)
+                        Spring.GiveOrderToUnit(watchedTransports[transportID], CMD.WAIT , {}, { "alt" } )
                     end
                 end
                 -- Check if we picked up the unit already
@@ -339,9 +326,9 @@ function widget:GameFrame(frame)
                 local boundFactoryDistance = Distance(getUnitPositionTuple(transportID), boundFactoryLocation)
                 if boundFactoryDistance < 400 and transports[transportID].state == transport_states.unloaded then
                     Log("Transport " .. transportID .. " IDLE with distance " .. boundFactoryDistance, debugLog)
-                    transports[transportID].state = transport_states.idle 
-                    watchedUnits[target] = nil
-                    watchedTransports[transportID] = nil
+                    transports[transportID].state   = transport_states.idle
+                    watchedUnits[target]            = nil
+                    watchedTransports[transportID]  = nil
                 end            
             end
     
@@ -362,19 +349,15 @@ function widget:GameFrame(frame)
             end
 
             if transports[transportID].state == transport_states.approaching then 
-                local vx, vy, vz = Spring.GetUnitVelocity(target)
-                local speed = math.sqrt(vx^2 + vy^2 + vz^2)
                 if isWaiting(target) then
-                    -- if isWaiting(target) and speed <= 0.1 then
                     Log("Transport " .. transportID .. " PICKING_UP", debugLog)
                     transports[transportID].state = transport_states.picking_up
                     Spring.GiveOrderToUnit(transportID, CMD.LOAD_UNITS ,target,{ "right" } )--Load Unit
                 end
-                local factoryLocation = getUnitPositionTuple(transports[transportID].guardedFactoryID)
-                local unitLocation = getUnitPositionTuple(target)
-                local isFarFromFactory = Distance(factoryLocation, unitLocation) > 300
-
-                local readyForPickup = isFarFromFactory or targetUnit.firstOrderCompleted
+                local factoryLocation   = getUnitPositionTuple(transports[transportID].guardedFactoryID)
+                local unitLocation      = getUnitPositionTuple(target)
+                local isFarFromFactory  = Distance(factoryLocation, unitLocation) > 300
+                local readyForPickup    = isFarFromFactory or targetUnit.firstOrderCompleted
 
                 if readyForPickup then
                     if isWaiting(target) == false then
@@ -385,26 +368,6 @@ function widget:GameFrame(frame)
             end
         end
     end
-end
-
-local function commandName(id)
-    local cmdName = "other"
-    if id==CMD.GUARD then
-        cmdName = "GUARD"
-    end
-    if id==CMD.MOVE then
-        cmdName = "MOVE"
-    end
-    if id==CMD.WAIT then
-        cmdName = "WAIT"
-    end
-    if id==CMD.UNLOAD_UNIT then
-        cmdName = "UNLOAD_UNIT"
-    end
-    if id==CMD.LOAD_UNITS then
-        cmdName = "LOAD_UNITS"
-    end
-    return cmdName
 end
 
 local function inactivateUnit(unitID)
