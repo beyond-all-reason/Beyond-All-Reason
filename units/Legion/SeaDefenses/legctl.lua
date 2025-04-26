@@ -105,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			coax_depthcharge = {
+			torplauncher = {
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
@@ -124,7 +124,7 @@ return {
 				impulsefactor = 0.123,
 				model = "cordepthcharge.s3o",
 				mygravity = 0.2,
-				name = "Depthcharge launcher",
+				name = "Homing Torpedo Launcher",
 				noselfdamage = true,
 				numbounce = 1,
 				range = 600,
@@ -151,7 +151,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTSUB",
-				def = "COAX_DEPTHCHARGE",
+				def = "torplauncher",
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
