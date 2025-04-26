@@ -69,8 +69,8 @@ end
 local enabledAsSpec = true
 
 local buttonConfig = {
-	ally = { ground = true, air = true, nuke = true },
-	enemy = { ground = true, air = true, nuke = true }
+	ally = { ground = true, air = true, nuke = true , cannon = true},
+	enemy = { ground = true, air = true, nuke = true , cannon = true}
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
@@ -100,7 +100,7 @@ local colorConfig = { --An array of R, G, B, Alpha
     },
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74},
-        fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 6.0,
         internallinethickness = 1.0,
     },
@@ -890,7 +890,7 @@ function widget:DrawWorld()
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-
+		defenseRangeShader:Activate()
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
@@ -902,7 +902,6 @@ function widget:DrawWorld()
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 
-			defenseRangeShader:Activate()
 			DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
 			--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true)	-- re-enable color drawing
@@ -916,7 +915,7 @@ function widget:DrawWorld()
 		end
 
 		if colorConfig.drawInnerRings then
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
+			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
 		end
 
@@ -956,7 +955,12 @@ end
 function widget:SetConfigData(data)
 	if data ~= nil then
 		if data["enabled"] ~= nil then
-			buttonConfig = data["enabled"]
+			local newconfig = data["enabled"]
+			for allyenemy, weapontypes in pairs(newconfig) do
+				for wt, enabledstate in pairs(weapontypes) do  	
+					buttonConfig[allyenemy][wt] = enabledstate
+				end
+			end 
 			--printDebug("enabled config found...")
 		end
 	end
