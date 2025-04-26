@@ -268,6 +268,21 @@ local options = {
 		def		=  true,
 	},
 	{
+		key		= "unit_sharing_mode",
+		name	= "Unit Sharing",
+		desc	= "Controls which units can be shared with allies",
+		type	= "list",
+		section	= "options_main",
+		def		= "enabled",
+		items	= {
+			{ key = "enabled",     name = "Enabled",                     desc = "All unit sharing allowed" },
+			{ key = "t2cons", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = "combat",      name = "Combat Units Only",           desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = "combat_t2cons", name = "Combat + T2 Constructors",  desc = "Combat units and T2 constructors can be shared" },
+			{ key = "disabled",    name = "Disabled",                    desc = "No unit sharing allowed" },
+		},
+	},
+	{
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
@@ -278,15 +293,7 @@ local options = {
 		max		= 0.99,
 		step	= 0.01,
 		section	= "options_main",
-		column	= 1,
-	},
-	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
+		column = 1,
 	},
 	{
 		key		= "disable_assist_ally_construction",
@@ -294,8 +301,8 @@ local options = {
 		desc	= "Disables assisting allied blueprints and labs.",
 		type	= "bool",
 		section	= "options_main",
-		def		=  false,
-		column	= 1.76,
+		def		= false,
+		column	= 1,
 	},
     {
         key     = "sub_header",
