@@ -135,6 +135,9 @@ local distortionEffectTypes = {
 	magnifier = 8,
 	twirl = 10,
 	motionBlur = 11,
+	tachyonBeam = 12,
+	distortionCircleGround = 13,
+
 }
 
 local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable distortion parameters
