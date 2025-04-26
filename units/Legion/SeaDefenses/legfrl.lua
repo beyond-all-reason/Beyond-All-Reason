@@ -99,7 +99,7 @@ return {
 				name = "Light g2a Missile Launcher",
 				noselfdamage = true,
 				range = 765,
-				reloadtime = 1.7,
+				reloadtime = 1.2,
 				smoketrail = true,
 				smokePeriod = 6,
 				smoketime = 12,
