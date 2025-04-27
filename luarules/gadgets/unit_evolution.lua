@@ -309,7 +309,7 @@ if gadgetHandler:IsSyncedCode() then
 			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
 	end
 
-	local function isEvolutionPowerPassed(evolution, unitID)
+	local function isEvolutionPowerPassed(evolution)
 		if evolution.evolution_condition ~= 'power' then
 			return false
 		end
@@ -334,7 +334,7 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, evolution in pairs(evolutionMetaList) do
 			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
-				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution, unitID)) then
+				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
 					Evolve(unitID, evolution.evolution_target)
 				end
 			end
