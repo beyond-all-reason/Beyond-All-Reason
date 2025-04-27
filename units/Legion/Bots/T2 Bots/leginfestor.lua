@@ -44,7 +44,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Hornet, Zach :3",
+			model_author = "Hornet, Zath :3",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
 			subfolder = "CorBots/T2",
