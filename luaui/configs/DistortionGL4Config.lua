@@ -45,8 +45,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'biggun',
-			distortionConfig = { posx = 0, posy = -5, posz = 19, radius = 4,
-							noiseStrength = 0.6, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = -12, posz = -1, radius = 4.3,
+							noiseStrength = 0.8, noiseScaleSpace = 1.8, distanceFalloff = 0.5,
 							lifeTime = 0, rampUp = 30, decay = -1.2,
 							effectType = 0},
 		},
