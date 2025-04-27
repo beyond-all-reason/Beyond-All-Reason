@@ -70,31 +70,31 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function isModelOK(fd)
-	local specifiesModel = fd.object and (fd.object ~= "")
+local function isModelOK(featureDef)
+	local specifiesModel = featureDef.object and (featureDef.object ~= "")
 
 	-- explicitly modelless (geo etc)
-	if fd.drawtype == -1 and not specifiesModel then
+	if featureDef.drawtype == -1 and not specifiesModel then
 		return true
 	end
 
 	-- implicitly modelless
-	if not fd.drawtype and not specifiesModel then
+	if not featureDef.drawtype and not specifiesModel then
 		return true
 	end
 
 	-- explicitly specified to use a model, but doesn't provide one (gigachad.jpg)
-	if fd.drawtype == 0
+	if featureDef.drawtype == 0
 	and not specifiesModel then
 		return false
 	end
 
 	-- old tree renderer removed from engine
-	if tonumber(fd.drawtype or 0) > 0 then
+	if tonumber(featureDef.drawtype or 0) > 0 then
 		return false
 	end
 
-	local modelPath = "objects3d/" .. fd.object
+	local modelPath = "objects3d/" .. featureDef.object
 	return VFS.FileExists(modelPath          , VFS.ZIP)
 	    or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
 end
