@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Target on the move",
@@ -548,12 +550,7 @@ if gadgetHandler:IsSyncedCode() then
 		pausedTargets[unitID] = nil
 	end
 
-	local emptyCmdOptions = {}
-	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
-		if type(cmdOptions) ~= 'table' then
-			-- does UnitCmdDone always returns number instead of table?
-			cmdOptions = emptyCmdOptions
-		end
+	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then

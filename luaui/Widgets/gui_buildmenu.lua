@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Build menu",
@@ -16,7 +18,7 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -272,12 +274,10 @@ local function RefreshCommands()
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
-			local i = 0
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
-						i = i + 1
 					end
 				end
 			end
@@ -317,7 +317,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font2 = WG['fonts'].getFont(fontFile, 2, 0.35 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
 
 	if WG['minimap'] then
 		minimapHeight = WG['minimap'].getHeight()
@@ -412,6 +413,7 @@ function widget:Update(dt)
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 		end
 		selectedBuilders = {}
+		local prevSelectedFactoryCount = selectedFactoryCount
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
 		local selBuilderDefs = {}
@@ -428,6 +430,10 @@ function widget:Update(dt)
 					selectedBuilderCount = selectedBuilderCount + 1
 					selBuilderDefs[uDefID] = true
 				end
+			end
+
+			if selectedFactoryCount ~= prevSelectedFactoryCount then
+				doUpdate = true
 			end
 
 			-- check if builder type selection actually differs from previous selection
@@ -659,13 +665,6 @@ function drawBuildmenu()
 				colls = colls - 1
 				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows)))
 			end
-			--cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
-			--colls = math_min(minColls, math_floor(contentWidth / cellSize))
-			--if contentWidth / colls < contentWidth / cellSize then
-			--	rows = rows + 1
-			--	cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
-			--	colls = math_min(minColls, math_floor(contentWidth / cellSize))
-			--end
 		end
 	end
 
@@ -820,7 +819,7 @@ function widget:DrawScreen()
 			refreshBuildmenu = false
 			if useRenderToTexture then
 				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,

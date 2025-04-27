@@ -46,7 +46,7 @@ return {
 			"legajam",
 			"legforti",
 			"legarad",
-			"cordl",
+			"legctl",
 			"legdtr",
 			"legacluster",
 			"legflak",

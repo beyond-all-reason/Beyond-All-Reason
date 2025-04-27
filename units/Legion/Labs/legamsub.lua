@@ -33,9 +33,10 @@ return {
 			[1] = "legotter",
 			[2] = "legamphtank",
 			[3] = "legfloat",
-			[4] = "corcrash",
-			[5] = "coraak",
-			[6] = "legdecom",
+			[4] = "legamph",
+			[5] = "corcrash",
+			[6] = "coraak",
+			[7] = "legdecom",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

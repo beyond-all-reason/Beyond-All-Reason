@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Continuous Aim",
@@ -33,6 +35,7 @@ local convertedUnitsNames = {
 	['corcrash'] = 5,
 	['legkark'] = 2,
 	['corkark'] = 2,
+	['cordeadeye'] =2,
 	['armsnipe'] = 2,
 	['armfido'] = 3,
 	['armfboy'] = 2,
@@ -115,6 +118,7 @@ local convertedUnitsNames = {
 	['legcomt2off'] = 5,
 	['legcomt2com'] = 5,
 	['legstr'] = 5,
+	['legamph'] = 4,
 	['legbart'] = 5,
 	['legmrv'] = 5,
 	['legsco'] = 5,
@@ -124,6 +128,7 @@ local convertedUnitsNames = {
     ['legmed'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,

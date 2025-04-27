@@ -3,6 +3,8 @@
 --https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
 
 --------------------------------------------OLD AIRJETS---------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Airjets GL4",
@@ -34,6 +36,7 @@ local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
+local spIsUnitInLos = Spring.IsUnitInLos
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -751,7 +754,7 @@ local function initGL4()
     },
     "jetShader GL4"
   )
-  shaderCompiled = jetShader:Initialize()
+  local shaderCompiled = jetShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
   local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
   local jetInstanceVBOLayout = {
@@ -901,9 +904,9 @@ local function Deactivate(unitID, unitDefID, who)
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
-		airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
+		local airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
 		if jetInstanceVBO.instanceIDtoIndex[airjetkey] then
-			popElementInstance(jetInstanceVBO,tostring(unitID).."_"..tostring(effectDef.piecenum))
+			popElementInstance(jetInstanceVBO, airjetkey)
 		end
 	end
 end
@@ -1026,9 +1029,15 @@ function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
+	if not spIsUnitInLos(unitID) then
+		return
+	end
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Tooltip",
@@ -143,8 +145,11 @@ end
 
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
+
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(fontfile2, 1.5, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
 	yOffset = -math.floor(xOffset*0.5) - usedFontSize
