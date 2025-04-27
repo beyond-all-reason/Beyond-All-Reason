@@ -1351,7 +1351,6 @@ CloseHeatsinks(){
 }
 
 CloseTorpedoLauncher(){
-	set-signal-mask SIG_AIM;
 	turn torpedolauncha to y-axis <0> speed <25.000000>;
 	turn torpaimx to x-axis <0> speed <25.000000>;
 	turn torpedotube to x-axis [0] speed <25.000000>;
