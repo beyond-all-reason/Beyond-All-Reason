@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD.ATTACK] = true,
 	}
 
-	local function ReAssignAssists(newUnit,oldUnit)
+	local function reAssignAssists(newUnit,oldUnit)
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
 			--local unitID = allUnits[i]
@@ -188,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,  states.cloak and 1 or 0, 		 {})
 		-- spGiveOrderToUnit(newUnitID, CMD.ONOFF,  1,                       		 {})
 
-		ReAssignAssists(newUnitID,unitID)
+		reAssignAssists(newUnitID,unitID)
 
 
 		if commandQueue[1] then
@@ -290,7 +290,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function CombatCheckUpdate(unitID, evolution, currentTime)
+	local function combatCheckUpdate(unitID, evolution, currentTime)
 		if not evolution.combatRadius then
 			return false
 		end
@@ -304,21 +304,21 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	local function IsEvolutionTimePassed(evolution, currentTime)
+	local function isEvolutionTimePassed(evolution, currentTime)
 		return (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
 			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
 	end
 
-local function IsEvolutionPowerPassed(evolution, unitID)
-	if evolution.evolution_condition ~= 'power' then
+	local function isEvolutionPowerPassed(evolution, unitID)
+		if evolution.evolution_condition ~= 'power' then
+			return false
+		end
+
+		if highestTeamPower * evolution.evolution_power_multiplier > evolution.evolution_power_threshold then
+			return true
+		end
 		return false
 	end
-
-	if highestTeamPower * evolution.evolution_power_multiplier > evolution.evolution_power_threshold then
-		return true
-	end
-	return false
-end
 
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 then
@@ -332,9 +332,9 @@ end
 		end
 
 		for unitID, evolution in pairs(evolutionMetaList) do
-			if not CombatCheckUpdate(unitID, evolution, currentTime)
+			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
-				and (IsEvolutionTimePassed(evolution, currentTime) or IsEvolutionPowerPassed(evolution, unitID)) then
+				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution, unitID)) then
 					Evolve(unitID, evolution.evolution_target)
 				end
 			end
@@ -363,7 +363,7 @@ else
 	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 
-	local function Draw(newAnnouncement, newAnnouncementSize)
+	local function draw(newAnnouncement, newAnnouncementSize)
 		vsx, vsy = Spring.GetViewGeometry()
 		local uiScale = (0.7 + (vsx * vsy / 6500000))
 		displayList = gl.CreateList(function()
@@ -376,7 +376,7 @@ else
 		gl.CallList(displayList)
 	end
 
-	local function EvolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
+	local function evolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
 		local selUnits = spGetSelectedUnits()
 		local unitGroup = Spring.GetUnitGroup(oldID)
 		if unitGroup then
@@ -405,7 +405,7 @@ else
 		if announcementEnabled then
 			local currentTime = spGetGameSeconds()
 			if currentTime-announcementStart < 3 then
-				Draw(announcement, announcementSize)
+				draw(announcement, announcementSize)
 			else
 				announcementEnabled = false
 				announcement = nil
@@ -415,7 +415,7 @@ else
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("unit_evolve_finished", EvolveFinished)
+		gadgetHandler:AddSyncAction("unit_evolve_finished", evolveFinished)
 		local w = 300
 		local h = 210
 		displayList = gl.CreateList(function()
