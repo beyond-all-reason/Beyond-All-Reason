@@ -13,25 +13,10 @@ function widget:GetInfo()
 	}
 end
 
-local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
-local glBlending = gl.Blending
-local glTexture = gl.Texture
 
-local GL_GREATER = GL.GREATER
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE = GL.ONE
 
-local glAlphaTest = gl.AlphaTest
-local glDepthTest = gl.DepthTest
 
-local spValidUnitID = Spring.ValidUnitID
 
 --------------------------------------------------------------------------------
 -- Beherith's notes
@@ -350,7 +335,6 @@ UnitEffects = nil
 -- Variables
 --------------------------------------------------------------------------------
 
-local sphereVBO = nil
 local orbVBO = nil
 local orbShader = nil
 

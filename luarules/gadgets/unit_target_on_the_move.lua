@@ -121,16 +121,6 @@ if gadgetHandler:IsSyncedCode() then
 		hidden = true,
 	}
 
-	local unitSetTargetRectangleCmdDesc = {
-		id = CMD_UNIT_SET_TARGET_RECTANGLE,
-		type = CMDTYPE.ICON_UNIT_OR_RECTANGLE,
-		name = 'Set Target',
-		action = 'settargetrectangle',
-		cursor = 'settarget',
-		tooltip = tooltipText,
-		hidden = true,
-	}
-
 	local unitSetTargetCircleCmdDesc = {
 		id = CMD_UNIT_SET_TARGET,
 		type = CMDTYPE.ICON_UNIT_OR_AREA,
@@ -338,7 +328,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if validUnits[unitDefID] then
-			--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
@@ -654,7 +643,6 @@ else	-- UNSYNCED
 	local GL_LINES = GL.LINES
 
 	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitLosState = Spring.GetUnitLosState
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local spGetMyTeamID = Spring.GetMyTeamID
