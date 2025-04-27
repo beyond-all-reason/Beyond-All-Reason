@@ -48,15 +48,10 @@ local spSetAirMoveTypeData     = Spring.MoveCtrl.SetAirMoveTypeData
 local spSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 local spSetGroundMoveTypeData  = Spring.MoveCtrl.SetGroundMoveTypeData
 
-local ALLY_ACCESS = {allied = true}
 local INLOS_ACCESS = {inlos = true}
-
---local tobool      = Spring.Utilities.tobool
-local getMovetype = Spring.Utilities.getMovetype
 
 local spSetUnitCOBValue = Spring.SetUnitCOBValue
 local WACKY_CONVERSION_FACTOR_1 = 2184.53
-local CMD_WAIT = CMD.WAIT
 
 local HALF_FRAME = 1/60
 
@@ -110,7 +105,6 @@ local reclaimSpeedDef = {}
 
 for i = 1, #UnitDefs do
 	local ud = UnitDefs[i]
-	local cur = 0
 	if ud.shieldWeaponDef then
 		shieldWeaponDef[i] = true
 	end
@@ -119,21 +113,6 @@ for i = 1, #UnitDefs do
 
 		buildSpeedDef[i] = ud.buildSpeed
 		reclaimSpeedDef[i] = ud.reclaimSpeed or 0
-
-
-
-		--cur = ud.buildSpeed
-		--if (ud.repairSpeed ~= cur or ud.reclaimSpeed ~= cur or ud.resurrectSpeed ~= cur) then
-
-			----Spring.Echo(ud.name)
-			--Spring.Echo(ud.buildSpeed)
-			--Spring.Echo(ud.repairSpeed)
-			--Spring.Echo(ud.reclaimSpeed)
-			---Spring.Echo(ud.resurrectSpeed)
-		---end
-	--else
-		--Spring.Echo(ud.name)
-		--Spring.Echo(ud.buildSpeed)
 
 	end
 end
@@ -222,7 +201,6 @@ local function UpdatePausedReload(unitID, unitDefID, gameFrame)
 	local state = origUnitReload[unitDefID]
 
 	for i = 1, state.weaponCount do
-		local w = state.weapon[i]
 		local reloadState = spGetUnitWeaponState(unitID, i , 'reloadState')
 		if reloadState then
 			local reloadTime  = spGetUnitWeaponState(unitID, i , 'reloadTime')

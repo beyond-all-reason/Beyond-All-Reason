@@ -14,7 +14,6 @@ end
 
 local weaponEnergyCostFloor = 6
 
-local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
 local spGetUnitTeam		        = Spring.GetUnitTeam

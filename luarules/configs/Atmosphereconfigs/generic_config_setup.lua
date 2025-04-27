@@ -6,7 +6,6 @@ local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
 local transitionSpeed = (mapsizez/mapsizex) * 0.66
 
-local windmin = Game.windMin
 local windmax = Game.windMax
 
 local fullcyclelength = math.ceil(mapsizex+mapsizez)*2

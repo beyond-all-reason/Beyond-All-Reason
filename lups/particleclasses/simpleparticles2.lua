@@ -78,8 +78,6 @@ local min  = math.min
 local degreeToPI = math.pi/180
 
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetUnitLosState     = Spring.GetUnitLosState
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
 local spGetProjectilePosition = Spring.GetProjectilePosition
@@ -91,14 +89,8 @@ local IsPosInRadar  = Spring.IsPosInRadar
 local glTexture     = gl.Texture 
 local glBlending    = gl.Blending
 local glUniform     = gl.Uniform
-local glUniformInt  = gl.UniformInt
-local glPushMatrix  = gl.PushMatrix
-local glPopMatrix   = gl.PopMatrix
-local glTranslate   = gl.Translate
 local glCreateList  = gl.CreateList
 local glCallList    = gl.CallList
-local glRotate      = gl.Rotate
-local glColor       = gl.Color
 local glUseShader   = gl.UseShader
 
 local GL_QUADS               = GL.QUADS

@@ -5,7 +5,6 @@ local JitterParticles2 = {}
 JitterParticles2.__index = JitterParticles2
 
 local billShader
-local colormapUniform = {}
 
 local lastTexture = ""
 
@@ -83,13 +82,10 @@ local rand  = math.random
 local twopi = 2 * math.pi
 local cos   = math.cos
 local sin   = math.sin
-local min   = math.min
 local floor = math.floor
 local degreeToPI = math.pi/180
 
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetUnitLosState     = Spring.GetUnitLosState
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
 local spGetProjectilePosition = Spring.GetProjectilePosition
@@ -99,22 +95,14 @@ local IsPosInAirLos = Spring.IsPosInAirLos
 local IsPosInRadar  = Spring.IsPosInRadar
 
 local glTexture     = gl.Texture 
-local glBlending    = gl.Blending
-local glUniform     = gl.Uniform
-local glUniformInt  = gl.UniformInt
 local glPushMatrix  = gl.PushMatrix
 local glPopMatrix   = gl.PopMatrix
 local glTranslate   = gl.Translate
 local glCreateList  = gl.CreateList
 local glCallList    = gl.CallList
-local glRotate      = gl.Rotate
-local glColor       = gl.Color
 local glUseShader   = gl.UseShader
 
 local GL_QUADS               = GL.QUADS
-local GL_ONE                 = GL.ONE
-local GL_SRC_ALPHA           = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local glBeginEnd     = gl.BeginEnd
 local glMultiTexCoord= gl.MultiTexCoord

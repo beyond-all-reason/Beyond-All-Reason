@@ -18,21 +18,16 @@ local allyTeam = Spring.GetMyAllyTeamID()
 
 -- Speedups
 
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetUnitCommands = Spring.GetUnitCommands
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetModKeyState = Spring.GetModKeyState
 
 local reclaimEnemy = Game.reclaimAllowEnemies
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_STOP = CMD.STOP
 
 local gameStarted
 

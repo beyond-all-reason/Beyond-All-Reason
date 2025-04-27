@@ -18,8 +18,6 @@ function widget:GetInfo()
 end
 
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
 local spGetProfilerTimeRecord = Spring.GetProfilerTimeRecord
 ---------------------------Internal vars---------------------------
 local timerstart = nil
@@ -34,10 +32,7 @@ local histShader = nil
 local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
-local maxframes = 500
 
-local rectInstanceTable = nil
-local rectInstancePtr = 0
 
 local vsSrc = [[
 #version 420

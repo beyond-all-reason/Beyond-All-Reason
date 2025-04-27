@@ -38,8 +38,6 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
 local spSetUnitCloak = Spring.SetUnitCloak
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -120,7 +118,6 @@ function gadget:GameFrame(n)
 			end
 		end
 
-		local i = 1
 	end
 end
 
