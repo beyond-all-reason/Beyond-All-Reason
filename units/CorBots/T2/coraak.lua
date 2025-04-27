@@ -22,7 +22,7 @@ return {
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
-		script = "Units/CORAAK.cob",
+		script = "Units/coraak_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 390,
@@ -186,12 +186,12 @@ return {
 			},
 		},
 		weapons = {
-			[5] = {
+			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "CORAABOT_MISSILE1",
 				onlytargetcategory = "VTOL",
 			},
-			[6] = {
+			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "BOTFLAK",
 				onlytargetcategory = "VTOL",

@@ -23,7 +23,7 @@ return {
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",
-		script = "Units/ARMAAK.cob",
+		script = "Units/armaak_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 400,
@@ -103,7 +103,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armaabot_missile1 = {
+			longrangemissile = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				burnblow = true,
@@ -120,7 +120,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",
-				name = "Long-range g2a missile launcher",
+				name = "Long-Range Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 1300,
 				reloadtime = 1.5,
@@ -150,7 +150,7 @@ return {
 					vtol = 150,
 				},
 			},
-			armaabot_missile2 = {
+			shortrangemissile = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				burnblow = true,
@@ -167,7 +167,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",
-				name = "Long-range g2a missile launcher",
+				name = "Medium-Range Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 880,
 				reloadtime = 0.7,
@@ -199,14 +199,14 @@ return {
 			},
 		},
 		weapons = {
-			[2] = {
+			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMAABOT_MISSILE1",
+				def = "LONGRANGEMISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMAABOT_MISSILE2",
+				def = "SHORTRANGEMISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},
