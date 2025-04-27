@@ -20,11 +20,11 @@ return {
 	},
 	x_uses_tree_1_provides_model = {
 		drawtype = 1,
-		object = "spherebot.s3o"
+		object = "SimpleFlare.s3o"
 	},
 	x_uses_tree_777_provides_model = {
 		drawtype = 777,
-		object = "spherebot.s3o"
+		object = "SimpleFlare.s3o"
 	},
 	x_nonexistent_model_drawtype_none = {
 		drawtype = -1,
