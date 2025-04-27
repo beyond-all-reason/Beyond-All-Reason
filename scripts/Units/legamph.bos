@@ -1146,6 +1146,7 @@ Movement() {
 			call-script OpenHeatsinks();
 			if( isInWater == 1 ){
 				call-script transform();
+				call-script CloseMouth();
 				call-script CloseHeatsinks();
 				inWaterForm = 1;
 				//start-script StartMoving(0);
