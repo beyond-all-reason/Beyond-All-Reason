@@ -203,7 +203,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "HEAT_RAY",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB NOTAIR",
 				maxangledif = 120,
 				maindir = "0 0 1"
 			},
