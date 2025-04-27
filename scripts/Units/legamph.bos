@@ -1104,9 +1104,15 @@ Create()
 
 	start-script Movement();
 	start-script UnitSpeed();
-	call-script StopWalking();
-	call-script CloseTorpedoLauncher();
 	start-script SweepFire();
+	
+	if (get IN_WATER(0)) {
+		call-script CloseTorpedoLauncher();
+		call-script StopSwim();
+	} else {
+		call-script OpenTorpedoLauncher();
+		call-script StopWalking();
+	}
 }
 
 SweepFire()
@@ -1142,14 +1148,14 @@ Movement() {
 				call-script transform();
 				call-script CloseHeatsinks();
 				inWaterForm = 1;
-				start-script StartMoving(0);
+				//start-script StartMoving(0);
 			}
 		} else {
 			if( isInWater == 0 ) {
 				call-script reform();
 				call-script OpenHeatsinks();
 				inWaterForm = 0;
-				start-script StartMoving(0);
+				//start-script StartMoving(0);
 			}
 		}
 
@@ -1243,7 +1249,8 @@ transform() {
 }
 
 reform() {
-	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	animSpeed = 2; // tune restore speed here, higher values are slower restore speeds
+	start-script OpenTorpedoLauncher();
 	move base to x-axis [0.000000] speed [22.365041] / animSpeed;
 	move base to y-axis [0.000000] speed [28.306007] / animSpeed;
 	turn base to y-axis <0.000000> speed <136.678702> / animSpeed;
@@ -1318,7 +1325,7 @@ reform() {
 	turn tailbase to y-axis <0.000000> speed <133.536985> / animSpeed;
 	turn tailtip to x-axis <-2.159999> speed <-9.818179> / animSpeed;
 	turn tailtip to y-axis <0.000000> speed <28.736963> / animSpeed;
-	sleep 300;
+	sleep 200;
 	return (0);
 }
 
@@ -1343,10 +1350,11 @@ CloseHeatsinks(){
 }
 
 CloseTorpedoLauncher(){
+	set-signal-mask SIG_AIM;
 	turn torpedolauncha to y-axis <0> speed <25.000000>;
 	turn torpaimx to x-axis <0> speed <25.000000>;
 	turn torpedotube to x-axis [0] speed <25.000000>;
-
+	torp_deploy = FALSE;
 	sleep 500;
 	move torpedolauncha to y-axis [-2.5] speed [-15];
 	move torpedotube to y-axis [0.355] speed [-3.181822];
@@ -1356,9 +1364,9 @@ CloseTorpedoLauncher(){
 }
 
 OpenTorpedoLauncher(){
-	move torpedolauncha to y-axis [0] speed [-15];
-	move torpedotube to y-axis [0] speed [-3.181822];
-	move torpedotube to z-axis [0] speed [-36.363630];
+	move torpedolauncha to y-axis [0] speed [-15] / animSpeed;
+	move torpedotube to y-axis [0] speed [-3.181822] / animSpeed;
+	move torpedotube to z-axis [0] speed [-36.363630] / animSpeed;
 	sleep 100;
 }
 
@@ -1631,6 +1639,13 @@ AimPrimary(heading, pitch)
 		targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
+	
+	//Heatray mechanics come first
+	if ( get IN_WATER(0) == 1 )
+    {
+     return (0);
+    }
+	
 	isAiming = TRUE;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
@@ -1696,10 +1711,6 @@ RestoreAfterDelayTorp()
 	turn torpedolauncha to y-axis <0> speed <25.000000>;
 	turn torpaimx to x-axis <0> speed <25.000000>;
 	turn torpedotube to x-axis [0] speed <25.000000>;
-	sleep restore_delay;
-	call-script CloseTorpedoLauncher();
-	// torpedo tube has started moving down, set variable to FALSE to redeploy on next aim call
-	torp_deploy = FALSE;
 }
 
 AimSecondary(heading, pitch)
@@ -1724,7 +1735,7 @@ AimSecondary(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn torpedolauncha to y-axis heading speed <200.000000>;
 	//turn torpedotube to x-axis pitch speed <200.000000>;
-	turn torpaimx to x-axis pitch speed <200.000000>;
+	turn torpaimx to x-axis pitch - <20> speed <200.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if (get ABS(torp_lasthead - heading) < 1200)
 	{
