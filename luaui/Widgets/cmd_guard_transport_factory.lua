@@ -27,13 +27,6 @@ local transports = {}
 local watchedTransports = {}
 local watchedUnits = {}
 local frameIndex = 0
-
-function Log(Message, debugLog)
-    if debugLog then
-        Spring.Echo(Message)
-    end
-end
-
 local transport_states = {
     idle = 0,
     approaching = 1,
@@ -42,21 +35,34 @@ local transport_states = {
     unloaded = 4
 }
 
+local cachedUnitDefs = {}
+function Log(Message, debugLog)
+    if debugLog then
+        Spring.Echo(Message)
+    end
+end
+
+for id, def in pairs(UnitDefs) do
+    cachedUnitDefs[id]= 
+                       {translatedHumanName   = def.translatedHumanName,
+                        isTransport           = def.isTransport,
+                        isFactory             = def.isFactory,
+                        mass                  = def.mass,
+                        transportMass         = def.transportMass,
+                        speed                 = def.speed,
+                        transportCapacity     = def.transportCapacity,
+                        cantBeTransported     = def.cantBeTransported,
+                        transportSize         = def.transportSize,
+                        xsize                 = def.xsize
+                    }
+end
+
 local function unitName(unitID)
-    local unitDefID = Spring.GetUnitDefID(unitID)
-    local createdUnitDefs = UnitDefs[unitDefID]
-    return createdUnitDefs.translatedHumanName
+    return cachedUnitDefs[Spring.GetUnitDefID(unitID)].translatedHumanName
 end
 
 local function IsFab(unitID)
-    local Index = Spring.GetUnitDefID(unitID)
-    local IsFactory = false
-
-    if Index ~= nil then
-        local UnitDEFS = UnitDefs[Index]
-        IsFactory = UnitDEFS.isFactory
-    end
-    return IsFactory
+    return cachedUnitDefs[Spring.GetUnitDefID(unitID)].isFactory
 end
 
 local function Distance(Point1, Point2)
@@ -124,8 +130,6 @@ Unit =
 function Unit:new(unitid)
     local o = {}
     setmetatable(o, { __index = self })
-    o.UnitDEFS = UnitDefs[Spring.GetUnitDefID(unitid)]
-    o.Mass = o.UnitDEFS.mass
     o.unitID = unitid
     return o
 end
@@ -140,7 +144,6 @@ Transporter =
 function Transporter:new(unitid)
     o = {}
     setmetatable(o, { __index = self })
-    o.UnitDEFS = UnitDefs[Spring.GetUnitDefID(unitid)]
     o.state = transport_states.idle
     o.unitID = unitid
     return o
@@ -168,11 +171,10 @@ end
 
 local function registerUnit(unitID)
     local unitDefID = Spring.GetUnitDefID(unitID)
-    local createdUnitDefs = UnitDefs[unitDefID]
+    local createdUnitDefs = cachedUnitDefs[unitDefID]
 
     if createdUnitDefs.isTransport then
         if transports[unitID] == nil then
-            Log("Transporter finished " .. unitID, debugLog)
             transports[unitID] = Transporter:new(unitID)
         end
     elseif IsFab(unitID) == true then
@@ -202,8 +204,7 @@ function widget:Initialize()
                 isGuarding = true
             end
         end
-        local unitDefID = Spring.GetUnitDefID(unitID)
-        local orderedUnitDefs = UnitDefs[unitDefID]
+        local orderedUnitDefs = cachedUnitDefs[Spring.GetUnitDefID(unitID)]
 
         if isGuarding and orderedUnitDefs.isTransport then
             local targetUnitID = unitCommands[1].params[1]
@@ -299,6 +300,7 @@ function widget:GameFrame(frame)
                 Spring.GiveOrderToUnit(transportID, CMD.GUARD, transports[transportID].guardedFactoryID, { "shift" })  -- go back to base
             end
 
+            -- The transport wants to pick up the unit. If the unit is waiting, go ahead and pick it up.
             if transports[transportID].state == transport_states.approaching then
                 if isWaiting(target) then
                     Log("Transport " .. transportID .. " PICKING_UP", debugLog)
@@ -352,7 +354,6 @@ local function inactivateTransport(unitID)
         watchedTransports[unitID] = nil
     end
 end
-
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
     if allUnits[unitID] ~= nil and allUnits[unitID].initialCommandTag ~= nil then
         if cmdID == CMD.MOVE and allUnits[unitID].initialCommandTag == cmdTag then
@@ -365,8 +366,8 @@ function CanTransport(transportID, unitID)
     local udef = Spring.GetUnitDefID(unitID)
     local tdef = Spring.GetUnitDefID(transportID)
 
-    local uDefObj = UnitDefs[udef]
-    local tDefObj = UnitDefs[tdef]
+    local uDefObj = cachedUnitDefs[udef]
+    local tDefObj = cachedUnitDefs[tdef]
 
     if not udef or not tdef then
         return false
@@ -388,7 +389,7 @@ function CanTransport(transportID, unitID)
 
     local mass = 0 -- mass check
     for _, a in ipairs(trans) do
-        mass = mass + UnitDefs[Spring.GetUnitDefID(a)].mass
+        mass = mass + cachedUnitDefs[Spring.GetUnitDefID(a)].mass
     end
     mass = mass + uDefObj.mass
     if mass > tDefObj.transportMass then
@@ -399,7 +400,7 @@ function CanTransport(transportID, unitID)
 end
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-    local createdUnitDefs = UnitDefs[unitDefID]
+    local createdUnitDefs = cachedUnitDefs[unitDefID]
     local createdUnitID = unitID
     local factory = factories[factID]
     if unitTeam == myTeam then
@@ -443,7 +444,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             local bestTransportTime = math.huge
             for transportID, _ in pairs(factory.guardingTransports) do
                 if transports[transportID].state == transport_states.idle and CanTransport(transportID, createdUnitID) then
-                    local Unit = allUnits[unitID]
                     local Transport = transports[transportID]
                     local unitCommands = Spring.GetUnitCommands(unitID, -1)
                     local destination = getSecondMoveCommandDestination(unitID)
@@ -452,10 +452,10 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                         local unitLocation      = { x1, y1, z1 }
                         local x2, y2, z2        = Spring.GetUnitPosition(transportID)
                         local transportLocation = { x2, y2, z2 }
-
-                        local pickupTime        = timeToTarget(transportLocation, unitLocation, Transport.UnitDEFS.speed)
-                        local transportTime     = timeToTarget(unitLocation, destination, Transport.UnitDEFS.speed)
-                        local walkingTime       = timeToTarget(unitLocation, destination, Unit.UnitDEFS.speed)
+                        
+                        local pickupTime        = timeToTarget(transportLocation, unitLocation, cachedUnitDefs[Spring.GetUnitDefID(transportID)].speed)
+                        local transportTime     = timeToTarget(unitLocation,      destination,  cachedUnitDefs[Spring.GetUnitDefID(transportID)].speed)
+                        local walkingTime       = timeToTarget(unitLocation,      destination,  cachedUnitDefs[Spring.GetUnitDefID(unitID)].speed)
                         -- This also covers the case of builders guarding their factory
                         if walkingTime > 10 and pickupTime < 3 and pickupTime + transportTime < walkingTime then
                             if pickupTime + transportTime < bestTransportTime then
@@ -486,8 +486,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
     local selectedUnits = Spring.GetSelectedUnits()
 
     for _, orderedUnit in ipairs(selectedUnits) do
-        local unitDefID = Spring.GetUnitDefID(orderedUnit)
-        local orderedUnitDefs = UnitDefs[unitDefID]
+        local orderedUnitDefs = cachedUnitDefs[Spring.GetUnitDefID(orderedUnit)]
         if orderedUnitDefs.isTransport then
             if cmdID == CMD.GUARD and IsFab(cmdParams[1]) then
                 inactivateTransport(orderedUnit)
