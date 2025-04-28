@@ -51,12 +51,13 @@ if gadgetHandler:IsSyncedCode() then
 	do
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
-		local legionEnabled = modoptions
 		if factionlimiter > 0 then
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
 				local allyTeam = allyTeams[i]
 				local allyStartUnits = {}
+				-- for some reason lua ain't liking using #allyStartUnits
+				local unitsCount = 1
 
 				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), 7)
 				allyTeamBitmask = allyTeamBitmask == 0 and 7 or allyTeamBitmask
@@ -64,7 +65,8 @@ if gadgetHandler:IsSyncedCode() then
 				local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
 				if legcomDefID then
 					if math.bit_and(allyTeamBitmask, 4) == 4 then
-						allyStartUnits[#validStartUnits+1] = legcomDefID
+						allyStartUnits[unitsCount] = legcomDefID
+						unitsCount = unitsCount + 1
 					end
 				elseif allyTeamBitmask == 4 then
 					allyTeamBitmask = 7
@@ -72,11 +74,16 @@ if gadgetHandler:IsSyncedCode() then
 
 				local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 				if armcomDefID and math.bit_and(allyTeamBitmask, 1) == 1 then
-					allyStartUnits[#validStartUnits+1] = armcomDefID
+					allyStartUnits[unitsCount] = armcomDefID
+					unitsCount = unitsCount + 1
 				end
 				local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 				if corcomDefID and math.bit_and(allyTeamBitmask, 2) == 2 then
-					allyStartUnits[#validStartUnits+1] = corcomDefID
+					allyStartUnits[unitsCount] = corcomDefID
+					unitsCount = unitsCount + 1
+				end
+				for v, k in pairs(allyStartUnits) do
+					Spring.Echo(v, k)
 				end
 				validStartUnits[allyTeam] = allyStartUnits
 			end
