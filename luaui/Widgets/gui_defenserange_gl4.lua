@@ -429,7 +429,7 @@ local circleInstanceVBOLayout = {
 		  {id = 1, name = 'posscale', size = 4}, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 		  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
 		  {id = 3, name = 'visibility', size = 4}, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
-		  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
+		  {id = 4, name = 'projectileParams', size = 4}, --- projectileSpeed, iscylinder, heightBoostFactor , heightMod
 		  {id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
 		  {id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT }, -- Currently unused within defense ranges, as they are forced-static
 		}
@@ -445,7 +445,6 @@ local shaderSourceCache = {
 	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
 	shaderConfig = {
 		MYGRAVITY = Game.gravity + 0.1,
-		STATICUNITS = 1,
 		DEBUG = autoReload and 1 or 0,
 	},
 	uniformInt = {
@@ -461,6 +460,7 @@ local shaderSourceCache = {
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
 		inMiniMap = 0.0, 
+		staticUnits = 1.0,
 	},
 }
 
@@ -891,6 +891,7 @@ function widget:DrawWorld()
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		defenseRangeShader:Activate()
+		defenseRangeShader:SetUniform("staticUnits", 1.0)
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then

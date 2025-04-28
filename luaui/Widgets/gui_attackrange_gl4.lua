@@ -440,7 +440,7 @@ local circleInstanceVBOLayout = {
 	{ id = 1, name = 'posscale',         size = 4 }, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 	{ id = 2, name = 'color1',           size = 4 }, --  vec4 the color of this new
 	{ id = 3, name = 'visibility',       size = 4 }, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
-	{ id = 4, name = 'projectileParams', size = 4 }, --- heightboost gradient
+	{ id = 4, name = 'projectileParams', size = 4 }, --- projectileSpeed, iscylinder, heightBoostFactor , heightMod
 	{ id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }

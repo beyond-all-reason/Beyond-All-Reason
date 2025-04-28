@@ -12,7 +12,7 @@ layout (location = 0) in vec4 circlepointposition; // x,y in range [-1,1], progr
 layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 layout (location = 2) in vec4 color1; // Base color for the circle
 layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, EndAlpha
-layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
+layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder, heightBoostFactor , heightMod
 layout (location = 5) in vec4 additionalParams; // groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
 layout (location = 6) in uvec4 instData;
 
@@ -26,7 +26,7 @@ uniform float selUnitCount = 1.0;
 uniform float selBuilderCount = 1.0;
 uniform float drawAlpha = 1.0;
 uniform float drawMode = 0.0;
-
+uniform float staticUnits = 0.0; // 1 if static units, 0 if dynamic units
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -43,31 +43,31 @@ out DataVS {
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
-#if (STATICUNITS == 0)
-	struct SUniformsBuffer {
-		uint composite; //     u8 drawFlag; u8 unused1; u16 id;
 
-		uint unused2;
-		uint unused3;
-		uint unused4;
+struct SUniformsBuffer {
+	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
 
-		float maxHealth;
-		float health;
-		float unused5;
-		float unused6;
+	uint unused2;
+	uint unused3;
+	uint unused4;
 
-		vec4 drawPos; // Note that this is map height at unit.xz
-		vec4 speed;
-		vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
-	};
+	float maxHealth;
+	float health;
+	float unused5;
+	float unused6;
 
-	layout(std140, binding=1) readonly buffer UniformsBuffer {
-		SUniformsBuffer uni[];
-	};
+	vec4 drawPos; // Note that this is map height at unit.xz
+	vec4 speed;
+	vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
+};
 
-	#define UNITUNIFORMS uni[instData.y]
-	#define UNITID (uni[instData.y].composite >> 16)
-#endif
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+	SUniformsBuffer uni[];
+};
+
+#define UNITUNIFORMS uni[instData.y]
+#define UNITID (uni[instData.y].composite >> 16)
+
 
 #line 11000
 
@@ -174,6 +174,10 @@ vec2 rotate2D(vec2 v, float a) {
 
 #define SELECTEDNESS uni[instData.y].userDefined[1].z
 
+#ifndef HEIGHTMAP_SAMPLE_STEPS
+	#define HEIGHTMAP_SAMPLE_STEPS 16
+#endif
+
 bool isSphereVisible(vec3 position, float radius)
 {
     vec4 planes[6];
@@ -211,10 +215,10 @@ void main() {
 	float maxAngleDif = 1;
 	float mainDirDegrees = 0; 
 	vec4 circleprogress = vec4(0.0);
-	#if (STATICUNITS == 1)
+	if (staticUnits > 0.5) {
 		modelWorldPos = posscale.xyz;
 		circleWorldPos.xz = circlepointposition.xy * RANGE +  posscale.xz;
-	#else
+	}else {
 		// Get the center pos of the unit
 		modelWorldPos = uni[instData.y].drawPos.xyz;
 
@@ -240,16 +244,16 @@ void main() {
 		} else {
 			circleWorldPos.xz = circleprogress.xy * RANGE +  modelWorldPos.xz;
 		}
-	#endif
+	}
 
 
 
 	circleprogress.w = circlepointposition.z;
 	v_blendedcolor = color1;
 
-	#if (STATICUNITS == 1)
+	if (staticUnits > 0.5) {
 		//gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0); return;
-	#endif
+	}
 
 	vec4 alphaControl = vec4(1.0);
 
@@ -273,7 +277,7 @@ void main() {
 		float yDiff = 0;
 		float adds = 0;
 		//for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-		for (int i = 0; i < 16; i ++){
+		for (int i = 0; i < HEIGHTMAP_SAMPLE_STEPS; i ++){
 				if (adjRadius > radius){
 					radius = radius + adjustment;
 					adds = adds + 1;
@@ -294,7 +298,7 @@ void main() {
 			//simple implementation, 4 samples per point
 			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){ // DEBuGGING
 			vec4 heightAndNormal = normalsAndHeightAtWorldPos(circleWorldPos.xz);
-			for (int i = 0; i<8; i++){
+			for (int i = 0; i< HEIGHTMAP_SAMPLE_STEPS / 2; i++){
 				// draw vector from centerpoint to new height point and normalize it to range length
 				vec3 tonew = circleWorldPos.xyz - modelWorldPos.xyz;
 				tonew.y *= HEIGHTMOD;
@@ -440,9 +444,9 @@ void main() {
 	// 0 = unit is un selected, 1 = unit is selected, 0.5 =  ally also selected unit, +2 = its mouseovered
 	float selectedness = 0.0;
 	
-	#if (STATICUNITS == 0)
+	if (staticUnits > 0.5) {
 		selectedness = UNITUNIFORMS.userDefined[1].z;
-	#endif
+	}
 
 	float selectedUnitCount = selUnitCount;
 	// -- nano is 2
