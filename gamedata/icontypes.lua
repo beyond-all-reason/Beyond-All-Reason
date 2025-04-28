@@ -2655,6 +2655,10 @@ local icontypes = {
 		bitmap = "icons/defence_2_mg.png",
 		size = 1.60849988
 	},
+	legfmg = {
+		bitmap = "icons/defence_2_mg.png",
+		size = 1.60849988
+	},
 	legmh = {
 		bitmap = "icons/hover_t1_missile.png",
 		size = 1.41750002
