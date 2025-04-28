@@ -266,6 +266,7 @@ local unitOrderTable = {
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
 	['coramph']        = 006910,
+	['legamph']        = 006915,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
 	['corsala']        = 006935,
@@ -692,6 +693,7 @@ local unitOrderTable = {
    --DEFENSES TO WATER
    ['armdl']          = 155000,
    ['cordl']          = 155500,
+   ['legctl']         = 155501,
 
    --DEFENSES MISSILE LAUNCHERS
    ['armemp']         = 165000,
@@ -769,6 +771,7 @@ local unitOrderTable = {
    ['armfasp']        = 220000,
    ['corfasp']        = 220050,
    ['armfrad']        = 220100,
+   ['legfrad']        = 220101,
    ['corfrad']        = 220150,
    ['armason']        = 220200,
    ['corason']        = 220250,
@@ -780,7 +783,7 @@ local unitOrderTable = {
    ['corfdrag']       = 230200,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
-   ['legfmg']        = 230400,
+   ['legfmg']        = 230401,
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
@@ -788,12 +791,14 @@ local unitOrderTable = {
    --WATER DEFENSES AA
    ['armfrt']         = 255100,
    ['corfrt']         = 255200,
+   ['legfrl']         = 255200,
    ['armfflak']       = 255300,
    ['corenaa']        = 255400,
 
    --WATER DEFENSES NAVAL
    ['armtl']          = 260300,
    ['cortl']          = 260400,
+   ['legtl']          = 260401,
    ['armatl']         = 260500,
    ['coratl']         = 260600,
 }

@@ -719,12 +719,15 @@
 			"legcomt2com": "Combat Commander",
 			"legcluster": "Amputator",
 			"legcs": "Construction Ship",
+			"legctl": "Euryale",
 			"legdecom": "Legion Commander",
 			"legdrag": "Dragon's Teeth",
 			"legdtf": "Dragon's Maw",
 			"legdtl": "Dragon's Claw",
 			"legdtm": "Dragon's Tail",
 			"legforti": "Fortification Wall",
+			"legfrad": "Naval Radar / Sonar Tower",
+			"legfrl": "Polybolos",
 			"legdrone": "Legion Drone",
 			"legheavydrone": "Legion Heavy Drone",
 			"legdtr": "Dragon's Jaw",
@@ -824,7 +827,7 @@
 			"legstronghold": "Stronghold",
 			"legstarfall": "Starfall",
 			"legtide": "Tidalis",
-			"legtl": "Piscator",
+			"legtl": "Stheno",
 			"legtriarius": "Triarius",
 			"legtriariusdrone": "Triarius",
 			"legvcarry": "Mantis",
@@ -897,7 +900,8 @@
 			"legrampart": "Rampart",
 			"legabm": "Aegis",
 			"legrwall": "Dragon's Constitution",
-			"legjav": "Javelin"
+			"legjav": "Javelin",
+			"legamph": "Telchine"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1612,6 +1616,7 @@
 			"legcib": "Drops a Juno Bomb to Remove Mines, Scouts, Radars, and Jammers",
 			"legck": "Tech 1 Constructor",
 			"legcs": "Tech 1 Construction Ship",
+			"legctl": "Coastal Torpedo Launcher",
 			"legcv": "Tech 1 Constructor",
 			"legcluster": "Area Control Cluster Artillery",
 			"legdecom": "Decoy Commander",
@@ -1620,6 +1625,8 @@
 			"legdtl": "Pop-up Lightning Turret",
 			"legdtm": "Pop-up Missile Turret",
 			"legforti": "Advanced Fortification",
+			"legfrad": "Early Surface/Naval Warning System",
+			"legfrl": "Floating Anti-Air Turret",
 			"legdrone": "Light Combat Drone",
 			"legheavydrone": "Heavy Defense Drone",
 			"legfhp": "Builds Hovercraft",
@@ -1789,7 +1796,8 @@
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
 			"legabm": "Anti-Nuke System",
 			"legrwall": "Railgun Defense Wall",
-			"legjav": "Amphibious Raider"
+			"legjav": "Amphibious Raider",
+			"legamph": "T2 Amphibious Assault Bot/Coast Guard"
 		}
 	}
 }

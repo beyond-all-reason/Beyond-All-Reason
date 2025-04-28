@@ -28,7 +28,6 @@ local GetTeamColor = Spring.GetTeamColor
 local GetSpectatingState = Spring.GetSpectatingState
 
 local glLineWidth = gl.LineWidth
-local GL_LINES = GL.LINES
 
 ----------------------------------------------------------------
 --vars

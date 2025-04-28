@@ -15,7 +15,6 @@ end
 local iconsize = 1
 local iconoffset = 24
 
-local falloffDistance = 1300
 local cutoffDistance = 2300
 
 local distanceMult = 1
@@ -67,7 +66,6 @@ local function makeAtlas()
 	end
 end
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
 local GetAllUnits = Spring.GetAllUnits
@@ -128,9 +126,6 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	--local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
-
-	local numVertices = 4 -- default to circle
-	local additionalheight = 0
 
 	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
@@ -230,7 +225,6 @@ local function getRank(unitDefID, xp)
 end
 
 local function updateUnitRank(unitID, unitDefID, noUpload)
-	local currentRank = unitRanks[unitID]
 	local xp = GetUnitExperience(unitID)
 	if xp then
 		local newrank = getRank(unitDefID, xp)
@@ -311,27 +305,6 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	end
 end
 
---[[
--- Switch over to API
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if IsUnitAllied(unitID) or GetSpectatingState() then
-		updateUnitRank(unitID, GetUnitDefID(unitID))
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	unitRanks[unitID] = nil
-	RemovePrimitive(unitID, "UnitDestroyed")
-end
-
-function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-	if not IsUnitAllied(unitID) and not GetSpectatingState() then
-		unitRanks[unitID] = nil
-		RemovePrimitive(unitID, "UnitGiven")
-	end
-end
-]]--
-
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	unitRanks[unitID] = nil
 	RemovePrimitive(unitID, "UnitDestroyed")
@@ -373,7 +346,6 @@ function widget:DrawWorld()
 		doRefresh = false
 	end
 	if rankVBO.usedElements > 0 then
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(rankVBO.usedElements)
 		--gl.Culling(GL.BACK)
 

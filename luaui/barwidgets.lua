@@ -2348,11 +2348,9 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam,
-			cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2466,8 +2464,7 @@ function widgetHandler:UnitSeismicPing(x, y, z, strength)
 	return
 end
 
-function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
-								  transportID, transportTeam)
+function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
 		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
@@ -2476,8 +2473,7 @@ function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
 	return
 end
 
-function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam,
-									transportID, transportTeam)
+function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
 		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)

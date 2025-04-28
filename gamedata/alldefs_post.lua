@@ -279,6 +279,7 @@ function UnitDef_Post(name, uDef)
 				corrl	= true,
 				cortl	= true,
 				corfrt	= true,
+				legfrl	= true,
 
 				leglht	= true,
 				legrl	= true,
