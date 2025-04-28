@@ -1,4 +1,5 @@
 # April 2025
+• [Pawn] 1420 -> 1650 buildtime
 • [Pawn] 52m 870e -> 54m 900e
 • [Grunt] 210 -> 215 range
 • [Spybots] Can paralyze buildings up to 20s
