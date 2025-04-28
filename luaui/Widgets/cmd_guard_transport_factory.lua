@@ -13,6 +13,29 @@ function widget:GetInfo()
     }
 end
 
+-- Specification
+-- When a transport is told to guard a factory the behavior should be:
+--      When a unit is produced at the factory, the transport picks it up and delivers it to the first move waypoint set.
+--      If the first waypoint set from the factory is not a move, do nothing.
+--      If there are several queued commands from the factory, deliver only to the destination of the first move command
+--      If the transport is holding a unit when it is told to guard the factory, it unloads it on the ground where it is before going to guard.
+--      If the user issues any order to the transport, the guard operation aborts and the transport won't pick up more units from the factory
+--      Units already en route to the rally point when the transport is told to guard will be ignored. The transport will 
+--      only pick up newly produced units.
+--      If the unit is killed before pickup, the transport will go back to guarding the factory.
+
+-- For transports that can hold multiple units(this isn't implemented yet since there is no multi-unit transports in the game yet):
+--     The guarding transport picks up a produced unit. If it's full, it goes to its destination.
+--     If a transport picks up a unit and is partially filled, it will wait for more arrivals from the factory.
+--     If a partially filled transport sees a unit produced from the factory that it cannot load, it leaves immediately.
+
+-- Technical notes
+-- Each transport operates as a state machine. There is a loop in GameFrame that polls each transport for changes in state. The polling rate
+-- is adjustable, and transports not actively ferrying a unit don't get polled. 
+-- The game generates a move command to just in front of the factory when the unit gets created. Once that command is done, the unit is told to wait.
+-- If you don't wait until that command is done and pick up right away, then the unit will run back to the factory after getting dropped off
+-- and then run to its second waypoint.
+
 -- Toggle this for debug printing
 local debugLog = false
 
