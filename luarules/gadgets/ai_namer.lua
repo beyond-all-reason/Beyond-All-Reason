@@ -21,10 +21,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- gameID seems to be the only fucking thing that is truly random in this space? but it's a random garbage of numbers and letters, and we need to filter it out
 	function gadget:GameID(gameID) 
 		-- make sure gameID is a string because i'm not actually sure
-		cachedGameID = tostring(gameID) 
+		cachedGameID = tostring(gameID)
 
 		-- Initialise this madness
-		local FakeRandomSeed = "" 
+		local FakeRandomSeed = ""
 		-- because yes
 		for i = 1,1000 do
 			-- Check if the next character in the game ID is a number
@@ -112,11 +112,9 @@ if gadgetHandler:IsSyncedCode() then
 						if math.random() <= 0.9 then --90% chance to get a human name
 							local humanrandom = math.random()
 							if humanrandom <= 0.6 then 		-- 60.0% chance for donator name
-								aiName = DonatorAINames[math.ceil(math.random()*#DonatorAINames)]
-								--aiName = DonatorAINames[math.random(1,#DonatorAINames)]
+								aiName = DonatorAINames[math.random(1,#DonatorAINames)]
 							elseif humanrandom <= 0.95 then -- 35% chance for contributor name
-								aiName = ContributorAINames[math.ceil(math.random()*#ContributorAINames)]
-								--aiName = ContributorAINames[math.random(1,#ContributorAINames)]
+								aiName = ContributorAINames[math.random(1,#ContributorAINames)]
 							else							-- 5% chance for random AI name
 								aiName = RandomAINames[math.random(1,#RandomAINames)]
 							end
