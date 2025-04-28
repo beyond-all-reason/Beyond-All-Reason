@@ -358,7 +358,7 @@ void main() {
 		// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
-	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
+	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0) * 5;
 	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
