@@ -82,9 +82,6 @@ if gadgetHandler:IsSyncedCode() then
 					allyStartUnits[unitsCount] = corcomDefID
 					unitsCount = unitsCount + 1
 				end
-				for v, k in pairs(allyStartUnits) do
-					Spring.Echo(v, k)
-				end
 				validStartUnits[allyTeam] = allyStartUnits
 			end
 
