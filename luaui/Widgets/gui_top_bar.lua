@@ -57,7 +57,6 @@ local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-local prevR = { metal = {0,0,0,0,0,0,0,0}, energy = {0,0,0,0,0,0,0,0} }
 local currentResValue = { metal = 1000, energy = 1000 }
 local energyOverflowLevel, metalOverflowLevel
 local wholeTeamWastingMetalCount = 0
@@ -461,6 +460,28 @@ local function updateTidal()
 	end
 end
 
+local function drawResbarPullIncome(res)
+	font2:Begin()
+	-- Text: pull
+	font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+	-- Text: expense
+	--font2:Print("\255\240\180\145" .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
+	-- income
+	font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+	font2:End()
+end
+
+local function drawResbarStorage(res)
+	font2:Begin()
+	if res == 'metal' then
+		font2:SetTextColor(0.55, 0.55, 0.55, 1)
+	else
+		font2:SetTextColor(0.57, 0.57, 0.45, 1)
+	end
+	font2:Print(lastStorageText[res], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+	font2:End()
+end
+
 local function updateResbarText(res, force)
 	-- used to flashing resbar area (tinting)
 	if not dlistResbar[res][4] or force then
@@ -481,38 +502,25 @@ local function updateResbarText(res, force)
 		local storageText = short(r[res][2])
 		if lastStorageText[res] ~= storageText or force then
 			lastStorageText[res] = storageText
-
-			if dlistResbar[res][6] then glDeleteList(dlistResbar[res][6]) end
 			updateRes[res][3] = true
-			dlistResbar[res][6] = glCreateList(function()
-				font2:Begin()
-
-				if res == 'metal' then
-					font2:SetTextColor(0.55, 0.55, 0.55, 1)
-				else
-					font2:SetTextColor(0.57, 0.57, 0.45, 1)
-				end
-
-				font2:Print(storageText, resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
-				font2:End()
-			end)
+			if not useRenderToTexture then
+				if dlistResbar[res][6] then glDeleteList(dlistResbar[res][6]) end
+				dlistResbar[res][6] = glCreateList(function()
+					drawResbarStorage(res)
+				end)
+			end
 		end
 	end
 
 	if lastPullIncomeText[res] ~= short(r[res][3])..' '..short(r[res][4]) then
 		lastPullIncomeText[res] = short(r[res][3])..' '..short(r[res][4])
-		if dlistResbar[res][3] then glDeleteList(dlistResbar[res][3]) end
 		updateRes[res][2] = true
-		dlistResbar[res][3] = glCreateList(function()
-			font2:Begin()
-			-- Text: pull
-			font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
-			-- Text: expense
-			--font2:Print("\255\240\180\145" .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
-			-- income
-			font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-			font2:End()
-		end)
+		if not useRenderToTexture then
+			if dlistResbar[res][3] then glDeleteList(dlistResbar[res][3]) end
+			dlistResbar[res][3] = glCreateList(function()
+				drawResbarPullIncome(res)
+			end)
+		end
 	end
 
 	if not spec and gameFrame > 90 then
@@ -598,6 +606,19 @@ local function updateResbarText(res, force)
 			showOverflowTooltip[res] = nil
 		end
 	end
+end
+
+local function drawResbarValue(res)
+	-- Text: current
+	font2:Begin()
+	if res == 'metal' then
+		font2:SetTextColor(0.95, 0.95, 0.95, 1)
+	else
+		font2:SetTextColor(1, 1, 0.74, 1)
+	end
+	font2:SetOutlineColor(0, 0, 0, 1)
+	font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:End()
 end
 
 local function updateResbar(res)
@@ -756,6 +777,8 @@ local function updateResbarValues(res, update)
 	local valueWidth = lastValueWidth[res]
 
 	if update then
+		updateRes[res][1] = true
+		
 		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
 		if r[res][1] > r[res][2] * 1.07 then cappedCurRes = r[res][2] * 1.07 end
 		local barSize = barHeight * 0.2
@@ -826,22 +849,14 @@ local function updateResbarValues(res, update)
 
 		-- resbar text
 		currentResValue[res] = short(cappedCurRes)
-		if dlistResValues[res] then
-			glDeleteList(dlistResValues[res])
-		end
-		updateRes[res][1] = true
-		dlistResValues[res] = glCreateList(function()
-			-- Text: current
-			font2:Begin()
-			if res == 'metal' then
-				font2:SetTextColor(0.95, 0.95, 0.95, 1)
-			else
-				font2:SetTextColor(1, 1, 0.74, 1)
+		--if not useRenderToTexture then
+			if dlistResValues[res] then
+				glDeleteList(dlistResValues[res])
 			end
-			font2:SetOutlineColor(0, 0, 0, 1)
-			font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-			font2:End()
-		end)
+			dlistResValues[res] = glCreateList(function()
+				drawResbarValue(res)
+			end)
+		--end
    	end
 end
 
@@ -1150,7 +1165,7 @@ local function drawResBars()
 	end
 
 	local res = 'metal'
-	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
+	if dlistResbar[res][1] and dlistResbar[res][2] then
 		if not useRenderToTexture then
 			glCallList(dlistResbar[res][1])
 		end
@@ -1186,7 +1201,7 @@ local function drawResBars()
 	end
 
 	res = 'energy'
-	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
+	if dlistResbar[res][1] and dlistResbar[res][2]  then
 		if not useRenderToTexture then
 			glCallList(dlistResbar[res][1])
 		end
@@ -1292,31 +1307,25 @@ local function drawResBars()
 				gl.Translate(-topbarArea[1], -topbarArea[2], 0)
 
 				res = 'metal'
-				if updateRes[res][1] then
-					updateRes[res][1] = false
-					glCallList(dlistResValues[res])	-- res bar value
-				end
+				drawResbarValue(res)
 				if updateRes[res][2] then
 					updateRes[res][2] = false
-					glCallList(dlistResbar[res][3]) -- pull, expense, income
+					drawResbarPullIncome(res)
 				end
 				if updateRes[res][3] then
 					updateRes[res][3] = false
-					glCallList(dlistResbar[res][6]) -- storage
+					drawResbarStorage(res)
 				end
 
 				res = 'energy'
-				if updateRes[res][1] then
-					updateRes[res][1] = false
-					glCallList(dlistResValues[res])	-- res bar value
-				end
+				drawResbarValue(res)
 				if updateRes[res][2] then
 					updateRes[res][2] = false
-					glCallList(dlistResbar[res][3]) -- pull, expense, income
+					drawResbarPullIncome(res)
 				end
 				if updateRes[res][3] then
 					updateRes[res][3] = false
-					glCallList(dlistResbar[res][6]) -- storage
+					drawResbarStorage(res)
 				end
 
 				gl.PopMatrix()
@@ -2149,12 +2158,8 @@ function widget:Shutdown()
 		for n, _ in pairs(dlistWindText) do dlistWindText[n] = glDeleteList(dlistWindText[n]) end
 		for n, _ in pairs(dlistResbar['metal']) do dlistResbar['metal'][n] = glDeleteList(dlistResbar['metal'][n]) end
 		for n, _ in pairs(dlistResbar['energy']) do dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n]) end
-		for res, _ in pairs(dlistResValues) do
-			dlistResValues[res] = glDeleteList(dlistResValues[res])
-		end
-		for res, _ in pairs(dlistResValuesBar) do
-			dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res])
-		end
+		for res, _ in pairs(dlistResValues) do dlistResValues[res] = glDeleteList(dlistResValues[res]) end
+		for res, _ in pairs(dlistResValuesBar) do dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res]) end
 	end
 
 	if uiBgTex then
