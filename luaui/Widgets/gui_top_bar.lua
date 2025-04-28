@@ -446,6 +446,7 @@ local function updateTidal()
 		glTexRect(-wavesSize, -wavesSize, wavesSize, wavesSize)
 		glTexture(false)
 		glPopMatrix()
+		-- tidal speed
 		if not useRenderToTexture then
 			local fontSize = (height / 2.66) * widgetScale
 			font2:Begin()
@@ -558,6 +559,7 @@ local function updateResbarText(res, force)
 
 						-- background
 						local color1, color2, color3, color4
+
 						if res == 'metal' then
 							if allyteamOverflowingMetal then
 								color1 = { 0.35, 0.1, 0.1, 1 }
@@ -776,7 +778,7 @@ local function updateResbarValues(res, update)
 
 	if update then
 		updateRes[res][1] = true
-
+		
 		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
 		if r[res][1] > r[res][2] * 1.07 then cappedCurRes = r[res][2] * 1.07 end
 		local barSize = barHeight * 0.2
@@ -847,14 +849,14 @@ local function updateResbarValues(res, update)
 
 		-- resbar text
 		currentResValue[res] = short(cappedCurRes)
-		if not useRenderToTexture then
+		--if not useRenderToTexture then
 			if dlistResValues[res] then
 				glDeleteList(dlistResValues[res])
 			end
 			dlistResValues[res] = glCreateList(function()
 				drawResbarValue(res)
 			end)
-		end
+		--end
    	end
 end
 
@@ -1253,9 +1255,9 @@ local function drawResBars()
 				end
 				if updateRes[res][2] then
 					gl.Scissor(
-						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3),
+						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
 						0,
-						resbarDrawinfo[res].textPull[4]*3.1,
+						resbarDrawinfo[res].textPull[4]*3.5,
 						topbarArea[4]-topbarArea[2]
 					)
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
@@ -1281,9 +1283,9 @@ local function drawResBars()
 				end
 				if updateRes[res][2] then
 					gl.Scissor(
-						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3),
+						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
 						0,
-						resbarDrawinfo[res].textPull[4]*3.1,
+						resbarDrawinfo[res].textPull[4]*3.5,
 						topbarArea[4]-topbarArea[2]
 					)
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
@@ -1701,9 +1703,8 @@ function widget:DrawScreen()
 	glPushMatrix()
 	if displayComCounter and dlistComs then
 
-		-- commander counter
 		if useRenderToTexture then
-			if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
+			if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= allyComs == 1 and (gameFrame % 12 < 6)) then
 				prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
 				comsDlistUpdate = nil
 				gl.RenderToTexture(uiTex, function()
@@ -1717,7 +1718,7 @@ function widget:DrawScreen()
 					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
 					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
 					if allyComs == 1 and (gameFrame % 12 < 6) then
-						glColor(1, 0.6, 0, useRenderToTexture and 0.75 or 0.45)
+						glColor(1, 0.6, 0, useRenderToTexture and 0.9 or 0.45)
 					else
 						glColor(1, 1, 1, useRenderToTexture and 0.6 or 0.22)
 					end
