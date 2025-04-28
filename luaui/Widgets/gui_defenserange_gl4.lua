@@ -77,19 +77,19 @@ local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
     externalalpha = 0.80, -- alpha of outer rings
-    internalalpha = 0.17, -- alpha of inner rings
+    internalalpha = 0.3, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
         color = {1.3, 0.18, 0.04, 0.5},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 6.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
+        externallinethickness = 4.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
         internallinethickness = 2.0, -- can be 1.8 if we can distiquish its looks from attackranges
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 6.0,
+        externallinethickness = 4.0,
         internallinethickness = 1.8,
     },
     nuke = {
@@ -916,7 +916,7 @@ function widget:DrawWorld()
 		end
 
 		if colorConfig.drawInnerRings then
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
+			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
 		end
 
@@ -957,11 +957,16 @@ function widget:SetConfigData(data)
 	if data ~= nil then
 		if data["enabled"] ~= nil then
 			local newconfig = data["enabled"]
+			local configstr = ""
 			for allyenemy, weapontypes in pairs(newconfig) do
 				for wt, enabledstate in pairs(weapontypes) do  	
 					buttonConfig[allyenemy][wt] = enabledstate
+					configstr = configstr .. tostring(allyenemy) .. tostring(wt) .. ":" .. tostring(enabledstate) .. ", "
 				end
 			end 
+			if autoReload then 
+				--Spring.Echo("defenserange gl4:", configstr) 
+			end
 			--printDebug("enabled config found...")
 		end
 	end
