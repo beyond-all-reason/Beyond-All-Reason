@@ -16,14 +16,40 @@ local factions = {}
 if UnitDefNames.dummycom then
 	factions[#factions+1] = { startUnit = UnitDefNames.dummycom.id, faction = 'random' }
 end
-if UnitDefNames.corcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
+
+local allyTeamBitmask = 0
+do
+	local factionlimiter = tonumber(Spring.GetModOptions().factionlimiter)
+	if factionlimiter and factionlimiter > 0 then
+		local allyTeamID = Spring.GetMyAllyTeamID()
+		factionlimiter = math.floor(factionlimiter/2^(allyTeamID*3))
+		allyTeamBitmask = math.bit_and(factionlimiter, 7)
+	end
 end
-if UnitDefNames.armcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
+if allyTeamBitmask == 0 then
+	allyTeamBitmask = 7
 end
-if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
+
+local function addOptions(bitmask)
+	if UnitDefNames.corcom and math.bit_and(bitmask, 2) == 2 then
+		factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
+	end
+	if UnitDefNames.armcom and math.bit_and(bitmask, 1) == 1 then
+		factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
+	end
+	if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom and math.bit_and(bitmask, 4) == 4 then
+		factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
+	end
+end
+
+addOptions(allyTeamBitmask)
+-- if we failed to get a commander pass in a full bitmask
+if #factions == (UnitDefNames.dummycom and 1 or 0) then
+	addOptions(7)
+end
+if #factions == 2 and UnitDefNames.dummycom then
+	factions[1] = factions[2]
+	factions[2] = nil
 end
 
 local doUpdate
