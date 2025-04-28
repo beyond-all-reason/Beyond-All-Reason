@@ -7,8 +7,8 @@ local labGrids = {
 	},
 
 	corlab = {
-		"corck", "cornecro", "corak", "",                      -- T1 con, rez bot, AK
-		"corstorm", "corthud", "", "",                        -- storm, thud
+		"corck", "cornecro", "corak", "", "", "",                     -- T1 con, rez bot, AK
+		"corstorm", "corthud", "", "", "", "",                       -- storm, thud
 		"", "", "corcrash",                                        -- aa bot
 	},
 	leglab = {
@@ -24,9 +24,9 @@ local labGrids = {
 	},
 
 	coralab = {
-		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
-		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		"corack", "corfast", "corpyro", "corspy", "cordecom", "cormando",              -- T2 con, freaker, pyro, spy, decoycom, commando
+		"corvoyr", "corspec", "corcan", "corhrk", "cortermite", "",             -- radar bot, jammer bot, can, dominator, termite
+		"cormort", "corroach", "coraak", "corsumo", "coramph", "corsktl",            -- morty, skuttle, AA bot, sumo, duck, skuttle
 	},
 	legalab = {
 		-- page1
