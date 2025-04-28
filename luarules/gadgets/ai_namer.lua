@@ -131,6 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Volshok",
 		"Watch The Fort",
 		"wilkubyk",
+		"WitchingMetal",
 		"Xehrath",
 		"Yaribz",
 		"Zagupi",
