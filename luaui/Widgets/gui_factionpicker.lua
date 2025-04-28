@@ -37,7 +37,7 @@ local function addOptions(bitmask)
 	if UnitDefNames.armcom and math.bit_and(bitmask, 1) == 1 then
 		factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
 	end
-	if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom and math.bit_and(bitmask, 4) == 4 then
+	if UnitDefNames.legcom and math.bit_and(bitmask, 4) == 4 then
 		factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 	end
 end
