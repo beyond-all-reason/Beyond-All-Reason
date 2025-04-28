@@ -2254,7 +2254,7 @@ addNewSquad({
 	maxAnger = tierConfiguration[5].maxAnger,
 	minAnger = tierConfiguration[5].minAnger,
 	units = {
-		{coun = 3, unit = "armmart_scav"},
+		{count = 3, unit = "armmart_scav"},
 		{count = 1, unit = "armmerl_scav"},
 		{count = 1, unit = "armyork_scav"},
 		{count = 3, unit = "cormart_scav"},

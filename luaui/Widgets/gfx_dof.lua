@@ -28,8 +28,6 @@ local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 -----------------------------------------------------------------
 
 local spGetCameraPosition   = Spring.GetCameraPosition
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
 
 local math_max = math.max
 local math_log = math.log
