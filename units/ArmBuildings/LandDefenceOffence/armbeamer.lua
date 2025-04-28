@@ -127,7 +127,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "beamershot2",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 2.4,
 				tolerance = 10000,
 				turret = true,

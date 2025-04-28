@@ -42,7 +42,6 @@ ShockWave.Default = {
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local glUniform   = gl.Uniform
 local glUseShader = gl.UseShader
 local glCallList  = gl.CallList
 local glMultiTexCoord = gl.MultiTexCoord
@@ -53,7 +52,6 @@ local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 function ShockWave:BeginDrawDistortion()
   glUseShader(warpShader)
-  --glUniform(screenLoc, 1/vsx,1/vsy )
 end
 
 function ShockWave:EndDrawDistortion()

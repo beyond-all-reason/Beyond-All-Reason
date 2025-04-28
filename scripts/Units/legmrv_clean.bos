@@ -53,6 +53,7 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
     start-script Steering();
+	
 
 	spin flTyre around x-axis speed <140.0> accelerate <5.0>;
 	spin frTyre around x-axis speed <140.0> accelerate <5.0>;

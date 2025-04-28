@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "EnemySpotter", -- GL4
@@ -26,7 +28,6 @@ local glDepthTest           = gl.DepthTest
 local glTexture             = gl.Texture
 local GL_POINTS				= GL.POINTS
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local myAllyTeamID = Spring.GetMyAllyTeamID()
