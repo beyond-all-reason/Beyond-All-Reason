@@ -1449,8 +1449,7 @@ local options = {
     {
         key     = "factionlimiter",
         name    = "Faction Limiter:".."\255\255\191\76".." ON\nBITMASK",
-        desc    = "\255\255\122\122".."WARNING: peepeepoopoo\n"..
-[[BITMASK to be used via custom ui, only visible when boss
+        desc    = [[BITMASK to be used via custom ui, only visible when boss
 Set to [0] To disable.
 Otherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.
 Offset by 3 for each consecutive team.
