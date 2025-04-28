@@ -8,7 +8,7 @@ local scenariodata = {
 	imagepath		= "scenario019.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Scour the map for hidden treasures", -- This text will be drawn over image
     summary         = [[Only a few units remain, Tzar, Tiger, Negotiator and a few supporting roles. Navigate your way through this glacier pass without building a base, and destroy the waves of Armada Tier 1 units to get to their Commander.]],
-	briefing 		= [[You only have a couple of vehicles to navigate the treacherous Glacer Pass, straight through an Armada base. Luckily this Armada Commander does not have much useful technology at his disposal, but will attempt to 
+	briefing 		= [[You only have a couple of vehicles to navigate the treacherous Glacer Pass, straight through an Armada base. Luckily this Armada Commander does not have much useful technology at his disposal. 
  
 Intelligence reports mines around the walled entrance to the main Armada base, enter cautiously, or use the massive area of effect damage of the Tzar to clear mines.
  
