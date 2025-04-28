@@ -1363,6 +1363,10 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
+	legctl = {
+		bitmap = "icons/defence_1_naval.png",
+		size = 1.10249984
+	},
 	cordoom = {
 		bitmap = "icons/cordoom.png",
 		size = 2.0474999
@@ -1504,6 +1508,10 @@ local icontypes = {
 		size = 0.89249998
 	},
 	corfrt = {
+		bitmap = "icons/aa.png",
+		size = 0.89249998
+	},
+	legfrl = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
@@ -2459,6 +2467,10 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legfrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
+	},
 	legrwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2542,6 +2554,10 @@ local icontypes = {
 	leghastatusalt = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
+	},
+	legamph = {
+		bitmap = "icons/amph_torp.png",
+		size = 1.65999997
 	},
 	legamphtank = {
 		bitmap = "icons/amphib_tank.png",

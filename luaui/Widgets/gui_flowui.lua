@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1
+
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
@@ -686,8 +688,6 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
 
-
-
 	-- draw unit
 	if texture then
 		gl.Texture(texture)
@@ -698,7 +698,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	end
 
 	-- darken gradually
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, useRenderToTexture and 0.13 or 0.2 }, { 0, 0, 0, 0 })
 
 	-- make shiny
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
