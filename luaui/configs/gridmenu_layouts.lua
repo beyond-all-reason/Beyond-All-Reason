@@ -47,7 +47,7 @@ local labGrids = {
 		"corraid", "corlevlr", "corwolv", "", "", "",           -- raider, leveler, art
 		"cormuskrat", "corgarp", "cormist", "", "", "",         -- amphib con, amphib tank, missile truck
 	},
-	
+
 	legvp = {
 		"legcv", "legmlv", "leghades", "legscout", "", "",      -- T1 con, minelayer, gator, scout
 		"leghelios", "leggat", "legbar", "", "", "",            -- raider, leveler, art
@@ -73,43 +73,45 @@ local labGrids = {
 	},
 	-- T1 air
 	armap = {
-		"armca", "armfig", "armkam", "armthund", "", "",          -- T1 con, fig, gunship, bomber
-		"armpeep", "armatlas", "armhvytrans",                -- radar, light transport, medium transport
+		"armca", "armfig", "armkam", "armthund", "", "",            -- T1 con, fig, gunship, bomber
+		"armpeep", "armatlas", "armhvytrans",                       -- radar, light transport, medium transport
 	},
 	corap = {
-		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
-		"corfink", "corvalk", "corhvytrans",                 -- radar, light transport, medium transport
+		"corca", "corveng", "corbw", "corshad", "", "",             -- T1 con, fig, drone, bomber
+		"corfink", "corvalk", "corhvytrans",                        -- radar, light transport, medium transport
 	},
+
     legap = {
-		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
-		"legcib", "leglts", "legatrans",                -- radar, light transport, medium transport
+		"legca", "legfig", "legmos", "legkam",                      -- T1 con, fig, gunship, sucide bomb
+		"legcib", "leglts", "legatrans",                            -- juno bomber, light transport, medium transport
 	},
 	-- T2 air
 	armaap = {
-		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
-		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
+		"armaca", "armhawk", "armbrawl", "armpnix", "", "",             -- T2 con, fig, gunship, bomber
+		"armawac", "armdfly", "armlance", "armsfig2", "", "",           -- radar, transport, torpedo, heavy fighter (mod)
+		"armliche", "armblade", "armstil",                              -- liche, blade, stiletto
 	},
 
 	coraap = {
-		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
-		"corcrw","corcrwh",                                              -- krow
+		"coraca", "corvamp", "corape", "corhurc", "", "",               -- T2 con, fig, gunship, bomber
+		"corawac", "corseah", "cortitan", "corsfig2", "", "",           -- radar, transport, torpedo, heavy fighter (mod)
+		"corcrwh","corcrw",                                             -- dragon, old dragon
 	},
+
 	legaap = {
-		"legaca", "legionnaire", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
-		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
-		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
+		"legaca", "legionnaire", "legvenator", "legphoenix", "", "",    --T2 con, defensive fig, interceptor, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "", "", "",    --radar, transport(gunship), torpedo,
+		"legfort", "legnap", "legmineb", ""	                            --flying fort, napalmbomber, minebomber
 	},
 	-- seaplanes
 	armplat = {
-		"armcsa", "armsfig", "armsaber", "armsb",           -- seaplane con, fig, gunship, bomber
-		"armsehak", "armseap",                              -- radar, torpedo
+		"armcsa", "armsfig", "armsaber", "armsb", "", "",           -- seaplane con, fig, gunship, bomber
+		"armsehak", "armseap",                                      -- radar, torpedo
 	},
 
 	corplat = {
-		"corcsa", "corsfig", "corcut", "corsb",              -- seaplane con, fig, gunship, bomber
-		"corhunt", "corseap",                                -- radar, torpedo
+		"corcsa", "corsfig", "corcut", "corsb", "", "",             -- seaplane con, fig, gunship, bomber
+		"corhunt", "corseap",                                       -- radar, torpedo
 	},
 	-- T1 boats
 	armsy = {
