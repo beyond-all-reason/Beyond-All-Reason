@@ -384,7 +384,7 @@ local teamColors = {
 	},
 }
 
-local r = math.random()
+local r = math.random(1,100000)
 math.randomseed(1)	-- make sure the next sequence of randoms can be reproduced
 local teamRandoms = {}
 for i = 1, #teamList do
