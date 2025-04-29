@@ -70,6 +70,7 @@ local DonatorAINames = {
     "gamerangela911",
     "greggy4485",
     "kabab",
+	"kalter",
     "kaofeiwei",
     "keithphw",
     "madrussian097",
