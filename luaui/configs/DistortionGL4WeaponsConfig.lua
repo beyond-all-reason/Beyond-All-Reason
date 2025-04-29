@@ -1280,6 +1280,13 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 
 }
 
+explosionDistortionsNames['corjuno_juno_pulse'] = {
+	GetDistortionClass("JunoShockWave", "Juno", {
+	}),
+	GetDistortionClass("JunoNoise", "Juno", {
+	}),
+}
+
 -- corlevlr
 projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 	GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
