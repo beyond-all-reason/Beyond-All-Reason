@@ -115,27 +115,27 @@ local labGrids = {
 	},
 	-- T1 boats
 	armsy = {
-		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
-		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
-		"armsub", "", "armpt",                            -- sub, PT boat
+		"armcs", "armrecl", "armdecade", "", "", "",              -- T1 sea con, rez sub, decade
+		"armpship", "armroy", "", "", "", "",                     -- frigate, destroyer, transport ("armtship",)
+		"armsub", "", "armpt",                                    -- sub, PT boat
 	},
 
 	corsy = {
-		"corcs", "correcl", "coresupp", "",               -- T1 sea con, rez sub, supporter, missile boat
-		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
-		"corsub", "", "corpt",                            -- sub, missile boat
+		"corcs", "correcl", "coresupp", "", "", "",               -- T1 sea con, rez sub, supporter, missile boat
+		"corpship", "corroy", "", "", "", "",                     -- frigate, destroyer, transport ("cortship",)
+		"corsub", "", "corpt",                                    -- sub, missile boat
 	},
 	-- T2 boats
 	armasy = {
-		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
-		"armcarry", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
-		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
+		"armacsub", "armmls", "armcrus", "armmship", "", "",             -- T2 con sub, naval engineer, cruiser, rocket ship
+		"armantiship", "armsjam", "armbats", "armepoch", "", "",         -- carrier, jammer, battleship, flagship
+		"armsubk", "armserp", "armaas", "armlship",                      -- sub killer, battlesub, AA, lightning ship
 	},
 
 	corasy = {
-		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
-		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
-		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
+		"coracsub", "cormls", "corcrus", "cormship", "", "",             -- T2 con sub, naval engineer, cruiser, rocket ship
+		"corantiship", "corsjam", "corbats", "corblackhy", "", "",       -- carrier, jammer, battleship, flagship
+		"corshark", "corssub", "corarch", "corfship",                    -- sub killer, battlesub, AA, flamer ship
 	},
 	-- amphibious labs
 	armamsub = {
