@@ -66,7 +66,7 @@ for uname, ugrid in pairs(unitGrids) do
 		local uncategorizedCount = 0;
 		for cat=1,4 do
 			for row =1,3 do
-				for col =1,6 do
+				for col =1,4 do
 					local unitAtPos = ugrid[cat] and ugrid[cat][row] and ugrid[cat][row][col]
 
 					if unitAtPos then
@@ -105,7 +105,7 @@ for uname, ugrid in pairs(labGrids) do
 
 		for r=1,3 do
 			for c=1,6 do
-				local index = (r - 1) * 4 + c
+				local index = (r - 1) * 6 + c
 				local ugdefname = ugrid[index]
 
 				if ugdefname then
