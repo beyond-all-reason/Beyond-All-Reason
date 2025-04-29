@@ -1881,7 +1881,7 @@ function init()
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
-			heatdistortion = false,
+			distortioneffects = false,
 			snow = false,
 			particles = 9000,
 			guishader = 0,
@@ -1901,7 +1901,7 @@ function init()
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
-			heatdistortion = true,
+			distortioneffects = true,
 			snow = false,
 			particles = 12000,
 			guishader = 0,
@@ -1921,7 +1921,7 @@ function init()
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
-		 	heatdistortion = true,
+			distortioneffects = true,
 		 	snow = true,
 		 	particles = 15000,
 		 	guishader = guishaderIntensity,
@@ -1941,7 +1941,7 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
-			heatdistortion = true,
+			distortioneffects = true,
 			snow = true,
 			particles = 20000,
 			guishader = guishaderIntensity,
@@ -1961,7 +1961,7 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
-			heatdistortion = true,
+			distortioneffects = true,
 			snow = true,
 			particles = 25000,
 			guishader = guishaderIntensity,
@@ -2454,6 +2454,8 @@ function init()
 			saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ScreenSpaceShadows', { 'screenSpaceShadows' }, value)
 		end,
 	  	},
+
+		{ id = "distortioneffects", group = "gfx", category = types.basic, widget = "Distortion GL4", name = Spring.I18N('ui.settings.option.distortioneffects'), type = "bool", value = GetWidgetToggleValue("Distortion GL4"), description = Spring.I18N('ui.settings.option.distortioneffects_descr') },
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.darkenmap'), min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = Spring.I18N('ui.settings.option.darkenmap_descr'),
 		  onload = function(i)

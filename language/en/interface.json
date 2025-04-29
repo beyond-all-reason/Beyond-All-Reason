@@ -1115,6 +1115,8 @@
 				"lighteffects_headlights_descr": "Adds headlights to units",
 				"lighteffects_buildlights": "construction lights",
 				"lighteffects_buildlights_descr": "Adds rotating construction builder lights to units",
+				"distortioneffects": "Distortion effects",
+				"distortioneffects_descr": "Add distortions to all kinds of explosions",
 				"dof": "Depth of Field",
 				"dof_descr": "Applies out of focus blur",
 				"dof_autofocus": "autofocus",
