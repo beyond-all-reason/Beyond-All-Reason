@@ -24,5 +24,5 @@ bind           Any+sc_e  gridmenu_key 3 3
 bind           Any+sc_r  gridmenu_key 3 4
 bind           Any+sc_t  gridmenu_key 3 5
 bind           Any+sc_y  gridmenu_key 3 6
-bind                tab  gridmenu_next_page
+bind               sc_m  gridmenu_next_page
 bind               sc_.  gridmenu_cycle_builder

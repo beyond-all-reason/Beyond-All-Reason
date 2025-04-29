@@ -95,7 +95,7 @@ local labGrids = {
 	coraap = {
 		"coraca", "corvamp", "corape", "corhurc", "", "",                -- T2 con, fig, gunship, bomber
 		"corawac", "corseah", "cortitan", "corsfig2", "", "",            -- radar, transport, torpedo, heavy fighter (mod)
-		"corcrwh","corcrw",                                              -- dragon, old dragon
+		"corcrwh","corcrw",                                              -- dragon, archaic dragon
 	},
 
 	legaap = {
@@ -206,7 +206,17 @@ local labGrids = {
 		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", "", "",     -- astraeus, karganeth, javelin, sol invictus
 		"corjugg", "corsok", "legeshotgunmech", "legpede", "", "",          -- behemoth, hovertank, praetorian, mukade
 		"legkeres","legerailtank", "",                                      -- keres, daedalus
-	}
+	},
+	-- T3 underwater labs
+	armshltxuw = {
+		"armbantha", "armmar", "armcroc", "", "", "",                       -- titan, marauder, turtle
+		"armlun",                                                          -- lunkhead
+	},
+
+	corgantuw = {
+		"corkorg", "corshiva", "corsala", "corparrow", "", "",              -- juggernaut, shiva, salamander, poison arrow
+		"corsok",                                                           -- cataphract
+	},
 }
 local unitGrids = {
 	-- Air assist drones
@@ -1552,7 +1562,7 @@ local unitGrids = {
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
