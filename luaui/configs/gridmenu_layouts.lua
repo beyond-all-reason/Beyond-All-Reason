@@ -17,19 +17,15 @@ local labGrids = {
 		"legbal", "leglob", "legkark", "legcen",           -- ballista, lobber, karkinos, centaur
 		"", "", "corcrash",                                -- aa bot
 	},
-
-	-- layout for the extra slots from left to right
-	-- 1 2
-	-- 5 6
-	-- 3 4
-
 	-- T2 bot
 	armalab = {
 		"armack", "armfark", "armfast", "armspy",             -- T2 con, butler, sprinter, spy
 		"armmark", "armaser", "armzeus", "armmav",            -- radar bot, jammer bot, welder, gunslinger
 		"armfido", "armsnipe", "armaak", "armfboy",           -- hound, sharpshooter, AA bot, fatboy
 		-- extra slots
-		"armamph", "armvader", "armdecom", "armscab", "armsptk", "armspid",      -- platypus, tumbleweed, decoy com, mobile AN, recluse, webber
+		"armamph", "armvader",         -- platypus, tumbleweed
+		"armsptk", "armspid",          -- recluse, webber 
+		"armdecom", "armscab",         -- decoy com, mobile AN
 	},
 
 	coralab = {
@@ -37,7 +33,9 @@ local labGrids = {
 		"corvoyr", "corspec", "corcan", "corhrk",             -- radar bot, jammer bot, sumo, arbiter
 		"cormort", "corroach", "coraak", "corsumo",           -- sheldon, bedbug, AA bot, mammoth
 		-- extra slots
-		"coramph", "corsktl", "cordecom", "cormando", "cortermite",       -- duck, skuttle, decoy com, commando, termite                                           
+		"coramph", "corsktl",           -- duck, skuttle
+		"cortermite", "",               -- termite
+		"cordecom", "cormando",         -- decoycom, commando
 	},
 
 	legalab = {
@@ -45,7 +43,9 @@ local labGrids = {
 		"corvoyr", "corspec", "legshot", "corhrk",            -- radar bot, jammer bot, phanlax, arbiter
 		"legbart", "legsrail", "coraak", "leginc",            -- belcher, railgun, AA bot, incinerator
 		-- extra slots
-		"coramph", "legsnapper", "legdecom", "leginfestor", "corsktl",         -- amph bot, snapper, decoycom, infestor, skuttle
+		"legamph", "legsnapper",        -- amph bot, snapper
+		"corsktl", "",                  -- skuttle
+		"legdecom", "leginfestor",      -- decoycom, infestor
 	},
 	-- T1 vehicle
 	armvp = {
@@ -71,7 +71,7 @@ local labGrids = {
 		"armseer", "armjam", "armmanni", "armgremlin",             -- radar, jammer, penetrator, gremlin
 		"armlatnk", "armcroc", "armyork", "armmerl",               -- panther, triton, AA, merl
 		-- extra slots
-		"",                                                        -- empty
+		"",                                                        -- 
 	},
 
 	coravp = {
@@ -79,7 +79,9 @@ local labGrids = {
 		"corvrad", "coreter", "corgol", "cortrem",                 -- radar, jammer, goli, tremor
 		"corsala", "corparrow", "corsent", "corvroc",              -- salamander, poison arrow, AA, diplomat
 		-- extra slots
-		"","", "cormabm",                                          -- mobile AN
+		"", "",                        -- 
+		"", "",                        -- 
+		"cormabm", "",                 -- mobile AN
 	},
 
 	legavp = {
@@ -87,7 +89,9 @@ local labGrids = {
 		"legavrad", "legavjam", "legaheattank", "leginf",          -- radar, jammer, prometheus, inferno, mobile AN
 		"legmrv", "legfloat", "legvflak", "legvroc",               -- Quickshot, new triton, AA, boreas
 		-- extra slots
-		"", "", "legvcarry", "legmed", "cormabm",                  -- mantis, medusa, mobile AN
+		"", "",                      -- 
+		"cormabm", "",               -- mobile AN
+		"legvcarry", "legmed",       -- mantis, medusa
 	},
 	-- T1 air
 	armap = {
