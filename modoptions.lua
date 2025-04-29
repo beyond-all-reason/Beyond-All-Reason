@@ -955,17 +955,6 @@ local options = {
         },
     },
 
-
---[[     {
-        key    	= "map_tidesovermap",
-        name   	= "Tides Override Map",
-        desc   	= "Settings will override the map settings on existing lava maps",
-        type   	= "bool",
-        def    	= false,
-        section	= "options_extra",
-        column	= 2,
-    }, ]]
-
     {
         key     = "map_lavatidemode",
         name	= "Lava Start Position",
