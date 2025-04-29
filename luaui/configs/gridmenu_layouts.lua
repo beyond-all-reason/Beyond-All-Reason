@@ -193,17 +193,19 @@ local labGrids = {
 	},
 	-- T3 labs
 	armshltx = {
-		"armmar", "armraz", "armvang", "armthor",
-		"armbanth", "armlun"
+		"armmar", "armraz", "armvang", "armthor", "", "",                  -- marauder, razorback, vanguard, thor
+		"armbanth", "armlun",                                              -- titan, lunkhead
 	},
+	
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok"
+		"corcat", "corkarg", "corshiva", "corkorg", "", "",                -- catapult, karganeth, shiva, juggernaut
+		"corjugg", "corsok", "cordemon",                                   -- behemoth, cataphract, demon
 	},
+
 	leggant = {
-		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
-		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
-		"legkeres","legerailtank","" -- keres, daedalus
+		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", "", "",    -- astraeus, karganeth, javelin, sol invictus
+		"corjugg", "corsok", "legeshotgunmech", "legpede", "", "",         -- behemoth, hovertank, praetorian, mukade
+		"legkeres","legerailtank", "",                                     -- keres, daedalus
 	}
 }
 local unitGrids = {
