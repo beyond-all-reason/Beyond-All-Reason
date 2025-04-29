@@ -925,28 +925,46 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock = {"map_lavahastides", "map_tidesovermap", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhym"},
     },
 
     {
-        key    	= "map_lavahastides",
-        name   	= "Lava Has Tides",
+        key    	= "map_lavatiderhym",
+        name   	= "Lava Tides",
         desc   	= "Lava will periodicially cycle between high and low tide.",
-        type   	= "bool",
-        def    	= false,
+        type   	= "list",
+        def    	= "default",
         section	= "options_extra",
-        column	= 1.0,
+        column	= 1,
+        items	= {
+            { key= "default", 	name= "Default", desc= "Map Settings.",
+                lock = 
+                    {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "enabled",	name= "Enable/Override",desc= "If Lava is present it will have tides",
+                unlock = 
+                    {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+                lock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that noramlly have it.",
+                lock = 
+                    {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+        },
     },
 
-    {
+
+--[[     {
         key    	= "map_tidesovermap",
         name   	= "Tides Override Map",
         desc   	= "Settings will override the map settings on existing lava maps",
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        column	= 1,
-    },
+        column	= 2,
+    }, ]]
 
     {
         key     = "map_lavatidemode",
@@ -968,7 +986,7 @@ local options = {
         desc 	= "Lava level at high tide",
         type 	= "number",
         def 	= 0,
-        min 	= -10000,
+        min 	= 0,
         max 	= 10000,
         step 	= 1,
         section = "options_extra",
@@ -985,7 +1003,7 @@ local options = {
         max 	= 10000,
         step 	= 1,
         section = "options_extra",
-        --column	= 2.0,
+        column	= 2.0,
     },
 
     {
@@ -994,7 +1012,7 @@ local options = {
         desc 	= "Lava level at low tide",
         type 	= "number",
         def 	= 0,
-        min 	= -10000,
+        min 	= 0,
         max 	= 10000,
         step 	= 1,
         section = "options_extra",
@@ -1011,9 +1029,23 @@ local options = {
         max 	= 10000,
         step 	= 1,
         section = "options_extra",
-        --column	= 2.0,
+        column	= 2.0,
     },
 
+    {
+        key     = "sub_header_lava1",
+        section = "options_extra",
+        type    = "subheader",
+        name    = "",
+    },
+    
+    {
+        key     = "sub_header_lava2",
+        section = "options_extra",
+        type    = "subheader",
+        name    = "",
+    },
+    
     {
         key     = "sub_header",
         section = "options_extra",

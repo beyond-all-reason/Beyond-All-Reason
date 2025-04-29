@@ -133,7 +133,7 @@ local function applyConfig(lavaConfig)
 	parallaxOffset = lavaConfig.parallaxOffset or parallaxOffset
 
 	fogColor = lavaConfig.fogColor or fogColor
-	fogFactor = lavaConfig.forFactor or fogFactor
+	fogFactor = lavaConfig.fogFactor or fogFactor
 	fogHeight = lavaConfig.fogHeight or fogHeight
 	fogAbove = lavaConfig.fogAbove or fogAbove
 	if lavaConfig.fogEnabled ~= nil then
@@ -154,27 +154,37 @@ local function applyConfig(lavaConfig)
 	end
 end
 
+-- Generates a lava tide rhythm based on the spring modoptions.
+local function lavaModGen(modOptions)
+	local lowRhym = {modOptions.map_lavalowlevel, 0.25, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
+	local highRhym = {modOptions.map_lavahighlevel, 0.15, modOptions.map_lavahighdwell} --Rises slower: 270 emlo/min
+		if modOptions.map_lavatidemode == "lavastartlow" then
+			tideRhym = {lowRhym, highRhym}
+		elseif modOptions.map_lavatidemode == "lavastarthigh" then
+			tideRhym = {highRhym, lowRhym}
+		end
+		level = tideRhym[1][1] + 1
+		grow = tideRhym[1][2]
+end
 
 ----------------------------------------
 -- Process config
 
 local mapLavaConfig = getLavaConfig(mapName)
+local modTideRhym = Spring.GetModOptions().map_lavatiderhym
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
-
-	if Spring.GetModOptions().map_lavahastides and Spring.GetModOptions().map_tidesovermap then
-		local lowRhym = {Spring.GetModOptions().map_lavalowlevel, 0.25, Spring.GetModOptions().map_lavalowdwell} --450 elmo/min
-		local highRhym = {Spring.GetModOptions().map_lavahighlevel, 0.15, Spring.GetModOptions().map_lavahighdwell} --270 emlo/min
-		if (Spring.GetModOptions().map_lavatidemode == 'lavastartlow') then
-			level = lowRhym[1] + 3
-			grow = lowRhym[2]
-			tideRhym = {lowRhym, highRhym}
-		elseif (Spring.GetModOptions().map_lavatidemode == 'lavastarthigh') then
-			level = highRhym[1] + 3
-			grow = highRhym[2]
-			tideRhym = {highRhym, lowRhym}		
-		end
+	if modTideRhym == "default" then
+		--Spring.Echo("Lava TideRhym set to map default")
+	elseif modTideRhym == "enabled" then
+		--Spring.Echo("Lava TideRhym set to custom mod option")
+		lavaModGen(Spring.GetModOptions())
+	elseif modTideRhym == "disabled" then
+		--Spring.Echo("Map TideRhym is disabled")
+		level = level 
+		tideRhym = {tideRhym[1]} -- only the first (starting) tide level is used
+		tideRhym[1][3] = 5*6000 -- extend the first tide 
 	end
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
@@ -205,24 +215,18 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
-
-	if Spring.GetModOptions().map_lavahastides then
-		local lowRhym = {Spring.GetModOptions().map_lavalowlevel, 0.25, Spring.GetModOptions().map_lavalowdwell}
-		local highRhym = {Spring.GetModOptions().map_lavahighlevel, 0.15, Spring.GetModOptions().map_lavahighdwell}
-		if (Spring.GetModOptions().map_lavatidemode == 'lavastartlow') then
-			level = lowRhym[1] + 3
-			grow = lowRhym[2]
-			tideRhym = {lowRhym, highRhym}
-		elseif (Spring.GetModOptions().map_lavatidemode == 'lavastarthigh') then
-			level = highRhym[1] + 3
-			grow = highRhym[2]
-			tideRhym = {highRhym, lowRhym}		
-		end
-	else
+	if modTideRhym == "default" then
+		--Spring.Echo("Lava TideRhym set to default")
+		level = 4
+		tideRhym = { { 4, 0.05, 5*6000 } }
+	elseif modTideRhym == "enabled" then
+		--Spring.Echo("Lava TideRhym set to custom mod option")
+		lavaModGen(Spring.GetModOptions())
+	elseif modTideRhym == "disabled" then
+		--Spring.Echo("Map TideRhym is disabled")
 		level = 4
 		tideRhym = { { 4, 0.05, 5*6000 } }
 	end
-	
 end
 
 
