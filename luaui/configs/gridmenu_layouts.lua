@@ -1,41 +1,39 @@
 local labGrids = {
 	-- T1 bot
 	armlab = {
-		"armck", "armrectr", "armpw", "armflea", "", "",               -- T1 con, rez bot, peewee, flea
-		"armrock", "armham", "armwar", "", "", "",                    -- rocko, hammer, warrior
+		"armck", "armrectr", "armpw", "armflea", "", "",           -- T1 con, rez bot, peewee, flea
+		"armrock", "armham", "armwar", "", "", "",                 -- rocko, hammer, warrior
 		"", "", "armjeth",                                         -- aa bot
 	},
 
 	corlab = {
-		"corck", "cornecro", "corak", "", "", "",                     -- T1 con, rez bot, AK
-		"corstorm", "corthud", "", "", "", "",                       -- storm, thud
+		"corck", "cornecro", "corak", "", "", "",                  -- T1 con, rez bot, AK
+		"corstorm", "corthud", "", "", "", "",                     -- storm, thud
 		"", "", "corcrash",                                        -- aa bot
 	},
+	
 	leglab = {
-		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
-		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
+		"legck", "cornecro", "leggob", "", "", "",                 -- T1 con, rez bot, AK
+		"legbal", "leglob", "legkark", "legcen", "", "",           -- storm, thud
 		"", "", "corcrash",                                        -- aa bot
 	},
 	-- T2 bot
 	armalab = {
-		"armack", "armfark", "armfast", "armspy", "armdecom", "armscab",             -- T2 con, fark, zipper, spy, decoycom, mobile AN
-		"armmark", "armaser", "armzeus", "armmav", "armsptk", "armspid",            -- radar bot, jammer bot, zeus, maverick, recluse, webber
-		"armfido", "armsnipe", "armaak", "armfboy", "armamph", "armvader",           -- fido, sniper, AA bot, fatboi, platypus, tumbleweed
+		"armack", "armfark", "armfast", "armspy", "armdecom", "armscab",        -- T2 con, fark, zipper, spy, decoycom, mobile AN
+		"armmark", "armaser", "armzeus", "armmav", "armsptk", "armspid",        -- radar bot, jammer bot, zeus, maverick, recluse, webber
+		"armfido", "armsnipe", "armaak", "armfboy", "armamph", "armvader",      -- fido, sniper, AA bot, fatboi, platypus, tumbleweed
 	},
 
 	coralab = {
-		"corack", "corfast", "corpyro", "corspy", "cordecom", "cormando",              -- T2 con, freaker, pyro, spy, decoycom, commando
+		"corack", "corfast", "corpyro", "corspy", "cordecom", "cormando",       -- T2 con, freaker, pyro, spy, decoycom, commando
 		"corvoyr", "corspec", "corcan", "corhrk", "cortermite", "",             -- radar bot, jammer bot, can, dominator, termite
-		"cormort", "corroach", "coraak", "corsumo", "coramph", "corsktl",            -- morty, skuttle, AA bot, sumo, duck, skuttle
+		"cormort", "corroach", "coraak", "corsumo", "coramph", "corsktl",       -- morty, skuttle, AA bot, sumo, duck, skuttle
 	},
+
 	legalab = {
-		-- page1
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, strider, spy
-		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
-		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
-		-- page2
-		"coramph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
-		"legdecom",					-- decoycom
+		"legack", "legaceb", "legstr", "corspy", "legdecom", "leginfestor",     -- T2 con, proteus, strider, spy, decoycom, infestor
+		"corvoyr", "corspec", "legshot", "corhrk", "corsktl", "",               -- radar bot, jammer bot, phanlax, arbiter, skuttle
+		"legbart", "legsrail", "coraak", "leginc", "legamph", "legsnapper",     -- belcher, railgun, AA bot, incinerator, tehcline, snapper
 	},
 	-- T1 vehicle
 	armvp = {
