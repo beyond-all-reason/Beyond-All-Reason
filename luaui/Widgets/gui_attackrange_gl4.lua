@@ -458,6 +458,7 @@ local shaderSourceCache = {
 		MYGRAVITY = Game.gravity + 0.1,
 		STATICUNITS = 0,
 		DEBUG = autoReload and 1 or 0,
+		MOUSEOVERALPHAMULTIPLIER = 1.0,
 	},
 	uniformInt = {
 		heightmapTex = 0,

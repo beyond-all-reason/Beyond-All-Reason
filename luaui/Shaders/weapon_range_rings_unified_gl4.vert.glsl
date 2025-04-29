@@ -215,9 +215,10 @@ void main() {
 	float maxAngleDif = 1;
 	float mainDirDegrees = 0; 
 	vec4 circleprogress = vec4(0.0);
+	circleprogress.xy = circlepointposition.xy;
 	if (staticUnits > 0.5) {
 		modelWorldPos = posscale.xyz;
-		circleWorldPos.xz = circlepointposition.xy * RANGE +  posscale.xz;
+		circleWorldPos.xz = circlepointposition.xy * RANGE +  modelWorldPos.xz;
 	}else {
 		// Get the center pos of the unit
 		modelWorldPos = uni[instData.y].drawPos.xyz;
@@ -228,7 +229,7 @@ void main() {
 		// Get its heading
 		float unitHeading = uni[instData.y].drawPos.w ;
 		
-		circleprogress.xy = circlepointposition.xy;
+		
 		// find angle between unit Heading and circleprogress.xy
 		//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 		//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
@@ -240,6 +241,7 @@ void main() {
 		}
 		circleprogress.xy = rotate2D(circleprogress.xy, (3.141592 -1.0*unitHeading + mainDirDegrees * 3.141592 / 180.0));
 		if (ISDGUN > 0.5) {
+			// TODO move this to config instead of here
 			circleWorldPos.xz = circleprogress.xy * RANGE * 1.05 + modelWorldPos.xz;
 		} else {
 			circleWorldPos.xz = circleprogress.xy * RANGE +  modelWorldPos.xz;
@@ -276,8 +278,8 @@ void main() {
 		float adjustment = radius * 0.5;
 		float yDiff = 0;
 		float adds = 0;
-		//for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-		for (int i = 0; i < HEIGHTMAP_SAMPLE_STEPS; i ++){
+		for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
+		//for (int i = 0; i < HEIGHTMAP_SAMPLE_STEPS; i ++){
 				if (adjRadius > radius){
 					radius = radius + adjustment;
 					adds = adds + 1;
@@ -358,7 +360,7 @@ void main() {
 		// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
-	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0) * 5;
+	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0) * MOUSEOVERALPHAMULTIPLIER;
 	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 

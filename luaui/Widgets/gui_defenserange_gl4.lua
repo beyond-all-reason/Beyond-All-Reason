@@ -446,6 +446,7 @@ local shaderSourceCache = {
 	shaderConfig = {
 		MYGRAVITY = Game.gravity + 0.1,
 		DEBUG = autoReload and 1 or 0,
+		MOUSEOVERALPHAMULTIPLIER = 5.0,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -865,6 +866,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 		stencilMask = 2 ^ ( 4 * (i-1) + 3)
 		drawcounts[stencilMask] = iT.usedElements
 		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
+			--Spring.Echo("cannonmode",iT.usedElements,stencilMask, defRangeClass, buttonConfig[allyState]["ground"], linethickness, cameraHeightFactor)
 			if linethickness then
 				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor * 0.15)
 			end
