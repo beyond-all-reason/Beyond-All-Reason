@@ -24,7 +24,7 @@ local categories = {
 }
 
 local rows = 3
-local columns = 4
+local columns = 6
 
 local categoryGroupMapping = {
 	energy = BUILDCAT_ECONOMY,
