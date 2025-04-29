@@ -1189,6 +1189,18 @@ explosionDistortionsNames['armemp_armemp_weapon'] = {
 	}),
 }
 
+explosionDistortionsNames['armthor_empmissile'] = {
+	GetDistortionClass("EMPShockWave", "Small", {
+	effectStrength = -2.5,
+	}),
+	GetDistortionClass("EMPNoise", "Smallest", {
+	}),	
+ 	GetDistortionClass("EMPRipples", "Small", {
+	}),
+	GetDistortionClass("AirShockWaveEMP", "Nano", {
+	}),
+}
+
 explosionDistortionsNames['spybombx'] = {
 	GetDistortionClass("EMPShockWave", "Medium", {
 	effectStrength = -2.5,
