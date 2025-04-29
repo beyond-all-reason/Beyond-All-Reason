@@ -52,6 +52,10 @@ if gadgetHandler:IsSyncedCode() then
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
 		if factionlimiter > 0 then
+			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
 				local allyTeam = allyTeams[i]
@@ -62,7 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), 7)
 				allyTeamBitmask = allyTeamBitmask == 0 and 7 or allyTeamBitmask
 
-				local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
 				if legcomDefID then
 					if math.bit_and(allyTeamBitmask, 4) == 4 then
 						allyStartUnits[unitsCount] = legcomDefID
@@ -72,12 +75,10 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeamBitmask = 7
 				end
 
-				local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 				if armcomDefID and math.bit_and(allyTeamBitmask, 1) == 1 then
 					allyStartUnits[unitsCount] = armcomDefID
 					unitsCount = unitsCount + 1
 				end
-				local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 				if corcomDefID and math.bit_and(allyTeamBitmask, 2) == 2 then
 					allyStartUnits[unitsCount] = corcomDefID
 					unitsCount = unitsCount + 1
