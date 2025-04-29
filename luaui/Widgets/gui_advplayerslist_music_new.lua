@@ -42,8 +42,8 @@ local songsSinceEvent = 5 -- start with higher number so event track can be play
 ----------------------------------------------------------------------
 
 local function applySpectatorThresholds()
-	warLowLevel = warLowLevel*1.25
-	warHighLevel = warHighLevel*1.25
+	warLowLevel = warLowLevel*1.5
+	warHighLevel = warHighLevel*1.5
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -1379,13 +1379,15 @@ function widget:GameFrame(n)
 			warMeter = 0
 		end
 	elseif warMeter > 0 then
-		warMeter = math.floor(warMeter - (warMeter * 0.04))
-		if warMeter > warHighLevel*3 then
-			warMeter = warHighLevel*3
-		end
-		warMeterResetTimer = warMeterResetTimer + 1
-		if warMeterResetTimer > warMeterResetTime then
-			warMeter = 0
+		if n%30 == 15 then
+			warMeter = math.floor(warMeter - (warMeter * 0.04))
+			if warMeter > warHighLevel*3 then
+				warMeter = warHighLevel*3
+			end
+			warMeterResetTimer = warMeterResetTimer + 1
+			if warMeterResetTimer > warMeterResetTime then
+				warMeter = 0
+			end
 		end
 	end
 
