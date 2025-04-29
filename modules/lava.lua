@@ -171,7 +171,7 @@ end
 -- Process config
 
 local mapLavaConfig = getLavaConfig(mapName)
-local modTideRhym = Spring.GetModOptions().map_lavatiderhym
+local modTideRhym = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatiderhym) or "default"
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
