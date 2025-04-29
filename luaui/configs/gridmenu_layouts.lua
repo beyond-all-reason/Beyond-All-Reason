@@ -11,7 +11,7 @@ local labGrids = {
 		"corstorm", "corthud", "", "", "", "",                     -- storm, thud
 		"", "", "corcrash",                                        -- aa bot
 	},
-	
+
 	leglab = {
 		"legck", "cornecro", "leggob", "", "", "",                 -- T1 con, rez bot, AK
 		"legbal", "leglob", "legkark", "legcen", "", "",           -- storm, thud
@@ -38,39 +38,38 @@ local labGrids = {
 	-- T1 vehicle
 	armvp = {
 		"armcv", "armmlv", "armflash", "armfav", "", "",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "", "", "",         -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armstump", "armjanus", "armart", "", "", "",           -- stumpy, janus, arty
+		"armbeaver", "armpincer", "armsam", "", "", "",         -- amphib con, amphib tank, missile truck
 	},
 
 	corvp = {
-		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
-		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"corcv", "cormlv", "corgator", "corfav", "", "",        -- T1 con, minelayer, gator, scout
+		"corraid", "corlevlr", "corwolv", "", "", "",           -- raider, leveler, art
+		"cormuskrat", "corgarp", "cormist", "", "", "",         -- amphib con, amphib tank, missile truck
 	},
+	
 	legvp = {
-		"legcv", "legmlv", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
-		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
-		"legotter", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
+		"legcv", "legmlv", "leghades", "legscout", "", "",      -- T1 con, minelayer, gator, scout
+		"leghelios", "leggat", "legbar", "", "", "",            -- raider, leveler, art
+		"legotter", "legamphtank", "legrail", "", "", "",       -- amphib con, amphib tank, missile truck
 	},
 	-- T2 vehicle
 	armavp = {
-		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
-		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
-		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
+		"armacv", "armconsul", "armbull", "armmart", "", "",                            -- T2 con, consul, bulldog, luger
+		"armseer", "armjam", "armmanni", "armgremlin", "", "",                          -- radar, jammer, penetrator, gremlin
+		"armlatnk", "armcroc", "armyork", "armmerl", "", "",                            -- panther, triton, AA, merl
 	},
 
 	coravp = {
-		"coracv", "corban", "correap", "cormart",              -- T2 con, banisher, reaper, pillager
-		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
-		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+		"coracv", "corban", "correap", "cormart", "", "cormabm",                        -- T2 con, banisher, reaper, pillager, , mobile AN
+		"corvrad", "coreter", "corgol", "cortrem", "", "",                              -- radar, jammer, goli, tremor
+		"corsala", "corparrow", "corsent", "corvroc", "", "",                           -- salamander, poison arrow, AA, diplomat
 	},
+
 	legavp = {
-		-- page1
-		"legacv", "legmed", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
-		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
-		"legmrv", "legfloat", "legvflak", "legavroc",            -- Quickshot, new triton, AA, boreas
-		-- page2
-		"legvcarry", "cormabm",					-- mantis, veh antinuke
+		"legacv", "legafcv", "legaskirmtank", "legamcluster", "legvcarry", "legmed",    -- T2 con, aceso, gladiator, cleaver, mantis, medusa
+		"legavrad", "legavjam", "legaheattank", "leginf", "cormabn", "",                -- radar, jammer, prometheus, inferno, mobile AN
+		"legmrv", "legfloat", "legvflak", "legvroc", "", "",                            -- Quickshot, new triton, AA, boreas
 	},
 	-- T1 air
 	armap = {
