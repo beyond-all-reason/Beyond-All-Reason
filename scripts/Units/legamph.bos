@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-//#define DEBUG
+#define DEBUG
 #include "../debug.h"
 
 piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
@@ -1044,136 +1044,6 @@ StopSwim() {
 	turn tailbase to x-axis <0.000000> speed <186.544921> / animSpeed;
 	turn tailtip to x-axis <0.000000> speed <40.299038> / animSpeed;
 }
-// REMEMBER TO animspeed = 6 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 100) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<1) animSpeed=1;
-		if (animspeed>3) animSpeed=3;
-		sleep 197;
-		
-		if (isInWater AND isMoving)
-		{
-			// bubble effect should always play when moving and underwater
-			emit-sfx 1024 + 1 from lvent;
-			emit-sfx 1024 + 1 from rvent;
-		}
-	}
-}
-
-Create()
-{
-	timeLeft = 0;
-    isfiring = 0;
-	timer = 0;
-	targetswap = 0;
-	firetime = 54;
-	lastfired = get(GAME_FRAME)-200;	
-	animspeed = 6;
-	hide torpaimflare;
-	hide heatrayaimflare;
-	hide torpaimx;
-	hide heatray_xy;
-	hide lvent;
-	hide rvent;
-	isMoving = FALSE;
-	//isMoving = -1;
-	isAiming = FALSE;
-	restore_delay = 3000;
-	// Initializing with large negative values, to ensure first aim does wait-for-turn
-	gun_lasthead = -1000000;
-	torp_lasthead = -1000000;
-	torp_deploy = FALSE;
-	gun_deploy = FALSE;
-	inWaterForm = 0;
-	isInWater = FALSE;
-	ldamage = 0;
-	lshieldup = 1;
-	rdamage = 0;
-	rshieldup = 1;
-	set ARMORED to 1;
-	
-	call-script TB_Init();
-	SLEEP_UNTIL_UNITFINISHED;
-
-	start-script Movement();
-	start-script UnitSpeed();
-	start-script SweepFire();
-	
-	if (get IN_WATER(0)) {
-		call-script CloseTorpedoLauncher();
-		call-script StopSwim();
-	} else {
-		call-script OpenTorpedoLauncher();
-		call-script StopWalking();
-	}
-}
-
-SweepFire()
-{
-	signal SIG_LIGHT;
-	set-signal-mask SIG_LIGHT;
-	while (TRUE)
-	{
-		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
-		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
-		{
-			emit-sfx 2048 from heatrayaimflare;
-			timer = timer + 1;
-		}
-		if (timer > 150)
-		{
-			//signal SIGNAL_AIM;
-			//timer = 0;
-			//start-script RestoreAfterDelay();
-		}
-		sleep 20;
-	}
-}
-
-Movement() {
-	while( TRUE ){
-		isInWater = get IN_WATER(0);
-		if( !inWaterForm ){
-			call-script OpenHeatsinks();
-			if( isInWater == 1 ){
-				call-script transform();
-				call-script CloseMouth();
-				call-script CloseHeatsinks();
-				inWaterForm = 1;
-				//start-script StartMoving(0);
-			}
-		} else {
-			if( isInWater == 0 ) {
-				call-script reform();
-				call-script OpenHeatsinks();
-				inWaterForm = 0;
-				//start-script StartMoving(0);
-			}
-		}
-
-		if( isMoving ) {
-			if( inWaterForm )
-				{
-					call-script swim();
-				} else {
-					call-script walk();
-				}
-		}else{
-			sleep 100;
-		}
-		
-	}
-	return (0);
-}
 
 transform() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
@@ -1391,6 +1261,149 @@ CloseMouth(){
 	turn rcheek to y-axis <-0.000000> speed <49.098607> ; 
 	turn topcheek to x-axis <-0.000000> speed <59.999978> ;
 }
+
+SweepFire()
+{
+	signal SIG_LIGHT;
+	set-signal-mask SIG_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			emit-sfx 2048 from heatrayaimflare;
+			timer = timer + 1;
+		}
+		if (timer > 150)
+		{
+			//signal SIGNAL_AIM;
+			//timer = 0;
+			//start-script RestoreAfterDelay();
+		}
+		sleep 20;
+	}
+}
+
+// REMEMBER TO animspeed = 6 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 100) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<1) animSpeed=1;
+		if (animspeed>3) animSpeed=3;
+		sleep 197;
+		
+		if (isInWater AND isMoving)
+		{
+			// bubble effect should always play when moving and underwater
+			emit-sfx 1024 + 1 from lvent;
+			emit-sfx 1024 + 1 from rvent;
+		}
+	}
+}
+
+Create()
+{
+	timeLeft = 0;
+    isfiring = 0;
+	timer = 0;
+	targetswap = 0;
+	firetime = 54;
+	lastfired = get(GAME_FRAME)-200;	
+	animspeed = 6;
+	hide torpaimflare;
+	hide heatrayaimflare;
+	hide torpaimx;
+	hide heatray_xy;
+	hide lvent;
+	hide rvent;
+	isMoving = FALSE;
+	//isMoving = -1;
+	isAiming = FALSE;
+	restore_delay = 3000;
+	// Initializing with large negative values, to ensure first aim does wait-for-turn
+	gun_lasthead = -1000000;
+	torp_lasthead = -1000000;
+	torp_deploy = FALSE;
+	gun_deploy = FALSE;
+	inWaterForm = 0;
+	isInWater = FALSE;
+	ldamage = 0;
+	lshieldup = 1;
+	rdamage = 0;
+	rshieldup = 1;
+	set ARMORED to 1;
+	
+	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
+
+	start-script Movement();
+	start-script UnitSpeed();
+	start-script SweepFire();
+	call-script IN_WATER_CUSTOM();
+	
+	if ( isInWater ) {
+		call-script CloseTorpedoLauncher();
+		call-script StopSwim();
+	} else {
+		call-script OpenTorpedoLauncher();
+		call-script StopWalking();
+	}
+}
+
+IN_WATER_CUSTOM() {
+	//isInWater = get IN_WATER(0);
+	var groundheight;
+	var unitxz;
+	unitxz = (get UNIT_XZ);
+	groundheight = (get GROUND_WATER_HEIGHT(unitxz)); //Returns negative number if underwater
+	//dbg(groundheight)
+	isInWater = (groundheight < (((-1) * 1020000))); //This value is about neck/shoulder height for this unit
+}
+
+Movement() {
+	while( TRUE ){
+		call-script IN_WATER_CUSTOM();
+		if( !inWaterForm ){
+			call-script OpenHeatsinks();
+			if( isInWater == 1 ){
+				call-script transform();
+				call-script CloseMouth();
+				call-script CloseHeatsinks();
+				inWaterForm = 1;
+				//start-script StartMoving(0);
+			}
+		} else {
+			if( isInWater == 0 ) {
+				call-script reform();
+				call-script OpenHeatsinks();
+				inWaterForm = 0;
+				//start-script StartMoving(0);
+			}
+		}
+
+		if( isMoving ) {
+			if( inWaterForm )
+				{
+					call-script swim();
+				} else {
+					call-script walk();
+				}
+		}else{
+			sleep 100;
+		}
+		
+	}
+	return (0);
+}
+
 
 // Call this from StopMoving()!
 #define BASEPIECE base
@@ -1641,7 +1654,7 @@ AimPrimary(heading, pitch)
 	gameframe = get(GAME_FRAME);
 	
 	//Heatray mechanics come first
-	if ( get IN_WATER(0) == 1 )
+	if ( inWaterForm )
     {
      return (0);
     }
@@ -1715,9 +1728,9 @@ RestoreAfterDelayTorp()
 
 AimSecondary(heading, pitch)
 {
-	if ( get IN_WATER(0) == 1 )
+	if ( inWaterForm )
     {
-     return (0);
+    	return (0);
     }	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
