@@ -23,8 +23,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = true --Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = true
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
@@ -50,7 +50,6 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
 local CMD_INSERT = CMD.INSERT
-local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
@@ -1446,7 +1445,7 @@ function widget:ViewResize()
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.1 * (useRenderToTexture and 1.6 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
+	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.7, 0.33 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)

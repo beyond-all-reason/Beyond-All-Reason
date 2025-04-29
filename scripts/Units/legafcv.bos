@@ -106,10 +106,10 @@ StartBuilding(heading, pitch)
         turn plateLStrut to y-axis <0> speed <50>;
         // wait-for-turn plateRStrut around y-axis;
         sleep 250;
-        turn nanoStrut to x-axis <0> speed <10>;
+        turn nanoStrut to x-axis <0> speed <15>;
         wait-for-turn nanoStrut around x-axis;
-        move nanoTube to z-axis [0] speed [6];
-        wait-for-move nanoTube along z-axis;
+        move nanoTube to z-axis [0] speed [12];
+        //wait-for-move nanoTube along z-axis;
 
 		// turn arml to z-axis <30> speed <180>;
 		// turn armr to z-axis <-30> speed <180>;

@@ -2270,9 +2270,22 @@ addNewSquad({
 	}
 })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "16 raptor_land_swarmer_brood_t2_v1" } })
+addNewSquad({ 
+	type = "special",
+	minAnger = 80,
+	units = { 
+		{count = 16, unit = "raptor_land_swarmer_brood_t2_v1"}
+	}
+})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "32 raptor_land_swarmer_brood_t2_v1" }, maxAnger = 1000 })
+addNewSquad({ 
+	type = "special",
+	minAnger = 100,
+	maxAnger = 1000,
+	units = {
+		{count = 32, unit = "raptor_land_swarmer_brood_t2_v1"}
+	},
+})
 
 
 addNewSquad({
@@ -2353,9 +2366,30 @@ addNewSquad({
 --Matriarchs------------------------------------------------------------------------------------------------------
 
 for j = 1, #miniBosses do
-	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 85, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ 
+		type = "special",
+		minAnger = 70,
+		units = { 
+			{count = 1, unit = miniBosses[j]}
+		},
+		maxAnger = 1000
+	})
+	addNewSquad({ 
+		type = "special",
+		minAnger = 85,
+		units = { 
+			{count = 1, unit = miniBosses[j]}
+		},
+		maxAnger = 1000
+	})
+	addNewSquad({ 
+		type = "special",
+		minAnger = 100,
+		units = { 
+			{count = 1, unit = miniBosses[j]}
+		},
+		maxAnger = 1000
+	})
 end
 
 ---------------------------------------------
@@ -2740,7 +2774,14 @@ addNewSquad({
 -- Healer --------------------------------------
 ------------------------------------------------
 
-addNewSquad({ type = "healer", minAnger = 0, units = { "1 raptor_land_swarmer_heal_t1_v1" }, maxAnger = 35 })
+addNewSquad({
+	type = "healer",
+	minAnger = 0,
+	maxAnger = 35,
+	units = {
+		{count = 1, unit = "raptor_land_swarmer_heal_t1_v1"}
+	},
+})
 
 addNewSquad({
 	type = "healer",
