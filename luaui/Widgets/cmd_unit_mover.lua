@@ -25,12 +25,10 @@ function widget:GetInfo()
 	}
 end
 
-local GetSpectatingState = Spring.GetSpectatingState
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDirection = Spring.GetUnitDirection
 local GetMyTeamID = Spring.GetMyTeamID
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 
 local CMD_MOVE = CMD.MOVE

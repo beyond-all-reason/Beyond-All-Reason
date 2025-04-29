@@ -12,8 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = true
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 local alwaysShow = false
 
@@ -598,10 +598,10 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	local outlineMult = math.max(1.2, 1/(vsy/1700))
-	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.35 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.25+(outlineMult*0.25) or 1.25)
-	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.6+(outlineMult*0.25))
-	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.6+(outlineMult*0.25))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.6)
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.45 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.15+(outlineMult*0.25) or 1.25)
+	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
+	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
 end
 
 function GetColor(colormap, slider)
@@ -902,7 +902,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 	if kills > 0 then
 		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
-		glColor(0.88,0.88,0.88,0.66)
+		glColor(0.88,0.88,0.88,useRenderToTexture and 0.87 or 0.66)
 		glTexture(":l:LuaUI/Images/skull.dds")
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
@@ -1129,7 +1129,7 @@ local function drawUnitInfo()
 			local rankIconSize = math_floor((height * vsy * 0.16))
 			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
 			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
-			glColor(0.7,0.7,0.7,0.55)
+			glColor(0.7,0.7,0.7,useRenderToTexture and 0.81 or 0.55)
 			glTexture(":l:LuaUI/Images/skull.dds")
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
@@ -1182,7 +1182,7 @@ local function drawUnitInfo()
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, useRenderToTexture and 0.45 or 0.1 }, { 0.8, 0.8, 0.8, useRenderToTexture and 0.54 or 0.15 })
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, useRenderToTexture and 0.48 or 0.1 }, { 0.8, 0.8, 0.8, useRenderToTexture and 0.55 or 0.15 })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6
@@ -1374,7 +1374,7 @@ local function drawUnitInfo()
 
 		local text = ''
 		local separator = ''
-		local infoFontsize = fontSize * 0.86
+		local infoFontsize = fontSize * 0.89
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
 			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
@@ -1576,8 +1576,8 @@ local function drawUnitInfo()
 		-- display unit(def) info text
 		font:Begin()
 		font:SetTextColor(1, 1, 1, 1)
-		font:SetOutlineColor(0, 0, 0, 1)
-		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
+		font:SetOutlineColor(0.1, 0.1, 0.1, 1)
+		font:Print(text, customInfoArea[3] - width + (width*0.025), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
 	end
@@ -1592,7 +1592,7 @@ local function drawEngineTooltip()
 			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 			font:Begin()
 			font:SetTextColor(1, 1, 1, 1)
-			font:SetOutlineColor(0, 0, 0, 1)
+			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 			font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
 			font:End()
 		else
@@ -1605,7 +1605,7 @@ local function drawEngineTooltip()
 				local height = 0
 				font:Begin()
 				font:SetTextColor(1, 1, 1, 1)
-				font:SetOutlineColor(0, 0, 0, 1)
+				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				if displayMapPosition then
 					font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
@@ -1661,7 +1661,7 @@ local function drawEngineTooltip()
 				end
 				font:Begin()
 				font:SetTextColor(1, 1, 1, 1)
-				font:SetOutlineColor(0, 0, 0, 1)
+				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				text = ''
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then

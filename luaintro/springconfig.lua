@@ -163,12 +163,11 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
-version = 6
+version = 7
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	-- disabling for now
-	Spring.SetConfigInt("ui_rendertotexture", 0)
+	Spring.SetConfigInt("ui_rendertotexture", 1)
 end
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
@@ -179,6 +178,8 @@ if oldMinCamHeight ~= -1 then
 	Spring.SetConfigInt("OverheadMinZoomDistance", oldMinCamHeight)
 end
 
+-- in case we forget to save it once again
+Spring.SetConfigInt("version", version)
 
 Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
