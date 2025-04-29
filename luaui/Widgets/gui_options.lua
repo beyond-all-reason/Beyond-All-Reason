@@ -1881,6 +1881,7 @@ function init()
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
+			lighteffects_screenspaceshadows = 0,
 			distortioneffects = false,
 			snow = false,
 			particles = 9000,
@@ -1901,6 +1902,7 @@ function init()
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
+			lighteffects_screenspaceshadows = 1,
 			distortioneffects = true,
 			snow = false,
 			particles = 12000,
@@ -1921,6 +1923,7 @@ function init()
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
+			 lighteffects_screenspaceshadows = 2,
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 15000,
@@ -1941,6 +1944,7 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
+			lighteffects_screenspaceshadows = 3,
 			distortioneffects = true,
 			snow = true,
 			particles = 20000,
@@ -1961,6 +1965,7 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
+			lighteffects_screenspaceshadows = 4,
 			distortioneffects = true,
 			snow = true,
 			particles = 25000,
@@ -2446,13 +2451,13 @@ function init()
 		  end,
 		},
 
-		{ id = "lighteffects_screenspaceshadows", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows'), min = 0, max = 4, step = 1, type = "slider", value = 2, description = Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows_descr'),
-		onload = function(i)
+		{ id = "lighteffects_screenspaceshadows", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows'), min = 0, max = 4, step = 1, type = "slider", value = 2, description = Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows_descr'),
+		  onload = function(i)
 			loadWidgetData("Deferred rendering GL4", "lighteffects_screenspaceshadows", { 'screenSpaceShadows' })
-		end,
-		onchange = function(i, value)
+		  end,
+		  onchange = function(i, value)
 			saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ScreenSpaceShadows', { 'screenSpaceShadows' }, value)
-		end,
+		  end,
 	  	},
 
 		{ id = "distortioneffects", group = "gfx", category = types.basic, widget = "Distortion GL4", name = Spring.I18N('ui.settings.option.distortioneffects'), type = "bool", value = GetWidgetToggleValue("Distortion GL4"), description = Spring.I18N('ui.settings.option.distortioneffects_descr') },
