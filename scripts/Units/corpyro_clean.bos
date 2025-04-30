@@ -17,10 +17,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corpyro_anim_walk.blend 
 	//set-signal-mask SIGNAL_MOVE;
@@ -446,7 +442,7 @@ PilotLight()
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from flare;
-		sleep 40;
+		sleep 80;
 	}
 }
 
@@ -537,7 +533,6 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 1 from flare;
 	return (TRUE);
 }
