@@ -1348,6 +1348,28 @@ local unitDistortions = {
 		},
 	},
 
+	['legfus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							windAffected = -0.5, riseRate = -0.7,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legafus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 40,
+							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							windAffected = -0.5, riseRate = -0.7,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
 	['armfus'] = {
 		distortion1 = {
 			distortionType = 'point',
