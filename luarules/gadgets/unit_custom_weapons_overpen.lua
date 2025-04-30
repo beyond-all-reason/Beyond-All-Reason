@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = 'Penetrator Weapons',
@@ -30,7 +32,7 @@ local falloffPerType  = { -- Whether the projectile loses damage per hit.
 	LaserCannon       = true  ,
 	BeamLaser         = true  ,
 	LightningCannon   = false , -- Use customparams.spark_forkdamage instead.
-	Flame             = false , -- Use customparams.single_hit_multi instead.
+	Flame             = false ,
 	MissileLauncher   = true  ,
 	StarburstLauncher = true  ,
 	TorpedoLauncher   = true  ,
@@ -43,7 +45,7 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 	LaserCannon       = false ,
 	BeamLaser         = false ,
 	LightningCannon   = false , -- Use customparams.spark_forkdamage instead.
-	Flame             = false , -- Use customparams.single_hit_multi instead.
+	Flame             = false ,
 	MissileLauncher   = true  ,
 	StarburstLauncher = true  ,
 	TorpedoLauncher   = true  ,

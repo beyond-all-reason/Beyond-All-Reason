@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Custom weapon behaviours",
@@ -17,7 +19,6 @@ local SpSetProjectileTarget = Spring.SetProjectileTarget
 
 local SpGetProjectileVelocity = Spring.GetProjectileVelocity
 local SpGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local SpGetUnitStates = Spring.GetUnitStates
 local SpGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local SpGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local SpGetProjectileTarget = Spring.GetProjectileTarget
@@ -30,6 +31,9 @@ if gadgetHandler:IsSyncedCode() then
 	local checkingFunctions = {}
 	local applyingFunctions = {}
 	local math_sqrt = math.sqrt
+	local mathCos = math.cos
+	local mathSin = math.sin
+	local mathPi = math.pi
 
 	local specialWeaponCustomDefs = {}
 	local weaponDefNamesID = {}
@@ -106,33 +110,27 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	applyingFunctions.sector_fire = function (proID)
-		local ownerID = SpGetProjectileOwnerID(proID)
-		local ownerState = SpGetUnitStates(ownerID)
-		--if ownerState.active == true then
 		local infos = projectiles[proID]
-		--x' = x cos θ − y sin θ
-		--y' = x sin θ + y cos θ
 		local vx, vy, vz = SpGetProjectileVelocity(proID)
-
-		angle_factor = tonumber(infos.spread_angle)*random()-tonumber(infos.spread_angle)*0.5
-		angle_factor = angle_factor*math.pi/180
-		vx_new = vx*math.cos(angle_factor) - vz*math.sin(angle_factor)
-		vz_new = vx*math.sin(angle_factor) + vz*math.cos(angle_factor)
-
-		--vx_new = vx
-		--vz_new = vz
-		--velocity_reduction = 1-math.sqrt(1-tonumber(infos.max_range_reduction))
-		--velocity_floor = (1-velocity_reduction)^2
-		--velocity_factor = random()*(1-velocity_floor)
-		--velocity_factor = math.sqrt(velocity_floor+velocity_factor)
-		velocity_factor = 1-(random()) ^(1+tonumber(infos.max_range_reduction))*tonumber(infos.max_range_reduction) 		
-		vx = vx_new*velocity_factor
-		--vy = vy*velocity_factor
-		vz = vz_new*velocity_factor
-
-		SpSetProjectileVelocity(proID,vx,vy,vz)
-		--end
-    end
+		
+		local spread_angle = tonumber(infos.spread_angle)
+		local max_range_reduction = tonumber(infos.max_range_reduction)
+		
+		local angle_factor = (spread_angle * (random() - 0.5)) * mathPi / 180
+		local cos_angle = mathCos(angle_factor)
+		local sin_angle = mathSin(angle_factor)
+		
+		local vx_new = vx * cos_angle - vz * sin_angle
+		local vz_new = vx * sin_angle + vz * cos_angle
+		
+		local velocity_factor = 1 - (random() ^ (1 + max_range_reduction)) * max_range_reduction
+		
+		vx = vx_new * velocity_factor
+		vz = vz_new * velocity_factor
+		
+		SpSetProjectileVelocity(proID, vx, vy, vz)
+	end
+	
 
 	checkingFunctions.retarget = {}
 	checkingFunctions.retarget["always"] = function (proID)
@@ -314,9 +312,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		local wDefID = Spring.GetProjectileDefID(proID)
-		if specialWeaponCustomDefs[wDefID] then
-			projectiles[proID] = specialWeaponCustomDefs[wDefID]
+		if specialWeaponCustomDefs[weaponDefID] then
+			projectiles[proID] = specialWeaponCustomDefs[weaponDefID]
 			active_projectiles[proID] = nil
 		end
 	end

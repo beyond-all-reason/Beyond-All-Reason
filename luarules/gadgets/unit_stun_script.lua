@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Stun Script",
@@ -52,7 +54,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if stunnedUnits[unitDefID] then
         stunnedUnits[unitID] = nil
 	end

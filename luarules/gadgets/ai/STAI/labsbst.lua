@@ -88,6 +88,20 @@ function LabsBST:Update()
 
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 	local f = self.game:Frame()
+	local dist = 0
+	local targetBuilder = nil
+	for builderID,data in pairs (self.ai.buildingshst.roles) do
+		if data.role == 'expand' then
+			local builder = game:GetUnitByID(builderID)
+			local d = self.ai.tool:distance(self.position,builder:GetPosition())
+			if d > dist then
+				dist = d
+				targetBuilder = builder
+			end
+		end
+		self.unit:Internal():Guard(game:GetUnitByID(builderID))
+		
+	end
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
@@ -204,7 +218,7 @@ function LabsBST:countCheck(soldier,numeric)
 	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
 	local mtypeLvCount = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[soldier].mtypedLv)
 	local mTypeRelative = mtypeLvCount / mtypeFactor
-	func = math.min(math.max(Min , mTypeRelative), Max)
+	func = math.clamp(mTypeRelative, Min, Max)
 	self:EchoDebug('mmType',mType , '/',counter,'func',func)
 	if counter < func then
 		self:EchoDebug('counter',soldier)

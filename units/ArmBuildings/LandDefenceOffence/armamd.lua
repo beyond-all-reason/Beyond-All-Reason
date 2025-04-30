@@ -13,7 +13,7 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		health = 3650,
+		health = 3300,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0,
@@ -148,6 +148,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 1500,
 				},

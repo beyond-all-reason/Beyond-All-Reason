@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Start Polygons",
@@ -29,45 +31,25 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-local scavengerAIAllyTeamID
-local raptorsAIAllyTeamID
-local teams = Spring.GetTeamList()
-
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
+local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
-local autoReload = true -- refresh shader code every second (disable in production!)
+local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local minY, maxY = Spring.GetGroundExtremes()
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
@@ -119,7 +101,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	gl.Culling(GL.FRONT)
+	gl.Culling(true)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 

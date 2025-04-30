@@ -45,7 +45,6 @@ return {
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,
-			shield_downtime = 8,
 			shield_power = 5000,
 			shield_radius = 600,
 			subfolder = "CorBuildings/SeaUtil",
@@ -119,12 +118,8 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				name = "NavalPlasmaRepulsor",
-				range = 600,
 				soundhitwet = "sizzle",
 				weapontype = "Shield",
-				damage = {
-					default = 100,
-				},
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",

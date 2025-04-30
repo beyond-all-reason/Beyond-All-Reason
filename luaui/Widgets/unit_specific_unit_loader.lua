@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name		= "Specific Unit Loader",
@@ -16,21 +18,16 @@ local allyTeam = Spring.GetMyAllyTeamID()
 
 -- Speedups
 
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetCommandQueue = Spring.GetCommandQueue
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetModKeyState = Spring.GetModKeyState
 
 local reclaimEnemy = Game.reclaimAllowEnemies
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_STOP = CMD.STOP
 
 local gameStarted
 
@@ -76,17 +73,19 @@ function widget:CommandNotify(id, params, options)
 
 			local targetEnemy = reclaimEnemy and spGetUnitAllyTeam(id) ~= allyTeam
 			local unitDef = spGetUnitDefID(id)
-			local preareaUnits = spGetUnitsInCylinder(cx ,cz , cr)
-			if not targetEnemy then
-				preareaUnits = spGetUnitsInCylinder(cx ,cz , cr, team)
-			end
+			local preareaUnits
 			local countarea = 0
 			local areaUnits = {}
-			for i=1,#preareaUnits do
-				local unitID = preareaUnits[i]
-				if (targetEnemy and spGetUnitAllyTeam(unitID) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(unitID) == unitDef ) or  (options.ctrl and not targetEnemy) then
-					countarea = countarea + 1
-					areaUnits[countarea] = unitID
+			if targetEnemy then
+				areaUnits = spGetUnitsInCylinder(cx, cz, cr, -4)
+			else
+				preareaUnits = spGetUnitsInCylinder(cx, cz, cr, team)
+				for i=1,#preareaUnits do
+					local unitID = preareaUnits[i]
+					if (options.alt and spGetUnitDefID(unitID) == unitDef) or options.ctrl then
+						countarea = countarea + 1
+						areaUnits[countarea] = unitID
+					end
 				end
 			end
 			for ct=1,#selUnits do

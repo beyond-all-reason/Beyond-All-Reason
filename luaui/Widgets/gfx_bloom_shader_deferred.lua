@@ -7,6 +7,8 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader Deferred", --(v0.5)
@@ -70,7 +72,7 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local glGetSun = gl.GetSun
@@ -511,7 +513,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 function widget:Initialize()
@@ -572,13 +574,13 @@ local function Bloom()
 	df = df + 1
 	gl.DepthMask(false)
 	gl.Color(1, 1, 1, 1)
+	gl.Culling(true)
 
 	glUseShader(brightShader)
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		glUniform(   brightShaderFragLoc, glowAmplifier)
 		--glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
 		--glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
-		local gf = Spring.GetGameFrame()
 		glUniform(   brightShaderTimeLoc, df)
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")
@@ -633,6 +635,7 @@ local function Bloom()
 
 	gl.Blending("reset")
 	gl.DepthMask(false) --"BK OpenGL state resets", was true
+	gl.Culling(false)
 end
 
 function widget:DrawWorld()

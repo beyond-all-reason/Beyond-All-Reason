@@ -111,7 +111,6 @@ return {
 			cormexp_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 5,
 				burstrate = 0.3,
 				cegtag = "missiletrailsmall",
@@ -144,7 +143,9 @@ return {
 					vtol = 45,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					overrange_distance = 748,
+					projectile_destruction_method = "descend",
 				}
 			},
 			corsumo_weapon = {
@@ -171,7 +172,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrhvy3",
 				soundtrigger = 1,
-				targetmoveerror = 0.25,
 				thickness = 2.4,
 				tolerance = 10000,
 				turret = true,

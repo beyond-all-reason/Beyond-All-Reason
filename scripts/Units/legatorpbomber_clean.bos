@@ -1,0 +1,105 @@
+
+#include "../recoil_common_includes.h"
+
+piece chassis, launcher, torpflare, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing, radarTilt, radar;
+
+#define SIGNAL_TURNON 4
+
+#define BASEPIECE chassis
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 100
+
+// #define BARRELROLL_PIECE chassis
+// #define BARRELROLLSPEEED <200>
+// #include "../air_barrelroll.h"
+
+
+Create()
+{
+	turn rightWing to y-axis <45> now;
+	turn leftWing to y-axis <-45> now;
+	turn radarTilt to x-axis <10> now;
+	hide torpflare;
+	hide leftAJet;
+	hide leftBJet;
+	hide rightAJet;
+	hide rightBjet;
+}
+
+Activate()
+{
+	turn rightWing to y-axis <0> speed <15>;
+	turn leftWing to y-axis <0> speed <15>;
+	spin radar around y-axis speed <10> accelerate <1>;
+	show leftAJet;
+	show leftBJet;
+	show rightAJet;
+	show rightBjet;
+}
+
+Deactivate()
+{
+	turn rightWing to y-axis <45> speed <45>;
+	turn leftWing to y-axis <-45> speed <45>;
+	stop-spin radar around y-axis decelerate <1>;
+	hide leftAJet;
+	hide leftBJet;
+	hide rightAJet;
+	hide rightBjet;
+}
+
+FirePrimary()
+{
+	turn launcher to x-axis <10> speed <10>;
+	sleep 1000;
+	turn launcher to x-axis <0> speed <10>;
+	return (1);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = torpflare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode mainWing	type BITMAPONLY | NOHEATCLOUD;
+		explode rightWing	type BITMAPONLY | NOHEATCLOUD;
+		explode leftWing 	type BITMAPONLY | NOHEATCLOUD;
+		explode radar 	type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode mainWing type FALL | NOHEATCLOUD;
+		explode rightWing type FALL | NOHEATCLOUD;
+		explode leftWing type BITMAPONLY | NOHEATCLOUD;
+		explode radar type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode mainWing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rightWing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftWing type BITMAPONLY | NOHEATCLOUD;
+		explode radar type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode mainWing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rightWing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftWing type BITMAPONLY | NOHEATCLOUD;
+		explode radar type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

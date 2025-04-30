@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "DGun Stall Assist",
@@ -10,20 +12,18 @@ function widget:GetInfo()
 	}
 end
 
-local targetEnergy = 600
-local watchForTime = 5
+local watchForTime = 3 --How long to monitor the energy level after the dgun command is given
 
 ----------------------------------------------------------------
 -- Globals
 ----------------------------------------------------------------
 local watchTime = 0
+local targetEnergy = 0
 local waitedUnits = nil -- nil / waitedUnits[1..n] = uID
 local shouldWait = {}
 local isFactory = {}
 
 local gameStarted
-
-local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id, UnitDefNames['legcom'] and UnitDefNames['legcom'].id}
 
 ----------------------------------------------------------------
 -- Speedups
@@ -69,7 +69,7 @@ function widget:Initialize()
     end
 
 	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.buildSpeed > 0 and uDef.canAssist and not uDef.canManualFire then
+		if uDef.buildSpeed > 0 and not uDef.canManualFire and (uDef.canAssist or uDef.buildOptions[1]) then
 			shouldWait[uDefID] = true
 			if uDef.isFactory then
 				isFactory[uDefID] = true
@@ -85,9 +85,17 @@ function widget:Update(dt)
 		local selection = Spring.GetSelectedUnitsCounts()
 		local stallUnitSelected = false
 
-		for i = 1, #stallIds do
-			if selection[stallIds[i]] then
-				stallUnitSelected = true
+		for uDefID, _ in next, selection do
+			local uDef = UnitDefs[uDefID]
+			if uDef and uDef.canManualFire then
+				--Look for the weapondef with manual fire and energy cost
+				for _, wDef in next, uDef.wDefs do
+					if wDef.manualFire and wDef.energyCost and wDef.energyCost > 0 then
+						stallUnitSelected = true
+						targetEnergy = wDef.energyCost * 1.2 --Add some margin above the energy cost
+						break
+					end
+				end
 			end
 		end
 

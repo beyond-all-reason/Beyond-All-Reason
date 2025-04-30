@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Unit kill count",
@@ -18,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- crashing planes are handled in crashing_aircraft gadget
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if attackerID and teamAllyteam[unitTeam] ~= teamAllyteam[attackerTeam] then
 			local kills = Spring.GetUnitRulesParam(attackerID, "kills") or 0
 			Spring.SetUnitRulesParam(attackerID, "kills", kills + 1)

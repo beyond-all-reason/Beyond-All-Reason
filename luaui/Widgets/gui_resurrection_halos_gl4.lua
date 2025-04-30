@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Resurrection Halos GL4",
@@ -12,7 +14,7 @@ end
 
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local texture = 'LuaUI/Images/halo.dds'
 local chobbyInterface
 

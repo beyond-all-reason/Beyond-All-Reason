@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint API",
@@ -38,6 +40,7 @@ local SpringGetGroundHeight = Spring.GetGroundHeight
 local SpringPos2BuildPos = Spring.Pos2BuildPos
 local SpringTestBuildOrder = Spring.TestBuildOrder
 local SpringGetMyTeamID = Spring.GetMyTeamID
+local isHeadless = not Platform.gl
 
 -- util
 -- ====
@@ -118,7 +121,7 @@ end
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Widgets/Include/"
+local includeDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
 VFS.Include(includeDir .. "instancevbotable.lua")
 
@@ -527,7 +530,10 @@ local BUILD_MODES_HANDLERS = {
 local instanceIDs = {}
 
 local function clearInstances()
-	clearInstanceTable(outlineInstanceVBO)
+	if isHeadless then return end
+	if outlineInstanceVBO then
+		clearInstanceTable(outlineInstanceVBO)
+	end
 
 	if WG.StopDrawUnitShapeGL4 then
 		WG.StopDrawAll(widget:GetInfo().name)
@@ -611,6 +617,8 @@ end
 ---@param buildPositions StartPoints
 ---@param teamID number
 local function updateInstances(blueprint, buildPositions, teamID)
+	if isHeadless then return end
+
 	if not blueprint or not buildPositions then
 		clearInstances()
 		return
@@ -646,7 +654,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 end
 
 local function drawOutlines()
-	if outlineInstanceVBO.usedElements == 0 then
+	if outlineInstanceVBO.usedElements == 0 or isHeadless then
 		return
 	end
 
@@ -668,7 +676,7 @@ local function drawOutlines()
 end
 
 function widget:DrawWorldPreUnit()
-	if not activeBlueprint then
+	if not activeBlueprint or isHeadless then
 		return
 	end
 
@@ -725,16 +733,12 @@ local function setActiveBuilders(unitIDs)
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then
-		-- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	if not initGL4() then
-		-- shader compile failed
-		widgetHandler:RemoveWidget()
-		return
+	if not isHeadless then
+		if not initGL4() then
+			-- shader compile failed
+			widgetHandler:RemoveWidget()
+			return
+		end
 	end
 
 	WG["api_blueprint"] = {
@@ -756,6 +760,8 @@ end
 
 function widget:Shutdown()
 	WG["api_blueprint"] = nil
+
+	if isHeadless then return end
 
 	clearInstances()
 

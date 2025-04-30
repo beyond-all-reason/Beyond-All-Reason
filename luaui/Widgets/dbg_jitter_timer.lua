@@ -1,5 +1,7 @@
 
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Jitter Timer",
@@ -47,6 +49,7 @@ local drawframeload = 0
 local gameframespread = 0
 local drawframespread = 0
 
+local drawcounthist = {}
 
 local function Loadms(millisecs, spread)
 	if spread ~= nil then millisecs = millisecs + math.min(10*spread, -1.0 * spread * math.log(1.0 - math.random())) end
@@ -142,11 +145,7 @@ function widget:DrawScreen()
 	avgjitter = (1.0 - alpha) * avgjitter + math.abs(alpha * deltajitter)
 	correctionfactor = correctionfactor + deltajitter * alpha
 
-	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
-	local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
-
-	local CTOError = 0
 
 	local currdrawCTO = Spring.GetGameFrame() + fto
 	local currCTOdelta = currdrawCTO - lastdrawCTO
@@ -154,14 +153,7 @@ function widget:DrawScreen()
 	spreadCTO = (1.0 - alpha) * spreadCTO + alpha * math.abs(averageCTO - currCTOdelta)
 	averageCTO = (1.0 - alpha ) * averageCTO + alpha * currCTOdelta
 
-	if drawpersimframe == 2 then
-		CTOError = 4 * math.min(math.abs(fto-0.5), math.abs(fto))
-	elseif drawpersimframe ==3 then
-		CTOError = 6 * math.min(math.min(math.abs(fto-0.33), math.abs(fto -0.66)), math.abs(fto))
-	elseif drawpersimframe ==4 then
-		CTOError = 8 * math.min(math.min(math.abs(fto-0.25), math.abs(fto -0.5)), math.min(math.abs(fto), math.abs(fto-0.75)))
-	end
-	--Spring.Echo(Spring.GetGameFrame(), fto, CTOError)
+	drawcounthist[actualdrawspergameframe] = (drawcounthist[actualdrawspergameframe] or 0) + 1
 
 	gl.PushMatrix()
 	gl.Color(0.0, 0.0, 0.0, 1.0)
@@ -175,21 +167,35 @@ function widget:DrawScreen()
 	gl.Color(0.0, 0.5, 0.0, 1.0)
 	gl.Rect(viewSizeX - (timerwidth*0.5),viewSizeY - timerYoffset ,viewSizeX + timerwidth * 0.5 - (timerwidth * (1.0 - spreadCTO)),viewSizeY - timerYoffset + timerheight / 2);
 
-
-
-
+	local text = ''
 	gl.Color(1.0, 1.0, 1.0, 1.0)
-	gl.Text(string.format("DrawFrame FTODelta = %.3f  FTO = %.3f", currCTOdelta, fto), viewSizeX - timerwidth, viewSizeY - timerYoffset, 16, "d")
+	text = text .. string.format("DrawFrame FTODelta = %.3f  FTO = %.3f\n", currCTOdelta, fto)
+	local drawhisttotal = math.max(1,(
+	(drawcounthist[1] or 0 ) + (drawcounthist[2] or 0 ) + (drawcounthist[3] or 0) + (drawcounthist[4] or 0 ) ) )
+	text = text .. string.format("dshist [1:%d, 2:%d, 3:%d, 4:%d, 5:%d, 6:%d] \n", 
+		(drawcounthist[1] or 0) , 
+		(drawcounthist[2] or 0) , 
+		(drawcounthist[3] or 0) , 
+		(drawcounthist[4] or 0) , 
+		(drawcounthist[5] or 0) , 
+		(drawcounthist[6] or 0) )
+	text = text .. string.format("deltajitter = %.3f  d/s = %d\n", deltajitter * 30, actualdrawspergameframe)
+	text = text .. string.format("mean jitter = %.3f  \n", avgjitter* 30)
+	text = text .. string.format("averageCTO = %.3f, spreadCTO = %.3f  \n", averageCTO, spreadCTO )
+	text = text .. string.format("CamJitter = %.3f \n",camerarelativejitter)
+	text = text .. string.format("DrawFrame = %d \n",Spring.GetDrawFrame())
+	gl.Text(text, viewSizeX - timerwidth, viewSizeY - timerYoffset + 48, 16, "d")
+	--gl.Text(string.format("DrawFrame FTODelta = %.3f  FTO = %.3f", currCTOdelta, fto), viewSizeX - timerwidth, viewSizeY - timerYoffset, 16, "d")
 
-	gl.Text(string.format("deltajitter = %.3f  d/s = %d", deltajitter * 30, actualdrawspergameframe), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight - 16, 16, "d")
-	gl.Text(string.format("mean jitter = %.3f  ", avgjitter* 30), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-32, 16, "d")
+	--gl.Text(string.format("deltajitter = %.3f  d/s = %d", deltajitter * 30, actualdrawspergameframe), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight - 16, 16, "d")
+	--gl.Text(string.format("mean jitter = %.3f  ", avgjitter* 30), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-32, 16, "d")
 
-	gl.Text(string.format("averageCTO = %.3f, spreadCTO = %.3f  ", averageCTO, spreadCTO ), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-48, 16, "d")
+	--gl.Text(string.format("averageCTO = %.3f, spreadCTO = %.3f  ", averageCTO, spreadCTO ), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-48, 16, "d")
 
 
 	--gl.Text(string.format("CamSpread = %.3f, CamMean = %.3f deltacam = %.3f jitter = %.3f",cammovespread, cammovemean, deltacam,camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
-	gl.Text(string.format("CamJitter = %.3f",camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
-	gl.Text(string.format("DrawFrame = %d",Spring.GetDrawFrame()), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-116, 32, "d")
+	--gl.Text(string.format("CamJitter = %.3f",camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
+	--gl.Text(string.format("DrawFrame = %d",Spring.GetDrawFrame()), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-116, 32, "d")
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 
 	gl.PopMatrix()

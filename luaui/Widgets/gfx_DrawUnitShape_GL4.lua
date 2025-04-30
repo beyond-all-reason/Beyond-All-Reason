@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "DrawUnitShape GL4",
@@ -47,7 +49,7 @@ end
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
@@ -501,14 +503,7 @@ function widget:Initialize()
 			-- to use to retrive the corresponding texture bucket
 			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
 		end
-	end 
-
-	local unitIDs = Spring.GetAllUnits()
-	local featuresIDs = Spring.GetAllFeatures()
-
-	local communitdefid = UnitDefNames["armcom"].id
-	local pwdefid = UnitDefNames["armpw"].id
-	local corcomunitdefid = UnitDefNames["corcom"].id
+	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
