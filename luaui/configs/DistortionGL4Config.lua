@@ -1341,7 +1341,40 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius =38,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 38,
+							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							windAffected = -0.5, riseRate = -0.7,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corafust3'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 72,
+							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							windAffected = -0.5, riseRate = -0.7,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legfus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							windAffected = -0.5, riseRate = -0.7,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legafus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 40,
 							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
 							windAffected = -0.5, riseRate = -0.7,
 							lifeTime = 0,  effectType = 0},
@@ -1392,6 +1425,30 @@ local unitDistortions = {
 		-- 					lifeTime = 0,  
 		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
 		-- },
+	},
+
+	['armafust3'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 62,
+							noiseStrength = 1.8, noiseScaleSpace = 1.0, distanceFalloff = 0.6,
+							windAffected = -0.5, riseRate = -0.7,
+							effectStrength = 2.0,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legafust3'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 10, posz = 0, radius = 76,
+							noiseStrength = 1.8, noiseScaleSpace = 1.0, distanceFalloff = 0.6,
+							windAffected = -0.5, riseRate = -0.7,
+							effectStrength = 2.0,
+							lifeTime = 0,  effectType = 0},
+		},
 	},
 
 	['armgate'] = {
