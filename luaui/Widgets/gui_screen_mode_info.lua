@@ -29,6 +29,9 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local font
 local currentLayout
 local screenmode
+local metalmode
+
+local mapCommands = { height = "ShowElevation", pathTraversability = "ShowPathTraversability"}
 
 local heightKey, metalKey, pathKey
 
@@ -65,6 +68,7 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	metalmode = WG.metalView
 	widget:ViewResize()
 end
 
@@ -78,8 +82,17 @@ function widget:DrawScreen()
 	end
 
 	local newScreenmode = spGetMapDrawMode()
+
 	local screenmodeChanged = newScreenmode ~= screenmode
+	local metalmodeChanged = WG.metalView ~= metalmode
+
+	if screenmodeChanged and mapCommands[newScreenmode] and WG.metalView then
+		Spring.SendCommands("showinfometal 0")
+	elseif metalmodeChanged and mapCommands[screenmode] and WG.metalView then
+		Spring.SendCommands(mapCommands[screenmode])
+	end
 	screenmode = newScreenmode
+	metalmode = WG.metalView
 
 	if WG.metalView or (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		if (screenmodeChanged) then updateKeys() end
