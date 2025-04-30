@@ -2477,14 +2477,6 @@ function init()
 			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'darknessvalue' }, value)
 		  end,
 		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.darkenmap_darkenfeatures'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.darkenmap_darkenfeatures_descr'),
-		  onload = function(i)
-			  loadWidgetData("Darken map", "darkenmap_darkenfeatures", { 'darkenFeatures' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', { 'darkenFeatures' }, value)
-		  end,
-		},
 
 		{ id = "label_gfx_environment", group = "gfx", name = Spring.I18N('ui.settings.option.label_environment'), category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
