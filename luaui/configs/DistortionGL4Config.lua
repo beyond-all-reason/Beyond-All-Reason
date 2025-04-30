@@ -1787,9 +1787,9 @@ local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
 do
 	-- This is the base effect for the airjet distortion, tune it to affect all airjets
 	local longAirJet = { posx = 0, posy = 0, posz = 0, radius = 130,
-		dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
-		noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
-		effectStrength = 5.0,
+		dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
+		noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.5,
+		effectStrength = 5.0, onlyModelMap = 1,
 		lifeTime = 0,  effectType = 0}
 
 	for unitDefName, airjets in pairs(airjets_effects) do
@@ -1801,7 +1801,7 @@ do
 			-- The radius and cone angle are set to be close to the airjet length and width
 			airjetConfig.radius = airjet.length * 6
 			-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
-			airjetConfig.theta = math.atan(airjet.width / airjet.length) * 2
+			airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
 			
 			--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
 			if not unitDistortions[unitDefName] then 
