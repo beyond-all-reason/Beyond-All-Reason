@@ -727,7 +727,7 @@ void main(void)
 		noiseVec = RotAroundY(noiseVec);
 		vec2 vUv = (RadialCoords(noiseVec));
 		vec3 col = LightningOrb2(vUv, fragColor.rgb);
-		fragColor.rgba = vec4(col,1.0) * 2; return;
+		fragColor.rgba = vec4(col,1.0) * 1.2; return;
 		//fragColor.rgb = max(fragColor.rgb, col * col);
 		//fragColor.rgb = max(fragColor.rgb, col * 2);
 	}

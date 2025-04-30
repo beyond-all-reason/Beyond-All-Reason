@@ -1093,10 +1093,10 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-					if string.find(weaponDef.name, 'juno') then
-						radius = 675
-					end
+					-- radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+					-- if string.find(weaponDef.name, 'juno') then
+					-- 	radius = 675
+					-- end
 
 					-- UNIT explosions
 					if weaponDef.customParams.unitexplosion then
@@ -1131,9 +1131,10 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					-- if string.find(weaponDef.name, 'armflak_gun') then
-					-- 	Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
-					-- end
+					if string.find(weaponDef.name, 'flak') then
+						areaofeffect = 0
+						--Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
+					end
 
 					if not weaponDef.customParams.noexplosionlight and areaofeffect > 15 then --need to add noexplosiondistortion to units - now used same as lights
 						explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
