@@ -53,7 +53,7 @@ local shaderSourceCache =  {
     },
 }
 
-local callins = {'DrawWorldPreUnit', 'DrawInMiniMap'}
+local callins = {'DrawWorldPreUnit', 'DrawInMiniMapBackground'}
 if autoreload then
 	callins[#callins+1] = 'DrawScreen'
 end
@@ -127,7 +127,7 @@ function widget:DrawWorldPreUnit()
     DrawInfoMetal(false)
 end
 
-function widget:DrawInMiniMap()
+function widget:DrawInMiniMapBackground()
     DrawInfoMetal(true)
 end
 
