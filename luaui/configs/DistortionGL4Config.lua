@@ -1439,6 +1439,18 @@ local unitDistortions = {
 		},
 	},
 
+	['legafust3'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 10, posz = 0, radius = 76,
+							noiseStrength = 1.8, noiseScaleSpace = 1.0, distanceFalloff = 0.6,
+							windAffected = -0.5, riseRate = -0.7,
+							effectStrength = 2.0,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
 	['armgate'] = {
 		distortion = {
 			distortionType = 'point',
