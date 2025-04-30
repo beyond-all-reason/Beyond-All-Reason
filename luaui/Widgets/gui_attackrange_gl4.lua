@@ -193,7 +193,6 @@ local function initializeUnitDefRing(unitDefID)
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
 
 			--local udwp = UnitDefs[unitDefID].weapons
-			local maxangledif = (weapons[weaponNum].maxAngleDif or -1)
 			-- weapons[weaponNum].maxAngleDif is :
 			-- 0 for 180
 			-- -1 for 360
@@ -218,7 +217,6 @@ local function initializeUnitDefRing(unitDefID)
 				local mdy = weaponParams.mainDirY
 				local mdz = weaponParams.mainDirZ
 				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / math.pi
-				local angledeg = angledif * 180
 
 				-- Normalize maindir
 				local length = math.diag(mdx,mdy,mdz)
@@ -328,7 +326,6 @@ local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
 local GetModKeyState        = Spring.GetModKeyState
-local GetInvertQueueKey     = Spring.GetInvertQueueKey
 local GetActiveCommand      = Spring.GetActiveCommand
 local GetSelectedUnits      = Spring.GetSelectedUnits
 local chobbyInterface

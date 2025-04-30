@@ -31,13 +31,15 @@ cannisterFlare;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+#define SIG_RESTORE 512
+#define SIG_TRANS 	1024
 
 // 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // Generated for N:\animations\corcat_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, whichBarrel;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, whichBarrel, deployed, opening;
 #define SIGNAL_MOVE 1
 Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\Tier 2\legbart5SKELETONEXPORT.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -354,32 +356,57 @@ StopMoving(){
 
 static-var  Stunned;
 
-ExecuteRestoreAfterDelay()
+Open()
 {
-    if (Stunned) {
-        return (1);
-    }
-	turn turretBase to x-axis <-25.0> speed <45.0>;
-	turn chassis to y-axis <0.0> speed <45.0>;
 
-	move turret to z-axis [-4] speed [8];
-	wait-for-move turret along z-axis;
-	turn topPlate to x-axis <55> speed <45>;
+	if( !opening )
+	{
+		signal SIG_TRANS;
+		set-signal-mask SIG_TRANS;
+		opening = 1;
+	
+		turn topPlate to x-axis <0> speed <90>;
+		wait-for-turn topPlate around x-axis;
+		move turret to z-axis [0] speed [32];
+		wait-for-move turret along z-axis;
+	
+		deployed = 1;
+	}
+}
 
+Close()
+{
+	if( opening )
+	{
+		signal SIG_TRANS;
+		set-signal-mask SIG_TRANS;
+		deployed = 0;
+		opening = 0;
+	
+		move turret to z-axis [-4] speed [8];
+		wait-for-move turret along z-axis;
+		turn topPlate to x-axis <55> speed <45>;
+	}
 }
 
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+	    start-script RestoreAfterDelay();
 	}
 }
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_RESTORE;
 	sleep 3000;
-	start-script ExecuteRestoreAfterDelay();
+	if (Stunned) {
+        return (1);
+    }
+	start-script Close();
+	turn turretBase to x-axis <-25.0> speed <45.0>;
+	turn chassis to y-axis <0.0> speed <45.0>;
 }
 
 Create()
@@ -405,14 +432,22 @@ AimFromWeapon1(pieceIndex)
 FireWeapon1()
 {
 	move turret to z-axis [-5.0] speed [60.0];
-	if (whichBarrel == 0) emit-sfx 1024 + 0 from rightFlare; 
-	else emit-sfx 1024 + 0 from leftFlare;
 	wait-for-move turret along z-axis;
 	move turret to z-axis [0.0] speed [3.0];
+	return (0);
+}
 
-	if (whichBarrel == 0) whichBarrel = 1;
-	else whichBarrel = 0;
+Shot1(zero)
+{
 
+	if (whichBarrel == 0){
+		emit-sfx 1024 + 0 from leftFlare;
+		whichBarrel = 1;
+	}
+	else {
+		emit-sfx 1024 + 0 from rightFlare;
+		whichBarrel = 0;
+	}
 	return (0);
 }
 
@@ -428,26 +463,33 @@ AimWeapon1(heading, pitch)
 	tilt = get ABS(tilt)/10;
 	tilt = -1*tilt;
 
-	
-	turn topPlate to x-axis <0> speed <60>;
-	wait-for-turn topPlate around x-axis;
-	move turret to z-axis [0] speed [16];
-	wait-for-move turret along z-axis;
+	signal SIG_RESTORE;
+	start-script RestoreAfterDelay();
+    start-script Open();
 
 	turn chassis to y-axis heading speed <140>;
 
-	if ((<0.000000> - pitch) < <-20>){
+	if ((<0.000000> - pitch) < <-20>)
+	{
 		turn turretBase to x-axis <-20> speed <85>;
 	}
-	else if ((<0.000000> - pitch) > <25>){
+	else if ((<0.000000> - pitch) > <25>)
+	{
 		turn turretBase to x-axis <25> speed <85>;
 	}
-	else turn turretBase to x-axis <0.000000> - pitch speed <85>;
+	else
+	{
+		turn turretBase to x-axis <0.000000> - pitch speed <85>;
+	}
+	
 	turn turretBase to x-axis tilt speed <10>;
 
 	wait-for-turn chassis around y-axis;
 	wait-for-turn turretBase around x-axis;
-	start-script RestoreAfterDelay();
+	if( !deployed )
+	{
+		return (0);
+	}
 	return (1);
 }
 
