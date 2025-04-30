@@ -1331,7 +1331,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-							noiseStrength = 1.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							noiseStrength = 1.2, noiseScaleSpace = 1.3, distanceFalloff = 0.5,
 							windAffected = -0.5, riseRate = -0.7,
 							lifeTime = 0,  effectType = 0},
 		},

@@ -525,7 +525,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.2, noiseStrength = 0.3, onlyModelMap = 0,
-			lifeTime = 9, refractiveIndex = 1.03, decay = 3, rampUp = 1,
+			lifeTime = 7, refractiveIndex = 1.03, decay = 3, rampUp = 1,
 			effectStrength = 1.9, startRadius = 0.2, shockWidth = -0.80,
 			effectType = "airShockwave", },
 
@@ -534,8 +534,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.2, noiseStrength = 0.3, onlyModelMap = 0,
-			lifeTime = 12, refractiveIndex = 1.03, decay = 5, rampUp = 2,
-			effectStrength = 2.2, startRadius = 0.2, shockWidth = -0.75,
+			lifeTime = 9, refractiveIndex = 1.03, decay = 6, rampUp = 2,
+			effectStrength = 2.2, startRadius = 0.6, shockWidth = -0.80,
 			effectType = "airShockwave", },
 
 	},
@@ -543,8 +543,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 17, refractiveIndex = 1.02, decay = 5, rampUp = 3,
-			effectStrength = 3.0, startRadius = 0.2, shockWidth = -0.50,
+			lifeTime = 11, refractiveIndex = 1.02, decay = 7, rampUp = 3,
+			effectStrength = 4.0, startRadius = 0.5, shockWidth = -0.75,
 			effectType = "airShockwave", },
 
 	},
@@ -1008,9 +1008,16 @@ local projectileDefDistortions  = {
 
 
 			elseif weaponDef.type == 'Cannon' then
+
+				-- if string.find(weaponDef.name, 'flak') then
+				-- 	sizeclass = 0
+				-- 	life = 0
+				-- end
 				--muzzleFlash = true
 				sizeclass = GetClosestSizeClass(radius)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+				
+				
 
 
 			elseif weaponDef.type == 'DGun' then
@@ -1048,9 +1055,9 @@ local projectileDefDistortions  = {
 					--mymuzzleflash.yOffset = 10 --This does not seem to work
 					--mymuzzleflash.distortionConfig.radius = radius * 0.6 --What does this do?
 				elseif damage <= 500 then
-					mymuzzleFlash = GetDistortionClass("MuzzleShockWave", GetClosestSizeClass(muzzleflashRadius), overrideTable)
+					mymuzzleFlash = GetDistortionClass("MuzzleShockWave", GetClosestSizeClass(muzzleflashRadius ), overrideTable)
 				else
-					mymuzzleFlash = GetDistortionClass("MuzzleShockWaveXL", GetClosestSizeClass(muzzleflashRadius * 0.8), overrideTable)
+					mymuzzleFlash = GetDistortionClass("MuzzleShockWaveXL", GetClosestSizeClass(muzzleflashRadius * 0.6), overrideTable)
 
 				end
 					muzzleFlashDistortions[weaponID] = { mymuzzleFlash } -- note that multiple distortions can be added
@@ -1086,10 +1093,10 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-					if string.find(weaponDef.name, 'juno') then
-						radius = 675
-					end
+					-- radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+					-- if string.find(weaponDef.name, 'juno') then
+					-- 	radius = 675
+					-- end
 
 					-- UNIT explosions
 					if weaponDef.customParams.unitexplosion then
@@ -1124,13 +1131,15 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					-- if string.find(weaponDef.name, 'armadvbomb') then
-					-- 	Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
-					-- end
+					if string.find(weaponDef.name, 'flak') then
+						areaofeffect = 0
+						--Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
+					end
 
 					if not weaponDef.customParams.noexplosionlight and areaofeffect > 15 then --need to add noexplosiondistortion to units - now used same as lights
 						explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
 					end
+
 				end
 			end
 		end
@@ -1163,9 +1172,9 @@ explosionDistortionsNames['corjugg_juggernaut_fire'] = {
 
 projectileDefDistortionsNames["cormort_cor_mort"] =
 	GetDistortionClass("PlasmaTrailProjectile", "Small", {
-		theta = 0.08, noiseStrength = 5, noiseScaleSpace = 0.29, distanceFalloff = 2.5,
-		lifeTime = 60, rampUp = 20, decay = 0, effectStrength = 1.5,
-		radius = 100, startRadius = 0.1, yoffset = 8,
+		theta = 0.08, noiseStrength = 5, noiseScaleSpace = 0.88, distanceFalloff = 1.5,
+		lifeTime = 60, rampUp = 15, decay = 0, effectStrength = 1.5,
+		radius = 170, startRadius = 0.1, yoffset = 8,
 	})
 explosionDistortionsNames['cormort_cor_mort'] = {
 	GetDistortionClass("GroundShockWave", "Pico", {
@@ -1544,9 +1553,9 @@ muzzleFlashDistortionsNames['armthor_thunder'] = {
 -- 	--GetDistortionClass("ExplosionHeatXS", "Nano"),
 -- }
 
--- muzzleFlashDistortionsNames['armbull_arm_bull'] = {
--- 	GetDistortionClass("MuzzleShockWave", "Femto")
--- }
+muzzleFlashDistortionsNames['armbull_arm_bull'] = {
+	GetDistortionClass("MuzzleShockWave", "Femto")
+}
 
 -- explosionDistortionsNames['unitDeaths_windboom'] = {
 -- 	--GetDistortionClass("GroundShockWave", "Smallest"),

@@ -23128,20 +23128,20 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 
-		fusionglowcore = {
-			lightType = 'point',
-			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
-							color2r = -4, color2g = -4, color2b = -4, colortime = 0,
-							r = -1, g = 1, b = 1, a = 1.2,
-							modelfactor = 0.1, specular = 1.2, scattering = 4, lensflare = 0,
-							lifetime = 0, sustain = 0, selfshadowing = 0},
-		},
+		-- fusionglowcore = {
+		-- 	lightType = 'point',
+		-- 	pieceName = 'emit',
+		-- 	lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+		-- 					color2r = -1, color2g = -1, color2b = -1, colortime = 120,
+		-- 					r = -1, g = 1, b = 1, a = 0.8,
+		-- 					modelfactor = 1, specular = 1.2, scattering = 2, lensflare = 0,
+		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
+		-- },
 		
 		fusionglow = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 45,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 41,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- Negative colortime means modulate it
 							--dirx = 0.1, diry = 0.11, dirz = 0.12, theta = -12.0, -- Orbit at a radius of 16 elmos with a period of ~0.1Hz
 							r = -1, g = 1, b = 1, a = 0.66,
