@@ -783,7 +783,7 @@ local function rankTeamPlayers()
                 end
             end
 
-            if scores[allyTeamID] then
+            if scores[allyTeamID] and (mySpecStatus or not hoverPlayerlist or allyTeamID ~= myAllyTeamID) then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
                 end)
