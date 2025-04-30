@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Player-TV",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
@@ -48,7 +52,6 @@ local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
 local toggled2 = not fullview
-local forceRefresh = false
 local drawlist = {}
 local desiredLosmodeChanged = 0
 
@@ -140,7 +143,8 @@ local function createCountdownLists()
 	while i < playerChangeDelay do
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
-			font:SetTextColor(0, 0, 0, 0.6)
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
+			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
@@ -151,31 +155,37 @@ local function createCountdownLists()
 	end
 end
 
-local function createList()
+local function refreshUiDrawing()
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
 	end
+
+	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
+	local mult = useRenderToTexture and 1.33 or 1
+
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+
 		local text, color1, color2
 		font:Begin()
-		
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
+
 		-- Player TV Button
 		if not toggled and not lockPlayerID then
 			text = '\255\222\255\222   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
-			color1 = { 0, 0.8, 0, 0.66 }
-			color2 = { 0, 0.55, 0, 0.66 }
+			color1 = { 0, 0.8*mult, 0, buttonOpacity }
+			color2 = { 0, 0.55*mult, 0, buttonOpacity }
 		else
 			text = '\255\255\222\222   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
-			color1 = { 0.88, 0.1, 0.1, 0.66 }
-			color2 = { 0.6, 0.05, 0.05, 0.66 }
+			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
+			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
 		if isSpec or lockPlayerID then
 			toggleButton = { right - textWidth, bottom, right, top }
 			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 1, 0, color1, color2)
-			RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+			RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
 			font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 		else
 			toggleButton = { right, bottom, right, top }
@@ -183,13 +193,13 @@ local function createList()
 
 		-- Player Camera Button
 		if isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			color1 = { 0.6, 0.6, 0.6, 0.66 }
-			color2 = { 0.4, 0.4, 0.4, 0.66 }
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
+			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
+			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 			textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 			toggleButton3 = { toggleButton[1] - textWidth-bgpadding, bottom, toggleButton[1]-bgpadding, top }
 			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0, color1, color2)
-			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
 			font:Print(text, toggleButton3[3]-((toggleButton3[3]-toggleButton3[1])/2), toggleButton3[2] + (7 * widgetScale), fontSize, 'oc')
 		else
 			toggleButton3 = toggleButton
@@ -197,13 +207,13 @@ local function createList()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
-			color1 = { 0.6, 0.6, 0.6, 0.66 }
-			color2 = { 0.4, 0.4, 0.4, 0.66 }
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
+			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
+			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 		else
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
-			color1 = { 0.88, 0.1, 0.1, 0.66 }
-			color2 = { 0.6, 0.05, 0.05, 0.66 }
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
+			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
+			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
 		end
 		textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		if toggled or lockPlayerID or aiTeams[myTeamID] then
@@ -213,7 +223,7 @@ local function createList()
 		end
 		if isSpec then
 			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
-			RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+			RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
 			font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
 		end
 		font:End()
@@ -221,42 +231,44 @@ local function createList()
 	drawlist[2] = gl.CreateList(function()
 		-- Player TV Button highlight
 		if toggled or lockPlayerID then
-			gl.Color(1, 0.2, 0.2, 0.4)
+			gl.Color(1*mult, 0.2*mult, 0.2*mult, buttonOpacity)
 		else
-			gl.Color(0.2, 1, 0.2, 0.4)
+			gl.Color(0.2*mult, 1*mult, 0.2*mult, buttonOpacity)
 		end
 		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
-		gl.Color(0, 0, 0, 0.14)
+		gl.Color(0, 0, 0, 0.14*mult)
 		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
 
 		local text = '\255\255\225\225   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
 		if not toggled and not lockPlayerID then
 			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
 	drawlist[3] = gl.CreateList(function()
 		-- Player Viewpoint Button highlight
 		if toggled2 then
-			gl.Color(0.85, 0.2, 0.2, 0.4)
+			gl.Color(0.85*mult, 0.2*mult, 0.2*mult, 0.4*mult)
 		else
-			gl.Color(0.85, 0.85, 0.85, 0.4)
+			gl.Color(0.85*mult, 0.85*mult, 0.85*mult, 0.4*mult)
 		end
 		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
-		gl.Color(0, 0, 0, 0.14)
+		gl.Color(0, 0, 0, 0.14*mult)
 		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
 
 		local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
 		if not toggled2 then
 			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -264,18 +276,19 @@ local function createList()
 		drawlist[4] = gl.CreateList(function()
 			-- Player Camera Button highlight
 			if toggled2 then
-				gl.Color(0.85, 0.2, 0.2, 0.4)
+				gl.Color(0.85*mult, 0.2*mult, 0.2*mult, 0.4*mult)
 			else
-				gl.Color(0.85, 0.85, 0.85, 0.4)
+				gl.Color(0.85*mult, 0.85*mult, 0.85*mult, 0.4*mult)
 			end
 			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
-			gl.Color(0, 0, 0, 0.14)
+			gl.Color(0, 0, 0, 0.14*mult)
 			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
 
 			local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			local fontSize = (widgetHeight * widgetScale) * 0.5
+			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 			local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:Print(text, toggleButton3[3] - (textWidth / 2), toggleButton3[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 			font:End()
 		end)
@@ -301,7 +314,7 @@ local function createList()
 	end
 end
 
-local function updatePosition(force)
+local function updatePosition()
 	local prevPos = parentPos
 	if WG['displayinfo'] ~= nil then
 		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
@@ -321,9 +334,8 @@ local function updatePosition(force)
 		right = parentPos[4]
 		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-			createCountdownLists()
-			createList()
+		if prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5] then
+			widget:ViewResize()
 		end
 	end
 end
@@ -336,7 +348,7 @@ function widget:GameStart()
 		SelectTrackingPlayer()
 	end
 	if isSpec or lockPlayerID then
-		createList()
+		updateDrawing = true
 	end
 end
 
@@ -361,9 +373,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	if receateLists then
-		createList()
-	end
+	--if receateLists then
+		updateDrawing = true
+	--end
 end
 
 
@@ -451,26 +463,43 @@ function widget:Update(dt)
 	end
 	if not toggled2 and not fullview then
 		toggled2 = true
-		createList()
+		updateDrawing = true
 	elseif toggled2 and fullview then
 		toggled2 = false
-		createList()
+		updateDrawing = true
 	end
 
 	updatePosition()
 
+	local mx, my = Spring.GetMouseState()
+	local prevButtonHovered = buttonHovered
+	buttonHovered = nil
+	if math_isInRect(mx, my, left, bottom, right, top) then
+		if (isSpec or lockPlayerID) and toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+			buttonHovered = 1
+		end
+		if isSpec and toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+			buttonHovered = 2
+		end
+		if (isSpec and not lockPlayerID) and not toggled and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			buttonHovered = 3
+		end
+	end
+	if (buttonHovered and buttonHovered ~= prevButtonHovered) or (prevButtonHovered and prevButtonHovered ~= buttonHovered) then
+		updateDrawing = true
+	end
+
 	if (isSpec or lockPlayerID) and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
-			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+			if buttonHovered and buttonHovered == 1 then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.tooltip'))
 			end
-			if toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+			if buttonHovered and buttonHovered == 2 then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerViewTooltip'))
 			end
-			if not toggled and toggleButton3 ~= nil and not aiTeams[myTeamID] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			if buttonHovered and buttonHovered == 3 then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerCameraTooltip'))
 			end
@@ -483,10 +512,8 @@ function widget:Update(dt)
 	end
 end
 
-
-function widget:DrawScreen()
+local function drawContent()
 	local gameFrame = Spring.GetGameFrame()
-
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('playertv')
@@ -527,7 +554,7 @@ function widget:DrawScreen()
 				--nextTrackingPlayerChange = os.clock() - 2
 				lockPlayerID = WG.lockcamera.GetPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
-					createList()
+					updateDrawing = true
 					prevLockPlayerID = lockPlayerID
 				end
 			end
@@ -576,6 +603,46 @@ function widget:DrawScreen()
 	end
 end
 
+function widget:DrawScreen()
+	if updateDrawing then
+		updateDrawing = false
+		refreshUiDrawing()
+		if useRenderToTexture then
+			if right-left >= 1 and top-bottom >= 1 then
+				uiTexTopExtra = math.floor(vsy*0.06)
+				uiTexLeftExtra = math.floor(vsy*0.06)
+				if not uiTex then
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				gl.RenderToTexture(uiTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+					gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+					drawContent()
+					gl.PopMatrix()
+				end)
+			end
+		end
+	end
+
+	if useRenderToTexture then
+		if uiTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(uiTex)
+			gl.TexRect(left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, false, true)
+			gl.Texture(false)
+		end
+	else
+		drawContent()
+	end
+end
+
 local function togglePlayerTV(state)
 	prevOrderID = nil
 	currentTrackedPlayer = nil
@@ -588,7 +655,7 @@ local function togglePlayerTV(state)
 		nextTrackingPlayerChange = 0
 		lockPlayerID = nil
 		prevLockPlayerID = nil
-		createList()
+		updateDrawing = true
 	elseif not rejoining then
 		toggled = true
 		toggled2 = true
@@ -596,7 +663,7 @@ local function togglePlayerTV(state)
 			WG.lockcamera.SetLosMode('los')
 		end
 		switchPlayerCam()
-		createList()
+		updateDrawing = true
 	end
 end
 
@@ -609,7 +676,7 @@ local function togglePlayerCamera()
 	end
 	prevLockPlayerID = nil
 	lockPlayerID = nil
-	createList()
+	updateDrawing = true
 end
 
 local function togglePlayerView(state)
@@ -635,7 +702,7 @@ local function togglePlayerView(state)
 			desiredLosmodeChanged = os.clock()
 		end
 	end
-	createList()
+	updateDrawing = true
 end
 
 function widget:Initialize()
@@ -646,7 +713,6 @@ function widget:Initialize()
 		toggled2 = true
 	end
 	if WG['advplayerlist_api'] == nil then
-		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -720,39 +786,40 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:ViewResize()
-	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
-	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1.4, 0.4 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(fontfile2, 2.5, 0.4 * (useRenderToTexture and 1.2*outlineMult or 1), 1+(outlineMult*0.2))
 
-	if forceRefresh or prevVsx ~= vsx or prevVsy ~= vsy then
-		forceRefresh = false
-
-		for i = 1, #drawlistsCountdown do
-			gl.DeleteList(drawlistsCountdown[i])
-		end
-		for i, v in pairs(drawlistsPlayername) do
-			gl.DeleteList(drawlistsPlayername[i])
-		end
-		drawlistsCountdown = {}
-		drawlistsPlayername = {}
-		if WG['guishader'] and backgroundGuishader then
-			WG['guishader'].DeleteDlist('playertv')
-			backgroundGuishader = nil
-			showBackgroundGuishader = nil
-		end
-		for i = 1, #drawlist do
-			drawlist[i] = gl.DeleteList(drawlist[i])
-		end
-
-		createList()
+	for i = 1, #drawlistsCountdown do
+		gl.DeleteList(drawlistsCountdown[i])
 	end
+	for i, v in pairs(drawlistsPlayername) do
+		gl.DeleteList(drawlistsPlayername[i])
+	end
+	drawlistsCountdown = {}
+	drawlistsPlayername = {}
+	if WG['guishader'] and backgroundGuishader then
+		if backgroundGuishader then
+			backgroundGuishader = gl.DeleteList(backgroundGuishader)
+		end
+		showBackgroundGuishader = nil
+	end
+	for i = 1, #drawlist do
+		drawlist[i] = gl.DeleteList(drawlist[i])
+	end
+
+	if uiTex then
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
+	end
+
+	updateDrawing = true
 
 	createCountdownLists()
 end
@@ -811,6 +878,10 @@ function widget:Shutdown()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
+	if uiTex then
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
+	end
 	if toggled and WG.lockcamera then
 		WG.lockcamera.SetPlayerID()
 	end
@@ -837,6 +908,5 @@ function widget:SetConfigData(data)
 end
 
 function widget:LanguageChanged()
-	forceRefresh = true
 	widget:ViewResize()
 end

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Unit Energy Icons", -- GL4
@@ -12,7 +14,6 @@ end
 
 local weaponEnergyCostFloor = 6
 
-local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
 local spGetUnitTeam		        = Spring.GetUnitTeam

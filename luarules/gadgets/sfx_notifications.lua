@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Notifications",
@@ -81,7 +83,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		local proDefID = Spring.GetProjectileDefID(proID)
 		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
@@ -235,7 +236,7 @@ else
 				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						if not unitInView then
+						--if not unitInView then
 							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 
 							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
@@ -243,7 +244,7 @@ else
 							else
 								BroadcastEvent("NotificationEvent", "FriendlyCommanderDied", tostring(player))
 							end
-						end
+						--end
 						if enableLastcomNotif and allyComCount == 1 then
 							if myComCount == 1 then
 								BroadcastEvent("NotificationEvent", "YouHaveLastCommander", tostring(player))
@@ -254,14 +255,14 @@ else
 					end
 				end
 			end
-			if not unitInView then
+			--if not unitInView then
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 						BroadcastEvent("NotificationEvent", "EnemyCommanderDied", tostring(player))
 					end
 				end
-			end
+			--end
 			commanderLastDamaged[unitID] = nil
 		end
 	end

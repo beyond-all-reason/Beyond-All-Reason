@@ -244,8 +244,7 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
-					"*Disables: Reclaiming of Allied Units, [Unit Sharing] and [Assisting Ally Construction] to prevent loopholes",
+					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,
 		min		= 0,
@@ -253,8 +252,6 @@ local options = {
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
-		lock	= {"disable_unit_sharing","disable_assist_ally_construction"},
-		unlock	= {"disable_unit_sharing_forced","disable_assist_ally_construction_forced"},
 	},
 	{
 		key		= "disable_unit_sharing",
@@ -272,23 +269,6 @@ local options = {
 		section	= "options_main",
 		def		=  false,
 		column	= 1.76,
-	},
-	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
-	{
-		key		= "disable_unit_sharing_forced",
-		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
-		name	= "\255\252\191\76".."Disable Unit Sharing                                                             Disable Assist Ally Construction",
-		type	= "subheader",
-		section	= "options_main",
-	},
-	{
-		key		= "disable_assist_ally_construction_forced",
-		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
-		name	= "\255\252\191\76".."[■]                                                                          [■]",
-		type	= "subheader",
-		section	= "options_main",
-		column	= 1.505,
-		font	= 4,
 	},
 	{
 		key		= "unit_market",
@@ -634,6 +614,18 @@ local options = {
     },
 
     {
+        key		= "raptor_queen_count",
+        name	= "Raptor Queen Count",
+        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "raptor_defense_options",
+    },
+
+    {
         key		= "raptor_spawncountmult",
         name	= "Unit Spawn Per Wave Multiplier",
         desc	= "(Range: 1 - 5). How many times more raptors will spawn per wave.",
@@ -793,6 +785,18 @@ local options = {
     },
 
     {
+        key		= "scav_boss_count",
+        name	= "Scavengers Boss Count",
+        desc	= "(Range: 1 - 20). Number of bosses that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "scav_defense_options",
+    },
+
+    {
         key		= "scav_spawncountmult",
         name	= "Unit Spawn Per Wave Multiplier",
         desc	= "(Range: 1 - 5). How many times more scavs will spawn per wave.",
@@ -880,7 +884,16 @@ local options = {
     {
         key    	= "experimentalextraunits",
         name   	= "Extra Units Pack",
-        desc   	= "Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various \"fun\" units",
+        desc   	= "Pack of units that didn't make it to the main game roster. Balanced for PvP",
+        type   	= "bool",
+        section = "options_extra",
+        def  	= false,
+    },
+
+    {
+        key    	= "scavunitsforplayers",
+        name   	= "Scavengers Units Pack",
+        desc   	= "Units made for Scavengers, mostly silly and unbalanced for PvP.",
         type   	= "bool",
         section = "options_extra",
         def  	= false,
@@ -1259,16 +1272,6 @@ local options = {
     },
 
     {
-        key   	= "accuratelasers",
-        name   	= "Accurate Lasers",
-        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
-        type   	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -1324,7 +1327,7 @@ local options = {
         name   	= "Release Candidate Units",
         desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
         type   	= "bool",
-        hidden 	= false,
+        hidden 	= true,
         section = "options_experimental",
         def  	= false,
     },
@@ -1334,7 +1337,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

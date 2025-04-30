@@ -35,6 +35,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	armafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	armageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -619,6 +623,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	armmmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	armmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -1123,6 +1131,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	corafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	corageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -1134,6 +1146,10 @@ local icontypes = {
 	legafus = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
+	},
+	legafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
 	},
 	legatorpbomber = {
 		bitmap = "icons/air_t2_torpbomber.png",
@@ -1347,6 +1363,10 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
+	legctl = {
+		bitmap = "icons/defence_1_naval.png",
+		size = 1.10249984
+	},
 	cordoom = {
 		bitmap = "icons/cordoom.png",
 		size = 2.0474999
@@ -1488,6 +1508,10 @@ local icontypes = {
 		size = 0.89249998
 	},
 	corfrt = {
+		bitmap = "icons/aa.png",
+		size = 0.89249998
+	},
+	legfrl = {
 		bitmap = "icons/aa.png",
 		size = 0.89249998
 	},
@@ -1719,9 +1743,17 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	cormmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	legadveconv = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
+	},
+	legadveconvt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
 	},
 	cormoho = {
 		bitmap = "icons/mex_t2.png",
@@ -2195,6 +2227,10 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
+	legbunk = {
+		bitmap = "icons/legbunk.png",
+		size = 1.83749986
+	},
 	leegmech = {
 		bitmap = "icons/bantha.png",
 		size = 2.29999995
@@ -2207,6 +2243,10 @@ local icontypes = {
 		bitmap = "icons/t3_solinvictus.png",
 		size = 3.46499968
 	},
+	legelrpcmech = {
+		bitmap = "icons/t3_bot_clusterarty.png",
+		size = 2.75
+	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
@@ -2218,6 +2258,10 @@ local icontypes = {
 	legaceb = {
 		bitmap = "icons/legceb.png",
 		size = 1.25
+	},
+	legafcv = {
+		bitmap = "icons/armconsul_1.35.png",
+		size = 1.0
 	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
@@ -2423,6 +2467,10 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legfrad = {
+		bitmap = "icons/radar_t1.png",
+		size = 0.94499993
+	},
 	legrwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2499,9 +2547,17 @@ local icontypes = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
 	},
+		legmohocon = {
+		bitmap = "icons/mex_t2_con.png",
+		size = 1.20749986
+	},
 	leghastatusalt = {
 		bitmap = "icons/ship_pship.png",
 		size = 1.25999999
+	},
+	legamph = {
+		bitmap = "icons/amph_torp.png",
+		size = 1.65999997
 	},
 	legamphtank = {
 		bitmap = "icons/amphib_tank.png",
@@ -2615,6 +2671,10 @@ local icontypes = {
 		bitmap = "icons/defence_2_mg.png",
 		size = 1.60849988
 	},
+	legfmg = {
+		bitmap = "icons/defence_2_mg.png",
+		size = 1.60849988
+	},
 	legmh = {
 		bitmap = "icons/hover_t1_missile.png",
 		size = 1.41750002
@@ -2704,7 +2764,7 @@ local icontypes = {
 		size = 2.51999998
 	},
 	legshot = {
-		bitmap = "icons/kbot_t2_shotgun.png",
+		bitmap = "icons/bot_t2_impulse2x.png",
 		size = 1.60000002
 	},
 	babylegshot = {

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Nonblocking mines',
@@ -25,8 +27,6 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local spSetUnitBlocking = Spring.SetUnitBlocking
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMyTeamID = Spring.GetMyTeamID
 
 function gadget:UnitCreated(uID, uDefID, uTeam)
 	if isMine[uDefID] then

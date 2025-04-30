@@ -149,7 +149,7 @@ return {
 				name = "Dual Heavy Assault Kinetic Shotgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 1,
+				proximitypriority = 10,
 				range = 420,
 				reloadtime = 1,
 				rgbcolor = "1 0.95 0.4",
@@ -193,9 +193,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 350,
 				customparams = {
-					cluster = true,
+					cluster_def = 'cluster_munition',
+					cluster_number = 6,
 					exclude_preaim = true,
-					number = 6,
 					smart_priority = true,
 				},
 				damage = {

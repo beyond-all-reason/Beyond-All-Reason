@@ -556,8 +556,6 @@ Create()
 	start-script RestoreAfterDelay();
     turn rArmGun to z-axis <15> speed <50>;
     turn lArmGun to z-axis <-15> speed <50>;
-    turn rUpperLeg to y-axis <-15> speed <50>;
-    turn lUpperLeg to y-axis <15> speed <50>;
 
     move aaMinigunBase to y-axis [4] speed [10];
     turn aaMinigunTurret to x-axis <-45> speed <10>;
@@ -647,7 +645,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM_1;
 	signal SIG_RESTORE;
 	set-signal-mask SIG_AIM_1;
-	turn torso to y-axis heading speed <90.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to y-axis heading speed <120.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	var gun_xz;
     gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
     var gun_x;
@@ -755,22 +753,18 @@ AimWeapon2(heading, pitch) //pew pew
 	}
 	if(shottieArm==0)
 	{
-		turn rArmGun to y-axis heading - torsoaim speed <95.0000>;
+		turn rArmGun to y-axis heading - torsoaim speed <180.0000>;
 		turn rArmUpper to x-axis -1*pitch speed <100.0000>;
 	}
 	if(shottieArm==1)
 	{
-		turn lArmGun to y-axis heading - torsoaim speed <95.0000>;
+		turn lArmGun to y-axis heading - torsoaim speed <180.0000>;
 		turn lArmUpper to x-axis -1*pitch speed <100.0000>;
 	}
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <10>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <10>)))
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <30>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <30>)))
 	{
-		wpn2_lasthead = 1000000;
-		//wait-for-turn torso around y-axis;
-		wait-for-turn rArmGun around x-axis;
-		wait-for-turn rArmGun around y-axis;
-		wait-for-turn lArmGun around x-axis;
-		wait-for-turn lArmGun around y-axis;
+		wpn2_lasthead = wpn2_lasthead - (wpn2_lasthead - heading)/4;		//Adds a small firing delay
+		return (0);
 	}
 	wpn2_lasthead = heading;
 	return (1);

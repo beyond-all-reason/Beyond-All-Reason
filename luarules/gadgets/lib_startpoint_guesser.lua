@@ -83,8 +83,8 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local bestDist = 2*walkRadius
 		for i=1,#walkableMetalSpots do
 			local mx,mz = walkableMetalSpots[i][1], walkableMetalSpots[i][2]
-			local nx = math.max(math.min(mx,xmax),xmin)
-			local nz = math.max(math.min(mz,zmax),zmin)
+			local nx = math.clamp(mx, xmin, xmax)
+			local nz = math.clamp(mz, zmin, zmax)
 			local dist = math.sqrt((mx-nx)^2 + (mz-nz)^2)
 
 			if not IsSteep(nx,nz) and dist < bestDist then
@@ -104,6 +104,24 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local ix,iz = freeMetalSpots[i][1], freeMetalSpots[i][2]
 		for j=1,#freeMetalSpots do
 			local jx,jz = freeMetalSpots[j][1],freeMetalSpots[j][2]
+			if ix ~= jx or iz ~= jz then
+				local r = math.sqrt((ix-jx)^2+(iz-jz)^2)
+				local iy = Spring.GetGroundHeight(ix,iz)
+				local jy = Spring.GetGroundHeight(jx,jz)
+				local isWithinClaimRadius = (r <= claimRadius)
+				local isWithinClaimHeight = (math.abs(iy-jy) <= claimHeight)
+				local score -- Magic formula. Assumes all metal spots are of equal production value, TODO...
+				if isWithinClaimRadius and isWithinClaimHeight then
+					score = 10
+				else
+					score = r^(-1/2)
+				end
+				freeMetalSpotScores[i] = freeMetalSpotScores[i] + score
+			end
+		end
+		-- Also check all the walkable spots as some may be on the edge of the startbox
+		for j=1,#walkableMetalSpots do
+			local jx,jz = walkableMetalSpots[j][1],walkableMetalSpots[j][2]
 			if ix ~= jx or iz ~= jz then
 				local r = math.sqrt((ix-jx)^2+(iz-jz)^2)
 				local iy = Spring.GetGroundHeight(ix,iz)

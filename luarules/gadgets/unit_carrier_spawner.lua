@@ -3,6 +3,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Unit Carrier Spawner",
@@ -684,7 +686,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 
-function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 	if carrierUnitID then
 		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
@@ -1123,8 +1125,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 										elseif carrierMetaData.dronebombingside == 1 then
 											carrierMetaData.dronebombingside = -1
 										end
-										local mt = Spring.GetUnitMoveTypeData(subUnitID)
-										--Spring.Echo("movetype: ", mt.name)
 										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										carrierMetaData.subUnitsList[subUnitID].bomberStage = 1

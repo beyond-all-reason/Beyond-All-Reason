@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Attack AoE",
@@ -45,7 +47,6 @@ local selectionChanged
 --------------------------------------------------------------------------------
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
-local GetFeaturePosition = Spring.GetFeaturePosition
 local GetGroundHeight = Spring.GetGroundHeight
 local GetMouseState = Spring.GetMouseState
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
@@ -163,7 +164,6 @@ local function GetMouseTargetPosition(dgun)
 			if mouseTarget then
 				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 			end
-			--return GetFeaturePosition(mouseTarget)
 		else
 			return nil
 		end
@@ -700,7 +700,6 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 		return
 	end
 
-	local vertices = {}
 	local currScatter = scatter * v * sqrt(2 * fy / g)
 	local alphaMult = v * salvoDelay / aoe
 	if alphaMult > 1 then

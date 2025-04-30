@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Chat",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled   = true
 	}
 end
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local LineTypes = {
 	Console = -1,
@@ -56,6 +60,7 @@ local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1
 local I18N = {}
 local maxLinesScroll = maxLinesScrollFull
 local hide = false
+local refreshUi = true
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
 local usedConsoleFontSize = usedFontSize*consoleFontSizeMult
@@ -68,17 +73,22 @@ local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
 local currentConsoleLine = 0
 local historyMode = false
+local prevCurrentConsoleLine = -1
+local prevCurrentChatLine = -1
+local prevHistoryMode = false
 local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+local hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 local lastMapmarkCoords
 local lastUnitShare
 local lastLineUnitShare
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-local isSpec = Spring.GetSpectatingState()
+local mySpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
@@ -96,6 +106,7 @@ local sndChatFileVolume = 0.55
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
+local colorSpecName = {1,1,1}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorGame = {0.4,1,1} -- server (autohost) chat
 local colorConsole = {0.85,0.85,0.85}
@@ -134,10 +145,10 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local inputMode = ''
-if isSpec then
+if mySpec then
 	inputMode = 's:'
 else
-	if #Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1 then
+	if #Spring.GetTeamList(myAllyTeamID) > 1 then
 		inputMode = 'a:'
 	end
 end
@@ -166,7 +177,7 @@ local slen = string.len
 local ssub = string.sub
 local sfind = string.find
 local spGetTeamColor = Spring.GetTeamColor
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetPlayerInfo = Spring.GetPlayerInfo
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -379,6 +390,7 @@ local autocompleteCommands = {
 	'luarules removeunitdef',
 	'luarules removenearbyunits',
 	'luarules spawnceg',
+	'luarules spawnunitexplosion',
 	'luarules undo',
 	'luarules unitcallinsgadget',
 	'luarules updatesun',
@@ -412,15 +424,17 @@ local autocompleteCommands = {
 	'playertv',
 	'playerview',
 	'hidespecchat',
+	'hideSpecchatplayer',
 	'speclist',
 }
+
 local autocompleteText
 local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
-	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -489,7 +503,7 @@ for i = 1, #teams do
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = { allyTeamID, false, teamID, playerID }
+		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b } }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -497,7 +511,7 @@ for i = 1, #teams do
 		if isAiTeam then
 			teamNames[teamID] = aiName
 		else
-			local name, _, spec, _ = Spring.GetPlayerInfo(playerID)
+			local name, _, spec, _ = spGetPlayerInfo(playerID)
 			if not spec then
 				teamNames[teamID] = name
 			end
@@ -563,19 +577,19 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 	end
 end
 
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
-	if (not isSpec) and anonymousMode ~= "disabled" then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	return ColorString(nameColourR, nameColourG, nameColourB)
-end
-
-local function teamcolorPlayername(playername)
+local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		return colourNames(playernames[playername][3])..playername
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
+			if not mySpec and anonymousMode ~= "disabled" then
+				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+			else
+				return ColorString(playernames[playername][5][1], playernames[playername][5][2], playernames[playername][5][3])
+			end
+		else
+			return ColorString(colorSpecName[1], colorSpecName[2], colorSpecName[3])
+		end
 	end
-	return ColorString(0.7, 0.7, 0.7)..playername
+	return ColorString(0.7, 0.7, 0.7)
 end
 
 local function setCurrentChatLine(line)
@@ -609,7 +623,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					local pair = string.split(v, '=')
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = teamcolorPlayername(pair[2])..msgColor
+							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..pair[2]..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
 							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
@@ -674,7 +688,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	end
 
 	-- play sound for new player/spectator chat
-	if #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
+	if not ignore and #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
 		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
 	end
 end
@@ -696,6 +710,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	widgetHandler:DisownText()
+	updateDrawUi = true
 end
 
 local function commonUnitName(unitIDs)
@@ -737,10 +752,6 @@ local function clearDisplayLists()
 	end
 end
 
-local function convertColor(r,g,b)
-	return schar(255, (r*255), (g*255), (b*255))
-end
-
 local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local orgLine = line
 	local name = ''
@@ -759,7 +770,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 
 		if sfind(text,'Allies: ', nil, true) == 1 then
 			text = ssub(text,9)
-			if playernames[name][1] == spGetMyAllyTeamID() then
+			if playernames[name][1] == myAllyTeamID then
 				c = colorAlly
 			else
 				c = colorOtherAlly
@@ -776,12 +787,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		if not isSpec and anonymousMode ~= "disabled" then
-			nameText = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
-		else
-			nameText = convertColor(spGetTeamColor(playernames[name][3]))..name
-		end
-		line = convertColor(c[1],c[2],c[3])..text
+		nameText = getPlayerColorString(name, gameFrame)..name
+		line = ColorString(c[1],c[2],c[3])..text
 
 		-- spectator message
 	elseif playernames[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil  or  playernames[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
@@ -795,7 +802,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		-- filter specs
-		if hideSpecChat then
+		if hideSpecChat and (not hideSpecChatPlayer or not mySpec) then
 			skipThisMessage = true
 		end
 
@@ -814,8 +821,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
-		line = convertColor(c[1],c[2],c[3])..text
+		nameText = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
+		line = ColorString(c[1],c[2],c[3])..text
 
 		-- point
 	elseif playernames[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
@@ -826,30 +833,23 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = 'Look here!'
 		end
 
-		local namecolor
+		local namecolor = getPlayerColorString(name, gameFrame)
 		local spectator = true
 		if playernames[name] ~= nil then
 			spectator = playernames[name][2]
 		end
 		if spectator then
-			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
-			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
+			namecolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
+			textcolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 
-			-- filter specs
-			if hideSpecChat then
+			if hideSpecChat and (not hideSpecChatPlayer or not mySpec) then
 				skipThisMessage = true
 			end
 		else
-			if not isSpec and anonymousMode ~= "disabled" then
-				namecolor = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+			if playernames[name][1] == myAllyTeamID then
+				textcolor = ColorString(colorAlly[1],colorAlly[2],colorAlly[3])
 			else
-				namecolor =  convertColor(spGetTeamColor(playernames[name][3]))
-			end
-
-			if playernames[name][1] == spGetMyAllyTeamID() then
-				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
-			else
-				textcolor = convertColor(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
+				textcolor = ColorString(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
 
@@ -876,7 +876,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if playernames[name] ~= nil then
 			spectator = playernames[name][2]
 		end
-		if hideSpecChat and (not playernames[name] or spectator) then
+		if hideSpecChat and (not playernames[name] or spectator) and (not hideSpecChatPlayer or not mySpec) then
 			skipThisMessage = true
 		end
 
@@ -885,8 +885,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
-		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
+		nameText = ColorString(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
+		line = ColorString(colorGame[1],colorGame[2],colorGame[3])..text
 
 		-- units given
 	elseif playernames[ssub(line,1,(sfind(line," shared units to ", nil, true) or 1)-1)] ~= nil then
@@ -897,19 +897,20 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local oldTeamName, newTeamName, shareDesc = string.match(line, format)
 
 		-- shared 5 Wind Turbine to Player2
-		if newTeamName and shareDesc then
+		if newTeamName and newTeamName ~= '' and shareDesc and shareDesc ~= '' then
 			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
 				units = msgHighlightColor .. shareDesc .. msgColor,
-				name = teamcolorPlayername(newTeamName)
+				name = getPlayerColorString(newTeamName, gameFrame)..newTeamName
 			})
 		end
 
-		nameText = teamcolorPlayername(oldTeamName)
+		nameText = getPlayerColorString(oldTeamName, gameFrame)..oldTeamName
 		line = text
 
 		-- console chat
 	else
 		lineType = LineTypes.Console
+		local lineColor = ''
 
 		if sfind(line, "Input grabbing is ", nil, true) then
 			bypassThisMessage = true
@@ -929,7 +930,6 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			else
 				soundErrors[line] = true
 			end
-
 			-- filter chobby (debug) messages
 		elseif sfind(line,"Chobby]", nil, true) then
 			bypassThisMessage = true
@@ -947,6 +947,13 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=
 			bypassThisMessage = true
 
+
+		elseif ssub(line,1,6) == "[i18n]" then
+			lineColor = msgColor
+
+		elseif ssub(line,1,6) == "[Font]" then
+			lineColor = msgColor
+
 			--2 lines (instead of 4) appears when player connects
 		elseif sfind(line,'-> Version', nil, true) or sfind(line,'ClientReadNet', nil, true) or sfind(line,'Address', nil, true) then
 			bypassThisMessage = true
@@ -955,68 +962,92 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			if n ~= nil then
 				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
 			end
-		elseif gameOver and sfind(line,'left the game', nil, true) then
-			bypassThisMessage = true
 		elseif sfind(line, 'self%-destruct in ', nil, true) then
 			bypassThisMessage = true
+
+		elseif sfind(line,' paused the game', nil, true) then
+			lineColor = '\255\225\225\255'
+			local playername = ssub(line, 1, sfind(line, ' paused the game', nil, true)-1)
+			line = Spring.I18N('ui.chat.pausedthegame', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,' unpaused the game', nil, true) then
+			lineColor = '\255\225\255\225'
+			local playername = ssub(line, 1, sfind(line, ' unpaused the game', nil, true)-1)
+			line = Spring.I18N('ui.chat.unpausedthegame', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,'Sync error for', nil, true) then
+			local playername = ssub(line, 16, sfind(line, ' in frame', nil, true)-1)
+			if playernames[playername] and not playernames[playername][2] then
+				lineColor = '\255\255\133\133'	-- player
+			else
+				lineColor = '\255\255\200\200'	-- spectator
+			end
+			line = Spring.I18N('ui.chat.syncerrorfor', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,' is lagging behind', nil, true) then
+			local playername = ssub(line, 1, sfind(line, ' is lagging behind', nil, true)-1)
+			if playernames[playername] and not playernames[playername][2] then
+				lineColor = '\255\255\133\133'	-- player
+			else
+				lineColor = '\255\255\200\200'	-- spectator
+			end
+			line = Spring.I18N('ui.chat.laggingbehind', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,'Connection attempt from ', nil, true) then
+			lineColor = msgHighlightColor
+			local playername = ssub(line, sfind(line, 'Connection attempt from ', nil, true)+24)
+			local spectator = ''
+			if playernames[playername] and playernames[playername][2] then
+				spectator = msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			end
+			line = Spring.I18N('ui.chat.connectionattemptfrom', { name = getPlayerColorString(playername, gameFrame)..playername .. spectator, textColor = lineColor, textColor2 = msgColor } )
+
+		elseif gameOver and sfind(line,'left the game', nil, true) then
+			bypassThisMessage = true
+
+		elseif sfind(line,'left the game:  normal quit', nil, true) then
+			lineColor = msgHighlightColor
+			local color2 = msgColor
+			local playername = ''
+			local spectator = ''
+			if sfind(line,'Spectator', nil, true) then
+				playername = ssub(line, 11, sfind(line, ' left the game', nil, true)-1)
+				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			else	-- Player
+				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
+				lineColor = '\255\255\133\133'	-- player
+				color2 = lineColor
+			end
+			line = Spring.I18N('ui.chat.leftthegamenormal', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = color2 } )
+
+		elseif sfind(line,'left the game:  timeout', nil, true) then
+			lineColor = msgHighlightColor
+			local color2 = msgColor
+			local playername = ''
+			local spectator = ''
+			if sfind(line,'Spectator', nil, true) then
+				playername = ssub(line, 11, sfind(line, ' left the game', nil, true)-1)
+				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			else	-- Player
+				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
+				lineColor = '\255\255\133\133'	-- player
+				color2 = lineColor
+			end
+			line = Spring.I18N('ui.chat.leftthegametimeout', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = color2  } )
+
+		elseif sfind(line,'Error', nil, true) then
+			lineColor = '\255\255\133\133'
+		elseif sfind(line,'Warning', nil, true) then
+			lineColor = '\255\255\190\170'
+		elseif sfind(line,'Failed to load', nil, true) then
+			lineColor = '\255\200\200\255'
+		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
+			lineColor = '\255\200\255\200'
+		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
+			lineColor = '\255\255\230\200'
 		end
 
-		local color = ''
-		if sfind(line,'Error', nil, true) then
-			color = '\255\255\133\133'
-		elseif sfind(line,'Sync error for', nil, true) then
-			color = '\255\255\133\133'
-		elseif sfind(line,' is lagging behind', nil, true) then
-			color = '\255\255\133\133'
-			local playername = ssub(line, 1, sfind(line, ' is lagging behind'))
-			line = ''
-			if playernames[playername] then
-				if not playernames[playername][2] then
-					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
-					else
-						line = line..convertColor(spGetTeamColor(playernames[playername][3]))..playername
-					end
-				else
-					line = line..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
-				end
-			else
-				line = line..playername
-			end
-			line = line .. ' is lagging behind'
-		elseif sfind(line,'Warning', nil, true) then
-			color = '\255\255\190\170'
-		elseif sfind(line,'Failed to load', nil, true) then
-			color = '\255\200\200\255'
-		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
-			color = '\255\200\255\200'
-		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
-			color = '\255\255\230\200'
-		elseif sfind(line,'paused the game', nil, true) then
-			color = '\255\255\255\255'
-		elseif sfind(line,'Connection attempt from ', nil, true) then
-			color = '\255\255\255\255'
-			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
-			line = 'Connection attempt from: '
-			if playernames[playername] then
-				if not playernames[playername][2] then
-					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
-					else
-						line = line..convertColor(spGetTeamColor(playernames[playername][3]))..playername
-					end
-				else
-					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
-				end
-			else
-				line = line..playername
-			end
-		end
-		if color ~= '' then
-			line = color..line
-		else
-			line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
-		end
+		line = ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..lineColor.. line
 	end
 
 	if not bypassThisMessage then
@@ -1028,26 +1059,24 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if sfind(line, 'My player ID is', nil, true) then
 			bypassThisMessage = true
 		end
-	end
 
-	if not bypassThisMessage and line ~= '' then
-
-		-- ignore muted players
-		if ignoredPlayers[name] then
-			skipThisMessage = true
-		end
-		if not orgLineID then
-			orgLineID = #orgLines+1
-			orgLines[orgLineID] = {gameFrame, orgLine}
-			-- if your name has been mentioned, pass it on
-			if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then -- and myName ~= "Player"
-				WG.logo.mention()
+		if not bypassThisMessage and line ~= '' then
+			if ignoredPlayers[name] then
+				skipThisMessage = true
 			end
-		end
-		if lineType < 1 then
-			addConsoleLine(gameFrame, lineType, line, orgLineID, reprocessID)
-		else
-			addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID)
+			if not orgLineID then
+				orgLineID = #orgLines+1
+				orgLines[orgLineID] = {gameFrame, orgLine}
+				-- if your name has been mentioned, pass it on
+				if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then -- and myName ~= "Player"
+					WG.logo.mention()
+				end
+			end
+			if lineType < 1 then
+				addConsoleLine(gameFrame, lineType, line, orgLineID, reprocessID)
+			else
+				addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID)
+			end
 		end
 	end
 end
@@ -1076,14 +1105,13 @@ end
 function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 	local oldAllyTeamID = select(6, spGetTeamInfo(oldTeamID))
 	local newAllyTeamID = select(6, spGetTeamInfo(newTeamID))
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	local allyTeamShare = (oldAllyTeamID == myAllyTeamID and newAllyTeamID == myAllyTeamID)
 	local selfShare = (oldTeamID == newTeamID) -- may happen if took other player
 
 	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
 	local captured = (captureProgress == 1)
-	if (not isSpec and not allyTeamShare) or selfShare or captured then
+	if (not mySpec and not allyTeamShare) or selfShare or captured then
 		return
 	end
 
@@ -1217,7 +1245,7 @@ function widget:Update(dt)
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
-					local name = Spring.GetPlayerInfo(playerID, false)
+					local name = spGetPlayerInfo(playerID, false)
 					changedPlayers[name] = true
 				end
 			end
@@ -1231,6 +1259,7 @@ function widget:Update(dt)
 						chatLines[i].lineDisplayList = nil
 					end
 				end
+				updateDrawUi = true
 			end
 			-- reprocessing not implemented yet for consoleLines, maybe not really that needed anyway
 			--for i, _ in ipairs(consoleLines) do
@@ -1251,6 +1280,7 @@ function widget:Update(dt)
 					for i=1, #chatLines do
 						if chatLines[i].playerName == name then
 							chatLines[i].ignore = nil
+							updateDrawUi = true
 						end
 					end
 				end
@@ -1260,6 +1290,7 @@ function widget:Update(dt)
 					for i=1, #chatLines do
 						if chatLines[i].playerName == name then
 							chatLines[i].ignore = true
+							updateDrawUi = true
 						end
 					end
 				end
@@ -1275,8 +1306,9 @@ function widget:Update(dt)
 				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
 			end
 		end
-		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
+		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 			for i=1, #chatLines do
 				if chatLines[i].lineType == LineTypes.Spectator then
 					if hideSpecChat then
@@ -1395,6 +1427,7 @@ local function drawChatInput()
 
 			-- button text
 			usedFont:Begin()
+			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
 			elseif inputMode == 'a:' then
@@ -1508,22 +1541,11 @@ end
 function widget:FontsChanged()
 	clearDisplayLists()
 	textInputDlist = glDeleteList(textInputDlist)
+	refreshUi = true
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then return end
-	if not chatLines[1] and not consoleLines[1] then return end
-
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local x,y,b = Spring.GetMouseState()
-	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if hovering and WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
-	end
-
-	-- draw chat input
+local drawTextInput = function()
 	if handleTextInput then
-
 		if showTextInput and updateTextInputDlist then
 			drawChatInput()
 		end
@@ -1531,6 +1553,7 @@ function widget:DrawScreen()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
+			local x,y,b = Spring.GetMouseState()
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
@@ -1542,98 +1565,57 @@ function widget:DrawScreen()
 			textInputDlist = glDeleteList(textInputDlist)
 		end
 	end
+end
 
-	if hide and not historyMode then
-		return
-	end
+local function drawUi()
+	local _, ctrl, _, _ = Spring.GetModKeyState()
+	local x,y,b = Spring.GetMouseState()
 
-	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
-		hovering = true
-		if historyMode then
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+
+	if not historyMode then
+
+		-- draw background
+		if backgroundOpacity > 0 and displayedChatLines > 0 then
+			glColor(1,1,1,0.1*backgroundOpacity*(useRenderToTexture and 2 or 1))
+			local borderSize = 1
+			RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
+
+			glColor(0,0,0,backgroundOpacity*(useRenderToTexture and 2 or 1))
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
+			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
+				font:Begin()
+				font:SetTextColor(0.1,0.1,0.1,0.66)
+				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
+				font:End()
 			end
+		end
 
-			-- player name background
-			if historyMode == 'chat' then
-				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
-				-- vertical line at start and end
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
-			end
-
-			local totalUnignoredChatLines = 0
-			for i=1, #chatLines do
-				if not chatLines[i].ignore then
-					totalUnignoredChatLines = totalUnignoredChatLines + 1
+		-- draw console lines
+		if consoleLines[1] then
+			glPushMatrix()
+			glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
+			local checkedLines = 0
+			local i = #consoleLines
+			while i > 0 do
+				if clock() - consoleLines[i].startTime < lineTTL then
+					processConsoleLineGL(i)
+					glCallList(consoleLines[i].lineDisplayList)
+				else
+					break
 				end
+				checkedLines = checkedLines + 1
+				if checkedLines >= maxConsoleLines then
+					break
+				end
+				glTranslate(0, consoleLineHeight, 0)
+				i = i - 1
 			end
-
-			local scrollbarMargin = floor(16 * widgetScale)
-			local scrollbarWidth = floor(11 * widgetScale)
-			UiScroller(
-				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
-				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
-				floor(activationArea[3]-scrollbarMargin),
-				floor(activationArea[4]-scrollbarMargin),
-				historyMode == 'console' and #consoleLines*lineHeight or totalUnignoredChatLines*lineHeight,
-				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
-			)
-		end
-	else
-		if not showHistoryWhenChatInput or not showTextInput then
-			hovering = false
-			historyMode = false
-			setCurrentChatLine(#chatLines)
+			glPopMatrix()
 		end
 	end
 
-	-- draw background
-	if not historyMode and backgroundOpacity > 0 and displayedChatLines > 0 then
-		glColor(1,1,1,0.1*backgroundOpacity)
-		local borderSize = 1
-		RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
-
-		glColor(0,0,0,backgroundOpacity)
-		--RectRound(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], elementCorner)
-		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
-		if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-			font:Begin()
-			font:SetTextColor(0.1,0.1,0.1,0.66)
-			font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
-			font:End()
-		end
-	end
-
-	-- draw console lines
-	if not historyMode and consoleLines[1] then
-		glPushMatrix()
-		glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
-		local checkedLines = 0
-		local i = #consoleLines
-		while i > 0 do
-			if clock() - consoleLines[i].startTime < lineTTL then
-				processConsoleLineGL(i)
-				glCallList(consoleLines[i].lineDisplayList)
-			else
-				break
-			end
-			checkedLines = checkedLines + 1
-			if checkedLines >= maxConsoleLines then
-				break
-			end
-			glTranslate(0, consoleLineHeight, 0)
-			i = i - 1
-		end
-		glPopMatrix()
-	end
-
-	-- draw chat lines or chat/console ui panel
+	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
 			font:Begin()
@@ -1698,7 +1680,7 @@ function widget:DrawScreen()
 									translatedY + (lineHeight*checkedLines) + lineHeight
 								}
 								if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
-									UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.23))
+									UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, useRenderToTexture and (b and 0.65 or 0.55) or(b and 0.33 or 0.23))
 									if b then
 										-- mapmark highlight
 										if chatLines[i].coords then
@@ -1764,6 +1746,131 @@ function widget:DrawScreen()
 				glPopMatrix()
 			end
 		end
+	end
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then return end
+	if not chatLines[1] and not consoleLines[1] then return end
+
+	local _, ctrl, _, _ = Spring.GetModKeyState()
+	local x,y,b = Spring.GetMouseState()
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+	if hovering and WG['guishader'] then
+		WG['guishader'].RemoveRect('chat')
+	end
+
+	-- draw chat input
+	drawTextInput()
+
+	if hide and not historyMode then
+		return
+	end
+
+	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
+		hovering = true
+		if historyMode then
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+			end
+
+			-- player name background
+			if historyMode == 'chat' then
+				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
+				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
+				glColor(1,1,1,0.045)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
+				-- vertical line at start and end
+				glColor(1,1,1,0.045)
+				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
+			end
+
+			local totalUnignoredChatLines = 0
+			for i=1, #chatLines do
+				if not chatLines[i].ignore then
+					totalUnignoredChatLines = totalUnignoredChatLines + 1
+				end
+			end
+
+			local scrollbarMargin = floor(16 * widgetScale)
+			local scrollbarWidth = floor(11 * widgetScale)
+			UiScroller(
+				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
+				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
+				floor(activationArea[3]-scrollbarMargin),
+				floor(activationArea[4]-scrollbarMargin),
+				historyMode == 'console' and #consoleLines*lineHeight or totalUnignoredChatLines*lineHeight,
+				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
+			)
+		end
+	else
+		if not showHistoryWhenChatInput or not showTextInput then
+			hovering = false
+			historyMode = false
+			setCurrentChatLine(#chatLines)
+		end
+	end
+
+	if currentChatLine ~= prevCurrentChatLine or currentConsoleLine ~= prevCurrentConsoleLine or historyMode ~= prevHistoryMode then -- or showTextInput ~= prevShowTextInput or displayedChatLines ~= prevDisplayedChatLines
+		updateDrawUi = true
+	end
+
+	-- TODO: get some mouseover-click logic of drawUi() in here instead of doing updateDrawUi every frame
+	local ctrlHover = enableShortcutClick and ctrl and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4])
+	if ctrlHover or (historyMode and historyMode == 'chat') then
+		updateDrawUi = true
+	end
+
+	prevCurrentConsoleLine = currentConsoleLine
+	prevCurrentChatLine = currentChatLine
+	prevHistoryMode = historyMode
+	--prevShowTextInput = showTextInput
+	--prevDisplayedChatLines = displayedChatLines
+
+	if useRenderToTexture then
+		if refreshUi then
+			refreshUi = false
+			updateDrawUi = true
+			if uiTex then
+				gl.DeleteTextureFBO(uiTex)
+				uiTex = nil
+			end
+			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
+			uiTex = gl.CreateTexture(math.floor(rttArea[3]-rttArea[1]), math.floor(rttArea[4]-rttArea[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+		end
+		if uiTex then
+			if updateDrawUi ~= nil then
+				gl.RenderToTexture(uiTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
+					gl.Translate(-rttArea[1], -rttArea[2], 0)
+					drawUi()
+					gl.PopMatrix()
+				end)
+
+				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
+				if updateDrawUi == false then
+					updateDrawUi = nil
+				elseif updateDrawUi then
+					updateDrawUi = false	-- update once more after this
+				end
+			end
+
+			gl.Color(1, 1, 1, 1)
+			gl.Texture(uiTex)
+			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
+			gl.Texture(false)
+		end
+	else
+		drawUi()
 	end
 end
 
@@ -1891,7 +1998,7 @@ function widget:KeyPress(key)
 				-- switch mode
 				if ctrl then
 					inputMode = ''
-				elseif alt and not isSpec then
+				elseif alt and not mySpec then
 					inputMode = (inputMode == 'a:' and '' or 'a:')
 				else
 					inputMode = (inputMode == 's:' and '' or 's:')
@@ -1924,7 +2031,7 @@ function widget:KeyPress(key)
 			if ctrl then
 				inputMode = ''
 			elseif alt then
-				inputMode = isSpec and 's:' or 'a:'
+				inputMode = mySpec and 's:' or 'a:'
 			elseif shift then
 				inputMode = 's:'
 			end
@@ -2038,7 +2145,7 @@ function widget:MousePress(x, y, button)
 		if inputMode == 'a:' then
 			inputMode = ''
 		elseif inputMode == 's:' then
-			inputMode = isSpec and '' or 'a:'
+			inputMode = mySpec and '' or 'a:'
 		else
 			inputMode = 's:'
 		end
@@ -2149,6 +2256,23 @@ function widget:TextCommand(command)
 			Spring.Echo("Showing all spectator chat again")
 		end
 	end
+	if string.sub(command, 1, 17) == 'hidespecchatplayer' then
+		if string.sub(command, 19, 19) ~= '' then
+			if string.sub(command, 19, 19) == '0' then
+				hideSpecChatPlayer = false
+			elseif string.sub(command, 19, 19) == '1' then
+				hideSpecChatPlayer = true
+			end
+		else
+			hideSpecChatPlayer = not hideSpecChatPlayer
+		end
+		Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
+		if hideSpecChat then
+			Spring.Echo("Hiding all spectator chat when player")
+		else
+			Spring.Echo("Showing all spectator chat when player again")
+		end
+	end
 	if string.sub(command, 1, 18) == 'preventhistorymode' then
 		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
 		enableShortcutClick = not enableShortcutClick
@@ -2173,19 +2297,21 @@ function widget:ViewResize()
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
-
 	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
+	charSize = charSize * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.2)	-- increase for small resolutions
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.19, 1.75)
-	font2 = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.19, 1.75)
-	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.19, 1.75)
+
+	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font3 = WG['fonts'].getFont(fontfile3, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
 	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	for _, playerID in ipairs(playersList) do
-		local name = Spring.GetPlayerInfo(playerID, false)
+		local name = spGetPlayerInfo(playerID, false)
 		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
 			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
@@ -2224,19 +2350,32 @@ function widget:ViewResize()
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
 	clearDisplayLists()
+	refreshUi = true
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
+	mySpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
-	if isSpec and inputMode == 'a:' then
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
+	end
+	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	if not playernames[name] then
+		widget:PlayerAdded(playerID)
+	else
+		if isSpec ~= playernames[name].isSpec then
+			playernames[name][2] = isSpec
+			if isSpec then
+				playernames[name][6] = Spring.GetGameFrame()	-- log frame of death
+			end
+		end
 	end
 end
 
 function widget:PlayerAdded(playerID)
-	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -2248,7 +2387,7 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:PlayerChanged()
+	widget:PlayerChanged(Spring.GetMyPlayerID())
 
 	Spring.SendCommands("console 0")
 
@@ -2332,6 +2471,10 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+	if uiTex then
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
+	end
 end
 
 function widget:GameOver()
@@ -2373,6 +2516,7 @@ function widget:GetConfigData(data)
 		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
 		enableShortcutClick = enableShortcutClick,
 		soundErrors = soundErrors,
+		playernames = playernames,
 		version = 1,
 	}
 end
@@ -2380,6 +2524,9 @@ end
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
+			if data.playernames then
+				playernames = data.playernames
+			end
 			orgLines = data.orgLines
 			if data.soundErrors then
 				soundErrors = data.soundErrors

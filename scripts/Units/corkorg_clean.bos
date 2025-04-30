@@ -13,6 +13,11 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 
+lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
+{
+	return 0;
+}
+
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
 #define SIGNAL_HEAD 2
@@ -164,6 +169,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		if (isMoving) { //Frame:40
 			emit-sfx 4096 + 5 from rfootstep;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfootstep) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(1, (get PIECE_XZ(rfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfootstep) & 0x0000ffff),   get HEADING(0));
 			
 			turn head to x-axis <4.682400> speed <21.527992> / animSpeed; //delta=0.72 
 			turn head to z-axis <1.894785> speed <28.988457> / animSpeed; //delta=-0.97 
@@ -357,6 +363,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		if (isMoving) { //Frame:88
 			emit-sfx 4096 + 5 from lfootstep;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstep) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(1, (get PIECE_XZ(lfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstep) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <4.324000> speed <20.280001> / animSpeed; //delta=0.68 
 			turn head to z-axis <-1.588889> speed <23.333328> / animSpeed; //delta=0.78 
 			turn head to y-axis <-2.096296> speed <47.222216> / animSpeed; //delta=1.57 

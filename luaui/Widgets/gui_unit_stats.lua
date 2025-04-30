@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Unit Stats",
@@ -386,7 +388,6 @@ local function drawStats(uDefID, uID)
 	cY = cY - (bgpadding/2)
 
 	local titleFontSize = fontSize*1.07
-	local cornersize = ceil(bgpadding*0.2)
 	cY = cY - 2 * titleFontSize
 	textBuffer = {}
 	textBufferCount = 0
@@ -596,8 +597,8 @@ local function drawStats(uDefID, uID)
 				uWep = WeaponDefNames[uWep.customParams.def] or uWep
 				defaultDamage = uWep.damages[0]
 			elseif uWep.customParams.cluster then
-				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
-				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
+				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
+				local cmNumber = uWep.customParams.cluster_number
 				local cmDamage = WeaponDefNames[munition].damages[0]
 				defaultDamage = defaultDamage + cmDamage * cmNumber
 			end
@@ -681,7 +682,6 @@ local function drawStats(uDefID, uID)
 				end
 				DrawText(texts.dmg..":", dmgString)
 
-				local modString = ""
 				-- Group armor types by the damage they take.
 				local modifiers = {}
 				local defaultRate = uWep.damages[0] or 0
@@ -705,23 +705,24 @@ local function drawStats(uDefID, uID)
 				local sorted = {}
 				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
 				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-				local maxDamage = sorted[1]
 
-				modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
-				local count = 0
-				for _ in pairs(modifiers) do count = count + 1 end
-				if count > 1 then
-					for _, rate in pairs(sorted) do
-						if rate ~= defaultRate then
-							local armors = table.concat(modifiers[rate], ", ")
-							local percent = format("%d", floor(100 * rate / maxDamage))
-							if armors and percent then
-								modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
+				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
+					local modString = "default = "..yellow.."100%"
+					local count = 0
+					for _ in pairs(modifiers) do count = count + 1 end
+					if count > 1 then
+						for _, rate in pairs(sorted) do
+							if rate ~= defaultRate then
+								local armors = table.concat(modifiers[rate], ", ")
+								local percent = format("%d", floor(100 * rate / defaultRate))
+								if armors and percent then
+									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
+								end
 							end
 						end
 					end
+					DrawText(texts.modifiers..":", modString..'.')
 				end
-				DrawText(texts.modifiers..":", modString..'.')
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then

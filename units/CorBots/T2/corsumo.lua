@@ -127,9 +127,8 @@ return {
 				rgbcolor2 = "0.9 1 0.9",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrhvy3",
+				soundstart = "lasrhvy3short",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 4.6,
 				tolerance = 10000,
 				turret = true,
@@ -140,11 +139,29 @@ return {
 					vtol = 71,
 				},
 			},
+			sumohvylaserroar = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "Laserroar",
+				noselfdamage = true,
+				soundhitdry = "laserroar",
+				soundhitdryvolume = 17,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
 				onlytargetcategory = "NOTSUB",
+			},
+			[2] = {
+				def = "SUMOHVYLASERROAR",
 			},
 		},
 	},

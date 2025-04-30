@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
@@ -53,7 +55,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
-	local min = math.min
 
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}
@@ -90,10 +91,6 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
-	local function clamp(low, x, high)
-		return math.min(math.max(x, low), high)
-	end
-
 	function gadget:Initialize()
 		if lavaMap == false then
 			gadgetHandler:RemoveGadget(self)
@@ -107,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame (f)
 		gameframe = f
 		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
-		--_G.lavaLevel = lavaLevel + clamp(-0.95, math.sin(f / 30), 0.95) * 0.5 --clamp to avoid jittering when sin(x) is around +-1
+		--_G.lavaLevel = lavaLevel + math.clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 --clamp to avoid jittering when sin(x) is around +-1
 
 		if f % DAMAGE_RATE == 0 then
 			lavaDeathCheck()
@@ -315,7 +312,7 @@ else  -- UNSYCNED
 			heatdistortx = 1,
 			heatdistortz = 1,
 		  },
-		shaderConfig = unifiedShaderConfig,	  
+		shaderConfig = unifiedShaderConfig,
 	}
 
 	local fogLightShaderSourceCache = {
@@ -332,7 +329,7 @@ else  -- UNSYCNED
 			heatdistortx = 1,
 			heatdistortz = 1,
 		  },
-		shaderConfig = unifiedShaderConfig,		  
+		shaderConfig = unifiedShaderConfig,
 	}
 
 	local myPlayerID = tostring(Spring.GetMyPlayerID())
@@ -386,7 +383,7 @@ else  -- UNSYCNED
 
 
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
-		
+
 		if not lavaShader then
 			Spring.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
@@ -414,7 +411,7 @@ else  -- UNSYCNED
 			end
 			--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
 
-			if autoreload then 
+			if autoreload then
 				lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache) or lavaShader
 				foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache) or foglightShader
 			end
