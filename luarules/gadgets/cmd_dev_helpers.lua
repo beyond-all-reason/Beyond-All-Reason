@@ -560,6 +560,8 @@ if gadgetHandler:IsSyncedCode() then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
 			spawnceg(words)
+		elseif words[1] == "spawnunitexplosion" then
+			spawnunitexplosion(words, playerID)
 		elseif words[1] == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
 		elseif words[1] == "clearwrecks" then
@@ -774,6 +776,31 @@ if gadgetHandler:IsSyncedCode() then
 		)
 	end
 
+	function spawnunitexplosion(words, playerID)
+		Spring.Echo("SYNCED spawnunitexplosion", words[1], words[2], words[3], words[4], words[5], words[6])
+		Spring.SpawnCEG(words[2], --cegname
+			tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), --pos
+			0, 0, 0, --dir
+			0 --radius
+		)
+		local unitDefID = UnitDefNames[words[2]] and UnitDefNames[words[2]].id or false
+		if unitDefID then
+			local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+			local unitID = Spring.CreateUnit(unitDefID, tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), "n", teamID)
+			if unitID then
+				Spring.DestroyUnit(unitID, words[6] == '1' and true or false, false)
+
+				--if words[6] ~= '1' then
+				-- this wont clear up the wreck of the above destroyed unit, but its maybe even bettter this way :)
+					local featuresInRange = Spring.GetFeaturesInSphere(tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), 220)
+					for j = 1, #featuresInRange do
+						Spring.DestroyFeature(featuresInRange[j])
+					end
+				--end
+			end
+		end
+	end
+
 	function ExecuteRemoveUnitDefName(unitdefname)
 		local unitDefID = UnitDefNames[unitdefname].id
 		if unitDefID then
@@ -846,6 +873,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('xp', xpUnits, "")
 
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
+		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
 
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
@@ -864,6 +892,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
+		gadgetHandler:RemoveChatAction('spawnunitexplosion')
 
 		gadgetHandler:RemoveChatAction('dumpunits')
 		gadgetHandler:RemoveChatAction('dumpfeatures')
@@ -1226,7 +1255,6 @@ else	-- UNSYNCED
 
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:
-		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
 		if not isAuthorized(Spring.GetMyPlayerID()) then
@@ -1247,6 +1275,22 @@ else	-- UNSYNCED
 			Spring.Echo('Spawning CEG:', line, playerID, msg)
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 		end
+	end
+
+	function spawnunitexplosion(_, line, words, playerID)
+		--spawnunitexplosion usage:
+		--/luarules spawnunitexplosion armbull --spawns at cursor
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		local mx, my = Spring.GetMouseState()
+		local t, pos = Spring.TraceScreenRay(mx, my, true)
+		local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2]), math.floor(pos[3])
+		local x, y, z = ox, oy, oz
+		local msg = "spawnunitexplosion " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z) .. ((words[2] and words[2] == '1' ) and ' 1' or ' 0')
+
+		--Spring.Echo('Spawning unit explosion:', line, playerID, msg)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
 
 	function GiveCat(_, line, words, playerID)

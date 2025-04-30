@@ -15,11 +15,6 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_AIM2 512
 #define SIGNAL_SHOOT1 16
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
 	set-signal-mask SIGNAL_MOVE;
@@ -847,6 +842,16 @@ StopMoving()
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
+PilotLight()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from rfflare2;
+		emit-sfx 1024 + 1 from lfflare1;
+		sleep 120;
+	}
+}
+
 Create()
 {
 	hide rfflare1;
@@ -868,6 +873,7 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 6;
+	start-script PilotLight();
 	
 	turn rbflare to x-axis <-130> now;
 	turn lbflare to x-axis <-130> now;
@@ -953,6 +959,11 @@ RestoreAfterDelay()
 }
 
 lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+lua_UnitScriptDistortion(lightIndex, count)
 {
 	return 0;
 }
@@ -1079,12 +1090,13 @@ Shot1()
 	signal SIGNAL_SHOOT1;
 	
 	set-signal-mask SIGNAL_SHOOT1;
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from lfflare2;
 	emit-sfx 1024 + 0 from rfflare1;
 	//start-script SmokeItUp();
 	shotcount = shotcount + 1;
-	
+	call-script lua_UnitScriptDistortion(3, shotcount);
+	call-script lua_UnitScriptDistortion(4, shotcount);
+
 	//call-script lua_UnitScriptLight(5, shotcount);
 	//call-script lua_UnitScriptLight(6, shotcount);
 	if( gun_1 == 1 )
@@ -1102,10 +1114,11 @@ Shot1()
 	}
 	if( gun_1 == 3 )
 
-	{
-			call-script lua_UnitScriptLight(1, shotcount);
+	{		
 		//get PRINT(lightcount1);
-		if (lightcount1 == 95) {
+		if (lightcount1 == 25) {
+			call-script lua_UnitScriptLight(1, shotcount);
+			call-script lua_UnitScriptDistortion(1, shotcount);
 			lightcount1 = 0;
 		} else {
 			lightcount1 = lightcount1 + 1;
@@ -1115,13 +1128,14 @@ Shot1()
 	}
 	if( gun_1 == 4 )
 	{
-		if (lightcount2 == 95) {
+		if (lightcount2 == 25) {
 			call-script lua_UnitScriptLight(2, shotcount);
+			call-script lua_UnitScriptDistortion(2, shotcount);
 			lightcount2 = 0;
 		} else {
 			lightcount2 = lightcount2 + 1;
 		}
-		call-script lua_UnitScriptLight(2, shotcount);
+		//call-script lua_UnitScriptLight(2, shotcount);
 
 		gun_1 = 1;
 		return(1);

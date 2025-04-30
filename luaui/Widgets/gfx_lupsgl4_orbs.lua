@@ -574,11 +574,11 @@ out vec4 fragColor;
 
 	float Fbm12(vec2 P) {
 		const int octaves = 2;
-		const float lacunarity = 1.5;
-		const float gain = 0.49;
+		const float lacunarity = 1.8;
+		const float gain = 0.80;
 
 		float sum = 0.0;
-		float amp = 1.0;
+		float amp = 0.8;
 		vec2 pp = P;
 
 		int i;
@@ -604,7 +604,7 @@ out vec4 fragColor;
 		 v += noise13(p * 0.9) * 0.99;
 		 v += noise13(p * 3.99) * 0.49;
 		 v += noise13(p * 8.01) * 0.249;
-		 v += noise13(p * 15.05) * 0.124;
+		 v += noise13(p * 25.05) * 0.124;
 		 return v;
 	}
 
@@ -630,26 +630,48 @@ out vec4 fragColor;
 
 		return color * t;
 	}
-	
-	
-	vec3 LightningOrb2(vec2 vUv, vec3 color) {
-		// looks quite similar to previous, but twice as fast
-		float violence = (1.0 - modelPos_vs.w);
-		vUv.x = fract(vUv.x * 2.0); // double it
-		vec2 uv = NORM2SNORM(vUv);
-		const float strength = 0.03 + 0.1 * violence;
-		const float dx = 0.225;
-		float t = 0.0;
-		for (int k = -4; k < 3; ++k) {
-			vec2 thisUV = uv;
-			thisUV.x -= dx * float(k);
-			thisUV.y += 3 * float(k);
-			vec2 fbmUV = vec2(thisUV.x * 2 + time, thisUV.y + 0.3*time);
-			t += abs(strength / ((thisUV.x + (2.0 * Fbm12( fbmUV ) -0.95))));
-		}
 
-		return color * t;
-	}
+float mirroredRepeat(float x, float repeats) {
+    x *= repeats;
+    float i = floor(x);
+    float f = fract(x);
+    // If i is odd, mirror the fractional part
+    if (mod(i, 2.0) == 1.0) {
+        f = 1.0 - f;
+    }
+    return f;
+}
+
+vec3 LightningOrb2(vec2 vUv, vec3 color) {
+
+    // Example: NO fract(), but still repeating:
+    // vUv.x *= 3.0;
+
+    // Or: mirror repeat for 2 tiles
+    vUv.x = mirroredRepeat(vUv.x, 2.0);
+
+    // From here on, continue as you did before:
+    vec2 uv = NORM2SNORM(vUv);
+
+    float violence = (1 - modelPos_vs.w);
+    const float strength = 0.08 + 0.4 * violence;
+    const float dx = 0.225;
+
+    float t = 0.1;
+    for (int k = -4; k < 3; ++k) {
+        vec2 thisUV = uv;
+        thisUV.x -= dx * float(k);
+        thisUV.y += 2.0 * float(k);
+        vec2 fbmUV = vec2(thisUV.x * 1.0 + time, thisUV.y + 0.3 * time);
+
+        // Your fract()-free or tiled/noise logic remains the same here:
+        t += abs(strength / (thisUV.x + (3.0 * Fbm12(fbmUV) - 1.9)));
+    }
+
+    return color * t;
+}
+
+
 
 	vec3 MagicOrb(vec3 noiseVec, vec3 color) {
 		float t = 0.0;
@@ -685,7 +707,7 @@ out vec4 fragColor;
 
 	vec3 RotAroundY(vec3 p)
 	{
-		float ra = -time * 2.1;
+		float ra = -time * 0.5;
 		mat4 tr = mat4(cos(ra), 0.0, sin(ra), 0.0,
 					   0.0, 1.0, 0.0, 0.0,
 					   -sin(ra), 0.0, cos(ra), 0.0,
@@ -705,8 +727,9 @@ void main(void)
 		noiseVec = RotAroundY(noiseVec);
 		vec2 vUv = (RadialCoords(noiseVec));
 		vec3 col = LightningOrb2(vUv, fragColor.rgb);
-		//fragColor.rgba = vec4(col,1.0); return;
-		fragColor.rgb = max(fragColor.rgb, col * col);
+		fragColor.rgba = vec4(col,1.0) * 2; return;
+		//fragColor.rgb = max(fragColor.rgb, col * col);
+		//fragColor.rgb = max(fragColor.rgb, col * 2);
 	}
 	else if (technique_vs == 2) { // MagicOrb
 		vec3 noiseVec = modelPos_vs.xyz;
@@ -795,16 +818,13 @@ end
 -- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished 
 local shieldFinishFrames = {} -- unitID to gameframe
 
-
-local lastDrawFrame = -1
-function widget:DrawWorldPreParticles() 
+function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction) 
 	if next(shieldFinishFrames) then shieldFinishFrames = {} end
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
 	-- If water is present on the map, then it gets called again between the two for the refraction pass
 	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
-	local thisDrawFrame = Spring.GetDrawFrame()
-	if lastDrawFrame ~= thisDrawFrame then 
-		lastDrawFrame = thisDrawFrame
+	
+	if drawAboveWater and not drawReflection and not drawRefraction then
 		DrawOrbs(false) 
 	end
 end

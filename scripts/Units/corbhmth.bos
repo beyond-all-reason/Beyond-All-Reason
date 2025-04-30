@@ -143,7 +143,7 @@ SmokeVents()
 	while( TRUE )
 	{
 		emit-sfx 257 from vent;
-		sleep 1000;
+		sleep 100;
 	}
 }
 

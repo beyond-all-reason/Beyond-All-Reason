@@ -332,6 +332,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	emit-sfx 4096 + 1 from barrel;
 	move barrel to z-axis [-2] speed [62.500000];
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.0] speed [4.0];

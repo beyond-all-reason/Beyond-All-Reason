@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh,head,dish,rotator;
+piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh, head, dish, rotator, jam;
 
 static-var  isMoving;
 
@@ -271,6 +271,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -282,7 +283,7 @@ Activate()
 	}
 
 	call-script open();
-	spin dish around x-axis speed <100.021978>;
+	spin dish around x-axis speed <100.021978> accelerate <1>;
 	return (0);
 }
 
@@ -306,9 +307,10 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	turn dish to x-axis <0.0> speed <-100.0>;
-	wait-for-turn dish around x-axis;
+	stop-spin dish around x-axis decelerate <3>;
+	//wait-for-turn dish around x-axis;
 	call-script close();
+	hide jam;
 	return (0);
 }
 

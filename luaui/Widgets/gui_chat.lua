@@ -390,6 +390,7 @@ local autocompleteCommands = {
 	'luarules removeunitdef',
 	'luarules removenearbyunits',
 	'luarules spawnceg',
+	'luarules spawnunitexplosion',
 	'luarules undo',
 	'luarules unitcallinsgadget',
 	'luarules updatesun',

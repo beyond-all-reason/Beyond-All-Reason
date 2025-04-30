@@ -170,6 +170,7 @@ return {
 				impactonly = 1,
 				impulsefactor = 0,
 				intensity = 24,
+				laserflaresize = 5,
 				name = "Close-quarters lightning turret",
 				noselfdamage = true,
 				range = 400,

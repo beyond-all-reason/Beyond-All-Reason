@@ -11,12 +11,6 @@ static-var  restore_delay, aimDir, oldHead, gun_1;
 #define SIGNAL_MOVE 1
 
 
-
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 #define RB_MASS 30
 #define RB_LENGTH 7
 #define RB_WIDTH 3
@@ -106,7 +100,6 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 3 from flare;
 	return (TRUE);
 }

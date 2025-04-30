@@ -41,9 +41,9 @@ local colorConfig = {
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.80, -- alpha of outer rings
-	internalalpha = 0.20, -- alpha of inner rings
-	fill_alpha = 0.10, -- this is the solid color in the middle of the stencil
-	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
+	internalalpha = 0.06, -- alpha of inner rings
+	fill_alpha = 0.08, -- this is the solid color in the middle of the stencil
+	outer_fade_height_difference = 5500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
 		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
@@ -67,7 +67,7 @@ local colorConfig = {
 	},
 	cannon = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 900, 1300, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,
@@ -259,7 +259,7 @@ local function initializeUnitDefRing(unitDefID)
 				groupselectionfadescale,
 				weaponType,
 				isDgun,
-				maxangledif
+				--maxangledif
 			}
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 		end

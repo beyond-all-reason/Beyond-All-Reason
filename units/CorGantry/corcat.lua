@@ -24,7 +24,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAT.s3o",
-		script = "Units/CORCAT.cob",
+		script = "Units/CORCAT_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 700,

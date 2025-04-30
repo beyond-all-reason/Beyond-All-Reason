@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "120 165 120",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		hightrajectory = 1,
 		firestate = 0,
 		footprintx = 8,
