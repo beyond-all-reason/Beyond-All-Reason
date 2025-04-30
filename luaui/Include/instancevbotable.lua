@@ -1,6 +1,6 @@
 local GL_BUFFER = 0x82E0
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
-Spring.Echo("gldebugannotations", gldebugannotations)
+--Spring.Echo("gldebugannotations", gldebugannotations)
 function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
