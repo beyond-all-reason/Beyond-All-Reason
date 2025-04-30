@@ -1554,6 +1554,18 @@ explosionDistortionsNames['armthund_armbomb'] = {
 	GetDistortionClass("ExplosionHeat", "Pico"),
 }
 
+explosionDistortionsNames['legphoenix_skybeam'] = {
+	--GetDistortionClass("AirShockWave", "Small"),
+	GetDistortionClass("GroundShockWave", "Smallest"),
+	--GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
+
+explosionDistortionsNames['legphoenix_legphtarg'] = {
+	--GetDistortionClass("AirShockWave", "Small"),
+	--GetDistortionClass("GroundShockWave", "SmallMedium"),
+	--GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
+
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
 	GetDistortionClass("AirShockWave", "Small"),
 	GetDistortionClass("GroundShockWave", "SmallMedium"),
