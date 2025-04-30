@@ -1780,6 +1780,43 @@ local unitDistortions = {
 	},
 }
 
+local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
+--	["armfig"] = {
+--	{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
+--}, 
+do
+	-- This is the base effect for the airjet distortion, tune it to affect all airjets
+	local longAirJet = { posx = 0, posy = 0, posz = 0, radius = 130,
+		dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
+		noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
+		effectStrength = 5.0,
+		lifeTime = 0,  effectType = 0}
+
+	for unitDefName, airjets in pairs(airjets_effects) do
+	
+		for i, airjet in ipairs(airjets) do 
+			local effectname = 'airjet' .. tostring(i) .. airjet.piece
+			local airjetConfig = table.copy(longAirJet)
+
+			-- The radius and cone angle are set to be close to the airjet length and width
+			airjetConfig.radius = airjet.length * 6
+			-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
+			airjetConfig.theta = math.atan(airjet.width / airjet.length) * 2
+			
+			--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
+			if not unitDistortions[unitDefName] then 
+				unitDistortions[unitDefName] = {}
+			end
+			
+			unitDistortions[unitDefName][effectname] = {
+				distortionType = 'cone',
+				pieceName = airjet.piece,
+				distortionConfig = airjetConfig,
+			}
+		end
+
+	end
+end
 
 -- Effect duplications:
 unitDistortions['armdecom'] = unitDistortions['armcom']
