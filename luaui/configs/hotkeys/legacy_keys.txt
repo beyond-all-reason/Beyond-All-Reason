@@ -281,3 +281,6 @@ bind           Alt+sc_]  blueprint_next
 
 // quotas
 bind           Alt+sc_g  factoryqueuemode
+
+// self reclaim
+bind          Ctrl+sc_h  self_reclaim
