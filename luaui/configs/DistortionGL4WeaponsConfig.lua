@@ -60,6 +60,14 @@ local exampleDistortionBeamShockwave = {
 
 --------------------------------General Base Distortion Classes for further useage --------
 local BaseClasses = {
+	NoEffect = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 0,
+			lifeTime = 0, sustain = 0, 	effectType = 0,
+		},
+	},
+	
 	LaserProjectile = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
@@ -1553,6 +1561,19 @@ explosionDistortionsNames['armthund_armbomb'] = {
 		lifeTime = 12, }),
 	GetDistortionClass("ExplosionHeat", "Pico"),
 }
+
+explosionDistortionsNames['legphoenix_skybeam'] = {
+	--GetDistortionClass("AirShockWave", "Small"),
+	GetDistortionClass("GroundShockWave", "Smallest"),
+	--GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
+
+explosionDistortionsNames['legphoenix_legphtarg'] = {
+	--GetDistortionClass("AirShockWave", "Small"),
+}
+
+projectileDefDistortionsNames["legphoenix_legphtarg"] = 
+	GetDistortionClass("NoEffect", 0)
 
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
 	GetDistortionClass("AirShockWave", "Small"),
