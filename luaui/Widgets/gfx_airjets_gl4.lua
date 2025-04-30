@@ -99,7 +99,7 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust" },
 	},
 	["armhawk"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 45, piece = "thrust", light = 1 },
 	},
 	["corvamp"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
@@ -119,9 +119,9 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
 	["corawac"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 25, piece = "lthrust", light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 50, piece = "mthrust", light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 25, piece = "rthrust", light = 1 },
 	},
 	["legwhisper"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
@@ -154,10 +154,10 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
 	},
 	["armhvytrans"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustfl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustfr", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustbl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustbr", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
+		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 16, piece = "thrustfl", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 16, piece = "thrustfr", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustbl", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustbr", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
 	},
 	["corvalk"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
@@ -216,8 +216,8 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 16, piece = "thrusttrail", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 	},
 	["corape"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "rthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "lthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 24, piece = "rthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 24, piece = "lthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, light=1},
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust2", emitVector= {1,0,0}, light=1},
 		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, light=1},

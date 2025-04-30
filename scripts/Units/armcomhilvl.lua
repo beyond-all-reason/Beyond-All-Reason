@@ -45,17 +45,10 @@ local weapons = {
 
 local SIG_AIM = 2
 local SIG_WALK = 4
-local PlaySoundFile 	= Spring.PlaySoundFile
-local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
-local HealRefreshTime	= 15
-local CEGHeal = "heal"
-local CEGLevelUp = "commander-levelup"
-local ValidID = Spring.ValidUnitID
 local spGetUnitStates = Spring.GetUnitStates
 local spSetUnitArmored = Spring.SetUnitArmored
 local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spSetUnitCloak = Spring.SetUnitCloak
 
 -- for the AimPrimary script, to skip wait-for-turn if needed

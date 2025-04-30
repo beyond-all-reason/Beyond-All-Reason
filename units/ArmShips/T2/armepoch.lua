@@ -202,7 +202,7 @@ return {
 					[3] = 0.7,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 			heavyplasma = {
