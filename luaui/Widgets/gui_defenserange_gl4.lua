@@ -934,6 +934,12 @@ function widget:DrawWorld()
 		end
 	end
 end
+if autoReload then 
+    function widget:DrawScreen()
+        if defenseRangeShader.DrawPrintf then defenseRangeShader.DrawPrintf() end
+    end
+end
+
 
 --- SHIT THAT NEEDS TO BE IN CONFIG:
 
@@ -944,8 +950,6 @@ end
 -- LINEWIDTH
 -- internalrings
 -- nostencil mode
-
-
 
 
 --SAVE / LOAD CONFIG FILE

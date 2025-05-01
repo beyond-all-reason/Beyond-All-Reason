@@ -12,11 +12,17 @@ uniform float selUnitCount = 1.0;
 uniform float selBuilderCount = 1.0;
 uniform float drawAlpha = 1.0;
 uniform float drawMode = 0.0;
+#if (DEBUG == 1)
 
-//_ENGINEUNIFORMBUFFERDEFS__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+#endif
 
 in DataVS {
 	flat vec4 v_blendedcolor;
+	#if (DEBUG == 1)
+		vec4 v_debug;
+	#endif
 };
 
 out vec4 fragColor;
@@ -35,5 +41,6 @@ void main() {
 				fragColor.rgba *= 0.0;
 			#endif
 		}
+		printf(v_debug.rgba);
 	#endif
 }

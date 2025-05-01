@@ -38,7 +38,10 @@ uniform sampler2D mapNormalTex; // hmm maybe?
 #define V_WEAPONTYPE v_params.z
 
 out DataVS {
-	flat vec4 v_blendedcolor;
+	flat vec4 v_blendedcolor;	
+	#if (DEBUG == 1)
+		vec4 v_debug;
+	#endif
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -261,7 +264,9 @@ void main() {
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-
+	#if (DEBUG == 1)
+		v_debug = vec4(RANGE);
+	#endif
 	
 	if (cannonmode > 0.5){
 
@@ -278,8 +283,8 @@ void main() {
 		float adjustment = radius * 0.5;
 		float yDiff = 0;
 		float adds = 0;
-		for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-		//for (int i = 0; i < HEIGHTMAP_SAMPLE_STEPS; i ++){
+		//	for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
+		for (int i = 0; i < HEIGHTMAP_SAMPLE_STEPS; i ++){
 				if (adjRadius > radius){
 					radius = radius + adjustment;
 					adds = adds + 1;
