@@ -46,10 +46,10 @@ end
 
 checkingFunctions.cruise = {}
 checkingFunctions.cruise["distance>0"] = function (proID)
-	if Spring.GetProjectileTimeToLive(proID) <= 0 then
+	if spGetProjectileTimeToLive(proID) <= 0 then
 		return true
 	end
-	local targetTypeInt,target = Spring.GetProjectileTarget(proID)
+	local targetTypeInt,target = spGetProjectileTarget(proID)
 	local targetPosX,targetPosY,targetPosZ
 	local projectileVelXNew,projectileVelYNew,projectileVelZNew
 	if targetTypeInt == string.byte('g') then
@@ -61,7 +61,7 @@ checkingFunctions.cruise["distance>0"] = function (proID)
 		_,_,_,_,_,_,targetPosX,targetPosY,targetPosZ = Spring.GetUnitPosition(target,true,true)
 	end
 	local projectilePosX,projectilePosY,projectilePosZ = Spring.GetProjectilePosition(proID)
-	local projectileVelX,projectileVelY,projectileVelZ = Spring.GetProjectileVelocity(proID)
+	local projectileVelX,projectileVelY,projectileVelZ = spGetProjectileVelocity(proID)
 	local speed = sqrt(projectileVelX*projectileVelX+projectileVelY*projectileVelY+projectileVelZ*projectileVelZ)
 	local infos = projectiles[proID]
 	if sqrt((projectilePosX-targetPosX)^2 + (projectilePosY-targetPosY)^2 + (projectilePosZ-targetPosZ)^2) > tonumber(infos.lockon_dist) then
@@ -76,7 +76,7 @@ checkingFunctions.cruise["distance>0"] = function (proID)
 			projectileVelXNew = projectileVelX - norm*groundNormX*0
 			projectileVelYNew = projectileVelY - norm*groundNormY
 			projectileVelZNew = projectileVelZ - norm*groundNormZ*0
-			Spring.SetProjectileVelocity(proID,projectileVelXNew,projectileVelYNew,projectileVelZNew)
+			spSetProjectileVelocity(proID,projectileVelXNew,projectileVelYNew,projectileVelZNew)
 		end
 		if projectilePosY > groundPosY + tonumber(infos.cruise_max_height) and projectilesData[proID] and projectileVelY > -speed*.25 then
 			-- do not clamp to max height if
@@ -87,7 +87,7 @@ checkingFunctions.cruise["distance>0"] = function (proID)
 			projectileVelXNew = projectileVelX - norm*groundNormX*0
 			projectileVelYNew = projectileVelY - norm*groundNormY
 			projectileVelZNew = projectileVelZ - norm*groundNormZ*0
-			Spring.SetProjectileVelocity(proID,projectileVelXNew,projectileVelYNew,projectileVelZNew)
+			spSetProjectileVelocity(proID,projectileVelXNew,projectileVelYNew,projectileVelZNew)
 		end
 		return false
 	else
@@ -171,7 +171,7 @@ end
 
 checkingFunctions.split = {}
 checkingFunctions.split["yvel<0"] = function (proID)
-	local _,projectileVelY,_ = Spring.GetProjectileVelocity(proID)
+	local _,projectileVelY,_ = spGetProjectileVelocity(proID)
 	if projectileVelY < 0 then
 		return true
 	else
@@ -180,9 +180,9 @@ checkingFunctions.split["yvel<0"] = function (proID)
 end
 applyingFunctions.split = function (proID)
 	local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-	local projectileVelX, projectileVelY, projectileVelZ = Spring.GetProjectileVelocity(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
 	local speed = sqrt(projectileVelX*projectileVelX + projectileVelY*projectileVelY + projectileVelZ*projectileVelZ)
-	local ownerID = Spring.GetProjectileOwnerID(proID)
+	local ownerID = spGetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
 	for i = 1, tonumber(infos.number) do
 		local projectileParams = {
@@ -211,9 +211,9 @@ checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
 end
 applyingFunctions.cannonwaterpen = function (proID)
 	local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-	local projectileVelX, projectileVelY, projectileVelZ = Spring.GetProjectileVelocity(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
 	local nvx, nvy, nvz = projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5
-	local ownerID = Spring.GetProjectileOwnerID(proID)
+	local ownerID = spGetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
 	local projectileParams = {
 		pos = {projectilePosX, projectilePosY, projectilePosZ},
@@ -239,23 +239,23 @@ checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
 	end
 end
 applyingFunctions.torpwaterpen = function (proID)
-	local projectileVelX, projectileVelY, projectileVelZ = Spring.GetProjectileVelocity(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
 	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
 	--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
 	
 	local bypass = false
-	local targetType, targetID = Spring.GetProjectileTarget(proID)
+	local targetType, targetID = spGetProjectileTarget(proID)
 	
 	if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then--ground attack borks it; skip
 		local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
 		if (unitPosY ~= nil) and unitPosY<-10 then
 			bypass = true
-			Spring.SetProjectileVelocity(proID,projectileVelX/1.3,projectileVelY/6,projectileVelZ/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+			spSetProjectileVelocity(proID,projectileVelX/1.3,projectileVelY/6,projectileVelZ/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
 		end
 	end
 	
 	if not bypass then
-		Spring.SetProjectileVelocity(proID,projectileVelX,0,projectileVelZ)
+		spSetProjectileVelocity(proID,projectileVelX,0,projectileVelZ)
 	end
 end
 
