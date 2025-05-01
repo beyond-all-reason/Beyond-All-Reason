@@ -122,26 +122,21 @@ weaponSpecialEffect.retarget = function(proID)
 	return true
 end
 
-weaponSpecialEffects.sector_fire = function(proID)
+weaponSpecialEffect.sector_fire = function(proID)
 	local infos = projectiles[proID]
-	local velX, velY, velZ = spGetProjectileVelocity(proID)
 
-	local spreadAngle = tonumber(infos.spread_angle)
 	local maxRangeReduction = tonumber(infos.max_range_reduction)
+	local transformXZ = 1 - (random() ^ (1 + maxRangeReduction)) * maxRangeReduction
 
-	local angleFactor = (spreadAngle * (random() - 0.5)) * pi / 180
-	local angleCos = cos(angleFactor)
-	local angleSin = sin(angleFactor)
+	local angleXZ = tonumber(infos.spread_angle) * (random() - 0.5) * pi / 180
+	local transformX = cos(angleXZ)
+	local transformZ = sin(angleXZ)
 
-	local velXNew = velX * angleCos - velZ * angleSin
-	local velZNew = velX * angleSin + velZ * angleCos
-
-	local velocityFactor = 1 - (random() ^ (1 + maxRangeReduction)) * maxRangeReduction
-
-	velX = velXNew * velocityFactor
-	velZ = velZNew * velocityFactor
-
+	local velX, velY, velZ = spGetProjectileVelocity(proID)
+	velX = (velX * transformX - velZ * transformZ) * transformXZ
+	velZ = (velX * transformZ + velZ * transformX) * transformXZ
 	spSetProjectileVelocity(proID, velX, velY, velZ)
+
 	return true
 end
 
