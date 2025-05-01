@@ -94,6 +94,19 @@ local BaseClasses = {
 		},
 	},
 
+	LRPCProjectile = {
+		lightType = 'point', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 150,
+			--pos2x = 100, pos2y = 100, pos2z = 100,
+			--dirx = 1, diry = 0, dirz = 1, theta = 0.4,
+			r = 1.2, g = 0.80, b = 0.3, a = 0.2,
+			color2r = 0.9, color2g = 0.45, color2b = 0.15, colortime = 60, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.1, specular = -0.2, scattering = 0.6, lensflare = 2,
+			lifetime = 0, sustain = 0, 	selfshadowing = 0, 
+		},
+	},
+
 
 	MissileProjectile = {
 		lightType = 'point', -- or cone or beam
@@ -222,7 +235,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.7,
 			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
-			lifetime = 6, sustain = 0.0035, selfshadowing = 0, 
+			lifetime = 6, sustain = 0.0035, selfshadowing = 4, 
 		},
 	},
 
@@ -560,13 +573,14 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.a = orgMult*1.1
+			t.a = orgMult*2.3
 			t.colortime = 2.5
 		
-			local adjusted_radius = radius * 0.55
+			local adjusted_radius = radius * 0.65
 		
 			if damage < 150 then -- increase muzzleflash for low-damage units to remain visible
-				adjusted_radius = adjusted_radius * 2.4  -- Increase for low-damage weapons
+				adjusted_radius = adjusted_radius * 2.9  -- Increase for low-damage weapons
+				t.colortime = 2.0
 			end
 		
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(adjusted_radius), t)
@@ -765,9 +779,8 @@ muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
 explosionLightsNames["armvulc_rflrpc"] =
 GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
--- projectileDefLightsNames["armvulc_rflrpc"] =
--- GetLightClass("MissileProjectile", "Warm", "Large", {a = 1.6,
--- 										modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
+projectileDefLightsNames["armvulc_rflrpc"] =
+GetLightClass("LRPCProjectile", nil, "Mediumer")
 
 
 --corbuzz
@@ -775,12 +788,49 @@ muzzleFlashLightsNames["corbuzz_rflrpc"] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
-											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
-											 lifetime = 20, sustain = 2})
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 17, sustain = 2})
 muzzleFlashLightsNames["corbuzz_rflrpc"].yOffset = 4
 explosionLightsNames["corbuzz_rflrpc"] =
 GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
+projectileDefLightsNames["corbuzz_rflrpc"] =
+GetLightClass("LRPCProjectile", nil, "Mediumer")
+
+muzzleFlashLightsNames["armsnipe_old_armsnipe_weapon"] =
+GetLightClass("MuzzleFlash", nil, "SmallMedium", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 13, sustain = 1.5})
+
+muzzleFlashLightsNames["armpb_armpb_weapon"] =
+GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 13, sustain = 1.5})
+
+muzzleFlashLightsNames["corlevlr_corlevlr_weapon"] =
+GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 13, sustain = 1.5})
+
+muzzleFlashLightsNames["cormort_cor_mort"] =
+GetLightClass("MuzzleFlash", nil, "Tiniest", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 1, b = 0.9, a = 0.5,
+											 color2r = 0.25, color2g = 0.14, color2b = 0.07, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 13, sustain = 1.5})
+
+-- muzzleFlashLightsNames["corvipe_vipersabot"] =
+-- GetLightClass("MuzzleFlash", nil, "Smaller", {posx = 0, posy = 0, posz = 0,
+-- 											 r = 1.2, g = 0.85, b = 0.6, a = 0.5,
+-- 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+-- 											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+-- 											 lifetime = 13, sustain = 1.5})
 
 -- --cortex anitnuke engine exhaust
 -- projectileDefLightsNames["corfmd_fmd_rocket"] =
