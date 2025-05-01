@@ -389,8 +389,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 4, refractiveIndex = 1.05, decay = 2, rampUp = 1,
-			effectStrength = 4.5, startRadius = 0.3, shockWidth = -1.2,
+			lifeTime = 4, refractiveIndex = 1.04, decay = 2, rampUp = 0,
+			effectStrength = 4.0, startRadius = 0.4, shockWidth = -1.2,
 			effectType = "airShockwave", },
 	},
 	ExploShockWaveS = {
@@ -1136,7 +1136,7 @@ local projectileDefDistortions  = {
 					end
 					
 					-- Check weapon distortion class assignment (enter weapon name here)
-					if string.find(weaponDef.name, 'cor_parrow') then
+					if string.find(weaponDef.name, 'cortruck_missile') then
 						Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
 					end
 					
@@ -1559,6 +1559,17 @@ muzzleFlashDistortionsNames['armbull_arm_bull'] = {
 	GetDistortionClass("MuzzleShockWave", "Femto")
 }
 
+explosionDistortionsNames['cortrem_tremor_spread_fire'] = {
+	GetDistortionClass("AirShockWaveXS", "Micro", {
+		lifeTime = 6, effectStrength = 2.5,
+		decay = 4, rampUp = 1,
+		shockWidth = -0.60,
+		startRadius = 0.66, }),
+	-- GetDistortionClass("GroundShockWave", "Tiny", {
+	-- 	lifeTime = 12, }),
+	--GetDistortionClass("ExplosionHeat", "Pico"),
+}
+
 -- explosionDistortionsNames['unitDeaths_windboom'] = {
 -- 	--GetDistortionClass("GroundShockWave", "Smallest"),
 -- 	GetDistortionClass("AirShockWaveXS", "Tiny"),
@@ -1648,6 +1659,24 @@ explosionDistortionsNames['customfusionexplo'] = {
 		}),
 }
 
+explosionDistortionsNames['crawl_blastsmlscavboss'] = {
+	GetDistortionClass("ExplosionHeatNuke", "MegaXL", {
+		lifeTime = 30, decay = 20, rampUp = 10,
+		--effectStrength = 1.0,
+		--refractiveIndex = 1.25,
+		}),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke", {
+		lifeTime = 120, decay = 25, rampUp = 10,
+		effectStrength = 15.0,
+		refractiveIndex = 1.25,
+		}),
+	GetDistortionClass("GroundShockWaveNuke", "Planetary", {
+		lifeTime = 220, decay = 100, rampUp = 50,
+		effectStrength = 3.0, startRadius = 0.10,
+		shockWidth = 32,
+		}),
+}
+
 explosionDistortionsNames['korgexplosion'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
@@ -1678,6 +1707,13 @@ explosionDistortionsNames['corsilo_crblmssl'] = {
 
 projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
+
+-- RAPTOR meteor Nuke Tentacle
+explosionDistortionsNames['raptor_turret_meteor_t4_v1_weapon'] = {
+		GetDistortionClass("ExplosionHeatNuke", "Mega"),
+		GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+		GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+	}
 
 explosionDistortionsNames['nuketest_nuketest'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
