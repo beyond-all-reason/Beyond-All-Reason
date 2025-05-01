@@ -267,8 +267,7 @@ local keybindingLayouts = {
 	'Grid (60% Keyboard)',
 	'Legacy',
 	'Legacy (60% Keyboard)',
-	'Custom',
-	'Expanded Grid 3x6',
+	'Custom'
 }
 
 local keybindingPresets = {
@@ -277,7 +276,6 @@ local keybindingPresets = {
 	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
 	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
 	[keybindingLayouts[5]] = 'uikeys.txt',
-	[keybindingLayouts[6]] = 'luaui/configs/hotkeys/gridmenu_expand_keys.txt', -- for 3x6 Gridmenu
 }
 
 local keybindingLayoutFiles = {}
