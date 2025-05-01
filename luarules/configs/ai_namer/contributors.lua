@@ -111,6 +111,7 @@ local ContributorAINames = {
     "robert the pie",
     "rossco",
     "saurtron",
+    "Setokaiva",
     "skynet",
     "smellymoo",
     "smile",
