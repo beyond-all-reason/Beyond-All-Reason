@@ -1244,7 +1244,7 @@ GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12,
 
 
 
-										 --duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
+--duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
  'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
 for _, name in pairs(scavengerBossV4Table) do

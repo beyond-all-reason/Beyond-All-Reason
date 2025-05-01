@@ -276,10 +276,10 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.8,
-						lifeTime = 25, decay = 25, rampUp = 15,
+						distanceFalloff = 0.1, noiseStrength = 0.5, noiseScaleSpace = 0.8,
+						lifeTime = 21, decay = 16, rampUp = 4,
 						effectStrength = 1.5, --needed for shockwaves
-						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
+						shockWidth = 1.2, refractiveIndex = -1.2, startRadius = 0.24,
 						effectType = 'groundShockwave'},
 	},
 
@@ -340,8 +340,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 2.5, startRadius = 0.25, shockWidth = -0.70,
+			lifeTime = 11, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 2.8, startRadius = 0.25, shockWidth = -0.80,
 			effectType = "airShockwave", },
 
 	},
@@ -389,32 +389,32 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 5, refractiveIndex = 1.06, decay = 3, rampUp = 2,
-			effectStrength = 5.0, startRadius = 0.45, shockWidth = -0.90,
+			lifeTime = 4, refractiveIndex = 1.05, decay = 2, rampUp = 1,
+			effectStrength = 4.5, startRadius = 0.3, shockWidth = -1.2,
 			effectType = "airShockwave", },
 	},
 	ExploShockWaveS = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 7, refractiveIndex = 1.06, decay = 4, rampUp = 3,
-			effectStrength = 4.6, startRadius = 0.4, shockWidth = -0.85,
+			lifeTime = 4.5, refractiveIndex = 1.04, decay = 3, rampUp = 1,
+			effectStrength = 4.0, startRadius = 0.39, shockWidth = -1.1,
 			effectType = "airShockwave", },
 	},
 	ExploShockWaveM = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 8, refractiveIndex = 1.05, decay = 6, rampUp = 4,
-			effectStrength = 4.5, startRadius = 0.36, shockWidth = -0.80,
+			noiseScaleSpace = 0.3, noiseStrength = 0.2, onlyModelMap = 0,
+			lifeTime = 5.5, refractiveIndex = 1.09, decay = 3, rampUp = 1,
+			effectStrength = 3.5, startRadius = 0.39, shockWidth = -0.99,
 			effectType = "airShockwave", },
 	},
 	ExploShockWaveL = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 380,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 11, refractiveIndex = 1.04, decay = 4, rampUp = 6,
-			effectStrength = 4.2, startRadius = 0.33, shockWidth = -0.50,
+			lifeTime = 11, refractiveIndex = 1.03, decay = 4, rampUp = 6,
+			effectStrength = 4.1, startRadius = 0.33, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
 	ExploShockWaveXL = {
@@ -1133,9 +1133,13 @@ local projectileDefDistortions  = {
 
 					if string.find(weaponDef.name, 'flak') then
 						areaofeffect = 0
-						--Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
 					end
-
+					
+					-- Check weapon distortion class assignment (enter weapon name here)
+					if string.find(weaponDef.name, 'cor_parrow') then
+						Spring.Echo('-==--===-', weaponDef.customParams.unitexplosion, distortionClass, effectiveRangeExplo, GetClosestSizeClass(effectiveRangeExplo), GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable))
+					end
+					
 					if not weaponDef.customParams.noexplosionlight and areaofeffect > 15 then --need to add noexplosiondistortion to units - now used same as lights
 						explosionDistortions[weaponID] = {GetDistortionClass(distortionClass, GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
 					end
@@ -1177,10 +1181,10 @@ projectileDefDistortionsNames["cormort_cor_mort"] =
 		radius = 170, startRadius = 0.1, yoffset = 8,
 	})
 explosionDistortionsNames['cormort_cor_mort'] = {
-	GetDistortionClass("GroundShockWave", "Pico", {
-		lifeTime = 18, }),
+	-- GetDistortionClass("GroundShockWave", "Pico", {
+	-- 	lifeTime = 18, }),
 	GetDistortionClass("AirShockWaveXS", "Femto", {
-		lifeTime = 9, effectStrength = 0.5, }),
+		lifeTime = 6, effectStrength = 4.5, }),
 }
 
 projectileDefDistortionsNames["armmav_armmav_weapon"] =
@@ -1324,15 +1328,16 @@ projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 })
 
 
--- explosionDistortionsNames["corlevlr_corlevlr_weapon"] = {
--- 	GetDistortionClass("GroundShockWave", "Tiny", {
--- 		lifeTime = 18, effectStrength = 1.5, startRadius = 0.10, shockWidth = 3,
--- 	}),
--- 	GetDistortionClass("AirShockWave", "Micro", {
--- 		--lifeTime = 24,
--- 	}),
--- 	--GetDistortionClass("ExplosionHeatXS", "Nano"),
--- }
+explosionDistortionsNames["corlevlr_corlevlr_weapon"] = {
+	GetDistortionClass("GroundShockWave", "Tiny", {
+		lifeTime = 12, effectStrength = 1.5, startRadius = 0.40, shockWidth = 0.5,
+	}),
+	GetDistortionClass("AirShockWave", "Micro", {
+		lifeTime = 14,
+		effectStrength = 3.5,
+	}),
+	--GetDistortionClass("ExplosionHeatXS", "Nano"),
+}
 
 -- muzzleFlashDistortionsNames['corlevlr_corlevlr_weapon'] = {
 -- 	GetDistortionClass("MuzzleShockWave", "Pico")
@@ -1583,7 +1588,7 @@ projectileDefDistortionsNames["legphoenix_legphtarg"] =
 
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
 	GetDistortionClass("AirShockWave", "Small"),
-	GetDistortionClass("GroundShockWave", "SmallMedium"),
+	--GetDistortionClass("GroundShockWave", "SmallMedium"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
 
@@ -1730,6 +1735,12 @@ explosionDistortionsNames['cortron_cortron_weapon'] = {
 	-- GetDistortionClass("ExplosionHeat", "Atto"),
 	--GetDistortionClass("ExplosionDistort", "Atto"),
 --}
+
+explosionDistortionsNames['corgol_cor_gol'] = {
+	GetDistortionClass("AirShockWave", "Small"),
+	--GetDistortionClass("GroundShockWave", "SmallMedium"),
+	GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
 
 -- explosionDistortionsNames['corgol_cor_gol'] = {
 -- 	GetDistortionClass("AirShockWave", "Small", {
