@@ -104,43 +104,24 @@ weaponSpecialEffect.cruise = function(proID)
 	return true
 end
 
-weaponSpecialEffects.retarget = function(proID)
-	-- Might be slightly more optimal to check the unit itself if it changes target,
-	-- then tell the in-flight missiles to change target if the unit changes target
-	-- instead of checking each in-flight missile
-	-- but not sure if there is an easy hook function or callin function
-	-- that only runs if a unit changes target
-
-	-- refactor slightly, only do target change if the target the missile
-	-- is heading towards is dead
-	-- karganeth switches away from alive units a little too often, causing
-	-- missiles that would have hit to instead miss
-	if spGetProjectileTimeToLive(proID) <= 0 then
-		-- stop missile retargeting when it runs out of fuel
-		return true
-	end
-	local targetTypeInt, targetID = spGetProjectileTarget(proID)
-	-- if the missile is heading towards a unit
-	if targetTypeInt == string.byte('u') then
-		--check if the target unit is dead or dying
-		local isDead = spGetUnitIsDead(targetID)
-		if isDead == nil or isDead == true then
-			--hardcoded to assume the retarget weapon is the primary weapon.
-			--TODO, make this more general
-			local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(spGetProjectileOwnerID(proID), 1)
+weaponSpecialEffect.retarget = function(proID)
+	if spGetProjectileTimeToLive(proID) > 0 then
+		local targetType, target = spGetProjectileTarget(proID)
+		if targetType == targetedUnit and spGetUnitIsDead(target) ~= false then
+			local ownerID = Spring.GetProjectileOwnerID(proID)
+			-- Hardcoded to retarget only from the primary weapon and only units or ground
+			local ownerTargetType, _, ownerTarget = Spring.GetUnitWeaponTarget(ownerID, 1)
 			if ownerTargetType == 1 then
-				--hardcoded to assume the retarget weapon does not target features or intercept projectiles, only targets units if not shooting ground.
-				--TODO, make this more general
-				spSetProjectileTarget(proID, ownerTarget, string.byte('u'))
-			end
-			if ownerTargetType == 2 then
+				spSetProjectileTarget(proID, ownerTarget, targetedUnit)
+			elseif ownerTargetType == 2 then
 				spSetProjectileTarget(proID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
 			end
+			return false
 		end
 	end
-
-	return false
+	return true
 end
+
 weaponSpecialEffects.sector_fire = function(proID)
 	local infos = projectiles[proID]
 	local velX, velY, velZ = spGetProjectileVelocity(proID)
