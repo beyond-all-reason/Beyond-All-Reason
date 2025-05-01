@@ -1843,7 +1843,7 @@ explosionDistortionsNames['armvulc_rflrpc'] = {
 	GetDistortionClass("ExploShockWaveL", "Smaller", {
 		--lifeTime = 9, refractiveIndex = -1.5, decay = 4,
 		--shockWidth = -0.5, effectStrength =  1.0,
-		startRadius = 0.3}),
+		startRadius = 0.1}),
 	GetDistortionClass("GroundShockWave", "Smallest"),
 	GetDistortionClass("ExplosionHeat", "Smallest", {
 		lifeTime = 80, decay = 40, rampup = 5}),
