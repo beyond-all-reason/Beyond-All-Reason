@@ -24,7 +24,7 @@ return {
 		maxslope = 50,
 		speed = 54.0,
 		maxwaterdepth = 5,
-		movementclass = "TBOT3",
+		movementclass = "BOT3",
 		mygravity = 10000,
 		nochasecategory = "VTOL",
 		objectname = "Units/leginfestor.s3o",
