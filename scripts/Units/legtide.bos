@@ -41,7 +41,7 @@ RockOnWaves()
 Go()
 {
 	dont-cache wheel;
-	spin wheel around z-axis speed <35.005495>;
+	spin wheel around z-axis speed <-35.005495>;
 	dont-cache wheel2;
 	spin wheel2 around x-axis speed <35.005495>;
 }
