@@ -173,6 +173,8 @@ weaponSpecialEffect.split = function(proID)
 	end
 end
 
+-- Water penetration behaviors
+
 weaponSpecialEffects.cannonwaterpen = function(proID)
 	local _, projectilePosY, _ = Spring.GetProjectilePosition(proID)
 	if projectilePosY <= 0 then
