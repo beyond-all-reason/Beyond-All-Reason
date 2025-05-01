@@ -96,39 +96,8 @@ checkingFunctions.cruise["distance>0"] = function (proID)
 		return true
 	end
 end
-
 applyingFunctions.cruise = function (proID)
 	return false
-end
-
-checkingFunctions.sector_fire = {}
-checkingFunctions.sector_fire["always"] = function (proID)
-	-- as soon as the siege projectile is created, pass true on the
-	-- checking function, to go to applying function
-	-- so the unit state is only checked when the projectile is created
-	return true
-end
-
-applyingFunctions.sector_fire = function (proID)
-	local infos = projectiles[proID]
-	local vx, vy, vz = SpGetProjectileVelocity(proID)
-	
-	local spread_angle = tonumber(infos.spread_angle)
-	local max_range_reduction = tonumber(infos.max_range_reduction)
-	
-	local angle_factor = (spread_angle * (random() - 0.5)) * mathPi / 180
-	local cos_angle = mathCos(angle_factor)
-	local sin_angle = mathSin(angle_factor)
-	
-	local vx_new = vx * cos_angle - vz * sin_angle
-	local vz_new = vx * sin_angle + vz * cos_angle
-	
-	local velocity_factor = 1 - (random() ^ (1 + max_range_reduction)) * max_range_reduction
-	
-	vx = vx_new * velocity_factor
-	vz = vz_new * velocity_factor
-	
-	SpSetProjectileVelocity(proID, vx, vy, vz)
 end
 
 checkingFunctions.retarget = {}
@@ -169,19 +138,37 @@ checkingFunctions.retarget["always"] = function (proID)
 
 	return false
 end
-
 applyingFunctions.retarget = function (proID)
 	return false
 end
 
-checkingFunctions.cannonwaterpen = {}
-checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
-	local _,y,_ = Spring.GetProjectilePosition(proID)
-	if y <= 0 then
-		return true
-	else
-		return false
-	end
+checkingFunctions.sector_fire = {}
+checkingFunctions.sector_fire["always"] = function (proID)
+	-- as soon as the siege projectile is created, pass true on the
+	-- checking function, to go to applying function
+	-- so the unit state is only checked when the projectile is created
+	return true
+end
+applyingFunctions.sector_fire = function (proID)
+	local infos = projectiles[proID]
+	local vx, vy, vz = SpGetProjectileVelocity(proID)
+	
+	local spread_angle = tonumber(infos.spread_angle)
+	local max_range_reduction = tonumber(infos.max_range_reduction)
+	
+	local angle_factor = (spread_angle * (random() - 0.5)) * mathPi / 180
+	local cos_angle = mathCos(angle_factor)
+	local sin_angle = mathSin(angle_factor)
+	
+	local vx_new = vx * cos_angle - vz * sin_angle
+	local vz_new = vx * sin_angle + vz * cos_angle
+	
+	local velocity_factor = 1 - (random() ^ (1 + max_range_reduction)) * max_range_reduction
+	
+	vx = vx_new * velocity_factor
+	vz = vz_new * velocity_factor
+	
+	SpSetProjectileVelocity(proID, vx, vy, vz)
 end
 
 checkingFunctions.split = {}
@@ -193,38 +180,6 @@ checkingFunctions.split["yvel<0"] = function (proID)
 		return false
 	end
 end
-
-checkingFunctions.torpwaterpen = {}
-checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
-	local _,py,_ = Spring.GetProjectilePosition(proID)
-	if py <= 0 then
-		return true
-	else
-		return false
-	end
-end
-
---a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
-checkingFunctions.torpwaterpenretarget = {}
-checkingFunctions.torpwaterpenretarget["ypos<0"] = function (proID)
-
-	checkingFunctions.retarget["always"](proID)--subcontract that part
-
-	local _,py,_ = Spring.GetProjectilePosition(proID)
-	if py <= 0 then
-		--and delegate that too
-		applyingFunctions.torpwaterpen(proID)
-	else
-		return false
-	end
-end
-
---fake function
-applyingFunctions.torpwaterpenretarget = function (proID)
-	return false
-
-end
-
 applyingFunctions.split = function (proID)
 	local px, py, pz = Spring.GetProjectilePosition(proID)
 	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
@@ -247,6 +202,44 @@ applyingFunctions.split = function (proID)
 	Spring.DeleteProjectile(proID)
 end
 
+checkingFunctions.cannonwaterpen = {}
+checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
+	local _,y,_ = Spring.GetProjectilePosition(proID)
+	if y <= 0 then
+		return true
+	else
+		return false
+	end
+end
+applyingFunctions.cannonwaterpen = function (proID)
+	local px, py, pz = Spring.GetProjectilePosition(proID)
+	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
+	local nvx, nvy, nvz = vx * 0.5, vy * 0.5, vz * 0.5
+	local ownerID = Spring.GetProjectileOwnerID(proID)
+	local infos = projectiles[proID]
+	local projectileParams = {
+		pos = {px, py, pz},
+		speed = {nvx, nvy, nvz},
+		owner = ownerID,
+		ttl = 3000,
+		gravity = -Game.gravity/3600,
+		model = infos.model,
+		cegTag = infos.cegtag,
+	}
+	Spring.SpawnProjectile(weaponDefNamesID[infos.def], projectileParams)
+	Spring.SpawnCEG(infos.waterpenceg, px, py, pz,0,0,0,0,0)
+	Spring.DeleteProjectile(proID)
+end
+
+checkingFunctions.torpwaterpen = {}
+checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
+	local _,py,_ = Spring.GetProjectilePosition(proID)
+	if py <= 0 then
+		return true
+	else
+		return false
+	end
+end
 applyingFunctions.torpwaterpen = function (proID)
 	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
 	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
@@ -268,24 +261,23 @@ applyingFunctions.torpwaterpen = function (proID)
 	end
 end
 
-applyingFunctions.cannonwaterpen = function (proID)
-	local px, py, pz = Spring.GetProjectilePosition(proID)
-	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
-	local nvx, nvy, nvz = vx * 0.5, vy * 0.5, vz * 0.5
-	local ownerID = Spring.GetProjectileOwnerID(proID)
-	local infos = projectiles[proID]
-	local projectileParams = {
-		pos = {px, py, pz},
-		speed = {nvx, nvy, nvz},
-		owner = ownerID,
-		ttl = 3000,
-		gravity = -Game.gravity/3600,
-		model = infos.model,
-		cegTag = infos.cegtag,
-	}
-	Spring.SpawnProjectile(weaponDefNamesID[infos.def], projectileParams)
-	Spring.SpawnCEG(infos.waterpenceg, px, py, pz,0,0,0,0,0)
-	Spring.DeleteProjectile(proID)
+--a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
+checkingFunctions.torpwaterpenretarget = {}
+checkingFunctions.torpwaterpenretarget["ypos<0"] = function (proID)
+
+	checkingFunctions.retarget["always"](proID)--subcontract that part
+
+	local _,py,_ = Spring.GetProjectilePosition(proID)
+	if py <= 0 then
+		--and delegate that too
+		applyingFunctions.torpwaterpen(proID)
+	else
+		return false
+	end
+end
+--fake function
+applyingFunctions.torpwaterpenretarget = function (proID)
+	return false
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
