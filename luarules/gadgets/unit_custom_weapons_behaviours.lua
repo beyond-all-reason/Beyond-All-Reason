@@ -69,7 +69,7 @@ weaponSpecialEffects.cruise = function(proID)
 	local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
 	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
 	local speed = sqrt(projectileVelX * projectileVelX + projectileVelY * projectileVelY + projectileVelZ *
-	projectileVelZ)
+		projectileVelZ)
 	local infos = projectiles[proID]
 	if sqrt((projectilePosX - targetPosX) ^ 2 + (projectilePosY - targetPosY) ^ 2 + (projectilePosZ - targetPosZ) ^ 2) > tonumber(infos.lockon_dist) then
 		groundPosY = Spring.GetGroundHeight(projectilePosX, projectilePosZ)
@@ -170,7 +170,7 @@ weaponSpecialEffects.split = function(proID)
 		local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
 		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
 		local speed = sqrt(projectileVelX * projectileVelX + projectileVelY * projectileVelY +
-		projectileVelZ * projectileVelZ)
+			projectileVelZ * projectileVelZ)
 		local ownerID = spGetProjectileOwnerID(proID)
 		local infos = projectiles[proID]
 		for i = 1, tonumber(infos.number) do
