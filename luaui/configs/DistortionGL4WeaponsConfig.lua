@@ -1342,8 +1342,45 @@ projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 -- 	lifeTime = 0, rampUp = 0, decay = 0, radius = 3, yoffset = 5,
 -- })
 
+--Scavenger Boss V4 Shoulder Turrets
+muzzleFlashDistortionsNames['scavengerbossv4_veryeasy_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_easy_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_normal_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_hard_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_veryhard_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_epic_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
+}
 
-
+-- Scavenger Boss V4 Tubro Shoulder Turrets
+muzzleFlashDistortionsNames['scavengerbossv4_veryeasy_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_easy_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_normal_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_hard_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_veryhard_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
+muzzleFlashDistortionsNames['scavengerbossv4_epic_turbo_shoulderturrets'] = {
+	GetDistortionClass("MuzzleShockWave", "Tiny")
+}
 
 muzzleFlashDistortionsNames['armguard_plasma'] = {
 	GetDistortionClass("MuzzleShockWave", "Nano", {
