@@ -1787,32 +1787,44 @@ local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
 do
 	-- This is the base effect for the airjet distortion, tune it to affect all airjets
 	local longAirJet = { posx = 0, posy = 0, posz = 0, radius = 130,
-		dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
+		dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
 		noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.5,
-		effectStrength = 5.0, onlyModelMap = 1,
+		effectStrength = 4.0, onlyModelMap = 0, -- I want it on unit and background too
 		lifeTime = 0,  effectType = 0}
 
 	for unitDefName, airjets in pairs(airjets_effects) do
-	
+		if not unitDistortions[unitDefName] then 
+			unitDistortions[unitDefName] = {}
+		end
 		for i, airjet in ipairs(airjets) do 
-			local effectname = 'airjet' .. tostring(i) .. airjet.piece
-			local airjetConfig = table.copy(longAirJet)
-
-			-- The radius and cone angle are set to be close to the airjet length and width
-			airjetConfig.radius = airjet.length * 6
-			-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
-			airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
-			
-			--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
-			if not unitDistortions[unitDefName] then 
-				unitDistortions[unitDefName] = {}
+			-- if that piece already has a distortion attached to it, we wont overwrite it. 
+			local alreadyhasjet = false
+			for j, distortion in pairs(unitDistortions[unitDefName]) do
+				if distortion.pieceName == airjet.piece then
+					Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
+					alreadyhasjet = true
+					break
+				end
 			end
-			
-			unitDistortions[unitDefName][effectname] = {
-				distortionType = 'cone',
-				pieceName = airjet.piece,
-				distortionConfig = airjetConfig,
-			}
+			if not alreadyhasjet then
+
+				local effectname = 'airjet' .. tostring(i) .. airjet.piece
+				local airjetConfig = table.copy(longAirJet)
+
+				-- The radius and cone angle are set to be close to the airjet length and width
+				airjetConfig.radius = airjet.length * 6
+				-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
+				airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
+				
+				--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
+
+				
+				unitDistortions[unitDefName][effectname] = {
+					distortionType = 'cone',
+					pieceName = airjet.piece,
+					distortionConfig = airjetConfig,
+				}
+			end
 		end
 
 	end
