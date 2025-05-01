@@ -178,7 +178,7 @@ end
 local function cannonWaterPen(proID)
 	local projectilePosX, projectilePosY, projectilePosZ = spGetProjectilePosition(proID)
 	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-	local ownerID = spGetProjectileOwnerID(proID)
+	local ownerID = Spring.GetProjectileOwnerID(proID)
 	local infos = projectiles[proID]
 	local projectileParams = {
 		pos     = { projectilePosX, projectilePosY, projectilePosZ },
@@ -208,7 +208,7 @@ local function torpedoWaterPen(proID)
 	-- Only dive below the water's surface if the target is likely an underwater unit.
 	local diveSpeed = 0
 	if targetType == targetedUnit and targetID then
-		local _, unitPosY = Spring.GetUnitPosition(targetID)
+		local _, unitPosY = spGetUnitPosition(targetID)
 		if unitPosY and unitPosY < -10 then
 			diveSpeed = projectileVelY / 6
 		end
@@ -255,7 +255,6 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if weaponCustomParams[weaponDefID] then
 		projectiles[proID] = weaponCustomParams[weaponDefID]
-		projectilesData[proID] = nil
 	end
 end
 
@@ -266,8 +265,7 @@ end
 
 function gadget:GameFrame(f)
 	for proID, infos in pairs(projectiles) do
-		if weaponSpecialEffects[infos.speceffect](proID) == true then
-			applyingFunctions[infos.speceffect](proID)
+		if weaponSpecialEffect[infos.speceffect](proID) then
 			projectiles[proID] = nil
 			projectilesData[proID] = nil
 		end
