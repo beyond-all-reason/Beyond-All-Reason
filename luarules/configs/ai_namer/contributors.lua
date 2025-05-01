@@ -94,6 +94,7 @@ local ContributorAINames = {
     "deadlypants",
     "drivver44",
     "duke_of_gloat",
+    "Encyclopedia",
     "gajop",
     "hihoman23",
     "hokomoko",
