@@ -14,6 +14,14 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
+-- customparams = {
+--     speceffect      := string
+--     speceffect_def  := string?
+-- }
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 local random = math.random
 
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
@@ -28,24 +36,18 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 
 local projectiles = {}
 local projectilesData = {}
-local checkingFunctions = {}
-local applyingFunctions = {}
+local weaponSpecialEffects = {}
 local sqrt = math.sqrt
 local cos = math.cos
 local sin = math.sin
 local pi = math.pi
 
-local specialWeaponCustomDefs = {}
-local weaponDefNamesID = {}
-for id, def in pairs(WeaponDefs) do
-	weaponDefNamesID[def.name] = id
-	if def.customParams.speceffect then
-		specialWeaponCustomDefs[id] = def.customParams
-	end
-end
+local weaponCustomParams = {}
 
-checkingFunctions.cruise = {}
-checkingFunctions.cruise["distance>0"] = function (proID)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+weaponSpecialEffects.cruise = function (proID)
 	if spGetProjectileTimeToLive(proID) <= 0 then
 		return true
 	end
@@ -94,12 +96,8 @@ checkingFunctions.cruise["distance>0"] = function (proID)
 		return true
 	end
 end
-applyingFunctions.cruise = function (proID)
-	return false
-end
 
-checkingFunctions.retarget = {}
-checkingFunctions.retarget["always"] = function (proID)
+weaponSpecialEffects.retarget = function (proID)
 	-- Might be slightly more optimal to check the unit itself if it changes target,
 	-- then tell the in-flight missiles to change target if the unit changes target
 	-- instead of checking each in-flight missile
@@ -136,18 +134,7 @@ checkingFunctions.retarget["always"] = function (proID)
 
 	return false
 end
-applyingFunctions.retarget = function (proID)
-	return false
-end
-
-checkingFunctions.sector_fire = {}
-checkingFunctions.sector_fire["always"] = function (proID)
-	-- as soon as the siege projectile is created, pass true on the
-	-- checking function, to go to applying function
-	-- so the unit state is only checked when the projectile is created
-	return true
-end
-applyingFunctions.sector_fire = function (proID)
+weaponSpecialEffects.sector_fire = function (proID)
 	local infos = projectiles[proID]
 	local velX, velY, velZ = spGetProjectileVelocity(proID)
 	
@@ -167,120 +154,134 @@ applyingFunctions.sector_fire = function (proID)
 	velZ = velZNew * velocityFactor
 	
 	spSetProjectileVelocity(proID, velX, velY, velZ)
+	return true
 end
 
-checkingFunctions.split = {}
-checkingFunctions.split["yvel<0"] = function (proID)
+weaponSpecialEffects.split = function (proID)
 	local _,projectileVelY,_ = spGetProjectileVelocity(proID)
 	if projectileVelY < 0 then
+		local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
+		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
+		local speed = sqrt(projectileVelX*projectileVelX + projectileVelY*projectileVelY + projectileVelZ*projectileVelZ)
+		local ownerID = spGetProjectileOwnerID(proID)
+		local infos = projectiles[proID]
+		for i = 1, tonumber(infos.number) do
+			local projectileParams = {
+				pos = {projectilePosX, projectilePosY, projectilePosZ},
+				speed = {projectileVelX - speed*(math.random(-100,100)/880), projectileVelY - speed*(math.random(-100,100)/440), projectileVelZ - speed*(math.random(-100,100)/880)},
+				owner = ownerID,
+				ttl = 3000,
+				gravity = -Game.gravity/900,
+				model = infos.model,
+				cegTag = infos.cegtag,
+				}
+			Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
+		end
+		Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ,0,0,0,0,0)
+		Spring.DeleteProjectile(proID)
 		return true
 	else
 		return false
 	end
 end
-applyingFunctions.split = function (proID)
-	local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-	local speed = sqrt(projectileVelX*projectileVelX + projectileVelY*projectileVelY + projectileVelZ*projectileVelZ)
-	local ownerID = spGetProjectileOwnerID(proID)
-	local infos = projectiles[proID]
-	for i = 1, tonumber(infos.number) do
+
+weaponSpecialEffects.cannonwaterpen = function (proID)
+	local _,projectilePosY,_ = Spring.GetProjectilePosition(proID)
+	if projectilePosY <= 0 then
+		local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
+		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
+		local nvx, nvy, nvz = projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5
+		local ownerID = spGetProjectileOwnerID(proID)
+		local infos = projectiles[proID]
 		local projectileParams = {
 			pos = {projectilePosX, projectilePosY, projectilePosZ},
-			speed = {projectileVelX - speed*(math.random(-100,100)/880), projectileVelY - speed*(math.random(-100,100)/440), projectileVelZ - speed*(math.random(-100,100)/880)},
+			speed = {nvx, nvy, nvz},
 			owner = ownerID,
 			ttl = 3000,
-			gravity = -Game.gravity/900,
+			gravity = -Game.gravity/3600,
 			model = infos.model,
 			cegTag = infos.cegtag,
-			}
-		Spring.SpawnProjectile(weaponDefNamesID[infos.def], projectileParams)
-	end
-	Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ,0,0,0,0,0)
-	Spring.DeleteProjectile(proID)
-end
-
-checkingFunctions.cannonwaterpen = {}
-checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
-	local _,projectilePosY,_ = Spring.GetProjectilePosition(proID)
-	if projectilePosY <= 0 then
+		}
+		Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
+		Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ,0,0,0,0,0)
+		Spring.DeleteProjectile(proID)
 		return true
 	else
 		return false
 	end
 end
-applyingFunctions.cannonwaterpen = function (proID)
-	local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-	local nvx, nvy, nvz = projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5
-	local ownerID = spGetProjectileOwnerID(proID)
-	local infos = projectiles[proID]
-	local projectileParams = {
-		pos = {projectilePosX, projectilePosY, projectilePosZ},
-		speed = {nvx, nvy, nvz},
-		owner = ownerID,
-		ttl = 3000,
-		gravity = -Game.gravity/3600,
-		model = infos.model,
-		cegTag = infos.cegtag,
-	}
-	Spring.SpawnProjectile(weaponDefNamesID[infos.def], projectileParams)
-	Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ,0,0,0,0,0)
-	Spring.DeleteProjectile(proID)
-end
 
-checkingFunctions.torpwaterpen = {}
-checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
+weaponSpecialEffects.torpwaterpen = function (proID)
 	local _,projectilePosY,_ = Spring.GetProjectilePosition(proID)
 	if projectilePosY <= 0 then
-		return true
-	else
-		return false
-	end
-end
-applyingFunctions.torpwaterpen = function (proID)
-	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
-	--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
-	
-	local bypass = false
-	local targetType, targetID = spGetProjectileTarget(proID)
-	
-	if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then--ground attack borks it; skip
-		local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
-		if (unitPosY ~= nil) and unitPosY<-10 then
-			bypass = true
-			spSetProjectileVelocity(proID,projectileVelX/1.3,projectileVelY/6,projectileVelZ/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
+		--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
+		--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+		
+		local bypass = false
+		local targetType, targetID = spGetProjectileTarget(proID)
+		
+		if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then--ground attack borks it; skip
+			local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
+			if (unitPosY ~= nil) and unitPosY<-10 then
+				bypass = true
+				spSetProjectileVelocity(proID,projectileVelX/1.3,projectileVelY/6,projectileVelZ/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+			end
 		end
-	end
-	
-	if not bypass then
-		spSetProjectileVelocity(proID,projectileVelX,0,projectileVelZ)
+		
+		if not bypass then
+			spSetProjectileVelocity(proID,projectileVelX,0,projectileVelZ)
+		end
+		return true
+	else
+		return false
 	end
 end
 
 --a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
-checkingFunctions.torpwaterpenretarget = {}
-checkingFunctions.torpwaterpenretarget["ypos<0"] = function (proID)
+weaponSpecialEffects.torpwaterpenretarget = function (proID)
 
-	checkingFunctions.retarget["always"](proID)--subcontract that part
+	weaponSpecialEffects.retarget(proID)--subcontract that part
 
 	local _,projectilePosY,_ = Spring.GetProjectilePosition(proID)
 	if projectilePosY <= 0 then
 		--and delegate that too
-		applyingFunctions.torpwaterpen(proID)
-	else
-		return false
+		weaponSpecialEffects.torpwaterpen(proID)
 	end
-end
---fake function
-applyingFunctions.torpwaterpenretarget = function (proID)
 	return false
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function gadget:Initialize()
+	for weaponDefID, weaponDef in pairs(WeaponDefs) do
+		if weaponDef.customParams.speceffect then
+			local def = weaponDef.customParams.speceffect_def
+			if def and not WeaponDefNames[def] then
+				local message = "Weapon has bad custom params: " .. weaponDef.name
+				message = message .. ' (speceffect_def=' .. def .. ')'
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+			else
+				weaponCustomParams[weaponDefID] = weaponDef.customParams
+			end
+			-- TODO: Remove deprecate warning once modders have had time to fix.
+			if weaponDef.customParams.when then
+				local message = "Deprecated customparam 'when': " .. weaponDef.name
+				Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+			end
+		end
+	end
+	if not next(weaponCustomParams) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+end
+
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if specialWeaponCustomDefs[weaponDefID] then
-		projectiles[proID] = specialWeaponCustomDefs[weaponDefID]
+	if weaponCustomParams[weaponDefID] then
+		projectiles[proID] = weaponCustomParams[weaponDefID]
 		projectilesData[proID] = nil
 	end
 end
@@ -292,7 +293,7 @@ end
 
 function gadget:GameFrame(f)
 	for proID, infos in pairs(projectiles) do
-		if checkingFunctions[infos.speceffect][infos.when](proID) == true then
+		if weaponSpecialEffects[infos.speceffect](proID) == true then
 			applyingFunctions[infos.speceffect](proID)
 			projectiles[proID] = nil
 			projectilesData[proID] = nil
