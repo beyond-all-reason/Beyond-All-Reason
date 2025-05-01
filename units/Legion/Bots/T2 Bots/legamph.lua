@@ -42,6 +42,7 @@ return {
 			maxrange = 400,
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
+			paralyzemultiplier = 0.2,
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
@@ -201,9 +202,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "HEAT_RAY",
-				onlytargetcategory = "NOTSUB NOTAIR",
+				onlytargetcategory = "SURFACE",
 				maxangledif = 120,
 				maindir = "0 0 1"
 			},
