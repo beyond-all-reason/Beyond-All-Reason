@@ -201,43 +201,27 @@ weaponSpecialEffect.cannonwaterpen = function(proID)
 	end
 end
 
-weaponSpecialEffects.torpwaterpen = function(proID)
-	local _, projectilePosY, _ = Spring.GetProjectilePosition(proID)
-	if projectilePosY <= 0 then
-		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-		--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
-		--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
-
-		local bypass = false
-		local targetType, targetID = spGetProjectileTarget(proID)
-
-		if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then --ground attack borks it; skip
-			local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
-			if (unitPosY ~= nil) and unitPosY < -10 then
-				bypass = true
-				spSetProjectileVelocity(proID, projectileVelX / 1.3, projectileVelY / 6, projectileVelZ / 1.3) --apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
-			end
+local function torpedoWaterPen(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
+	local targetType, targetID = spGetProjectileTarget(proID)
+	-- Underwater projectiles have lower visibility, so remaining on surface is preferable.
+	-- Only dive below the water's surface if the target is likely an underwater unit.
+	local diveSpeed = 0
+	if targetType == targetedUnit and targetID then
+		local _, unitPosY = Spring.GetUnitPosition(targetID)
+		if unitPosY and unitPosY < -10 then
+			diveSpeed = projectileVelY / 6
 		end
-
-		if not bypass then
-			spSetProjectileVelocity(proID, projectileVelX, 0, projectileVelZ)
-		end
-		return true
-	else
-		return false
 	end
+	-- Brake without halting, else torpedoes may overshoot close targets.
+	spSetProjectileVelocity(proID, projectileVelX / 1.3, diveSpeed, projectileVelZ / 1.3)
 end
 
---a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
-weaponSpecialEffects.torpwaterpenretarget = function(proID)
-	weaponSpecialEffects.retarget(proID) --subcontract that part
-
-	local _, projectilePosY, _ = Spring.GetProjectilePosition(proID)
-	if projectilePosY <= 0 then
-		--and delegate that too
-		weaponSpecialEffects.torpwaterpen(proID)
+weaponSpecialEffect.torpwaterpen = function(proID)
+	if elevationIsNonpositive(proID) then
+		torpedoWaterPen(proID)
+		return true
 	end
-	return false
 end
 
 --------------------------------------------------------------------------------
