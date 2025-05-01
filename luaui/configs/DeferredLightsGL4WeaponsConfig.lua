@@ -581,7 +581,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 37 / life --t.colortime = life * 0.17
+			t.colortime = 35 / life --t.colortime = life * 0.17
 			t.a = orgMult * 1.1
 
 			if weaponDef.type == 'DGun' then
@@ -658,10 +658,10 @@ local function AssignLightsToAllWeapons()
 					--t.colortime = 8
 				else
 					-- make more white
-					t.r = (1.4 + t.r) / 1.3
-					t.g = (1.4 + t.g) / 1.3
-					t.b = (1.4 + t.b) / 1.3
-					t.a = orgMult*1.6
+					t.r = (1.4 + t.r) / 1.8
+					t.g = (1.4 + t.g) / 1.8
+					t.b = (1.4 + t.b) / 1.8
+					t.a = orgMult*1.3 --make all explosions bit stronger
 				end
 				local mult = 0.6
 
@@ -1222,6 +1222,13 @@ GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 					lifetime = 0, sustain = 0})
 
+--corcat
+explosionLightsNames["corcat_exp_heavyrocket"] =
+GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
+										color2r = 0.75, color2g = 0.40, color2b = 0.09, colortime = 4,
+										sustain = 7, lifetime = 32,
+										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
 
 --corjuno SCAV
 projectileDefLightsNames["corjuno_scav_juno_pulse"] =
@@ -1359,13 +1366,6 @@ GetLightClass("Explosion", nil, "Micro", {	r = 1.8, g = 1.8, b = 1.8, a = 0.2,
 projectileDefLightsNames["armkam_med_emg"] =
 GetLightClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
 											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
-
---corcat
-explosionLightsNames["corcat_exp_heavyrocket"] =
-GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										color2r = 0.8, color2g = 0.43, color2b = 0.11, colortime = 5,
-										sustain = 10, lifetime = 38,
-										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --armrl engine
 projectileDefLightsNames["armrl_armrl_missile"] =
