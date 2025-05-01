@@ -239,8 +239,8 @@ function gadget:Initialize()
 				weaponCustomParams[weaponDefID] = weaponDef.customParams
 			end
 			-- TODO: Remove deprecate warning once modders have had time to fix.
-			if weaponDef.customParams.when then
-				local message = "Deprecated customparam 'when': " .. weaponDef.name
+			if weaponDef.customParams.def or weaponDef.customParams.when then
+				local message = "Deprecated speceffect customparams: " .. weaponDef.name
 				Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
 			end
 		end
