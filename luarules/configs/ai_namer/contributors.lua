@@ -116,6 +116,7 @@ local ContributorAINames = {
     "tovernaar123",
     "verybadsoldier",
     "wilkubyk",
+    "SuperKitowiec",
 }
 
 return ContributorAINames
