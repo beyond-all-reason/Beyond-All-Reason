@@ -140,32 +140,36 @@ weaponSpecialEffect.sector_fire = function(proID)
 	return true
 end
 
-weaponSpecialEffects.split = function(proID)
-	local _, projectileVelY, _ = spGetProjectileVelocity(proID)
-	if projectileVelY < 0 then
-		local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-		local speed = sqrt(projectileVelX * projectileVelX + projectileVelY * projectileVelY +
-			projectileVelZ * projectileVelZ)
-		local ownerID = spGetProjectileOwnerID(proID)
-		local infos = projectiles[proID]
-		for i = 1, tonumber(infos.number) do
-			local projectileParams = {
-				pos = { projectilePosX, projectilePosY, projectilePosZ },
-				speed = { projectileVelX - speed * (math.random(-100, 100) / 880), projectileVelY - speed * (math.random(-100, 100) / 440), projectileVelZ - speed * (math.random(-100, 100) / 880) },
-				owner = ownerID,
-				ttl = 3000,
-				gravity = -Game.gravity / 900,
-				model = infos.model,
-				cegTag = infos.cegtag,
-			}
-			Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
-		end
-		Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ, 0, 0, 0, 0, 0)
-		Spring.DeleteProjectile(proID)
+local function split(proID)
+	local projectilePosX, projectilePosY, projectilePosZ = spGetProjectilePosition(proID)
+	local projectileVelX, projectileVelY, projectileVelZ, speed = spGetProjectileVelocity(proID)
+	local ownerID = Spring.GetProjectileOwnerID(proID)
+	local infos = projectiles[proID]
+	local projectileDefID = WeaponDefNames[infos.speceffect_def].id
+	local projectileParams = {
+		pos     = { projectilePosX, projectilePosY, projectilePosZ },
+		owner   = ownerID,
+		ttl     = 3000,
+		gravity = gravityPerFrame,
+		model   = infos.model,
+		cegTag  = infos.cegtag,
+	}
+	for _ = 1, tonumber(infos.number) do
+		projectileParams.speed = {
+			projectileVelX - speed * (random(-100, 100) / 880),
+			projectileVelY - speed * (random(-100, 100) / 440),
+			projectileVelZ - speed * (random(-100, 100) / 880)
+		}
+		Spring.SpawnProjectile(projectileDefID, projectileParams)
+	end
+	Spring.SpawnCEG(infos.splitexplosionceg, projectilePosX, projectilePosY, projectilePosZ)
+	Spring.DeleteProjectile(proID)
+end
+
+weaponSpecialEffect.split = function(proID)
+	if velocityIsNegative(proID) then
+		split(proID)
 		return true
-	else
-		return false
 	end
 end
 
