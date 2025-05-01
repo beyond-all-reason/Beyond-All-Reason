@@ -1351,8 +1351,35 @@ projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 -- 	lifeTime = 0, rampUp = 0, decay = 0, radius = 3, yoffset = 5,
 -- })
 
+local scavbosses = {
+	"veryeasy",
+	"easy",
+	"normal",
+	"hard",
+	"veryhard",
+	"epic",
+	"veryeasy_scav",
+    "easy_scav",
+    "normal_scav",
+    "hard_scav",
+    "veryhard_scav",
+    "epic_scav",
+ }
 
-
+for i, name in pairs(scavbosses) do
+    muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_shoulderturrets'] = {
+        GetDistortionClass("MuzzleShockWave", "Nano")
+    }
+	muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_turbo_shoulderturrets'] = {
+        GetDistortionClass("MuzzleShockWave", "Tiny")
+    }
+	explosionDistortionsNames['scavengerbossv4_' .. name .. '_missilelauncher'] = {
+        GetDistortionClass("AirshockWave", "Smallest")
+    }
+	explosionDistortionsNames['scavengerbossv4_' .. name .. '_turbo_missilelauncher'] = {
+        GetDistortionClass("AirShockWave", "Smaller")
+    }
+end
 
 muzzleFlashDistortionsNames['armguard_plasma'] = {
 	GetDistortionClass("MuzzleShockWave", "Nano", {
