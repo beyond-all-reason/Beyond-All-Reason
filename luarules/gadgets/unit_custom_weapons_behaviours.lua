@@ -29,11 +29,12 @@ local sin = math.sin
 local pi = math.pi
 
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitPosition = Spring.GetUnitPosition
 local spSetProjectilePosition = Spring.SetProjectilePosition
 local spSetProjectileTarget = Spring.SetProjectileTarget
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
