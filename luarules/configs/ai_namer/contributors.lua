@@ -105,6 +105,7 @@ local ContributorAINames = {
     "lamer",
     "lov",
     "mupersega",
+    "neb_",
     "pandaro",
     "resopmok",
     "robert the pie",
