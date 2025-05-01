@@ -70,7 +70,7 @@ function widget:Initialize()
 	end
 	WG['camerashake'].setStrength = function(value)
 		powerScale = value
-		minPower = (0.02 / powerScale)
+		minPower = (0.02 / (powerScale+0.00001))
 	end
 end
 
@@ -153,7 +153,7 @@ end
 function widget:SetConfigData(data)
 	if data.powerScale ~= nil then
 		powerScale = data.powerScale
-		minPower = (0.02 / powerScale)
+		minPower = (0.02 / (powerScale+0.00001))
 	end
 end
 
