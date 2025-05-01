@@ -52,6 +52,18 @@ local projectilesData = {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function elevationIsNonpositive(proID)
+	local _, projectilePosY = spGetProjectilePosition(proID)
+	return projectilePosY <= 0
+end
+
+local function velocityIsNegative(proID)
+	local _, projectileVelY = spGetProjectileVelocity(proID)
+	return projectileVelY < 0
+end
+
+--------------------------------------------------------------------------------
+
 weaponSpecialEffects.cruise = function(proID)
 	if spGetProjectileTimeToLive(proID) <= 0 then
 		return true
