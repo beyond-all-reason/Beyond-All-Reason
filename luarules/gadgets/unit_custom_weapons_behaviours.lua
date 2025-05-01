@@ -175,29 +175,29 @@ end
 
 -- Water penetration behaviors
 
-weaponSpecialEffects.cannonwaterpen = function(proID)
-	local _, projectilePosY, _ = Spring.GetProjectilePosition(proID)
-	if projectilePosY <= 0 then
-		local projectilePosX, projectilePosY, projectilePosZ = Spring.GetProjectilePosition(proID)
-		local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
-		local nvx, nvy, nvz = projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5
-		local ownerID = spGetProjectileOwnerID(proID)
-		local infos = projectiles[proID]
-		local projectileParams = {
-			pos = { projectilePosX, projectilePosY, projectilePosZ },
-			speed = { nvx, nvy, nvz },
-			owner = ownerID,
-			ttl = 3000,
-			gravity = -Game.gravity / 3600,
-			model = infos.model,
-			cegTag = infos.cegtag,
-		}
-		Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
-		Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ, 0, 0, 0, 0, 0)
-		Spring.DeleteProjectile(proID)
+local function cannonWaterPen(proID)
+	local projectilePosX, projectilePosY, projectilePosZ = spGetProjectilePosition(proID)
+	local projectileVelX, projectileVelY, projectileVelZ = spGetProjectileVelocity(proID)
+	local ownerID = spGetProjectileOwnerID(proID)
+	local infos = projectiles[proID]
+	local projectileParams = {
+		pos     = { projectilePosX, projectilePosY, projectilePosZ },
+		speed   = { projectileVelX * 0.5, projectileVelY * 0.5, projectileVelZ * 0.5 },
+		owner   = ownerID,
+		ttl     = 3000,
+		gravity = gravityPerFrame * 0.5,
+		model   = infos.model,
+		cegTag  = infos.cegtag,
+	}
+	Spring.SpawnProjectile(WeaponDefNames[infos.speceffect_def].id, projectileParams)
+	Spring.SpawnCEG(infos.waterpenceg, projectilePosX, projectilePosY, projectilePosZ)
+	Spring.DeleteProjectile(proID)
+end
+
+weaponSpecialEffect.cannonwaterpen = function(proID)
+	if elevationIsNonpositive(proID) then
+		cannonWaterPen(proID)
 		return true
-	else
-		return false
 	end
 end
 
