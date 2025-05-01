@@ -12,7 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
+local rttSizeMult
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -149,7 +151,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 end
 
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 end
 
 local function drawContent()
@@ -180,7 +182,8 @@ local function drawContent()
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 		local style = 'c'
 		font2:Begin()
-		font2:SetTextColor(1,1,1,useRenderToTexture and 0.7 or 0.2)
+		font2:SetOutlineColor(0.35,0.35,0.35,useRenderToTexture and 0.35 or 0.15)
+		font2:SetTextColor(0.5,0.5,0.5,useRenderToTexture and 1 or 0.5)
 		offset = (fontSize*0.6)
 		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
@@ -398,7 +401,7 @@ local function updateList(force)
 			uiBgTex = nil
 		end
 
-		if useRenderToTexture then
+		if useRenderToTextureBg then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
@@ -415,8 +418,10 @@ local function updateList(force)
 					gl.PopMatrix()
 				end)
 			end
+		end
+		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*rttSizeMult, math.floor(backgroundRect[4]-backgroundRect[2])*rttSizeMult, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -433,7 +438,9 @@ local function updateList(force)
 			end)
 		else
 			dlist = gl.CreateList(function()
-				drawBackground()
+				if not useRenderToTextureBg then
+					drawBackground()
+				end
 				drawContent()
 			end)
 		end
@@ -484,8 +491,11 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.25)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	rttSizeMult = vsy<1400 and 2 or 1
+	local rttAdjust = useRenderToTexture and rttSizeMult > 1
+	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -578,8 +588,10 @@ function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
 	end
-	if uiTex then
+	if uiBgTex then
 		gl.DeleteTextureFBO(uiBgTex)
+	end
+	if uiTex then
 		gl.DeleteTextureFBO(uiTex)
 	end
 	if WG['guishader'] then
@@ -684,13 +696,17 @@ function widget:DrawScreen()
 		doUpdateForce = nil
 	end
 	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
-		if useRenderToTexture then
+		if useRenderToTextureBg then
 			if uiBgTex then
 				-- background element
 				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 				gl.Texture(uiBgTex)
 				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+				gl.Texture(false)
+				gl.Color(1,1,1,1)
 			end
+		end
+		if useRenderToTexture then
 			if uiTex then
 				--content
 				gl.Color(1,1,1,1)

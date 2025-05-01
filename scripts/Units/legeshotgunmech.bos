@@ -556,8 +556,6 @@ Create()
 	start-script RestoreAfterDelay();
     turn rArmGun to z-axis <15> speed <50>;
     turn lArmGun to z-axis <-15> speed <50>;
-    turn rUpperLeg to y-axis <-15> speed <50>;
-    turn lUpperLeg to y-axis <15> speed <50>;
 
     move aaMinigunBase to y-axis [4] speed [10];
     turn aaMinigunTurret to x-axis <-45> speed <10>;

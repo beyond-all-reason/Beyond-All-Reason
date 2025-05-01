@@ -3,7 +3,10 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, dbl, dbr, dtr, dtl, dummy;
+piece  base, dbl, dbr, dtr, dtl, dummy,
+greendbr, greendtr, greendtl, greendbl, orangelight;
+
+static-var  restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -12,6 +15,13 @@ piece  base, dbl, dbr, dtr, dtl, dummy;
 Create()
 {
 	hide dummy;
+	restore_delay = 3000;
+	missiles_stockpiled = 0;
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
 }
 
 #define BASEPIECE base
@@ -43,6 +53,11 @@ Deactivate()
 	move dtr to z-axis [0] speed [8];	
 }
 
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -65,6 +80,40 @@ QueryWeapon1(pieceIndex)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex=dummy;
+}
+
+lights_orange()
+{
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greendbr;
+	show greendtl;
+	show greendtr;
+	show greendbl;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

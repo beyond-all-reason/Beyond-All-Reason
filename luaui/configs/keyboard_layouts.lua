@@ -197,6 +197,45 @@ scanToCode["de-neo"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
+scanToCode["workman"] = {
+	Q = "Q",
+	W = "D",
+	E = "R",
+	R = "W",
+	T = "B",
+	Y = "J",
+	U = "F",
+	I = "U",
+	O = "P",
+	P = ";",
+	A = "A",
+	S = "S",
+	D = "H",
+	F = "T",
+	G = "G",
+	H = "Y",
+	J = "N",
+	K = "E",
+	L = "O",
+	Z = "Z",
+	X = "X",
+	C = "M",
+	V = "C",
+	B = "V",
+	N = "K",
+	M = "L",
+	[";"] = "I",
+	["'"] = "'",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "/",
+	["`"] = "`",
+	["-"] = "-",
+	["="] = "=",
+	["\\"] = "\\",
+}
+
+
 local layouts = {
 	'qwerty',
 	'qwertz',
@@ -205,6 +244,7 @@ local layouts = {
 	'colemak-dh',
 	'dvorak',
 	'de-neo',
+	'workman',
 }
 
 local function sanitizeKey(key, layout)

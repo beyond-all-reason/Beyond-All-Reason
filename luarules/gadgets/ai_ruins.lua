@@ -72,6 +72,8 @@ local landMexesList = {
 	"legmoho",
 	"legmoho",
 	"legmoho",
+	"legmohocon",
+	"legmohocon",
 }
 
 local seaMexesList = {

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,pad, nc1,nc2,nc3,nc4,nt1,nt2,nt3,nt4,nano1,nano2,nano3,nano4,beam1,beam2,beam3,beam4;
+piece  base,pad, nc1,nc2,nc3,nc4,nt1,nt2,nt3,nt4,nano1,nano2,nano3,nano4,beam1,beam2,beam3,beam4,cagelight,cagelight_emit;
 
 static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
@@ -147,6 +147,7 @@ Create()
 	hide beam4;
 	hide beam2;
 	hide pad;
+	hide cagelight_emit;
 	//move base to y-axis [25] now;
 	spray = 0;
 	call-script InitState();	
@@ -170,6 +171,8 @@ StartBuilding()
 	show beam2;
 	show beam3;
 	show beam4;
+	show cagelight_emit;
+	spin cagelight_emit around z-axis speed <250>;
 }
 
 StopBuilding()
@@ -178,6 +181,8 @@ StopBuilding()
 	hide beam2;
 	hide beam3;
 	hide beam4;
+	hide cagelight_emit;
+	turn cagelight_emit to z-axis <0> speed <1000>;
 }
 
 Activate()

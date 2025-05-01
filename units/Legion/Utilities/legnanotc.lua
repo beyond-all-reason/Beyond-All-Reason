@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		objectname = "Units/LEGNANOTC.s3o",
-		script = "Units/CORNANOTC.cob",
+		script = "Units/LEGNANOTC.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
 		sightdistance = 380,

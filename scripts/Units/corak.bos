@@ -1051,8 +1051,8 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	//gun_1 == 0 means right!	
-	if (gun_1 == 0 ){
+	//gun_1 == 1 means right!	
+	if (gun_1 == 1 ){
 		turn ruparm to x-axis <15> now;
 		turn rloarm to x-axis <-15> now;
 		turn ruparm to x-axis <0> speed <30>;

@@ -1,3 +1,6 @@
+local GL_BUFFER = 0x82E0
+local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
+--Spring.Echo("gldebugannotations", gldebugannotations)
 function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
@@ -12,6 +15,9 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		maxElements,
 		layout
 	)
+	
+
+
 	local instanceStep = 0
 	for i,attribute in pairs(layout) do
 		instanceStep = instanceStep + attribute.size
@@ -36,7 +42,6 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 		lastInstanceID		= 0,
 	}
-
 
 	if unitIDattribID ~= nil then
 		instanceTable.indextoUnitID = {}
@@ -163,6 +168,12 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 
 
 	newInstanceVBO:Upload(instanceData)
+
+	-- I believe that the openGL spec doesnt guarantee that a buffer has an idea before data is uploaded to it, so we will fill it with zeros. 
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, newInstanceVBO:GetID(), myName)
+	end
+	
 
 	--register self in WG if possible
 	if WG then
@@ -390,6 +401,10 @@ function resizeInstanceVBOTable(iT)
 	end
 
 	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
+
+	if gldebugannotations then
+		gl.ObjectLabel(GL_BUFFER, iT.instanceVBO:GetID(), iT.myName)
+	end
 
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
@@ -758,7 +773,7 @@ end
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
-function makeCircleVBO(circleSegments, radius)
+function makeCircleVBO(circleSegments, radius, name)
 	-- Makes circle of radius in xy space
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	if not radius then radius = 1 end
@@ -784,10 +799,13 @@ function makeCircleVBO(circleSegments, radius)
 		VBOLayout
 	)
 	circleVBO:Upload(VBOData)
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, circleVBO:GetID(), name or "CircleVBO")
+	end
 	return circleVBO, #VBOData/4
 end
 
-function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
+function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
 	if not xsize then xsize = 1 end
 	if not ysize then ysize = xsize end
 	if not xresolution then xresolution = 1 end
@@ -816,11 +834,15 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane f
 	)
 	planeVBO:Upload(VBOData)
 
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, planeVBO:GetID(), name or "PlaneVBO")
+	end
+
 	--Spring.Echo("PlaneVBOData up:",#VBOData, "Down", #planeVBO:Download())
 	return planeVBO, #VBOData/2
 end
 
-function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
+function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	xresolution = math.floor(xresolution)
 	if not yresolution then yresolution = xresolution end
 	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
@@ -860,11 +882,15 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 		#	IndexVBOData
 	)
 	planeIndexVBO:Upload(IndexVBOData)
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, planeIndexVBO:GetID(), name or "planeIndexVBO")
+	end
 	--Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
 	return planeIndexVBO, IndexVBOData
 end
 
-function makePointVBO(numPoints, randomFactor)
+function makePointVBO(numPoints, randomFactor, name)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	numPoints = numPoints or 1
@@ -890,10 +916,14 @@ function makePointVBO(numPoints, randomFactor)
 		VBOLayout
 	)
 	pointVBO:Upload(VBOData)
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, pointVBO:GetID(), name or "pointVBO")
+	end
 	return pointVBO, numPoints
 end
 
-function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	if minX == nil then
 		minX, minY, maxX, maxY, minU, minV, maxU, maxV  = 0,0,1,1,0,0,1,1
 	end
@@ -921,10 +951,14 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 		VBOLayout
 	)
 	rectVBO:Upload(VBOData)
+	
+	if gldebugannotations then
+		gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	end
 	return rectVBO, 6
 end
 
-function makeRectIndexVBO()
+function makeRectIndexVBO(name)
 	local rectIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
 	if rectIndexVBO == nil then return nil end
 
@@ -932,12 +966,15 @@ function makeRectIndexVBO()
 		6
 	)
 	rectIndexVBO:Upload({0,1,2,3,4,5})
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, rectIndexVBO:GetID(), name or "rectIndexVBO")
+	end
 	return rectIndexVBO,6
 end
 
 
 
-function makeConeVBO(numSegments, height, radius)
+function makeConeVBO(numSegments, height, radius, name)
 	-- make a cone that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	-- needs GL.TRIANGLES
@@ -989,12 +1026,17 @@ function makeConeVBO(numSegments, height, radius)
 
 	coneVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	coneVBO:Upload(VBOData)
+
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, coneVBO:GetID(), name or "coneVBO")
+	end
+
 	return coneVBO, #VBOData/4
 end
 
 
 
-function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom)
+function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, name)
 	-- make a cylinder that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	-- needs GL.TRIANGLES
@@ -1093,12 +1135,17 @@ function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom)
 
 	cylinderVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	cylinderVBO:Upload(VBOData)
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, cylinderVBO:GetID(), name or "cylinderVBO")
+	end
+
 	return cylinderVBO, #VBOData/4
 end
 
 
 
-function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
+function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ, name) -- make a box
 	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if boxVBO == nil then return nil end
@@ -1143,6 +1190,11 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	}
 	boxVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	boxVBO:Upload(VBOData)
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, boxVBO:GetID(), name or "boxVBO")
+	end
+
 	return boxVBO, #VBOData/4
 end
 
@@ -1157,7 +1209,7 @@ end
 ---@param sectorCount number is the number of orange slices around the belly in XY
 ---@param stackCount number how many horizontal slices along Z, usually less than sectorcount
 ---@param radius number how many elmos in radius, default 1
-function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/opengl/gl_sphere.html
+function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.songho.ca/opengl/gl_sphere.html
 
 
 	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -1219,6 +1271,11 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 	end
 	sphereVBO:Define(#VBOData/9, vertVBOLayout)
 	sphereVBO:Upload(VBOData)
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, sphereVBO:GetID(), name or "sphereVBO")
+	end
+
 	local numVerts = #VBOData/9
 
 	local sphereIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
@@ -1263,12 +1320,16 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 
 	sphereIndexVBO:Define(#VBOData)
 	sphereIndexVBO:Upload(VBOData)
+		
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, sphereIndexVBO:GetID(), name or "sphereIndexVBO")
+	end
 
 	return sphereVBO, numVerts, sphereIndexVBO, #VBOData
 end
 
 
-function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	-- Draw with myGL4TexRectVAO:DrawArrays(GL.TRIANGLES)
 	minX,minY,maxX,maxY,minU,minV,maxU,maxV  = minX or -1,minY or -1,maxX or 1, maxY or 1, minU or 0, minV or 0, maxU or 1, maxV or 1
 
@@ -1290,15 +1351,10 @@ function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 		maxX,minY, maxU, minV, --br
 			})
 	
-	--[[rectVBO:Upload( {
-		minX,minY,z,w, minU, minV,0,0, --bl
-		minX,maxY,z,w, minU, maxV,0,0, --br
-		maxX,maxY,z,w, maxU, maxV,0,0,--tr
-		maxX,maxY,z,w,maxU, maxV,0,0, --tr
-		maxX,minY,z,w, maxU, minV,0,0, --br
-		minX,minY,z,w, minU, minV,0,0, --bl
-	})
-	]]--
+	
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	end
 			
 	myGL4TexRectVAO = gl.GetVAO()
 	if myGL4TexRectVAO == nil then return nil end

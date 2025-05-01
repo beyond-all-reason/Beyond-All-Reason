@@ -1,9 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2;
+piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2, greendbl, greendbr, orangelight;
 
-static-var  Stunned, oldHead;
+static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -84,6 +84,11 @@ Create()
 	hide blink;
 	hide antiflare;
 	hide ground;
+	restore_delay = 3000;
+	missiles_stockpiled = 0;
+	hide greendbl;
+	hide greendbr;
+	show orangelight;
 
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
@@ -102,6 +107,10 @@ Deactivate()
 	start-script Stop();
 }
 
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
 
 StartMoving(reversing)
 {
@@ -128,6 +137,8 @@ AimWeapon1(heading, pitch)
 	return(1);
 }
 
+
+
 FireWeapon1()
 {
 	sleep 150;
@@ -141,6 +152,36 @@ QueryWeapon1(pieceIndex)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = antiflare;
+}
+
+lights_orange()
+{
+	hide greendbl;
+	hide greendbr;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greendbl;
+	show greendbr;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

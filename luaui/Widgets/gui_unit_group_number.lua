@@ -19,16 +19,6 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spIsGUIHidden = Spring.IsGUIHidden
 
-local crashing = {}
-
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local unitCanFly = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canFly then
-		unitCanFly[unitDefID] = true
-	end
-end
-
 local gameFrame = 0
 local maxNumGroups = 9
 local minGroupID = 0
@@ -176,7 +166,7 @@ function widget:GroupChanged(groupID)
 
 		unitsToBeRemoved[unitID] = nil
 
-		if not crashing[unitID] and previousUnitGroup ~= groupID then -- not same as previous
+		if previousUnitGroup ~= groupID then -- not same as previous
 			-- remove from old
 			if previousUnitGroup then
 				grouptounitID[previousUnitGroup][unitID] = nil
@@ -230,17 +220,8 @@ function widget:Shutdown()
 	end
 end
 
--- function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-function widget:UnitDestroyed(unitID)
-	crashing[unitID] = nil
-end
-
--- widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-function widget:UnitDamaged(unitID, unitDefID)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		crashing[unitID] = true
-		RemovePrimitive(unitID)
-	end
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	RemovePrimitive(unitID)
 end
 
 function widget:GameFrame(gf)

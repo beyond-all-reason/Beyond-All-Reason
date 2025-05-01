@@ -29,10 +29,7 @@ end
 
 local stop_builders = true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
 
-local OrderUnit = Spring.GiveOrderToUnit
 local GetUnitCommands = Spring.GetUnitCommands
-local GetUnitBuildFacing = Spring.GetUnitBuildFacing
-local GetUnitPosition = Spring.GetUnitPosition
 local myTeamID = Spring.GetMyTeamID()
 
 local gameStarted

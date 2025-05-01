@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1;
+piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1, jam;
 
 static-var  bMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
 static-var recently_damaged, desired_activation;
@@ -237,6 +237,7 @@ close()
 Create()
 {
 	hide aimy1;
+	hide jam;
 	bMoving = FALSE;
 	Static_Var_3 = 1;
 	Static_Var_4 = 3000;
@@ -253,6 +254,7 @@ Activate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -286,6 +288,7 @@ Deactivate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	call-script close();
+	hide jam;
 	return (0);
 }
 
@@ -315,6 +318,7 @@ OffOnHit()
 {
 signal SIG_OFF;
 set-signal-mask SIG_OFF;
+hide jam;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit

@@ -1,6 +1,7 @@
-#version 130
+#version 430 core
 //__DEFINES__
 
+//__ENGINEUNIFORMBUFFERDEFS__
 uniform float time;
 uniform float outputAlpha;
 uniform vec2 losTexSize;
@@ -10,7 +11,10 @@ uniform vec2 radarTexSize;
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
-in vec2 texCoord;
+
+in DataVS {
+    vec4 texCoord;
+};
 out vec4 fragColor;
 /*
 // from http://www.java-gaming.org/index.php?topic=35123.0
@@ -77,7 +81,7 @@ vec4 getTexel(in sampler2D tex, in vec2 p, in vec2 sizes)
 		off = (vec2(rand(p.st + off.st), rand(p.ts - off.ts)) * 2.0 - 1.0); 
 		off = off / sizes;
 		//off = (off * abs(off)) / sizes;
-		c += texture2D(tex, p + off * RESOLUTION);
+		c += texture(tex, p + off * RESOLUTION);
 		// USE DFDX!
 		
 	}
@@ -95,7 +99,7 @@ float getTexelF(in sampler2D tex, in vec2 p, in vec2 sizes)
 		off = (vec2(rand(p.st + off.st), rand(p.ts - off.ts)) * 2.0 - 1.0); 
 		off = off / sizes;
 		//off = (off * abs(off)) / sizes;
-		float t = texture2D(tex, p + off * RESOLUTION).r;
+		float t = texture(tex, p + off * RESOLUTION).r;
 		//float tx = dFdx(t);
 		//float ty = dFdy(t);
 		//vec4 neighbours = vec4(t, t + tx, t + ty, t + tx + ty);
@@ -108,20 +112,94 @@ float getTexelF(in sampler2D tex, in vec2 p, in vec2 sizes)
 	return smoothstep(0.0, 1.0, c);
 }
 
+// This is the fake cubic blending function, which is extremely useful for upsizing without bilinear artifacts
+// Could be done ass-backwards if needed
+float gatherBlend(vec4 samples, vec2 coords, vec2 sizes)
+{
+	vec2 fracCoords = fract(coords * sizes + vec2(0.5));
+	fracCoords = smoothstep(0.0, 1.0, fracCoords);	
 
+	vec2 mixx = mix(samples.ra, samples.gb, fracCoords.x);
+	float mixy = mix(mixx.y, mixx.x, fracCoords.y);
+	
+	//printf(fracCoords.xy);
+	#define THRESHOLD 0.2
+	return smoothstep(THRESHOLD, 1.0 - THRESHOLD, mixy);
+}	
+
+
+// These sampler functions are for smooth magnification via cubic blending, and are better than the gatherBlend approach, cause its way less samples
+
+vec2 CubicSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * (3.0 - 2.0 * tf);
+    return (tf + ti + 0.5)/texdims;
+}
+
+vec2 QuinticSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * tf * (tf * (6.0 * tf - 15.0) + 10.0);
+    return (tf + ti + 0.5)/texdims;
+}
+
+vec2 OctalSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * (3.0 - 2.0 * tf);
+    tf = tf * tf * tf * (tf * (6.0 * tf - 15.0) + 10.0);
+    return (tf + ti + 0.5)/texdims;
+}
 
 void main() {
 	fragColor  = vec4(0.0);
+	#if (EXACT == 0)
+		float los = getTexelF(tex0, texCoord.xy, vec2(LOSXSIZE,LOSYSIZE) * 2.);
+		float airlos = getTexelF(tex1, texCoord.xy, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 2.5);
+		vec2 radarJammer = getTexel(tex2, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE) * 2.5).rg;
+		fragColor.r = 0.2 + 0.8 * los; // 0.4
+		fragColor.g += 0.2 + 0.8 * airlos;
+		
+		fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
+		//gl_FragColor.b += radarJammer.r;
+		//gl_FragColor.b -= 2*radarJammer.g;
+		fragColor.a = outputAlpha;
+	#else
+		// textureGather returns in rgba order, TL, TR, BR, BL
+		/*
+		vec4 los_samples = textureGather(tex0, texCoord.xy, 0);
+		vec4 airlos_samples = textureGather(tex1, texCoord.xy, 0);
+		vec4 radar_samples = textureGather(tex2, texCoord.xy, 0);
+		vec4 jammer_samples = textureGather(tex2, texCoord.xy, 1);
 
-	float los = getTexelF(tex0, texCoord, vec2(LOSXSIZE,LOSYSIZE) * 2.5);
-	float airlos = getTexelF(tex1, texCoord, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 2.5);
-	vec2 radarJammer = getTexel(tex2, texCoord, vec2(RADARXSIZE,RADARYSIZE) * 2.5).rg;
+
+		float smooth_los = gatherBlend(los_samples, texCoord.xy, vec2(LOSXSIZE,LOSYSIZE));
+		float smooth_airlos = gatherBlend(airlos_samples, texCoord.xy, vec2(AIRLOSXSIZE,AIRLOSYSIZE));
+		float smooth_radar = gatherBlend(radar_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
+		float smooth_jammer = gatherBlend(jammer_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
+		*/
+		
+		float smooth_los = textureLod(tex0, QuinticSampler(texCoord.xy, vec2(LOSXSIZE, LOSYSIZE)), 0).r;
+		smooth_los = smoothstep(0.0, 1.0, smooth_los);
+		float smooth_airlos = textureLod(tex1, CubicSampler(texCoord.xy, vec2(AIRLOSXSIZE, AIRLOSYSIZE)), 0).r;
+		//smooth_los = smoothstep(0.0, 1.0, smooth_los);
+		vec2 smooth_radars = textureLod(tex2, CubicSampler(texCoord.xy, vec2(RADARXSIZE, RADARYSIZE)), 0).rg;
+		//smooth_radars = smoothstep(0.0, 1.0, smooth_radars);
+		//fragColor.rgb = fract(texCoord.xyz * 10.0);
+		//fragColor.rgb = vec3(smooth_los);
+
+		fragColor.r = 0.2 + 0.8 * smooth_los; // 0.4
+		fragColor.g += 0.2 + 0.8 * smooth_airlos;
+		fragColor.b = 0.2 + 0.8 * clamp(0.75 * smooth_radars.r - 0.5 * (smooth_radars.g - 0.5),0,1);
+		fragColor.a = outputAlpha;
+		return;
+
+	#endif
+		//fragColor.rgb = fract(texCoord.xyz * 10.0);
+		//fragColor.a = 1.0;
 	
-	fragColor.r = 0.2 + 0.8 * los; // 0.4
-	fragColor.g += 0.2 + 0.8 * airlos;
-	
-	fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
-	//gl_FragColor.b += radarJammer.r;
-	//gl_FragColor.b -= 2*radarJammer.g;
-	fragColor.a = outputAlpha;
 }

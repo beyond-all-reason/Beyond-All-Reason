@@ -56,7 +56,7 @@ elseif scavengersEnabled then
 	legionEnabled = true
 end
 
-if Spring.GetModOptions().experimentalextraunits then
+if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
 	scavengersEnabled = true
 end
 

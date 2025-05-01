@@ -36,7 +36,7 @@ return {
 			[1] = "legack",
 			[2] = "legaceb",
 			[3] = "legstr",
-			[4] = "coramph",
+			[4] = "legamph",
 			[5] = "legshot",
 			[6] = "leginc",
 			[7] = "legsrail",

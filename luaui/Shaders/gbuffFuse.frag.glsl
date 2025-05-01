@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 430 core
 
 //__DEFINES__
 
@@ -8,6 +8,13 @@ uniform sampler2D mapDepthTex;
 uniform sampler2D unitStencilTex;
 
 uniform mat4 invProjMatrix;
+
+
+in DataVS {
+	vec4 vs_position_texcoords;
+};
+
+out vec4 fragColor;
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
@@ -34,10 +41,10 @@ void main() {
 	
 	vec2 uv = gl_FragCoord.xy * vec2(1.0/VSX, 1.0/VSY);
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
-	//gl_FragColor = vec4(uv.xy, 0.0, 1.0); return;
+	//fragColor = vec4(uv.xy, 0.0, 1.0); return;
 	#if USE_STENCIL == 1 
 		if (texture(unitStencilTex, uv).r < 0.1) {
-			gl_FragColor = vec4(0,0,0,0) ; 
+			fragColor = vec4(0,0,0,0) ; 
 			return;
 		}
 	#endif
@@ -51,6 +58,6 @@ void main() {
 	vec4 viewPosition = GetViewPos(uv, depth);
 
 	if (modelOccludesMap < 0.5) viewPosition.z *= -1.0;
-	gl_FragColor.xyz = viewPosition.xyz;
+	fragColor.xyz = viewPosition.xyz;
 
 }

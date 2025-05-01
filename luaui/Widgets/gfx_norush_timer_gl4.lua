@@ -14,27 +14,7 @@ end
 
 -- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-local scavengerAIAllyTeamID = 999
-local raptorsAIAllyTeamID = 999
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
+local pveAllyTeamID = Spring.Utilities.GetScavAllyTeamID() or Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -129,7 +109,7 @@ function widget:Initialize()
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
+		if teamID ~= gaiaAllyTeamID and teamID ~= pveAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
 			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
 			StartBoxes[#StartBoxes+1] = {xn, zn, xp, zp}

@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		buildangle = 4096,
 		energycost = 13000,
-		metalcost = 540,
+		metalcost = 560,
 		buildpic = "LEGGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,

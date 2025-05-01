@@ -30,8 +30,6 @@ local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local spGetMouseState 		= Spring.GetMouseState
 local spTraceScreenRay 		= Spring.TraceScreenRay
-local GetSelectedUnits      = Spring.GetSelectedUnits
-local GetUnitDefID          = Spring.GetUnitDefID
 local currentTime 			= os.clock
 
 --- Human friendly list. Automatically converted to unitdef IDs on init

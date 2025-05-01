@@ -438,6 +438,8 @@ end
 function addon.DrawLoadScreen()
 	local loadProgress = SG.GetLoadProgress()
 
+	if not Platform.gl then return end
+
 	if not aspectRatio then
 		local texInfo = gl.TextureInfo(backgroundTexture)
 		if not texInfo then return end

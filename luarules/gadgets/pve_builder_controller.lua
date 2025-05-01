@@ -25,24 +25,7 @@ else
 	return false
 end
 
-local scavengerAITeamID = 999
---local raptorsAITeamID = 999
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
---for i = 1, #teams do
---	local luaAI = Spring.GetTeamLuaAI(teams[i])
---	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
---		raptorsAITeamID = i - 1
---		break
---	end
---end
+local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do

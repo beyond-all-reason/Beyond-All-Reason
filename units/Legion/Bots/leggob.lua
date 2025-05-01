@@ -120,7 +120,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				predictboost = 0.5,
 				proximitypriority = 1,
-				range = 260,
+				range = 261,
 				reloadtime = 0.9,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -132,7 +132,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 933,
+				weaponvelocity = 975,
 				damage = {
 					default = 12,
 					vtol = 4,
