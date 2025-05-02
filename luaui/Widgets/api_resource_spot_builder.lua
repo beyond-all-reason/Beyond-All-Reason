@@ -17,13 +17,7 @@ end
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
-local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
-local CMD_OPT_RIGHT = CMD.OPT_RIGHT
-local CMD_OPT_ALT = CMD.OPT_ALT
-local CMD_OPT_CTRL = CMD.OPT_CTRL
-local CMD_OPT_META = CMD.OPT_META
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits

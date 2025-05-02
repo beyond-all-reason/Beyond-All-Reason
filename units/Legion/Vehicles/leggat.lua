@@ -128,7 +128,7 @@ return {
 				firestarter = 0,
 				impulsefactor = 1.5,
 				intensity = 0.8,
-				name = "Rapid-fire a2g machine guns",
+				name = "Rapid-fire machine gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,

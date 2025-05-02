@@ -39,6 +39,10 @@ vec3 hash32(vec2 p) {
 
 uniform float testuniform = 0.5;
 
+in DataVS {
+	vec4 vs_position_texcoords;
+};
+
 out vec4 fragColor;
 //----------------------------------------------------------------------------------------
 const int kernelSize = SSAO_KERNEL_SIZE;

@@ -9,7 +9,6 @@ local TWOPI  = PI * 2;
 local PIDIV2 = PI * 0.5;
 
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
-local GL_QUADS   = GL.QUADS
 local glBeginEnd = gl.BeginEnd
 local glNormal   = gl.Normal
 local glTexCoord = gl.TexCoord
