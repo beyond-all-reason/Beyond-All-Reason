@@ -85,30 +85,44 @@ local colorConfig = { --An array of R, G, B, Alpha
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
         internallinethickness = 2.0, -- can be 1.8 if we can distiquish its looks from attackranges
+		stenciled = true,
+		cannonMode = false,
+		stencilMask = 1,
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 1.8,
+		stenciled = true,
+		cannonMode = false,
+		stencilMask = 2,
     },
     nuke = {
         color = {1.2, 1.0, 0.3, 0.8},
         fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 1.0,
+		stenciled = false,
+		cannonMode = false,
+		stencilMask = 4,
     },
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0,
         internallinethickness = 1.0,
+		stenciled = false,
+		cannonMode = true,
+		stencilMask = 8,
     },
 	lrpc = {
         color = {1.3, 0.18, 0.04, 0.66},
         fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 10.0,
         internallinethickness = 1.0,
+		stenciled = false,
+		cannonMode = true,
     },
 }
 
@@ -834,47 +848,35 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 	return 1
 end
 
-local groundnukeair = {"ground","air","nuke","cannon"}
-local cannonlrpc = {"lrpc"}
-local function DRAWRINGS(primitiveType, linethickness)
+local groundnukeair = {"ground","air","nuke"}
+local cannonlrpc = {"cannon","lrpc"}
+local allrings = {"ground","air","nuke", "cannon","lrpc"}
+local stenciledrings = {}
+local nonstenciledrings = {}
+for i, weaponType in ipairs(allrings) do
+	if colorConfig[weaponType].stenciled then
+		table.insert(stenciledrings, weaponType)
+	else
+		table.insert(nonstenciledrings, weaponType)
+	end
+end
+
+local function DRAWRINGS(primitiveType, linethickness, classes)
 	local stencilMask
 	defenseRangeShader:SetUniform("cannonmode",0)
 	for i,allyState in ipairs(allyenemypairs) do
-		for j, wt in ipairs(groundnukeair) do
+		for j, wt in ipairs(classes) do
 			local defRangeClass = allyState..wt
 			local iT = defenseRangeVAOs[defRangeClass]
-			stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
-			drawcounts[stencilMask] = iT.usedElements
+
 			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+				stencilMask = colorConfig[wt].stencilMask * ( (i==1) and 1 or 16) 
+				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
 				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
 				glStencilMask(stencilMask)  -- only allow these bits to get written
 				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
-				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-			end
-		end
-	end
-
-	defenseRangeShader:SetUniform("cannonmode",1)
-	if not linethickness then 
-		-- NOTE: THIS IS THE WORLDS NASTIEST HACK TO PREVENT THE CANNON RINGS FROM BEING DRAWN STENCILED!
-		return 
-	end
-	for i,allyState in ipairs(allyenemypairs) do
-		
-		for j, wt in ipairs(cannonlrpc) do
-			local defRangeClass = allyState..wt
-			local iT = defenseRangeVAOs[defRangeClass]
-			stencilMask = 2 ^ ( 4 * (i-1) + 3)
-			drawcounts[stencilMask] = iT.usedElements
-			if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
-				--Spring.Echo("cannonmode",iT.usedElements,stencilMask, defRangeClass, buttonConfig[allyState]["ground"], linethickness, cameraHeightFactor)
-				if linethickness then
-					glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor * 0.15)
-				end
-				glStencilMask(stencilMask)
-				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
 		end
@@ -909,14 +911,14 @@ function widget:DrawWorld()
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 
-			DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
+			DRAWRINGS(GL.TRIANGLE_FAN, nil, stenciledrings) -- FILL THE CIRCLES
 			--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true)	-- re-enable color drawing
 			glStencilMask(0)
 
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
-			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
+			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', stenciledrings) -- DRAW THE OUTER RINGS
 			glStencilTest(false)
 			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
@@ -927,7 +929,8 @@ function widget:DrawWorld()
 
 		if colorConfig.drawInnerRings then
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
-			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
+			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness', stenciledrings) -- DRAW THE INNER RINGS
+			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', nonstenciledrings) -- DRAW THE INNER RINGS
 		end
 
 		defenseRangeShader:Deactivate()
