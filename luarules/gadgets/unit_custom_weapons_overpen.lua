@@ -66,6 +66,7 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 --------------------------------------------------------------------------------
 -- Locals ----------------------------------------------------------------------
 
+local abs  = math.abs
 local min  = math.min
 local sqrt = math.sqrt
 
@@ -199,6 +200,7 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 		health, healthMax = spGetUnitHealth(targetID)
 	else
 		health, healthMax = spGetFeatureHealth(targetID)
+		health = abs(health)
 	end
 	projectileHits[projectileID] = penetrator
 	local collisions = penetrator.collisions
