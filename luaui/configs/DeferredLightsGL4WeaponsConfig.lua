@@ -616,6 +616,15 @@ local function AssignLightsToAllWeapons()
 				t.lifetime = life * 0.6
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
 				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				if string.find(weaponDef.name, 'heat') then
+					radius = (radius / 2.5)
+					t.a = 0.01 + ((orgMult*0.035) / weaponDef.beamtime) + (weaponDef.range*0.000025)
+					t.color2r = 1.2
+					t.color2g = 0.5
+					t.color2b = 0.2
+					t.colortime = 0.3
+					t.lifetime = 4
+				end
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
 				t.a = orgMult*1.25
@@ -967,20 +976,29 @@ GetLightClass("LaserProjectile", "Warm", "Tiny", {a = 0.25,
 											modelfactor = 0.5, specular = 0.05, scattering = 1.3, lensflare = 16,
 											lifetime = 3, sustain = 2,})
 
+--legaheattank
+-- explosionLightsNames["legaheattank_heat_ray"] =
+-- GetLightClass("Explosion", nil, "Smaller", {r = 0.26, g = 0.26, b = 0.06, a = 0.18,
+-- 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+-- 										 sustain = 2, lifetime = 4,
+-- 										 modelfactor = -0.3, specular = -0.3, scattering = 0.25, lensflare = 0})
+
+-- explosionLightsNames["legaheattank_heat_ray"].yOffset = 19
+
 --legbastion
-explosionLightsNames["legbastion_pineappleofdoom"] =
-GetLightClass("Explosion", "Fire", "Medium", {r = 0.26, g = 0.22, b = 0.06, a = 0.25,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
-										 sustain = 2, lifetime = 4,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.55, lensflare = 0})
+-- explosionLightsNames["legbastion_t2heatray"] =
+-- GetLightClass("Explosion", nil, "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.20,
+-- 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+-- 										 sustain = 2, lifetime = 4,
+-- 										 modelfactor = -0.3, specular = -0.3, scattering = 0.55, lensflare = 0})
 
-explosionLightsNames["legbastion_pineappleofdoom"].yOffset = 38
+--explosionLightsNames["legbastion_t2heatray"].yOffset = 28
 
-projectileDefLightsNames["legbastion_pineappleofdoom"] =
-GetLightClass("LaserProjectile", "Warm", "Smaller", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
+projectileDefLightsNames["legbastion_t2heatray"] =
+GetLightClass("LaserProjectile", nil, "Small", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
 											color2r = 0.15, color2g = 0.04, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
-											modelfactor = 0.5, specular = 0.05, scattering = 0.3, lensflare = 0,
+											modelfactor = 0.5, specular = -0.1, scattering = 2.9, lensflare = 0,
 											lifetime = 3, sustain = 2})
 
 --leginc
@@ -1001,18 +1019,18 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 
 --legeheatraymech
 explosionLightsNames["legeheatraymech_heatray1"] =
-GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.15,
+										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.5,
 										 sustain = 2, lifetime = 3,
-										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+										 modelfactor = -0.3, specular = -0.2, scattering = 1.05, lensflare = 0})
 
 explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
 
 projectileDefLightsNames["legeheatraymech_heatray1"] =
-GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
+GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.25,
 											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
-											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
+											modelfactor = 0.3, specular = -0.05, scattering = 3.9, lensflare = 16,
 											sustain = 2, lifetime = 3, })
 
 
