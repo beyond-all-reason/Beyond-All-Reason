@@ -119,6 +119,7 @@ local ContributorAINames = {
     "tovernaar123",
     "verybadsoldier",
     "wilkubyk",
+    "Whocanitbnow",
 }
 
 return ContributorAINames
