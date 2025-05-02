@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,dish;
+piece  base, dish, jam;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -12,12 +12,14 @@ static-var  Stunned;
 
 Go()
 {
-	spin dish around y-axis speed <150.000000>;
+	show jam;
+	spin dish around y-axis speed <200.000000> accelerate <1>;
 	return (0);
 }
 Stop()
 {
-	stop-spin dish around y-axis;
+	hide jam;
+	stop-spin dish around y-axis decelerate <6>;
 	return (0);
 }
 SetStunned(State)
@@ -66,6 +68,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide jam;
 	call-script InitState();
 	return (0);
 }

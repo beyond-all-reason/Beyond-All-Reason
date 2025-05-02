@@ -17,7 +17,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local cfgResText = true
 local cfgSticktotopbar = true
@@ -73,7 +73,7 @@ local lastPlayerChange = 0
 local aliveAllyTeams = 0
 local right = true
 local widgetHeight = 0
-local widgetWidth = 130
+local widgetWidth = 125
 local tH = 40 -- team row height
 local WBadge = 14 -- width of player badge (team rect)
 local HBadge = 14 -- width of player badge (team rect)
@@ -87,7 +87,7 @@ local maxMetal, maxEnergy = 0, 0
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local maxTeamsize = 0
-for i=1, #Spring.GetAllyTeamList()-1 do
+for i=0, #Spring.GetAllyTeamList()-1 do
 	if #Spring.GetTeamList(i) > maxTeamsize then
 		maxTeamsize = #Spring.GetTeamList(i)
 	end
@@ -269,7 +269,7 @@ local function updateButtons()
 end
 
 local function setDefaults()
-	widgetWidth = 120    -- just the bars area
+	widgetWidth = 125    -- just the bars area
 	right = true
 	tH = 32
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
@@ -621,7 +621,7 @@ local function makeTeamCompositionList()
 		end
 		prevAreaRect = areaRect
 
-		if not uiBgTex or not rectAreaChange then
+		if not uiBgTex or rectAreaChange then
 			if uiBgTex then
 				gl.DeleteTextureFBO(uiBgTex)
 			end
@@ -650,18 +650,6 @@ local function makeTeamCompositionList()
 				for id, rect in pairs(uiElementRects) do
 					UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil, useRenderToTexture)
 				end
-				gl.PopMatrix()
-			end)
-		end
-		if uiTex then
-			gl.RenderToTexture(uiTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.Color(1,1,1,1)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
-				gl.Translate(-areaRect[1], -areaRect[2], 0)
-				DrawTeamComposition()
 				gl.PopMatrix()
 			end)
 		end
@@ -771,7 +759,7 @@ end
 local function DrawEText(numberE, vOffset)
 	local label = string.formatSI(numberE)
 	font:Begin()
-	font:SetTextColor({ 1, 1, 0, 1 })
+	font:SetTextColor(1, 1, 0, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
 	font:End()
 end
@@ -779,7 +767,7 @@ end
 local function DrawMText(numberM, vOffset)
 	local label = string.formatSI(numberM)
 	font:Begin()
-	font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
+	font:SetTextColor(1, 1, 1, 1)
 	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (borderPadding * 0.5) + (tH * 0.58), tH / 2.3, 'rs')
 	font:End()
 end
@@ -796,11 +784,11 @@ local function DrawEBar(tE, tEp, vOffset)
 	local barheight = 1 + math.floor(tH * 0.08)
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 1.95)
+		maxW = (widgetWidth / 2.15)
 	end
 
 	-- background
-	glColor(0.8, 0.8, 0, 0.13)
+	glColor(0.8, 0.8, 0, useRenderToTexture and 0.55 or 0.13)
 	gl.Texture(images.barbg)
 	glTexRect(
 			widgetPosX + dx,
@@ -808,29 +796,11 @@ local function DrawEBar(tE, tEp, vOffset)
 			widgetPosX + dx + maxW,
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
-	-- energy total
-	glColor(0.7, 0.7, 0.7, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tE * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	-- energy production
-	glColor(1, 1, 0, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tEp * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
 
 	if tE * maxW > 0.9 then
 		local glowsize = 23 * sizeMultiplier
 		-- energy total
-		glColor(1, 1, 0, 0.032)
+		glColor(1, 1, 0, useRenderToTexture and 0.35 or 0.032)
 		gl.Texture(images.barglowcenter)
 		glTexRect(
 				widgetPosX + dx,
@@ -853,7 +823,7 @@ local function DrawEBar(tE, tEp, vOffset)
 				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
 		)
 		-- energy production
-		glColor(1, 1, 0, 0.032)
+		glColor(1, 1, 0, useRenderToTexture and 0.35 or 0.032)
 		gl.Texture(images.barglowcenter)
 		glTexRect(
 				widgetPosX + dx,
@@ -876,6 +846,25 @@ local function DrawEBar(tE, tEp, vOffset)
 				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
 		)
 	end
+	
+	-- energy total
+	glColor(0.7, 0.7, 0.7, 1)
+	gl.Texture(images.bar)
+	glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight - vOffset + dy,
+			widgetPosX + dx + tE * maxW,
+			widgetPosY + widgetHeight - vOffset + dy - barheight
+	)
+	-- energy production
+	glColor(1, 1, 0, 1)
+	gl.Texture(images.bar)
+	glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight - vOffset + dy,
+			widgetPosX + dx + tEp * maxW,
+			widgetPosY + widgetHeight - vOffset + dy - barheight
+	)
 	gl.Texture(false)
 	glColor(1, 1, 1, 1)
 end
@@ -893,10 +882,10 @@ local function DrawMBar(tM, tMp, vOffset)
 
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 1.95)
+		maxW = (widgetWidth / 2.15)
 	end
 	-- background
-	glColor(0.8, 0.8, 0.8, 0.13)
+	glColor(0.8, 0.8, 0.8, useRenderToTexture and 0.55 or 0.13)
 	gl.Texture(images.barbg)
 	glTexRect(
 			widgetPosX + dx,
@@ -904,28 +893,11 @@ local function DrawMBar(tM, tMp, vOffset)
 			widgetPosX + dx + maxW,
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
-	-- metal total
-	glColor(0.7, 0.7, 0.7, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tM * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	-- metal production
-	glColor(1, 1, 1, 1)
-	gl.Texture(images.bar)
-	glTexRect(
-			widgetPosX + dx,
-			widgetPosY + widgetHeight - vOffset + dy,
-			widgetPosX + dx + tMp * maxW,
-			widgetPosY + widgetHeight - vOffset + dy - barheight
-	)
-	if tM * maxW > 0.9 then
+	-- glow
+	if not useRenderToTexture and tM * maxW > 0.9 then
 		local glowsize = 26 * sizeMultiplier
 		-- metal total
-		glColor(1, 1, 1, 0.032)
+		glColor(1, 1, 1, useRenderToTexture and 0.3 or 0.032)
 		gl.Texture(images.barglowcenter)
 		glTexRect(
 				widgetPosX + dx,
@@ -948,7 +920,7 @@ local function DrawMBar(tM, tMp, vOffset)
 				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
 		)
 		-- metal production
-		glColor(1, 1, 1, 0.032)
+		glColor(1, 1, 1, useRenderToTexture and 0.3 or 0.032)
 		gl.Texture(images.barglowcenter)
 		glTexRect(
 				widgetPosX + dx,
@@ -971,6 +943,24 @@ local function DrawMBar(tM, tMp, vOffset)
 				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
 		)
 	end
+	-- metal total
+	glColor(0.7, 0.7, 0.7, 1)
+	gl.Texture(images.bar)
+	glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight - vOffset + dy,
+			widgetPosX + dx + tM * maxW,
+			widgetPosY + widgetHeight - vOffset + dy - barheight
+	)
+	-- metal production
+	glColor(1, 1, 1, 1)
+	gl.Texture(images.bar)
+	glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight - vOffset + dy,
+			widgetPosX + dx + tMp * maxW,
+			widgetPosY + widgetHeight - vOffset + dy - barheight
+	)
 	gl.Texture(false)
 	glColor(1, 1, 1)
 end
@@ -1007,7 +997,7 @@ local function DrawBox(hOffset, vOffset, r, g, b)
 			widgetPosX + hOffset + dx,
 			widgetPosY + widgetHeight - vOffset + dy + h,
 			h * 0.055,
-			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 0.4 }, { r, g, b, 0.4 }
+			1, 1, 1, 1, { r * 0.5, g * 0.5, b * 0.5, 1 }, { r, g, b, 1 }
 	)
 	glColor(1, 1, 1, 1)
 end
@@ -1082,6 +1072,7 @@ function DrawTeamComposition()
 					teamWidth = -(WBadge * (i)) - (WBadge * 0.3)
 				end
 			end
+			teamWidth = teamWidth + floor((playerScale-1)*14)
 
 			if type(data.tE) == "number" and drawpos and #(data.teams) > 0 then
 				DrawBackground(posy - (4 * sizeMultiplier), aID, math.floor(teamWidth))
@@ -1099,10 +1090,10 @@ function DrawTeamComposition()
 					hasCom = tData.hasCom
 					if GetGameSeconds() > 0 then
 						if not tData.isDead then
-							alpha = tData.active and 1 or 0.3
+							alpha = tData.active and 1 or (useRenderToTexture and 0.6 or 0.3)
 							DrawTeamCompositionTeam(posx, posy + floor(tH * 0.125), r, g, b, alpha, not hasCom, Button[tID].mouse, t, false, tID)
 						else
-							alpha = 0.8
+							alpha = useRenderToTexture and 0.9 or 0.8
 							DrawTeamCompositionTeam(posx, posy + floor(tH * 0.125), r, g, b, alpha, true, Button[tID].mouse, t, true, tID) --dead, big icon
 						end
 					else
@@ -1173,14 +1164,23 @@ local function drawListStandard()
 					end
 				end
 				if updateTextLists then
-					textLists[aID] = gl.CreateList(function()
+					if useRenderToTexture then
 						if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
 							DrawEText(avgData[aID].tE, posy)
 							DrawMText(avgData[aID].tM, posy)
 						end
-					end)
-			   end
-			   gl.CallList(textLists[aID])
+					else
+						textLists[aID] = gl.CreateList(function()
+							if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
+								DrawEText(avgData[aID].tE, posy)
+								DrawMText(avgData[aID].tM, posy)
+							end
+						end)
+					end
+				end
+				if not useRenderToTexture then
+					gl.CallList(textLists[aID])
+				end
 			end
 		end
 	end
@@ -1364,7 +1364,9 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font = WG['fonts'].getFont()
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1.4, 0.45 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
+
 	Reinit()
 end
 
@@ -1376,7 +1378,7 @@ function widget:Update(dt)
 	if not inSpecMode or not myFullview then
 		return
 	end
-	
+
 	local gf = Spring.GetGameFrame()
 	if not gamestarted and gf > 0 then
 		gamestarted = true
@@ -1416,13 +1418,14 @@ function widget:Update(dt)
 		if WG.allyTeamRanking then
 			updateDrawPos()
 		end
-		refreshTeamCompositionList = true
+		--refreshTeamCompositionList = true
 	end
 
 	local prevTopbarShowButtons = topbarShowButtons
 	topbarShowButtons = WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons or not prevTopbar and (WG['topbar'] ~= nil) or prevTopbar ~= (WG['topbar'] ~= nil) then
 		Reinit()
+		lastBarsUpdate = 0
 		lastTextListUpdate = 0
 	end
 	prevTopbar = WG['topbar'] ~= nil and true or false
@@ -1432,35 +1435,61 @@ function widget:DrawScreen()
 	if not myFullview or not inSpecMode then
 		return
 	end
-	
+
 	if aliveAllyTeams > 16 then
 		return
 	end
-	
+
 	if refreshTeamCompositionList then
+		lastBarsUpdate = 0
+		lastTextListUpdate = 0
 		refreshTeamCompositionList = false
 		makeTeamCompositionList()
 	end
 
-	if useRenderToTexture and uiBgTex then
-		-- background element
-		gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-		gl.Texture(uiBgTex)
-		gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
-		-- content
-		gl.Color(1,1,1,1)
-		gl.Texture(uiTex)
-		gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
-		gl.Texture(false)
+	
+	if uiTex then
+		if os.clock() > lastBarsUpdate + 0.15 then
+			gl.RenderToTexture(uiTex, function()
+				if cfgResText and os.clock() <= lastTextListUpdate + 0.5 then
+					-- only clean non text area
+					gl.Scissor(0, 0, areaRect[3]-areaRect[1] - (48 * sizeMultiplier), widgetHeight)
+				end
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.Scissor(false)
+				gl.Color(1,1,1,1)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
+				gl.Translate(-areaRect[1], -areaRect[2], 0)
+				DrawTeamComposition()
+				drawListStandard()
+				gl.PopMatrix()
+			end)
+		end
 	end
 
-	gl.PolygonOffset(-7, -10)
-	gl.PushMatrix()
-	if not useRenderToTexture then
+	if useRenderToTexture then
+		-- background element
+		if uiBgTex then
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(uiBgTex)
+			gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
+		end
+		-- content
+		if uiTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(uiTex)
+			gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
+			gl.Texture(false)
+		end
+	else
+		gl.PolygonOffset(-7, -10)
+		gl.PushMatrix()
 		gl.CallList(teamCompositionList)
+		drawListStandard()
+		gl.PopMatrix()
 	end
-	drawListStandard()
-	gl.PopMatrix()
 
 	local mx, my = Spring.GetMouseState()
 	if math_isInRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
