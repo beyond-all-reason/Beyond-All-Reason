@@ -127,19 +127,22 @@ end
 local function ResourceCheck(posx, posz, posradius) -- Returns true if there are no resources in the spawn area
     local posradiusSquared = posradius * posradius
     local metalSpots = GG["resource_spot_finder"].metalSpotsList
-    for _,spot in ipairs(metalSpots) do
-        if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
-            return false
+    if metalSpots then
+        for _,spot in ipairs(metalSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
         end
     end
 
     local geoSpots = GG["resource_spot_finder"].geoSpotsList
-    for _,spot in ipairs(geoSpots) do
-        if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
-            return false
+    if geoSpots then
+        for _,spot in ipairs(geoSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
         end
     end
-
     return true
 end
 
