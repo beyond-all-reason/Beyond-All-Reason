@@ -70,6 +70,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 		local extractMetal = Spring.GetUnitMetalExtraction(unitID)											-- moves the metal extraction from imex to turret.
 		Spring.SetUnitResourcing(nano_id, "umm", extractMetal)
 		Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal))
+		Spring.SetUnitStealth (nano_id, true) 
 
 		mexesToSwap[unitID] = nil
 	end
