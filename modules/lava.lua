@@ -175,13 +175,9 @@ local modTideRhym = (Spring.GetModOptions().map_waterislava and Spring.GetModOpt
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
-	if modTideRhym == "default" then
-		--Spring.Echo("Lava TideRhym set to map default")
-	elseif modTideRhym == "enabled" then
-		--Spring.Echo("Lava TideRhym set to custom mod option")
+	if modTideRhym == "enabled" then
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhym == "disabled" then
-		--Spring.Echo("Map TideRhym is disabled")
 		level = level 
 		tideRhym = {tideRhym[1]} -- only the first (starting) tide level is used
 		tideRhym[1][3] = 5*6000 -- extend the first tide 
@@ -216,14 +212,11 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
 	if modTideRhym == "default" then
-		--Spring.Echo("Lava TideRhym set to default")
 		level = 4
 		tideRhym = { { 4, 0.05, 5*6000 } }
 	elseif modTideRhym == "enabled" then
-		--Spring.Echo("Lava TideRhym set to custom mod option")
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhym == "disabled" then
-		--Spring.Echo("Map TideRhym is disabled")
 		level = 4
 		tideRhym = { { 4, 0.05, 5*6000 } }
 	end
