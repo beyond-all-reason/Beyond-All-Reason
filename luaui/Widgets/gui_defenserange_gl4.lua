@@ -76,8 +76,8 @@ local buttonConfig = {
 local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-    externalalpha = 0.80, -- alpha of outer rings
-    internalalpha = 0.3, -- alpha of inner rings
+    externalalpha = 0.75, -- alpha of outer rings
+    internalalpha = 0.10, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
@@ -101,12 +101,12 @@ local colorConfig = { --An array of R, G, B, Alpha
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 6.0,
+        externallinethickness = 5.0,
         internallinethickness = 1.0,
     },
 	lrpc = {
-        color = {1.3, 0.18, 0.04, 0.74},
-        fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        color = {1.3, 0.18, 0.04, 0.66},
+        fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 10.0,
         internallinethickness = 1.0,
     },
@@ -834,8 +834,8 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 	return 1
 end
 
-local groundnukeair = {"ground","air","nuke"}
-local cannonlrpc = {"cannon","lrpc"}
+local groundnukeair = {"ground","air","nuke","cannon"}
+local cannonlrpc = {"lrpc"}
 local function DRAWRINGS(primitiveType, linethickness)
 	local stencilMask
 	defenseRangeShader:SetUniform("cannonmode",0)

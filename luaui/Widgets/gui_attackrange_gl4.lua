@@ -72,13 +72,13 @@ local colorConfig = {
 	cannon_separate_stencil = true, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
-	externalalpha = 0.80, -- alpha of outer rings
-	internalalpha = 0.17, -- alpha of inner rings
+	externalalpha = 0.75, -- alpha of outer rings
+	internalalpha = 0.15, -- alpha of inner rings
 	fill_alpha = 0.12, -- this is the solid color in the middle of the stencil
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 3200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 2800, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -1131,6 +1131,7 @@ function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	RemoveSelectedUnit(unitID, false)
 	builders[unitID] = nil
 end
+
 
 
 
