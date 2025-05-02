@@ -120,6 +120,8 @@ local ContributorAINames = {
     "verybadsoldier",
     "wilkubyk",
     "Whocanitbnow",
+    "SuperKitowiec",
+
 }
 
 return ContributorAINames

@@ -1582,6 +1582,32 @@ local unitDistortions = {
 		-- },
 	},
 
+	['scavengerbossv4_normal'] = {
+		distortionbeam = {
+			distortionType = 'point',
+			pieceName = 'head',
+			distortionConfig = { posx = 0, posy = -22, posz = 8, radius = 42,
+								pos2x = 0, pos2y = 6, pos2z = 0.1, 
+								noiseStrength = 2, noiseScaleSpace = -0.6, distanceFalloff = 1.0,
+								windAffected = -1, effectStrength = 1.5,
+								lifeTime = 0,  effectType = 0},
+		},
+		-- cloakblob = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'head',
+		-- 	distortionConfig = { posx = 0, posy = -21, posz = 8, radius = 16,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 1.6, effectType = "magnifier"}, 
+		-- },
+		-- magnifier = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'turret',
+		-- 	distortionConfig = { posx = -8, posy = 10, posz = -3, radius = 4,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- },
+	},
+
 	['armsjam'] = {
 		distortionbeam1 = {
 			distortionType = 'beam',
@@ -1723,9 +1749,58 @@ local unitDistortions = {
 		},
 	},
 
+	['armblade'] = {
+		thrust = {
+			distortionType = 'cone',
+			pieceName = 'thrust',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -1, lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corape'] = {
+		rthrust = {
+			distortionType = 'cone',
+			pieceName = 'rthrust',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+
+		lthrust = {
+			distortionType = 'cone',
+			pieceName = 'lthrust',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armkam'] = {
+		thrusta = {
+			distortionType = 'cone',
+			pieceName = 'thrusta',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+
+		thrustb = {
+			distortionType = 'cone',
+			pieceName = 'thrustb',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+	},
 
 	['corcrwh'] = {
-
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrra',
@@ -1778,8 +1853,183 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
+
+	['corcrwt4'] = {
+		thrust1 = {
+			distortionType = 'cone',
+			pieceName = 'thrustrra',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+
+		thrust2 = {
+			distortionType = 'cone',
+			pieceName = 'thrustrla',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrust3 = {
+			distortionType = 'cone',
+			pieceName = 'thrustfla',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrust4 = {
+			distortionType = 'cone',
+			pieceName = 'thrustfra',
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		-- distortionleft = {
+		-- 	distortionType = 'beam',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 15, posy = 32, posz = -21, radius = 8,
+		-- 						pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28, 
+		-- 						noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
+		-- 						rampUp = 30, decay = -1.5,
+		-- 						lifeTime = 0,  effectType = 0},
+		-- },
+		-- distortionright = {
+		-- 	distortionType = 'beam',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = -15, posy = 32, posz = -21, radius = 8,
+		-- 						pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28, 
+		-- 						noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
+		-- 						rampUp = 30, decay = -1.5,
+		-- 						lifeTime = 0,  effectType = 0},
+		-- },
+	},
+
+	['armfepocht4'] = {
+		thrustl1 = {
+			distortionType = 'cone',
+			pieceName = 'thrustl1',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+
+		thrustl2 = {
+			distortionType = 'cone',
+			pieceName = 'thrustl2',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrustr1 = {
+			distortionType = 'cone',
+			pieceName = 'thrustr1',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrustr2 = {
+			distortionType = 'cone',
+			pieceName = 'thrustr2',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corfblackhyt4'] = {
+		thrustl1 = {
+			distortionType = 'cone',
+			pieceName = 'thrustl1',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+
+		thrustl2 = {
+			distortionType = 'cone',
+			pieceName = 'thrustl2',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrustr1 = {
+			distortionType = 'cone',
+			pieceName = 'thrustr1',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		thrustr2 = {
+			distortionType = 'cone',
+			pieceName = 'thrustr2',
+			distortionConfig = { posx = -2, posy = 0, posz = 8, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.65,
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+	},
 }
 
+local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
+--	["armfig"] = {
+--	{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
+--}, 
+do
+	-- This is the base effect for the airjet distortion, tune it to affect all airjets
+	local longAirJet = { posx = 0, posy = 0, posz = 0, radius = 130,
+		dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
+		noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.5,
+		effectStrength = 4.0, onlyModelMap = 0, -- I want it on unit and background too
+		lifeTime = 0,  effectType = 0}
+
+	for unitDefName, airjets in pairs(airjets_effects) do
+		if not unitDistortions[unitDefName] then 
+			unitDistortions[unitDefName] = {}
+		end
+		for i, airjet in ipairs(airjets) do 
+			-- if that piece already has a distortion attached to it, we wont overwrite it. 
+			local alreadyhasjet = false
+			for j, distortion in pairs(unitDistortions[unitDefName]) do
+				if distortion.pieceName == airjet.piece then
+					Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
+					alreadyhasjet = true
+					break
+				end
+			end
+			if not alreadyhasjet then
+
+				local effectname = 'airjet' .. tostring(i) .. airjet.piece
+				local airjetConfig = table.copy(longAirJet)
+
+				-- The radius and cone angle are set to be close to the airjet length and width
+				airjetConfig.radius = airjet.length * 6
+				-- We need to set the theta angle (half -angle of the cone in radians) to ensure that the width-length ratio is correct
+				airjetConfig.theta = math.atan(airjet.width / airjet.length) * 1.2
+				
+				--Spring.Echo("airjetConfig.theta", airjetConfig.theta, airjet.width, airjet.length)
+
+				
+				unitDistortions[unitDefName][effectname] = {
+					distortionType = 'cone',
+					pieceName = airjet.piece,
+					distortionConfig = airjetConfig,
+				}
+			end
+		end
+
+	end
+end
 
 -- Effect duplications:
 unitDistortions['armdecom'] = unitDistortions['armcom']
