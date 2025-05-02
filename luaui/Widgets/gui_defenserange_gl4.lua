@@ -918,6 +918,10 @@ function widget:DrawWorld()
 			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
 			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
 			glStencilTest(false)
+			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
+			glClear(GL.STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
+			-- All the above are needed :O
 
 		end
 
