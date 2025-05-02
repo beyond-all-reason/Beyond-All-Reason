@@ -94,6 +94,7 @@ local ContributorAINames = {
     "deadlypants",
     "drivver44",
     "duke_of_gloat",
+    "Encyclopedia",
     "gajop",
     "hihoman23",
     "hokomoko",
@@ -104,11 +105,13 @@ local ContributorAINames = {
     "lamer",
     "lov",
     "mupersega",
+    "neb_",
     "pandaro",
     "resopmok",
     "robert the pie",
     "rossco",
     "saurtron",
+    "Setokaiva",
     "skynet",
     "smellymoo",
     "smile",
@@ -116,7 +119,9 @@ local ContributorAINames = {
     "tovernaar123",
     "verybadsoldier",
     "wilkubyk",
+    "Whocanitbnow",
     "SuperKitowiec",
+
 }
 
 return ContributorAINames
