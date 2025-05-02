@@ -1132,6 +1132,15 @@ function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	builders[unitID] = nil
 end
 
+
+
+if autoReload then 
+    function widget:DrawScreen()
+        if attackRangeShader.DrawPrintf then attackRangeShader.DrawPrintf(0, 64) end
+    end
+end
+
+
 --SAVE / LOAD CONFIG FILE
 -----------------------------------------------------------------------------------------
 -- Useful config options to have for players in options menu are:

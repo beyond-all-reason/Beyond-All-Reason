@@ -220,7 +220,10 @@ void main() {
 	vec4 circleprogress = vec4(0.0);
 	circleprogress.xy = circlepointposition.xy;
 	if (staticUnits > 0.5) {
+		// we need to add the aim pos of the turret coming in at posscale.y to the actual ground height.
 		modelWorldPos = posscale.xyz;
+		float modelposgroundheight = heightAtWorldPos(modelWorldPos.xz);
+		modelWorldPos.y = modelposgroundheight + posscale.y;
 		circleWorldPos.xz = circlepointposition.xy * RANGE +  modelWorldPos.xz;
 	}else {
 		// Get the center pos of the unit
@@ -265,7 +268,7 @@ void main() {
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
 	#if (DEBUG == 1)
-		v_debug = vec4(RANGE);
+		v_debug = vec4(modelWorldPos.xyzy);
 	#endif
 	
 	if (cannonmode > 0.5){
@@ -304,7 +307,7 @@ void main() {
 		if (ISCYLINDER < 0.5){ // isCylinder
 			//simple implementation, 4 samples per point
 			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){ // DEBuGGING
-			vec4 heightAndNormal = normalsAndHeightAtWorldPos(circleWorldPos.xz);
+			//vec4 heightAndNormal = normalsAndHeightAtWorldPos(circleWorldPos.xz);
 			for (int i = 0; i< HEIGHTMAP_SAMPLE_STEPS / 2; i++){
 				// draw vector from centerpoint to new height point and normalize it to range length
 				vec3 tonew = circleWorldPos.xyz - modelWorldPos.xyz;
