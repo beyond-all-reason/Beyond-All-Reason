@@ -69,8 +69,8 @@ end
 local enabledAsSpec = true
 
 local buttonConfig = {
-	ally = { ground = true, air = true, nuke = true , cannon = true},
-	enemy = { ground = true, air = true, nuke = true , cannon = true}
+	ally = { ground = true, air = true, nuke = true , cannon = true, lrpc = true},
+	enemy = { ground = true, air = true, nuke = true , cannon = true, lrpc = true}
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
@@ -104,26 +104,27 @@ local colorConfig = { --An array of R, G, B, Alpha
         externallinethickness = 6.0,
         internallinethickness = 1.0,
     },
-	-- lrpc = {
-    --     color = {1.3, 0.18, 0.04, 0.74},
-    --     fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-    --     externallinethickness = 10.0,
-    --     internallinethickness = 1.0,
-    -- },
+	lrpc = {
+        color = {1.3, 0.18, 0.04, 0.74},
+        fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 10.0,
+        internallinethickness = 1.0,
+    },
 }
 
 
 --- Camera Height based line shrinkage:
 
-
 ----------------------------------
-
-local buttonconfigmap ={'ground','air','nuke','cannon'}
-local DEBUG = false --generates debug message
-local weaponTypeMap = {'ground','air','nuke','cannon'}
 
 local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific table:
 	-- a list of tables, ideally ranged from 0 where
+	-- consider that a unit can have any of multiple types
+--[[
+	-- unitDefRings[unitDefID] = {
+
+	}
+]]-- 
 
 local mobileAntiUnitDefs = {
 	[UnitDefNames.armscab.id ] = true,
@@ -160,23 +161,15 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		local range = weaponDef.range
-		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 		--Spring.Echo(weaponType)
-		if weaponType ~= nil and weaponType > 0 then
-			local damage = 0
-			if weaponType == 2 then --AA
-				damage = weaponDef.damages[vtoldamagetag]
-			elseif weaponType == 3 then -- antinuke
-				damage = 0
+		if weaponType ~= nil  then
+			if  weaponType == 'nuke' then -- antinuke
 				range = weaponDef.coverageRange
 				--Spring.Echo("init antinuke", range)
-			else
-				damage = weaponDef.damages[defaultdamagetag]
 			end
-			dps = damage * (weaponDef.salvoSize or 1) / (weaponDef.reload or 1)
-			local color = colorConfig[weaponTypeMap[weaponType]].color
-			local fadeparams =  colorConfig[weaponTypeMap[weaponType]].fadeparams
+			local color = colorConfig[weaponType].color
+			local fadeparams =  colorConfig[weaponType].fadeparams
 
 			local isCylinder = 1
 			if weaponType == 1 or weaponType == 4 then -- all non-cannon ground weapons are spheres, aa and antinuke are cyls
@@ -197,101 +190,102 @@ end
 local function initUnitList()
 	local unitDefRingsNames = {
 		-- ARMADA
-		['armclaw'] = { weapons = { 1 } },
-		['armllt'] = { weapons = { 1 } },
-		['armbeamer'] = { weapons = { 1 } },
-		['armhlt'] = { weapons = { 1 } },
-		['armguard'] = { weapons = { 4} },
-		['armrl'] = { weapons = { 2 } }, --light aa
-		['armferret'] = { weapons = { 2 } },
-		['armcir'] = { weapons = { 2 } }, --chainsaw
-		['armdl'] = { weapons = { 1 } }, --depthcharge
-		['armjuno'] = { weapons = { 1 } },
-		['armtl'] = { weapons = { 1 } }, --torp launcher
-		['armfhlt'] = { weapons = { 1 } },  --floating hlt
-		['armfrt'] = { weapons = { 2 } },  --floating rocket laucher
-		['armfflak'] = { weapons = { 2 } },  --floating flak AA
-		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
+		['armclaw'] = { weapons = { 'ground' } },
+		['armllt'] = { weapons = { 'ground' } },
+		['armbeamer'] = { weapons = { 'ground' } },
+		['armhlt'] = { weapons = { 'ground' } },
+		['armguard'] = { weapons = { 'cannon'} },
+		['armrl'] = { weapons = { 'air' } }, --light aa
+		['armferret'] = { weapons = { 'air' } },
+		['armcir'] = { weapons = { 'air' } }, --chainsaw
+		['armdl'] = { weapons = { 'ground' } }, --depthcharge
+		['armjuno'] = { weapons = { 'ground' } },
+		['armtl'] = { weapons = { 'ground' } }, --torp launcher
+		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
+		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
+		['armatl'] = { weapons = { 'ground' } },  --adv torpedo launcher
 
-		['armamb'] = { weapons = { 4 } }, --ambusher 4
-		['armpb'] = { weapons = { 1 } }, --pitbull 4
-		['armanni'] = { weapons = { 1 } },
-		['armflak'] = { weapons = { 2 } },
-		['armmercury'] = { weapons = { 2 } },
-		['armemp'] = { weapons = { 1 } },
-		['armamd'] = { weapons = { 3 } }, --antinuke
+		['armamb'] = { weapons = { 'cannon' } }, --ambusher 'cannon'
+		['armpb'] = { weapons = { 'ground' } }, --pitbull 'cannon'
+		['armanni'] = { weapons = { 'ground' } },
+		['armflak'] = { weapons = { 'air' } },
+		['armmercury'] = { weapons = { 'air' } },
+		['armemp'] = { weapons = { 'ground' } },
+		['armamd'] = { weapons = { 'nuke' } }, --antinuke
 
-		['armbrtha'] = { weapons = { 4 } },
-		['armvulc'] = { weapons = { 4 } },
+		['armbrtha'] = { weapons = { 'lrpc' } },
+		['armvulc'] = { weapons = { 'lrpc' } },
 
 		-- CORTEX
-		['cormaw'] = { weapons = { 1 } },
-		['corexp'] = { weapons = { 1} },
-		['cormexp'] = { weapons = { 1,1 } },
-		['corllt'] = { weapons = { 1 } },
-		['corhllt'] = { weapons = { 1 } },
-		['corhlt'] = { weapons = { 1 } },
-		['corpun'] = { weapons = { 4} },
-		['corrl'] = { weapons = { 2 } },
-		['cormadsam'] = { weapons = { 2 } },
-		['corerad'] = { weapons = { 2 } },
-		['cordl'] = { weapons = { 1 } },
-		['corjuno'] = { weapons = { 1 } },
+		['cormaw'] = { weapons = { 'ground' } },
+		['corexp'] = { weapons = { 'ground'} },
+		['cormexp'] = { weapons = { 'ground','ground' } },
+		['corllt'] = { weapons = { 'ground' } },
+		['corhllt'] = { weapons = { 'ground' } },
+		['corhlt'] = { weapons = { 'ground' } },
+		['corpun'] = { weapons = { 'cannon'} },
+		['corrl'] = { weapons = { 'air' } },
+		['cormadsam'] = { weapons = { 'air' } },
+		['corerad'] = { weapons = { 'air' } },
+		['cordl'] = { weapons = { 'ground' } },
+		['corjuno'] = { weapons = { 'ground' } },
 
-		['corfhlt'] = { weapons = { 1 } },  --floating hlt
-		['cortl'] = { weapons = { 1 } }, --torp launcher
-		['coratl'] = { weapons = { 1 } }, --T2 torp launcher
-		['corfrt'] = { weapons = { 2 } }, --floating rocket laucher
-		['corenaa'] = { weapons = { 2 } }, --floating flak AA
+		['corfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['cortl'] = { weapons = { 'ground' } }, --torp launcher
+		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
+		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
+		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
 
-		['cortoast'] = { weapons = { 4 } },
-		['corvipe'] = { weapons = { 1 } },
-		['cordoom'] = { weapons = { 1, 1, 1} },
-		['corflak'] = { weapons = { 2 } },
-		['corscreamer'] = { weapons = { 2 } },
-		['cortron'] = { weapons = { 4 } },
-		['corfmd'] = { weapons = { 3 } },
-		['corint'] = { weapons = { 4 } },
-		['corbuzz'] = { weapons = { 4 } },
+		['cortoast'] = { weapons = { 'cannon' } },
+		['corvipe'] = { weapons = { 'ground' } },
+		['cordoom'] = { weapons = { 'ground', 'ground', 'ground'} },
+		['corflak'] = { weapons = { 'air' } },
+		['corscreamer'] = { weapons = { 'air' } },
+		['cortron'] = { weapons = { 'cannon' } },
+		['corfmd'] = { weapons = { 'nuke' } },
+		['corint'] = { weapons = { 'lrpc' } },
+		['corbuzz'] = { weapons = { 'lrpc' } },
 
-		['armscab'] = { weapons = { 3 } },
-		['armcarry'] = { weapons = { 3 } },
-		['cormabm'] = { weapons = { 3 } },
-		['corcarry'] = { weapons = { 3 } },
-		['armantiship'] = { weapons = { 3 } },
-		['corantiship'] = { weapons = { 3 } },
+		['armscab'] = { weapons = { 'nuke' } },
+		['armcarry'] = { weapons = { 'nuke' } },
+		['cormabm'] = { weapons = { 'nuke' } },
+		['corcarry'] = { weapons = { 'nuke' } },
+		['armantiship'] = { weapons = { 'nuke' } },
+		['corantiship'] = { weapons = { 'nuke' } },
 
 		-- LEGION
-		['legabm'] = { weapons = { 3 } }, --antinuke
-		['legrampart'] = { weapons = { 3, 1 } }, --rampart
-		['leglht'] = { weapons = { 1 } }, --llt
-		['legcluster'] = { weapons = { 1 } }, --short range arty T1
-		['legacluster'] = { weapons = { 1 } }, --T2 arty
-		['leghive'] = { weapons = { 1 } }, --Drone-defense
-		['legmg'] = { weapons = { 1 } }, --ground-AA MG defense
-		['legbombard'] = { weapons = { 1 } }, --Grenadier defense
-		['legbastion'] = { weapons = { 1 } }, --T2 Heatray Tower
-		['legrl'] = { weapons = { 2 } }, --T1 AA
-		['leglupara'] = { weapons = { 2 } }, --T1.5 AA
-		['legrhapsis'] = { weapons = { 2 } }, --T1.5 AA
-		['legflak'] = { weapons = { 2 } }, --T2 AA FLAK
-		['leglraa'] = { weapons = { 2 } }, --T2 LR-AA 
-		['legperdition'] = { weapons = { 4 } }, --T2 LR-AA 
-		['legstarfall'] = { weapons = { 4 } }, 
-		['leglrpc'] = { weapons = { 4 } }, 
+		['legabm'] = { weapons = { 'nuke' } }, --antinuke
+		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
+		['leglht'] = { weapons = { 'ground' } }, --llt
+		['legcluster'] = { weapons = { 'ground' } }, --short range arty T1
+		['legacluster'] = { weapons = { 'ground' } }, --T2 arty
+		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
+		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
+		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
+		['legbastion'] = { weapons = { 'ground' } }, --T2 Heatray Tower
+		['legrl'] = { weapons = { 'air' } }, --T1 AA
+		['leglupara'] = { weapons = { 'air' } }, --T1.5 AA
+		['legrhapsis'] = { weapons = { 'air' } }, --T1.5 AA
+		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
+		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA 
+		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA 
+		
+		['legstarfall'] = { weapons = { 'lrpc' } }, 
+		['leglrpc'] = { weapons = { 'lrpc' } }, 
 
 		-- SCAVENGERS
-		['scavbeacon_t1_scav'] = { weapons = { 1 } },
-		['scavbeacon_t2_scav'] = { weapons = { 1 } },
-		['scavbeacon_t3_scav'] = { weapons = { 1 } },
-		['scavbeacon_t4_scav'] = { weapons = { 1 } },
+		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t2_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t3_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t4_scav'] = { weapons = { 'ground' } },
 
-		['armannit3'] = { weapons = { 1 } },
-		['armminivulc'] = { weapons = { 1 } },
+		['armannit3'] = { weapons = { 'ground' } },
+		['armminivulc'] = { weapons = { 'ground' } },
 
-		['cordoomt3'] = { weapons = { 1 } },
-		['corhllllt'] = { weapons = { 1 } },
-		['corminibuzz'] = { weapons = { 1 } }
+		['cordoomt3'] = { weapons = { 'ground' } },
+		['corhllllt'] = { weapons = { 'ground' } },
+		['corminibuzz'] = { weapons = { 'ground' } }
 	}
 	-- convert unitname -> unitDefID
 	unitDefRings = {}
@@ -422,7 +416,13 @@ local smallCircleSegments = 128
 
 local weaponTypeToString = {"ground","air","nuke","cannon"}
 local allyenemypairs = {"ally","enemy"}
-local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
+local defenseRangeClasses = {}
+for allyenemy, ringclasses in pairs(buttonConfig) do
+	for ringclass, enabled in pairs(ringclasses) do
+			table.insert(defenseRangeClasses, allyenemy .. ringclass)
+	end
+end
+--local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
 local defenseRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
@@ -485,7 +485,7 @@ local function initGL4()
 	largeCircleVBO = makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
 		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
-		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) then
+		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
 		else
@@ -553,7 +553,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	local addedrings = 0
 	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
 		local allystring = alliedUnit and "ally" or "enemy"
-		if buttonConfig[allystring][buttonconfigmap[weaponType]] then
+		if buttonConfig[allystring][weaponType] then
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 			
 			local weaponID = i
@@ -571,7 +571,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			cacheTable[1] = mpx
 			cacheTable[2] = turretHeight
 			cacheTable[3] = mpz
-			local vaokey = allystring .. weaponTypeToString[weaponType]
+			local vaokey = allystring .. weaponType
 
 			for i = 1,13 do
 				cacheTable[i+3] = ringParams[i]
@@ -584,7 +584,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 				--Spring.Echo("Adding rings for", unitID, x,z)
 				--Spring.Echo("added",vaokey,s)
 			end
-			local instanceID = 1000000 * weaponType + unitID
+			local instanceID = 1000000 * i + unitID
 			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
 			addedrings = addedrings + 1
 			if defenses[unitID] == nil then
@@ -835,6 +835,7 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 end
 
 local groundnukeair = {"ground","air","nuke"}
+local cannonlrpc = {"cannon","lrpc"}
 local function DRAWRINGS(primitiveType, linethickness)
 	local stencilMask
 	defenseRangeShader:SetUniform("cannonmode",0)
@@ -861,18 +862,21 @@ local function DRAWRINGS(primitiveType, linethickness)
 		return 
 	end
 	for i,allyState in ipairs(allyenemypairs) do
-		local defRangeClass = allyState.."cannon"
-		local iT = defenseRangeVAOs[defRangeClass]
-		stencilMask = 2 ^ ( 4 * (i-1) + 3)
-		drawcounts[stencilMask] = iT.usedElements
-		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
-			--Spring.Echo("cannonmode",iT.usedElements,stencilMask, defRangeClass, buttonConfig[allyState]["ground"], linethickness, cameraHeightFactor)
-			if linethickness then
-				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor * 0.15)
+		
+		for j, wt in ipairs(cannonlrpc) do
+			local defRangeClass = allyState..wt
+			local iT = defenseRangeVAOs[defRangeClass]
+			stencilMask = 2 ^ ( 4 * (i-1) + 3)
+			drawcounts[stencilMask] = iT.usedElements
+			if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
+				--Spring.Echo("cannonmode",iT.usedElements,stencilMask, defRangeClass, buttonConfig[allyState]["ground"], linethickness, cameraHeightFactor)
+				if linethickness then
+					glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor * 0.15)
+				end
+				glStencilMask(stencilMask)
+				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
+				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
-			glStencilMask(stencilMask)
-			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
-			iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 		end
 	end
 end
