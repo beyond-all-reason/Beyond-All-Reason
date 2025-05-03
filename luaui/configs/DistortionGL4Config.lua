@@ -1467,18 +1467,19 @@ local unitDistortions = {
 		-- 					lifeTime = 0,  
 		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
 		-- },
-		shielddistortion = {
-			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20, 
-								noiseStrength = 5.5, noiseScaleSpace = -0.15, distanceFalloff = -0.5,
-								rampUp = 0, decay = 0,
-								--magnificationRate = -8.0,
-								lifeTime = 0, windAffected = -1, riseRate = -0.6,
-								effectType = 7},
+		-- SHIELD DISTORTION disabled for now, as it is too distorting in massive shieldbubbles
+		-- shielddistortion = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
+		-- 						pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20, 
+		-- 						noiseStrength = 5.5, noiseScaleSpace = -0.15, distanceFalloff = -0.5,
+		-- 						rampUp = 0, decay = 0,
+		-- 						--magnificationRate = -8.0,
+		-- 						lifeTime = 0, windAffected = -1, riseRate = -0.6,
+		-- 						effectType = 7},
 
-		},
+		-- },
 	},
 
 	['armfgate'] = {

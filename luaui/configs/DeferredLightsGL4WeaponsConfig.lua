@@ -161,19 +161,31 @@ local BaseClasses = {
 			r = 1.0, g = 0.9, b = 0.5, a = 0.6,
 			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.3, lensflare = 0,
-			lifetime = 33, sustain = 15, selfshadowing = 2, 
+			lifetime = 33, sustain = 15, selfshadowing = 0, 
 		},
 	},
 
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
-		fraction = 2, -- only spawn every nth light
+		fraction = 3, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 0.3, g = 0.2, b = 0.09, a = 0.048,
+			r = 0.3, g = 0.2, b = 0.09, a = 0.054,
 			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
-			lifetime = 33, sustain = 10, selfshadowing = 5, 
+			lifetime = 33, sustain = 10, selfshadowing = 0, 
+		},
+	},
+
+	FlameProjectileShadow = {
+		lightType = 'point', -- or cone or beam
+		fraction = 3, -- only spawn every nth light
+		lightConfig = {
+			posx = 0, posy = 15, posz = 0, radius = 25,
+			r = 0.3, g = 0.2, b = 0.09, a = 0.054,
+			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
+			lifetime = 33, sustain = 10, selfshadowing = 2, 
 		},
 	},
 
@@ -185,7 +197,7 @@ local BaseClasses = {
 			r = 0.3, g = 0.2, b = 0.09, a = 0.096,
 			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
-			lifetime = 33, sustain = 10, selfshadowing = 2, 
+			lifetime = 33, sustain = 10, selfshadowing = 1, 
 		},
 	},
 
@@ -1150,7 +1162,7 @@ GetLightClass("Explosion", "Fire", "Tiny", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
 										})
 
 projectileDefLightsNames["corpyro_flamethrower"] =
-GetLightClass("FlameProjectile", nil, "Smallish", {
+GetLightClass("FlameProjectileShadow", nil, "Smallish", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.07, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 40, sustain = 35,
@@ -1178,8 +1190,15 @@ GetLightClass("FlameProjectileDragon", nil, "Medium", {
 						lifetime = 70, sustain = 30,
 												})
 
+projectileDefLightsNames["corcrwt4_kmaw"] =
+GetLightClass("FlameProjectileDragon", nil, "Medium", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.13, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 70, sustain = 30,
+												})
+
 projectileDefLightsNames["cordemon_newdmaw"] =
-GetLightClass("FlameProjectile", nil, "Medium", {
+GetLightClass("FlameProjectileShadow", nil, "Medium", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 40, sustain = 30,
