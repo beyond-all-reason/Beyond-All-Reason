@@ -8,7 +8,8 @@ function widget:GetInfo()
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
 		layer     = -980000,
-		enabled   = true
+		enabled   = true,
+		handler   = true,
 	}
 end
 
@@ -2514,6 +2515,20 @@ function widget:Initialize()
 
 	for orgLineID, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], orgLineID)
+	end
+
+	local i = 0
+	for textAction,v in pairs(widgetHandler.actionHandler.textActions) do
+		local found = false
+		for k, cmd in ipairs(autocompleteCommands) do
+			if cmd == textAction then
+				found = true
+				break
+			end
+		end
+		if not found then
+			autocompleteCommands[#autocompleteCommands+1] = textAction
+		end
 	end
 end
 
