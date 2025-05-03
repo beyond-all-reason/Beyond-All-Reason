@@ -756,6 +756,89 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	end
 end
 
+local function placegrassCmd(_, _, params)
+	placementMode = not placementMode
+	processChanges = true
+	Spring.Echo("Grass placement mode toggle to:", placementMode)
+end
+
+local function savegrassCmd(_, _, params)
+	if not params[1] then return end
+
+	local filename = params[1]
+	if string.len(filename) < 2 then
+		filename = Game.mapName .. "_grassDist.tga"
+	end
+	Spring.Echo("Savegrass: ", filename)
+
+	texture = Spring.Utilities.NewTGA(
+		math.floor(mapSizeX / grassConfig.patchResolution),
+		math.floor(mapSizeZ / grassConfig.patchResolution),
+		1)
+	local offset = 0
+	for y = 1, texture.height do
+		for x = 1, texture.width do
+			texture[y][x] = grassPatchMultToByte(grassInstanceData[offset*4 + 4])
+			offset = offset + 1
+		end
+	end
+	local success = Spring.Utilities.SaveTGA(texture, filename)
+	if success then Spring.Echo("Saving grass map image failed",filename,success) end
+end
+
+local function loadgrassCmd(_, _, params)
+	if not params[1] then return end
+
+	placementMode = true
+	local filename = params[1]
+	if string.len(filename) < 2 then
+		filename = Game.mapName .. "_grassDist.tga"
+	end
+	Spring.Echo("Loadgrass: ", filename)
+
+	LoadGrassTGA(filename)
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+end
+
+local function editgrassCmd(_, _, params)
+	placementMode = true
+	makeGrassInstanceVBO()
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+end
+
+local function cleargrassCmd(_, _, params)
+	Spring.Echo("Clearing grass")
+	placementMode = true
+	local patchResolution = grassConfig.patchResolution
+	local offset = 0
+	for z = 1, math.floor(mapSizeZ/patchResolution )do
+		for x = 1, math.floor(mapSizeX/patchResolution)do
+
+			local lx = (x - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+			local lz = (z - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+			grassInstanceData[offset*4 + 1] = lx
+			grassInstanceData[offset*4 + 2] = math.random()*6.28
+			grassInstanceData[offset*4 + 3] = lz
+			grassInstanceData[offset*4 + 4] = 0
+			offset = offset + 1
+		end
+	end
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+	Spring.Echo("Cleared grass")
+end
+
+local function dumpgrassshadersCmd(_, _, params)
+	Spring.Echo(grassVertexShaderDebug)
+	Spring.Echo(grassFragmentShaderDebug)
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+end
+
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -819,93 +902,24 @@ function widget:Initialize()
 		processChanges = true
 		break
 	end
+
+	widgetHandler:AddAction("placegrass", placegrassCmd, nil, 't')
+	widgetHandler:AddAction("savegrass", savegrassCmd, nil, 't')
+	widgetHandler:AddAction("loadgrass", loadgrassCmd, nil, 't')
+	widgetHandler:AddAction("editgrass", editgrassCmd, nil, 't')
+	widgetHandler:AddAction("cleargrass", cleargrassCmd, nil, 't')
+	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
-end
 
-function widget:TextCommand(command)
-	-- savegrass filename
-	--Spring.Echo(command)
-	if string.find(command,"placegrass", nil, true ) == 1 then
-		placementMode = not placementMode
-		processChanges = true
-		Spring.Echo("Grass placement mode toggle to:",placementMode)
-	end
-
-	if string.find(command,"savegrass", nil, true ) == 1 then
-		local filename = string.sub(command, 11)
-		if string.len(filename) < 2 then
-			filename = Game.mapName .. "_grassDist.tga"
-		end
-		Spring.Echo("Savegrass: ",filename)
-
-		texture = Spring.Utilities.NewTGA(
-			math.floor(mapSizeX / grassConfig.patchResolution),
-			math.floor(mapSizeZ / grassConfig.patchResolution),
-			1)
-		local offset = 0
-		for y = 1, texture.height do
-			for x = 1, texture.width do
-				texture[y][x] = grassPatchMultToByte(grassInstanceData[offset*4 + 4])
-				offset = offset + 1
-			end
-		end
-		local success = Spring.Utilities.SaveTGA(texture, filename)
-		if success then Spring.Echo("Saving grass map image failed",filename,success) end
-	end
-
-	if string.find(command,"loadgrass", nil, true ) == 1 then
-		placementMode = true
-		local filename = string.sub(command,11)
-		if string.len(filename) < 2 then
-			filename = Game.mapName .. "_grassDist.tga"
-		end
-		Spring.Echo("Loadgrass: ",filename)
-
-		LoadGrassTGA(filename)
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
-
-	if string.find(command,"editgrass", nil, true ) == 1 then
-		placementMode = true
-		makeGrassInstanceVBO()
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
-
-	if string.find(command,"cleargrass", nil, true ) == 1 then
-		Spring.Echo("Clearing grass")
-		placementMode = true
-		local patchResolution = grassConfig.patchResolution
-		local offset = 0
-		for z = 1, math.floor(mapSizeZ/patchResolution )do
-			for x = 1, math.floor(mapSizeX/patchResolution)do
-
-				local lx = (x - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
-				local lz = (z - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
-				grassInstanceData[offset*4 + 1] = lx
-				grassInstanceData[offset*4 + 2] = math.random()*6.28
-				grassInstanceData[offset*4 + 3] = lz
-				grassInstanceData[offset*4 + 4] = 0
-				offset = offset + 1
-			end
-		end
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-		Spring.Echo("Cleared grass")
-	end
-
-	if string.find(command,"dumpgrassshaders", nil, true ) == 1 then
-		Spring.Echo(grassVertexShaderDebug)
-		Spring.Echo(grassFragmentShaderDebug)
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
+	widgetHandler:RemoveAction("placegrass")
+	widgetHandler:RemoveAction("savegrass")
+	widgetHandler:RemoveAction("loadgrass")
+	widgetHandler:RemoveAction("editgrass")
+	widgetHandler:RemoveAction("cleargrass")
+	widgetHandler:RemoveAction("dumpgrassshaders")
 end
 
 function widget:SetConfigData(data)
