@@ -573,7 +573,7 @@ local BaseClasses = {
 
 	FlameProjectile = {
 		distortionType = 'point', -- or cone or beam
-		fraction = 3, -- only spawn every nth distortion
+		fraction = 5, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
 			noiseStrength = 8, noiseScaleSpace = -0.30, distanceFalloff = 0.9, onlyModelMap = 0,
@@ -596,8 +596,8 @@ local BaseClasses = {
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10,
-			noiseStrength = 2, noiseScaleSpace = 0.75, distanceFalloff = 0.5,
-			startRadius = 0.3, onlyModelMap = 0,
+			noiseStrength = 1.3, noiseScaleSpace = 0.60, distanceFalloff = 0.5,
+			startRadius = 0.3, onlyModelMap = 0, refractiveIndex = 0.9,
 			windAffected = 1.3, riseRate = 1.5,
 			lifeTime = 20, rampUp = 10, decay = 10, effectType = 0,
 		},
@@ -1592,6 +1592,14 @@ explosionDistortionsNames['legphoenix_skybeam'] = {
 
 explosionDistortionsNames['legphoenix_legphtarg'] = {
 	--GetDistortionClass("AirShockWave", "Small"),
+}
+
+explosionDistortionsNames['corscreamer_cor_advsam'] = {
+	GetDistortionClass("AirShockWave", "Small"),
+}
+
+explosionDistortionsNames['armmercury_arm_advsam'] = {
+	GetDistortionClass("AirShockWave", "Small"),
 }
 
 projectileDefDistortionsNames["legphoenix_legphtarg"] = 
