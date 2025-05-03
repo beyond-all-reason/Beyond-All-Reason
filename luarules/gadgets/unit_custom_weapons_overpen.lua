@@ -66,7 +66,7 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 --------------------------------------------------------------------------------
 -- Locals ----------------------------------------------------------------------
 
-local abs  = math.abs
+local max  = math.max
 local min  = math.min
 local sqrt = math.sqrt
 
@@ -124,7 +124,7 @@ local function loadPenetratorWeaponDefs()
 				damages  = toSafeDamageArray(weaponDef.damages),
 				falloff  = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff),
 				slowing  = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing),
-				penalty  = math.max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
+				penalty  = max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
 				weaponID = weaponDefID,
 				impulse  = weaponDef.damages.impulseFactor,
 			}
@@ -200,14 +200,13 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 		health, healthMax = spGetUnitHealth(targetID)
 	else
 		health, healthMax = spGetFeatureHealth(targetID)
-		health = abs(health)
 	end
 	projectileHits[projectileID] = penetrator
 	local collisions = penetrator.collisions
 	collisions[#collisions+1] = {
 		targetID  = targetID,
 		isUnit    = isUnit,
-		health    = health,
+		health    = max(health, 1),
 		healthMax = healthMax,
 		armorType = armorType,
 		damage    = damage,
@@ -251,7 +250,7 @@ local function addShieldDamage(shieldUnitID, shieldWeaponIndex, damageToShields,
 	local state, health = Spring.GetUnitShieldState(shieldUnitID)
 	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
 	if state == SHIELD_STATE_ENABLED and health > 0 then
-		local healthLeft = math.max(0, health - damageToShields)
+		local healthLeft = max(0, health - damageToShields)
 		if shieldWeaponIndex then
 			Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
 		else
