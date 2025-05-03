@@ -1,5 +1,3 @@
-
-local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	return false
