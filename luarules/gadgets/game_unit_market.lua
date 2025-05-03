@@ -38,17 +38,13 @@ local ShareTeamResource     = Spring.ShareTeamResource
 local spGetTeamResources    = Spring.GetTeamResources
 local TransferUnit          = Spring.TransferUnit
 local spAreTeamsAllied      = Spring.AreTeamsAllied
-local spSendLuaUIMsg        = Spring.SendLuaUIMsg
-local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
 local spValidUnitID         = Spring.ValidUnitID
 local spGetUnitHealth       = Spring.GetUnitHealth
-local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spIsCheatingEnabled   = Spring.IsCheatingEnabled
 local spEditUnitCmdDesc     = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc     = Spring.FindUnitCmdDesc
 local spInsertUnitCmdDesc   = Spring.InsertUnitCmdDesc
-local spGetUnitCmdDescs     = Spring.GetUnitCmdDescs
 local spGetTeamList         = Spring.GetTeamList
 local spSetUnitBuildSpeed   = Spring.SetUnitBuildSpeed
 local RPAccess = {allied = true}
@@ -356,18 +352,11 @@ else -- unsynced
 
     -- lets only broadcast these trades to allies and spectators
 	local spGetSpectatingState = Spring.GetSpectatingState
-	local spec, _ = spGetSpectatingState()
-    local spGetPlayerInfo = Spring.GetPlayerInfo
-	local myPlayerID = Spring.GetMyPlayerID()
-    local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
     local spAreTeamsAllied = Spring.AreTeamsAllied
     local myTeamID = Spring.GetMyTeamID()
-    local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:PlayerChanged(playerID)
-        myPlayerID = Spring.GetMyPlayerID()
         myTeamID = Spring.GetMyTeamID()
-        myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()

@@ -37,7 +37,6 @@ local GL_POINTS				= GL.POINTS
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local myTeamID = Spring.GetMyTeamID()
