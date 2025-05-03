@@ -1947,7 +1947,27 @@ local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
 	return autocompleteText ~= nil
 end
 
+local loadedAutocompleteCommands = false
 local function autocomplete(text, fresh)
+	if not loadedAutocompleteCommands then
+		loadedAutocompleteCommands = true
+		for textAction, v in pairs(widgetHandler.actionHandler.textActions) do
+			if type(textAction) == 'string' then
+				local found = false
+				for k, cmd in ipairs(autocompleteCommands) do
+					if cmd == textAction then
+						found = true
+						break
+					end
+				end
+				if not found then
+					--Spring.Echo('"'..textAction..'"')
+					autocompleteCommands[#autocompleteCommands+1] = textAction
+				end
+			end
+		end
+	end
+
 	autocompleteText = nil
 	if fresh then
 		autocompleteWords = {}
@@ -2007,6 +2027,7 @@ local function autocomplete(text, fresh)
 		autocomplete(text, true)
 	end
 end
+
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
@@ -2515,20 +2536,6 @@ function widget:Initialize()
 
 	for orgLineID, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], orgLineID)
-	end
-
-	local i = 0
-	for textAction,v in pairs(widgetHandler.actionHandler.textActions) do
-		local found = false
-		for k, cmd in ipairs(autocompleteCommands) do
-			if cmd == textAction then
-				found = true
-				break
-			end
-		end
-		if not found then
-			autocompleteCommands[#autocompleteCommands+1] = textAction
-		end
 	end
 end
 

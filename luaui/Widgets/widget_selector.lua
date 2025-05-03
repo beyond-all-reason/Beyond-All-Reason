@@ -302,6 +302,34 @@ local function UpdateListScroll()
 	updateUiList2 = true
 end
 
+local function widgetselectorCmd(_, _, params)
+	show = not show
+	if show then
+		widgetHandler.textOwner = self		--widgetHandler:OwnText()
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		Spring.SetConfigInt("widgetselector", 1)
+	else
+		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
+	end
+end
+
+local function factoryresetCmd(_, _, params)
+	widgetHandler.__blankOutConfig = true
+	--widgetHandler.__allowUserWidgets = false
+	Spring.SendCommands("luarules reloadluaui")
+end
+
+local function userwidgetsCmd(_, _, params)
+	if widgetHandler.allowUserWidgets then
+		widgetHandler.__allowUserWidgets = false
+		Spring.Echo("Disallowed user widgets, reloading...")
+	else
+		widgetHandler.__allowUserWidgets = true
+		Spring.Echo("Allowed user widgets, reloading...")
+	end
+	Spring.SendCommands("luarules reloadluaui")
+end
+
 function widget:Initialize()
 
 	buttons = { --see MouseRelease for which functions are called by which buttons
@@ -351,6 +379,10 @@ function widget:Initialize()
 
 	widget:ViewResize(Spring.GetViewGeometry())
 	UpdateList()
+
+	widgetHandler.actionHandler:AddAction(self, "widgetselector", widgetselectorCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "factoryreset", factoryresetCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "userwidgets", userwidgetsCmd, nil, 't')
 end
 
 
@@ -1062,47 +1094,6 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:TextCommand(s)
-	-- process request to tell the widgetHandler to blank out the widget config when it shuts down
-	local token = {}
-	local n = 0
-	for w in string.gmatch(s, "%S+") do
-		n = n + 1
-		token[n] = w
-	end
-	if s == "widgetselector" then
-		show = not show
-		if show then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			Spring.SetConfigInt("widgetselector", 1)
-		else
-			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
-		end
-	end
-	if n == 1 and token[1] == "reset" then
-		-- tell the widget handler to reload with a blank config
-		widgetHandler.blankOutConfig = true
-		Spring.SendCommands("luarules reloadluaui")
-	end
-	if n == 1 and token[1] == "factoryreset" then
-		-- tell the widget handler to disallow user widgets and reload with a blank config
-		widgetHandler.__blankOutConfig = true
-		--widgetHandler.__allowUserWidgets = false
-		Spring.SendCommands("luarules reloadluaui")
-	end
-	if n == 1 and token[1] == "userwidgets" then
-		if widgetHandler.allowUserWidgets then
-			widgetHandler.__allowUserWidgets = false
-			Spring.Echo("Disallowed user widgets, reloading...")
-		else
-			widgetHandler.__allowUserWidgets = true
-			Spring.Echo("Allowed user widgets, reloading...")
-		end
-		Spring.SendCommands("luarules reloadluaui")
-	end
-end
-
 function widget:Shutdown()
 	Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
 	cancelChatInput()
@@ -1114,4 +1105,8 @@ function widget:Shutdown()
 	uiList2 = gl.DeleteList(uiList2)
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
+
+	widgetHandler.actionHandler:RemoveAction(self, "widgetselector")
+	widgetHandler.actionHandler:RemoveAction(self, "factoryreset")
+	widgetHandler.actionHandler:RemoveAction(self, "userwidgets")
 end
