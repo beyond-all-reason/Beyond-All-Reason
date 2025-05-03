@@ -321,7 +321,6 @@ local autocompleteCommands = {
 	'resync',
 	'safegl',
 	'save',
-	'savegame',
 	'say',
 	'screenshot',
 	'select',
@@ -400,17 +399,9 @@ local autocompleteCommands = {
 	'luarules xp',
 
 	-- widgets
-	'devmode',
-	'profile',
-	'grapher',
 	'luaui reload',
-	'luaui profile',
-	--'luaui selector',	-- pops up engine version
-	'luaui reset',
-	'luaui factoryreset',
 	'luaui disable',
 	'luaui enable',
-	'savegame',
 	'addmessage',
 	'radarpulse',
 	'snow',

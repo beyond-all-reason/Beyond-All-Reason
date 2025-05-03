@@ -196,8 +196,8 @@ local function DeleteSave(filename)
 end
 
 local function savegameCmd(_, _, params)
-	Spring.Echo("Trying to save:", msg)
-	local savefilename = string.sub(msg, 10)
+	Spring.Echo("Trying to save:", params[1])
+	local savefilename = params[1]
 	SaveGame(savefilename, savefilename, true)
 
 	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
