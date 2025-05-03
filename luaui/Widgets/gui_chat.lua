@@ -710,7 +710,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
-	widgetHandler:DisownText()
+	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
 
@@ -2077,7 +2077,7 @@ function widget:KeyPress(key)
 				historyMode = 'chat'
 				maxLinesScroll = maxLinesScrollChatInput
 			end
-			widgetHandler:OwnText()
+			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
 			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
 				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
 					inputHistoryCurrent = inputHistoryCurrent + 1
