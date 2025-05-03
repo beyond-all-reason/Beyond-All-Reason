@@ -75,9 +75,6 @@ local buttonConfig = {
 
 local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
-    drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-    externalalpha = 0.80, -- alpha of outer rings
-    internalalpha = 0.15, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
@@ -88,6 +85,8 @@ local colorConfig = { --An array of R, G, B, Alpha
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 1,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
@@ -97,6 +96,8 @@ local colorConfig = { --An array of R, G, B, Alpha
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 2,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     nuke = {
         color = {1.2, 1.0, 0.3, 0.8},
@@ -106,15 +107,18 @@ local colorConfig = { --An array of R, G, B, Alpha
 		stenciled = false,
 		cannonMode = false,
 		stencilMask = 4,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 6.0,
+        externallinethickness = 2.0,
         internallinethickness = 1.0,
 		stenciled = true,
 		cannonMode = true,
 		stencilMask = 8,
+		externalalpha = 0.75, -- alpha of outer rings
     },
 	lrpc = {
         color = {1.3, 0.18, 0.04, 0.66},
@@ -123,6 +127,7 @@ local colorConfig = { --An array of R, G, B, Alpha
         internallinethickness = 1.0,
 		stenciled = false,
 		cannonMode = true,
+		externalalpha = 0.75, -- alpha of outer rings
     },
 }
 
@@ -185,10 +190,10 @@ local function initializeUnitDefRing(unitDefID)
 			local color = colorConfig[weaponType].color
 			local fadeparams =  colorConfig[weaponType].fadeparams
 
-			local isCylinder = 1
-			if weaponType == 1 or weaponType == 4 then -- all non-cannon ground weapons are spheres, aa and antinuke are cyls
-				isCylinder = 0
-			end
+			local isCylinder = 0
+			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
+				isCylinder = 1
+			end	
 
 			local ringParams = {range, color[1],color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
@@ -417,8 +422,6 @@ end
 
 ------ GL4 THINGS  -----
 ---
-
-local autoReload = false
 
 -- nukes and cannons:
 local largeCircleVBO = nil
@@ -861,7 +864,7 @@ for i, weaponType in ipairs(allrings) do
 	end
 end
 
-local function DRAWRINGS(primitiveType, linethickness, classes)
+local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 	local stencilMask
 	for i,allyState in ipairs(allyenemypairs) do
 		for j, wt in ipairs(classes) do
@@ -870,6 +873,7 @@ local function DRAWRINGS(primitiveType, linethickness, classes)
 
 			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
 				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
+				defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig[wt][alpha])
 				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
@@ -917,9 +921,8 @@ function widget:DrawWorld()
 			glColorMask(true, true, true, true)	-- re-enable color drawing
 			glStencilMask(0)
 
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
-			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', stenciledrings) -- DRAW THE OUTER RINGS
+			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', stenciledrings, "externalalpha") -- DRAW THE OUTER RINGS
 			glStencilTest(false)
 			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
@@ -928,12 +931,10 @@ function widget:DrawWorld()
 
 		end
 
-		if colorConfig.drawInnerRings then
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
-			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness', stenciledrings) -- DRAW THE INNER RINGS
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
-			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', nonstenciledrings) -- DRAW THE INNER RINGS
-		end
+
+		DRAWRINGS(GL.LINE_LOOP, 'internallinethickness', stenciledrings, "internalalpha") -- DRAW THE INNER RINGS
+		DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', nonstenciledrings, "externalalpha") -- DRAW THE INNER RINGS
+
 
 		defenseRangeShader:Deactivate()
 
