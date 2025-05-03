@@ -228,7 +228,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomlights = false
 local skipdraw = false
