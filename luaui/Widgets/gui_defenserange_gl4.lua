@@ -863,20 +863,21 @@ end
 
 local function DRAWRINGS(primitiveType, linethickness, classes)
 	local stencilMask
-	defenseRangeShader:SetUniform("cannonmode",0)
 	for i,allyState in ipairs(allyenemypairs) do
 		for j, wt in ipairs(classes) do
 			local defRangeClass = allyState..wt
 			local iT = defenseRangeVAOs[defRangeClass]
 
 			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
-				stencilMask = colorConfig[wt].stencilMask * ( (i==1) and 1 or 16) 
 				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
 				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
-				glStencilMask(stencilMask)  -- only allow these bits to get written
-				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
+				if colorConfig[wt].stencilMask then
+					stencilMask = colorConfig[wt].stencilMask * ( (i==1) and 1 or 16)
+					glStencilMask(stencilMask)  -- only allow these bits to get written
+					glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
+				end
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
 		end
@@ -930,6 +931,7 @@ function widget:DrawWorld()
 		if colorConfig.drawInnerRings then
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness', stenciledrings) -- DRAW THE INNER RINGS
+			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', nonstenciledrings) -- DRAW THE INNER RINGS
 		end
 
