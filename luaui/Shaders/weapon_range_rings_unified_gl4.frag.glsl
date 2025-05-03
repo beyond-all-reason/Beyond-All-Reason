@@ -41,6 +41,6 @@ void main() {
 				fragColor.rgba *= 0.0;
 			#endif
 		}
-		printf(v_debug.rgba);
+		
 	#endif
 }
