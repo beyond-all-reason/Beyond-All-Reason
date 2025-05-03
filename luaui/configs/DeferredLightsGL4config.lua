@@ -2240,10 +2240,10 @@ local unitLights = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano',
-			lightConfig = { posx = 0, posy = 2, posz = 2, radius = 16,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 12,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 1,
-							modelfactor = 0.5, specular = 0.3, scattering = 1.5, lensflare = 4,
+							modelfactor = 0.5, specular = 0.3, scattering = 1.1, lensflare = 4,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 		nanoflash = {
@@ -2296,19 +2296,19 @@ local unitLights = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 19,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 12,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.25,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							r = -1, g = 1, b = 1, a = 1,
+							modelfactor = 0.5, specular = 0.3, scattering = 0.7, lensflare = 4,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 		nanopassive = {
 			lightType = 'point',
 			pieceName = 'aim',
-			lightConfig = { posx = 0, posy = 6, posz = 14.5, radius = 8,
+			lightConfig = { posx = 0, posy = 6, posz = 14, radius = 8,
 							color2r = 0, color2g = 0, color2b = 0, colortime = -1,
-							r = 1, g = 1, b = 1, a = 0.7,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 15,
+							r = 1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 8,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 		nanoflash = {
