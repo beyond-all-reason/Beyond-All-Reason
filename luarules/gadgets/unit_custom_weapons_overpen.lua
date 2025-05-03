@@ -368,8 +368,14 @@ function gadget:GameFrame(gameFrame)
 							penetrator.dirZ * impulse
 						)
 					else
-						-- Features are not velocity-monitored so do not receive impulse.
-						Spring.SetFeatureHealth(targetID, collision.health - damage)
+						-- Features do not have an impulse limiter (like unit_collision_damage_behavior),
+						-- so apply damage only with no impulse. They also must be destroyed manually:
+						local health = collision.health - damage
+						if health > 1 then
+							Spring.SetFeatureHealth(targetID, health)
+						else
+							Spring.DestroyFeature(targetID)
+						end
 					end
 				end
 			end
