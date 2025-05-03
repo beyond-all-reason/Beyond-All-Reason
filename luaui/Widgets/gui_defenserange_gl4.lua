@@ -66,6 +66,8 @@ end
 
 ------------------ CONFIGURABLES --------------
 
+local autoReload = false
+
 local enabledAsSpec = true
 
 local buttonConfig = {
