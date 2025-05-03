@@ -336,6 +336,7 @@ function widget:Initialize()
 		show = newShow
 		if show then
 			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			Spring.SetConfigInt("widgetselector", 1)
 		else
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
@@ -487,6 +488,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			if show then
 				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 				Spring.SetConfigInt("widgetselector", 1)
 			else
 				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
@@ -1056,6 +1058,7 @@ function widget:SetConfigData(data)
 	show = data.show or show
 	if show then
 		widgetHandler.textOwner = self		--widgetHandler:OwnText()
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
 end
 
@@ -1071,6 +1074,7 @@ function widget:TextCommand(s)
 		show = not show
 		if show then
 			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			Spring.SetConfigInt("widgetselector", 1)
 		else
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
