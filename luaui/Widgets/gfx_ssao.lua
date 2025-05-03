@@ -21,7 +21,7 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = 999999,
-        enabled   = false,
+        enabled   = true,
         depends   = {'gl4'},
     }
 end
