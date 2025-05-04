@@ -798,11 +798,11 @@ function MapHST:UnitCanGoHere(unit, position,maxDistance)
 		return 32
 	end
 	local pathtest = map:TestPath(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z,nil,unit:Name())
-	if pathtest < maxDistance then
+	if pathtest and pathtest < maxDistance then
 		print(unit:Name(),'ask for a pathtest: pass')
 		return pathtest
 	end
-	print(unit:Name(),'ask for a pathtest: failed',pathtest)
+	--print(unit:Name(),'ask for a pathtest: failed',pathtest)
 end
 
 function MapHST:UnitCanGetToUnit(unit1, unit2)

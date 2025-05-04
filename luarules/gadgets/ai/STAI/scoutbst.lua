@@ -11,7 +11,6 @@ function ScoutBST:Init()
 	self.target = nil
 	self.attacking = nil
 	self.evading = nil
-	self.active = false
 	self.position = self.unit:Internal():GetPosition()
 	self.mtype, self.network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.name = self.unit:Internal():Name()
@@ -30,9 +29,13 @@ function ScoutBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
 		return
 	end
-	if not self.ai.scouthst.scouts[self.id] then
+	if game:Frame() < self.lastUpdateFrame + 30 then
 		return
 	end
+	if self.ai.raidhst:RaiderHaveTarget(self.id) then
+		return
+	end
+	
 	self.position.x, self.position.y ,self.position.z = self.unit:Internal():GetRawPos()
 	local X,Z = self.ai.maphst:PosToGrid(self.position)
 	self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
@@ -56,17 +59,17 @@ function ScoutBST:Update()
 	if not self.target  and not self.attacking and not self.avoiding  then
 		self:EchoDebug('no scout target for:', self.id)
 		self.target = self.ai.scouthst:ClosestSpot2(self)
-		if self.target then
-			self:Scouting()
-		end
-
 	end
 	if self.target then
 		local X,Z = self.ai.maphst:PosToGrid(self.target)
 		self:EchoDebug(self.id,'target:',self.target,X,Z)
 		if not self.ai.scouthst:TargetAvailable(X,Z,self.id) then
 			self.target = nil
+			return
 		end
+		--if self.target then
+		self:Scouting()
+		--end
 	end
 	self.unit:ElectBehaviour()
 end
@@ -77,17 +80,14 @@ end
 
 function ScoutBST:Activate()
 	self:EchoDebug("activated on " .. self.name)
-	self.active = true
 end
 
 function ScoutBST:Deactivate()
 	self:EchoDebug("deactivated on " .. self.name)
-	self.active = false
 	self.target = nil
 	self.evading = nil
 	self.attacking = nil
 end
-
 
 function ScoutBST:OwnerDead()
 	self.ai.scouthst.scouts[self.id] = nil
@@ -125,7 +125,6 @@ function ScoutBST:Avoid()
 		avoidingZ = self.position.z + ( self.keepYourDistance * avoidingZ )
 		enemyPos.x = avoidingX
 		enemyPos.z = avoidingZ
-		Spring.MarkerAddPoint(enemyPos.x,enemyPos.y,enemyPos.z,'avoiding')
 		self.ai.tool:GiveOrder(self.id,CMD.MOVE, enemyPos, 0,'1-1')
 	end
 end
@@ -138,14 +137,16 @@ function ScoutBST:Attacking()
 		return
 	end
 	self.target = nil
-	Spring.MarkerAddPoint(self.position.x,self.position.y,self.position.z,'attacking')
 	self.ai.tool:GiveOrder(self.id,CMD.FIGHT, game:GetUnitByID(self.attacking):GetPosition(), 0,'1-1')
 	
 end
 
 function ScoutBST:Scouting()
 	self:EchoDebug('scouting')
-	self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.target, 0,'1-1')
+	if self.unit:Internal():CurrentCommand()  ~= CMD.MOVE then
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.target, 0,'1-1')
+	end
+	
 end
 
 
@@ -247,7 +248,6 @@ function ScoutBST:Draw()
 	if not self.ai.schedulerhst.behaviourTeam == self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ScoutBST' then
 		return
 	end
-	if not self.active then return end
 	if not self.target then return end
 	local scoutPos = self.position
 	local targetPos = self.target

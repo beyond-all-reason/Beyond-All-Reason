@@ -74,7 +74,8 @@ function RaidBST:OwnerMoveFailed(unit)
 end
 
 function RaidBST:Priority()
-	if self.ai.raidhst:IsSoldier(self.id) then
+	--if self.ai.raidhst:IsSoldier(self.id) then
+	if self.ai.raidhst:RaiderHaveTarget(self.squad) then
 		return 200
 	else
 		return 0

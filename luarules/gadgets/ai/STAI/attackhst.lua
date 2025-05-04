@@ -157,13 +157,17 @@ function AttackHST:SquadDisband(squad)
 end
 
 function AttackHST:SquadStepComplete(squad)
-	self:EchoDebug('step complete',squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
+	self:EchoDebug('step complete',squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
 	if self.ai.tool:distance(squad.position,squad.path[squad.step]) < 256 then
+		
 		squad.step = squad.step + 1
 	elseif squad.idleCount > floor(#squad.members * 0.85) then
+		
+
 		squad.step = squad.step + 1
 	end
 	squad.step = math.min(#squad.path,squad.step)
+	
 end
 
 function AttackHST:SquadFindPath(squad,target)
@@ -240,6 +244,7 @@ function AttackHST:SquadsTargetUpdate()
 			if offense and squad.lock then
 				local path, step = self:SquadFindPath(squad,offense)
 				if path and step then
+					squad.firstAttack = true
 					squad.target = offense
 					squad.role = 'offense'
 					squad.path = path
@@ -295,6 +300,8 @@ end
 function AttackHST:SquadsTargetAttack(squad)
 	local bestTarget = nil
 	local worstDist = 0
+	local bestDist = math.huge
+	local dist
 	self:EchoDebug('search a offensive target for squad ', squad.squadID)
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
@@ -302,11 +309,20 @@ function AttackHST:SquadsTargetAttack(squad)
 				local mclass =self.ai.armyhst.unitTable[game:GetUnitByID(squad.leader):Name()].mclass
 				local path = map:PathTest(mclass,squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z,blob.position.x,blob.position.y,blob.position.z,8)
 				if path then
-					local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
-					if dist > worstDist then
-						worstDist = dist
-						bestTarget = {X = blob.targetCell.X, Z = blob.targetCell.Z}
+					if squad.firstAttack then
+						dist = self.ai.tool:distance(blob.position,squad.position)
+						if dist < bestDist then
+							bestDist = dist
+							bestTarget = {X = blob.targetCell.X, Z = blob.targetCell.Z}
+						end
+					else
+						dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
+						if dist > worstDist then
+							worstDist = dist
+							bestTarget = {X = blob.targetCell.X, Z = blob.targetCell.Z}
+						end
 					end
+					
 				end
 			end
 		end

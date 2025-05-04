@@ -152,22 +152,20 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		if string.sub(msg,1,12) ~= '@Shard[STGO]' or string.sub(msg,-12,-1) ~= '[STGO]Shard@' then
-			spEcho(string.sub(msg,1,10),string.sub(msg,-10,-1))
+			--spEcho('not a STAI Give Order ',string.sub(msg,1,10),string.sub(msg,-10,-1))
 			return
 			
 		else
 			msg = string.sub(msg,13,-13)
-			--print(msg)
 			local order = gadget:RezTable()
 			order = gadget:DeserializeOrder(msg)
-			--spEcho('order',order)
 			if not order then
 				spEcho('Deserialize Order failed')
 				return
 			end
 			
 			if order.method == '1-1' then
-				print('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
+				--('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--spEcho(order.id,order.cmd,order.parameters,order.options,cmd)
 				--spEcho('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
@@ -193,7 +191,7 @@ if gadgetHandler:IsSyncedCode() then
 				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
 				cmdCounter.zi = cmdCounter.zi + 1
 				if not cmd then
-					print('GiveOrderArrayTounit Error:',cmd)
+					spEcho('GiveOrderArrayTounit Error:',cmd)
 				end
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)
@@ -215,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 				local cmd = spGiveOrderArrayTounitArray(order.id,arrayOfCmd,true)
 				cmdCounter.zz = cmdCounter.zz + 1
 				if not cmd then
-					print('GiveOrderArrayTounitArray Error:',cmd)
+					spEcho('GiveOrderArrayTounitArray Error:',cmd)
 				end
 				gadget:KillTable(arrayOfCmd)
 				gadget:KillTable(order)

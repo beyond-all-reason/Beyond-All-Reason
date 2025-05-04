@@ -86,7 +86,7 @@ function TasksHST:startLabsParams()
 
 			},
 
-
+			
 			{category = 'scouts',
 			economy = function()
 				return true
@@ -570,7 +570,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_radar_' ,
 			economy = function(_,param,name)--ecofunc()
-					return M.full > 0.1 and M.income > 9 and E.income > 50
+					return E.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -721,7 +721,7 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = true ,
 	        },
-
+		
 		{ 	category = '_llt_' ,
 			economy = function(_,param,name)--ecofunc()
 					return true
@@ -739,6 +739,15 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_','_llt_',},himself = true} ,
 			special = false } , --specialFilter
+			
+		{ 	category = '_radar_' ,
+			economy = function(_,param,name)--ecofunc()
+					return E.full > 0.5
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_radar_'}} ,
+	        },
 
 	}
 --------------------------------------------------------------------------------------------------------------------------------
@@ -756,6 +765,14 @@ function TasksHST:startRolesParams()
 					return M.income > 6 and E.income > 30
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+			{ 	category = '_nano_' ,
+			economy = function(_,param,name)--ecofunc()
+					return (self.ai.tool:countMyUnit({name}) == 0 )
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = true , --positional category to search near
 	        },
@@ -888,7 +905,7 @@ function TasksHST:startRolesParams()
 	self.roles.support = {
 		{ 	category = '_radar_' ,
 			economy = function(_,param,name)--ecofunc()
-					return M.full > 0.1
+					return E.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -1076,7 +1093,7 @@ self.roles.metalMaker = {
 					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
+			numeric = 3 , --numericalParameter
 			location = true ,
 	        },
 		{ 	category = '_wind_' ,
@@ -1124,7 +1141,7 @@ self.roles.metalMaker = {
 					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
+			numeric = 1 , --numericalParameter
 			location = {categories = {'factoryMobilities'},min = 100,}
 	        },list = self.map:GetMetalSpots() ,
 		}

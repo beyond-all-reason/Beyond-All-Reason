@@ -238,7 +238,7 @@ local function GetSpots()
 	 for i = 1, #spots do
 	 	local spot = spots[i]
 	 	if not spot.y then
-	 		Spring.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad")
+	 		Spring.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad spot")
 	 	end
 	 end
 	return spots

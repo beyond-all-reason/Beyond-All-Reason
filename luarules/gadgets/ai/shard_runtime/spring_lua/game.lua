@@ -178,6 +178,10 @@ local game = {}
 		Spring.SendLuaRulesMsg(message)
 	end
 
+	function game:Pause() -- pauses the game
+		Spring.SendCommands("pause")
+	end
+
 	function game:GetResources() -- returns a table of Resource objects, takes the name of the resource
 		return { self:GetResource(1), self:GetResource(2) }
 

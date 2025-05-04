@@ -10,6 +10,8 @@ function BuildersBST:Init()
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
 	self.position = u:GetPosition()
+	self.firstValidPos = {}
+	self.firstValidPos.x,self.firstValidPos.y,self.firstValidPos.z = u:GetRawPos()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(u)
 	self.id = u:ID()
 	self.mtype = mtype
@@ -26,6 +28,8 @@ end
 function BuildersBST:OwnerBuilt()
 	self:EngineerhstBuilderBuild()
 end
+
+
 
 function BuildersBST:EngineerhstBuilderBuild()
 	for engineerName, builderName in pairs(self.ai.armyhst.engineers) do
@@ -109,6 +113,27 @@ function BuildersBST:Update()
 			self.fails = 0
 			self.assistant = nil
 		end
+	elseif self.trapped then
+		self:EchoDebug('trapped', self.name, self.role, self.firstValidPos)
+		if self.ai.maphst:UnitCanGoHere(self.unit:Internal(),self.firstValidPos) then
+			self.trapped = false
+			self:EchoDebug('untrapped', self.name, self.role, self.firstValidPos)
+			for dirt,cleaner in pairs(self.ai.cleanhst.dirt) do
+				if dirt[self.id] then
+					self:EchoDebug('clean dirt',dirt)
+					self.ai.cleanhst.theCleaner[cleaner] = nil
+					self.ai.cleanhst.dirt[dirt] = nil
+				end
+			end
+			self.ai.cleanhst.cleanableByID[self.id] = nil
+		else
+			
+			self:EchoDebug('still trapped : clean', self.name, self.role, self.firstValidPos)
+			if not self.ai.cleanhst.cleanableByID[self.id] and not self.ai.armyhst.commanderList[self.name] then
+				self.ai.cleanhst.cleanableByID[self.id] = self.id
+			end
+			
+		end
 	elseif self.builder and self.sketch and self.sketch.unitID then
 		self:EchoDebug(self.name, self.role, 'build ', self.sketch.unitName, 'at', self.sketch.position.x,
 			self.sketch.position.z)
@@ -119,6 +144,7 @@ function BuildersBST:Update()
 		self:Watchdog()
 	elseif self.sketch and not self.builder then --WARNING  have a building in build and no builder in construction
 		self:Warn(' no builder to execute sketch', self.sketch)
+	
 	else
 
 		self:ProgressQueue()
@@ -246,7 +272,7 @@ function BuildersBST:findPlace(utype, value, cat, loc)
 				end
 			end
 		end
-		local minDist = nil
+		--local minDist = nil
 	elseif cat == '_nano_' then
 		self:EchoDebug("looking for factory for nano")
 		local currentLevel = 0
@@ -260,14 +286,13 @@ function BuildersBST:findPlace(utype, value, cat, loc)
 					self:EchoDebug(self.name, ' can push up self mtype ', lab.name)
 					currentLevel = lab.level
 					target = lab
-					minDist = 0
+					--minDist = 0
 				end
 			end
 		end
 
 		if target then
 			self:EchoDebug(self.name, ' search position for nano near ', target.name)
-			-- 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
 			POS = site:FindClosestBuildSite(utype, target.position.x, target.position.y, target.position.z, minDist,
 				maxDist, builder)
 		end
@@ -305,9 +330,7 @@ end
 function BuildersBST:getOrder(builder, params)
 	if params.category == 'factoryMobilities' then
 		if params.economy then
-			local p = nil
-			local value = nil
-			p, value = self.ai.labshst:GetBuilderFactory(builder)
+			local p, value = self.ai.labshst:GetBuilderFactory(builder)
 			if p and value then
 				self:EchoDebug('factory', value, 'is returned from labshst')
 				return value, p
@@ -315,10 +338,12 @@ function BuildersBST:getOrder(builder, params)
 		end
 	else
 		self:EchoDebug(params.category)
-		local army = self.ai.armyhst
-		for index, uName in pairs(army.unitTable[self.name].buildingsCanBuild) do
-			if army[params.category][uName] then
-				return uName
+		for _, uName in pairs(self.ai.armyhst.unitTable[self.name].buildingsCanBuild) do
+			if self.ai.armyhst[params.category][uName] then 
+				if params.category == '_mex_' or (map:GetGroundHeight(self.position.x,self.position.z) < 0 and self.ai.armyhst.unitTable[uName].needsWater) or  (map:GetGroundHeight(self.position.x,self.position.z) >= 0 and not self.ai.armyhst.unitTable[uName].needsWater)  then--prevent building water things on ground if there are alternative and viceversa
+					self:EchoDebug('water depth ok')
+					return uName
+				end
 			end
 		end
 	end
@@ -327,14 +352,6 @@ end
 function BuildersBST:ProgressQueue()
 	self:EchoDebug(self.name, " progress queue", self.role, self.idx, #self.queue)
 	
-	local pt = self.unit:Internal():GetPosition()
-	--[[if  not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, 1, true, true,false ) or 
-		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, 1, 0, -1, true, true,false ) or 
-		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, 1, true, true,false ) or 
-		not Spring.TestMoveOrder( self.unit:Internal().UnitDefID, pt.x, pt.y, pt.z, -1, 0, -1, true, true,false ) then
-		self:Warn('moveorder not pass for builder',self.name, self.id)
-		return
-	end]]
 	if self.isCommander then
 		self.role = self.ai.buildingshst:SetRole(self.id)
 		self.queue = self.ai.taskshst.roles[self.role]
@@ -347,15 +364,15 @@ function BuildersBST:ProgressQueue()
 	self.idx = self.idx + 1
 	for index = self.idx, #self.queue do
 		self.idx = index
-		self:EchoDebug(self.name, self.role, 'queue idx', self.idx, 'JOB', JOB)
+		self:EchoDebug( self.role, 'queue idx', self.idx, 'JOB', JOB)
 		JOB = self.queue[index]
 		local utype = nil
-		local p
+		
 		local jobName, p = self:getOrder(builder, JOB)
 
 		self:EchoDebug('jobName', jobName)
 		if JOB and jobName then
-			self:EchoDebug(self.name .. " filtering...", jobName)
+			self:EchoDebug(self.name, " filtering:", jobName)
 			local success = false
 			if JOB.special and jobName then
 				jobName = self:specialFilter(JOB.category, JOB.special, jobName)
@@ -407,6 +424,11 @@ function BuildersBST:ProgressQueue()
 					elseif self.ai.buildingshst.roles[self.id].role == 'default' then
 						self.ai.buildingshst.roles[self.id].role = 'expand'
 					end
+					if not self.ai.maphst:UnitCanGoHere(self.unit:Internal(),self.firstValidPos) then
+						self.trapped = true
+						self:EchoDebug('trapped', self.name, self.role, self.firstValidPos)
+						return
+					end
 					self:Assist()
 					return
 				end
@@ -427,17 +449,16 @@ function BuildersBST:Assist()
 		local bossDist = math.huge
 		local bossTarget
 		local bossLevel = 0
-		print('lksjvlskvnaslkdv')
 		for bossID, project in pairs(self.ai.buildingshst.builders) do
 			self:EchoDebug('project',project)
 			if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
 				local builderLevel = self.ai.armyhst.unitTable[project.builderName].techLevel
 				if builderLevel >= bossLevel then
-					print('enough level')
+					self:EchoDebug('enough level')
 					bossLevel = builderLevel
 					local dist = self.ai.tool:distance(builderPos, project.position)
 					if dist < bossDist then
-						print('closest')
+						self:EchoDebug('closest')
 						bossDist = dist
 						bossTarget = project.builderID
 						self:EchoDebug('elect a boss',bossID,project)
@@ -447,7 +468,7 @@ function BuildersBST:Assist()
 		end
 		if bossTarget then
 			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
-			print(self.id,'guarding',bossTarget)
+			self:EchoDebug(self.id,'guarding',bossTarget)
 			self.assistant = bossTarget
 			
 		end

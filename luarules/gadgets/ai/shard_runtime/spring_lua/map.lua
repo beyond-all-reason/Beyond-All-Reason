@@ -118,13 +118,38 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 		local y = end_y - nextPositionY
 		local z = end_z - nextPositionZ
 		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
-		Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'next: '..uname)
+		--Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'$: '..uname)
 		Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
 		if dist <= radius * 1.1 then
 			return dist,nextPositionX,nextPositionY,nextPositionZ
 		end
 	end
-	local blocking = Spring.GetUnitsInCylinder(end_x, end_z, 10)
+	--[[local tx = end_x - start_x
+	local tz = end_z - start_z
+	local tDist = math.sqrt( (tx*tx) + (tz*tz) )
+	tDist = tDist - 64
+	local reversPathObject = self:GetPathObject(moveID,  end_x, end_y, end_z,start_x, start_y, start_z,tDist)
+	local nextPositionX,nextPositionY,nextPositionZ = self:NextPath(reversPathObject,start_x, start_y, start_z)
+	if nextPositionX and nextPositionY and nextPositionZ then
+		nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+		local x = end_x - nextPositionX
+		local y = end_y - nextPositionY
+		local z = end_z - nextPositionZ
+		
+		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+		Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'revers: '..uname)
+		Spring.Echo(dist,'revers to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+		if dist <= radius * 1.1 then
+			return dist,nextPositionX,nextPositionY,nextPositionZ
+		end
+	end
+	local wp = self:GetPathWaypoints(reversPathObject)
+
+	Spring.Echo('revpathway:',wp)]]
+
+
+
+	--[[local blocking = Spring.GetUnitsInCylinder(end_x, end_z, 10)
 	if blocking then
 		print('blocking units:',#blocking)
 		for i=1, 4 do
@@ -143,7 +168,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 				end
 			end
 		end
-	end
+	end]]
 	local wp = self:GetPathWaypoints(pathObject)
 	wp = wp[#wp]
 	wp[2] = Spring.GetGroundHeight(wp[1],wp[3])
@@ -151,7 +176,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 	local y = end_y - wp[2]
 	local z = end_z - wp[3]
 	local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
-	Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'last: '..uname)
+	--Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'& '..uname)
 	Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
 	return dist,wp[1],wp[2],wp[3]
 end

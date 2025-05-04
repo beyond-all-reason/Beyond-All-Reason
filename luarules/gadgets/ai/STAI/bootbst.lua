@@ -33,7 +33,7 @@ end
 function BootBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
 	local f = self.game:Frame()
-	if not self.finished then return end
+	if not self.finished  then return end
 	if self.ignoreFactories then return end
 	if self.factory then
 			local pos = self.ai.tool:UnitPos(self)
@@ -51,6 +51,7 @@ function BootBST:Update()
 			end
 	else
 		if f > self.lastInFactoryCheck + 300 then
+			
 			-- units (especially construction units) can still get stuck in factories long after they're built
 			self.lastInFactoryCheck = f
 			self:FindMyFactory()

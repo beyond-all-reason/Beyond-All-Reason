@@ -913,7 +913,6 @@ local function getDPS(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
 	end
-	--print('dps',dps)
 	return dps
 end
 
@@ -930,7 +929,6 @@ local function getInterceptor(unitDefID)
 			interceptor  =  weaponDef['interceptor'] == 1
 		end
 	end
-	--print('interceptor',interceptor)
 	return interceptor
 end
 
@@ -958,7 +956,6 @@ local function getParalyzer(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		paralyzer  =  weaponDef['paralyzer']
 	end
-	--print('paralyzer',paralyzer)
 	return paralyzer
 end
 
@@ -984,11 +981,9 @@ local function getBadTargets(weapons)
 				local  weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
-				----print('defbadtargets', targets[name])
 			end
 		end
 	end
-	--print('badtargets',targets)
 	return targets
 end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -1118,7 +1113,7 @@ function ArmyHST:GetUnitTable()
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
-
+		Spring.Echo(unitDef.moveDef)
 
 
 		-- --print(unitDef.name, "build slope", unitDef.maxHeightDif)

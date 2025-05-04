@@ -38,7 +38,21 @@ function LabsBST:Init()
     	x2 = self.position.x + 40,
     	z2 = self.position.z + 40,
 	}
+	--self:ExitCheck()
 
+
+end
+
+function LabsBST:ExitCheck()
+	for i,v in pairs(self.ai.armyhst.unitTable[self.name].unitsCanBuild) do
+		
+		if not Spring.TestMoveOrder(self.ai.armyhst.unitTable[v].defId, self.position.x, self.position.y, self.position.z) then
+			self:EchoDebug('exitcheck failed',self.name)
+			self.ai.cleanhst.cleanableByID[self.id] = self.id
+			self.exitClosed = true
+			return
+		end
+	end
 end
 
 function LabsBST:OwnerCreated()
@@ -75,24 +89,29 @@ function LabsBST:preFilter()
 
 	if self.ai.ecohst.Energy.full > 0.1  then
 		if self.unit:Internal():IsWaiting() then
+			self:EchoDebug('lab is waiting -> restart')
 			self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
 		end
 		
 	elseif self.ai.ecohst.Metal.full < 0.1 then
 		for id, lab in pairs(self.ai.labshst.labs) do
 			if lab.underConstruction  and not self.unit:Internal():IsWaiting() then
+				self:EchoDebug('not enough metal and lab under construction -> wait')
 				self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
 			end
 		end
 	else
 		if not self.unit:Internal():IsWaiting() then
+			self:EchoDebug('lab working under E-Stall -> wait')
 			self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
 		end
 	end
 end
 
 function LabsBST:Update()
-
+	--if self.exitClosed then
+--		return
+--	end
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 	local f = self.game:Frame()
 	self:preFilter() -- work or no resource??
@@ -127,7 +146,7 @@ function LabsBST:getQueue()
 		end
 	end
 	if self.ai.armyhst.t1tot2factory[self.name]  then
-		if self.ai.tool:countFinished({self.ai.armyhst.t1tot2factory[self.name]}) > 0 and self.ai.tool:countFinished({'_fus_'}) > 0 and self.ai.tool:countFinished({'t2mex'}) >= 2 and self.ai.ecohst.Metal.full < 0.9 then
+		if self.ai.tool:countFinished({self.ai.armyhst.t1tot2factory[self.name]}) > 0 and self.ai.tool:countFinished({'_fus_'}) > 0 and self.ai.tool:countFinished({'t2mex'}) then
 			return self.ai.taskshst.labs.t1postmode
 		end
 	end

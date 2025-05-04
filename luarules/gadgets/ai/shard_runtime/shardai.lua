@@ -108,7 +108,7 @@ function ShardAI:Update()
 	if self.gameend == true then
 		return
 	end
-
+	
 	----tracyZoneBeginMem("ShardAI:Update")
 	--self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
@@ -117,8 +117,12 @@ function ShardAI:Update()
 		else
  			--self.game:StartTimer(m:Name() .. ' hst')
 			--tracyZoneBeginMem('STAI'..m:Name())
-			print(m:Name(),'update')
+			local RAM = gcinfo()
 			m:Update()
+			RAM =  gcinfo() -RAM
+			if RAM > 0 then
+				print (RAM,m:Name())
+			end
 			--tracyZoneEndMem('STAI'..m:Name())
  			--self.game:StopTimer(m:Name() .. ' hst')
 		end
