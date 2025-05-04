@@ -1470,7 +1470,7 @@ function widget:Update(dt)
 					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
 					params[12] = cursorLightAlpha * 0.2
-					params[20] = cursorLightSelfShadowing and 0 or 8
+					params[20] = cursorLightSelfShadowing and 8 or 0
 					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
 				else
 					updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
