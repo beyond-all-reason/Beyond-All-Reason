@@ -190,6 +190,7 @@ function ArmyHST:Init()
 		corcrus = true,
 		armcrus = true,
 		armbanth = true,--t3a
+		cordemon = true,
 
 
 
@@ -279,7 +280,6 @@ function ArmyHST:Init()
 
 	self.airgun = {
 		armkam = true,
-		corcrw = true,
 		corcrwh = true,
 		corape = true,
 		armbrawl = true,
@@ -360,8 +360,6 @@ function ArmyHST:Init()
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
-		-- 		armuwmex = 'armuwmme' ,
-		-- 		coruwmex = 'coruwmme' ,
 		cormexp = true ,
 		armmex = "armmoho" ,
 		armamex = 'armmoho' ,
@@ -535,8 +533,6 @@ function ArmyHST:Init()
 	self._torpedo1_ = {
 		cortl = true ,
 		armtl = true ,
-		armptl = true ,
-		corptl = true ,
 		}
 
 	self._torpedo2_ = {
@@ -730,8 +726,6 @@ ArmyHST.factoryExitSides = {
 --[[ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
-	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
-	armuwmex = "armuwmme",--ex armuwmex
 	armamex = "armmoho",
 	corexp = "cormexp",
 
@@ -869,7 +863,7 @@ ArmyHST.baseBomberCounter = 10
 -- Taskqueuebehaviour was modified to skip this name
 -- ArmyHST.DummyUnitName = "skipthisorder"
 -- this unit is used to check for underwater metal spots
-ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
+ArmyHST.UWMetalSpotCheckUnit = "cormex"
 
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
@@ -1120,9 +1114,6 @@ function ArmyHST:getThreatRange(unitName)
 end
 
 function ArmyHST:GetUnitTable()
-	local builtBy = GetBuiltBy()
-	local unitTable = {}
-	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
@@ -1142,7 +1133,7 @@ function ArmyHST:GetUnitTable()
 		utable.defId = unitDefID
 		utable.radarDistance = unitDef["radarDistance"]
 		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["sightDistance"]
+		utable.sightDistance = unitDef["losRadius"]
 		utable.sonarDistance = unitDef["sonarDistance"]
 		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -323,7 +325,9 @@ local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
-		return UnitDefs[u.unitDefID].floatOnWater
+		if UnitDefs[u.unitDefID] then
+			return UnitDefs[u.unitDefID].floatOnWater
+		end
 	end)
 	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
 		local w, h = WG["api_blueprint"].getBuildingDimensions(
@@ -671,7 +675,7 @@ end)
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	drawCursorText.invalidate()
 end
 
@@ -1036,11 +1040,13 @@ local function serializeBlueprint(blueprint)
 		facing = blueprint.facing,
 		ordered = blueprint.ordered,
 		units = table.map(blueprint.units, function(blueprintUnit)
-			return {
-				unitName = UnitDefs[blueprintUnit.unitDefID].name,
-				position = blueprintUnit.position,
-				facing = blueprintUnit.facing
-			}
+			if UnitDefs[blueprintUnit.unitDefID] then
+				return {
+					unitName = UnitDefs[blueprintUnit.unitDefID].name,
+					position = blueprintUnit.position,
+					facing = blueprintUnit.facing
+				}
+			end
 		end),
 	}
 end
@@ -1050,12 +1056,14 @@ end
 local function deserializeBlueprint(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
 	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
-		return {
-			blueprintUnitID = nextBlueprintUnitID(),
-			unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
-			position = serializedBlueprintUnit.position,
-			facing = serializedBlueprintUnit.facing
-		}
+		if UnitDefNames[serializedBlueprintUnit.unitName] then
+			return {
+				blueprintUnitID = nextBlueprintUnitID(),
+				unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
+				position = serializedBlueprintUnit.position,
+				facing = serializedBlueprintUnit.facing
+			}
+		end
 	end)
 
 	postProcessBlueprint(result)

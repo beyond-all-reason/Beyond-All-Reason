@@ -12,6 +12,8 @@ if not spawnpadSpawnEnabled then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "commander builder spawn",
@@ -45,12 +47,15 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
     local spawnpadunit = spawnpads[unitDefID]
     local spawnpadID
     for k = 1,10000 do
-        posx = posx + math.random(-k-64, k+64)
-        posz = posz + math.random(-k-64, k+64)
+        posx = math.ceil((posx + math.random(-k-64, k+64))/16)*16
+        posz = math.ceil((posz + math.random(-k-64, k+64))/16)*16
         posy = Spring.GetGroundHeight(posx, posz)
         local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 96)
         if canSpawnTurret then
             canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 96)
+        end
+        if canSpawnTurret then
+            canSpawnTurret = positionCheckLibrary.ResourceCheck(posx, posz, 96)
         end
         if canSpawnTurret then
             spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
@@ -72,7 +77,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end

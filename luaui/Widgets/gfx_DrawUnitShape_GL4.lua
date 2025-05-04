@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "DrawUnitShape GL4",
@@ -8,6 +10,7 @@ function widget:GetInfo()
 	license   = "GNU GPL, v2 or later",
     layer     = -9999,
     enabled   = true,
+    depends   = {'gl4'},
   }
 end
 
@@ -46,7 +49,7 @@ end
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
@@ -438,10 +441,6 @@ if TESTMODE then
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1 then 
 			unitDefIDtoTex1[unitDefID] = unitDef.model.textures.tex1:lower()
@@ -504,14 +503,7 @@ function widget:Initialize()
 			-- to use to retrive the corresponding texture bucket
 			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
 		end
-	end 
-
-	local unitIDs = Spring.GetAllUnits()
-	local featuresIDs = Spring.GetAllFeatures()
-
-	local communitdefid = UnitDefNames["armcom"].id
-	local pwdefid = UnitDefNames["armpw"].id
-	local corcomunitdefid = UnitDefNames["corcom"].id
+	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)

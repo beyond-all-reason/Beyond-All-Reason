@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name		= "Battle Royale",
@@ -95,7 +97,7 @@ else
 	-------------------------
 	--    UNSYNCED CODE    --
 	-------------------------
-  local luaShaderDir = "LuaUI/Widgets/Include/"
+  local luaShaderDir = "LuaUI/Include/"
   local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
   VFS.Include(luaShaderDir.."instancevbotable.lua")
 

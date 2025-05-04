@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Ghost Site GL4",
@@ -18,7 +20,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDirection = Spring.GetUnitDirection
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetPositionLosState = Spring.GetPositionLosState
 local math_deg = math.deg
 local math_atan2 = math.atan2

@@ -1,14 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, lflare, rflare, pole, turret, lsleeve, lbarrel, rsleeve, rbarrel, laim, raim, lshot, rshot, dish;
+piece  base, lflare, rflare, turret, sleeve, lbarrel, rbarrel, radar;
 
-static-var  activating, wpn1_lasthead, restore_delay, gun_switch, inrange, aiming, timer, lastaimed, lastfired, thisframe, thatframe;
+static-var  wpn1_lasthead, restore_delay, gun_switch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1				1
+#define SIGNAL_FIRE1			2
 
 
 #define SMOKEPIECE base
@@ -18,27 +17,12 @@ static-var  activating, wpn1_lasthead, restore_delay, gun_switch, inrange, aimin
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-	aiming = 0;
     if (Stunned) {
         return (1);
     }
-    turn lsleeve to x-axis <-30> speed <25.00000>;
-    turn rsleeve to x-axis <-30> speed <25.00000>;
-    spin pole around y-axis speed <25.0>;
+    turn sleeve to x-axis <-30> speed <25.00000>;
+    spin turret around y-axis speed <25.0>;
 	
-	
-	
-	spin rbarrel around z-axis speed <600.000000>;
-	spin lbarrel around z-axis speed <600.000000>;
-	sleep restore_delay;
-	spin rbarrel around z-axis speed <300.000000>;
-	spin lbarrel around z-axis speed <300.000000>;
-	sleep (restore_delay / 2);
-	spin rbarrel around z-axis speed <150.000000>;
-	spin lbarrel around z-axis speed <150.000000>;
-	sleep (restore_delay / 4);
-	stop-spin rbarrel around z-axis;
-	stop-spin lbarrel around z-axis;
 	sleep restore_delay;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
@@ -58,186 +42,76 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-
-
-SweepFire()//nope.
-{
-	while( TRUE )
-	{
-		
-		thatframe = get (GAME_FRAME);
-		if ((lastaimed > (thatframe - 15)) AND aiming == 1) {
-			
-			emit-sfx 2048+0 from lshot;
-			emit-sfx 2048+0 from rshot;
-			timer = timer + 1;
-		}
-		if (lastaimed <= (thatframe - 15))
-		{
-			//inrange = 0;
-			//signal SIG_AIM;
-			//timer = 0;
-			start-script ExecuteRestoreAfterDelay();
-		}
-		sleep 20;
-	}
-}
-
-
-
 Create()
 {
+	hide lflare;
+	hide rflare;
 	
+	restore_delay = 6000;
 	
-	
-	lastaimed = get (GAME_FRAME);
-	timer = 0;
-	inrange = 0;
-	//start-script SweepFire();
-	aiming = 0;
-	
-	
-	
-	//hide lflare;
-	//hide rflare;
-	activating = 0;
 	gun_switch = 0;
-	restore_delay = 3000;
-	//call-script InitState();
+	
+	SLEEP_UNTIL_UNITFINISHED;
 
-    turn dish to x-axis <-30> speed <25.00000>;
-    spin dish around z-axis speed <25.0>;
-
-
-
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+    turn radar to x-axis <-45> speed <25.0>;
+    spin radar around z-axis speed <60.0>;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-
-SetMaxReloadTime(Func_Var_1)
+AimFromWeapon1(pieceIndex)
 {
-	//restore_delay = Func_Var_1 * 2;
-	return (0);
+	pieceIndex = turret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 AimWeapon1(heading, pitch)
 {
-	stop-spin pole around y-axis;
-
-	aiming = 1;
-	//inrange = 1;
-	spin lbarrel around z-axis speed <700.000000>;
-	spin rbarrel around z-axis speed <700.000000>;
-	//thisframe = get (GAME_FRAME);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
-	lastaimed = get (GAME_FRAME);
+	stop-spin turret around y-axis;
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn pole to y-axis heading speed <500.000000>;
-	turn lsleeve to x-axis <0.000000> - pitch speed <400.000000>;
-	turn rsleeve to x-axis <0.000000> - pitch speed <400.000000>;
-	//might need to remove this and use faster aiming?
-	//if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	//{
-		wpn1_lasthead = 1000000;
-		wait-for-turn pole around y-axis;
-		wait-for-turn lsleeve around x-axis;
-		wait-for-turn rsleeve around x-axis;
-	//}
+	turn turret to y-axis heading speed <240.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <120.0>;
+	
+	
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
-
-
 }
 
-
-
-FireWeapon1() {
-	inrange = 1;
-	aiming = 1;
-	timer = 0;
-	lastfired = get (GAME_FRAME);
-
-
-	spin lbarrel around z-axis speed <900.000000>;
-	spin rbarrel around z-axis speed <900.000000>;
+FireWeapon1()
+{
+	spin lbarrel around z-axis speed <-2000.0>;
+	spin rbarrel around z-axis speed <2000.0>;
+	stop-spin lbarrel around z-axis decelerate <12>;
+	stop-spin rbarrel around z-axis decelerate <12>;
 	return (0);
 }
-//*
-Shot1() {
-	if (gun_switch==0) {
-		emit-sfx 1024 + 0 from lflare;
-		gun_switch = 1;
-	} else {
+
+QueryWeapon1(piecenum)
+{
+	piecenum = lflare + gun_switch;
+	return (0);
+}
+
+Shot1(zero) //Barrel switcher so each minigun fires at the same time
+{
+	signal SIGNAL_FIRE1;
+	set-signal-mask SIGNAL_FIRE1;
+	
+	
+	if(gun_switch == 0)
+	{
 		emit-sfx 1024 + 0 from rflare;
-		gun_switch = 0;
 	}
+	else
+	{
+		emit-sfx 1024 + 0 from lflare;
+	}
+	
+	gun_switch = !gun_switch;
+	return(1);
 }
-//*/
-QueryWeapon1(piecenum) {
-	piecenum = lshot + gun_switch;
-	return (0);
-}
-
-AimFromWeapon1(piecenum) {
-	piecenum = laim;
-	return (0);
-}
-
-
-
-
-
-
-//put a ciws (WITHOUT INTERCEPTOR TAG) on weapon 2, enable sweepfire, and a hitscan option on weapon 1 for the faking method
-
-
-
-/*
-AimWeapon2(heading, pitch)
-{
-	//wait a few after main gun last fired, then allow (can't do this apparently...)
-	return (0);
-}
-
-FireWeapon2()
-{
-	return (0);
-}
-
-
-QueryWeapon2(piecenum)
-{
-	piecenum = lflare;
-	return (0);
-}
-
-AimFromWeapon1(piecenum) 		{
-	piecenum = laim;
-	return (0);
-}
-
-//*/
-
-
 
 SweetSpot(piecenum)
 {
@@ -252,40 +126,36 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lsleeve type BITMAPONLY | NOHEATCLOUD;
-		explode rsleeve type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode pole type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lsleeve type FALL | NOHEATCLOUD;
-		explode rsleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type FALL | NOHEATCLOUD;
 		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode pole type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lsleeve type SMOKE | FALL | NOHEATCLOUD;
-		explode rsleeve type SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
-		explode pole type SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode lsleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rsleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode pole type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

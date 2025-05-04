@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Explosion Deformation Fix",
@@ -44,7 +46,7 @@ end
 --     end
 -- end
 
--- function gadget:UnitDestroyed(unitID)
+-- function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 --     if #deformationDisableList > 0 then
 --         for i = 1,#deformationDisableList do
 --             if deformationDisableList[i] == unitID then

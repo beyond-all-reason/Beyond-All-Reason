@@ -2,10 +2,10 @@ return {
 	legaskirmtank = {
 		maxacc = 0.05,
 		maxdec = 0.1,
-		energycost = 7500,
-		metalcost = 500,
+		energycost = 6800,
+		metalcost = 450,
 		buildpic = "LEGASKIRMTANK.DDS",
-		buildtime = 8750,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
@@ -112,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			legmgplasma = {
-				burstrate = 0.15,
+				burstrate = 0.2,
 				burst = 3,
 				sprayangle = 600,
                 --accuracy = 100,
@@ -133,7 +133,7 @@ return {
 				name = "Heavy Rotary Plasma Cannon",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 1.9,
+				reloadtime = 2,
 				size = 2,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
@@ -142,7 +142,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 320,
 				damage = {
-					default = 60,
+					default = 70,
 					vtol = 20,
 				},
 			},

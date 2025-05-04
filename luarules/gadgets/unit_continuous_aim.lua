@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Continuous Aim",
@@ -32,6 +34,8 @@ local convertedUnitsNames = {
 	['corstorm'] = 2,
 	['corcrash'] = 5,
 	['legkark'] = 2,
+	['corkark'] = 2,
+	['cordeadeye'] =2,
 	['armsnipe'] = 2,
 	['armfido'] = 3,
 	['armfboy'] = 2,
@@ -99,7 +103,7 @@ local convertedUnitsNames = {
 	['legfloat'] = 5,
 	['leggat'] = 5,
 	['leggob'] = 5,
-	['leginc'] = 3,
+	['leginc'] = 1,
 	['cordemon'] = 6,
 	['corcrwh'] = 7,
 	['leglob'] = 5,
@@ -114,6 +118,7 @@ local convertedUnitsNames = {
 	['legcomt2off'] = 5,
 	['legcomt2com'] = 5,
 	['legstr'] = 5,
+	['legamph'] = 4,
 	['legbart'] = 5,
 	['legmrv'] = 5,
 	['legsco'] = 5,
@@ -122,7 +127,11 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
     ['legmed'] = 5,
 	['legaheattank'] = 3,
+	['legeheatraymech'] = 1,
+	['legbunk'] = 3,
 	['legrwall'] = 4,
+	['legjav'] = 1,
+	['legeshotgunmech'] = 3,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',

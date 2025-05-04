@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Unit Energy Icons", -- GL4
@@ -12,7 +14,6 @@ end
 
 local weaponEnergyCostFloor = 6
 
-local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
 local spGetUnitTeam		        = Spring.GetUnitTeam
@@ -88,7 +89,7 @@ end
 -- GL4 Backend stuff:
 local energyIconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")

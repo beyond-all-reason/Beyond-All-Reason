@@ -780,7 +780,7 @@ local unitDeaths = {
 		}
 	},
 
-	advancedFusionExplosion = {
+	advancedFusionExplosion = { --this explosion does not generate a distortion effect for unknown reasons
 		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
@@ -796,6 +796,24 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+
+	customfusionexplo = {
+		weaponType = "Cannon",
+		AreaOfEffect = 1280,
+		cameraShake = 1280,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:afusexpl",
+		damage = {
+			commanders = 2800,
+			default = 10600,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 	advancedFusionExplosionSelfd = {
 		weaponType = "Cannon",
 		AreaOfEffect = 1920,
@@ -886,8 +904,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 610,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -902,8 +919,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 1530,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -918,8 +934,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 610,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -934,8 +949,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 1530,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -950,8 +964,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-water",
 		damage = {
-			default = 560,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,

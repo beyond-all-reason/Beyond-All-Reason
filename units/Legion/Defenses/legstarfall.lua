@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "120 165 120",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		hightrajectory = 1,
 		firestate = 0,
 		footprintx = 8,
@@ -136,6 +136,9 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
+				--customparams = {
+				--	stockpilelimit = 1,
+				--},
 				damage = {
 					default = 600,
 					shields = 375,

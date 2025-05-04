@@ -1,12 +1,14 @@
 
 local voidWater = false
 local waterLevel = Spring.GetModOptions().map_waterlevel
-local waterIsLava = Spring.GetModOptions().map_waterislava
+local waterIsLava = Spring.Lava.isLavaMap
 local minHeight, _, _, _ = Spring.GetGroundExtremes()
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
 	voidWater = mapinfo.voidwater
 end
+
+local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
@@ -22,12 +24,12 @@ end
 
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+local uDefNames = UnitDefNames
+
 local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local spGetMouseState 		= Spring.GetMouseState
 local spTraceScreenRay 		= Spring.TraceScreenRay
-local GetSelectedUnits      = Spring.GetSelectedUnits
-local GetUnitDefID          = Spring.GetUnitDefID
 local currentTime 			= os.clock
 
 --- Human friendly list. Automatically converted to unitdef IDs on init
@@ -77,8 +79,6 @@ local unitlist = {
 	{'armageo','armuwageo'},
 	{'corgeo','coruwgeo'},
 	{'corageo','coruwageo'},
-	{'armllt', 'armptl'}, -- for the amphibious construction vehicles trying to build ptls on land
-	{'corllt', 'corptl'},
 }
 
 
@@ -100,7 +100,6 @@ local legionUnitlist = {
 	{'legsolar','legtide'},
 	--{'leglab','corsy'},--soon(tm)
 	{'leglht','legtl'},
-	{'leglht', 'legptl'},--this may need more hookery in 2 places below
 	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
 	{'legvp','legamsub'},
@@ -108,13 +107,6 @@ local legionUnitlist = {
 	--{'corasp','corfasp'},
 	--{'corgeo','coruwgeo'},
 	--{'corageo','coruwageo'},
-}
-
-
---this has to account for legotter too, later
-local ptlCons = {
-	['armbeaver'] = true,
-	['cormuskrat'] = true,
 }
 
 local groundBuildings = {}
@@ -241,23 +233,6 @@ function widget:DrawWorld()
 
 	local name = unitName[alt]
 
-	-- Check for amphibious constructors
-	local selectedUnits = GetSelectedUnits()
-	local amphibCons = 0
-	for _, unitID in ipairs(selectedUnits) do
-		if ptlCons[unitName[GetUnitDefID(unitID)]] then
-			amphibCons = amphibCons + 1
-		end
-	end
-
-	if amphibCons > 0 then
-		local amphibBuildings = {
-			['cortl'] = 'corptl',
-			['armtl'] = 'armptl',
-		}
-		name = amphibBuildings[name] or name
-	end
-
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
 		if isGround then
@@ -283,32 +258,41 @@ function widget:GameStart()
 	isPregame = false
 end
 
+local function addUnitDefPair(firstUnitName, lastUnitName)
+	local firstUnitDef = uDefNames[firstUnitName]
+	local lastUnitDef = uDefNames[lastUnitName]
+
+	if not (firstUnitDef and lastUnitDef and firstUnitDef.id and lastUnitDef.id) then
+		Spring.Echo(string.format("%s: can't add %s/%s pair", "cmd_context_build", firstUnitName, lastUnitName))
+		return
+	end
+
+	for i, unitDef in ipairs({firstUnitDef, lastUnitDef}) do
+		local unitDefID = unitDef.id
+		local isWater = i % 2 == 0
+
+		-- Break the unit list into two matching arrays
+		if isWater then
+			table.insert(waterBuildings, unitDefID)
+		else
+			table.insert(groundBuildings, unitDefID)
+		end
+	end
+end
+
 function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-	
-	if Spring.GetModOptions().experimentallegionfaction then	
-		for _,v in ipairs(legionUnitlist) do 
+
+	if Spring.GetModOptions().experimentallegionfaction then
+		for _,v in ipairs(legionUnitlist) do
 			table.insert(unitlist, v)
 		end
 	end
 
-	
-	local uDefNames = UnitDefNames
-	for _,unitNames in ipairs(unitlist) do
-		for i, unitName in ipairs(unitNames) do
-			local unitDefID = uDefNames[unitName].id
-			local isWater = i % 2 == 0
 
-			-- Break the unit list into two matching arrays
-			if unitDefID then
-				if isWater then
-					table.insert(waterBuildings, unitDefID)
-				else
-					table.insert(groundBuildings, unitDefID)
-				end
-			end
-		end
+	for _,unitNames in ipairs(unitlist) do
+		addUnitDefPair(unitNames[1], unitNames[2])
 	end
 end

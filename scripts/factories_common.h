@@ -31,7 +31,7 @@ Deactivate()
 		sleep 1430; \
 		set YARD_OPEN to 1; \
 	} \
-	set INBUILDSTANCE to 1; \
+	set INBUILDSTANCE to 1;
 	
 #define FACTORY_CLOSE_BUILD 	set YARD_OPEN to 0;\
 	while( get YARD_OPEN )\
@@ -41,4 +41,4 @@ Deactivate()
 		set YARD_OPEN to 0;\
 	}\
 	set BUGGER_OFF to 1;\
-	set INBUILDSTANCE to 0;\
+	set INBUILDSTANCE to 0;

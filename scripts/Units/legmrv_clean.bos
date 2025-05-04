@@ -53,6 +53,7 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
     start-script Steering();
+	
 
 	spin flTyre around x-axis speed <140.0> accelerate <5.0>;
 	spin frTyre around x-axis speed <140.0> accelerate <5.0>;
@@ -132,7 +133,7 @@ AimWeapon1(heading, pitch)
 	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.000000>;
+	turn turret to y-axis heading speed <300.000000>;
 	turn sleeveTop to x-axis <0.000000> - pitch speed <200.000000>;
 	turn sleeveBottom to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn turret around y-axis;

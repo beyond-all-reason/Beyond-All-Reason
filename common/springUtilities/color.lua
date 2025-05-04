@@ -20,9 +20,17 @@ local function ColorArray(r, g, b)
 	return floor(r * 255), floor(g * 255), floor(b * 255)
 end
 
+
 local function ColorString(r, g, b)
 	-- Standard R, G, B color code.
-	return colorIndicator .. schar(floor(r * 255)) .. schar(floor(g * 255)) .. schar(floor(b * 255))
+	r = floor(r * 255)
+	g = floor(g * 255)
+	b = floor(b * 255)
+	-- avoid special char used by i18n
+	if r == 37 then r = 38 end	-- 37 = %
+	if g == 37 then g = 38 end	-- 37 = %
+	if b == 37 then b = 38 end	-- 37 = %
+	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
 end
 
 return {

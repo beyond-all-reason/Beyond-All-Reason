@@ -2,6 +2,8 @@ include("keysym.h.lua")
 
 local versionNumber = "1.1"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name    = "Attack Range GL4",
@@ -12,6 +14,7 @@ function widget:GetInfo()
 		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = -99,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -38,9 +41,9 @@ local colorConfig = {
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.80, -- alpha of outer rings
-	internalalpha = 0.20, -- alpha of inner rings
-	fill_alpha = 0.10, -- this is the solid color in the middle of the stencil
-	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
+	internalalpha = 0.06, -- alpha of inner rings
+	fill_alpha = 0.08, -- this is the solid color in the middle of the stencil
+	outer_fade_height_difference = 5500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
 		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
@@ -64,7 +67,7 @@ local colorConfig = {
 	},
 	cannon = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 900, 1300, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,
@@ -190,7 +193,6 @@ local function initializeUnitDefRing(unitDefID)
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
 
 			--local udwp = UnitDefs[unitDefID].weapons
-			local maxangledif = (weapons[weaponNum].maxAngleDif or -1)
 			-- weapons[weaponNum].maxAngleDif is :
 			-- 0 for 180
 			-- -1 for 360
@@ -215,7 +217,6 @@ local function initializeUnitDefRing(unitDefID)
 				local mdy = weaponParams.mainDirY
 				local mdz = weaponParams.mainDirZ
 				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / math.pi
-				local angledeg = angledif * 180
 
 				-- Normalize maindir
 				local length = math.diag(mdx,mdy,mdz)
@@ -258,7 +259,7 @@ local function initializeUnitDefRing(unitDefID)
 				groupselectionfadescale,
 				weaponType,
 				isDgun,
-				maxangledif
+				--maxangledif
 			}
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 		end
@@ -325,7 +326,6 @@ local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
 local GetModKeyState        = Spring.GetModKeyState
-local GetInvertQueueKey     = Spring.GetInvertQueueKey
 local GetActiveCommand      = Spring.GetActiveCommand
 local GetSelectedUnits      = Spring.GetSelectedUnits
 local chobbyInterface
@@ -381,15 +381,15 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
 VFS.Include(luaShaderDir .. "instancevbotable.lua")
 local attackRangeShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Attack Range GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/attack_range_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/attack_range_gl4.frag.glsl",
 	shaderConfig = {MYGRAVITY = Game.gravity + 0.1,},
 	uniformInt = {
 		heightmapTex = 0,
@@ -670,10 +670,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget(self)
-		return
-	end
 	initUnitList()
 
 	if initGL4() == false then

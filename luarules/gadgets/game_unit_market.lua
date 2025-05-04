@@ -3,6 +3,8 @@ if not Spring.GetModOptions().unit_market then
 end
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name    = "Unit Market - Backend",
@@ -36,17 +38,13 @@ local ShareTeamResource     = Spring.ShareTeamResource
 local spGetTeamResources    = Spring.GetTeamResources
 local TransferUnit          = Spring.TransferUnit
 local spAreTeamsAllied      = Spring.AreTeamsAllied
-local spSendLuaUIMsg        = Spring.SendLuaUIMsg
-local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
 local spValidUnitID         = Spring.ValidUnitID
 local spGetUnitHealth       = Spring.GetUnitHealth
-local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spIsCheatingEnabled   = Spring.IsCheatingEnabled
 local spEditUnitCmdDesc     = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc     = Spring.FindUnitCmdDesc
 local spInsertUnitCmdDesc   = Spring.InsertUnitCmdDesc
-local spGetUnitCmdDescs     = Spring.GetUnitCmdDescs
 local spGetTeamList         = Spring.GetTeamList
 local spSetUnitBuildSpeed   = Spring.SetUnitBuildSpeed
 local RPAccess = {allied = true}
@@ -149,12 +147,6 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
-local disable_unit_sharing = (
-    Spring.GetModOptions().disable_unit_sharing
- or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-and Spring.GetModOptions().unit_market
-local saleWhitelist = {}
-
 local function tryToBuyUnit(unitID, msgFromTeamID)
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
@@ -177,29 +169,12 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 
     if (current < price) then return end
 
-    if disable_unit_sharing then
-        saleWhitelist[unitID] = true
-    end
-
     TransferUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
     end
     setNotForSale(unitID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
-end
-
-if disable_unit_sharing then
-    function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-        if(capture) then
-            return true
-        end
-        if saleWhitelist[unitID] then
-            saleWhitelist[unitID] = nil
-            return true
-        end
-        return false
-    end
 end
 
 -- this takes control and makes all cons stop using metal, we remove all limits on a) shutdown b) storage getting full c) widget crash - should be safe enough
@@ -377,18 +352,11 @@ else -- unsynced
 
     -- lets only broadcast these trades to allies and spectators
 	local spGetSpectatingState = Spring.GetSpectatingState
-	local spec, _ = spGetSpectatingState()
-    local spGetPlayerInfo = Spring.GetPlayerInfo
-	local myPlayerID = Spring.GetMyPlayerID()
-    local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
     local spAreTeamsAllied = Spring.AreTeamsAllied
     local myTeamID = Spring.GetMyTeamID()
-    local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:PlayerChanged(playerID)
-        myPlayerID = Spring.GetMyPlayerID()
         myTeamID = Spring.GetMyTeamID()
-        myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()

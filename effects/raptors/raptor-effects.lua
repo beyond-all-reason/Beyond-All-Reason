@@ -2,7 +2,7 @@
 local definitions = {
   ["blob_trail_blue"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -141,7 +141,7 @@ local definitions = {
 
  ["blob_trail_red"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -280,7 +280,7 @@ local definitions = {
 
 ["blob_trail_green"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -425,7 +425,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -568,7 +568,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 3,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -626,7 +626,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -769,7 +769,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 3,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -1052,7 +1052,7 @@ local definitions = {
   --     },
   --   },
   -- },
-  
+
   ["fire-area-75-old"] = {
      usedefaultexplosions = false,
      acid_area = {
@@ -1248,7 +1248,7 @@ local definitions = {
    --          },
    --      },
    --},
-  
+
 -- ["acid-area-192"] = {
 --     usedefaultexplosions = false,
 --     acid_area = {
@@ -1378,7 +1378,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -1441,7 +1441,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -1613,7 +1613,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 2,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -1671,7 +1671,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -1769,7 +1769,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -1804,7 +1804,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 10,
@@ -1901,7 +1901,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -1936,7 +1936,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 10,
@@ -2033,7 +2033,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -2385,7 +2385,7 @@ local definitions = {
       underwater = true,
       water      = true,
       properties = {
-        colormap      = [[0.045 0.045 0.045 0.06   0.05 0.08 0.043 0.067   0.06 0.12 0.04 0.08    0.075 0.15 0.05 0.10   0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.042 0.09 0.028 0.06   0 0 0 0.01]],
+        colormap      = [[0.045 0.045 0.045 0.06   0.14 0.08 0.043 0.067   0.12 0.12 0.04 0.08    0.11 0.15 0.05 0.10   0.11 0.18 0.06 0.12    0.10 0.18 0.06 0.12    0.10 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.042 0.09 0.028 0.06   0 0 0 0.01]],
         dir           = [[dir]],
         frontoffset   = 0,
         fronttexture  = [[bloodcentersplatshwhite]],
@@ -2393,7 +2393,7 @@ local definitions = {
         sidetexture   = [[none]],
         size          = [[230 r60]],
         sizegrowth    = 0.10,
-        ttl           = 132,
+        ttl           = 64,
         pos           = [[0, 8, 0]],
         rotParams     = [[0, 0, -180 r360]],
         alwaysvisible = true,
@@ -2443,6 +2443,12 @@ local debugCircle = {
   },
 }
 
+-- apparently math.round doesnt exist here yet
+if not math.round then
+	function math.round(num, idp)
+		return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
+	end
+end
 local function count(radius)
   return math.round(2 + (radius - 75) / 84)
 end

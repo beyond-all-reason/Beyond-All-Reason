@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= 'Coop II',
@@ -82,8 +84,8 @@ if gadgetHandler:IsSyncedCode() then
 			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
 				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
-				x = math.min(math.max(x, xmin), xmax)
-				z = math.min(math.max(z, zmin), zmax)
+				x = math.clamp(x, xmin, xmax)
+				z = math.clamp(z, zmin, zmax)
 
 				SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
 				return false
@@ -146,8 +148,8 @@ if gadgetHandler:IsSyncedCode() then
 				local sx = tx + 45*math.cos((math.pi/8)*theta)
 				local sz = tz + 45*math.sin((math.pi/8)*theta)
 				if not IsSteep(sx,sz) then
-					x = math.max(xmin,math.min(sx,xmax))
-					z = math.max(zmin,math.min(sz,zmax))
+					x = math.clamp(sx, xmin, xmax)
+					x = math.clamp(sz, zmin, zmax)
 					break
 				else -- fallback
 					x=tx

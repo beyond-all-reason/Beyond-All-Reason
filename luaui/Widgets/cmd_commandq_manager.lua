@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Command Queue Manager",
@@ -19,7 +21,7 @@ end
 -- Locals
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetCommandQueueSize = Spring.GetCommandQueue
+local spGetUnitCommandsSize = Spring.GetUnitCommands
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetGameFrame = Spring.GetGameFrame
@@ -35,7 +37,7 @@ function SkipCurrentCommand()
 		if force then
 			RemoveCommand(nil, 1, nil)
 		else
-			RemoveCommand(id, 1, spGetCommandQueueSize(id, 0))
+			RemoveCommand(id, 1, spGetUnitCommandsSize(id, 0))
 		end
 	end)
 end
@@ -45,12 +47,10 @@ function CancelLastCommand()
 		if force then
 			RemoveCommand(nil, #WG["pregame-build"].getBuildQueue(), nil)
 		else
-			local commandQueueSize = spGetCommandQueueSize(id, 0)
-
-			if (not commandQueueSize) or commandQueueSize < 1 then
+			local commandQueueSize = spGetUnitCommandsSize(id, 0)
+			if not commandQueueSize or commandQueueSize < 1 then
 				return
 			end
-
 			RemoveCommand(id, commandQueueSize, commandQueueSize)
 		end
 	end)
@@ -65,23 +65,23 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 			local _, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex + 1)
 			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag2, cmdTag }, 0)
 			commandDeleted = true
-		elseif (cmdID == CMDREPAIR) and cmdIndex ~= commandQueueSize then
+		elseif cmdID == CMDREPAIR and cmdIndex ~= commandQueueSize then
 			--dirty way to remove weird guard behaviors
 			local cmdID2, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex + 1)
 			if cmdID2 == CMDGUARD then
 				spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag2, cmdTag }, 0)
 				commandDeleted = true
 			end
-		elseif (cmdID == CMDGUARD) and (cmdIndex ~= 1) then
+		elseif cmdID == CMDGUARD and cmdIndex ~= 1 then
 			--again same thing
 			local cmdID2, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex - 1)
 			if cmdID2 == CMDREPAIR then
 				spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag, cmdTag2 }, 0)
 				commandDeleted = true
 			end
-		elseif (cmdID == CMD.FIGHT) and (cmdIndex == 1) then  --removes patrol commands too
+		elseif cmdID == CMD.FIGHT and cmdIndex == 1 then  --removes patrol commands too
 			local commands = spGetUnitCommands(unitID, -1)
-			if commands and (commands[2].id == CMDPATROL) then
+			if commands and commands[2] and commands[2].id == CMDPATROL then
 				commandQueueSize = commandQueueSize - 2
 				spGiveOrderToUnit(unitID, CMD.STOP, {}, {})
 
@@ -89,7 +89,7 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 					if i == 1 then
 						spGiveOrderToUnit(unitID, CMD.MOVE, commands[i].params, {})
 					end
-					if (i ~= cmdIndex) then
+					if i ~= cmdIndex then
 						spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, {"shift"})
 					end
 				end

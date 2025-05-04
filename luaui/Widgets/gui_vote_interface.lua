@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Vote interface",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
+local L_DEPRECATED = LOG.DEPRECATED
 
 local titlecolor = "\255\190\190\190"
 
@@ -374,7 +378,7 @@ local function colourNames(teamID)
 end
 
 function widget:AddConsoleLine(lines, priority)
-
+	if priority and priority == L_DEPRECATED then return end
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
 		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines

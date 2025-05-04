@@ -11,6 +11,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Display DPS",
@@ -31,7 +33,7 @@ local enabled = (tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1)
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfileScale = (1 + (vsx * vsy / 5700000))
+local fontfileScale = 1 + (vsx * vsy / 5700000)
 local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
@@ -84,7 +86,7 @@ local chobbyInterface
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
-	local fontScale = (1 + (vsx * vsy / 5700000))
+	local fontScale = 1 + (vsx * vsy / 5700000)
 	gadget:Shutdown()
 	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
 end
@@ -111,12 +113,11 @@ local function getTextSize(damage, paralyze)
 end
 
 local function displayDamage(unitID, unitDefID, damage, paralyze)
-	table.insert(damageTable, 1, {})
 	damageTable[1] = {
 		unitID = unitID,
 		damage = math.ceil(damage - 0.5),
 		height = unitHeight(unitDefID),
-		offset = (10 - math.random(0, 12)),
+		offset = 10 - math.random(0, 12),
 		textSize = getTextSize(damage, paralyze),
 		heightOffset = 0,
 		lifeSpan = 1,
@@ -126,7 +127,7 @@ local function displayDamage(unitID, unitDefID, damage, paralyze)
 	}
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not enabled then
 		return
 	end
@@ -134,10 +135,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		local ux, uy, uz = GetUnitViewPosition(unitID)
 		if ux ~= nil then
 			local damage = math.ceil(unitDamage[unitID].damage - 0.5)
-			table.insert(deadList, 1, {})
 			deadList[1] = {
 				x = ux,
-				y = (uy + unitHeight(unitDefID)),
+				y = uy + unitHeight(unitDefID),
 				z = uz,
 				lifeSpan = 1,
 				fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.5,
@@ -151,11 +151,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	unitDamage[unitID] = nil
 	unitParalyze[unitID] = nil
 	for i, v in pairs(damageTable) do
-		if (v.unitID == unitID) then
+		if v.unitID == unitID then
 			if not v.paralyze then
 				local ux, uy, uz = GetUnitViewPosition(unitID)
 				if ux ~= nil then
-					table.insert(deadList, 1, {})
 					deadList[1] = {
 						x = ux + v.offset,
 						y = uy + v.height + v.heightOffset,
@@ -169,7 +168,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 					}
 				end
 			end
-			table.remove(damageTable, i)
+			damageTable[i] = nil
 		end
 	end
 end
@@ -192,30 +191,26 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		return
 	end
 
-	--if UnitDefs[unitDefID] == nil then	-- disabled this because.. why?
-	--	return
-	--end
-
 	if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then
 		return
 	end
 
 	if paralyzer and unitParalyze[unitID] then
-		unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
+		unitParalyze[unitID].damage = unitParalyze[unitID].damage + damage
 		return
 	elseif unitDamage[unitID] then
-		unitDamage[unitID].damage = (unitDamage[unitID].damage + damage)
+		unitDamage[unitID].damage = unitDamage[unitID].damage + damage
 		return
 	end
 
 	if paralyzer then
 		unitParalyze[unitID] = {}
 		unitParalyze[unitID].damage = damage
-		unitParalyze[unitID].time = (lastTime + 0.1)
+		unitParalyze[unitID].time = lastTime + 0.1
 	else
 		unitDamage[unitID] = {}
 		unitDamage[unitID].damage = damage
-		unitDamage[unitID].time = (lastTime + 0.1)
+		unitDamage[unitID].time = lastTime + 0.1
 	end
 end
 
@@ -248,7 +243,7 @@ local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
 				font:SetTextColor(1, 0.5, 0.5)
 				font:Print(damage, 0, 0, textSize, 'cnO')
 				font:End()
-			end)
+			end)	-- rare error on this line: "table index is NaN"
 		end
 		glCallList(drawTextListsDeath[damage])
 	else
@@ -353,16 +348,13 @@ function gadget:DrawWorld()
 	end
 
 	local theTime = GetGameSeconds()
-
 	if theTime ~= lastTime then
-
 		if next(unitDamage) then
 			calcDPS(unitDamage, false, theTime)
 		end
 		if next(unitParalyze) then
 			calcDPS(unitParalyze, true, theTime)
 		end
-
 		if changed then
 			table.sort(damageTable, function(m1, m2)
 				return m1.damage < m2.damage
@@ -370,7 +362,6 @@ function gadget:DrawWorld()
 			changed = false
 		end
 	end
-
 	lastTime = theTime
 
 	if not next(damageTable) and not next(deadList) then
@@ -386,7 +377,7 @@ function gadget:DrawWorld()
 
 	for i, damage in pairs(damageTable) do
 		if damage.lifeSpan <= 0 then
-			table.remove(damageTable, i)
+			damageTable[i] = nil
 		else
 			if fullview or CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
 				glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset),
@@ -407,8 +398,8 @@ function gadget:DrawWorld()
 	end
 	for i, death in pairs(deadList) do
 		if death.lifeSpan <= 0 then
-			table.remove(deadList, i)
-		elseif type(death.damage) == "number" then	-- checking this cause someone got an error that this was being NaN
+			deadList[i] = nil
+		elseif type(death.damage) == "number" then	-- checking this cause someone got an error that this was being NaN ...UPDATE: STILL ERRORS REGARDLESS
 			drawDeathDPS(death.damage, death.x, death.y, death.z, death.textSize, death.red, death.lifeSpan)
 			if not paused then
 				death.y = (death.y + death.riseTime)
@@ -423,15 +414,6 @@ function gadget:DrawWorld()
 	glDepthTest(false)
 	glDepthMask(false)
 end
-
-
---function gadget:Initialize()
---  for damage=1, 200 do
---    drawTextLists[damage] = gl.CreateList(function()
---      glText(damage, 0, 0, getTextSize(damage, false), 'cnO')
---    end)
---  end
---end
 
 function gadget:Shutdown()
 	for k, _ in pairs(drawTextLists) do
