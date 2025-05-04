@@ -94,15 +94,54 @@ function NodeIndexToHeighMap(index)
 	return PosToHeightMap(pos)
 end
 
+function MapHST:Update()
+	self:EchoDebug('MapHST Update')
+	local f = self.game:Frame()
+	if f % 100 == 0 then
+		self:EchoDebug('MapHST Update',f)
+		Spring.Echo(Spring.GetPathNodeCosts(game:GetTeamID()))
+		print(game:GetTeamID())
+		Spring.Echo('reset layer node costs',Spring.SetPathNodeCosts(game:GetTeamID()))
+		for X,row in pairs(self.GRID) do
+			for Z,CELL in pairs(row) do
+				local hx = CELL.POS.x / 8 + 1
+				local hz = CELL.POS.z / 8 + 1
+				local cost = Spring.GetPathNodeCost(game:GetTeamID(),hx,hz)
+				--if cost ~= 0 then
+					Spring.MarkerAddPoint(CELL.POS.x,CELL.POS.y,CELL.POS.z, cost)
+				--end
+				
+			end
+		end
+	end
+end
+
 function MapHST:InitPathCost()
 	self:EchoDebug('init path test')
--- 	local id = game:GetTeamID()
+ 	--local id = game:GetTeamID()
 --
--- 	self.heightMapX = (self.elmoMapSizeX / 8) + 1
--- 	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
+ 	self.heightMapX = (self.elmoMapSizeX / 512)
+ 	self.heightMapZ = (self.elmoMapSizeZ / 512)
 -- 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
 -- 	self:EchoDebug(Spring.GetPathNodeCosts(id))
--- 	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
+ 	Spring.Echo('INIT new array node cost',Spring.InitPathNodeCostsArray(game:GetTeamID(),self.heightMapX,self.heightMapZ))
+	local cost = 0
+	local index = 1
+	local heightpow = self.heightMapX * self.heightMapZ
+	local halfheightX = self.heightMapX /2
+	local halfheightZ = self.heightMapZ /2
+	for i=1,self.heightMapX do
+		
+		for j=1,self.heightMapZ do
+
+			cost = (cost +  math.abs (index+((heightpow)/2) - (heightpow))*-1)+(heightpow)/2
+			Spring.SetPathNodeCost(game:GetTeamID(),index,cost)
+			--self:EchoDebug('init path node cost',i,j,Spring.GetPathNodeCost(id,i,j))
+			cost = 0
+			index = index + 1
+		end
+	end
+	Spring.Echo('SET new array node layer non sync',Spring.SetPathNodeCosts(game:GetTeamID()))
 -- 	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
@@ -794,15 +833,14 @@ function MapHST:UnitCanGoHere(unit, position,maxDistance)
 	maxDistance = maxDistance or 128
 	local ux,uy,uz = unit:GetRawPos()
 	if self.ai.tool:RawDistance(ux,uy,uz,position.x,position.y,position.z) < 32  then
-		print(unit:Name(),'ask for a short pathtest: pass')
+		self:EchoDebug(unit:Name(),'ask for a short pathtest: pass')
 		return 32
 	end
 	local pathtest = map:TestPath(self.ai.armyhst.unitTable[unit:Name()].mclass,ux,uy,uz ,position.x,position.y,position.z,nil,unit:Name())
 	if pathtest and pathtest < maxDistance then
-		print(unit:Name(),'ask for a pathtest: pass')
+		self:EchoDebug(unit:Name(),'ask for a pathtest: pass')
 		return pathtest
 	end
-	--print(unit:Name(),'ask for a pathtest: failed',pathtest)
 end
 
 function MapHST:UnitCanGetToUnit(unit1, unit2)

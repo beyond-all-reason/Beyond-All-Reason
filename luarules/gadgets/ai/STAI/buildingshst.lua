@@ -203,6 +203,7 @@ function BuildingsHST:CanBuildHere(unittype,x,y,z) -- returns boolean
 	return buildable , newX, newY, newZ
 end
 
+
 function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalPosition]]) --TODO clean this
 	if not pos then return end
 	if not self.ai.maphst:isInMap(pos) then return end

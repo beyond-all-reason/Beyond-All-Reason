@@ -1113,7 +1113,7 @@ function ArmyHST:GetUnitTable()
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
-		Spring.Echo(unitDef.moveDef)
+
 
 
 		-- --print(unitDef.name, "build slope", unitDef.maxHeightDif)
