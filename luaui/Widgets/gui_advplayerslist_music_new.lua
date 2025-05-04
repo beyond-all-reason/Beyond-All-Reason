@@ -382,8 +382,6 @@ local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
-local glPushMatrix   = gl.PushMatrix
-local glPopMatrix	 = gl.PopMatrix
 local glColor        = gl.Color
 local glTexRect	     = gl.TexRect
 local glTexture      = gl.Texture
