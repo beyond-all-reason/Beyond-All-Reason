@@ -492,7 +492,7 @@ function widget:MousePress(mx, my, button)
 		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
 			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
-		
+
 			buildQueue[#buildQueue + 1] = buildData
 		end
 	elseif button == 3 and #buildQueue > 0 then -- remove units from buildqueue one by one
@@ -568,7 +568,7 @@ function widget:DrawWorld()
 			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
 
 			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
-			if selBuildQueueDefIDConverted ~= nil then
+			if selBuildData and selBuildQueueDefIDConverted ~= nil then
 				selBuildData[1] = selBuildQueueDefIDConverted
 				selBuildQueueDefID = selBuildQueueDefIDConverted
 			end
