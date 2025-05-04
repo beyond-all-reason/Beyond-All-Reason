@@ -1502,6 +1502,7 @@
 				"allycursors_lights_descr": "Adds a colored light to every ally cursor",
 				"allycursors_lightradius": "   radius",
 				"allycursors_lightstrength": "   strength",
+				"allycursors_selfshadowing": "   self shadowing",
 				"cursorlight": "Cursor light",
 				"cursorlight_descr": "Adds a light at/above your cursor position\n\nNeeds \"Lights\" (graphics option) to be enabled",
 				"cursorlight_lightradius": "radius",
