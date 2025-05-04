@@ -74,7 +74,7 @@ local function getMostNeedQuota(quota, factoryID)
             minimumQuota = quotaNumber
             minimumUnitDefID = unitDefID
             minimumRatio = getNumberOfUnits(factoryID, unitDefID)/quotaNumber
-            
+
         else
             local currentRatio = getNumberOfUnits(factoryID, unitDefID)/quotaNumber
             if currentRatio < minimumRatio then
@@ -152,7 +152,7 @@ end
 local function removeUnit(unitID, unitDefID, unitTeam)
     if unitTeam == myTeam then --check if it was built by the same player
         local factoryID = unitToFactoryID[unitID]
-        if factoryID and builtUnits[factoryID] then
+        if factoryID and builtUnits[factoryID] and builtUnits[factoryID][unitDefID] then
             builtUnits[factoryID][unitDefID][unitID] = nil
             unitToFactoryID[unitID] = nil
         elseif builtUnits[unitID] then
