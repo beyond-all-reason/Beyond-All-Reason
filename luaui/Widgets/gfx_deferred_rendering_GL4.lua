@@ -119,6 +119,7 @@ local cursorLightParams = {
 
 local cursorLightAlpha = 0.5
 local cursorLightRadius = 0.85
+local cursorLightSelfShadowing = false
 
 -- This is for the player himself!
 local showPlayerCursorLight = false
@@ -1449,9 +1450,10 @@ function widget:Update(dt)
 	if WG['allycursors'] and WG['allycursors'].getLights() then
 		sec = sec + dt
 		if sec >= 0.25 then
-			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() then
+			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() or cursorLightSelfShadowing ~= WG['allycursors'].getLightSelfShadowing() then
 				cursorLightAlpha = WG['allycursors'].getLightStrength()
 				cursorLightRadius = WG['allycursors'].getLightRadius()
+				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
 				clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
@@ -1468,6 +1470,7 @@ function widget:Update(dt)
 					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
 					params[12] = cursorLightAlpha * 0.2
+					params[20] = cursorLightSelfShadowing and 0 or 8
 					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
 				else
 					updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
