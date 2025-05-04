@@ -1523,7 +1523,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
-		coneLightVBO.usedElements > 0 then
+		coneLightVBO.usedElements > 0 or
+		cursorPointLightVBO.usedElements > 0
+		then
 
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
