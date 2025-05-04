@@ -930,7 +930,8 @@ local options = {
     {
         key     = "map_waterislava_config",
         name    = "Water Is Lava Config",
-        desc    = "A pipe separated list of tides for lava <newTideHeight>, <changeSpeed>, <timeAtThisHeight>", -- example: map_waterislava_config=1, 0.1, 60|1, 0.1, 60|1, 0.1, 60;
+        desc    = "For advanced users!!! A base64 encoded tideRhym lua table. Water Is Lava must be enabled.",
+        hint    = "Input must be base64",
         type    = "string",
         def     = "",
         section = "options_extra",

@@ -160,39 +160,95 @@ end
 
 local mapLavaConfig = getLavaConfig(mapName)
 
-if mapLavaConfig and (not voidWaterMap) then
-	applyConfig(mapLavaConfig)
 
-elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
-	isLavaMap = true
-	grow = 0
-	effectBurst = false
-	level = 1
-	colorCorrection = "vec3(0.15, 1.0, 0.45)"
-	--coastColor = "vec3(0.6, 0.7, 0.03)"
-	coastLightBoost = 0.5
-	coastWidth = 16.0 -- how wide the coast of the lava should be
-	fogColor = "vec3(1.60, 0.8, 0.3)"
-	--coastWidth = 30.0
-	lavaParallaxDepth = 24.0 -- set to >0 to enable, how deep the parallax effect is
-	lavaParallaxOffset = 0.15 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-	swirlFreq = 0.008
-	swirlAmp = 0.01
-	uvScale = 3
-	specularExp = 12.0
-	tideAmplitude = 3
-	tidePeriod = 40
-	fogFactor = 0.1
-	fogHeight = 20
-	fogAbove = 0.1
-	fogDistortion = 1
-	tideRhym = { { 4, 0.05, 5*6000 } }
-	--tideRhym = { { 1, 0.25, 5*6000 } }
+local function isValidTideRhym(tbl)
+	if type(tbl) ~= "table" then return false end
+	for i, v in ipairs(tbl) do
+		if type(v) ~= "table" or #v < 3 then return false end
+		if type(v[1]) ~= "number" or type(v[2]) ~= "number" or type(v[3]) ~= "number" then
+			return false
+		end
+	end
+	return true
+end
 
-elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
-	isLavaMap = true
-	level = 4
-	tideRhym = { { 4, 0.05, 5*6000 } }
+local function tryOverrideTideRhym(config)
+	local modOptions = Spring.GetModOptions and Spring.GetModOptions() or {}
+	-- map_waterislava must be enabled for map_waterislava_config 
+	if not modOptions.map_waterislava then
+		return config
+	end
+	local base64 = modOptions.map_waterislava_config
+	if base64 and base64 ~= "" then
+		Spring.Echo("[Lava] map_waterislava_config detected, attempting to decode and apply.")
+		local decodeSuccess, decoded = pcall(string.base64Decode, base64)
+		if not decodeSuccess or not decoded then
+			Spring.Echo("[Lava] Failed to base64 decode map_waterislava_config")
+			return
+		end
+
+		local func, err = loadstring(decoded)
+		if not func then
+			Spring.Echo("[Lava] Error loading tideRhym code: " .. tostring(err))
+			return
+		end
+		local env = {}
+		setfenv(func, env)
+		local ok, result = pcall(func)
+		if not ok then
+			Spring.Echo("[Lava] Error executing tideRhym code: " .. tostring(result))
+			return
+		end
+
+		if env.tideRhym and isValidTideRhym(env.tideRhym) then
+			Spring.Echo("[Lava] Successfully loaded tideRhym from map_waterislava_config, overriding config.")
+			config = config or {}
+			config.tideRhym = env.tideRhym
+			return config
+		else
+			Spring.Echo("[Lava] tideRhym not found or invalid in decoded config.")
+		end
+	end
+	return config
+end
+
+local finalConfig = mapLavaConfig
+
+if not voidWaterMap then
+	finalConfig = tryOverrideTideRhym(finalConfig) or finalConfig
+	if finalConfig then
+		applyConfig(finalConfig)
+	elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
+		isLavaMap = true
+		grow = 0
+		effectBurst = false
+		level = 1
+		colorCorrection = "vec3(0.15, 1.0, 0.45)"
+		--coastColor = "vec3(0.6, 0.7, 0.03)"
+		coastLightBoost = 0.5
+		coastWidth = 16.0 -- how wide the coast of the lava should be
+		fogColor = "vec3(1.60, 0.8, 0.3)"
+		--coastWidth = 30.0
+		lavaParallaxDepth = 24.0 -- set to >0 to enable, how deep the parallax effect is
+		lavaParallaxOffset = 0.15 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+		swirlFreq = 0.008
+		swirlAmp = 0.01
+		uvScale = 3
+		specularExp = 12.0
+		tideAmplitude = 3
+		tidePeriod = 40
+		fogFactor = 0.1
+		fogHeight = 20
+		fogAbove = 0.1
+		fogDistortion = 1
+		tideRhym = { { 4, 0.05, 5*6000 } }
+		--tideRhym = { { 1, 0.25, 5*6000 } }
+
+	elseif Spring.GetModOptions().map_waterislava then
+		isLavaMap = true
+		level = 4
+		tideRhym = { { 4, 0.05, 5*6000 } }
+	end
 end
 
 
