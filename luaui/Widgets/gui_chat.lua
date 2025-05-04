@@ -404,7 +404,6 @@ local autocompleteCommands = {
 	'luaui enable',
 	'addmessage',
 	'radarpulse',
-	'snow',
 	'ecostatstext',
 	'defrange ally air',
 	'defrange ally nuke',
@@ -412,9 +411,6 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
-	'playertv',
-	'playerview',
-	'speclist',
 }
 
 local autocompleteText
