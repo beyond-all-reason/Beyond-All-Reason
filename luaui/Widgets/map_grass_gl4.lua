@@ -1067,7 +1067,7 @@ function widget:DrawWorldPreUnit()
 
     grassShader:Activate()
     --Spring.Echo("globalgrassfade",globalgrassfade)
-    local windStrength = math.clamp(math.abs(windDirX) + math.abs(windDirZ), 4, grassConfig.maxWindSpeed)
+    local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
