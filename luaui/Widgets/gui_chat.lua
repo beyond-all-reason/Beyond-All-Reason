@@ -405,7 +405,6 @@ local autocompleteCommands = {
 	'addmessage',
 	'radarpulse',
 	'snow',
-	'clearconsole',
 	'ecostatstext',
 	'defrange ally air',
 	'defrange ally nuke',
@@ -415,8 +414,6 @@ local autocompleteCommands = {
 	'defrange enemy ground',
 	'playertv',
 	'playerview',
-	'hidespecchat',
-	'hideSpecchatplayer',
 	'speclist',
 }
 
@@ -2301,57 +2298,6 @@ function widget:AddConsoleLine(lines, priority)
 	end
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "clearconsole", nil, true) == 1  and  string.len(command) == 12 then
-		orgLines = {}
-		chatLines = {}
-		consoleLines = {}
-	end
-	if string.sub(command, 1, 12) == 'hidespecchat' then
-		if string.sub(command, 14, 14) ~= '' then
-			if string.sub(command, 14, 14) == '0' then
-				hideSpecChat = false
-			elseif string.sub(command, 14, 14) == '1' then
-				hideSpecChat = true
-			end
-		else
-			hideSpecChat = not hideSpecChat
-		end
-		Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
-		if hideSpecChat then
-			Spring.Echo("Hiding all spectator chat")
-		else
-			Spring.Echo("Showing all spectator chat again")
-		end
-	end
-	if string.sub(command, 1, 17) == 'hidespecchatplayer' then
-		if string.sub(command, 19, 19) ~= '' then
-			if string.sub(command, 19, 19) == '0' then
-				hideSpecChatPlayer = false
-			elseif string.sub(command, 19, 19) == '1' then
-				hideSpecChatPlayer = true
-			end
-		else
-			hideSpecChatPlayer = not hideSpecChatPlayer
-		end
-		Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
-		if hideSpecChat then
-			Spring.Echo("Hiding all spectator chat when player")
-		else
-			Spring.Echo("Showing all spectator chat when player again")
-		end
-	end
-	if string.sub(command, 1, 18) == 'preventhistorymode' then
-		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
-		enableShortcutClick = not enableShortcutClick
-		if not showHistoryWhenCtrlShift then
-			Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
-		else
-			Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
-		end
-	end
-end
-
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
@@ -2447,6 +2393,55 @@ function widget:PlayerAdded(playerID)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
+local function clearconsoleCmd(_, _, params)
+	orgLines = {}
+	chatLines = {}
+	consoleLines = {}
+	currentChatLine = 0
+	currentConsoleLine = 0
+
+	clearDisplayLists()
+	updateDrawUi = true
+end
+
+local function hidespecchatCmd(_, _, params)
+	if params[1] then
+		hideSpecChat = (params[1] == '1')
+	else
+		hideSpecChat = not hideSpecChat
+	end
+	Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
+	if hideSpecChat then
+		Spring.Echo("Hiding all spectator chat")
+	else
+		Spring.Echo("Showing all spectator chat again")
+	end
+end
+
+local function hidespecchatplayerCmd(_, _, params)
+	if params[1] then
+		hideSpecChatPlayer = (params[1] == '1')
+	else
+		hideSpecChatPlayer = not hideSpecChatPlayer
+	end
+	Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
+	if hideSpecChat then
+		Spring.Echo("Hiding all spectator chat when player")
+	else
+		Spring.Echo("Showing all spectator chat when player again")
+	end
+end
+
+local function preventhistorymodeCmd(_, _, params)
+	showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
+	enableShortcutClick = not enableShortcutClick
+	if not showHistoryWhenCtrlShift then
+		Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
+	else
+		Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
+	end
+end
+
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
@@ -2528,6 +2523,11 @@ function widget:Initialize()
 	for orgLineID, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
+
+	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
 end
 
 function widget:Shutdown()
@@ -2543,6 +2543,11 @@ function widget:Shutdown()
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
+
+	widgetHandler.actionHandler:RemoveAction(self, "clearconsole")
+	widgetHandler.actionHandler:RemoveAction(self, "hidespecchat")
+	widgetHandler.actionHandler:RemoveAction(self, "hidespecchatplayer")
+	widgetHandler.actionHandler:RemoveAction(self, "preventhistorymode")
 end
 
 function widget:GameOver()
