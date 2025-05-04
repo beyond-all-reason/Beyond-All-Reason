@@ -2094,11 +2094,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepfl',
 				pieceName = 'footfl',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[2] = {
@@ -2107,11 +2107,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepbr',
 				pieceName = 'footbr',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[3] = {
@@ -2120,11 +2120,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepfr',
 				pieceName = 'footfr',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[4] = {
@@ -2133,11 +2133,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepbl',
 				pieceName = 'footbl',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 		},
