@@ -653,7 +653,7 @@ end
 -- Drawing
 
 local camUpVector
-local cameraScale
+local cameraScale = 1
 
 local function DrawHullVertices(hull)
 	for j = 1, #hull do

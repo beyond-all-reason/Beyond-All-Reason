@@ -635,6 +635,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function getRaptorSpawnLoc(burrowID, size)
+		if not burrowID then
+			return false
+		end
 		local x, y, z
 		local bx, by, bz = GetUnitPosition(burrowID)
 		if not bx or not bz then
