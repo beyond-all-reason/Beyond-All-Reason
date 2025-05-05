@@ -974,9 +974,10 @@ end
 
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
-
-	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
+	if n == 2 then
+		init()
+	end
 end
 
 local function updateAllyTeamOverflowing()
@@ -1041,6 +1042,8 @@ end
 
 function widget:Update(dt)
 	now = os.clock()
+
+	windRotation = windRotation + (currentWind * bladeSpeedMultiplier * dt * 30)
 
 	if now > nextStateCheck then
 		nextStateCheck = now + 0.0333
@@ -1674,6 +1677,7 @@ function widget:DrawScreen()
 	if gameFrame > 0 and minWind+maxWind >= 0.5 then
 		if useRenderToTexture then
 			if currentWind ~= prevWind then
+				prevWind = currentWind
 				gl.RenderToTexture(uiTex, function()
 					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
 					gl.Scissor(windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4)
@@ -1689,7 +1693,6 @@ function widget:DrawScreen()
 					font2:Begin()
 					font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
 					font2:End()
-					prevWind = currentWind
 					gl.PopMatrix()
 				end)
 			end
