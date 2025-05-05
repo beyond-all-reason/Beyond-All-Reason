@@ -98,7 +98,7 @@ return {
 				model = "legmediumrocket.s3o",
         		mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
-				range = 1280,
+				range = 450,
 				reloadtime = 10,
 				smoketrail = true,
 				smokePeriod = 8,
@@ -109,8 +109,12 @@ return {
 				castshadow = true, --projectile
 				soundhit = "junohit2",
 				soundstart = "bombrel",
-				sprayangle = 300,
-				weapontype = "AircraftBomb",
+				--sprayangle = 300,
+				tolerance = 16000,
+				tracks = true,
+				turnrate = 10000,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 300,
 				customparams = {
 					nofire = true,
 				},
