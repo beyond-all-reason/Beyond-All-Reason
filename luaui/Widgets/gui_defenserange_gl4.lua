@@ -414,7 +414,13 @@ function widget:TextCommand(command)
 		if string.find(command, "+", nil, true) then
 			enabled = true
 		end
-		buttonConfig[ally][rangetype]=enabled
+		if rangetype == 'ground' then
+			buttonConfig[ally]['ground']=enabled
+			buttonConfig[ally]['cannon']=enabled
+			buttonConfig[ally]['lrpc']=enabled
+		else
+			buttonConfig[ally][rangetype]=enabled
+		end
 		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
 		return true
 	end
@@ -531,7 +537,13 @@ function widget:Initialize()
 			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
 			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
 			WG['defrange']['set'..Ae..Wt] = function(value)
-				buttonConfig[ae][wt] = value
+				if wt == 'ground' then
+					buttonConfig[ae]['ground'] = value
+					buttonConfig[ae]['cannon'] = value
+					buttonConfig[ae]['lrpc'] = value
+				else
+					buttonConfig[ae][wt] = value
+				end
 				Spring.Echo(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
 				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
