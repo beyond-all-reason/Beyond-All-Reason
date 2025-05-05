@@ -445,11 +445,19 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- Spring.Echo("SquadLifeReport - SquadID: #".. i .. ", LifetimeRemaining: ".. squadsTable[i].squadLife)
 
-			if squadsTable[i].squadLife <= 0 then
+			if squadsTable[i].squadLife == 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 then
 					if squadsTable[i].squadBurrow and nSpawnedBosses == 0 then
-						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						if Spring.GetUnitTeam(squadsTable[i].squadBurrow) == scavTeamID then
+							Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						elseif Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+							local x,y,z = Spring.GetUnitPosition(squadsTable[i].squadBurrow)
+							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Scav Spawner")
+							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Scav Spawner.")
+							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
+							squadsTable[i].squadBurrow = nil
+						end
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -462,7 +470,14 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					for j = 1,#destroyQueue do
 						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
-						Spring.DestroyUnit(destroyQueue[j], true, false)
+						if Spring.GetUnitTeam(destroyQueue[j]) == scavTeamID then
+							Spring.DestroyUnit(destroyQueue[j], true, false)
+						elseif not Spring.GetUnitIsDead(destroyQueue[j]) == false then
+							local x,y,z = Spring.GetUnitPosition(destroyQueue[j])
+							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Scav Unit")
+							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Scav Unit.")
+							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
+						end
 					end
 					destroyQueue = nil
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -2266,6 +2281,7 @@ if gadgetHandler:IsSyncedCode() then
 			for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
 				if id == unitID then
 					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
+					break
 				end
 			end
 			unitSquadTable[unitID] = nil
