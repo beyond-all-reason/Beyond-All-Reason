@@ -25,22 +25,12 @@ function UnitHST:Update()--is before shardlua/unit
 -- 		unit.z = z
 		if x then
 			if unit:HasBehaviours() then
-				
-				
-
-				--if self.ai.armyhst.unitTable[unit:Internal():Name()].speed > 0 and not SpTestMoveOrder( unit:Internal().UnitDefID,x,y,z) then
-					--self:Warn('unit stuck')
-				--	self.ai.cleanhst.cleanableByID[unit:Internal():ID()] = unit:Internal():ID()
-					
-					
-				--else
 				local RAM = gcinfo()
 				unit:Update()
 				RAM = gcinfo() - RAM
 				if RAM > 0 then
 					print (RAM,unit:Internal():Name())
 				end
-				--end
 			end
 		end
 	end

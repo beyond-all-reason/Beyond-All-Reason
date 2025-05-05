@@ -93,7 +93,6 @@ function CleanerBST:Search()
 		if  not self.ai.cleanhst.dirt[id] and distance < self.cleaningRadius then
 			self.ai.cleanhst.theCleaner[self.id] = id
 			self.ai.cleanhst.dirt[id] = self.id
-			print('singleunitremovable')
 			return id
 		end
 	end
@@ -118,7 +117,6 @@ function CleanerBST:Search()
 end
 
 function CleanerBST:Patroling()
-	print('execute patroling for nano:', self.id)
 	local currentCommand = self.unit:Internal():CurrentCommand()
 	if currentCommand ~= CMD.PATROL then
 		self.ai.tool:GiveOrder(self.id,CMD.PATROL,self.patrolCommand,0,'1-1')

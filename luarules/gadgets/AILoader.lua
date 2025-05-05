@@ -72,6 +72,10 @@ Shard.AIsByTeamID = {}
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
+		Spring.Echo('INIT new array node cost sync',Spring.InitPathNodeCostsArray(0,32,32))
+		Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
+		--Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
+
 	end
 
 	function gadget:RezTable()
@@ -145,7 +149,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg)
-		Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
+		
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 			spEcho('warn:  Shard  receive a old give order protocol',msg)
 			cmdCounter.old = cmdCounter.old + 1
@@ -237,8 +241,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:Initialize()
 		spEcho("Looking for AIs")
-		Spring.Echo('INIT new array node cost sync',Spring.InitPathNodeCostsArray(0,32,32))
-		Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
+
 		for i = 1, #teamList do
 			local id = teamList[i]
 			local _, _, _, isAI, side, allyId = spGetTeamInfo(id, false)

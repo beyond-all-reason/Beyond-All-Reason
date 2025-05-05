@@ -23,7 +23,7 @@ function MapHST:Init()
 		return
 	end
 	self:basicMapInfo()
-	self:InitPathCost()
+	--self:InitPathCost()
 	self.topology = {air = {}}
 	self:createGrid()
 	self.METALS = map:GetMetalSpots()
@@ -94,7 +94,7 @@ function NodeIndexToHeighMap(index)
 	return PosToHeightMap(pos)
 end
 
-function MapHST:Update()
+--[[function MapHST:Update()
 	self:EchoDebug('MapHST Update')
 	local f = self.game:Frame()
 	if f % 100 == 0 then
@@ -114,7 +114,7 @@ function MapHST:Update()
 			end
 		end
 	end
-end
+end]]
 
 function MapHST:InitPathCost()
 	self:EchoDebug('init path test')

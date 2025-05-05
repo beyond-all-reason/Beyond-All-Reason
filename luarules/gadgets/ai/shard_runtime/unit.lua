@@ -261,7 +261,6 @@ function Unit:ElectBehaviour()
 				self.activeBehaviour:Deactivate()
 			end
 			self.nextBehaviour = bestBehaviour
-			print('next elected behaviour', bestBehaviour:Name(), 'on', self:Internal():Name())
 		end
 	end
 end
