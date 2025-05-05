@@ -125,10 +125,8 @@ if gadgetHandler:IsSyncedCode() then
 					spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
 					--Spring.Echo(lavaUnits[unitID])
-				else
-					if lavaUnits[unitID] then
-						lavaUnits[unitID] = nil
-					end
+				elseif lavaUnits[unitID] then
+					lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -256,6 +254,9 @@ if gadgetHandler:IsSyncedCode() then
 		return 0.0, 1.0
 	end
 
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
+		lavaUnits[unitID] = nil
+	end
 
 else  -- UNSYCNED
 

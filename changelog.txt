@@ -1,3 +1,6 @@
+# May 2025
+• lava: units in lava slow down up to 5x depending on their submersion level
+
 # April 2025
 • [Pawn] 1420 -> 1650 buildtime
 • [Pawn] 52m 870e -> 54m 900e
