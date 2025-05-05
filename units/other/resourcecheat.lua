@@ -15,7 +15,7 @@ return {
 		damagemodifier = 0.95,
 		energymake = 1000000,
 		energystorage = 1000000,
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
 		idleautoheal = 5,

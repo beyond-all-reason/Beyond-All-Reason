@@ -621,7 +621,7 @@ local function makeTeamCompositionList()
 		end
 		prevAreaRect = areaRect
 
-		if not uiBgTex or rectAreaChange then
+		if (not uiBgTex or rectAreaChange) and areaRect[4] then
 			if uiBgTex then
 				gl.DeleteTextureFBO(uiBgTex)
 			end
@@ -846,7 +846,7 @@ local function DrawEBar(tE, tEp, vOffset)
 				widgetPosY + widgetHeight - vOffset + dy - barheight - glowsize
 		)
 	end
-	
+
 	-- energy total
 	glColor(0.7, 0.7, 0.7, 1)
 	gl.Texture(images.bar)
@@ -1447,7 +1447,7 @@ function widget:DrawScreen()
 		makeTeamCompositionList()
 	end
 
-	
+
 	if uiTex then
 		if os.clock() > lastBarsUpdate + 0.15 then
 			gl.RenderToTexture(uiTex, function()
