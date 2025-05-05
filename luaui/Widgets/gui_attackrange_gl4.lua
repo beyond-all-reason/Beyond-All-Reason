@@ -528,7 +528,7 @@ local function AddSelectedUnit(unitID, mouseover)
 				elseif weaponDef.type == "Cannon" then
 					if weaponDef.range < 700 then 
 						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
-					elseif weaponDef.range > 2000 then 
+					elseif weaponDef.range > 2600 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
@@ -536,7 +536,7 @@ local function AddSelectedUnit(unitID, mouseover)
 				elseif weaponDef.type == "Melee" then
 					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				else
-					if weaponDef.range > 2000 then 
+					if weaponDef.range > 2600 then 
 						entry.weapons[weaponNum] = 5 
 					else
 						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"

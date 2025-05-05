@@ -106,16 +106,16 @@ local colorConfig = { --An array of R, G, B, Alpha
         fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 1.0,
-		stenciled = false,
+		stenciled = true,
 		cannonMode = false,
 		stencilMask = 4,
 		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.10, -- alpha of inner rings
+		internalalpha = 0.20, -- alpha of inner rings
     },
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 2.0,
+        externallinethickness = 4.0,
         internallinethickness = 1.0,
 		stenciled = true,
 		cannonMode = true,
@@ -125,11 +125,11 @@ local colorConfig = { --An array of R, G, B, Alpha
 	lrpc = {
         color = {1.3, 0.18, 0.04, 0.66},
         fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
+        externallinethickness = 2.0,
         internallinethickness = 1.0,
 		stenciled = false,
 		cannonMode = true,
-		externalalpha = 0.75, -- alpha of outer rings
+		externalalpha = 0.25, -- alpha of outer rings
     },
 }
 
