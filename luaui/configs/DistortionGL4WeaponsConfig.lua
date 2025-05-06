@@ -266,7 +266,7 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.6, noiseStrength = 0.35, noiseScaleSpace = 0.8,
-						lifeTime = 12, decay = 8, rampUp = 4,
+						lifeTime = 12, decay = 8, rampUp = 4, onlyModelMap = 1,
 						effectStrength = 1.2, --needed for shockwaves
 						shockWidth = 1, refractiveIndex = 1.1, startRadius = 0.24,
 						effectType = 'groundShockwave'},
@@ -277,9 +277,20 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.1, noiseStrength = 0.5, noiseScaleSpace = 0.8,
-						lifeTime = 21, decay = 16, rampUp = 4,
+						lifeTime = 21, decay = 16, rampUp = 4, onlyModelMap = 1,
 						effectStrength = 1.5, --needed for shockwaves
 						shockWidth = 1.2, refractiveIndex = -1.2, startRadius = 0.24,
+						effectType = 'groundShockwave'},
+	},
+	GroundShockWaveHeat = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		--fraction = 5, --doesn't work
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						distanceFalloff = 0.1, noiseStrength = 0.5, noiseScaleSpace = 0.8,
+						lifeTime = 16, decay = 13, rampUp = 3, onlyModelMap = 1,
+						effectStrength = 0.8, --needed for shockwaves
+						shockWidth = -1.9, refractiveIndex = -2.04, startRadius = 0.24,
 						effectType = 'groundShockwave'},
 	},
 	AirShockWaveCommander = {
@@ -380,9 +391,9 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 1, onlyModelMap = 0,
-			lifeTime = 35, refractiveIndex = 1.05, decay = 3, rampUp = 5,
-			startRadius = 0.1, shockWidth = 1.9,
-			effectStrength = 4.5, --needed for airshockwaves
+			lifeTime = 30, refractiveIndex = -4.0, decay = 5, rampUp = 15,
+			startRadius = 0.24, shockWidth = -0.95,
+			effectStrength = 0.9, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -808,6 +819,7 @@ local SizeRadius = {
 	Pico = 			26,
 	Nano = 			34,
 	Micro = 		44,
+	DGun = 			50,
 	Tiniest = 		56,
 	Tiny = 			72,
 	Smallest = 		90,
@@ -1052,10 +1064,11 @@ local projectileDefDistortions  = {
 
 
 			elseif weaponDef.type == 'DGun' then
-				muzzleFlash = true --doesnt work
-				sizeclass = "Medium"
+				--muzzleFlash = true --doesnt work
+				sizeclass = "DGun"
 
-				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+				projectileDefDistortions[weaponID] = GetDistortionClass("AirShockWaveDgun", sizeclass, overrideTable)
+				--projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
 				projectileDefDistortions[weaponID].yOffset = 32
 
 			elseif weaponDef.type == 'TorpedoLauncher' then
@@ -1218,9 +1231,9 @@ local muzzleFlashDistortionsNames = {}
 local projectileDefDistortionsNames = {}
 
 
-projectileDefDistortionsNames["armcom_disintegrator"] =
-	--GetDistortionClass("ProjectileDgun", "Micro")
-	GetDistortionClass("AirShockWaveDgun", "Micro")
+-- projectileDefDistortionsNames["armcom_disintegrator"] =
+-- 	GetDistortionClass("ProjectileDgun", "Micro")
+-- 	GetDistortionClass("AirShockWaveDgun", "Micro")
 
 projectileDefDistortionsNames["corjugg_juggernaut_fire"] =
 	GetDistortionClass("AirShockWaveDgun", "Nano", {
@@ -1431,6 +1444,11 @@ muzzleFlashDistortionsNames['armguard_plasma_high'] = {
 -- muzzleFlashDistortionsNames['armepoch_heavyplasma'] = {
 -- 	GetDistortionClass("MuzzleShockWaveXL", "Tiniest")
 -- }
+
+explosionDistortionsNames['corape_vtol_rocket'] = {
+	GetDistortionClass("AirShockWave", "Nano", {
+		lifeTime = 6, rampUp = 1,})
+	}
 explosionDistortionsNames['armepoch_heavyplasma'] = {
 	GetDistortionClass("AirShockWave", "Tiny"),
 	GetDistortionClass("ExplosionHeat", "Micro"),
@@ -1499,17 +1517,19 @@ projectileDefDistortionsNames["armmship_rocket"] =
 
 
 projectileDefDistortionsNames["corkarg_super_missile"] =
-	GetDistortionClass("MissileProjectile", "Smaller", {
-	theta = 0.08, noiseStrength = 4, noiseScaleSpace = 0.37,
-	lifeTime = 46, rampUp = 4, decay = 15, radius = 130, yoffset = 18,
-	effectStrength = 1.2,
-	startRadius = 0.5, onlyModelMap = 1,
+	GetDistortionClass("MissileProjectile", "Medium", {
+	theta = 0.08, noiseStrength = 4, noiseScaleSpace = 0.67,
+	lifeTime = 46, rampUp = 4, decay = 5, radius = 150, yoffset = 18,
+	effectStrength = 2.2, distanceFalloff = 1.3,
+	startRadius = 0.3, onlyModelMap = 1,
 })
 explosionDistortionsNames['corkarg_super_missile'] = {
-	GetDistortionClass("GroundShockWave", "Micro", {
-		lifeTime = 24, }),
-	GetDistortionClass("AirShockWaveXS", "Pico", {
-		lifeTime = 16, effectStrength = 0.5, }),
+	GetDistortionClass("GroundShockWaveXS", "Tiny", {
+		lifeTime = 8, decay = 3, rampUp = 1,
+		shockWidth = 0.5, }),
+	GetDistortionClass("AirShockWave", "Nano", {
+		--lifeTime = 16,
+		effectStrength = 2.0, }),
 }
 
 projectileDefDistortionsNames["corhrk_corhrk_rocket"] =
@@ -1646,9 +1666,12 @@ explosionDistortionsNames['armthund_armbomb'] = {
 
 explosionDistortionsNames['legphoenix_skybeam'] = {
 	--GetDistortionClass("AirShockWave", "Small"),
-	GetDistortionClass("GroundShockWave", "Smallest"),
+	--GetDistortionClass("GroundShockWave", "Smallest"),
+	GetDistortionClass("GroundShockWaveHeat", "Tiniest"),
 	--GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
+
+-- a
 
 explosionDistortionsNames['legphoenix_legphtarg'] = {
 	--GetDistortionClass("AirShockWave", "Small"),
@@ -1816,7 +1839,6 @@ explosionDistortionsNames['nuketestcor_nuketestcor'] = {
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
-	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
 	--GetDistortionClass("ExplosionRadiationNuke", "Larger"), --no use yet
 	--GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
@@ -2002,25 +2024,58 @@ for i, name in pairs(scavbosses) do
     }
 end
 
+-- duplicate all weapondistortions for scavengers
+function applyScavVariants(name, params)
+    local scavName    
+    local pos = name:find("_", 1, true)
+    if pos then
+        scavName = string.sub(name, 1, pos-1)..'_scav'..string.sub(name, pos)
+    else
+        scavName = name..'_scav'
+    end
+    if WeaponDefNames[scavName] then
+        local paramsScav = deepcopy(params)
+        --paramsScav.distortionConfig.color2r, paramsScav.distortionConfig.color2g, paramsScav.distortionConfig.color2b = 0.3, 0.1, 0.7
+        return scavName, paramsScav
+    end
+end
 
 -- convert weaponname -> weaponDefID
 for name, distortionList in pairs(explosionDistortionsNames) do
 	if WeaponDefNames[name] then
 		explosionDistortions[WeaponDefNames[name].id] = distortionList
+	end	
+	-- loop through each distortion in the list and add them to the scavenger variant
+	local scavName, paramsScav = applyScavVariants(name, distortionList)
+	if scavName and WeaponDefNames[scavName] then
+		explosionDistortions[WeaponDefNames[scavName].id] = {}
+		for _, distortion in ipairs(distortionList) do
+			table.insert(explosionDistortions[WeaponDefNames[scavName].id], distortion)
+		end
 	end
 end
 explosionDistortionsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, distortionList in pairs(muzzleFlashDistortionsNames) do
 	if WeaponDefNames[name] then
 		muzzleFlashDistortions[WeaponDefNames[name].id] = distortionList
 	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		muzzleFlashDistortions[WeaponDefNames[scavName].id] = paramsScav
+	end
 end
 muzzleFlashDistortionsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(projectileDefDistortionsNames) do
 	if WeaponDefNames[name] then
 		projectileDefDistortions[WeaponDefNames[name].id] = params
+	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		projectileDefDistortions[WeaponDefNames[scavName].id] = paramsScav
 	end
 end
 projectileDefDistortionsNames = nil
