@@ -71,8 +71,8 @@ local autoReload = false
 local enabledAsSpec = true
 
 local buttonConfig = {
-	ally = { ground = true, air = true, nuke = true , cannon = true, lrpc = true},
-	enemy = { ground = true, air = true, nuke = true , cannon = true, lrpc = true}
+	ally = { ground = false, air = false, nuke = true , cannon = false, lrpc = false},
+	enemy = { ground = true, air = true, nuke = true , cannon = true, lrpc = false}
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
@@ -145,7 +145,7 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 	-- unitDefRings[unitDefID] = {
 
 	}
-]]-- 
+]]--
 
 local mobileAntiUnitDefs = {
 	[UnitDefNames.armscab.id ] = true,
@@ -195,7 +195,7 @@ local function initializeUnitDefRing(unitDefID)
 			local isCylinder = 0
 			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
 				isCylinder = 1
-			end	
+			end
 
 			local ringParams = {range, color[1],color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
@@ -289,11 +289,11 @@ local function initUnitList()
 		['leglupara'] = { weapons = { 'air' } }, --T1.5 AA
 		['legrhapsis'] = { weapons = { 'air' } }, --T1.5 AA
 		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
-		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA 
-		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA 
-		
-		['legstarfall'] = { weapons = { 'lrpc' } }, 
-		['leglrpc'] = { weapons = { 'lrpc' } }, 
+		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
+		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
+
+		['legstarfall'] = { weapons = { 'lrpc' } },
+		['leglrpc'] = { weapons = { 'lrpc' } },
 
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },
@@ -484,7 +484,7 @@ local shaderSourceCache = {
 		drawMode = 0,
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
-		inMiniMap = 0.0, 
+		inMiniMap = 0.0,
 		staticUnits = 1.0,
 	},
 }
@@ -584,13 +584,13 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 		local allystring = alliedUnit and "ally" or "enemy"
 		if buttonConfig[allystring][weaponType] then
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-			
+
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
 			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
 			--Spring.Echo("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
-			
+
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
 			-- so it only goes up with popups
 			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
@@ -923,7 +923,7 @@ function widget:DrawWorld()
 			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
 			glDepthTest(false) -- always draw
 			glColorMask(false, false, false, false) -- disable color drawing
-			
+
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
@@ -960,7 +960,7 @@ function widget:DrawWorld()
 		end
 	end
 end
-if autoReload then 
+if autoReload then
     function widget:DrawScreen()
         if defenseRangeShader.DrawPrintf then defenseRangeShader.DrawPrintf() end
     end
@@ -991,13 +991,13 @@ function widget:SetConfigData(data)
 			local newconfig = data["enabled"]
 			local configstr = ""
 			for allyenemy, weapontypes in pairs(newconfig) do
-				for wt, enabledstate in pairs(weapontypes) do  	
+				for wt, enabledstate in pairs(weapontypes) do
 					buttonConfig[allyenemy][wt] = enabledstate
 					configstr = configstr .. tostring(allyenemy) .. tostring(wt) .. ":" .. tostring(enabledstate) .. ", "
 				end
-			end 
-			if autoReload then 
-				--Spring.Echo("defenserange gl4:", configstr) 
+			end
+			if autoReload then
+				--Spring.Echo("defenserange gl4:", configstr)
 			end
 			--printDebug("enabled config found...")
 		end

@@ -23,7 +23,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.5	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -2118,13 +2118,6 @@ function init()
 	local oldValues = {}
 	for _, option in ipairs(options) do
 		oldValues[option.id] = option.value
-	end
-
-	local function initDefenseRange()
-		--if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-		if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-		--if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-		if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = true, cannon = false, lrpc = false}, enemy = { air = true, ground = true, nuke = true, cannon = true, lrpc = false } } end
 	end
 
 	options = {
@@ -4256,7 +4249,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
@@ -4267,7 +4259,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_allycannon", { 'enabled', 'ally', 'cannon' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'cannon' }, value)
@@ -4278,7 +4269,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 		  end,
@@ -4288,7 +4278,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_allylrpc", { 'enabled', 'ally', 'lrpc' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
 		  end,
@@ -4298,7 +4287,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
@@ -4309,7 +4297,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_enemyground", { 'enabled', 'enemy', 'cannon' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'cannon' }, value)
@@ -4320,7 +4307,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 		  end,
@@ -4330,7 +4316,6 @@ function init()
 			  loadWidgetData("Defense Range GL4", "defrange_enemylrpc", { 'enabled', 'enemy', 'lrpc' })
 		  end,
 		  onchange = function(i, value)
-			  initDefenseRange()
 			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
 		  end,
@@ -6590,6 +6575,13 @@ function widget:Initialize()
 	end
 	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
 		widgetHandler:EnableWidget("HighlightUnit API GL4")
+	end
+
+
+	if newerVersion then
+		if widgetHandler.orderList["Defense Range GL4"] < 0.5 then
+			widgetHandler:EnableWidget("Defense Range GL4")
+		end
 	end
 
 	updateGrabinput()
