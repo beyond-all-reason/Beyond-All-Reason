@@ -20,8 +20,11 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local damageInterval = 0.7333
-local damageLimit = 100
+local damageInterval = 0.7333 -- in seconds
+local damageLimit = 100 -- in damage per second, not per interval
+local damageExcessRate = 0.2 -- %damage dealt above limit
+local damageCegMinScalar = 30
+local damageCegMinMultiple = 1 / 3
 
 -- Since I couldn't figure out totally arbitrary-radius variable CEGs for fire,
 -- we're left with this static list, which is repeated in the expgen def files:
@@ -56,18 +59,22 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 local max                    = math.max
 local min                    = math.min
 
+local spAddUnitDamage        = Spring.AddUnitDamage
+local spGetFeatureHealth     = Spring.GetFeatureHealth
+local spGetFeaturePosition   = Spring.GetFeaturePosition
 local spGetFeaturesInSphere  = Spring.GetFeaturesInSphere
 local spGetGroundHeight      = Spring.GetGroundHeight
 local spGetGroundNormal      = Spring.GetGroundNormal
 local spGetUnitDefID         = Spring.GetUnitDefID
+local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInSphere     = Spring.GetUnitsInSphere
+local spSetFeatureHealth     = Spring.SetFeatureHealth
 local spSpawnCEG             = Spring.SpawnCEG
 
-local gameSpeed = Game.gameSpeed
+local gameSpeed              = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
-
 local frameInterval = math.round(Game.gameSpeed * damageInterval)
 local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
 
@@ -168,6 +175,23 @@ local function spawnAreaCEGs(loopIndex)
     end
 end
 
+---Applies a simple formula to keep damage under a limit when many areas of effect overlap.
+---Stronger areas partially ignore the preset limit but not damage accumulation on the target.
+---Damage may be reduced enough that the CEG effect for indicating damage should not be shown.
+---@param incoming number The area weapon's damage to the target
+---@param accumulated number The target's area damage taken in the current interval
+---@return number damage
+---@return boolean showDamageCeg
+local function getLimitedDamage(incoming, accumulated)
+	local ignoreLimit = max(0, incoming - damageLimit - accumulated)
+	local belowLimit = max(0, min(damageLimit - accumulated, incoming))
+	local aboveLimit = incoming - belowLimit - ignoreLimit
+
+	local damage = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+
+	return damage, damage >= incoming * damageCegMinMultiple or damage >= damageCegMinScalar
+end
+
 local function damageTargetsInAreas(timedAreas, gameFrame)
     resetNewUnit = {}
     resetNewFeat = {}
@@ -182,18 +206,12 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     damageTaken = 0
                     resetNewUnit[#resetNewUnit + 1] = unitID
                 end
-
-                local damage = area.damage
-                local ignoreLimit = max(0, damage - damageLimit - damageTaken)
-                local belowLimit = max(0, min(damageLimit - damageTaken, damage))
-                local aboveLimit = damage - belowLimit - ignoreLimit
-                damage = ignoreLimit + belowLimit + aboveLimit * 0.2
-
-                if damage >= 30 or damage >= area.damage * (1 / 3) then
-                    local ux, uy, uz = Spring.GetUnitPosition(unitID)
+                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                if showDamageCeg then
+                    local ux, uy, uz = spGetUnitPosition(unitID)
                     spSpawnCEG(area.damageCeg, ux, uy, uz)
                 end
-                Spring.AddUnitDamage(unitID, area.damage, nil, area.owner, area.weapon)
+                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
                 unitDamageTaken[unitID] = damageTaken + damage
             end
         end
@@ -201,26 +219,19 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
-
             local damageTaken = featDamageTaken[featureID]
             if not damageTaken then
                 damageTaken = 0
                 resetNewFeat[#resetNewFeat + 1] = featureID
             end
-
-            local damage = area.damage
-            local ignoreLimit = max(0, damage - damageLimit - damageTaken)
-            local belowLimit = max(0, min(damageLimit - damageTaken, damage))
-            local aboveLimit = damage - belowLimit - ignoreLimit
-            damage = ignoreLimit + belowLimit + aboveLimit * 0.2
-
-            if damage >= 30 or damage >= area.damage * (1 / 3) then
-                local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+			local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+            if showDamageCeg then
+                local fx, fy, fz = spGetFeaturePosition(featureID)
                 spSpawnCEG(area.damageCeg, fx, fy, fz)
             end
-            local health = Spring.GetFeatureHealth(featureID) - area.damage
+            local health = spGetFeatureHealth(featureID) - damage
             if health > 1 then
-                Spring.SetFeatureHealth(featureID, health)
+                spSetFeatureHealth(featureID, health)
                 featDamageTaken[featureID] = damageTaken + damage
             else
                 Spring.DestroyFeature(featureID)
