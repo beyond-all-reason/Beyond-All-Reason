@@ -172,6 +172,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 			local area2 = frameExplosions[i]
 			if area.damage >= (area2 and area2.damage or 0) then
 				table.insert(frameExplosions, i, area)
+				return
 			end
 		end
     end
