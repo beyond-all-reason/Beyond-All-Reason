@@ -449,8 +449,8 @@ local function AssignLightsToAllWeapons()
 		end
 		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
-			r, g, b = 0.96, 0.3, 1
-			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
+			r, g, b = 0.3, 0.1, 0.7
+			t.color2r, t.color2g, t.color2b = 0.3, 0.1, 0.7
 		end
 		t.r, t.g, t.b = r, g, b
 
@@ -583,7 +583,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 1, 0.7, 0.85
 			end
 			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
+				t.r, t.g, t.b = 0.35, 0.15, 0.7
 			end
 			t.a = orgMult*2.3
 			t.colortime = 2.5
@@ -604,7 +604,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 1, 0.7, 0.85
 			end
 			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
+				t.r, t.g, t.b = 0.3, 0.1, 0.7
 			end
 			t.lifetime = life
 			t.colortime = 35 / life --t.colortime = life * 0.17
@@ -1031,10 +1031,10 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 
 --legeheatraymech
 explosionLightsNames["legeheatraymech_heatray1"] =
-GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.15,
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.09,
 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.5,
 										 sustain = 2, lifetime = 3,
-										 modelfactor = -0.3, specular = -0.2, scattering = 1.05, lensflare = 0})
+										 modelfactor = -0.3, specular = -0.2, scattering = 0.8, lensflare = 0})
 
 explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
 
@@ -1478,24 +1478,50 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 
 
 
+-- duplicate all weapons for scavengers
+function applyScavVariants(name, params)
+	local pos = name:find("_", 1, true)
+    local scavName = string.sub(name, 1, pos-1)..'_scav'..string.sub(name, pos)
+    if WeaponDefNames[scavName] then
+		local paramsScav = deepcopy(params)
+		paramsScav.lightConfig.r, paramsScav.lightConfig.g, paramsScav.lightConfig.b = 0.3, 0.1, 0.7
+		paramsScav.lightConfig.color2r, paramsScav.lightConfig.color2g, paramsScav.lightConfig.color2b = 0.3, 0.1, 0.7
+        return scavName, paramsScav
+    end
+end
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(explosionLightsNames) do
-	if WeaponDefNames[name] then
+	if WeaponDefNames[name] then	
 		explosionLights[WeaponDefNames[name].id] = params
+	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		explosionLights[WeaponDefNames[scavName].id] = paramsScav
 	end
 end
 explosionLightsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(muzzleFlashLightsNames) do
 	if WeaponDefNames[name] then
 		muzzleFlashLights[WeaponDefNames[name].id] = params
 	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		muzzleFlashLights[WeaponDefNames[scavName].id] = paramsScav
+	end
 end
 muzzleFlashLightsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(projectileDefLightsNames) do
 	if WeaponDefNames[name] then
 		projectileDefLights[WeaponDefNames[name].id] = params
+	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		projectileDefLights[WeaponDefNames[scavName].id] = paramsScav
 	end
 end
 projectileDefLightsNames = nil
