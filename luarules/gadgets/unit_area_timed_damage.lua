@@ -150,7 +150,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         if elevation > 0 then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
         end
-        frameExplosions[#frameExplosions + 1] = {
+		local area = {
             weapon     = weaponDefID,
             owner      = attackerID,
             x          = px,
@@ -166,6 +166,13 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             damageCeg  = explosion.damageCeg,
             endFrame   = explosion.frames + frameNumber,
         }
+		-- The ordering of areas on the same frame can penalize high-damage areas, also.
+		-- The maximal-damage ordering is to place the strongest areas of effect first:
+		for i = 1, #frameExplosions do
+			if area.damage >= (frameExplosions[i].damage or 0) then
+				table.insert(frameExplosions, i, area)
+			end
+		end
     end
 end
 
