@@ -287,7 +287,6 @@ function MapHST:areaCells(X,Z,R,grid) -- return alist of cells in range R from a
 	end
 	local AC = {}
 	R = R or 0
-	myself = myself or false
 	for x = X - R , X + R,1  do
 		for z = Z - R , Z + R,1 do
 			if grid[x] and grid[x][z] then
@@ -635,8 +634,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 	for index1 , POS1 in pairs(self.METALS) do
 		waypoints = self:getPath(testUnitName,testUnitPos,POS1,true)
 		if  waypoints then
-			
-			last = waypoints[#waypoints]
 			counter = counter + 1
 			first = table.remove(waypoints)
 			
@@ -655,7 +652,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 		end
 	
 	end
-	average = total / counter
 	local sum = 0
 	local count = 0
 	local average = 0

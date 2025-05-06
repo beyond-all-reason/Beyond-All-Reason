@@ -249,10 +249,10 @@ function LosHST:getCenter()
 	self.CENTER.y = 0
 	self.CENTER.z = 0
 	local count = 0
-	for uid,uDef in pairs(self.ownImmobile) do
+	for uid in pairs(self.ownImmobile) do
 		local u = game:GetUnitByID(uid)
 		local x,y,z = u:GetRawPos()
-		if upos then
+		if x then
 			self.CENTER.x = self.CENTER.x + x
 			self.CENTER.y = self.CENTER.y + y
 			self.CENTER.z = self.CENTER.z + z

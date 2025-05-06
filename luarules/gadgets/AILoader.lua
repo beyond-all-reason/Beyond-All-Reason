@@ -72,10 +72,6 @@ Shard.AIsByTeamID = {}
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
-		Spring.Echo('INIT new array node cost sync',Spring.InitPathNodeCostsArray(0,32,32))
-		Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
-		--Spring.Echo('SET new array node layer sync',Spring.SetPathNodeCosts(0))
-
 	end
 
 	function gadget:RezTable()
