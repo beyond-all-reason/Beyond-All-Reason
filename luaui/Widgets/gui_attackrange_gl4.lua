@@ -105,7 +105,7 @@ local colorConfig = {
 	},
 	cannon = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 1500, 3600, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 3200, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,
@@ -536,8 +536,10 @@ local function AddSelectedUnit(unitID, mouseover)
 				elseif weaponDef.type == "Melee" then
 					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				else
-					if weaponDef.range > 2600 then 
-						entry.weapons[weaponNum] = 5 
+					if weaponDef.range < 700 then 
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					elseif weaponDef.range > 2600 then 
+						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 					end

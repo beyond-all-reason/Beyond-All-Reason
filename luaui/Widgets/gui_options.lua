@@ -2121,10 +2121,10 @@ function init()
 	end
 
 	local function initDefenseRange()
-		if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
+		--if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
 		if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-		if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-		if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false, lrpc = false}, enemy = { air = true, ground = true, nuke = true, lrpc = true } } end
+		--if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+		if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = true, cannon = false, lrpc = false}, enemy = { air = true, ground = true, nuke = true, cannon = true, lrpc = false } } end
 	end
 
 	options = {
@@ -4249,40 +4249,43 @@ function init()
 		  end,
 		},
 
-		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.defrange_descr') },
+		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range GL4", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range GL4"), description = Spring.I18N('ui.settings.option.defrange_descr') },
+
 		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = Spring.I18N('ui.settings.option.defrange_allyair_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
+			  loadWidgetData("Defense Range GL4", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
 		},
 		{ id = "defrange_allyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = Spring.I18N('ui.settings.option.defrange_allyground_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_allyground", { 'enabled', 'ally', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_allycannon", { 'enabled', 'ally', 'cannon' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'cannon' }, value)
 		  end,
 		},
 		{ id = "defrange_allynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = Spring.I18N('ui.settings.option.defrange_allynuke_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
+			  loadWidgetData("Defense Range GL4", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 		  end,
 		},
 		{ id = "defrange_allylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyLRPC ~= nil and WG['defrange'].getAllyLRPC()), description = Spring.I18N('ui.settings.option.defrange_allylrpc_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allylrpc", { 'enabled', 'ally', 'lrpc' })
+			  loadWidgetData("Defense Range GL4", "defrange_allylrpc", { 'enabled', 'ally', 'lrpc' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
@@ -4292,37 +4295,39 @@ function init()
 		},
 		{ id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = Spring.I18N('ui.settings.option.defrange_enemyair_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
 		},
 		{ id = "defrange_enemyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = Spring.I18N('ui.settings.option.defrange_enemyground_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyground", { 'enabled', 'enemy', 'cannon' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'cannon' }, value)
 		  end,
 		},
 		{ id = "defrange_enemynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = Spring.I18N('ui.settings.option.defrange_enemynuke_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 		  end,
 		},
 		{ id = "defrange_enemylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyLRPC ~= nil and WG['defrange'].getEnemyLRPC()), description = Spring.I18N('ui.settings.option.defrange_enemylrpc_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemylrpc", { 'enabled', 'enemy', 'lrpc' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemylrpc", { 'enabled', 'enemy', 'lrpc' })
 		  end,
 		  onchange = function(i, value)
 			  initDefenseRange()
