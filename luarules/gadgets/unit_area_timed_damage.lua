@@ -168,8 +168,9 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         }
 		-- The ordering of areas on the same frame can penalize high-damage areas, also.
 		-- The maximal-damage ordering is to place the strongest areas of effect first:
-		for i = 1, #frameExplosions do
-			if area.damage >= (frameExplosions[i].damage or 0) then
+		for i = 1, #frameExplosions + 1 do
+			local area2 = frameExplosions[i]
+			if area.damage >= (area2 and area2.damage or 0) then
 				table.insert(frameExplosions, i, area)
 			end
 		end
