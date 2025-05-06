@@ -304,10 +304,15 @@ void main() {
 				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
 		}
 	}else{
-		if (ISCYLINDER < 0.5){ // isCylinder
+		// IF ITS A SPHERE:
+		if (ISCYLINDER < 0.5){ 
 			//simple implementation, 4 samples per point
 			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){ // DEBuGGING
 			//vec4 heightAndNormal = normalsAndHeightAtWorldPos(circleWorldPos.xz);
+			float surfaceSphereClampHeight = 0.0;
+			if (modelWorldPos.y > 0 ) surfaceSphereClampHeight = 0.0;
+			else surfaceSphereClampHeight = modelWorldPos.y;
+
 			for (int i = 0; i< HEIGHTMAP_SAMPLE_STEPS / 2; i++){
 				// draw vector from centerpoint to new height point and normalize it to range length
 				vec3 tonew = circleWorldPos.xyz - modelWorldPos.xyz;
@@ -317,6 +322,10 @@ void main() {
 			
 				circleWorldPos.xz = modelWorldPos.xz + tonew.xz;
 				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
+				// if underwater model
+				#if 1
+					circleWorldPos.y = max(surfaceSphereClampHeight, circleWorldPos.y);
+				#endif
 			}
 		}
 	}
