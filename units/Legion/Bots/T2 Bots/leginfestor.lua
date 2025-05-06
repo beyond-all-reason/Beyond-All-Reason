@@ -12,8 +12,8 @@ return {
 		canreclaim = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "25 9 20",
-		collisionvolumetype = "CylY",
+		collisionvolumescales = "30 22 20",
+		collisionvolumetype = "sphere",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
@@ -49,6 +49,7 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
+			neversleeps = true,
 		},
 		featuredefs = {
 			dead = {
