@@ -2197,21 +2197,21 @@ local unitEventDistortionsNames = {
 		},
 
 
-		['armmark'] = {
-			[1] = {
-				-- radarwave
-				alwaysVisible = false,
-				distortionType = 'point',
-				distortionName = 'radarwave',
-				pieceName = 'none',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
-								effectStrength = -1.5, --needed for shockwave
-								lifeTime = 60, rampUp = 20, decay = 15,
-								shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
+		-- ['armmark'] = {
+		-- 	[1] = {
+		-- 		-- radarwave
+		-- 		alwaysVisible = false,
+		-- 		distortionType = 'point',
+		-- 		distortionName = 'radarwave',
+		-- 		pieceName = 'none',
+		-- 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+		-- 						noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
+		-- 						effectStrength = -1.5, --needed for shockwave
+		-- 						lifeTime = 60, rampUp = 20, decay = 15,
+		-- 						shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
 	
-			},
-		},
+		-- 	},
+		-- },
 
 		['cordemon'] = {
 			[1] = {
