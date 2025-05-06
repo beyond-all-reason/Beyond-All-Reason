@@ -202,10 +202,10 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
 
-            local damageTaken = unitDamageTaken[unitID]
+            local damageTaken = featDamageTaken[featureID]
             if not damageTaken then
                 damageTaken = 0
-                resetNewUnit[#resetNewUnit + 1] = unitID
+                resetNewFeat[#resetNewFeat + 1] = featureID
             end
 
             local damage = area.damage
@@ -221,7 +221,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local health = Spring.GetFeatureHealth(featureID) - area.damage
             if health > 1 then
                 Spring.SetFeatureHealth(featureID, health)
-                featDamageTaken[unitID] = damageTaken + damage
+                featDamageTaken[featureID] = damageTaken + damage
             else
                 Spring.DestroyFeature(featureID)
             end
@@ -246,13 +246,23 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
     featDamageReset[gameFrame] = nil
 end
 
+local function removeFromArrays(arrays, value)
+    for _, array in pairs(arrays) do
+        for i = 1, #array do
+            if value == array[i] then
+                array[#array], array[i] = array[i], nil
+                return
+            end
+        end
+    end
+end
+
 --------------------------------------------------------------------------------
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
     timedDamageWeapons = {}
-    local weaponDefBaseIndex = 0
-    for weaponDefID = weaponDefBaseIndex, #WeaponDefs do
+    for weaponDefID = 0, #WeaponDefs do
         local weaponDef = WeaponDefs[weaponDefID]
         if weaponDef.customParams and weaponDef.customParams[prefixes.weapon.."ceg"] then
             timedDamageWeapons[weaponDefID] = getExplosionParams(weaponDef, prefixes.weapon)
@@ -331,9 +341,9 @@ function gadget:Initialize()
         end
         frameNumber = Spring.GetGameFrame()
         frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
-        for ii = frameNumber, frameNumber + gameSpeed do
-            unitDamageReset[ii] = {}
-            featDamageReset[ii] = {}
+        for frame = frameNumber - 1, frameNumber + gameSpeed do
+            unitDamageReset[frame] = {}
+            featDamageReset[frame] = {}
         end
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
@@ -361,22 +371,14 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if unitDamageTaken[unitID] then
-        for _, unitIDs in pairs(unitDamageReset) do
-            if removeFromArray(unitIDs, unitID) then
-                break
-            end
-        end
+        removeFromArrays(unitDamageReset, unitID)
     end
     unitDamageTaken[unitID] = nil
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
     if featDamageTaken[featureID] then
-        for _, featureIDs in pairs(featDamageReset) do
-            if removeFromArray(featureIDs, featureID) then
-                break
-            end
-        end
+        removeFromArrays(featDamageReset, featureID)
     end
     featDamageTaken[featureID] = nil
 end
