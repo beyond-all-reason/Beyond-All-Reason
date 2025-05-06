@@ -36,7 +36,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
     function gadget:GameFrame(frame)
         for _ = 1, cloudMult do
-            if math.random(0,6) == 0 then
+            if math.random(0,10) == 0 then
                 local randomx = math.random(0, mapx)
                 local randomz = math.random(0, mapz)
                 local randomy = Spring.GetGroundHeight(randomx, randomz)
