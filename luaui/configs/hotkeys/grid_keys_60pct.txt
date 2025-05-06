@@ -173,3 +173,6 @@ bind           Alt+sc_c  blueprint_create
 bind           Alt+sc_d  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
+
+// self reclaim
+bind          Ctrl+sc_h  self_reclaim
