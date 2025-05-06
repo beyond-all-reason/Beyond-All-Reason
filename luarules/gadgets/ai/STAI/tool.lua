@@ -370,7 +370,7 @@ function Tool:distance(POS1,POS2)
 end
 
 function Tool:sumPos(pos1, pos2)
-	pos = api.Position()
+	local pos = api.Position()
 	pos.x = pos1.x + pos2.x
 	pos.y = pos1.y + pos2.y
 	pos.z = pos1.z + pos2.z

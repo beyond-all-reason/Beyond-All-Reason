@@ -14,7 +14,7 @@ function LabsBST:Init()
 	self:EchoDebug(self.name)
 	self.spec = self.ai.armyhst.unitTable[self.name]
 	self.mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	self.network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
+	self.network = self.ai.maphst:MobilityNetworkHere(self.mtype,self.position)
 	self.isAirFactory = self.mtype == 'air'
 	self.face = u:GetFacing(self.id)
 	self.qIndex = 1
@@ -158,7 +158,7 @@ function LabsBST:getSoldier()
 	local soldier
 	local param
 	local utype
-	self.queue = self:getQueue(self.name)
+	self.queue = self:getQueue()
 
 	for i = self.qIndex , #self.queue do
 		param = self.queue[i]
@@ -206,7 +206,7 @@ end
 
 function LabsBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
 	for name,_ in pairs(self.ai.armyhst[category]) do
-		utype = self.game:GetTypeByName(name)
+		local utype = self.game:GetTypeByName(name)
 		if self.unit:Internal():CanBuild(utype) then
 			return name,utype
 		end
@@ -216,7 +216,7 @@ end
 function LabsBST:ecoCheck(category,param,name,test)
 	self:EchoDebug(category ,name, " (before eco check)")
 	if not name  or not param then
-		self:EchoDebug('ecofilter stop',name,cat, param)
+		self:EchoDebug('ecofilter stop',name,category, param)
 		return
 	end
 	if self.queue[self.qIndex]:economy(name) then
@@ -237,7 +237,7 @@ function LabsBST:countCheck(soldier,numeric)
 	local mtypeLvCount = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[soldier].mtypedLv)
 	local mTypeRelative = mtypeLvCount / mtypeFactor
 	func = math.min(math.max(Min , mTypeRelative), Max)
-	self:EchoDebug('mmType',mType , '/',counter,'func',func)
+	self:EchoDebug('mmType',mtypeLvCount , '/',counter,'func',func)
 	if counter < func then
 		self:EchoDebug('counter',soldier)
 		return soldier
@@ -246,9 +246,8 @@ end
 
 function LabsBST:toAmphibious(soldier)
 	local army = self.ai.armyhst
-	local maphst = self.ai.maphst
 -- 	local amphRank = (((maphst.mobilityCount['shp']) / maphst.gridArea ) +  ((#maphst.UWMetalSpots) /(#maphst.landMetalSpots + #maphst.UWMetalSpots)))/ 2
-	amphRank = self.amphRank or 0.5
+	local amphRank = self.amphRank or 0.5
 	self:EchoDebug('amphRank',amphRank)
 	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.artillerys[soldier] then
 		if math.random() < amphRank then

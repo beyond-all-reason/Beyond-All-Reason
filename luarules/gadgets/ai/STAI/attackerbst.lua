@@ -1,7 +1,7 @@
-function IsAttacker(unit)
+--[[function IsAttacker(unit)
 	-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
 	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
-end
+end]]
 
 AttackerBST = class(Behaviour)
 

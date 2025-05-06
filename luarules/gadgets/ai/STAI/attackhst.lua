@@ -344,7 +344,7 @@ function AttackHST:RemoveMember(attkbhvr)
 	if not attkbhvr.squad then return end
 	for index,member in pairs(attkbhvr.squad.members)do
 		if member == attkbhvr then
-			table.remove(attkbhvr.squad.members, iu)
+			table.remove(attkbhvr.squad.members, index)
 			if #attkbhvr.squad.members == 0 then
 				self:SquadDisband(attkbhvr.squad)
 			end

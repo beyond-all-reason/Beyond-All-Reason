@@ -620,7 +620,6 @@ function TasksHST:startRolesParams()
 	        numeric = 3,--numericalParameter
 			location = {categories = {'_nano_'},min = 50,neighbours = {'_shield_'}} ,
 			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
 	        },
 
 -- 		{ 	category = '_juno_' ,			economy = true,true,1},
@@ -630,7 +629,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {list = self.ai.maphst.hotSpots,min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots}
+			location = {list = self.ai.maphst.hotSpots,min = 50,neighbours = {'_laser2_'}}
 	        } ,
 
 
@@ -954,7 +953,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots,neighbours = {'_laser2_'}} ,
+			location = {min = 50,list = self.ai.maphst.hotSpots,neighbours = {'_laser2_'}} ,
 	        },
 
 		{ 	category = '_aa1_' ,

@@ -191,7 +191,7 @@ function ScoutBST:bestAdjacentPos(unit,target)
 	local neutral = {}
 	local gluttony = 0
 	local tg = nil
-	for index, cell in pairs(areacells) do
+	for _, cell in pairs(areacells) do
 		if cell.ARMED < 1 and cell.UNARM > 0 then
 			table.insert(greedy,cell)
 		elseif cell.ARMED > 0 and cell.UNARM > 0 then
@@ -200,21 +200,21 @@ function ScoutBST:bestAdjacentPos(unit,target)
 			table.insert(neutral,cell)
 		end
 	end
-	for index,cell in pairs(greedy)do
+	for _,cell in pairs(greedy)do
 		if cell.UNARM > gluttony then
 			gluttony = cell.UNARM
 			tg = cell
 		end
 	end
 	if tg then return tg.pos end
-	for index,cell in pairs(neutral)do
+	for _,cell in pairs(neutral)do
 		if cell.UNARM > gluttony then
 			gluttony = cell.UNARM
 			tg = cell
 		end
 	end
 	if tg then return tg.pos end
-	for index,cell in pairs(risky)do
+	for _,cell in pairs(risky)do
 		if cell.UNARM > gluttony then
 			gluttony = cell.UNARM
 			tg = cell
@@ -240,7 +240,6 @@ end
 
 
 
-finestra = nil
 function ScoutBST:Draw()
 	if not self.ai.scouthst.scouts[self.id] then
 		return

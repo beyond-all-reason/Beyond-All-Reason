@@ -31,7 +31,7 @@ function MapHST:Init()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
 	self.allSpots = self.ai.tool:tableConcat({self.METALS,self.GEOS})
 	self.hotSpots = {}
-	self:hotSpotter(self.METALS,self.GEOS)
+	self:hotSpotter()
 	self.waterMetals = {}
 	self.groundMetals = {}
 	self.networks = {} --hold data in a "specific network" area(about GAS (area,mex,geos,trampling)
@@ -89,9 +89,9 @@ function  MapHST:NodeIndexToPos(index)
 	return self:GridToPos(X,Z)
 end
 
-function NodeIndexToHeighMap(index)
-	local pos = NodeIndexToPos(index)
-	return PosToHeightMap(pos)
+function MapHST:NodeIndexToHeighMap(index)
+	local pos = self:NodeIndexToPos(index)
+	return self:PosToHeightMap(pos)
 end
 
 --[[function MapHST:Update()
@@ -525,6 +525,10 @@ end
 function MapHST:metalScan()--insert MEX in to the correct CELL and layer's network
 	for i, spot in pairs(self.METALS) do
 		local CELL = self:GetCell(spot,self.GRID)
+		if not CELL then
+			self:EchoDebug('no cell for this metal spot',spot)
+			return
+		end
 		table.insert(CELL.metalSpots,spot)
 		for layer,nets in pairs(self.networks) do
 			if CELL.moveLayers[layer] then
@@ -542,6 +546,10 @@ end
 function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's network
 	for i, spot in pairs(self.GEOS) do
 		local CELL = self:GetCell(spot,self.GRID)
+		if not CELL then
+			self:EchoDebug('no cell for this geo spot',spot)
+			return
+		end
 		table.insert(CELL.geoSpots,spot)
 		for layer,nets in pairs(self.networks) do
 			if CELL.moveLayers[layer] then
@@ -901,13 +909,13 @@ function MapHST:DrawDebug()
 		{0,0,0,1},
 		}
 	for i,p in pairs (self.hotSpots) do
-		map:DrawPoint(p, green, i,  ch)
+		map:DrawPoint(p, colours[2], i,  ch)
 	end
 	for i,p in pairs (self.METALS) do
-		map:DrawPoint(p, white, i,  ch)
+		map:DrawPoint(p, colours[6], i,  ch)
 	end
 	for i,p in pairs (self.GEOS) do
-		map:DrawPoint(p, white, i,  ch)
+		map:DrawPoint(p, colours[6], i,  ch)
 	end
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
@@ -920,7 +928,7 @@ function MapHST:DrawDebug()
 			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf
 			pos1.y=0
 			pos2.y=0
-			map:DrawRectangle(pos1,pos2, white, nil, false, ch)
+			map:DrawRectangle(pos1,pos2, colours[6], nil, false, ch)
 			ch = 0
 			for layer,unitName in pairs(CELL.moveLayers) do
 				ch = ch+1
@@ -930,7 +938,6 @@ function MapHST:DrawDebug()
 			end
 		end
 	end
-
 end
 
 function MapHST:GetPathGraph(mtype, targetNodeSize)

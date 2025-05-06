@@ -1217,10 +1217,10 @@ function ArmyHST:GetUnitTable()
 			table.insert(utable.weaponMtype, "shp")
 			table.insert(utable.weaponMtype, "amp")
 		end
-		if longRange then
+		if utable.longRange then
 			utable.threat = utable.metalCost
 		end
-		if self.antinukes[unitName] or self.nukeList[unitName] or self.bigPlasmaList[unitName] or self._shield_[unitName] or self._juno_ then
+		if self.antinukes[utable.name] or self.nukeList[utable.name] or self.bigPlasmaList[utable.name] or self._shield_[utable.name] or self._juno_ then
 			utable.threat = 0
 			utable.maxRange = 0
 		end
@@ -1252,7 +1252,7 @@ function ArmyHST:GetUnitTable()
 			end
 			utable.onlyTg = ''
 			if defWepon1.onlyTargets then
-				for ii,vv in pairs(defWepon1.onlyTargets) do
+				for ii,_ in pairs(defWepon1.onlyTargets) do
 					utable.onlyTg = utable.onlyTg .. ii
 				end
 			end
@@ -1386,7 +1386,7 @@ end
 function ArmyHST:GetFeatureTable()
 	local featureTable = {}
 	-- feature defs
-	for featureDefID, featureDef in pairs(FeatureDefs) do
+	for _, featureDef in pairs(FeatureDefs) do
 		local ftable = {}
 		for i, k in pairs(featureKeysToGet) do
 			local v = featureDef[k]

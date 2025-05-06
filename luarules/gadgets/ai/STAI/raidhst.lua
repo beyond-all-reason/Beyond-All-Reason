@@ -402,7 +402,7 @@ function RaidHST:RemoveMember(rdbhvr)
 	if not rdbhvr.squad then return end
 	for index,member in pairs(rdbhvr.squad.members)do
 		if member == rdbhvr then
-			table.remove(rdbhvr.squad.members, iu)
+			table.remove(rdbhvr.squad.members, index)
 			if #rdbhvr.squad.members == 0 then
 				self:SquadDisband(rdbhvr.squad)
 			end

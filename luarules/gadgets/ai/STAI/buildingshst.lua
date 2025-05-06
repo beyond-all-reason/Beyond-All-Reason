@@ -178,7 +178,7 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 			checkpos.y = y
 			checkpos.z = z
 			--map:DrawPoint({x=x, y=y, z=z}, {1,1,1,1},attempt,  ch)
-			local check = self:CheckBuildPos(checkpos, unittype, builder, originalPosition)
+			local check = self:CheckBuildPos(checkpos, unittype, builder)
 			if check then
 				local buildable, px,py,pz = self:CanBuildHere(unittype, x,y,z)
 				if buildable then
@@ -325,7 +325,7 @@ end
 
 
 
-function BuildingsHST:BuildNearNano(builder, utype,minDist)
+function BuildingsHST:BuildNearNano(builder, utype,minDist,maxDist)
 	minDist = minDist or 50
 	maxDist = maxDist or 390
 	local nanoCount,nanos = self.ai.tool:countFinished( {'_nano_'})
