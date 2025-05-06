@@ -22,22 +22,22 @@ function BuildingsHST:GetFacing(p)
 	local x = p.x
 	local z = p.z
 	local facing = 3
-	local NSEW = N
+	local NSEW = 'north'
 	if math.abs(Game.mapSizeX - 2 * x) > math.abs(Game.mapSizeZ - 2 * z) then
 		if (2 * x > Game.mapSizeX) then
 			facing = 3 --east
-			NSEW = E
+			NSEW = 'est'
 		else
 			facing = 1 --weast
-			NSEW = W
+			NSEW = 'west'
 		end
 	else
 		if ( 2 * z > Game.mapSizeZ) then
 			facing = 2 --south
-			NSEW = S
+			NSEW = 'south'
 		else
 			facing = 0 -- north
-			NSEW = N
+			NSEW = 'north'
 		end
 	end
 	return facing , NSEW
