@@ -44,6 +44,8 @@ return {
 			subfolder = "ArmAircraft",
 			unitgroup = "util",
 			crashable = 0,
+			faction = "armada",
+			movementType = "air",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

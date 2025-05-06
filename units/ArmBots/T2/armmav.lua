@@ -40,6 +40,8 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			faction = "armada",
+			movementType = "bot",
 		},
 		featuredefs = {
 			dead = {
