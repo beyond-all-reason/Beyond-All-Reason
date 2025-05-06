@@ -417,7 +417,6 @@ function widget:TextCommand(command)
 		if rangetype == 'ground' then
 			buttonConfig[ally]['ground']=enabled
 			buttonConfig[ally]['cannon']=enabled
-			buttonConfig[ally]['lrpc']=enabled
 		else
 			buttonConfig[ally][rangetype]=enabled
 		end
@@ -539,7 +538,6 @@ function widget:Initialize()
 			WG['defrange']['set'..Ae..Wt] = function(value)
 				if wt == 'ground' then
 					buttonConfig[ae]['ground'] = value
-					buttonConfig[ae]['cannon'] = value
 					buttonConfig[ae]['lrpc'] = value
 				else
 					buttonConfig[ae][wt] = value

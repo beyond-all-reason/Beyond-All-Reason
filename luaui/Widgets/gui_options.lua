@@ -2120,6 +2120,13 @@ function init()
 		oldValues[option.id] = option.value
 	end
 
+	local function initDefenseRange()
+		if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
+		if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
+		if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+		if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false, lrpc = false}, enemy = { air = true, ground = true, nuke = true, lrpc = true } } end
+	end
+
 	options = {
 		--GFX
 		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = { Spring.I18N('ui.settings.option.select_lowest'), Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high'), Spring.I18N('ui.settings.option.select_ultra'), Spring.I18N('ui.settings.option.select_custom') },
@@ -4248,10 +4255,7 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
@@ -4261,10 +4265,7 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 		  end,
@@ -4274,12 +4275,19 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
+		  end,
+		},
+		{ id = "defrange_allylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyLRPC ~= nil and WG['defrange'].getAllyLRPC()), description = Spring.I18N('ui.settings.option.defrange_allylrpc_descr'),
+		  onload = function(i)
+			  loadWidgetData("Defense Range", "defrange_allylrpc", { 'enabled', 'ally', 'lrpc' })
+		  end,
+		  onchange = function(i, value)
+			  initDefenseRange()
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
 		  end,
 		},
 		{ id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = Spring.I18N('ui.settings.option.defrange_enemyair_descr'),
@@ -4287,10 +4295,7 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
@@ -4300,10 +4305,7 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 		  end,
@@ -4313,12 +4315,19 @@ function init()
 			  loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
+			  initDefenseRange()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
+		  end,
+		},
+		{ id = "defrange_enemylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyLRPC ~= nil and WG['defrange'].getEnemyLRPC()), description = Spring.I18N('ui.settings.option.defrange_enemylrpc_descr'),
+		  onload = function(i)
+			  loadWidgetData("Defense Range", "defrange_enemylrpc", { 'enabled', 'enemy', 'lrpc' })
+		  end,
+		  onchange = function(i, value)
+			  initDefenseRange()
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
 		  end,
 		},
 
