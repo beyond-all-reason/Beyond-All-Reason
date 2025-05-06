@@ -75,6 +75,7 @@ local gameSpeed              = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
+
 local frameInterval = math.round(Game.gameSpeed * damageInterval)
 local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
 
@@ -170,7 +171,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 		-- The maximal-damage ordering is to place the strongest areas of effect first:
 		for i = 1, #frameExplosions + 1 do
 			local area2 = frameExplosions[i]
-			if area.damage >= (area2 and area2.damage or 0) then
+			if not area2 or area.damage >= area2.damage then
 				table.insert(frameExplosions, i, area)
 				return
 			end
@@ -391,14 +392,14 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if unitDamageTaken[unitID] then
+		unitDamageTaken[unitID] = nil
         removeFromArrays(unitDamageReset, unitID)
     end
-    unitDamageTaken[unitID] = nil
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
     if featDamageTaken[featureID] then
+		featDamageTaken[featureID] = nil
         removeFromArrays(featDamageReset, featureID)
     end
-    featDamageTaken[featureID] = nil
 end
