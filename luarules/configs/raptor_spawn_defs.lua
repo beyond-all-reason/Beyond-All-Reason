@@ -1095,9 +1095,9 @@ addNewSquad({
 })
 addNewSquad({
 	type = "special",
-	inAnger = 0, 
-	axAnger = 15, 
-	nits = { {count = 1, unit = "raptor_land_swarmer_basic_t2_v3"} }
+	minAnger = 0, 
+	maxAnger = 15, 
+	units = { {count = 1, unit = "raptor_land_swarmer_basic_t2_v3"} }
 })
 addNewSquad({
 	type = "special",
