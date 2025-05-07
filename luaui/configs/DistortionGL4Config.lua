@@ -1801,6 +1801,38 @@ local unitDistortions = {
 		},
 	},
 
+	['legmos'] = {
+		blurl = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = 3, posy = 0, posz = 2.5, radius = 40,
+							dirx = 1, diry = -0.10, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.98,
+							noiseStrength = 6.5, noiseScaleSpace = 0.25,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		blurr = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = -3.0, posy = -1, posz = 2.5, radius = 40,
+							dirx = -1, diry = -0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.9, onlyModelMap = 0,
+							noiseStrength = 6.5, noiseScaleSpace = 0.25,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrustdistortion = {
+			distortionType = 'cone',
+			pieceName = 'thrust',
+			distortionConfig = { posx = 2, posy = 0, posz = 14, radius = 45,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+							distanceFalloff = 1.3,
+							noiseStrength = 6, noiseScaleSpace = 0.55,
+							riseRate = 0.5, lifeTime = 0, effectType = 0},
+		},
+	},
+
 	['corcrwh'] = {
 		thrust1 = {
 			distortionType = 'cone',
