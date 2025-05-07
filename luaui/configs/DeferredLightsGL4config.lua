@@ -25505,6 +25505,24 @@ local unitLights = {
 							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
+		blurl = {
+			lightType = 'cone',
+			pieceName = 'blur',
+			lightConfig = { posx = 3, posy = 0, posz = 2.5, radius = 35,
+							dirx = 1, diry = -0.1, dirz = 0, theta = 0.6,
+							r = -1, g = 1, b = 1, a = 4.9,
+							modelfactor = 0.3, specular = 0.5, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		blurr = {
+			lightType = 'cone',
+			pieceName = 'blur',
+			lightConfig = { posx = -3, posy = 0, posz = 2.5, radius = 35,
+							dirx = -1, diry = -0.1, dirz = 0, theta = 0.6,
+							r = -1, g = 1, b = 1, a = 4.9,
+							modelfactor = 0.3, specular = 0.5, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
 	},
 	['legkam'] = {
 		thrustMain = {

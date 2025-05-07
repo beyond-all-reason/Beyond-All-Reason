@@ -1809,13 +1809,18 @@ explosionDistortionsNames['corsilo_crblmssl'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
-	-- GetDistortionClass("GroundShockWaveNuke", "Giga"),
-	-- GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
-	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),
 }
 
 projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
+	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['legsilo_legicbm'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+}
+
+projectileDefDistortionsNames["legsilo_legicbm"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 -- RAPTOR meteor Nuke Tentacle

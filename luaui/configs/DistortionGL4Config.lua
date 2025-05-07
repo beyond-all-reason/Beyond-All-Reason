@@ -1801,6 +1801,80 @@ local unitDistortions = {
 		},
 	},
 
+	['legmos'] = {
+		-- motionl = { --motion blur only works when unit is moving
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'blur',
+		-- 	distortionConfig = { posx = 25, posy = 0, posz = 2.5, radius = 15,
+		-- 					onlyModelMap = -1,
+		-- 					effectStrength = -10
+		-- 					noiseStrength = 1, noiseScaleSpace = 1,
+		-- 					--riseRate = -8, windAffected = -1,
+		-- 					lifeTime = 0,  effectType = 11},
+		-- },
+		blurl = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = 3, posy = -1, posz = 2.5, radius = 40,
+							dirx = 1, diry = -0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		blurr = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = -3.0, posy = -1, posz = 2.5, radius = 40,
+							dirx = -1, diry = -0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85, onlyModelMap = 0,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrustdistortion = {
+			distortionType = 'cone',
+			pieceName = 'thruster',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+							distanceFalloff = 1.3,
+							noiseStrength = 6, noiseScaleSpace = 0.55,
+							riseRate = 0.5, lifeTime = 0, effectType = 0},
+		},
+	},
+
+	['legmost3'] = {
+		blurl = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = 3, posy = -1, posz = 2.5, radius = 80,
+							dirx = 1, diry = 0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		blurr = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = -3.0, posy = -1, posz = 2.5, radius = 80,
+							dirx = -1, diry = 0.15, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85, onlyModelMap = 0,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrustdistortion = {
+			distortionType = 'cone',
+			pieceName = 'thrust',
+			distortionConfig = { posx = 2, posy = 0, posz = 14, radius = 65,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+							distanceFalloff = 1.3,
+							noiseStrength = 6, noiseScaleSpace = 0.55,
+							riseRate = 0.5, lifeTime = 0, effectType = 0},
+		},
+	},
+
 	['corcrwh'] = {
 		thrust1 = {
 			distortionType = 'cone',
