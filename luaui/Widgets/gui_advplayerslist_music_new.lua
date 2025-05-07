@@ -42,10 +42,8 @@ local songsSinceEvent = 5 -- start with higher number so event track can be play
 ----------------------------------------------------------------------
 
 local function applySpectatorThresholds()
-	warLowLevel = warLowLevel*2
-	warHighLevel = warHighLevel*2
-	minSilenceTime = minSilenceTime*2
-	maxSilenceTime = maxSilenceTime*2
+	warLowLevel = warLowLevel*1.5
+	warHighLevel = warHighLevel*1.5
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -384,8 +382,6 @@ local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
-local glPushMatrix   = gl.PushMatrix
-local glPopMatrix	 = gl.PopMatrix
 local glColor        = gl.Color
 local glTexRect	     = gl.TexRect
 local glTexture      = gl.Texture
@@ -1333,7 +1329,7 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	if damage > 1 then
 		warMeterResetTimer = 0
 		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
-		if damage > maxHealth then
+		if maxHealth and damage > maxHealth then
 			warMeter = math.ceil(warMeter + maxHealth)
 		else
 			warMeter = math.ceil(warMeter + damage)
@@ -1381,13 +1377,15 @@ function widget:GameFrame(n)
 			warMeter = 0
 		end
 	elseif warMeter > 0 then
-		warMeter = math.floor(warMeter - (warMeter * 0.04))
-		if warMeter > warHighLevel*3 then
-			warMeter = warHighLevel*3
-		end
-		warMeterResetTimer = warMeterResetTimer + 1
-		if warMeterResetTimer > warMeterResetTime then
-			warMeter = 0
+		if n%30 == 15 then
+			warMeter = math.floor(warMeter - (warMeter * 0.04))
+			if warMeter > warHighLevel*3 then
+				warMeter = warHighLevel*3
+			end
+			warMeterResetTimer = warMeterResetTimer + 1
+			if warMeterResetTimer > warMeterResetTime then
+				warMeter = 0
+			end
 		end
 	end
 
