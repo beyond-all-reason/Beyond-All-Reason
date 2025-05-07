@@ -116,6 +116,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Close-quarters g2g gauss-cannon",
 				noselfdamage = true,
+				predictboost = 1,
 				range = 180,
 				reloadtime = 2.25,
 				size = 2,

@@ -161,19 +161,31 @@ local BaseClasses = {
 			r = 1.0, g = 0.9, b = 0.5, a = 0.6,
 			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.3, lensflare = 0,
-			lifetime = 33, sustain = 15, selfshadowing = 2, 
+			lifetime = 33, sustain = 15, selfshadowing = 0, 
 		},
 	},
 
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
-		fraction = 2, -- only spawn every nth light
+		fraction = 3, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 0.3, g = 0.2, b = 0.09, a = 0.048,
+			r = 0.3, g = 0.2, b = 0.09, a = 0.054,
 			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
-			lifetime = 33, sustain = 10, selfshadowing = 5, 
+			lifetime = 33, sustain = 10, selfshadowing = 0, 
+		},
+	},
+
+	FlameProjectileShadow = {
+		lightType = 'point', -- or cone or beam
+		fraction = 3, -- only spawn every nth light
+		lightConfig = {
+			posx = 0, posy = 15, posz = 0, radius = 25,
+			r = 0.3, g = 0.2, b = 0.09, a = 0.054,
+			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
+			lifetime = 33, sustain = 10, selfshadowing = 2, 
 		},
 	},
 
@@ -185,7 +197,7 @@ local BaseClasses = {
 			r = 0.3, g = 0.2, b = 0.09, a = 0.096,
 			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
-			lifetime = 33, sustain = 10, selfshadowing = 2, 
+			lifetime = 33, sustain = 10, selfshadowing = 1, 
 		},
 	},
 
@@ -437,8 +449,8 @@ local function AssignLightsToAllWeapons()
 		end
 		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
-			r, g, b = 0.96, 0.3, 1
-			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
+			r, g, b = 0.3, 0.1, 0.7
+			t.color2r, t.color2g, t.color2b = 0.3, 0.1, 0.7
 		end
 		t.r, t.g, t.b = r, g, b
 
@@ -571,7 +583,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 1, 0.7, 0.85
 			end
 			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
+				t.r, t.g, t.b = 0.35, 0.15, 0.7
 			end
 			t.a = orgMult*2.3
 			t.colortime = 2.5
@@ -592,7 +604,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 1, 0.7, 0.85
 			end
 			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
+				t.r, t.g, t.b = 0.3, 0.1, 0.7
 			end
 			t.lifetime = life
 			t.colortime = 35 / life --t.colortime = life * 0.17
@@ -616,6 +628,15 @@ local function AssignLightsToAllWeapons()
 				t.lifetime = life * 0.6
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
 				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				if string.find(weaponDef.name, 'heat') then
+					radius = (radius / 2.5)
+					t.a = 0.01 + ((orgMult*0.035) / weaponDef.beamtime) + (weaponDef.range*0.000025)
+					t.color2r = 1.2
+					t.color2g = 0.5
+					t.color2b = 0.2
+					t.colortime = 0.3
+					t.lifetime = 4
+				end
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
 				t.a = orgMult*1.25
@@ -967,20 +988,29 @@ GetLightClass("LaserProjectile", "Warm", "Tiny", {a = 0.25,
 											modelfactor = 0.5, specular = 0.05, scattering = 1.3, lensflare = 16,
 											lifetime = 3, sustain = 2,})
 
+--legaheattank
+-- explosionLightsNames["legaheattank_heat_ray"] =
+-- GetLightClass("Explosion", nil, "Smaller", {r = 0.26, g = 0.26, b = 0.06, a = 0.18,
+-- 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+-- 										 sustain = 2, lifetime = 4,
+-- 										 modelfactor = -0.3, specular = -0.3, scattering = 0.25, lensflare = 0})
+
+-- explosionLightsNames["legaheattank_heat_ray"].yOffset = 19
+
 --legbastion
-explosionLightsNames["legbastion_pineappleofdoom"] =
-GetLightClass("Explosion", "Fire", "Medium", {r = 0.26, g = 0.22, b = 0.06, a = 0.25,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
-										 sustain = 2, lifetime = 4,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.55, lensflare = 0})
+-- explosionLightsNames["legbastion_t2heatray"] =
+-- GetLightClass("Explosion", nil, "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.20,
+-- 										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+-- 										 sustain = 2, lifetime = 4,
+-- 										 modelfactor = -0.3, specular = -0.3, scattering = 0.55, lensflare = 0})
 
-explosionLightsNames["legbastion_pineappleofdoom"].yOffset = 38
+--explosionLightsNames["legbastion_t2heatray"].yOffset = 28
 
-projectileDefLightsNames["legbastion_pineappleofdoom"] =
-GetLightClass("LaserProjectile", "Warm", "Smaller", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
+projectileDefLightsNames["legbastion_t2heatray"] =
+GetLightClass("LaserProjectile", nil, "Small", {r = 1.0, g = 0.65, b = 0.1, a = 0.18,
 											color2r = 0.15, color2g = 0.04, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
-											modelfactor = 0.5, specular = 0.05, scattering = 0.3, lensflare = 0,
+											modelfactor = 0.5, specular = -0.1, scattering = 2.9, lensflare = 0,
 											lifetime = 3, sustain = 2})
 
 --leginc
@@ -1001,18 +1031,18 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 
 --legeheatraymech
 explosionLightsNames["legeheatraymech_heatray1"] =
-GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.26, g = 0.26, b = 0.06, a = 0.09,
+										 color2r = 0.9, color2g = 0.5, color2b = 0.2, colortime = 0.5,
 										 sustain = 2, lifetime = 3,
-										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+										 modelfactor = -0.3, specular = -0.2, scattering = 0.8, lensflare = 0})
 
 explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
 
 projectileDefLightsNames["legeheatraymech_heatray1"] =
-GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
+GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.25,
 											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
 											--pos2x = 0, pos2y = 0, pos2z = 0,
-											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
+											modelfactor = 0.3, specular = -0.05, scattering = 3.9, lensflare = 16,
 											sustain = 2, lifetime = 3, })
 
 
@@ -1132,7 +1162,7 @@ GetLightClass("Explosion", "Fire", "Tiny", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
 										})
 
 projectileDefLightsNames["corpyro_flamethrower"] =
-GetLightClass("FlameProjectile", nil, "Smallish", {
+GetLightClass("FlameProjectileShadow", nil, "Smallish", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.07, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 40, sustain = 35,
@@ -1160,8 +1190,15 @@ GetLightClass("FlameProjectileDragon", nil, "Medium", {
 						lifetime = 70, sustain = 30,
 												})
 
+projectileDefLightsNames["corcrwt4_kmaw"] =
+GetLightClass("FlameProjectileDragon", nil, "Medium", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.13, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 70, sustain = 30,
+												})
+
 projectileDefLightsNames["cordemon_newdmaw"] =
-GetLightClass("FlameProjectile", nil, "Medium", {
+GetLightClass("FlameProjectileShadow", nil, "Medium", {
 						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
 						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
 						lifetime = 40, sustain = 30,
@@ -1441,24 +1478,50 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 
 
 
+-- duplicate all weapons for scavengers
+function applyScavVariants(name, params)
+	local pos = name:find("_", 1, true)
+    local scavName = string.sub(name, 1, pos-1)..'_scav'..string.sub(name, pos)
+    if WeaponDefNames[scavName] then
+		local paramsScav = deepcopy(params)
+		paramsScav.lightConfig.r, paramsScav.lightConfig.g, paramsScav.lightConfig.b = 0.3, 0.1, 0.7
+		paramsScav.lightConfig.color2r, paramsScav.lightConfig.color2g, paramsScav.lightConfig.color2b = 0.3, 0.1, 0.7
+        return scavName, paramsScav
+    end
+end
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(explosionLightsNames) do
-	if WeaponDefNames[name] then
+	if WeaponDefNames[name] then	
 		explosionLights[WeaponDefNames[name].id] = params
+	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		explosionLights[WeaponDefNames[scavName].id] = paramsScav
 	end
 end
 explosionLightsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(muzzleFlashLightsNames) do
 	if WeaponDefNames[name] then
 		muzzleFlashLights[WeaponDefNames[name].id] = params
 	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		muzzleFlashLights[WeaponDefNames[scavName].id] = paramsScav
+	end
 end
 muzzleFlashLightsNames = nil
+
 -- convert weaponname -> weaponDefID
 for name, params in pairs(projectileDefLightsNames) do
 	if WeaponDefNames[name] then
 		projectileDefLights[WeaponDefNames[name].id] = params
+	end
+	local scavName, paramsScav = applyScavVariants(name, params)
+	if scavName and WeaponDefNames[scavName] then
+		projectileDefLights[WeaponDefNames[scavName].id] = paramsScav
 	end
 end
 projectileDefLightsNames = nil

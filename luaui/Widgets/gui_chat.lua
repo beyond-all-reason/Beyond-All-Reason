@@ -8,7 +8,8 @@ function widget:GetInfo()
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
 		layer     = -980000,
-		enabled   = true
+		enabled   = true,
+		handler   = true,
 	}
 end
 
@@ -320,7 +321,6 @@ local autocompleteCommands = {
 	'resync',
 	'safegl',
 	'save',
-	'savegame',
 	'say',
 	'screenshot',
 	'select',
@@ -399,21 +399,11 @@ local autocompleteCommands = {
 	'luarules xp',
 
 	-- widgets
-	'devmode',
-	'profile',
-	'grapher',
 	'luaui reload',
-	'luaui profile',
-	--'luaui selector',	-- pops up engine version
-	'luaui reset',
-	'luaui factoryreset',
 	'luaui disable',
 	'luaui enable',
-	'savegame',
 	'addmessage',
 	'radarpulse',
-	'snow',
-	'clearconsole',
 	'ecostatstext',
 	'defrange ally air',
 	'defrange ally nuke',
@@ -421,11 +411,6 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
-	'playertv',
-	'playerview',
-	'hidespecchat',
-	'hideSpecchatplayer',
-	'speclist',
 }
 
 local autocompleteText
@@ -709,7 +694,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
-	widgetHandler:DisownText()
+	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
 
@@ -1946,7 +1931,27 @@ local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
 	return autocompleteText ~= nil
 end
 
+local loadedAutocompleteCommands = false
 local function autocomplete(text, fresh)
+	if not loadedAutocompleteCommands then
+		loadedAutocompleteCommands = true
+		for textAction, v in pairs(widgetHandler.actionHandler.textActions) do
+			if type(textAction) == 'string' then
+				local found = false
+				for k, cmd in ipairs(autocompleteCommands) do
+					if cmd == textAction then
+						found = true
+						break
+					end
+				end
+				if not found then
+					--Spring.Echo('"'..textAction..'"')
+					autocompleteCommands[#autocompleteCommands+1] = textAction
+				end
+			end
+		end
+	end
+
 	autocompleteText = nil
 	if fresh then
 		autocompleteWords = {}
@@ -2006,6 +2011,7 @@ local function autocomplete(text, fresh)
 		autocomplete(text, true)
 	end
 end
+
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
@@ -2076,7 +2082,7 @@ function widget:KeyPress(key)
 				historyMode = 'chat'
 				maxLinesScroll = maxLinesScrollChatInput
 			end
-			widgetHandler:OwnText()
+			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
 			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
 				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
 					inputHistoryCurrent = inputHistoryCurrent + 1
@@ -2288,57 +2294,6 @@ function widget:AddConsoleLine(lines, priority)
 	end
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "clearconsole", nil, true) == 1  and  string.len(command) == 12 then
-		orgLines = {}
-		chatLines = {}
-		consoleLines = {}
-	end
-	if string.sub(command, 1, 12) == 'hidespecchat' then
-		if string.sub(command, 14, 14) ~= '' then
-			if string.sub(command, 14, 14) == '0' then
-				hideSpecChat = false
-			elseif string.sub(command, 14, 14) == '1' then
-				hideSpecChat = true
-			end
-		else
-			hideSpecChat = not hideSpecChat
-		end
-		Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
-		if hideSpecChat then
-			Spring.Echo("Hiding all spectator chat")
-		else
-			Spring.Echo("Showing all spectator chat again")
-		end
-	end
-	if string.sub(command, 1, 17) == 'hidespecchatplayer' then
-		if string.sub(command, 19, 19) ~= '' then
-			if string.sub(command, 19, 19) == '0' then
-				hideSpecChatPlayer = false
-			elseif string.sub(command, 19, 19) == '1' then
-				hideSpecChatPlayer = true
-			end
-		else
-			hideSpecChatPlayer = not hideSpecChatPlayer
-		end
-		Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
-		if hideSpecChat then
-			Spring.Echo("Hiding all spectator chat when player")
-		else
-			Spring.Echo("Showing all spectator chat when player again")
-		end
-	end
-	if string.sub(command, 1, 18) == 'preventhistorymode' then
-		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
-		enableShortcutClick = not enableShortcutClick
-		if not showHistoryWhenCtrlShift then
-			Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
-		else
-			Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
-		end
-	end
-end
-
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
@@ -2434,6 +2389,55 @@ function widget:PlayerAdded(playerID)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
+local function clearconsoleCmd(_, _, params)
+	orgLines = {}
+	chatLines = {}
+	consoleLines = {}
+	currentChatLine = 0
+	currentConsoleLine = 0
+
+	clearDisplayLists()
+	updateDrawUi = true
+end
+
+local function hidespecchatCmd(_, _, params)
+	if params[1] then
+		hideSpecChat = (params[1] == '1')
+	else
+		hideSpecChat = not hideSpecChat
+	end
+	Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
+	if hideSpecChat then
+		Spring.Echo("Hiding all spectator chat")
+	else
+		Spring.Echo("Showing all spectator chat again")
+	end
+end
+
+local function hidespecchatplayerCmd(_, _, params)
+	if params[1] then
+		hideSpecChatPlayer = (params[1] == '1')
+	else
+		hideSpecChatPlayer = not hideSpecChatPlayer
+	end
+	Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
+	if hideSpecChat then
+		Spring.Echo("Hiding all spectator chat when player")
+	else
+		Spring.Echo("Showing all spectator chat when player again")
+	end
+end
+
+local function preventhistorymodeCmd(_, _, params)
+	showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
+	enableShortcutClick = not enableShortcutClick
+	if not showHistoryWhenCtrlShift then
+		Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
+	else
+		Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
+	end
+end
+
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
@@ -2515,6 +2519,11 @@ function widget:Initialize()
 	for orgLineID, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
+
+	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
 end
 
 function widget:Shutdown()
@@ -2530,6 +2539,11 @@ function widget:Shutdown()
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
+
+	widgetHandler.actionHandler:RemoveAction(self, "clearconsole")
+	widgetHandler.actionHandler:RemoveAction(self, "hidespecchat")
+	widgetHandler.actionHandler:RemoveAction(self, "hidespecchatplayer")
+	widgetHandler.actionHandler:RemoveAction(self, "preventhistorymode")
 end
 
 function widget:GameOver()

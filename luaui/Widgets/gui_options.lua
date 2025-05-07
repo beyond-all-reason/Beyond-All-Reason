@@ -917,11 +917,6 @@ function widget:Update(dt)
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
-	if sceduleToggleWidget then
-		widgetHandler:ToggleWidget(sceduleToggleWidget)
-		sceduleToggleWidget = nil
-	end
-
 	local prevIsOffscreen = isOffscreen
 	isOffscreen = select(6, Spring.GetMouseState())
 	if isOffscreen and enabledGrabinput then
@@ -2475,14 +2470,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'darknessvalue' }, value)
-		  end,
-		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.darkenmap_darkenfeatures'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.darkenmap_darkenfeatures_descr'),
-		  onload = function(i)
-			  loadWidgetData("Darken map", "darkenmap_darkenfeatures", { 'darkenFeatures' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', { 'darkenFeatures' }, value)
 		  end,
 		},
 
@@ -4044,6 +4031,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', { 'lightStrengthMult' }, value)
+		  end,
+		},
+		{ id = "allycursors_selfshadowing", group = "ui", category = types.dev , name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.allycursors_selfshadowing'), type = "bool", value = false, description = '',
+		  onload = function(i)
+			  loadWidgetData("AllyCursors", "allycursors_selfshadowing", { 'lightSelfShadowing' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AllyCursors', 'allycursors', 'setLightSelfShadowing', { 'lightSelfShadowing' }, value)
 		  end,
 		},
 
@@ -6533,6 +6528,78 @@ function widget:GameOver()
 	updateGrabinput()
 end
 
+
+local function optionsCmd(_, _, params)
+	local newShow = not show
+	if newShow and WG['topbar'] then
+		WG['topbar'].hideWindows()
+	end
+	show = newShow
+	if showTextInput then
+		if show then
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		else
+			cancelChatInput()
+		end
+	end
+end
+
+local function optionCmd(_, _, params)
+	if not params[1] then return end
+
+	local optionID = getOptionByID(params[1])
+	if not optionID then return end
+
+	if not params[2] then
+		if options[optionID].type == 'bool' then
+			applyOptionValue(optionID, not options[optionID].value)
+		else
+			show = true
+			if showTextInput then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			end
+		end
+	else
+		if options[optionID].type == 'select' then
+			local selectKey = getSelectKey(optionID, params[2])
+			if selectKey then
+				applyOptionValue(optionID, selectKey)
+			end
+		elseif options[optionID].type == 'bool' then
+			local value
+			if params[2] == '0' then
+				value = false
+			elseif params[2] == '0.5' then
+				value = 0.5
+			else
+				value = true
+			end
+			applyOptionValue(optionID, value)
+		else
+			applyOptionValue(optionID, tonumber(params[2]))
+		end
+	end
+end
+
+local function devmodeCmd(_, _, params)
+	Spring.SendCommands("option devmode")
+end
+
+local function profileCmd(_, _, params)
+	if widgetHandler:IsWidgetKnown("Widget Profiler") then
+		widgetHandler:ToggleWidget("Widget Profiler")
+	end
+end
+
+local function grapherCmd(_, _, params)
+	if widgetHandler:IsWidgetKnown("Frame Grapher") then
+		widgetHandler:ToggleWidget("Frame Grapher")
+	end
+end
+
+
 function widget:Initialize()
 
 	-- disable ambient player widget
@@ -6761,6 +6828,12 @@ function widget:Initialize()
 	WG['options'].removeOption = function(name)
 		return WG['options'].removeOptions({ name })
 	end
+
+	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "option", optionCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "devmode", devmodeCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "profile", profileCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "grapher", grapherCmd, nil, 't')
 end
 
 function widget:Shutdown()
@@ -6790,83 +6863,12 @@ function widget:Shutdown()
 
 	resetUserVolume()
 	Spring.SendCommands("grabinput 0")
-end
 
-local lastOptionCommand = 0
-
-local sceduleToggleWidget
-function widget:TextCommand(command)
-	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
-		local newShow = not show
-		if newShow and WG['topbar'] then
-			WG['topbar'].hideWindows()
-		end
-		show = newShow
-		if showTextInput then
-			if show then
-				widgetHandler.textOwner = self		--widgetHandler:OwnText()
-				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			else
-				cancelChatInput()
-			end
-		end
-	end
-
-	if command == "devmode" then
-		Spring.SendCommands("option devmode")
-	end
-	if command == "profile" and widgetHandler:IsWidgetKnown("Widget Profiler") then
-		-- widget handler doesnt like toggling the profiler from widget:TextCommand so we scedule it to be done in widget:Update instead
-		sceduleToggleWidget = "Widget Profiler"
-		--widgetHandler:ToggleWidget("Widget Profiler")
-	end
-	if command == "grapher" and widgetHandler:IsWidgetKnown("Frame Grapher") then
-		widgetHandler:ToggleWidget("Frame Grapher")
-	end
-	if os_clock() > lastOptionCommand + 1 and string.sub(command, 1, 7) == "option " then
-		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
-		local option = string.sub(command, 8)
-		local optionID = getOptionByID(option)
-		if optionID then
-			if options[optionID].type == 'bool' then
-				lastOptionCommand = os_clock()
-				applyOptionValue(optionID, not options[optionID].value)
-			else
-				show = true
-				if showTextInput then
-					widgetHandler.textOwner = self		--widgetHandler:OwnText()
-					Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-				end
-			end
-		else
-			option = string.split(option, ' ')
-			optionID = option[1]
-			if optionID then
-				optionID = getOptionByID(optionID)
-				if optionID and option[2] then
-					lastOptionCommand = os_clock()
-					if options[optionID].type == 'select' then
-						local selectKey = getSelectKey(optionID, option[2])
-						if selectKey then
-							applyOptionValue(optionID, selectKey)
-						end
-					elseif options[optionID].type == 'bool' then
-						local value
-						if option[2] == '0' then
-							value = false
-						elseif option[2] == '0.5' then
-							value = 0.5
-						else
-							value = true
-						end
-						applyOptionValue(optionID, value)
-					else
-						applyOptionValue(optionID, tonumber(option[2]))
-					end
-				end
-			end
-		end
-	end
+	widgetHandler.actionHandler:RemoveAction(self, "options")
+	widgetHandler.actionHandler:RemoveAction(self, "option")
+	widgetHandler.actionHandler:RemoveAction(self, "devmode")
+	widgetHandler.actionHandler:RemoveAction(self, "profile")
+	widgetHandler.actionHandler:RemoveAction(self, "grapher")
 end
 
 function getSelectKey(i, value)
