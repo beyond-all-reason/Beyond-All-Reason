@@ -874,18 +874,18 @@ projectileDefLightsNames["corsilo_crblmssl"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
---corsilo SCAV
-explosionLightsNames["corsilo_scav_crblmssl"] =
-GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,
-										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 120,
-										 sustain = 30, lifetime = 200,
-										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+-- --corsilo SCAV
+-- explosionLightsNames["corsilo_scav_crblmssl"] =
+-- GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,
+-- 										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 120,
+-- 										 sustain = 30, lifetime = 200,
+-- 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---corsilo engine SCAV
-projectileDefLightsNames["corsilo_scav_crblmssl"] =
-GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
-										color2r = 0.75, color2g = 0.3, color2b = 0.9,
-										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+-- --corsilo engine SCAV
+-- projectileDefLightsNames["corsilo_scav_crblmssl"] =
+-- GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
+-- 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
+-- 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --armsilo
 explosionLightsNames["armsilo_nuclear_missile"] =
@@ -918,18 +918,31 @@ projectileDefLightsNames["armsilo_nuclear_missile"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
---armsilo SCAV
-explosionLightsNames["armsilo_scav_nuclear_missile"] =
-GetLightClass("Explosion", nil, "Giga", {r = 2, g = 1, b = 3, a = 0.18,
-										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 110,
-										 sustain = 25, lifetime = 180,
+--legsilo
+explosionLightsNames["legsilo_legicbm"] =
+GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
+										 sustain = 30, lifetime = 200,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
---armsilo engine SCAV
-projectileDefLightsNames["armsilo_scav_nuclear_missile"] =
-GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
-										color2r = 0.75, color2g = 0.3, color2b = 0.9,
-										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
+--legsilo engine
+projectileDefLightsNames["legsilo_legicbm"] =
+GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+
+-- --armsilo SCAV
+-- explosionLightsNames["armsilo_scav_nuclear_missile"] =
+-- GetLightClass("Explosion", nil, "Giga", {r = 2, g = 1, b = 3, a = 0.18,
+-- 										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 110,
+-- 										 sustain = 25, lifetime = 180,
+-- 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+-- --armsilo engine SCAV
+-- projectileDefLightsNames["armsilo_scav_nuclear_missile"] =
+-- GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
+-- 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
+-- 										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
 
 --cortron
 explosionLightsNames["cortron_cortron_weapon"] =
@@ -1218,12 +1231,12 @@ GetLightClass("Explosion", "Fire", "Medium", {r = 0.4, g = 0.2, b = 0.08, a = 0.
 											--modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
 											})
 
---corkorg_scav
-projectileDefLightsNames["corkorg_scav_corkorg_laser"] =
-GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
-											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 4, sustain = 0})
+-- --corkorg_scav
+-- projectileDefLightsNames["corkorg_scav_corkorg_laser"] =
+-- GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
+-- 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+-- 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 4, sustain = 0})
 
 --cordoomt3
 projectileDefLightsNames["cordoomt3_armagmheat"] =
@@ -1247,18 +1260,18 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 15, lifetime = 500,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
---armjuno SCAV
-projectileDefLightsNames["armjuno_scav_juno_pulse"] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
-											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
-explosionLightsNames["armjuno_scav_juno_pulse"] =
-GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
-											posx = 0, posy = 100, posz = 0,
-											r = 0.75, g = 0.6, b = 1.0,
-	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
-											sustain = 15, lifetime = 500,
-    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+-- --armjuno SCAV
+-- projectileDefLightsNames["armjuno_scav_juno_pulse"] =
+-- GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
+-- 											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
+-- 											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+-- explosionLightsNames["armjuno_scav_juno_pulse"] =
+-- GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+-- 											posx = 0, posy = 100, posz = 0,
+-- 											r = 0.75, g = 0.6, b = 1.0,
+-- 	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
+-- 											sustain = 15, lifetime = 500,
+--     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
 --corjuno
 projectileDefLightsNames["corjuno_juno_pulse"] =
@@ -1317,18 +1330,18 @@ GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 
---corjuno SCAV
-projectileDefLightsNames["corjuno_scav_juno_pulse"] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
-											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
-explosionLightsNames["corjuno_scav_juno_pulse"] =
-GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
-											posx = 0, posy = 100, posz = 0,
-											r = 0.75, g = 0.6, b = 1.0,
-	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
-											sustain = 10, lifetime = 400,
-    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+-- --corjuno SCAV
+-- projectileDefLightsNames["corjuno_scav_juno_pulse"] =
+-- GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
+-- 											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
+-- 											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+-- explosionLightsNames["corjuno_scav_juno_pulse"] =
+-- GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+-- 											posx = 0, posy = 100, posz = 0,
+-- 											r = 0.75, g = 0.6, b = 1.0,
+-- 	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
+-- 											sustain = 10, lifetime = 400,
+--     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 --scavengerbossv4
 explosionLightsNames['scavengerbossv4_normal_turbo_napalm'] =
 GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
