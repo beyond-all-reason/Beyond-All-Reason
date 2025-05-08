@@ -31,16 +31,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 if gadgetHandler:IsSyncedCode() then
-    local function getUnitPositionTuple(unitID)
-        local x1, y1, z1 = Spring.GetUnitPosition(unitID)
-        local unitLocation = { x1, y1, z1 }
-        return unitLocation
-    end
 
     local function closestPointOnCircle(cx, cz, radius, tx, tz)
         local dx = tx - cx
         local dz = tz - cz
-        local dist = math.sqrt(dx * dx + dz * dz)
+        local dist = math.diag(dx, dz)
         if dist == 0 then
             -- Target is exactly at center; choose arbitrary point on circle
             return cx + radius, cz
@@ -67,9 +62,7 @@ if gadgetHandler:IsSyncedCode() then
         local dx = futureX - tx
         local dy = futureY - ty
         local dz = futureZ - tz
-        local distSq = dx*dx + dy*dy + dz*dz
-        
-        return distSq <= maxDistance * maxDistance
+        return math.diag(dx, dy, dz) <= maxDistance
     end
 
     local function isInTargetArea(interferingUnitID, x, y, z, radius)
@@ -78,6 +71,15 @@ if gadgetHandler:IsSyncedCode() then
         local dx, dz = ux - x, uz - z
         return (dx * dx + dz * dz) <= (radius * radius)    
     end
+    
+    local slowUpdateBuilders = {}
+    local watchedBuilders = {}
+    local builderRadiusOffsets = {}
+
+    local FAST_UPDATE_RADIUS        = 300
+    local BUILDER_DELAY_FRAME_COUNT = 100
+    local BUILDER_BUILD_RADIUS      = 200
+    local SEARCH_RADIUS_OFFSET      = 200
 
     local function shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, x, y, z, radius)
         if Spring.AreTeamsAllied(unitTeam, builderTeam) == false and unitTeam ~= builderTeam then
@@ -86,7 +88,7 @@ if gadgetHandler:IsSyncedCode() then
         if shouldNotBuggeroff[Spring.GetUnitDefID(interferingUnitID)] then
             return false
         end
-        if WillBeNearTarget(interferingUnitID, x, y, z, 100, radius) then
+        if WillBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_FRAME_COUNT, radius) then
             return true
         end
         if isInTargetArea(interferingUnitID, x, y, z, radius) then
@@ -112,11 +114,6 @@ if gadgetHandler:IsSyncedCode() then
         return math.sqrt(dx * dx + dz * dz)
     end
 
-    local slowUpdateBuilders = {}
-    local watchedBuilders = {}
-    local builderRadiusOffsets = {}
-
-    local FAST_UPDATE_RADIUS = 300
 
     function gadget:GameFrame(frame)
         if frame % 10 ~= 0 then
@@ -140,7 +137,7 @@ if gadgetHandler:IsSyncedCode() then
                 print("Too far, demoting to slow")
                 watchedBuilders[builderID]    = nil
                 slowUpdateBuilders[builderID] = true -- Do distance checks less frequently
-            elseif distance(firstCommand.params, x, z) > 200 then
+            elseif distance(firstCommand.params, x, z) > BUILDER_BUILD_RADIUS then
                 -- Check distance frequently once you're closer
             else
                 local cmdID           = firstCommand.id
@@ -151,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 
                 -- Get list of units to check
                 local targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
-                local searchRadius     = cachedUnitDefs[builtUnitDefID].radius + 200
+                local searchRadius     = cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
                 local x1, x2, z1, z2   = targetX - searchRadius, targetX + searchRadius, targetZ - searchRadius, targetZ + searchRadius
                 local interferingUnits = Spring.GetUnitsInRectangle(x1, z1, x2, z2)
 
@@ -162,8 +159,8 @@ if gadgetHandler:IsSyncedCode() then
                 for i = 1, #interferingUnits do
                     local interferingUnitID = interferingUnits[i]
                     if builderID ~= interferingUnitID then
-                        local unitPosition      = getUnitPositionTuple(interferingUnitID)
-                        local unitTeam          = Spring.GetUnitTeam(interferingUnitID)
+                        local unitPosition = {Spring.GetUnitPosition(interferingUnitID)}
+                        local unitTeam     = Spring.GetUnitTeam(interferingUnitID)
         
                         if shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
                             local sendX, sendZ = closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitPosition[1], unitPosition[3])
