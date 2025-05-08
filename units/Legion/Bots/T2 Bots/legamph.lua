@@ -42,6 +42,7 @@ return {
 			maxrange = 400,
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
+			paralyzemultiplier = 0.2,
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
@@ -173,7 +174,7 @@ return {
 				gravityaffected = "true",
 				groundbounce = true,
 				impulsefactor = 0.123,
-				model = "legtorpedo.s3o",
+				model = "legbasictorpedo.s3o",
 				mygravity = 0.2,
 				name = "Depthcharge launcher",
 				noselfdamage = true,
@@ -201,9 +202,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "HEAT_RAY",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 				maxangledif = 120,
 				maindir = "0 0 1"
 			},
