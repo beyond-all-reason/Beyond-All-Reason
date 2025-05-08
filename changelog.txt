@@ -1,5 +1,8 @@
 # May 2025
-• lava: units in lava slow down up to 5x depending on their submersion level
+• [Spybot] Emp immune again. Max stuntime vs units 8 -> 10
+• [Banisher] Energycost 17000 -> 23000, Turnrate 300 -> 250, Acceleration 0.2269 -> 0.2
+• [Tzar] Buildcost 26100 -> 30000
+• [Lava]: Units in lava slow down up to 5x depending on their submersion level
 
 # April 2025
 • [Pawn] 1420 -> 1650 buildtime
