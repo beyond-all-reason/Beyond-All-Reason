@@ -107,7 +107,7 @@ local function timeToTarget(start, endpoint, speed)
 end
 
 local function getFirstMoveCommandDestination(unitID)
-    local unitCommands = Spring.GetUnitCommands(unitID, -1)
+    local unitCommands = Spring.GetUnitCommands(unitID, 1)
     if unitCommands == nil then
         Log("Nil commands!\n", debugLog)
         return nil
@@ -445,7 +445,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             registerUnit(createdUnitID)
             -- Handle case where transport is rallied to another lab
             local unitCommands = Spring.GetUnitCommands(createdUnitID, -1)
-            if unitCommands == nil then
+            if unitCommands == nil or #unitCommands < 1 then
                 return
             end
             if unitCommands[1].id ~= CMD.GUARD then
@@ -524,8 +524,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
     for _, orderedUnit in ipairs(selectedUnits) do
         local orderedUnitDefs = cachedUnitDefs[Spring.GetUnitDefID(orderedUnit)]
         if orderedUnitDefs.isTransport then
+            inactivateTransport(orderedUnit)
             if cmdID == CMD.GUARD and IsFab(cmdParams[1]) then
-                inactivateTransport(orderedUnit)
                 registerUnit(orderedUnit)
                 local targetUnitID = cmdParams[1]
                 registerUnit(targetUnitID)
@@ -542,8 +542,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
                     Log("Transport " .. orderedUnit .. " IDLE after registering with " .. targetUnitID, debugLog)
                     transports[orderedUnit].state = transport_states.idle
                 end
-            else
-                inactivateTransport(orderedUnit)
             end
         end
     end
