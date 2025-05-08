@@ -3883,6 +3883,12 @@ function init()
 		  end,
 		},
 
+		{ id = "ghosticons_brightness", group = "ui", category = types.dev, name = Spring.I18N('ui.settings.option.ghosticons') .. widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ghosticons_brightness'), min = 0, max = 1.0, step = 0.15, type = "slider", value = Spring.GetConfigFloat("UnitGhostIconsDimming", 0.8), description = Spring.I18N('ui.settings.option.ghosticons_brightness_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("UnitGhostIconsDimming", value)
+		  end,
+		},
+
 		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
 			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
