@@ -2552,10 +2552,10 @@ function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end

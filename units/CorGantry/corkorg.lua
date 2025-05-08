@@ -280,6 +280,7 @@ return {
 				weaponvelocity = 1650,
 				customparams = {
 					nofire = true,
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 150,

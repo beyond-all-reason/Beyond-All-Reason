@@ -131,6 +131,11 @@ function SetCursor(cursorSet)
 		if WG.selectedunits or WG.teamplatter or WG.highlightselunits then
 			Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 		end
+
+		-- Hide metal extractor circles on non-metal maps
+		if WG["resource_spot_finder"] and (not WG["resource_spot_finder"].isMetalMap) then
+			Spring.LoadCmdColorsConfig('rangeExtract         1.0  0.3  0.3  0.0')
+		end
 	end
 end
 
