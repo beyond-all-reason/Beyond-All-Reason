@@ -925,13 +925,13 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhym", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
 
     {
-        key    	= "map_lavatiderhym",
+        key    	= "map_lavatiderhythm",
         name   	= "Lava Tides",
         desc   	= "Lava level periodicially cycles height when tides are present",
         type   	= "list",
