@@ -1323,7 +1323,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = -13.9, posy = -2.9, posz = 24.9, radius = 1.3,
 							pos2x = -12.1, pos2y = -2.9, pos2z = 24.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1333,7 +1333,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = 13.9, posy = -2.9, posz = 24.9, radius = 1.3,
 							pos2x = 12.1, pos2y = -2.9, pos2z = 24.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1343,7 +1343,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = -13.9, posy = -2.9, posz = -24.9, radius = 1.3,
 							pos2x = -12.1, pos2y = -2.9, pos2z = -24.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1353,7 +1353,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = 13.9, posy = -2.9, posz = -24.9, radius = 1.3,
 							pos2x = 12.1, pos2y = -2.9, pos2z = -24.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1363,7 +1363,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = -24.9, posy = -2.9, posz = 12.1, radius = 1.3,
 							pos2x = -24.9, pos2y = -2.9, pos2z = 13.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1373,7 +1373,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = 24.9, posy = -2.9, posz = 12.1, radius = 1.3,
 							pos2x = 24.9, pos2y = -2.9, pos2z = 13.9,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1383,7 +1383,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = -24.9, posy = -2.9, posz = -13.9, radius = 1.3,
 							pos2x = -24.9, pos2y = -2.9, pos2z = -12.1,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -1393,7 +1393,7 @@ local unitLights = {
 			pieceName = 'orangelight',
 			lightConfig = { posx = 24.9, posy = -2.9, posz = -13.9, radius = 1.3,
 							pos2x = 24.9, pos2y = -2.9, pos2z = -12.1,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 90,
 							r = -1, g = 0.8, b = 0.2, a = 3,
 							modelfactor = 0.4, specular = 0.4, scattering = 0.1, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
@@ -25867,7 +25867,7 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		beacon = {
+		searchlight = {
 			lightType = 'cone',
 			pieceName = 'fireline',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 1100,
@@ -26010,7 +26010,7 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		beaconright = {
+		headlightright = {
 			lightType = 'cone',
 			pieceName = 'rShoulderFlare',
 			lightConfig = { posx = 0, posy = 0, posz = -16, radius = 400,
@@ -26020,7 +26020,7 @@ local unitLights = {
 							modelfactor = 0, specular = 1, scattering = 4, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 2},
 		},
-		beaconleft = {
+		headlightleft = {
 			lightType = 'cone',
 			pieceName = 'lShoulderFlare',
 			lightConfig = { posx = 0, posy = 0, posz = -16, radius = 400,
@@ -37620,13 +37620,44 @@ if not (Spring.GetConfigInt("buildlights", 1) == 1) then
 	end
 end
 
--- add scavenger equivalents
+-- deep copy helper
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    if orig_type ~= 'table' then
+        return orig
+    end
+    local copy = {}
+    for k, v in pairs(orig) do
+        copy[k] = deepcopy(v)
+    end
+    return copy
+end
+
+-- add scavenger equivalents with adjusted head/search-light colors
 local scavUnitDefLights = {}
 for unitDefID, lights in pairs(unitDefLights) do
-	if UnitDefNames[UnitDefs[unitDefID].name..'_scav'] then
-		scavUnitDefLights[UnitDefNames[UnitDefs[unitDefID].name..'_scav'].id] = lights
-	end
+    local baseName = UnitDefs[unitDefID].name
+    local scavUD = UnitDefNames[baseName .. '_scav']
+    if scavUD then
+        local newLights = {}
+        for lightName, lightDef in pairs(lights) do
+            local ld = deepcopy(lightDef)
+            -- only tweak headlight or searchlight variants
+            local lname = lightName:lower()
+            if lname:find('headlight') or lname:find('searchlight') then
+                ld.lightConfig.r = 0.58
+                ld.lightConfig.g = 0.28
+                ld.lightConfig.b = 1.1
+				ld.lightConfig.color2r = 0.62
+                ld.lightConfig.color2g = 0.48
+                ld.lightConfig.color2b = 1.2
+            end
+            newLights[lightName] = ld
+        end
+        scavUnitDefLights[scavUD.id] = newLights
+    end
 end
+
 unitDefLights = table.merge(unitDefLights, scavUnitDefLights)
 scavUnitDefLights = nil
 
