@@ -58,9 +58,9 @@ local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set am
 			 {"lavarumbleshort3", 20, 40} }
 
 --- Tide animation scenes
----  each row is: { HeightLevel, Speed, Delay for next TideRhythm in seconds }
+---  each row is: { HeightLevel, Speed, Delay for next TideRhym in seconds }
 ---  first element needs to be -1 than pre-game lava level when present
-local tideRhythm = {}
+local tideRhym = {}
 
 
 ----------------------------------------
@@ -143,7 +143,7 @@ local function applyConfig(lavaConfig)
 
 	tideAmplitude = lavaConfig.tideAmplitude or tideAmplitude
 	tidePeriod = lavaConfig.tidePeriod or tidePeriod
-	tideRhythm = lavaConfig.tideRhythm or tideRhythm
+	tideRhym = lavaConfig.tideRhym or tideRhym
 	effectDamage = lavaConfig.effectDamage or effectDamage
 	if lavaConfig.effectBurst ~= nil then
 		effectBurst = lavaConfig.effectBurst
@@ -156,31 +156,31 @@ end
 
 -- Generates a lava tide rhythm based on the spring modoptions.
 local function lavaModGen(modOptions)
-	local lowRhythm = {modOptions.map_lavalowlevel, 0.25, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
-	local highRhythm = {modOptions.map_lavahighlevel, 0.15, modOptions.map_lavahighdwell} --Rises slower: 270 emlo/min
+	local lowRhym = {modOptions.map_lavalowlevel, 0.25, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
+	local highRhym = {modOptions.map_lavahighlevel, 0.15, modOptions.map_lavahighdwell} --Rises slower: 270 emlo/min
 		if modOptions.map_lavatidemode == "lavastartlow" then
-			tideRhythm = {lowRhythm, highRhythm}
+			tideRhym = {lowRhym, highRhym}
 		elseif modOptions.map_lavatidemode == "lavastarthigh" then
-			tideRhythm = {highRhythm, lowRhythm}
+			tideRhym = {highRhym, lowRhym}
 		end
-		level = tideRhythm[1][1] + 1
-		grow = tideRhythm[1][2]
+		level = tideRhym[1][1] + 1
+		grow = tideRhym[1][2]
 end
 
 ----------------------------------------
 -- Process config
 
 local mapLavaConfig = getLavaConfig(mapName)
-local modTideRhythm = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatideRhythm) or "default"
+local modTideRhym = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatiderhym) or "default"
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
-	if modTideRhythm == "enabled" then
+	if modTideRhym == "enabled" then
 		lavaModGen(Spring.GetModOptions())
-	elseif modTideRhythm == "disabled" then
+	elseif modTideRhym == "disabled" then
 		level = level 
-		tideRhythm = {tideRhythm[1]} -- only the first (starting) tide level is used
-		tideRhythm[1][3] = 5*6000 -- extend the first tide 
+		tideRhym = {tideRhym[1]} -- only the first (starting) tide level is used
+		tideRhym[1][3] = 5*6000 -- extend the first tide 
 	end
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
@@ -206,19 +206,19 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 	fogHeight = 20
 	fogAbove = 0.1
 	fogDistortion = 1
-	tideRhythm = { { 4, 0.05, 5*6000 } }
-	--tideRhythm = { { 1, 0.25, 5*6000 } }
+	tideRhym = { { 4, 0.05, 5*6000 } }
+	--tideRhym = { { 1, 0.25, 5*6000 } }
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
-	if modTideRhythm == "default" then
+	if modTideRhym == "default" then
 		level = 4
-		tideRhythm = { { 4, 0.05, 5*6000 } }
-	elseif modTideRhythm == "enabled" then
+		tideRhym = { { 4, 0.05, 5*6000 } }
+	elseif modTideRhym == "enabled" then
 		lavaModGen(Spring.GetModOptions())
-	elseif modTideRhythm == "disabled" then
+	elseif modTideRhym == "disabled" then
 		level = 4
-		tideRhythm = { { 4, 0.05, 5*6000 } }
+		tideRhym = { { 4, 0.05, 5*6000 } }
 	end
 end
 
@@ -258,7 +258,7 @@ return {
 	tideAmplitude = tideAmplitude,
 	tidePeriod = tidePeriod,
 
-	tideRhythm = tideRhythm,
+	tideRhym = tideRhym,
 
 	effectDamage = effectDamage,
 	effectBurst = effectBurst,
