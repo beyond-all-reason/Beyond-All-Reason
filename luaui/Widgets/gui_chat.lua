@@ -596,6 +596,8 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	-- determine text typing start time
 	local startTime = clock()
 
+	local text_orig = text
+
 	-- metal/energy given
 	if lineType == LineTypes.Player and ssub(text, 5, 6) == '> ' then
 		text = ssub(text, 7)
@@ -620,6 +622,8 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 				end
 			end
 			text = Spring.I18N(params[1], t)
+			-- Fix a widget crash that could occur with message "> ."
+			if type(text) ~= "string" then text = text_orig end
 			if text:lower():find(I18N.energy, nil, true) then
 				local pos = text:lower():find(I18N.energy, nil, true)
 				local len = slen(I18N.energy)
