@@ -57,6 +57,7 @@ SetMaxReloadTime(reloadMS)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
+	set-signal-mask SIGNAL_IDLE;
     if (Stunned) {
         return (1);
     }
@@ -90,13 +91,15 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 
 	if (!OpenedState){
+		signal SIGNAL_IDLE;
 		set ARMORED to 1;
 		turn door to z-axis <90> speed <90>;
 		wait-for-turn door around z-axis;
 		turn turret to y-axis <-90> speed <90>;
 		wait-for-turn turret around y-axis;
+		OpenedState = 1;
 	}
-	OpenedState = 1;
+	
 
 	start-script RestoreAfterDelay();
 	return (1);
