@@ -16,7 +16,7 @@ You will not be able to construct a base in this mission at all.
  
 Tips:
  - Spectre are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
- - Tzar has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Reapoer to keep any smaller Tier 1 units away from him. 
+ - Tzar has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Tigers to keep any smaller Tier 1 units away from it.
  - Negotiator, while slow, has an enormous range, and can take out anything foolish enough to stand still.
  - Graverobbers can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
  - There may be useful wrecks on different areas of the map, that can assist you in your mission.
