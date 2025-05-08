@@ -7,7 +7,7 @@ function gadget:GetInfo()
         author  = "Flameink",
         date    = "March 7, 2025",
         version = "1.0",
-        license = "GNU GPL, v3 or later",
+        license = "GNU GPL, v2 or later",
         layer   = 0,
         enabled = true   --  loaded by default?
     }
