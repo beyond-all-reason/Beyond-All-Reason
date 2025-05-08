@@ -35,8 +35,8 @@ return {
 		customparams = {
 			firingceg = "barrelshot-tiny",
 			unitgroup = 'weapon',
-			model_author = "Zecrus",
-			normaltex = "unittextures/Arm_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmBots",
 		},
 		featuredefs = {
@@ -105,7 +105,7 @@ return {
 			gauss = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				burst = 3,
+				burst = 2,
 				burstrate = 0.1,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -118,7 +118,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 180,
-				reloadtime = 2.25,
+				reloadtime = 2.2,
 				size = 2,
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
@@ -129,8 +129,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 550,
 				damage = {
-					default = 75,
-					vtol = 25,
+					default = 110,
+					vtol = 33,
 				},
 			},
 		},
