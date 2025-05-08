@@ -3,10 +3,10 @@ local gadget = gadget ---@type gadget
 function gadget:GetInfo()
     return {
         name    = "Builder buggeroff",
-        desc    = "Enables busy builders to buggeroff",
+        desc    = "Enables busy builders and moving units to buggeroff",
         author  = "Flameink",
-        date    = "April 24, 2025",
-        version = "0.2.4",
+        date    = "March 7, 2025",
+        version = "1.0",
         license = "GNU GPL, v3 or later",
         layer   = 0,
         enabled = true   --  loaded by default?
