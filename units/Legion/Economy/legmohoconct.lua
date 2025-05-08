@@ -30,7 +30,6 @@ return {						--costs should be same as legmohocon and legmohoconin
 		health = 3900,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		stealth = true,
 		movementclass = "NANO",
 		objectname = "Units/LEGMOHOCON.s3o",
 		script = "Units/legmohoconct.cob",

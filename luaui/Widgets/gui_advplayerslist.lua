@@ -783,7 +783,7 @@ local function rankTeamPlayers()
                 end
             end
 
-            if scores[allyTeamID] then
+            if scores[allyTeamID] and (mySpecStatus or not hoverPlayerlist or allyTeamID ~= myAllyTeamID) then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
                 end)
@@ -807,6 +807,23 @@ local function rankTeamPlayers()
         SortList()
         CreateLists()
     end
+end
+
+local function speclistCmd(_, _, params)
+	if params[1] then
+		if params[1] == '1' then
+			specListShow = true
+			alwaysHideSpecs = false
+		else
+			specListShow = false
+			alwaysHideSpecs = true
+		end
+	else
+		specListShow = not specListShow
+	end
+	SortList()
+	SetModulesPositionX() --why?
+	CreateLists()
 end
 
 function widget:Initialize()
@@ -891,6 +908,8 @@ function widget:Initialize()
 			end
 		end
 	end
+
+	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
 
 
@@ -967,6 +986,8 @@ function widget:Shutdown()
     if Background then
         gl_DeleteList(Background)
     end
+
+	widgetHandler:RemoveAction("speclist")
 end
 
 function SetSidePics()
@@ -3852,29 +3873,5 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
         elseif cmdType == 'erase' then
             player[playerID].eraserTime = now + pencilDuration
         end
-    end
-end
-
-
-function widget:TextCommand(command)
-    if string.sub(command, 1, 8) == 'speclist' then
-        local words = {}
-        for w in command:gmatch("%S+") do
-            words[#words+1] = w
-        end
-        if string.sub(command, 10, 10) ~= '' then
-            if string.sub(command, 10, 10) == '0' then
-                specListShow = false
-				alwaysHideSpecs = true
-            elseif string.sub(command, 10, 10) == '1' then
-                specListShow = true
-				alwaysHideSpecs = false
-            end
-        else
-            specListShow = not specListShow
-        end
-        SortList()
-        SetModulesPositionX() --why?
-        CreateLists()
     end
 end
