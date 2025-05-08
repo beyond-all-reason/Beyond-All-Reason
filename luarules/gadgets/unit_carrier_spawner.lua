@@ -1103,7 +1103,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						return
 					elseif droneSendDistance and droneSendDistance < carrierMetaData.radius or carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber" then
 						-- attacking
-						if target then
+						if target and not (carrierMetaData.subUnitsList[subUnitID].dronetype == "nano") then
 						    if cmdID == CMD.FIGHT and droneSendDistance < carrierMetaData.radius then
 
 						        carrierMetaData.ignorenextcommand = true
@@ -1214,7 +1214,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								if carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber" then
 									spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius*0.2, carriery, carrierz + rz*idleRadius*0.2}, 0)
 								elseif carrierMetaData.subUnitsList[subUnitID].dronetype == "nano" then
-									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+									spGiveOrderToUnit(subUnitID, CMD.REPAIR, {carrierx, carriery, carrierz, carrierMetaData.radius}, 0)
 								elseif carrierMetaData.subUnitsList[subUnitID].dronetype == "fighter" then
 									if carrierMetaData.subUnitsList[subUnitID].fighterStage == 0 then
 										--rx = cos(0*(-2)*PI)
@@ -1240,6 +1240,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 									idleTarget = cQueue[j].params
 								end
 								break
+							elseif cQueue[j].id == CMD.REPAIR then
+								engaged = true
+								break
 							end
 						end
 						carrierMetaData.subUnitsList[subUnitID].engaged = engaged
@@ -1254,7 +1257,18 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								rx, rz = RandomPointInUnitCircle(5)
 								UnDockUnit(carrierID, subUnitID)
 								if carrierMetaData.subUnitsList[subUnitID].dronetype == "nano" then
-									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+									spGiveOrderToUnit(subUnitID, CMD.REPAIR, {carrierx, carriery, carrierz, carrierMetaData.radius}, 0)
+									local cQueue = GetUnitCommands(subUnitID, -1)
+									local engaged = false
+									for j = 1, (cQueue and #cQueue or 0) do
+										if cQueue[j].id == CMD.REPAIR then
+											engaged = true
+											break
+										end
+									end
+									if not engaged then
+										spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+									end
 								elseif carrierMetaData.subUnitsList[subUnitID].dronetype == "fighter" then
 									if carrierMetaData.subUnitsList[subUnitID].fighterStage == 0 then
 										--rx = cos(0*(-2)*PI)
@@ -1285,7 +1299,6 @@ end
 
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-
     if carrierMetaList[unitID] and carrierMetaList[unitID].ignorenextcommand then
         carrierMetaList[unitID].ignorenextcommand = false
 	elseif carrierMetaList[unitID] and (cmdID == CMD.STOP) then
