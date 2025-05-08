@@ -2038,6 +2038,12 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
+		for i = 1,#squadsTable do
+			if squadsTable[i].squadBurrow == unitID then
+				squadsTable[i].squadBurrow = nil
+			end
+		end
+
 		for _,unitList in pairs(squadTargetsByEcoWeight) do
 			unitList:Remove(unitID)
 		end
@@ -2108,12 +2114,6 @@ if gadgetHandler:IsSyncedCode() then
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
 					spawnQueue[i] = nil
-				end
-			end
-
-			for i = 1,#squadsTable do
-				if squadsTable[i].squadBurrow == unitID then
-					squadsTable[i].squadBurrow = nil
 				end
 			end
 
