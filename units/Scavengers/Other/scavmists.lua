@@ -192,7 +192,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.landunitspawns,
 					spawns_surface = "LAND",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {
@@ -238,7 +238,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "LAND",
 					spawns_mode = "random",
 					spawns_expire = 60,
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {
@@ -284,7 +284,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.waterspawns,
 					spawns_surface = "SEA",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {

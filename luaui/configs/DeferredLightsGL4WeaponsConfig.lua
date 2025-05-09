@@ -874,6 +874,18 @@ projectileDefLightsNames["corsilo_crblmssl"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
+--RAPTOR Nuclear Meteor
+explosionLightsNames["raptor_turret_meteor_t4_v1_weapon"] =
+GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
+										 sustain = 30, lifetime = 200,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--RAPTOR Nuclear Meteor engine
+projectileDefLightsNames["raptor_turret_meteor_t4_v1_weapon"] =
+GetLightClass("MissileProjectile", "Fire", "Large", {a = 0.8,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
 -- --corsilo SCAV
 -- explosionLightsNames["corsilo_scav_crblmssl"] =
 -- GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,

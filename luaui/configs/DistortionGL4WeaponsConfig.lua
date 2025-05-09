@@ -2016,10 +2016,10 @@ local scavbosses = {
 
 for i, name in pairs(scavbosses) do
     muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_shoulderturrets'] = {
-        GetDistortionClass("MuzzleShockWave", "Nano")
+        GetDistortionClass("MuzzleShockWaveXS", "Nano")
     }
 	muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_turbo_shoulderturrets'] = {
-        GetDistortionClass("MuzzleShockWave", "Tiny")
+        GetDistortionClass("MuzzleShockWaveXS", "Tiny")
     }
 	explosionDistortionsNames['scavengerbossv4_' .. name .. '_missilelauncher'] = {
         GetDistortionClass("AirShockWave", "Smallest")
