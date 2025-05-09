@@ -41,7 +41,7 @@ Timer()
 {
 	Signal SIG_TIMER;
 	set-signal-mask SIG_TIMER;
-	sleep 4000;
+	sleep 3500;
 	timeout = 0;
 }
 
@@ -56,11 +56,11 @@ missile_counter(status, counter, targetID, burstrate, health, losstate)
 	losstate2 = losstate1;
 	losstate1 = losstate;
 	
-	get PRINT(counter, targetID, health, healthdiff);
+	get PRINT(counter, canshoot, health, healthdiff);
 	
 	if(targetID1 == targetID2)
 	{
-		while(NOT (losstate1 == losstate2))										//LOS state changed
+		if(NOT (losstate1 == losstate2))										//LOS state changed
 		{
 			canshoot = canshoot1 - missilesfired;								//If some missiles were fired needs to shoot less missiles
 		}
@@ -77,6 +77,14 @@ missile_counter(status, counter, targetID, burstrate, health, losstate)
 			return(0);
 		}
 	}
+	health2 = health;															//if new target resets everything
+	health1 = health;
+	canshoot1 = counter;
+	burstrate2 = burstrate;
+	targetID2 = targetID;
+	targetID1 = targetID;
+	losstate2 = losstate;
+	losstate1 = losstate;
 	missilesfired = 0;
 	canshoot = counter;
 	return(0);
@@ -278,7 +286,7 @@ Open()
 	}
 	ready = 1;
 	sleep 1200;
-	start-script Close();
+	//start-script Close();
 }
 
 AimWeapon1(heading, pitch)												//Beamer script
@@ -338,6 +346,12 @@ AimWeapon2(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while(NOT (weapon == 1))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -345,12 +359,6 @@ AimWeapon2(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	while(NOT (weapon == 1))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
@@ -389,6 +397,12 @@ AimWeapon3(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	while(NOT (weapon == 2))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -396,12 +410,6 @@ AimWeapon3(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	while(NOT (weapon == 2))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
@@ -440,6 +448,12 @@ AimWeapon4(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
+	while(NOT (weapon == 3))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -447,12 +461,6 @@ AimWeapon4(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-	while(NOT (weapon == 3))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
@@ -491,6 +499,12 @@ AimWeapon5(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	while(NOT (weapon == 4))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -498,12 +512,6 @@ AimWeapon5(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
-	while(NOT (weapon == 4))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
@@ -542,6 +550,12 @@ AimWeapon6(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_6;
+	set-signal-mask SIG_AIM_6;
+	while(NOT (weapon == 5))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -549,12 +563,6 @@ AimWeapon6(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_6;
-	set-signal-mask SIG_AIM_6;
-	while(NOT (weapon == 5))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
@@ -593,6 +601,12 @@ AimWeapon7(heading, pitch)
 	{
 		start-script Open(0);
 	}
+	Signal SIG_AIM_7;
+	set-signal-mask SIG_AIM_7;
+	while(NOT (weapon == 6))										//Waits for its turn
+	{
+		sleep 1;
+	}
 	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
@@ -600,12 +614,6 @@ AimWeapon7(heading, pitch)
 	if(ready == 0)													//Checks if fully open		
 	{
 		return (0);
-	}
-	Signal SIG_AIM_7;
-	set-signal-mask SIG_AIM_7;
-	while(NOT (weapon == 6))										//Waits for its turn
-	{
-		sleep 1;
 	}
 	return (1);
 }
