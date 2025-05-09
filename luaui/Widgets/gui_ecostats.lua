@@ -997,7 +997,7 @@ local function DrawBox(hOffset, vOffset, r, g, b)
 			widgetPosX + hOffset + dx,
 			widgetPosY + widgetHeight - vOffset + dy + h,
 			h * 0.055,
-			1, 1, 1, 1, { r * 0.5, g * 0.5, b * 0.5, 1 }, { r, g, b, 1 }
+			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 1 }, { r, g, b, 1 }
 	)
 	glColor(1, 1, 1, 1)
 end
@@ -1030,6 +1030,7 @@ local function DrawTeamCompositionTeam(hOffset, vOffset, r, g, b, a, small, mous
 	else
 		glColor(r, g, b, a)
 	end
+
 	local area = {
 		floor((widgetPosX + hOffset + dx - w) + 0.5),
 		floor((widgetPosY + widgetHeight - vOffset + dy) + 0.5),
