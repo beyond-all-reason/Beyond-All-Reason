@@ -51,15 +51,7 @@ end
 
 function REPORTS.generateMappingReport()
     Spring.Echo("\n--- Blueprint Mapping Report Start (CSV Format) ---")
-    if not substitutionLogic or not substitutionLogic.MasterBuildingData then 
-        Spring.Log("BlueprintReports", "error", "[Mapping Report] Substitution logic or MasterBuildingData not available or not initialized."); return 
-    end
-
     local SIDES = substitutionLogic.SIDES
-    if not SIDES then
-         Spring.Log("BlueprintReports", "error", "[Mapping Report] SIDES not found in substitutionLogic."); return
-    end
-
     local masterBuildingDataMinimal = substitutionLogic.MasterBuildingData
     local reportLines = {}
 
@@ -158,9 +150,6 @@ end
 
 function REPORTS.generateCategoryListReport()
     Spring.Echo("\n--- Blueprint Category List Start ---")
-    if not substitutionLogic or not substitutionLogic.initialized then 
-        Spring.Log("BlueprintReports", "error", "[Category List] Substitution logic not available or not initialized."); return 
-    end
 
     local UNIT_CATEGORIES = substitutionLogic.UNIT_CATEGORIES
     local categoryUnits = substitutionLogic.categoryUnits

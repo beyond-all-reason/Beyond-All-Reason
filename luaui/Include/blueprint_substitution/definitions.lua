@@ -2,63 +2,48 @@
 -- Contains unit category definitions for blueprint substitution
 -- Used by logic.lua
 
--- Make a global table for these definitions
-WG.BlueprintDefinitions = WG.BlueprintDefinitions or {}
-local BpDefs = WG.BlueprintDefinitions -- Local alias for convenience
-
--- ===================================================================
--- Configuration & Data
--- ===================================================================
-Spring.Log("BlueprintDefs", LOG.INFO, "Initializing blueprint category definitions...")
+local DefinitionsModule = {}
 
 local SIDES_ENUM = VFS.Include("gamedata/sides_enum.lua")
 if not SIDES_ENUM then
-    error("[BlueprintDefs] Failed to load sides_enum.lua!")
+    error("[BlueprintDefinitions] CRITICAL: Failed to load sides_enum.lua!")
+    -- Return an empty or minimal table if sides are critical and missing
+    return DefinitionsModule 
 end
-BpDefs.SIDES = SIDES_ENUM
+DefinitionsModule.SIDES = SIDES_ENUM
 
-
--- Data tables for category management
-BpDefs.UNIT_CATEGORIES = {} -- Enum Name -> Category Name
-BpDefs.categoryUnits = {}   -- Category Name -> { Side -> Unit Name }
-BpDefs.unitCategories = {}  -- Unit Name -> Category Name
+DefinitionsModule.UNIT_CATEGORIES = {} -- Enum Name -> Category Name
+DefinitionsModule.categoryUnits = {}   -- Category Name -> { Side -> Unit Name }
+DefinitionsModule.unitCategories = {}  -- Unit Name -> Category Name
 
 -- ===================================================================
 -- Define Unit Categories
 -- ===================================================================
 
-function BpDefs.defineUnitCategories()
-    Spring.Log("BlueprintDefs", LOG.INFO, "Defining static unit categories START...")
-    ---@type SidesEnum
-    local SIDES = BpDefs.SIDES
+local function DefCat(enumKey, unitTable) -- Made local to definitions.lua
+    if DefinitionsModule.UNIT_CATEGORIES[enumKey] then
+        local errorMsg = string.format("[BlueprintDefinitions ERROR] Duplicate category key definition attempted: '%s'. The previous definition will be overwritten.", enumKey)
+        Spring.Log("BlueprintDefs", LOG.ERROR, errorMsg)
+    end
+    
+    DefinitionsModule.UNIT_CATEGORIES[enumKey] = enumKey 
+    DefinitionsModule.categoryUnits[enumKey] = unitTable 
 
-    local UNIT_CATEGORIES = BpDefs.UNIT_CATEGORIES
-    local categoryUnits = BpDefs.categoryUnits
-    local unitCategories = BpDefs.unitCategories
-
-    -- Clear existing tables WITHOUT creating new local ones
-    for k in pairs(UNIT_CATEGORIES) do UNIT_CATEGORIES[k] = nil end
-    for k in pairs(categoryUnits) do categoryUnits[k] = nil end
-    for k in pairs(unitCategories) do unitCategories[k] = nil end
-
-    local function DefCat(e, u)
-        -- Check for duplicate category key *before* assignment
-        if UNIT_CATEGORIES[e] then
-            local errorMsg = string.format("[BlueprintDefs ERROR] Duplicate category key definition attempted: '%s'. The previous definition will be overwritten.", e)
-            Spring.Log("BlueprintDefs", "error", errorMsg)
-            -- error(errorMsg) -- Really want to do this, but caching lua and bringing down the blueprint system is a PITA
-        end
-        
-        UNIT_CATEGORIES[e]=e; -- Enum Name maps to itself
-        categoryUnits[e]=u    -- Category Name (verbose) maps to the Side->Unit table (u)
-
-        -- Build reverse mapping
-        for side, unitName in pairs(u) do
-            if unitName then
-                unitCategories[unitName:lower()] = e
-            end
+    for _, unitName in pairs(unitTable) do -- side variable isn't used here
+        if unitName then
+            DefinitionsModule.unitCategories[unitName:lower()] = enumKey
         end
     end
+end
+
+function DefinitionsModule.defineUnitCategories()
+    Spring.Log("BlueprintDefs", LOG.INFO, "Defining static unit categories START...")
+    local SIDES = DefinitionsModule.SIDES -- Use SIDES from the module
+
+    -- Clear existing tables (important if this function could be called multiple times on the same module instance, though typically not)
+    for k in pairs(DefinitionsModule.UNIT_CATEGORIES) do DefinitionsModule.UNIT_CATEGORIES[k] = nil end
+    for k in pairs(DefinitionsModule.categoryUnits) do DefinitionsModule.categoryUnits[k] = nil end
+    for k in pairs(DefinitionsModule.unitCategories) do DefinitionsModule.unitCategories[k] = nil end
 
     -- Resource buildings
     DefCat("METAL_EXTRACTOR", {[SIDES.ARM]="armmex", [SIDES.CORE]="cormex", [SIDES.LEGION]="legmex"})
@@ -88,14 +73,14 @@ function BpDefs.defineUnitCategories()
     DefCat("ENERGY_STORAGE", {[SIDES.ARM]="armestor", [SIDES.CORE]="corestor", [SIDES.LEGION]="legestor"})
     DefCat("ADVANCED_ENERGY_STORAGE", {[SIDES.ARM]="armuwadves", [SIDES.CORE]="coradvestore", [SIDES.LEGION]="legadvestore"})
     DefCat("UW_ENERGY_STORAGE", {[SIDES.ARM]="armuwes", [SIDES.CORE]="coruwes", [SIDES.LEGION]="leguwes"})
-    DefCat("UW_ADVANCED_ENERGY_STORAGE", {[SIDES.ARM]="armuwadves", [SIDES.CORE]="coruwadves", [SIDES.LEGION]="legadvestore"})
+    DefCat("UW_ADVANCED_ENERGY_STORAGE", {[SIDES.ARM]="armuwadves", [SIDES.CORE]="coruwadves", [SIDES.LEGION]="coruwadves"})
 
     -- Factory buildings
     DefCat("BOT_LAB", {[SIDES.ARM]="armlab", [SIDES.CORE]="corlab", [SIDES.LEGION]="leglab"})
     DefCat("VEHICLE_PLANT", {[SIDES.ARM]="armvp", [SIDES.CORE]="corvp", [SIDES.LEGION]="legvp"})
     DefCat("AIRCRAFT_PLANT", {[SIDES.ARM]="armap", [SIDES.CORE]="corap", [SIDES.LEGION]="legap"})
     DefCat("ADVANCED_AIRCRAFT_PLANT", {[SIDES.ARM]="armaap", [SIDES.CORE]="coraap", [SIDES.LEGION]="legaap"})
-    DefCat("SHIPYARD", {[SIDES.ARM]="armsy", [SIDES.CORE]="corsy", [SIDES.LEGION]="legsy"})
+    DefCat("SHIPYARD", {[SIDES.ARM]="armsy", [SIDES.CORE]="corsy", [SIDES.LEGION]="corsy"})
     DefCat("ADVANCED_SHIPYARD", {[SIDES.ARM]="armasy", [SIDES.CORE]="corasy", [SIDES.LEGION]="legasy"})
     DefCat("HOVER_PLATFORM", {[SIDES.ARM]="armhp", [SIDES.CORE]="corhp", [SIDES.LEGION]="leghp"})
     DefCat("AIR_REPAIR_PAD", {[SIDES.ARM]="armasp", [SIDES.CORE]="corasp", [SIDES.LEGION]="legasp"})
@@ -114,9 +99,9 @@ function BpDefs.defineUnitCategories()
     DefCat("FLAK", {[SIDES.ARM]="armflak", [SIDES.CORE]="corflak", [SIDES.LEGION]="legflak"})
     DefCat("FLOATING_FLAK", {[SIDES.ARM]="armfflak", [SIDES.CORE]="corfflak", [SIDES.LEGION]="legfflak"})
     DefCat("FLOATING_HEAVY_LASER", {[SIDES.ARM]="armfhlt", [SIDES.CORE]="corfhlt", [SIDES.LEGION]="legfhlt"})
-    DefCat("FLOATING_MISSILE", {[SIDES.ARM]="armfrt", [SIDES.CORE]="corfrt", [SIDES.LEGION]="legfrt"})
+    DefCat("FLOATING_MISSILE", {[SIDES.ARM]="armfrt", [SIDES.CORE]="corfrt", [SIDES.LEGION]="corfrt"})
     DefCat("LONG_RANGE_ANTI_AIR", {[SIDES.ARM]="armmercury", [SIDES.CORE]="corscreamer", [SIDES.LEGION]="leglraa"})
-    DefCat("TORPEDO", {[SIDES.ARM]="armdl", [SIDES.CORE]="cordl", [SIDES.LEGION]="legdl"})
+    DefCat("TORPEDO", {[SIDES.ARM]="armdl", [SIDES.CORE]="cordl", [SIDES.LEGION]="cordl"})
     DefCat("ADV_TORPEDO", {[SIDES.ARM]="armatl", [SIDES.CORE]="coratl", [SIDES.LEGION]="legatl"})
     DefCat("OFFSHORE_TORPEDO", {[SIDES.ARM]="armptl", [SIDES.CORE]="corptl", [SIDES.LEGION]="legptl"})
     DefCat("ARTILLERY", {[SIDES.ARM]="armguard", [SIDES.CORE]="corpun", [SIDES.LEGION]="legcluster"})
@@ -147,19 +132,27 @@ function BpDefs.defineUnitCategories()
     DefCat("STEALTH_DETECTION", {[SIDES.ARM]="armrsd", [SIDES.CORE]="corrsd", [SIDES.LEGION]="legsd"})
     DefCat("PINPOINTER", {[SIDES.ARM]="armtarg", [SIDES.CORE]="cortarg", [SIDES.LEGION]="legtarg"})
 
-    -- Count and log results
+    -- Categories derived from pregame_build.lua that were not directly matching or missing
+    DefCat("FLOATING_TORPEDO_LAUNCHER_PG", {[SIDES.ARM]="armtl", [SIDES.CORE]="cortl", [SIDES.LEGION]="cortl"})
+    DefCat("FLOATING_RADAR_PG", {[SIDES.ARM]="armfrad", [SIDES.CORE]="corfrad", [SIDES.LEGION]="corfrad"})
+    DefCat("FLOATING_CONVERTER_PG", {[SIDES.ARM]="armfmkr", [SIDES.CORE]="corfmkr", [SIDES.LEGION]="legfmkr"})
+    DefCat("FLOATING_DRAGONSTEETH_PG", {[SIDES.ARM]="armfdrag", [SIDES.CORE]="corfdrag", [SIDES.LEGION]="corfdrag"})
+    DefCat("FLOATING_HOVER_PLATFORM_PG", {[SIDES.ARM]="armfhp", [SIDES.CORE]="corfhp", [SIDES.LEGION]="legfhp"})
+
+    -- NOT BUILDINGS
+    DefCat("COMMANDER", {[SIDES.ARM]="armcom", [SIDES.CORE]="corcom", [SIDES.LEGION]="legcom"})
+
     local unitCount = 0
-    for _, units in pairs(categoryUnits) do
+    for _, units in pairs(DefinitionsModule.categoryUnits) do
         for _, unit in pairs(units) do
             if unit then unitCount = unitCount + 1 end
         end
     end
-
     local categoryCount = 0
-    for _ in pairs(UNIT_CATEGORIES) do categoryCount = categoryCount + 1 end
-
+    for _ in pairs(DefinitionsModule.UNIT_CATEGORIES) do categoryCount = categoryCount + 1 end
     Spring.Log("BlueprintDefs", LOG.INFO, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
 end
 
--- Return the definitions for importing
-return BpDefs 
+DefinitionsModule.defineUnitCategories() -- Call it once to populate the module table
+
+return DefinitionsModule 
