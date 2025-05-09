@@ -24,17 +24,13 @@ local myTeam = Spring.GetMyTeamID()
 
 local CMD_INSERT = CMD.INSERT
 
-local function distSq(x1, z1, x2, z2)
-    return (x1 - x2)*(x1 - x2) + (z1 - z2)*(z1 - z2)
-end
-
 local function getValidCons(x, z, target)
     local validCons = {}
 
-    -- dist is the 2d distance squared
+    -- dist: build range 
     for con, dist in pairs(constructors) do
         local conX, _, conZ = GetUnitPosition(con)
-        if (distSq(conX, conZ, x, z) <= dist) and (target ~= con) then
+        if (math.diag(conX - x, conZ - z) <= dist) and (target ~= con) then
             validCons[#validCons+1] = con
         end
     end
@@ -48,7 +44,7 @@ local function reclaimSelectedUnits()
             getValidCons(ux, uz),
             CMD_INSERT,
             {0,CMD.RECLAIM, CMD.OPT_SHIFT,unitID},
-            {'alt'}
+            CMD.OPT_ALT
         )
     end
     return true
@@ -57,8 +53,8 @@ end
 local function InitUnit(unitID, unitDefID, unitTeam)
     if unitTeam == myTeam then
         local def = UnitDefs[unitDefID]
-        if def.isBuilder and (def.speed == 0 or not def.speed) then
-            constructors[unitID] = def.buildDistance*def.buildDistance
+        if def.isStaticBuilder and not def.isFactory then
+            constructors[unitID] = def.buildDistance
         end
     end
 end
@@ -72,9 +68,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-    if constructors[unitID] then
-        constructors[unitID] = nil
-    end
+    constructors[unitID] = nil
 end
 
 function widget:Initialize()
@@ -82,10 +76,9 @@ function widget:Initialize()
     widgetHandler:AddAction("self_reclaim", reclaimSelectedUnits, nil, "p")
 
     if GetSpectatingState() then
-        widgetHandler:RemoveWidget(self)
-        do return end
+        widgetHandler:RemoveWidget()
+        return
     end
-
     -- initialize units when /luaui reload
     for _, unitID in pairs(Spring.GetTeamUnits(myTeam)) do
         InitUnit(unitID, Spring.GetUnitDefID(unitID), myTeam)
