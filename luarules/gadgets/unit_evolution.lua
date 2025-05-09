@@ -343,8 +343,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function unitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
 		value = (value < minLoadUnits) and minLoadUnits or ((value > maxLoadUnits) and maxLoadUnits or value)
-  	local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
-  	return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
+		local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
+		return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
 	end
 
 	local function combatCheckUpdate(unitID, evolution, currentTime)
@@ -392,13 +392,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		while lastCheckIndex <= nToCheckUnitIDs and batchSize < clampedBatchSize do
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
-
 			local evolution = evolutionMetaList[unitID]
 
 			if not combatCheckUpdate(unitID, evolution, currentTime)
-			and not spGetUnitTransporter(unitID)
-			and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
-				evolve(unitID, evolution.evolution_target)
+				and not spGetUnitTransporter(unitID)
+				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
+					evolve(unitID, evolution.evolution_target)
 			end
 
 			lastCheckIndex = lastCheckIndex + 1
@@ -447,12 +446,12 @@ else
 			Spring.SetUnitGroup(newID, unitGroup)
 		end
 		for i=1,#selUnits do
-		  local unitID = selUnits[i]
-		  if (unitID == oldID) then
+			local unitID = selUnits[i]
+			if (unitID == oldID) then
 			selUnits[i] = newID
 			spSelectUnitArray(selUnits)
 			break
-		  end
+			end
 		end
 		if newAnnouncement then
 			announcement = newAnnouncement
