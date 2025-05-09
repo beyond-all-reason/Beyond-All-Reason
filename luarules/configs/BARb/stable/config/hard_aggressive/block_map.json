@@ -63,12 +63,13 @@
 		},
 		"fac_strider": {
 			"type": ["rectangle", "factory"],
-			"offset": [0, 4],
-			"yard": [6, 8]
+			"offset": [0, 24],
+			"yard": [10, 10],
+			"size": [10, 10]
 		},
 		"solar": {
 			"type": ["rectangle", "engy_low"],
- 			"ignore": ["engy_low", "def_low", "nano"]
+			"ignore": ["engy_low", "def_low", "nano"]
 		},
 		"wind": {
 //			"type": ["circle", "engy_low"],
@@ -182,11 +183,11 @@
 		"fusion": ["armadvsol", "coradvsol"],
 		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus"],
 		"store": ["armmstor", "armestor", "cormstor", "corestor"],
-		"mex": ["armmex", "cormex"],
+		"mex": ["armmex", "cormex", "armuwmex", "coruwmex"],
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
 		"def_low": ["armllt", "armclaw", "corllt", "cormaw"],
-		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp"],
+		"caretaker": ["armnanotc", "armnanotcplat", "cornanotc", "cornanotcplat"],
 		"small": ["armrad", "corrad", "armfrad", "corfrad"],
 		"wall": ["armdrag", "cordrag"]
 	}
