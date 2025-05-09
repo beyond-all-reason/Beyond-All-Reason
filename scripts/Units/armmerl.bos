@@ -5,11 +5,12 @@
 
 piece  base, door, turret, flare;
 
-static-var  OpenedState, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  OpenedState, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_RESTORE			4
+#define SIG_TRANS			8
 
 
 
@@ -26,56 +27,25 @@ static-var  OpenedState, restore_delay, statechg_DesiredState, statechg_StateCha
 
 Go()
 {
+	signal SIG_TRANS;
 	set ARMORED to 1;
 	turn door to z-axis <90> speed <90>;
-	sleep 1000;
+	wait-for-turn door around z-axis;
 	turn turret to y-axis <-90> speed <90>;
-	sleep 1000;
+	wait-for-turn turret around y-axis;
 	OpenedState = 1;
 }
 
 Stop()
 {	
+	signal SIG_TRANS;
+	set-signal-mask SIG_TRANS;
 	OpenedState = 0;
 	set ARMORED to 0;
 	turn turret to y-axis <0> speed <90>;
-	sleep 1000;
+	wait-for-turn turret around y-axis;
 	turn door to z-axis <0> speed <90>;
-	sleep 1000;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	wait-for-turn door around z-axis;
 	return (0);
 }
 
@@ -84,7 +54,6 @@ Create()
 	hide flare;
 	OpenedState = 0;
 	restore_delay = 3000;
-	call-script InitState();
 	set ARMORED to 0;
 	return (0);
 }
@@ -102,7 +71,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script Stop();
 }
 SetStunned(State)
 {
@@ -121,12 +90,12 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !OpenedState )
+	if( OpenedState==0 )
 	{
-		sleep 250;
+		start-script Go();
+		return (0);
 	}
 	start-script RestoreAfterDelay();
 	return (1);

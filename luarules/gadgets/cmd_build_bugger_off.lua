@@ -13,7 +13,7 @@ function gadget:GetInfo()
     }
 end
 
-local debugLog = false
+local debugLog = true
 
 function print(Message)
    if debugLog then
@@ -46,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
         return closestX, closestZ
     end
 
-    local function WillBeNearTarget(unitID, tx, ty, tz, frames, maxDistance)
+    local function WillBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
         local ux, uy, uz = Spring.GetUnitPosition(unitID)
         if not ux then return false end
         
@@ -54,9 +54,9 @@ if gadgetHandler:IsSyncedCode() then
         if not vx then return false end
         
         -- Predict future position
-        local futureX = ux + vx * frames
-        local futureY = uy + vy * frames
-        local futureZ = uz + vz * frames
+        local futureX = ux + vx * seconds * Game.gameSpeed
+        local futureY = uy + vy * seconds * Game.gameSpeed
+        local futureZ = uz + vz * seconds * Game.gameSpeed
         
         -- Compute distance to target
         local dx = futureX - tx
@@ -68,27 +68,27 @@ if gadgetHandler:IsSyncedCode() then
     local function isInTargetArea(interferingUnitID, x, y, z, radius)
         local ux, uy, uz = Spring.GetUnitPosition(interferingUnitID)
         if not ux then return false end
-        local dx, dz = ux - x, uz - z
-        return (dx * dx + dz * dz) <= (radius * radius)    
+        return math.diag(ux - x, uz - z) <= radius
     end
     
     local slowUpdateBuilders = {}
     local watchedBuilders = {}
     local builderRadiusOffsets = {}
 
-    local FAST_UPDATE_RADIUS        = 400
-    local BUILDER_DELAY_FRAME_COUNT = 100
-    local BUILDER_BUILD_RADIUS      = 100
-    local SEARCH_RADIUS_OFFSET      = 200
+    local FAST_UPDATE_RADIUS    = 400
+    -- builders take about this much to enter build stance; determined empirically
+    local BUILDER_DELAY_SECONDS = 3.3
+    local BUILDER_BUILD_RADIUS  = 200
+    local SEARCH_RADIUS_OFFSET  = 200
 
     local function shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, x, y, z, radius)
-        if Spring.AreTeamsAllied(unitTeam, builderTeam) == false and unitTeam ~= builderTeam then
+        if Spring.AreTeamsAllied(unitTeam, builderTeam) == false then
             return false
         end
         if shouldNotBuggeroff[Spring.GetUnitDefID(interferingUnitID)] then
             return false
         end
-        if WillBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_FRAME_COUNT, radius) then
+        if WillBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_SECONDS, radius) then
             return true
         end
         if isInTargetArea(interferingUnitID, x, y, z, radius) then
@@ -97,60 +97,42 @@ if gadgetHandler:IsSyncedCode() then
         return false
     end
 
-    local function getFirstCommand(unitID)
-        local unitCommands = Spring.GetUnitCommands(unitID, -1)
-        if unitCommands == nil then
-            return nil
-        end
-        if next(unitCommands) == nil then
-            return nil
-        end
-        return unitCommands[1]
-    end
-
-    local function distance(pos1, x2, z2)
-        local x1, z1 = pos1[1], pos1[3]
+    local function distance(x1, z1, x2, z2)
         local dx, dz = x2 - x1, z2 - z1
-        return math.sqrt(dx * dx + dz * dz)
+        return math.diag(dx, dz)
     end
-
 
     function gadget:GameFrame(frame)
         if frame % 10 ~= 0 then
             return
         end
         for builderID, _ in pairs(watchedBuilders) do
-
-            local firstCommand = getFirstCommand(builderID)
-            local targetID     = Spring.GetUnitIsBuilding(builderID)
-            local isBuilding   = false
+            local cmdID, options, tag, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
+            local isBuilding  = false
+            local builderTeam = Spring.GetUnitTeam(builderID)
+            local x, y, z     = Spring.GetUnitPosition(builderID)
+            local targetID    = Spring.GetUnitIsBuilding(builderID)
             if targetID then
                 isBuilding = true
             end
-
-            local x, y, z = Spring.GetUnitPosition(builderID)
-            if firstCommand == nil or firstCommand.id > -1 or isBuilding then
+            if cmdID == nil or cmdID > -1 or isBuilding then
                 print("Clearing watched builder fast")
                 watchedBuilders[builderID]      = nil
                 builderRadiusOffsets[builderID] = nil
-            elseif distance(firstCommand.params, x, z) > FAST_UPDATE_RADIUS then
+                return
+            end
+            local builtUnitDefID = cmdID * -1
+            if distance(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS then
                 print("Too far, demoting to slow")
                 watchedBuilders[builderID]    = nil
                 slowUpdateBuilders[builderID] = true -- Do distance checks less frequently
-            elseif distance(firstCommand.params, x, z) > BUILDER_BUILD_RADIUS + cachedUnitDefs[builtUnitDefID].radius then
+            elseif distance(targetX, targetZ, x, z) > BUILDER_BUILD_RADIUS + cachedUnitDefs[builtUnitDefID].radius then
                 -- Check distance frequently once you're closer
             else
-                local cmdID           = firstCommand.id
-                local cmdParams       = firstCommand.params
-                local builtUnitDefID  = cmdID * -1
-                local builderTeam     = Spring.GetUnitTeam(builderID)
-                local buggerOffRadius = cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
-
                 -- Get list of units to check
-                local targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
+                local buggerOffRadius  = cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
                 local searchRadius     = cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
-                local x1, x2, z1, z2   = targetX - searchRadius, targetX + searchRadius, targetZ - searchRadius, targetZ + searchRadius
-                local interferingUnits = Spring.GetUnitsInRectangle(x1, z1, x2, z2)
+                local interferingUnits = Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
 
                 -- Escalate the radius every update. We want to send units away the minimum distance, but  
                 -- if there are many units in the way, they may cause a traffic jam and need to clear more room.
@@ -161,10 +143,9 @@ if gadgetHandler:IsSyncedCode() then
                     if builderID ~= interferingUnitID then
                         local unitPosition = {Spring.GetUnitPosition(interferingUnitID)}
                         local unitTeam     = Spring.GetUnitTeam(interferingUnitID)
-        
                         if shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
                             local sendX, sendZ = closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitPosition[1], unitPosition[3])
-                            Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, {"alt"} )
+                            Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT )
                         end    
                     end
                 end
@@ -174,13 +155,14 @@ if gadgetHandler:IsSyncedCode() then
             return
         end
         for builderID, _ in pairs(slowUpdateBuilders) do
-            local firstCommand = getFirstCommand(builderID)
+            -- local firstCommand = getFirstCommand(builderID)
+            local cmdID, options, tag, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(builderID, 1)
             local x, y, z = Spring.GetUnitPosition(builderID)
-            if firstCommand == nil or firstCommand.id > -1 or isBuilding then
+            if cmdID == nil or cmdID > -1 or isBuilding then
                 print("Clearing watched builder slow")
                 slowUpdateBuilders[builderID] = nil
                 builderRadiusOffsets[builderID] = nil
-            elseif distance(firstCommand.params, x, z) <= FAST_UPDATE_RADIUS then
+            elseif distance(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
                 print("Promote to fast")
                 slowUpdateBuilders[builderID] = nil
                 watchedBuilders[builderID] = true

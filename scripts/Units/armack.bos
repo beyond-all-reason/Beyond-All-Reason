@@ -5,7 +5,7 @@
 
 #define SIG_BUILD		4	
 
-piece  torso, pelvis, lleg, lfoot, rleg, rfoot, beacon1, beacon2,
+piece  torso, pelvis, lleg, lfoot, rleg, rfoot, cagelight1, cagelight2, cagelight1emit, cagelight2emit,
        rthigh, lthigh, cover, gun, nano, aimy1;
 
 static-var  bMoving, notBuilding, nanoNozzle, statechg_DesiredState,
@@ -297,10 +297,10 @@ Stop()
 	set INBUILDSTANCE to 0;
 	turn cover to x-axis <0> speed <180>;
 	turn aimy1 to y-axis <0> speed <180>;
-	hide beacon1;
-	hide beacon2;
-	turn beacon1 to y-axis <0> speed <1000>;
-	turn beacon2 to y-axis <0> speed <1000>;
+	hide cagelight1emit;
+	hide cagelight2emit;
+	turn cagelight1emit to y-axis <0> speed <1000>;
+	turn cagelight2emit to y-axis <0> speed <1000>;
 	sleep 500;
 
 }
@@ -336,8 +336,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide nano;
-	hide beacon1;
-	hide beacon2;
+	hide cagelight1emit;
+	hide cagelight2emit;
 	hide aimy1;
 	bMoving = FALSE;
 	notBuilding = 1;
@@ -367,10 +367,10 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
-	show beacon1;
-	show beacon2;
-	spin beacon1 around y-axis speed <450>;
-	spin beacon2 around y-axis speed <-450>;
+	show cagelight1emit;
+	show cagelight2emit;
+	spin cagelight1emit around y-axis speed <450>;
+	spin cagelight2emit around y-axis speed <-450>;
 }
 
 StopBuilding()
@@ -378,10 +378,10 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
-	hide beacon1;
-	hide beacon2;
-	turn beacon1 to y-axis <0> speed <1000>;
-	turn beacon2 to y-axis <0> speed <1000>;
+	hide cagelight1emit;
+	hide cagelight2emit;
+	turn cagelight1emit to y-axis <0> speed <1000>;
+	turn cagelight2emit to y-axis <0> speed <1000>;
 	sleep 3000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
