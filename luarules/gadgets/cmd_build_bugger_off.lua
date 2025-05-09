@@ -77,7 +77,8 @@ if gadgetHandler:IsSyncedCode() then
     local builderRadiusOffsets = {}
 
     local FAST_UPDATE_RADIUS        = 300
-    local BUILDER_DELAY_FRAME_COUNT = 100
+    -- builders take about this much to enter build stance; determined empirically
+    local BUILDER_DELAY_SECONDS = 3.3
     local BUILDER_BUILD_RADIUS      = 200
     local SEARCH_RADIUS_OFFSET      = 200
 
