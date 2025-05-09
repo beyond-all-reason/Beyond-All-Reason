@@ -113,7 +113,7 @@ local cursorLightParams = {
 		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.7, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 0 
+		lifetime = 0, sustain = 0, selfshadowing = 0
 	}
 }
 
@@ -134,7 +134,7 @@ local playerCursorLightParams = {
 		r = 1, g = 0.8, b = 0.6, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 8 
+		lifetime = 0, sustain = 0, selfshadowing = 8
 	}
 }
 
@@ -206,8 +206,22 @@ local shaderConfig = {
 }
 
 local radiusMultiplier = 1.0
-local screenSpaceShadows = 2
 local intensityMultiplier = 1.0
+local screenSpaceShadows = 2
+
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+if isPotatoGpu then
+	screenSpaceShadows = 0
+elseif gpuMem and gpuMem > 0 and gpuMem < 5000 then
+	screenSpaceShadows = 1
+end
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
@@ -224,7 +238,7 @@ local examplePointLight = {
 	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-	lifetime = 0, sustain = 1, 	selfshadowing = 0 
+	lifetime = 0, sustain = 1, 	selfshadowing = 0
 }
 ]]--
 
@@ -888,7 +902,7 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			return popElementInstance(lightVBOMap[lightshape], instanceID)
 		else
 			if not noUpload then
-				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then 
+				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then
 					Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 				end
 			end
@@ -1576,7 +1590,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
 		local screenSpaceShadowSampleCount = 0
-		if screenSpaceShadows > 0 then 
+		if screenSpaceShadows > 0 then
 			screenSpaceShadowSampleCount = math.min(64, math.floor( math.pow(2, screenSpaceShadows) * 4) )
 		end
 		deferredLightShader:SetUniformInt("screenSpaceShadows",  screenSpaceShadowSampleCount)
@@ -1743,7 +1757,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end
 
-if autoupdate then 
+if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end

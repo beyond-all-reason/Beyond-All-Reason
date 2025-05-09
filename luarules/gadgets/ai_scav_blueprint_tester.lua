@@ -95,7 +95,6 @@ if gadgetHandler:IsSyncedCode() then
 				if UnitDefNames[nonscavname] then
 					local nonscavDefID = UnitDefNames[nonscavname].id
 					Spring.CreateUnit(nonscavDefID, basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
-					Spring.SpawnCEG("scav-spawnexplo", basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, 0,0,0)
 				end
             end
             table.remove(queue, 1)
