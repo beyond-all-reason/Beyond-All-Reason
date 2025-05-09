@@ -61,7 +61,9 @@ bind         Shift+sc_o  guard
 bind               sc_r  repair
 bind         Shift+sc_r  repair
 bind               sc_s  settarget
+bind         Shift+sc_s  settarget
 bind           Alt+sc_s  settargetnoground
+bind     Shift+Alt+sc_s  settargetnoground
 bind          Ctrl+sc_s  canceltarget
 bind               sc_u  unloadunits
 bind         Shift+sc_u  unloadunits
