@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, door1, door2, flare;
+piece  base, door1, door2, flare, greenlight, orangelight;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, missiles_stockpiled;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -90,6 +90,9 @@ Create()
 	hide flare;
 	gun_1 = base;
 	restore_delay = 3000;
+	missiles_stockpiled = 0;
+	hide greenlight;
+	show orangelight;
 	call-script InitState();
 	return (0);
 }
@@ -153,6 +156,34 @@ SweetSpot(piecenum)
 {
 	piecenum = base;
 	return (0);
+}
+
+lights_orange()
+{
+	hide greenlight;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greenlight;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

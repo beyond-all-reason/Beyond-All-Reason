@@ -445,7 +445,15 @@ if gadgetHandler:IsSyncedCode() then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 then
 					if squadsTable[i].squadBurrow and nSpawnedQueens == 0 then
-						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						if Spring.GetUnitTeam(squadsTable[i].squadBurrow) == raptorTeamID then
+							Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						elseif Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+							local x,y,z = Spring.GetUnitPosition(squadsTable[i].squadBurrow)
+							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Raptor Spawner")
+							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Raptor Spawner.")
+							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
+							squadsTable[i].squadBurrow = nil
+						end
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -458,7 +466,14 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					for j = 1,#destroyQueue do
 						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
-						Spring.DestroyUnit(destroyQueue[j], true, false)
+						if Spring.GetUnitTeam(destroyQueue[j]) == raptorTeamID then
+							Spring.DestroyUnit(destroyQueue[j], true, false)
+						elseif not Spring.GetUnitIsDead(destroyQueue[j]) == false then
+							local x,y,z = Spring.GetUnitPosition(destroyQueue[j])
+							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Raptor Unit")
+							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Raptor Unit.")
+							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
+						end
 					end
 					destroyQueue = nil
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -635,6 +650,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function getRaptorSpawnLoc(burrowID, size)
+		if not burrowID then
+			return false
+		end
 		local x, y, z
 		local bx, by, bz = GetUnitPosition(burrowID)
 		if not bx or not bz then
@@ -1483,10 +1501,10 @@ if gadgetHandler:IsSyncedCode() then
 				local angle = math.atan2(ux - x, uz - z)
 				local distance = mRandom(math.ceil(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*1.25))
 				if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1502,10 +1520,10 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ax - x, az - z)
 					local distance = mRandom(math.ceil(config.raptorBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.raptorBehaviours.COWARD[unitDefID].distance*1.25))
 					if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 						Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1519,12 +1537,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.raptorBehaviours.BERSERK[unitDefID].distance or 10000) then
 				if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 					ax = ax + mRandom(-64,64)
 					az = az + mRandom(-64,64)
 					Spring.SetUnitPosition(unitID, ax, ay, az)
 					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
 					unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -1537,12 +1555,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
 				if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					ax = ax + mRandom(-64,64)
 					az = az + mRandom(-64,64)
 					Spring.SetUnitPosition(attackerID, ax, ay, az)
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -2014,9 +2032,16 @@ if gadgetHandler:IsSyncedCode() then
 			for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
 				if id == unitID then
 					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
+					break
 				end
 			end
 			unitSquadTable[unitID] = nil
+		end
+
+		for i = 1,#squadsTable do
+			if squadsTable[i].squadBurrow == unitID then
+				squadsTable[i].squadBurrow = nil
+			end
 		end
 
 		for _,unitList in pairs(squadTargetsByEcoWeight) do
@@ -2089,13 +2114,6 @@ if gadgetHandler:IsSyncedCode() then
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
 					spawnQueue[i] = nil
-				end
-			end
-
-			for i = 1,#squadsTable do
-				if squadsTable[i].squadBurrow == unitID then
-					squadsTable[i].squadBurrow = nil
-					break
 				end
 			end
 

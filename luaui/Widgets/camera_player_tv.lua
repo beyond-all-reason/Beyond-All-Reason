@@ -705,6 +705,36 @@ local function togglePlayerView(state)
 	updateDrawing = true
 end
 
+local function playerviewCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID then
+			Spring.SendCommands("specteam " .. teamID)
+		end
+	end
+	togglePlayerView()
+end
+
+local function playercameraCmd(_, _, params)
+	togglePlayerCamera()
+end
+
+local function playertvCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
+			Spring.SendCommands("specteam " .. teamID)
+			WG.lockcamera.SetPlayerID(playerID)
+		else
+			togglePlayerTV()
+		end
+	else
+		togglePlayerTV()
+	end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	isSpec, fullview = Spring.GetSpectatingState()
@@ -755,6 +785,10 @@ function widget:Initialize()
 	WG['playertv'].SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
+
+	widgetHandler:AddAction("playerview", playerviewCmd, nil, 't')
+	widgetHandler:AddAction("playercamera", playercameraCmd, nil, 't')
+	widgetHandler:AddAction("playertv", playertvCmd, nil, 't')
 end
 
 function widget:MousePress(mx, my, mb)
@@ -824,43 +858,6 @@ function widget:ViewResize()
 	createCountdownLists()
 end
 
-function widget:TextCommand(command)
-	if string.sub(command, 1, 10) == 'playerview' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID then
-				Spring.SendCommands("specteam " .. teamID)
-			end
-		end
-		togglePlayerView()
-	end
-	if string.sub(command, 1, 12) == 'playercamera' then
-		togglePlayerCamera()
-	end
-	if string.sub(command, 1, 8) == 'playertv' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
-				Spring.SendCommands("specteam " .. teamID)
-				WG.lockcamera.SetPlayerID(playerID)
-			else
-				togglePlayerTV()
-			end
-		else
-			togglePlayerTV()
-		end
-	end
-end
 
 function widget:Shutdown()
 	for i = 1, #drawlistsCountdown do
@@ -885,6 +882,10 @@ function widget:Shutdown()
 	if toggled and WG.lockcamera then
 		WG.lockcamera.SetPlayerID()
 	end
+
+	widgetHandler:RemoveAction("playerview")
+	widgetHandler:RemoveAction("playercamera")
+	widgetHandler:RemoveAction("playertv")
 end
 
 function widget:GetConfigData(data)

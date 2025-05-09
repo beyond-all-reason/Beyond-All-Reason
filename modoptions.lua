@@ -925,14 +925,116 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        lock    = {"sub_header_lava3", "sub_header_lava4"},
+        bitmask = 1,
     },
 
+    {
+        key    	= "map_lavatiderhythm",
+        name   	= "Lava Tides",
+        desc   	= "Lava level periodicially cycles height when tides are present",
+        type   	= "list",
+        def    	= "default",
+        section	= "options_extra",
+        column	= 1,
+        items	= {
+            { key= "default", 	name= "Default", desc= "Map Settings",
+                lock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
+                unlock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                lock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
+                lock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+        },
+        bitmask = 2,
+    },
+
+    {
+        key     = "map_lavatidemode",
+        name	= "Lava Start Position",
+        desc	= "Toggle whether lava starts at high or low tide",
+        hidden	= false,
+        type	= "list",
+        def		= "lavastartlow",
+        section	= "options_extra",
+        items	= {
+            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+        }
+    },
+
+    {
+        key 	= "map_lavahighlevel",
+        name 	= "Lava High Tide Level",
+        desc 	= "Lava level at high tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= 0,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },
+
+    {
+        key 	= "map_lavahighdwell",
+        name 	= "Lava High Tide Time",
+        desc 	= "Time in seconds lava waits at high tide",
+        type 	= "number",
+        def 	= 60,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 2.0,
+    },
+
+    {
+        key 	= "map_lavalowlevel",
+        name 	= "Lava Low Tide Level",
+        desc 	= "Lava level at low tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= 0,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },  
+
+    {
+        key 	= "map_lavalowdwell",
+        name 	= "Lava Low Tide Time",
+        desc 	= "Time in seconds lava waits at low tide",
+        type 	= "number",
+        def 	= 300,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 2.0,
+    },
+
+    { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava2", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava3", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava4", section = "options_extra", type    = "subheader", name = "",},
+ 
+    
     {
         key     = "sub_header",
         section = "options_extra",
         type    = "separator",
     },
-
 
     {
         key 	= "ruins",
