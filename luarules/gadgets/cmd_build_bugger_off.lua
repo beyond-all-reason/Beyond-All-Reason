@@ -111,7 +111,7 @@ if gadgetHandler:IsSyncedCode() then
     local function distance(pos1, x2, z2)
         local x1, z1 = pos1[1], pos1[3]
         local dx, dz = x2 - x1, z2 - z1
-        return math.sqrt(dx * dx + dz * dz)
+        return math.diag(dx, dz)
     end
 
 
