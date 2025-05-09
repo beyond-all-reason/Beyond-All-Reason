@@ -55,6 +55,9 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
             canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 96)
         end
         if canSpawnTurret then
+            canSpawnTurret = positionCheckLibrary.ResourceCheck(posx, posz, 96)
+        end
+        if canSpawnTurret then
             spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
             break
         end

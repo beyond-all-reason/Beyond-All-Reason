@@ -55,8 +55,8 @@ if gadgetHandler:IsSyncedCode() then
 		local ArmadaAINames 			= VFS.Include("luarules/configs/ai_namer/armada.lua")
 		local CortexAINames 			= VFS.Include("luarules/configs/ai_namer/cortex.lua")
 		local LegionAINames 			= VFS.Include("luarules/configs/ai_namer/legion.lua")
-		local RaptorAINames 			= {'Raptors Hive Mind'}
-		local ScavengerAINames 			= {'Scavengers Collective Consciousness'}
+		local RaptorAINames 			= {'Raptors'}
+		local ScavengerAINames 			= {'Scavengers'}
 
 		-- Sorting Helper
 		--[[
