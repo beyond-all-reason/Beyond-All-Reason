@@ -24,7 +24,7 @@ end
 local shouldNotBuggeroff = {}
 local cachedUnitDefs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.speed == 0 or unitDef.isBuilding or unitDef.isFactory then
+    if unitDef.isImmobile then
         shouldNotBuggeroff[unitDefID] = true
     end
     cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
