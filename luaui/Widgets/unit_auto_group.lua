@@ -114,14 +114,14 @@ local function addAllUnits()
 	end
 end
 
-local function ChangeUnitTypeAutogroupHandlerAction(_, _, args, data)
+local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args[1]
 	local removeAll = data and data['removeAll']
 
 	ChangeUnitTypeAutogroupHandler(gr, removeAll)
 end
 
-local function ChangeUnitTypeAutogroupHandler(gr, removeAll)
+local function ChangeUnitTypeAutogroup(gr, removeAll)
 	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
 
 	if removeAll then
@@ -204,8 +204,7 @@ local function RemoveOneUnitFromGroupHandler(_, _, args)
 	return true
 end
 
-local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
-	local newPreset = tonumber(optWords[1])
+local function LoadAutogroupPreset(newPreset)
 	if not presets[newPreset] then
 		return
 	end
@@ -233,6 +232,10 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	end
 end
 
+local function LoadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
+	LoadAutogroupPreset(tonumber(optWords[1]))
+end
+
 
 function widget:Initialize()
 
@@ -241,7 +244,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
 	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
 	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
+	widgetHandler:AddAction("load_autogroup_preset", LoadAutogroupPresetHandlerAction, nil, "p") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
@@ -260,17 +263,17 @@ function widget:Initialize()
 	WG['autogroup'].getGroups = function()
 		return unit2group
 	end
-	WG['autogroup'].AddCurrentSelectionToAutogroup = function(groupNumber)
-		ChangeUnitTypeAutogroupHandler(groupNumber)
+	WG['autogroup'].addCurrentSelectionToAutogroup = function(groupNumber)
+		ChangeUnitTypeAutogroup(groupNumber)
 	end
-	WG['autogroup'].RemoveCurrentSelectionFromAutogroup = function()
-		ChangeUnitTypeAutogroupHandler(nil, true)
+	WG['autogroup'].removeCurrentSelectionFromAutogroup = function()
+		ChangeUnitTypeAutogroup(nil, true)
 	end
-	WG['autogroup'].RemoveOneUnitFromGroupHandler = function()
+	WG['autogroup'].removeOneUnitFromGroup = function()
 		RemoveOneUnitFromGroupHandler()
 	end
-	WG['autogroup'].loadAutogroupPresetHandler = function()
-		loadAutogroupPresetHandler()
+	WG['autogroup'].loadAutogroupPreset = function(newPreset)
+		LoadAutogroupPreset(newPreset)
 	end
 	if GetGameFrame() > 0 then
 		addAllUnits()
