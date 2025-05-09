@@ -164,7 +164,7 @@ if gadgetHandler:IsSyncedCode() then
         
                         if shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
                             local sendX, sendZ = closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitPosition[1], unitPosition[3])
-                            Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, {"alt"} )
+                            Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT )
                         end    
                     end
                 end
