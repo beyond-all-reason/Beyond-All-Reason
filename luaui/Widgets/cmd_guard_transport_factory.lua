@@ -7,7 +7,7 @@ function widget:GetInfo()
         author  = "Flameink",
         date    = "April 24, 2025",
         version = "0.2.4",
-        license = "GNU GPL, v3 or later",
+        license = "GNU GPL, v2 or later",
         layer   = 0,
         enabled = true   --  loaded by default?
     }
@@ -351,7 +351,6 @@ local function inactivateTransport(unitID)
             Spring.GiveOrderToUnit(watchedTransports[unitID], CMD.WAIT, {}, { "alt" })
         end
         watchedUnits[watchedTransports[unitID]] = nil
-        table.remove(watchedTransports, unitID)
         watchedTransports[unitID] = nil
     end
 end
