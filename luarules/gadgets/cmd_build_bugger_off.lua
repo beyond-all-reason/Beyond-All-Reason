@@ -76,9 +76,9 @@ if gadgetHandler:IsSyncedCode() then
     local watchedBuilders = {}
     local builderRadiusOffsets = {}
 
-    local FAST_UPDATE_RADIUS        = 300
+    local FAST_UPDATE_RADIUS        = 400
     local BUILDER_DELAY_FRAME_COUNT = 100
-    local BUILDER_BUILD_RADIUS      = 200
+    local BUILDER_BUILD_RADIUS      = 100
     local SEARCH_RADIUS_OFFSET      = 200
 
     local function shouldIssueBuggeroff(unitTeam, builderTeam, interferingUnitID, x, y, z, radius)
@@ -137,7 +137,7 @@ if gadgetHandler:IsSyncedCode() then
                 print("Too far, demoting to slow")
                 watchedBuilders[builderID]    = nil
                 slowUpdateBuilders[builderID] = true -- Do distance checks less frequently
-            elseif distance(firstCommand.params, x, z) > BUILDER_BUILD_RADIUS then
+            elseif distance(firstCommand.params, x, z) > BUILDER_BUILD_RADIUS + cachedUnitDefs[builtUnitDefID].radius then
                 -- Check distance frequently once you're closer
             else
                 local cmdID           = firstCommand.id
