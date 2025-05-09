@@ -438,6 +438,7 @@ end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
     local createdUnitDefs = cachedUnitDefs[unitDefID]
     local createdUnitID = unitID
+    registerUnit(factID)
     local factory = factories[factID]
     if unitTeam == myTeam then
         -- TODO Make this more efficient
