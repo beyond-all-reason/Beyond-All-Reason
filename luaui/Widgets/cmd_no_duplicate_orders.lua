@@ -57,22 +57,29 @@ function widget:GameStart()
 end
 
 local function toLocString(posX,posY,posZ)
-  return (math.ceil(posX - 0.5) .. "_" .. math.ceil(posZ - 0.5))
+	if not posZ then return end
+	return (math.ceil(posX - 0.5) .. "_" .. math.ceil(posZ - 0.5))
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = unitID
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = nil
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = nil
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:CommandNotify(id, params, options)
@@ -84,7 +91,7 @@ function widget:CommandNotify(id, params, options)
         local unitID = selUnits[i]
         local cmdID, _, _, cmdParam1, _, cmdParam3 = GetUnitCurrentCommand(unitID)
         if cmdID then
-          if cmdID < 0 and (params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
+          if cmdID < 0 and (cmdParam3 and params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
             blockUnits[unitID] = true
           elseif (cmdID == CMD.REPAIR) and (params[1] == cmdParam1) then
             blockUnits[unitID] = true
@@ -138,7 +145,7 @@ function widget:CommandNotify(id, params, options)
         return true
       else
         return false
-      end  
+      end
     end
   end
 end

@@ -5,7 +5,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		customparams = {
-			paralyzetime_exception = "isBuilding=false:8,customparams.unitgroup=antinuke:20",	-- UP TO 8s stun duration for mobile units and 20s for antinukes (depending on hp vs damage)
+			paralyzetime_exception = "isBuilding=false:10,customparams.unitgroup=antinuke:20",	-- UP TO 10s stun duration for mobile units and 20s for antinukes (depending on hp vs damage)
 		},
 		edgeeffectiveness = 1,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",

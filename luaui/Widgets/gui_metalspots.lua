@@ -335,15 +335,17 @@ local function InitializeSpots(mSpots)
 				local occupied = ally or enemy
 
 				local uvcoords = valueToUVs[value]
-				local gh = Spring.GetGroundHeight(spot.x, spot.z)
-				pushElementInstance(spotInstanceVBO, -- vbo
-						{spot.x, gh, spot.z, scale,
-						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-					instanceID, -- instanceID
-					true, -- updateExisting
-					true -- noUpload
-					)
+				if uvcoords then
+					local gh = Spring.GetGroundHeight(spot.x, spot.z)
+					pushElementInstance(spotInstanceVBO, -- vbo
+							{spot.x, gh, spot.z, scale,
+							(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+							uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+						instanceID, -- instanceID
+						true, -- updateExisting
+						true -- noUpload
+						)
+				end
 			end
 		end
 	end
@@ -361,15 +363,16 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			local ally, enemy, changed = IsSpotOccupied(spot)
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
-
-			pushElementInstance(spotInstanceVBO, -- vbo
-					{spot.x, spot.y, spot.z, spot.scale,
-					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-					uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-				spot.instanceID, -- instanceID
-				true, -- updateExisting
-				true -- noUpload
-			)
+			if uvcoords then
+				pushElementInstance(spotInstanceVBO, -- vbo
+						{spot.x, spot.y, spot.z, spot.scale,
+						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+					spot.instanceID, -- instanceID
+					true, -- updateExisting
+					true -- noUpload
+				)
+			end
 		end
 	end
 	uploadAllElements(spotInstanceVBO)

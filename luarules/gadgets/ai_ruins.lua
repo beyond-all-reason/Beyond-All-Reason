@@ -279,7 +279,6 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
-					--Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
@@ -340,7 +339,6 @@ local function SpawnMexes(mexSpots)
 			if canBuildHere then
 				local mex = mexesList[math.random(1,#mexesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -380,7 +378,6 @@ local function SpawnGeos(geoSpots)
 			if canBuildHere then
 				local geo = geosList[math.random(1,#geosList)]
 				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -426,7 +423,6 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						--Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
 						Spring.SetUnitNeutral(unit, true)
 						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -471,7 +467,6 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						--Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
 						Spring.SetUnitNeutral(unit, true)
 						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -514,7 +509,6 @@ local function SpawnRandomStructures()
 			if canBuildHere then
 				local defence = defencesList[math.random(1,#defencesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)

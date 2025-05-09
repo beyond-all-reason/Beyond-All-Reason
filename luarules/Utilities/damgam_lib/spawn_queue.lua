@@ -58,8 +58,8 @@ local function SpawnUnitsFromQueue(n) -- Call this every frame in your gadget.
                 if unitID and QueuedSpawnList[1].resurrected == true then
 					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
                     Spring.SetUnitHealth(unitID, 10)
-				else
-                    Spring.SpawnCEG("scav-spawnexplo",QueuedSpawnList[1].posx, QueuedSpawnList[1].posy,QueuedSpawnList[1].posz, 0,0,0)
+				elseif unitID then
+                    GG.ScavengersSpawnEffectUnitID(unitID)
                 end
                 table.remove(QueuedSpawnList, 1)
 			elseif not QueuedSpawnList[1] then

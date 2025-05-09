@@ -151,7 +151,7 @@ end
 function gadget:GameFrame(n)
 
     if n%30 == 0 and n > 2 then
-		if math.random(0,SpawnChance) == 0 then
+		if SpawnChance < 1 or math.random(0,SpawnChance) == 0 then
 			LootboxesToSpawn = LootboxesToSpawn+0.1
 			if LootboxesToSpawn < 0 then
 				LootboxesToSpawn = 0
@@ -161,7 +161,9 @@ function gadget:GameFrame(n)
         if aliveLootboxesCount > 0 then
 			for i = 1,#aliveLootboxes do --for lootboxID,_ in pairs(aliveLootboxes) do
 				local lootboxID = aliveLootboxes[i]
-				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
+				if lootboxID then
+					nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
+				end
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then

@@ -13,7 +13,7 @@ local function SwapUnit(unitID, newUnitName)
     local newUnitID = Spring.CreateUnit(newUnitName, unitPosX, unitPosY, unitPosZ, 0, unitTeam)
     if newUnitID then
         Spring.DestroyUnit(unitID, false, true)
-        Spring.SpawnCEG("scav-spawnexplo", unitPosX, unitPosY, unitPosZ, 0,0,0)
+        GG.ScavengersSpawnEffectUnitID(newUnitID)
         
         -- Apply stats of old unit to new one
         Spring.SetUnitExperience(newUnitID, unitExperience)
