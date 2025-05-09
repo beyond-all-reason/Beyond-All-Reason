@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
         if not vx then return false end
         
         -- Predict future position
-        local futureX = ux + vx * frames
+        local futureX = ux + vx * seconds * Game.gameSpeed
         local futureY = uy + vy * frames
         local futureZ = uz + vz * frames
         
