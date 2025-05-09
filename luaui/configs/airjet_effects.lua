@@ -146,7 +146,7 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
 	},
 	["legmos"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 16, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 12, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.2, light = 1 },
 	},
 	["legmost3"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 32, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 3, light = 1 },

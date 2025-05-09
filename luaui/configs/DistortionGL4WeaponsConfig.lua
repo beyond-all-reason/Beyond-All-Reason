@@ -1809,13 +1809,18 @@ explosionDistortionsNames['corsilo_crblmssl'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Mega"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
 	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
-	-- GetDistortionClass("GroundShockWaveNuke", "Giga"),
-	-- GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
-	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),
 }
 
 projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
+	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['legsilo_legicbm'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+}
+
+projectileDefDistortionsNames["legsilo_legicbm"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
 
 -- RAPTOR meteor Nuke Tentacle
@@ -2011,10 +2016,10 @@ local scavbosses = {
 
 for i, name in pairs(scavbosses) do
     muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_shoulderturrets'] = {
-        GetDistortionClass("MuzzleShockWave", "Nano")
+        GetDistortionClass("MuzzleShockWaveXS", "Nano")
     }
 	muzzleFlashDistortionsNames['scavengerbossv4_' .. name .. '_turbo_shoulderturrets'] = {
-        GetDistortionClass("MuzzleShockWave", "Tiny")
+        GetDistortionClass("MuzzleShockWaveXS", "Tiny")
     }
 	explosionDistortionsNames['scavengerbossv4_' .. name .. '_missilelauncher'] = {
         GetDistortionClass("AirShockWave", "Smallest")

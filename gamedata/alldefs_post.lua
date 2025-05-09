@@ -380,6 +380,19 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if uDef.customparams.evolution_target then
+			local udcp                            = uDef.customparams
+			udcp.combatradius                     = udcp.combatradius or 1000
+			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
+			udcp.evolution_condition              = udcp.evolution_condition or "timer"
+			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
+			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
+			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
+			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
+			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
+			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
+		end
+
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
