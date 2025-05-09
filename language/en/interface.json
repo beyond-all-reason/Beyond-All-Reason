@@ -19,7 +19,8 @@
 				"scavengers": "Scavengers",
 				"stats": "Statistics",
 				"graphs": "Graphs",
-				"save": "Save"
+				"save": "Save",
+				"objectives": "Objectives"
 			},
 			"quit": {
 				"stay": "Stay",
@@ -1752,5 +1753,8 @@
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
 		}
+	},
+	"objectives": {
+		"scavengers": "WARNING: SCAVENGERS ARE ACTIVE IN THIS REGION\n\nYOUR GOAL:\nAttempt to survive and build up a strong base and army to fight the Scavenger forces. Defeat their Boss to win.\n\nWHY DID THEY APPEAR?\nNo one knows for sure where they came from or what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies."
 	}
 }
