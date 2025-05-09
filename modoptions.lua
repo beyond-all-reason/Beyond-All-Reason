@@ -228,7 +228,7 @@ local options = {
         step   	= 1,
     },
 
-	{
+    {
 		key		= "sub_header",
 		section	= "options_main",
 		type	= "separator",
@@ -244,7 +244,9 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
+        "Set to [0] to turn off. Recommend: [0.4]. (Ranges: 0 - 0.99)\n"..
+        "Enable [Unit Market] to allow buying t2 cons\n"..
+        "Disables reclaiming allied units, [Economy and Lab Sharing] and [Assisting Ally Construction] to prevent loopholes\n",
 		type	= "number",
 		def		= 0,
 		min		= 0,
@@ -252,15 +254,10 @@ local options = {
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
+		lock	= {"disable_unit_sharing_economy_and_production","disable_assist_ally_construction"},
+		unlock	= {"disable_unit_sharing_economy_and_production_forced","disable_assist_ally_construction_forced"},
 	},
-	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
-	},
+
 	{
 		key		= "disable_assist_ally_construction",
 		name	= "Disable Assist Ally Construction",
@@ -268,8 +265,45 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
 	},
+    {
+        key     = "disable_unit_sharing_economy_and_production",
+        name    = "Disable Economy and Lab Sharing",
+        desc    = "Disable sharing of economy and labs (including mobile engineers)",
+        type    = "bool",
+        section = "options_main",
+        def     = false,
+    },
+    {
+		key		= "disable_assist_ally_construction_forced",
+		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
+		name	= "\255\252\191\76".."Disable Assist Ally Construction            [■]",
+		type	= "subheader",
+		section	= "options_main",
+	},
+	{
+		key		= "disable_unit_sharing_economy_and_production_forced",
+		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
+		name	= "\255\252\191\76".."Disable Economy and Lab Sharing       [■]",
+		type	= "subheader",
+		section	= "options_main",
+	},
+    {
+        key     = "disable_unit_sharing_combat_units",
+        name    = "Disable Combat Unit Sharing",
+        desc    = "Disable sharing combat units and tactical structures (e.g static defense, jammers, LRPC's)",
+        type    = "bool",
+        section = "options_main",
+        def     = false,
+    },
+    {
+        key     = "disable_unit_sharing_all",
+        name    = "Disable All Unit Sharing",
+        desc    = "Disable all unit sharing (including scouts and transports)",
+        type    = "bool",
+        section = "options_main",
+        def     = false,
+    },
 	{
 		key		= "unit_market",
 		name	= "Unit Market",
