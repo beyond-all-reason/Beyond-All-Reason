@@ -50,7 +50,7 @@ void AiMakeDefence(int cluster, const AIFloat3& in pos)
 // FIXME: Remove/replace, deprecated.
 bool AiIsAirValid()
 {
-	return aiEnemyMgr.GetEnemyThreat(Unit::Role::AA.type) <= 80.f;
+	return aiEnemyMgr.GetEnemyThreat(Unit::Role::AA.type) <= 999999.f;
 }
 
 }  // namespace Military
