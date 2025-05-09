@@ -68,8 +68,7 @@ if gadgetHandler:IsSyncedCode() then
     local function isInTargetArea(interferingUnitID, x, y, z, radius)
         local ux, uy, uz = Spring.GetUnitPosition(interferingUnitID)
         if not ux then return false end
-        local dx, dz = ux - x, uz - z
-        return (dx * dx + dz * dz) <= (radius * radius)    
+        return math.diag(ux - x, uz - z) <= radius
     end
     
     local slowUpdateBuilders = {}
