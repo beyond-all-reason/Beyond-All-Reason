@@ -3,7 +3,6 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-// piece  base, turret, gun, flare, flare1, flare2, flare3, flare4, flare5, flare6, hatch1, hatch2, hatch3, hatch4, hatch5, hatch6, wheel1, wheel2, wheel3, wheel4, smoke, pillar;
 piece chassis, backTracks, lTrack, plateFrontLeft, plateMidLeft, plateRearLeft, plateFrontRight, plateMidRight, plateRearRight, rTrack, 
 sleeve1, barrel1, flare1,
 sleeve2, barrel2, flare2,
@@ -13,19 +12,80 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving, stage1, stage2, stage3, stage4, ready;
+static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired1, justfired2, justfired3, justfired4, justfired5, justfired6, shot, opened, moving, counter, status, targetID, targetID1, targetID2, burstrate, burstrate2, 
+canshoot, stage1, stage2, stage3, stage4, ready, losstate, losstate1, losstate2, canshoot1, missilesfired, health1, health2, healthdiff, extramissile, extramissile1, timeout;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			8
-#define SIG_OPEN			16
+#define SIG_OPEN			4
+#define SIG_AIM_2			8
+#define SIG_AIM_3			16
+#define SIG_AIM_4			32
+#define SIG_AIM_5			64
+#define SIG_AIM_6			128
+#define SIG_AIM_7			256
+#define SIG_TIMER			512
 
 #define BASEPIECE chassis
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
+
+lua_missile_counter() 
+{
+	return(0);
+}
+
+Timer()
+{
+	Signal SIG_TIMER;
+	set-signal-mask SIG_TIMER;
+	sleep 4000;
+	timeout = 0;
+}
+
+missile_counter(status, counter, targetID, burstrate, health, losstate)
+{
+	health2 = health1;
+	health1 = health;
+	canshoot1 = counter;
+	burstrate2 = burstrate;
+	targetID2 = targetID1;
+	targetID1 = targetID;
+	losstate2 = losstate1;
+	losstate1 = losstate;
+	
+	get PRINT(counter, targetID, health, healthdiff);
+	
+	if(targetID1 == targetID2)
+	{
+		while(NOT (losstate1 == losstate2))										//LOS state changed
+		{
+			canshoot = canshoot1 - missilesfired;								//If some missiles were fired needs to shoot less missiles
+		}
+		
+		if(health1 > health2)													//target is being repaired
+		{
+			healthdiff = health1 - health2;
+			extramissile1 = extramissile;
+			extramissile = ((healthdiff / 20) - 0.5);							//if the change is greater than 500 over 4s then fire an extra missile. 2 extra for 1000 etc
+			canshoot = canshoot + extramissile - extramissile1;
+		}
+		if(timeout == 1)
+		{
+			return(0);
+		}
+	}
+	missilesfired = 0;
+	canshoot = counter;
+	return(0);
+}
+
+StartMoving()
+{
+	//call-script lua_missile_counter();
+}
 
 Create()
 {
@@ -63,66 +123,16 @@ Create()
 	move plateFrontRight to z-axis [-1] now;
 	move plateRearRight to z-axis [1] now;
 
-
-
-	//hide smoke;
 	restore_delay = 3000;
-	weapon = 0;
 	stage1 = 1;
 	stage2 = 1;
 	stage3 = 1;
 	stage4 = 1;
 	ready = 0;
+	weapon = 1;
+	counter = 6;
+	canshoot = 1;
 	return (0);
-}
-
-// Raise()
-// {
-// 	sleep 1000;
-// 	if(moving == 0)
-// 	{
-// 		move pillar to y-axis [10] speed [4.000000];
-// 	}
-// }
-
-// Lower()
-// {
-
-// 	move pillar to y-axis [0] speed [5.000000];
-// }
-
-Steering(currentSpeed)
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while(1)
-	{
-		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
-		if (currentSpeed < <100>) currentSpeed = <100>;
-		// spin wheel1 around x-axis speed currentSpeed;
-		// spin wheel2 around x-axis speed currentSpeed;
-		// spin wheel3 around x-axis speed currentSpeed;
-		// spin wheel4 around x-axis speed currentSpeed;
-		sleep 66;
-	}
-}
-
-StartMoving()
-{
-	moving = 1;
-	start-script Steering();
-	//start-script Lower();
-}
-
-StopMoving()
-{
-	//start-script Raise();
-	signal SIG_MOVE;
-	// stop-spin wheel1 around x-axis;
-	// stop-spin wheel2 around x-axis;
-	// stop-spin wheel3 around x-axis;
-	// stop-spin wheel4 around x-axis;
-	moving = 0;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -137,7 +147,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
+	//set-signal-mask 0;
 }
 SetStunned(State)
 {
@@ -200,27 +210,13 @@ Close()
 	move plateFrontRight to z-axis [-1] speed [4];
 	sleep 50;
 	move plateRearRight to z-axis [1] speed [4];
-
-
-
-	// turn hatch5 to z-axis <0.000000> speed <90.000000>;
-	// sleep 250;
-	// turn hatch6 to z-axis <0.000000> speed <90.000000>;
-	// sleep 250;
-	// turn hatch3 to z-axis <0.000000> speed <90.000000>;
-	// sleep 250;
-	// turn hatch4 to z-axis <0.000000> speed <90.000000>;
-	// sleep 250;
-	// turn hatch1 to z-axis <0.000000> speed <90.000000>;
-	// sleep 250;
-	// turn hatch2 to z-axis <0.000000> speed <90.000000>;
 }
 
 Open()
 {
 	signal SIG_OPEN;
-	set-signal-mask SIG_OPEN;
-	if(justfired == 1)													//Prevents opening if unit fired a shot, so the hatches close for the reload
+	//set-signal-mask SIG_OPEN;
+	if((justfired1 == 1) AND (justfired2 == 1) AND (justfired3 == 1) AND (justfired4 == 1) AND (justfired5 == 1) AND (justfired6 == 1))	//Prevents opening if no launcher can shoot, so the hatches close for the reload
 	{
 		return (0);
 	}
@@ -281,28 +277,17 @@ Open()
 		stage4 = 0;
 	}
 	ready = 1;
-	// turn hatch5 to z-axis <90.000000> speed <90.000000>;
-	// sleep 400;
-	// turn hatch6 to z-axis <-90.000000> speed <90.000000>;
-	// sleep 400;
-	// turn hatch3 to z-axis <90.000000> speed <90.000000>;
-	// sleep 400;
-	// turn hatch4 to z-axis <-90.000000> speed <90.000000>;
-	// sleep 400;
-	// turn hatch1 to z-axis <90.000000> speed <90.000000>;
-	// sleep 400;
-	// turn hatch2 to z-axis <-90.000000> speed <90.000000>;
 	sleep 1200;
-	if(shot == 0)														//Closes if no shot was taken (attack command canceled)
-	{
-		start-script Close();
-	}
+	start-script Close();
 }
 
-AimPrimary(heading, pitch)												//Beamer script
+AimWeapon1(heading, pitch)												//Beamer script
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	
+	
+		
 	turn trackingHeadingPivot to y-axis heading speed <500.000000>;
 	//turn gun to x-axis <0.000000> - pitch speed <250.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
@@ -322,26 +307,30 @@ AimPrimary(heading, pitch)												//Beamer script
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = targetFlare;
 }
 
-FirePrimary()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next milisecond, so its 1 whenever the laser is firing and 0 when it isn't
+FireWeapon1()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next milisecond, so its 1 whenever the laser is firing and 0 when it isn't
 {
 	target = 1;
 	sleep 99;
 	target = 0;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = targetFlare;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	while( target == 0)												//Doesn't shoot if laser isn't shooting
+
+	call-script lua_missile_counter();
+	
+	
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
 	}
@@ -349,69 +338,299 @@ AimSecondary(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	sleep 250;
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;														//Delay before the shot, making it look like the laser needs to lock on first (If reduced then hatch opening speed may need to be increased)
-	if(ready == 0)													
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
 		return (0);
+	}
+	if(ready == 0)													//Checks if fully open		
+	{
+		return (0);
+	}
+	Signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while(NOT (weapon == 1))										//Waits for its turn
+	{
+		sleep 1;
 	}
 	return (1);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = targetFlare;
 }
 
-FireSecondary()
+FireWeapon2()
 {
-	justfired = 1;													//Used to delay next opening of hatches, so they close between shots
-	shot = 1;														//Checks if a shot was taken
-	sleep 125;														//Sleep a bit, to change var between burst shots, first one is delayed so it doesn't change before the first shot. Couldn't get ShotSecondary to work
-	weapon = 1;
-	sleep 250;
+	timeout = 1;
+	justfired1 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
 	weapon = 2;
-	sleep 250;
-	weapon = 3;
-	sleep 250;
-	weapon = 4;
-	sleep 150;
-	weapon = 5;
-	sleep 250;
-	weapon = 0;
-	start-script Close();
-	shot = 0;
-	sleep 7000;														//Combined sleep in this script must be about 1 second shorter than the reload time, so the hatches open on time for next shot
-	justfired = 0;													//Enables hatches opening for next shot
+	sleep (8275 - (burstrate2 - 100));
+	justfired1 = 0;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(piecenum)
 {
-	if( weapon == 0 )												//Firing point selection for missiles
+	piecenum = flare6;
+	return (0);
+}
+
+AimWeapon3(heading, pitch)
+{
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
-	    piecenum = flare5;
+		return (0);
 	}
-	else if( weapon == 1 )
+	if(opened == 0)													//Opens if it isn't already
 	{
-	    piecenum = flare6;
+		start-script Open(0);
 	}
-	else if( weapon == 2 )
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
 	{
-	    piecenum = flare3;
+		return (0);
 	}
-	else if( weapon == 3 )
+	if(ready == 0)													//Checks if fully open		
 	{
-	    piecenum = flare4;
+		return (0);
 	}
-	else if( weapon == 4 )
+	Signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	while(NOT (weapon == 2))										//Waits for its turn
 	{
-	    piecenum = flare2;
+		sleep 1;
 	}
-	else if( weapon == 5 )
+	return (1);
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = targetFlare;
+}
+
+FireWeapon3()
+{
+	timeout = 1;
+	justfired2 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
+	weapon = 3;
+	sleep (8275 - (burstrate2 - 100));
+	justfired2 = 0;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = flare5;
+	return (0);
+}
+
+AimWeapon4(heading, pitch)
+{
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
-	    piecenum = flare1;
+		return (0);
 	}
+	if(opened == 0)													//Opens if it isn't already
+	{
+		start-script Open(0);
+	}
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	{
+		return (0);
+	}
+	if(ready == 0)													//Checks if fully open		
+	{
+		return (0);
+	}
+	Signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
+	while(NOT (weapon == 3))										//Waits for its turn
+	{
+		sleep 1;
+	}
+	return (1);
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = targetFlare;
+}
+
+FireWeapon4()
+{
+	timeout = 1;
+	justfired3 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
+	weapon = 4;
+	sleep (8275 - (burstrate2 - 100));
+	justfired3 = 0;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = flare4;
+	return (0);
+}
+
+AimWeapon5(heading, pitch)
+{
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
+	{
+		return (0);
+	}
+	if(opened == 0)													//Opens if it isn't already
+	{
+		start-script Open(0);
+	}
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	{
+		return (0);
+	}
+	if(ready == 0)													//Checks if fully open		
+	{
+		return (0);
+	}
+	Signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	while(NOT (weapon == 4))										//Waits for its turn
+	{
+		sleep 1;
+	}
+	return (1);
+}
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = targetFlare;
+}
+
+FireWeapon5()
+{
+	timeout = 1;
+	justfired4 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
+	weapon = 5;
+	sleep (8275 - (burstrate2 - 100));
+	justfired4 = 0;
+}
+
+QueryWeapon5(piecenum)
+{
+	piecenum = flare3;
+	return (0);
+}
+
+AimWeapon6(heading, pitch)
+{
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
+	{
+		return (0);
+	}
+	if(opened == 0)													//Opens if it isn't already
+	{
+		start-script Open(0);
+	}
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	{
+		return (0);
+	}
+	if(ready == 0)													//Checks if fully open		
+	{
+		return (0);
+	}
+	Signal SIG_AIM_6;
+	set-signal-mask SIG_AIM_6;
+	while(NOT (weapon == 5))										//Waits for its turn
+	{
+		sleep 1;
+	}
+	return (1);
+}
+
+AimFromWeapon6(piecenum)
+{
+	piecenum = targetFlare;
+}
+
+FireWeapon6()
+{
+	timeout = 1;
+	justfired5 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
+	weapon = 6;
+	sleep (8275 - (burstrate2 - 100));
+	justfired5 = 0;
+}
+
+QueryWeapon6(piecenum)
+{
+	piecenum = flare2;
+	return (0);
+}
+
+AimWeapon7(heading, pitch)
+{
+	if( target == 0)												//Doesn't shoot if laser isn't shooting
+	{
+		return (0);
+	}
+	if(opened == 0)													//Opens if it isn't already
+	{
+		start-script Open(0);
+	}
+	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	{
+		return (0);
+	}
+	if(ready == 0)													//Checks if fully open		
+	{
+		return (0);
+	}
+	Signal SIG_AIM_7;
+	set-signal-mask SIG_AIM_7;
+	while(NOT (weapon == 6))										//Waits for its turn
+	{
+		sleep 1;
+	}
+	return (1);
+}
+
+AimFromWeapon7(piecenum)
+{
+	piecenum = targetFlare;
+}
+
+FireWeapon7()
+{
+	timeout = 1;
+	justfired6 = 1;													//Used to delay next opening of hatches, so they close between shots
+	canshoot = canshoot - 1;
+	start-script Timer();
+	missilesfired = missilesfired + 1;
+	sleep (burstrate2 - 80);
+	weapon = 1;
+	sleep (8275 - (burstrate2 - 100));
+	justfired6 = 0;
+}
+
+QueryWeapon7(piecenum)
+{
+	piecenum = flare1;
 	return (0);
 }
 
