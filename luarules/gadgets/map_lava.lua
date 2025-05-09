@@ -23,7 +23,7 @@ if gadgetHandler:IsSyncedCode() then
 	local tideIndex = 1
 	local tideContinueFrame = 0
 	local gameframe = 0
-	local tideRhym = {}
+	local tideRhythm = {}
 	local lavaUnits = {}
 
 	local lavaLevel = lava.level
@@ -60,7 +60,6 @@ if gadgetHandler:IsSyncedCode() then
 	local random = math.random
 	local clamp = math.clamp
 
-
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
@@ -78,35 +77,36 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function addTideRhym(targetLevel, speed, remainTime)
+	local function addTideRhythm (targetLevel, speed, remainTime)
 		local newTide = {}
 		newTide.targetLevel = targetLevel
 		newTide.speed = speed
 		newTide.remainTime = remainTime
-		table.insert (tideRhym, newTide)
+		table.insert (tideRhythm, newTide)
 	end
 
-	for _, rhym in ipairs(lava.tideRhym) do
-		addTideRhym(unpack(rhym))
+	for _, rhythm in ipairs(lava.tideRhythm) do
+		addTideRhythm(unpack(rhythm))
 	end
 
 	function updateLava()
-		if (lavaGrow < 0 and lavaLevel < tideRhym[tideIndex].targetLevel) or (lavaGrow > 0 and lavaLevel > tideRhym[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhym[tideIndex].remainTime*30
+		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
+			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
+			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*30
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
 
 		if gameframe == tideContinueFrame then
 			tideIndex = tideIndex + 1
-			if tideIndex > table.getn(tideRhym) then
+			if tideIndex > table.getn(tideRhythm) then
 				tideIndex = 1
 			end
-			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhym[tideIndex].targetLevel )
-			if lavaLevel < tideRhym[tideIndex].targetLevel then
-				lavaGrow = tideRhym[tideIndex].speed
+			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
+			if lavaLevel < tideRhythm[tideIndex].targetLevel then
+				lavaGrow = tideRhythm[tideIndex].speed
 			else
-				lavaGrow = -tideRhym[tideIndex].speed
+				lavaGrow = -tideRhythm[tideIndex].speed
 			end
 		end
 		_G.lavaGrow = lavaGrow
