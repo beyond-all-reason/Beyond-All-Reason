@@ -634,7 +634,7 @@ function widget:Update(dt)
 		state.blueprint = blueprint
 		state.blueprint.dirty = false
 
-		WG["api_blueprint"].setActiveBlueprint(blueprint, selectedBuilderSide)
+		WG["api_blueprint"].setActiveBlueprint(blueprint)
 		updateBuildingGridState(true, blueprint)
 	end
 
@@ -766,38 +766,6 @@ function widget:SelectionChanged(selection)
 		)
 
 		WG["api_blueprint"].setActiveBuilders(builders)
-
-		local selectedBlueprint = getSelectedBlueprint()
-		if not selectedBlueprint or not isValidBlueprint(selectedBlueprint) then
-			local startIndex = nil
-			if lastExplicitlySelectedBlueprintIndex ~= nil then
-				-- this prevents cycling through all blueprints if you
-				-- select different faction constructors repeatedly
-				startIndex = lastExplicitlySelectedBlueprintIndex - 1
-			end
-			setSelectedBlueprintIndex(
-				getNextFilteredBlueprintIndex(startIndex)
-			)
-		end
-
-		-- Determine faction based on selected builders
-		-- Reset faction when no builders are selected
-		selectedBuilderSide = nil
-		
-		-- Try to determine faction from the first builder if any exist
-		if #builders > 0 then
-			local firstBuilderID = builders[1]
-			local firstBuilderDefID = Spring.GetUnitDefID(firstBuilderID)
-			local firstBuilderDef = firstBuilderDefID and UnitDefs[firstBuilderDefID]
-			local builderName = firstBuilderDef and firstBuilderDef.name
-			
-			-- Use blueprint substitution logic to get side prefix if available
-			if builderName and WG.BlueprintSubstitutionLogic and WG.BlueprintSubstitutionLogic.getSideFromUnitName then
-				selectedBuilderSide = WG.BlueprintSubstitutionLogic.getSideFromUnitName(builderName)
-			elseif builderName then
-				FeedbackForUser("BlueprintSubstitutionLogic not available for faction detection.")
-			end
-		end
 	end
 
 	-- track selection order (skip if we're still box selecting)
