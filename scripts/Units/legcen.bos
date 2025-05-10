@@ -207,6 +207,7 @@ Walk() {
 		}
 	}
 }
+
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
@@ -245,6 +246,7 @@ StopWalking() {
 	turn frfoot to z-axis <-10> speed <800.124573> / animSpeed;
 	turn frthigh to z-axis <10> speed <800.878922> / animSpeed;
 }
+
 // REMEMBER TO animspeed = 3 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -260,6 +262,7 @@ UnitSpeed(){
 		sleep 98;
 	}
 }
+
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
@@ -282,6 +285,7 @@ StartMoving(){
 
 	start-script Walk();
 }
+
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
@@ -316,7 +320,7 @@ Create()
 	hide flare2;
 	
 	restore_delay = 1000;
-	animspeed = 4;
+	animspeed = 3;
 	gun_1 = 0;
 	
 	start-script UnitSpeed();
@@ -369,14 +373,14 @@ FireWeapon1()
 	
 	if (gun_1 == 0)
 	{
-		emit-sfx 1024 + 1 from flare1;
+		emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-4.0] now;
 		sleep 500;
 		move barrel1 to z-axis [0.000000] speed [4.00000];
 	}
 	else if (gun_1 == 1)
 	{
-		emit-sfx 1024 + 1 from flare2;
+		emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-4.0] now;
 		sleep 500;
 		move barrel2 to z-axis [0.000000] speed [4.00000];
