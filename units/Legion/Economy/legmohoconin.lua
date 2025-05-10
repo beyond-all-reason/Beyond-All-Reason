@@ -35,9 +35,9 @@ return {						--costs should be same as legmohocon and legmohoconct
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legmoho_aoplane.dds",
-			buildinggrounddecalsizey = 7.6,
-			buildinggrounddecalsizex = 7.6,
+			buildinggrounddecaltype = "decals/legmohocon_aoplane.dds",
+			buildinggrounddecalsizey = 7,
+			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,
