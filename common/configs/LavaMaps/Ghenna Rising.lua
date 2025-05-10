@@ -9,7 +9,7 @@ local conf = {
 	shadowStrength = 0.9,
 	coastLightBoost = 0.8,
 	uvScale = 1.5,
-	tideRhym = { { 250, 0.10, 15    },
+	tideRhythm = { { 250, 0.10, 15    },
 		     { 415, 0.05, 30    },
 		     { 250, 0.10, 5*60  },
 		     { 415, 0.05, 30    },

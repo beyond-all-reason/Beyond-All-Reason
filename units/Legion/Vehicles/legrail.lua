@@ -39,6 +39,7 @@ return {
 		turnrate = 250,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			maxrange = 625,
 			unitgroup = 'weaponaa',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
