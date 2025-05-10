@@ -373,7 +373,7 @@ local icontypes = {
 	},
 	armfhlt = {
 		bitmap = "icons/defence_1_laser.png",
-		size = 1.10249984
+		size = 1.3
 	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
@@ -1461,7 +1461,7 @@ local icontypes = {
 	},
 	corfhlt = {
 		bitmap = "icons/defence_1_laser.png",
-		size = 1.10249984
+		size = 1.3
 	},
 	corfhp = {
 		bitmap = "icons/factory_hover.png",
@@ -2669,11 +2669,11 @@ local icontypes = {
 	},
 	legmg = {
 		bitmap = "icons/defence_2_mg.png",
-		size = 1.60849988
+		size = 1.3
 	},
 	legfmg = {
 		bitmap = "icons/defence_2_mg.png",
-		size = 1.60849988
+		size = 1.3
 	},
 	legmh = {
 		bitmap = "icons/hover_t1_missile.png",
