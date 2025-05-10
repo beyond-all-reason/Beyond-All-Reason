@@ -12,6 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
+local GUNSHIP_STATES = {
+	IDLE = 1,
+	HAS_TARGET = 2,
+	READY_TO_STOP = 3,
+}
+
 local gunshipDefs = {}
 local gunshipsToTrack = {}
 local cmdOptions = {
@@ -32,7 +38,6 @@ if gadgetHandler:IsSyncedCode() then
 			then
 				gunshipDefs[defID] = {
 					name = unitDef.name,
-					weapons = unitDef.weapons,
 					weaponCount = #unitDef.weapons,
 				}
 			end
@@ -43,11 +48,10 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		-- Called when a unit is created
 		if gunshipDefs[unitDefID] then
-			-- Initialize previous command for new hover attacker unit ID
+			-- Initialize previous command for new gunship unit ID
 			gunshipsToTrack[unitID] = {
 				unitDefID = unitDefID,
-				prevHasTarget = false,
-				shouldStopWhenNoCommands = false,
+				state = GUNSHIP_STATES.IDLE,
 			}
 		end
 	end
@@ -59,7 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Game frame update (called every simulation frame)
 	function gadget:GameFrame(frameNum)
-		if frameNum % 100 ~= 0 then
+		if frameNum % 20 ~= 0 then
 			return
 		end
 
@@ -68,29 +72,25 @@ if gadgetHandler:IsSyncedCode() then
 			local hasTarget = isTargettingUnit(unitID, unitDefID)
 			local numCommands = #Spring.GetUnitCommands(unitID, 1)
 
-			-- resets the stop when no command flag when getting a new target
-			if hasTarget and not currentGunship.prevHasTarget then
-				currentGunship.shouldStopWhenNoCommands = false
-			end
-
-			-- should be ready to stop when it loses a target
-			if not hasTarget and currentGunship.prevHasTarget then
-				currentGunship.shouldStopWhenNoCommands = true
-			end
-
-			-- If the unit no longer has a target, then tell it to stop
-			if currentGunship.shouldStopWhenNoCommands and numCommands == 0 then
+			if hasTarget and not currentGunship.state ~= GUNSHIP_STATES.HAS_TARGET then
+				-- When the gunship has a target, update state to match
+				currentGunship.state = GUNSHIP_STATES.HAS_TARGET
+			elseif not hasTarget and currentGunship.state == GUNSHIP_STATES.HAS_TARGET then
+				-- When the gunship loses a target, update the state so it is ready to stop in the next cycle
+				currentGunship.state = GUNSHIP_STATES.READY_TO_STOP
+			elseif currentGunship.state == GUNSHIP_STATES.READY_TO_STOP and numCommands == 0 then
+				-- When the gunship is out of commands and ready to stop, tell it to stop and put in the idle state
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, cmdOptions)
-				currentGunship.shouldStopWhenNoCommands = false
+				currentGunship.state = GUNSHIP_STATES.IDLE
 			end
-			-- update previous target tracked
-			currentGunship.prevHasTarget = hasTarget
+
+			-- Debug print statement for the gunship's state
+			debugPrintGunshipState(currentGunship.state, unitID, unitDefID)
 		end
 	end
 
 	function isTargettingUnit(unitID, unitDefID)
 		local weaponCount = gunshipDefs[unitDefID].weaponCount
-
 		for weaponNum = 1, weaponCount do
 			local targetType, isUserTarget, targetID = Spring.GetUnitWeaponTarget(unitID, weaponNum)
 			if targetType == 1 and targetID then
@@ -98,6 +98,18 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		return false
+	end
+
+	function debugPrintGunshipState(state, unitID, unitDefID)
+		local stateStr = ""
+		if state == GUNSHIP_STATES.IDLE then
+			stateStr = "IDLE"
+		elseif state == GUNSHIP_STATES.HAS_TARGET then
+			stateStr = "HAS_TARGET"
+		else
+			stateStr = "READY_TO_STOP"
+		end
+		Spring.Echo(gunshipDefs[unitDefID].name .. " " .. unitID .. " state", stateStr)
 	end
 else
 end
