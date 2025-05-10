@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name    = "Auto Remove Duplicate Builds",
-		desc    = "Removes duplicate queued builds from non-repeating builders on completion",
+		name    = "Clean Builder Queue",
+		desc    = "Removes completed buildings from all builders unit queue in case they werent there completing it (unless they have repeat enabled)",
 		author  = "Floris",
 		date    = "May 2025",
 		license = "GNU GPL v2",
@@ -16,7 +16,6 @@ local GiveOrderToUnit    = Spring.GiveOrderToUnit
 local GetUnitPosition    = Spring.GetUnitPosition
 local GetUnitDefID       = Spring.GetUnitDefID
 local GetTeamUnits       = Spring.GetTeamUnits
-local GetUnitTeam        = Spring.GetUnitTeam
 local GetMyTeamID        = Spring.GetMyTeamID
 local GetSpectatingState = Spring.GetSpectatingState
 
@@ -28,7 +27,7 @@ local REMOVE_TOLERANCE   = 5 * 5 -- squared distance
 local trackedBuilders    = {}
 local isBuilding         = {}
 local builderDefs        = {}
-local myTeamID           = nil
+local myTeamID           = GetMyTeamID()
 
 local function IsUnitRepeatOn(unitID)
 	local cmdDescs = GetUnitCmdDescs(unitID)
@@ -48,13 +47,10 @@ local function coordsMatch(x1, z1, x2, z2, tolerance)
 end
 
 function widget:Initialize()
-	local isSpec = GetSpectatingState()
-	if isSpec then
+	if GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-
-	myTeamID = GetMyTeamID()
 
 	for udid, ud in pairs(UnitDefs) do
 		if ud.isBuilder then
@@ -75,12 +71,10 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged(playerID)
-	local isSpec = GetSpectatingState()
-	if isSpec then
+	if GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	myTeamID = GetMyTeamID()
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -94,12 +88,14 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	if not isBuilding[unitDefID] or unitTeam ~= myTeamID or next(trackedBuilders) == nil then return end
+	if unitTeam ~= myTeamID or not isBuilding[unitDefID] then
+		return
+	end
 
 	local x, _, z = GetUnitPosition(unitID)
 
 	for builderID in pairs(trackedBuilders) do
-		if GetUnitTeam(builderID) == myTeamID and not IsUnitRepeatOn(builderID) then
+		if IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
 			for i = #commands, 1, -1 do
 				local cmd = commands[i]

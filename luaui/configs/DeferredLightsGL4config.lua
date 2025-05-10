@@ -4136,7 +4136,7 @@ local unitLights = {
 							modelfactor = 0.5, specular = 0.4, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		front = {
+		eyefrontlow = {
 			lightType = 'point',
 			pieceName = 'torso',
 			lightConfig = { posx = 0, posy = -5, posz = 5, radius = 8,
@@ -16692,7 +16692,7 @@ local unitLights = {
 
 	},
 	['armcroc'] = {
-		frontlight = {
+		frontlighteye = {
 			lightType = 'beam',
 			pieceName = 'base',
 			lightConfig = { posx = 3, posy = 18, posz = 19, radius = 2.8,
@@ -23659,7 +23659,7 @@ local unitLights = {
 				modelfactor = -0.5, specular = -0.3, scattering = 2.5, lensflare = 1.6,
 				lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		weaponglow = {
+		lightningweaponglow = {
 			lightType = 'point',
 			pieceName = 'gun_emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 9,
@@ -23668,7 +23668,7 @@ local unitLights = {
 							modelfactor = 0.1, specular = 0.75, scattering = 1.2, lensflare = 7,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		weaponspark = {
+		lightningweaponspark = {
 			lightType = 'point',
 			pieceName = 'spark_emit',
 			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 55,
@@ -23677,7 +23677,7 @@ local unitLights = {
 							modelfactor = 0.1, specular = 0.75, scattering = 0.2, lensflare = 7,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
-		backpackglow = {
+		lightningbackpackglow = {
 			lightType = 'point',
 			pieceName = 'static_emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
@@ -23869,7 +23869,7 @@ local unitLights = {
 		},
 	},
 	['armlatnk'] = {
-		weaponglow = {
+		lightningweaponglow = {
 			lightType = 'point',
 			pieceName = 'emit_spark',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 8,
@@ -37645,12 +37645,27 @@ for unitDefID, lights in pairs(unitDefLights) do
             -- only tweak headlight or searchlight variants
             local lname = lightName:lower()
             if lname:find('headlight') or lname:find('searchlight') then
-                ld.lightConfig.r = 0.58
-                ld.lightConfig.g = 0.28
+                ld.lightConfig.r = 0.50
+                ld.lightConfig.g = 0.20
                 ld.lightConfig.b = 1.1
-				ld.lightConfig.color2r = 0.62
-                ld.lightConfig.color2g = 0.48
+				ld.lightConfig.a = 1.0
+				ld.lightConfig.color2r = 0.58
+                ld.lightConfig.color2g = 0.42
+                ld.lightConfig.color2b = 1.15
+            end
+			if lname:find('eye') or lname:find('eyes') or lname:find('thrust') or lname:find('engine') or lname:find('lightning') then
+                ld.lightConfig.r = 0.48
+                ld.lightConfig.g = 0.20
+                ld.lightConfig.b = 1.1
+				--ld.lightConfig.a = 2.5
+				ld.lightConfig.color2r = 0.55
+                ld.lightConfig.color2g = 0.38
                 ld.lightConfig.color2b = 1.2
+            end
+			if lname:find('flash') then
+                ld.lightConfig.r = 0.48
+                ld.lightConfig.g = 0.20
+                ld.lightConfig.b = 1.1
             end
             newLights[lightName] = ld
         end
