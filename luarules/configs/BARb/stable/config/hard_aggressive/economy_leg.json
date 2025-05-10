@@ -6,25 +6,13 @@
 		"land": {
 			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
 			// limit = random(<lower limit>..<upper limit>)
-			"armwin": [200, 300],
-			"armsolar": [80, 120],
-			"armadvsol": [80, 120],
-			"armfus": [30, 40],
-			"armafus": [200, 300],
-
-			"corwin": [200, 300],
-			"corsolar": [80, 120],
-			"coradvsol": [80, 120],
-			"corfus": [30, 40],
-			"corafus": [200, 300]
+			"legwin": [200, 300],
+			"legsolar": [80, 120],
+			"legadvsol": [80, 120],
+			"legfus": [30, 40],
+			"legafus": [200, 300]
 		},
-		"water": {
-			"armtide": [140, 250],
-			"armwin": [100, 200],
-			"armsolar": [10],
-			"armadvsol": [120, 160],
-			"armuwfus": [100, 200],
-			
+		"water": {			
 			"cortide": [140, 250],
 			"corwin": [100, 200],
 			"corsolar": [10],
@@ -48,12 +36,10 @@
 	"cluster_range": 800.0,  // 950.0  // maximum distance between 2 points in hierarchical cluster
 
 	"geo": {
-		"armada": "armgeo",
-		"cortex": "corgeo"
+		"legion": "leggeo"
 	},
 	"mex": {
-		"armada": "armmex",
-		"cortex": "cormex"
+		"legion": "legmex"
 	},
 	"mex_up": 3,  // maximum number of simultaneous mex upgrades
 
@@ -93,14 +79,12 @@
 
 	//"terra": "armsy",
 	"assist": {
-		"armada": "armnanotc",
-		"cortex": "cornanotc"
+		"legion": "legnanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
-		"armada": "armwin",
-		"cortex": "corwin"
+		"legion": "legwin"
 	}
 }
 }

@@ -1,0 +1,185 @@
+// Mono-space font required
+{
+	"porcupine": {
+		"unit": {
+		//             0          1           		2          		3          		4         5          6                7		   		8          	 	9
+			"legion": ["leglht",  "cortl",    		"legrl",   		"leghive", 		"legmg",  "legdtr",  "legrhapsis",    "leglupara", 	"legbombard", 	"coratl",
+					   "legflak", "legacluster", 	"legbastion", 	"legcluster",  	"legabm", "legtarg", "legdeflector",  "corptl"]
+		},
+		// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
+		"land":  [0, 2, 3, 5, 6, 4, 7, 13, 8, 10, 10, 10, 10, 10, 10, 10, 11, 12],
+		"water": [1, 1, 1, 1, 4, 9, 10, 9, 10],
+		"prevent": 1,  // number of preventive defences
+		"amount": {  // income bound factor
+			"offset": [-2.0, 2.0],
+			// Amount factor: 10x10 ~ 48.0, 20x20 ~ 32.0
+			"factor": [48.0, 32.0],
+			"map": [10, 20]
+		},
+		"point_range": 600.0,  // maximum distance between 2 points in hierarchical cluster within economy cluster
+	
+		// Base defence and time to build it, in seconds
+		"base": [
+			[3, 420], [10, 1200], [15,1220], [14, 1300], [15, 1320], [12, 1800]
+		],
+	
+		"superweapon": {
+			"unit": {
+				"legion": ["leglupara",   	"legperdition", 	"leglrpc",  "legstarfall", 	"legfmd", "legsilo"]
+			},
+			"weight":     	  [ 0.45,          	0.05,      		0.15,       0.15,      		0.10,     0.10],
+	
+			"condition": [80, 600]  // [<Minimum income>, <maximum seconds to build>]
+		},
+	
+		"wall": {
+			"legion": ["legdrag", "legfdrag"]
+		},
+		"choke": {
+			"legion": ["legeyes"]
+		},
+	
+		// Fallback defence
+		"default": {
+			"legion": "leglht"
+		}
+	},
+	
+	// Actions on building finished event
+	"build_chain": {
+		// WARNING: Avoid recursion
+		// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
+		"energy": {
+	//		"legsolar": {
+	//			"hub": [
+	//				[
+	//					{"unit": "cormakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+	//				]  // chain1
+	//			]
+	//		},
+			"legadvsol": {
+				"hub": [
+					[
+						{"unit": "leglht", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.1}}
+	//				],  // chain1
+	//				[
+	//					{"unit": "cormakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+					]  // chain2
+				]
+			},
+			"legfus": {
+				"hub": [
+					[
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 5}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 10}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 15}, "priority": "now"},
+						{"unit": "legrhapsis", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
+					]
+				]
+			},
+			"legafus": {
+				"hub": [
+					[  // chain1
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 5}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 10}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 15}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 20}, "priority": "now"},
+						{"unit": "legnanotc", "category": "nano", "offset": {"front": 25}, "priority": "now"},
+						{"unit": "legadveconv", "category": "convert", "offset": {"back": 10}, "priority": "now"},
+						{"unit": "legadveconv", "category": "convert", "offset": {"back": 20}, "priority": "now"},
+						{"unit": "legadveconv", "category": "convert", "offset": {"back": 30}, "priority": "now"},
+						{"unit": "legadveconv", "category": "convert", "offset": {"back": 40}, "priority": "now"},
+						{"unit": "legadveconv", "category": "convert", "offset": {"back": 50}, "priority": "now"},
+						{"unit": "legflak", "category": "defence", "offset": {"front": 30}, "priority": "now"},
+						{"unit": "legflak", "category": "defence", "offset": {"front": 40}, "priority": "now"},
+						{"unit": "leglupara", "category": "defence", "offset": {"front": 50}, "priority": "now"},
+						{"unit": "leglupara", "category": "defence", "offset": {"front": 60}, "priority": "now"}
+					]
+				]
+			}
+		},
+		"geo": {
+			"leggeo": {
+				"hub": [[{"unit": "leghive", "category": "defence", "offset": {"front": 64}}]]
+			}
+		},
+		"defence": {
+			"legbastion" : {
+				"hub": [[
+					{"unit": "legajam", "category": "defence", "offset": {"back": 80}, "condition": {"chance": 0.8}},
+					{"unit": "legdeflector", "category": "defence", "offset": {"back": 160}, "condition": {"chance": 0.8}}
+				]]
+			}
+		},
+		"factory": {
+			"leglab": {
+				"hub": [[
+					{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"}
+				]]
+			},
+			"legalab": {
+				"hub": [[
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
+					{"unit": "legfus", "category": "energy", "offset": {"back": 40}, "priority": "now"}
+				]]
+			},
+			"legvp": {
+				"hub": [[
+					{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"}
+				]]
+			},
+			"legavp": {
+				"hub": [[
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
+					{"unit": "legfus", "category": "energy", "offset": {"back": 40}, "priority": "now"}
+				]]
+			},
+			"legap": {
+				"hub": [[
+					{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"},
+					{"unit": "legaap", "category": "factory", "offset": {"front": 10}, "priority": "now"}
+				]]
+			},
+			"legaap": {
+				"hub": [[
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
+					{"unit": "legfus", "category": "energy", "offset": {"back": 40}, "priority": "now"}
+				]]
+			},
+			"leggant": {
+				"hub": [[
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 15}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"left": 20}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 15}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"back": 20}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"right": 5}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"right": 10}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"right": 15}, "priority": "now"},
+					{"unit": "legnanotc", "category": "nano", "offset": {"right": 15}, "priority": "now"}
+					]]
+			}
+		},
+		"mex": {
+			"legmex": {
+	//			"energy": [200, true],
+				"porc": true
+			}
+		}
+	}
+	}
