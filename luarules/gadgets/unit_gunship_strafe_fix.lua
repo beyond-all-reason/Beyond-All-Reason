@@ -24,6 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		-- Find all gunship units
 		for defID, unitDef in pairs(UnitDefs) do
+			-- Todo: see if drones need to be excluded
 			if
 				(unitDef.canFly or unitDef.isAirUnit)
 				and (unitDef.gunship or unitDef.isHoveringAirUnit or unitDef.hoverattack)
@@ -46,6 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 			gunshipsToTrack[unitID] = {
 				unitDefID = unitDefID,
 				prevHasTarget = false,
+				shouldStopWhenNoCommands = false,
 			}
 		end
 	end
@@ -64,17 +66,22 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, currentGunship in pairs(gunshipsToTrack) do
 			local unitDefID = currentGunship.unitDefID
 			local hasTarget = isTargettingUnit(unitID, unitDefID)
-			local numCommands = #Spring.GetUnitCommands(unitID, 2)
+			local numCommands = #Spring.GetUnitCommands(unitID, 1)
 
-			Spring.Echo(gunshipDefs[unitDefID].name .. " " .. unitID .. ": " .. "numCommands", numCommands)
-			Spring.Echo(gunshipDefs[unitDefID].name .. " " .. unitID .. ": " .. "hasTarget", hasTarget)
-			Spring.Echo(
-				gunshipDefs[unitDefID].name .. " " .. unitID .. ": " .. "prevHasTarget",
-				currentGunship.prevHasTarget
-			)
+			-- resets the stop when no command flag when getting a new target
+			if hasTarget and not currentGunship.prevHasTarget then
+				currentGunship.shouldStopWhenNoCommands = false
+			end
+
+			-- should be ready to stop when it loses a target
+			if not hasTarget and currentGunship.prevHasTarget then
+				currentGunship.shouldStopWhenNoCommands = true
+			end
+
 			-- If the unit no longer has a target, then tell it to stop
-			if not hasTarget and currentGunship.prevHasTarget and numCommands == 0 then
+			if currentGunship.shouldStopWhenNoCommands and numCommands == 0 then
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, cmdOptions)
+				currentGunship.shouldStopWhenNoCommands = false
 			end
 			-- update previous target tracked
 			currentGunship.prevHasTarget = hasTarget
@@ -86,8 +93,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		for weaponNum = 1, weaponCount do
 			local targetType, isUserTarget, targetID = Spring.GetUnitWeaponTarget(unitID, weaponNum)
-			Spring.Echo(gunshipDefs[unitDefID].name .. " " .. unitID .. ": " .. "targetType", targetType)
-			Spring.Echo(gunshipDefs[unitDefID].name .. " " .. unitID .. ": " .. "targetID", targetID)
 			if targetType == 1 and targetID then
 				return true
 			end
