@@ -85,6 +85,7 @@ local DonatorAINames = {
     "sversuge",
     "svrachmaninoff",
     "thepanther67",
+    "Zee1158", --$60
     "zGeneral",
 }
 
