@@ -20,6 +20,7 @@ local isCommander = {}
 
 local function missile_counter(unitID, unitDefID, team)
 	
+	local damage = Spring.GetUnitWeaponDamages (unitID, 2, Game.armorTypes.standard)
 	local health, maxHealth
 	local counter
 	local losstate
@@ -41,17 +42,17 @@ local function missile_counter(unitID, unitDefID, team)
 			
 		elseif losstate == (15 or 1) then																					--check how many missiles for visible target
 			health, maxHealth = Spring.GetUnitHealth(targetID)
-			counter = math.floor(health  / Spring.GetUnitWeaponDamages (unitID, 2, Game.armorTypes.standard)) + 1	
+			counter = math.floor(health  / damage) + 1	
 			
 		elseif losstate == (14) or (losstate == 6 and UnitDefs[targetDefID].isBuilding) then								--check how many missiles for radar ghost target at max health
 			maxHealth = UnitDefs[targetDefID].health
-			counter = math.floor(maxHealth  / Spring.GetUnitWeaponDamages (unitID, 2, Game.armorTypes.standard)) + 1
+			counter = math.floor(maxHealth  / damage) + 1
 			
 		end
 	else																													--fire full volley at ground
 		counter = 6
 	end
-	Spring.CallCOBScript(unitID, "missile_counter", 6, 1, counter, targetID, burstrate, health, losstate)
+	Spring.CallCOBScript(unitID, "missile_counter", 6, 1, counter, targetID, burstrate, health, losstate, damage)
 	return 1
 end
 

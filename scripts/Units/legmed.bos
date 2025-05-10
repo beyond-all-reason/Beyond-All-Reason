@@ -12,8 +12,8 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired1, justfired2, justfired3, justfired4, justfired5, justfired6, shot, opened, moving, counter, status, targetID, targetID1, targetID2, burstrate, burstrate2, 
-canshoot, stage1, stage2, stage3, stage4, ready, losstate, losstate1, losstate2, canshoot1, missilesfired, health1, health2, healthdiff, extramissile, extramissile1, timeout;
+static-var  weapon, restore_delay, target, lastHeading, lastPitch, justFired, opened, status, newTargetID, oldTargetID, burstDelay, 
+canshoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, oldExtraMissile, timeout;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -45,54 +45,72 @@ Timer()
 	timeout = 0;
 }
 
-missile_counter(status, counter, targetID, burstrate, health, losstate)
+CloseTimer()
 {
-	health2 = health1;
-	health1 = health;
-	canshoot1 = counter;
-	burstrate2 = burstrate;
-	targetID2 = targetID1;
-	targetID1 = targetID;
-	losstate2 = losstate1;
-	losstate1 = losstate;
+	signal SIG_OPEN;
+	start-script Close();
+	sleep restore_delay - 5000;
+	justFired = justFired - 1;
+}
+
+missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
+{
+	oldHealth = newHealth;
+	newHealth = health;
+	burstDelay = burstrate;
+	oldTargetID = newTargetID;
+	newTargetID = targetID;
+	oldLosState = newLosState;
+	newLosState = losstate;
 	
-	get PRINT(counter, canshoot, health, healthdiff);
-	
-	if(targetID1 == targetID2)
+	if(newTargetID == oldTargetID)
 	{
-		if(NOT (losstate1 == losstate2))										//LOS state changed
+		if(NOT (newLosState == oldLosState))									//LOS state changed
 		{
-			canshoot = canshoot1 - missilesfired;								//If some missiles were fired needs to shoot less missiles
+			canshoot = counter - missilesFired;									//Switches to new missile count. If some missiles were fired needs to shoot less missiles
 		}
 		
-		if(health1 > health2)													//target is being repaired
-		{
-			healthdiff = health1 - health2;
-			extramissile1 = extramissile;
-			extramissile = ((healthdiff / 20) - 0.5);							//if the change is greater than 500 over 4s then fire an extra missile. 2 extra for 1000 etc
-			canshoot = canshoot + extramissile - extramissile1;
+		if(newHealth > oldHealth)												//Target is being repaired
+		{	
+			if(newExtraMissile > oldExtraMissile)								//Only when an extra missile is needed
+			{
+				oldExtraMissile = newExtraMissile;
+			}
+			if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
+			{
+				if((((newHealth - oldHealth) / ((damage - (newHealth % damage)) / 21)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit
+				{
+					newExtraMissile = 1;
+				}
+			}
+			else
+			{
+				newExtraMissile = (((newHealth - oldHealth) / 22) - 0.5);		//If the change is greater than 500 over 3.5s then fire an extra missile. 2 extra for 1000 etc
+			}
+			if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
+			{
+				canshoot = canshoot + newExtraMissile - oldExtraMissile;
+			}
 		}
-		if(timeout == 1)
+		if(timeout == 1)														//Prevents same target refresh until missiles hit it
 		{
 			return(0);
 		}
+		
 	}
-	health2 = health;															//if new target resets everything
-	health1 = health;
-	canshoot1 = counter;
-	burstrate2 = burstrate;
-	targetID2 = targetID;
-	targetID1 = targetID;
-	losstate2 = losstate;
-	losstate1 = losstate;
-	missilesfired = 0;
+	oldHealth = health;															//If new target reset old data
+	oldTargetID = targetID;
+	oldLosState = losstate;
+	missilesFired = 0;
+	newExtraMissile = 0;
+	oldExtraMissile = 0;
 	canshoot = counter;
 	return(0);
 }
 
 StartMoving()
 {
-	//call-script lua_missile_counter();
+	get PRINT(restore_delay);
 }
 
 Create()
@@ -131,14 +149,9 @@ Create()
 	move plateFrontRight to z-axis [-1] now;
 	move plateRearRight to z-axis [1] now;
 
-	restore_delay = 3000;
-	stage1 = 1;
-	stage2 = 1;
-	stage3 = 1;
-	stage4 = 1;
+	stage = 4;
 	ready = 0;
 	weapon = 1;
-	counter = 6;
 	canshoot = 1;
 	return (0);
 }
@@ -171,11 +184,12 @@ RestoreAfterDelay()
 }
 
 Close()
-{
-	ready = 0;
+{	
 	opened = 0;
+	set-signal-mask SIG_OPEN;
 	sleep 1000;
-	stage4 = 1;
+	ready = 0;
+	stage = 1;
 	move barrel1 to y-axis [-6] speed [12];
 	sleep 100;
 	move sleeve1 to y-axis [-2.8] speed [5.6];
@@ -196,21 +210,21 @@ Close()
 	sleep 100;
 	move sleeve6 to y-axis [-1.7] speed [3.4];
 	sleep 100;
-	stage3 = 1;
+	stage = 2;
 	turn plateFrontLeft to z-axis <-30> speed <30>;
 	sleep 200;
 	turn plateMidLeft to z-axis <-30> speed <30>;
 	sleep 200;
 	turn plateRearLeft to z-axis <-30> speed <30>;
 	sleep 200;
-	stage2 = 1;
+	stage = 3;
 	turn plateFrontRight to z-axis <30> speed <30>;
 	sleep 200;
 	turn plateMidRight to z-axis <30> speed <30>;
 	sleep 200;
 	turn plateRearRight to z-axis <30> speed <30>;
 	wait-for-turn plateRearRight around z-axis;
-	stage1 = 1;
+	stage = 4;
 	move plateFrontLeft to z-axis [-1] speed [4];
 	sleep 50;
 	move plateRearLeft to z-axis [1] speed [4];
@@ -222,14 +236,13 @@ Close()
 
 Open()
 {
-	signal SIG_OPEN;
-	//set-signal-mask SIG_OPEN;
-	if((justfired1 == 1) AND (justfired2 == 1) AND (justfired3 == 1) AND (justfired4 == 1) AND (justfired5 == 1) AND (justfired6 == 1))	//Prevents opening if no launcher can shoot, so the hatches close for the reload
+	if(justFired == 6)												//Prevents opening if no launcher can shoot, so the hatches close for the reload
 	{
 		return (0);
 	}
+	signal SIG_OPEN;
 	opened = 1;
-	if (stage1 == 1)
+	if (stage == 4)													//Stages check how far it closed before interrupted so it opens back up faster
 	{
 		move plateFrontLeft to z-axis [0] speed [4];
 		sleep 50;
@@ -239,9 +252,9 @@ Open()
 		sleep 50;
 		move plateRearRight to z-axis [0] speed [4];
 		wait-for-move plateRearRight along z-axis;
-		stage1 = 0;
+		stage = 3;
 	}
-	if (stage2 == 1)
+	if (stage == 3)
 	{
 		turn plateRearRight to z-axis <0> speed <30>;
 		sleep 200;
@@ -249,9 +262,9 @@ Open()
 		sleep 200;
 		turn plateFrontRight to z-axis <0> speed <30>;
 		sleep 200;
-		stage2 = 0;
+		stage = 2;
 	}
-	if (stage3 == 1)
+	if (stage == 2)
 	{
 		turn plateRearLeft to z-axis <0> speed <30>;
 		sleep 200;
@@ -259,9 +272,9 @@ Open()
 		sleep 200;
 		turn plateFrontLeft to z-axis <0> speed <30>;
 		sleep 100;
-		stage3 = 0;
+		stage = 1;
 	}
-	if (stage4 == 1)
+	if (stage == 1)
 	{
 		move sleeve6 to y-axis [0] speed [3.4];
 		sleep 100;
@@ -282,11 +295,12 @@ Open()
 		move sleeve1 to y-axis [0] speed [5.6];
 		sleep 100;
 		move barrel1 to y-axis [0] speed [12];
-		stage4 = 0;
+		stage = 0;
 	}
 	ready = 1;
-	sleep 1200;
-	//start-script Close();
+	set-signal-mask SIG_OPEN;
+	sleep 1000;
+	start-script Close();
 }
 
 AimWeapon1(heading, pitch)												//Beamer script
@@ -299,19 +313,19 @@ AimWeapon1(heading, pitch)												//Beamer script
 	turn trackingHeadingPivot to y-axis heading speed <500.000000>;
 	//turn gun to x-axis <0.000000> - pitch speed <250.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
-	if ( ( get ABS ( lastheading - heading ) < 3000 ) AND ( get ABS ( lastpitch - pitch ) < 1500 ) )
+	if ( ( get ABS ( lastHeading - heading ) < 3000 ) AND ( get ABS ( lastPitch - pitch ) < 1500 ) )
 	{
-		lastheading = heading;
-		lastpitch = pitch;
+		lastHeading = heading;
+		lastPitch = pitch;
 		return (1);
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
 	// seems to take 3 frames for wait-for-turn to process
 	wait-for-turn trackingHeadingPivot around y-axis;
 	//wait-for-turn gun around x-axis;
-	// after waiting for the turn, set the lastheading and lastpitch variables
-	lastheading = heading;
-	lastpitch = pitch;
+	// after waiting for the turn, set the lastHeading and lastPitch variables
+	lastHeading = heading;
+	lastPitch = pitch;
 	return (1);
 }
 
@@ -337,6 +351,7 @@ AimWeapon2(heading, pitch)
 
 	call-script lua_missile_counter();
 	
+	Signal SIG_AIM_2;
 	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
@@ -346,13 +361,13 @@ AimWeapon2(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	while(NOT (weapon == 1))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 1))						//Waits for its turn and terminates loops once no more shots are available
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_2;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -371,14 +386,13 @@ AimFromWeapon2(piecenum)
 FireWeapon2()
 {
 	timeout = 1;
-	justfired1 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 2;
-	sleep (8275 - (burstrate2 - 100));
-	justfired1 = 0;
 }
 
 QueryWeapon2(piecenum)
@@ -389,6 +403,8 @@ QueryWeapon2(piecenum)
 
 AimWeapon3(heading, pitch)
 {
+	Signal SIG_AIM_3;
+	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
@@ -397,13 +413,13 @@ AimWeapon3(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	while(NOT (weapon == 2))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 2))						//Waits for its turn
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_3;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -422,14 +438,13 @@ AimFromWeapon3(piecenum)
 FireWeapon3()
 {
 	timeout = 1;
-	justfired2 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 3;
-	sleep (8275 - (burstrate2 - 100));
-	justfired2 = 0;
 }
 
 QueryWeapon3(piecenum)
@@ -440,6 +455,8 @@ QueryWeapon3(piecenum)
 
 AimWeapon4(heading, pitch)
 {
+	Signal SIG_AIM_4;
+	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
@@ -448,13 +465,13 @@ AimWeapon4(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-	while(NOT (weapon == 3))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 3))						//Waits for its turn
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_4;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -473,14 +490,13 @@ AimFromWeapon4(piecenum)
 FireWeapon4()
 {
 	timeout = 1;
-	justfired3 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 4;
-	sleep (8275 - (burstrate2 - 100));
-	justfired3 = 0;
 }
 
 QueryWeapon4(piecenum)
@@ -491,6 +507,8 @@ QueryWeapon4(piecenum)
 
 AimWeapon5(heading, pitch)
 {
+	Signal SIG_AIM_5;
+	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
@@ -499,13 +517,13 @@ AimWeapon5(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
-	while(NOT (weapon == 4))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 4))						//Waits for its turn
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_5;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -524,14 +542,13 @@ AimFromWeapon5(piecenum)
 FireWeapon5()
 {
 	timeout = 1;
-	justfired4 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 5;
-	sleep (8275 - (burstrate2 - 100));
-	justfired4 = 0;
 }
 
 QueryWeapon5(piecenum)
@@ -542,6 +559,8 @@ QueryWeapon5(piecenum)
 
 AimWeapon6(heading, pitch)
 {
+	Signal SIG_AIM_6;
+	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
@@ -550,13 +569,13 @@ AimWeapon6(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_6;
-	set-signal-mask SIG_AIM_6;
-	while(NOT (weapon == 5))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 5))						//Waits for its turn
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_6;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -575,14 +594,13 @@ AimFromWeapon6(piecenum)
 FireWeapon6()
 {
 	timeout = 1;
-	justfired5 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 6;
-	sleep (8275 - (burstrate2 - 100));
-	justfired5 = 0;
 }
 
 QueryWeapon6(piecenum)
@@ -593,6 +611,8 @@ QueryWeapon6(piecenum)
 
 AimWeapon7(heading, pitch)
 {
+	Signal SIG_AIM_7;
+	
 	if( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
@@ -601,13 +621,13 @@ AimWeapon7(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	Signal SIG_AIM_7;
-	set-signal-mask SIG_AIM_7;
-	while(NOT (weapon == 6))										//Waits for its turn
+	
+	while(canshoot > 0 AND NOT (weapon == 6))						//Waits for its turn
 	{
 		sleep 1;
 	}
-	if(canshoot == 0)												//Checks if it needs to shoot at a target
+	set-signal-mask SIG_AIM_7;										//Prevents a bug where it can shoot the first missile while still closed
+	if(canshoot == 0)												//Checks if shots are available
 	{
 		return (0);
 	}
@@ -626,14 +646,13 @@ AimFromWeapon7(piecenum)
 FireWeapon7()
 {
 	timeout = 1;
-	justfired6 = 1;													//Used to delay next opening of hatches, so they close between shots
+	justFired = justFired + 1;										//Used to delay next opening of hatches, so they close between shots
 	canshoot = canshoot - 1;
 	start-script Timer();
-	missilesfired = missilesfired + 1;
-	sleep (burstrate2 - 80);
+	start-script CloseTimer();
+	missilesFired = missilesFired + 1;
+	sleep (burstDelay - 80);
 	weapon = 1;
-	sleep (8275 - (burstrate2 - 100));
-	justfired6 = 0;
 }
 
 QueryWeapon7(piecenum)
