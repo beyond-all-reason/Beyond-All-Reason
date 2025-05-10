@@ -108,11 +108,6 @@ missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 	return(0);
 }
 
-StartMoving()
-{
-	get PRINT(restore_delay);
-}
-
 Create()
 {
 	hide flare1;
