@@ -183,11 +183,11 @@ return {
 				tolerance = 9950,
 				tracks = true,
 				trajectoryHeight = 1,
-				turnrate = 56000,
+				turnrate = 58000,
 				--turret = true,
 				weaponacceleration = 800,
 				weapontype = "StarburstLauncher",
-				weapontimer = 0.39,
+				weapontimer = 0.28,
 				weaponvelocity = 1200,
 				damage = {
 					vtol = 76,
