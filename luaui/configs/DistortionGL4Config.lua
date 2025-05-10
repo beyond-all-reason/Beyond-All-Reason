@@ -2077,7 +2077,7 @@ do
 			local alreadyhasjet = false
 			for j, distortion in pairs(unitDistortions[unitDefName]) do
 				if distortion.pieceName == airjet.piece then
-					Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
+					-- Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
 					alreadyhasjet = true
 					break
 				end
