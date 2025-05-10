@@ -158,16 +158,23 @@ local labGrids = {
 	},
 	-- hover labs
 	armhp = {
-		"armch", "", "armsh", "",
-		"armanac", "armmh", "", "",
-		"", "", "armah",
+		"armch", "", "armsh", "",              -- hover con, seeker
+		"armanac", "armmh", "", "",            -- crocodile, possum
+		"", "", "armah",                       -- hover AA
 	},
 
 	corhp = {
-		"corch", "", "corsh", "",
-		"corsnap", "cormh", "corhal", "",
-		"", "", "corah",
+		"corch", "", "corsh", "",              -- hover con, goon
+		"corsnap", "cormh", "corhal", "",      -- cayman, mangonel, halberd
+		"", "", "corah",                       -- hover AA
 	},
+
+		leghp = {
+		"legch", "", "legsh", "",              -- hover con, glaucus
+		"legner", "legmh", "legcar", "",       -- nereus, salacia, cardea
+		"", "", "legah",                       -- hover AA
+	},
+	-- naval hover labs
 	armfhp = {
 		"armch", "", "armsh", "",
 		"armanac", "armmh", "", "",
@@ -180,16 +187,10 @@ local labGrids = {
 		"", "", "corah",
 	},
 
-	leghp = {
-		"legch", "", "legsh", "",
-		"legner", "legmh", "legcar", "",
-		"", "", "legah",
-	},
-
 	legfhp = {
-		"legch", "", "legsh", "",
-		"legner", "legmh", "corhal", "",
-		"", "", "legah",
+		"legch", "", "legsh", "",              -- hover con, glaucus
+		"legner", "legmh", "legcar", "",       -- nereus, salacia, cardea
+		"", "", "legah",                       -- hover AA
 	},
 	-- T3 labs
 	armshltx = {
