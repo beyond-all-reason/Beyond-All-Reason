@@ -205,7 +205,16 @@ local labGrids = {
 		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
 		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
 		"legkeres","legerailtank","" -- keres, daedalus
-	}
+	},
+	-- T3 underwater labs
+	armshltxuw = {
+		"armbantha", "armmar", "armcroc", "armlun",                 -- titan, marauder, turtle, lunkhead
+	},
+
+	corgantuw = {
+		"corkorg", "corshiva", "corsala", "corparrow",              -- juggernaut, shiva, salamander, poison arrow
+		"corsok",                                                   -- cataphract
+	},
 }
 local unitGrids = {
 	-- Air assist drones
