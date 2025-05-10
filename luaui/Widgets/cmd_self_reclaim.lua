@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-include("keysym.h.lua")
 
 local constructors = {} -- will get filled up with each constructor in the form of {unitID, buildRange^2}
 
@@ -23,6 +22,14 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local myTeam = Spring.GetMyTeamID()
 
 local CMD_INSERT = CMD.INSERT
+
+local buildDistances = {}
+for unitDefID, uDef in pairs(UnitDefs) do
+    if uDef.isStaticBuilder and not uDef.isFactory then
+        buildDistances[unitDefID] = uDef.buildDistance
+    end
+end
+
 
 local function getValidCons(x, z, target)
     local validCons = {}
@@ -52,9 +59,8 @@ end
 
 local function InitUnit(unitID, unitDefID, unitTeam)
     if unitTeam == myTeam then
-        local def = UnitDefs[unitDefID]
-        if def.isStaticBuilder and not def.isFactory then
-            constructors[unitID] = def.buildDistance
+        if buildDistances[unitDefID] then
+            constructors[unitID] = buildDistances[unitDefID]
         end
     end
 end
@@ -88,11 +94,5 @@ end
 function widget:PlayerChanged(playerID)
     if GetSpectatingState() then
         widgetHandler:RemoveWidget(self)
-    end
-end
-
-function widget:MousePress(_,_,button)
-    if button == 2 then
-        Spring.Echo(constructors)
     end
 end
