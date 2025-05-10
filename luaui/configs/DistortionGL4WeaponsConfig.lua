@@ -1065,8 +1065,8 @@ local projectileDefDistortions  = {
 				local lname = weaponDef.name:lower()
 
 				-- if it's a machine-gun or rapid-fire, give it NO distortion
-				if lname:find('mg_weapon') or lname:find('legflak') or lname:find('machinegun') then
-					--Spring.Echo("LaserCannon no distortion for "..weaponDef.name)
+				if lname:find('mg_weapon') or lname:find('legflak') or lname:find('machinegun') or lname:find('shotgun') then
+					Spring.Echo("LaserCannon no distortion for "..weaponDef.name)
 					--projectileDefDistortions[weaponID] = GetDistortionClass("NoEffect", sizeclass, overrideTable)
 
 				-- otherwise give it the regular cannon distortion
