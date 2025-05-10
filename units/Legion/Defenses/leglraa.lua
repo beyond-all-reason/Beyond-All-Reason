@@ -30,8 +30,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leglraa_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
+			buildinggrounddecalsizey = 7,
+			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'aa',
 			model_author = "Mr Bob",

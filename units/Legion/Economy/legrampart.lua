@@ -40,8 +40,8 @@ return {
         customparams = {
             usebuildinggrounddecal = true,
             buildinggrounddecaltype = "decals/legrampart_aoplane.dds",
-            buildinggrounddecalsizey = 8,
-            buildinggrounddecalsizex = 8,
+            buildinggrounddecalsizey = 10,
+            buildinggrounddecalsizex = 10,
             buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
             cvbuildable = true,
