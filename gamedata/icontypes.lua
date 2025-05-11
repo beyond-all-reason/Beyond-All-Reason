@@ -3592,6 +3592,10 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
+	leghrk = {
+		bitmap = "icons/kbot_t2_barrage.png",
+		size = 1.6
+	},
 
 	blank = {
 		bitmap = "icons/blank.png",
