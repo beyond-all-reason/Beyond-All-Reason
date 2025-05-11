@@ -1952,7 +1952,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
+	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
 		if useRenderToTextureBg and infoBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
