@@ -170,15 +170,18 @@ local function CreatePanelDisplayList()
 
 			if bossInfo then
 				local nResistances = #bossInfo.resistances or 0
-				local headerRow = 11
-				printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > resistanceListLimit and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(headerRow))
-				for i, resistance in ipairs(bossInfo.resistances) do
-					if not isBossInfoExpanded and i > resistanceListLimit then
-						break
+				if nResistances > 0 then
+					nPanelRows = 11
+					printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > resistanceListLimit and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(nPanelRows))
+					for i, resistance in ipairs(bossInfo.resistances) do
+						if not isBossInfoExpanded and i > resistanceListLimit then
+							break
+						end
+						nPanelRows = nPanelRows + 1
+						printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(nPanelRows))
+						local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
+						printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 23 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(nPanelRows))
 					end
-					printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(headerRow+i))
-					local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
-					printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 13 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(headerRow+i))
 				end
 			end
 		end
@@ -240,7 +243,7 @@ local function getResistancesMessage()
 	return messages
 end
 
-local function Draw()
+function widget:DrawScreen()
 	if updatePanel then
 		if (guiPanel) then
 			gl.DeleteList(guiPanel);
@@ -430,12 +433,6 @@ function widget:GameFrame(n)
 	end
 end
 
-
-
-function widget:DrawScreen()
-	Draw()
-end
-
 function widget:MouseMove(x, y, dx, dy, button)
 	if moving then
 		updatePos(x1 + dx, y1 + dy)
@@ -495,5 +492,9 @@ function widget:IsAbove(x, y)
 	end
 
 	local bottomY = y1 + PanelRow(nPanelRows + 1)
+	local wasAboveBossInfo = isAboveBossInfo
 	isAboveBossInfo = x > x1 and x < x1 + (w * widgetScale) and y < y1 and y > math.max(0, bottomY)
+	if isAboveBossInfo ~= wasAboveBossInfo then
+		updatePanel = true
+	end
 end

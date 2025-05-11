@@ -680,8 +680,8 @@
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "Boss is resistant to:",
-				"other" : "Bosses are resistant to:"
+				"one"   : "Boss resistance:",
+				"other" : "Boss resistances:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
