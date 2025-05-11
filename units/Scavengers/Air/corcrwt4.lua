@@ -132,7 +132,7 @@ return {
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
-				cegtag = "missiletrailaa-large",
+				cegtag = "missiletrailaa-medium",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

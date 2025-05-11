@@ -380,6 +380,19 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if uDef.customparams.evolution_target then
+			local udcp                            = uDef.customparams
+			udcp.combatradius                     = udcp.combatradius or 1000
+			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
+			udcp.evolution_condition              = udcp.evolution_condition or "timer"
+			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
+			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
+			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
+			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
+			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
+			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
+		end
+
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
@@ -486,14 +499,14 @@ function UnitDef_Post(name, uDef)
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armmeatball" -- Meatball - Amphibious Assault Mech
-			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Battle Mech
+			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Amphibious Battle Mech
 		end
 
 		-- Armada T3 Underwater Gantry
 		if name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armmeatball" -- Meatball - Amphibious Assault Mech
-			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Battle Mech
+			uDef.buildoptions[numBuildoptions + 2] = "armassimilator" -- Assimilator - Amphibious Battle Mech
 		end
 
 		-- Cortex T1 Land Constructors
@@ -553,7 +566,7 @@ function UnitDef_Post(name, uDef)
 		-- Cortex T2 Shipyard
 		if name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3" -- Adjudictator - Ultra Heavy Heatray Battleship
+			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3" -- Adjudictator - Heavy Heatray Battleship
 			uDef.buildoptions[numBuildoptions + 2] = "coronager" -- Onager - Coastal Assault Submarine
 			uDef.buildoptions[numBuildoptions + 3] = "cordesolator" -- Desolator - Nuclear ICBM Submarine
 		end
@@ -981,6 +994,9 @@ function UnitDef_Post(name, uDef)
 	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
 		local healthmass = math.ceil(uDef.health/6)
 		uDef.mass = math.max(uDef.metalcost, healthmass)
+		if uDef.metalcost < 751 and uDef.mass > 750 then
+			uDef.mass = 750
+		end
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
