@@ -792,7 +792,7 @@ local function updateResbar(res)
 end
 
 local function updateResbarValues(res, update)
-	if update then 
+	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
 		updateRes[res][1] = true
@@ -1157,14 +1157,14 @@ function widget:Update(dt)
 			end
 		end
 	end
-	
+
 	if now > nextSmoothUpdate then
 		nextSmoothUpdate = now + 0.10
 		smoothResources()
 	end
 	if now > nextSlowUpdate then
 		nextSlowUpdate = now + 0.5
-		
+
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 
 		-- resbar values and overflow
@@ -2052,12 +2052,19 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:PlayerChanged()
+	local prevMyTeamID = myTeamID
 	local prevSpec = spec
 	spec = spGetSpectatingState()
 	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then countComs(true) end
-	if spec then resbarHover = nil end
+	if spec then
+		resbarHover = nil
+		if prevMyTeamID ~= myTeamID then
+			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+			smoothedResources = r
+		end
+	end
 
 	if not prevSpec and prevSpec ~= spec then
 		init()
