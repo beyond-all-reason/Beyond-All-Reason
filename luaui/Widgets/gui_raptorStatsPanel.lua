@@ -21,7 +21,7 @@ VFS.Include('luaui/Headers/keysym.h.lua')
 
 local customScale = 1
 local widgetScale = customScale
-local font, font2
+local font, font2, font3
 local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
@@ -58,12 +58,11 @@ local bossInfoMarginX = panelMarginX - 15
 local bossInfoSubLabelMarginX = bossInfoMarginX + 35
 local moving
 local capture
-local gameInfo
+local gameInfo = {}
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
 local bossToastTimer = Spring.GetTimer()
-local enabled
 local gotScore
 local scoreCount = 0
 local resistancesTable = {}
@@ -71,7 +70,7 @@ local currentlyResistantTo = {}
 local currentlyResistantToNames = {}
 
 local guiPanel --// a displayList
-local updatePanel
+local updatePanel = true
 local hasRaptorEvent = false
 
 local difficultyOption = Spring.GetModOptions().raptor_difficulty
@@ -91,10 +90,7 @@ local rules = {
 
 local textColor = "\255\255\255\255"
 
-local modOptions = Spring.GetModOptions()
 local isRaptors = Spring.Utilities.Gametype.IsRaptors()
-local bossDefName = isRaptors and ('raptor_queen_' .. modOptions.raptor_difficulty ) or ('scavengerbossv4_'.. modOptions.scav_difficulty ..'_scav')
-local totalBossHealth = UnitDefNames[bossDefName] and UnitDefs[UnitDefNames[bossDefName].id] and UnitDefs[UnitDefNames[bossDefName].id].health or (1250000 * 1.5)
 local isBossInfoExpanded = false
 local isAboveBossInfo = false
 local stageGrace = 0
@@ -102,11 +98,6 @@ local stageMain = 1
 local stageBoss = 2
 local nPanelRows
 local bossInfo
-
-local cachedPlayerNames
-if not cachedPlayerNames then
-	cachedPlayerNames = {}
-end
 
 local function PveStage(currentTime)
 	local stage = stageGrace
@@ -121,7 +112,7 @@ local function PveStage(currentTime)
 end
 
 local function printBossInfo(text, x, y)
-	font:Print(text or '', x, y, panelFontSize, "o")
+	font3:Print(text or '', x, y, panelFontSize, "o")
 end
 
 local function updatePos(x, y)
@@ -177,27 +168,15 @@ local function CreatePanelDisplayList()
 			end
 
 			if bossInfo then
-				printBossInfo((isRaptors and 'Queen' or 'Boss') .. ' resistances: (Ctrl+B Expands)', bossInfoMarginX, PanelRow(11))
+				local nResistances = #bossInfo.resistances or 0
+				printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > 4 and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(11))
 				local row = 11
 				for i, resistance in ipairs(bossInfo.resistances) do
 					row = row + 1
 					printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(row))
 					local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
-					printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 40 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(row))
+					printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 13 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(row))
 					if not isBossInfoExpanded and i > 3 then
-						break
-					end
-				end
-
-				row = row + 1
-
-				printBossInfo('Player '.. (isRaptors and 'Queen' or 'Boss') .. ' Damage: ('.. (isAboveBossInfo and 'absolute' or 'relative') .. ')', bossInfoMarginX, PanelRow(row))
-				for i, damage in ipairs(bossInfo.playerDamages) do
-					row = row + 1
-					printBossInfo(damage.name, bossInfoMarginX + 10, PanelRow(row))
-					local damageString = isAboveBossInfo and damage.stringAbsolute or damage.stringRelative
-					printBossInfo(damageString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 40 - font:GetTextWidth(damageString) * panelFontSize,PanelRow(row))
-					if not isBossInfoExpanded and i > 5 then
 						break
 					end
 				end
@@ -262,10 +241,6 @@ local function getResistancesMessage()
 end
 
 local function Draw()
-	if not enabled or not gameInfo then
-		return
-	end
-
 	if updatePanel then
 		if (guiPanel) then
 			gl.DeleteList(guiPanel);
@@ -386,32 +361,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("RaptorEvent")
 end
 
-local function PlayerName(teamID)
-	local playerName = ''
-
-	local playerList = Spring.GetPlayerList(teamID)
-	if (not playerList or #playerList == 0) and cachedPlayerNames[teamID] then
-		playerName = cachedPlayerNames[teamID]
-	elseif #playerList > 1 then
-		for _, player in ipairs(playerList) do
-			if player then
-				playerName = playerName .. (#playerName > 0 and ' & ' or '') .. select(1, Spring.GetPlayerInfo(player))
-			end
-		end
-	elseif #playerList == 1 then
-		playerName = select(1,Spring.GetPlayerInfo(playerList[1]))
-	else
-		_, playerName = Spring.GetAIInfo(teamID)
-
-	end
-
-	if playerName and playerName ~= '' then
-		cachedPlayerNames[teamID] = playerName
-	end
-
-	return playerName
-end
-
 local function sortRawDamageDescNameAsc(a, b)
 	if not a or not b then
 		return false
@@ -431,7 +380,7 @@ local function UpdateBossInfo()
 		return
 	end
 	bossInfoRaw = Json.decode(Spring.GetGameRulesParam('pveBossInfo'))
-	bossInfo = { resistances = {}, playerDamages = {}, healths = {}, labelMaxLength = 0 }
+	bossInfo = { resistances = {}, labelMaxLength = 0 }
 
 	local i = 0
 	for defID, resistance in pairs(bossInfoRaw.resistances) do
@@ -455,19 +404,6 @@ local function UpdateBossInfo()
 	end
 	table.sort(bossInfo.resistances, sortRawDamageDescNameAsc)
 
-	for teamID, damage in pairs(bossInfoRaw.playerDamages) do
-		local name = PlayerName(teamID)
-		if font:GetTextWidth((name or '') .. 'XX') * panelFontSize > bossInfo.labelMaxLength then
-			bossInfo.labelMaxLength = font:GetTextWidth((name or '') .. 'XX') * panelFontSize
-		end
-		damage = math.max(damage, 1)
-		table.insert(
-			bossInfo.playerDamages,
-			{ name = name, raw = damage, stringAbsolute = string.formatSI(damage), stringRelative = string.format('%.1fX', damage / totalBossHealth) }
-		)
-	end
-	table.sort(bossInfo.playerDamages, sortRawDamageDescNameAsc)
-
 	local screenOverflowX = x1 + bossInfo.labelMaxLength + bossInfoSubLabelMarginX + 36 - vsx
 	x1 = screenOverflowX > 0 and x1 - screenOverflowX or x1
 end
@@ -480,9 +416,6 @@ function widget:GameFrame(n)
 	if n % 30 < 1 then
 		UpdateRules()
 		UpdateBossInfo()
-		if not enabled and n > 1 then
-			enabled = true
-		end
 	end
 	if gotScore then
 		local sDif = gotScore - scoreCount
@@ -504,14 +437,13 @@ function widget:DrawScreen()
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
-	if enabled and moving then
+	if moving then
 		updatePos(x1 + dx, y1 + dy)
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if enabled and
-		x > x1 and x < x1 + (w * widgetScale) and
+	if x > x1 and x < x1 + (w * widgetScale) and
 		y > y1 and y < y1 + (h * widgetScale)
 	then
 		capture = true
@@ -521,9 +453,6 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if not enabled then
-		return
-	end
 	capture = nil
 	moving = nil
 	return capture
@@ -534,6 +463,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	font3 = WG['fonts'].getFont(nil, nil, 0.4, 1.76)
 
 	x1 = math.floor(x1 - viewSizeX)
 	y1 = math.floor(y1 - viewSizeY)

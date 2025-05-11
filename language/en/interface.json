@@ -626,8 +626,8 @@
 			},
 			"queensKilled": "Queens Killed: %{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "Queen is resistant to:",
-				"other" : "Queens are resistant to:"
+				"one"   : "Queen resistance:",
+				"other" : "Queen resistances:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
