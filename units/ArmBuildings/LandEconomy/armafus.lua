@@ -12,7 +12,7 @@ return {
 		energycost = 69000,
 		energymake = 3000,
 		energystorage = 9000,
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
 		health = 7900,

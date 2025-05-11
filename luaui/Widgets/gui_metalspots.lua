@@ -48,7 +48,6 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local centersize 		= 1.3
 local billboardsize 	= 0.5
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
@@ -56,7 +55,6 @@ local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
 
 local extractorRadius = Game.extractorRadius * 1.2
 
-local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -178,19 +176,6 @@ local function makeSpotVBO()
 		end
 	end
 
-	-- Add the 32 tris for the inner circle of color:
-	-- TODO: FIX THIS
-	--[[
-	for i = 1, 32 do
-		local d1 = (i/32) * math.pi * 2.0
-		local d2 = ((i+1)/32) * math.pi * 2.0
-
-		arrayAppend(VBOData, {math.sin(d1)*centersize, math.cos(d1)*centersize, 1, 1})
-		arrayAppend(VBOData, {math.sin(d2)*centersize, math.cos(d2)*centersize, 1, 1})
-		arrayAppend(VBOData, {0, 0, 0, 1})
-	end
-	]]--
-
 	-- Add the 2 tris for the billboard:
 	do
 		arrayAppend(VBOData, {billboardsize, 0, 1, 2})
@@ -235,7 +220,6 @@ local function IsSpotOccupied(spot)
 	local prevOccupied = spot.occupied
 	local ally = false
 	local enemy = false
-	local changed = false
 	for j=1, #units do
 		if extractorDefs[spGetUnitDefID(units[j])] then
 			-- Actually check if we the ones are extracting from this spot?
@@ -351,15 +335,17 @@ local function InitializeSpots(mSpots)
 				local occupied = ally or enemy
 
 				local uvcoords = valueToUVs[value]
-				local gh = Spring.GetGroundHeight(spot.x, spot.z)
-				pushElementInstance(spotInstanceVBO, -- vbo
-						{spot.x, gh, spot.z, scale,
-						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-					instanceID, -- instanceID
-					true, -- updateExisting
-					true -- noUpload
-					)
+				if uvcoords then
+					local gh = Spring.GetGroundHeight(spot.x, spot.z)
+					pushElementInstance(spotInstanceVBO, -- vbo
+							{spot.x, gh, spot.z, scale,
+							(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+							uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+						instanceID, -- instanceID
+						true, -- updateExisting
+						true -- noUpload
+						)
+				end
 			end
 		end
 	end
@@ -377,15 +363,16 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			local ally, enemy, changed = IsSpotOccupied(spot)
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
-
-			pushElementInstance(spotInstanceVBO, -- vbo
-					{spot.x, spot.y, spot.z, spot.scale,
-					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-					uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-				spot.instanceID, -- instanceID
-				true, -- updateExisting
-				true -- noUpload
-			)
+			if uvcoords then
+				pushElementInstance(spotInstanceVBO, -- vbo
+						{spot.x, spot.y, spot.z, spot.scale,
+						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+					spot.instanceID, -- instanceID
+					true, -- updateExisting
+					true -- noUpload
+				)
+			end
 		end
 	end
 	uploadAllElements(spotInstanceVBO)
@@ -502,7 +489,6 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
-	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
 	gl.Culling(true)
