@@ -93,6 +93,7 @@ local textColor = "\255\255\255\255"
 local isRaptors = Spring.Utilities.Gametype.IsRaptors()
 local isBossInfoExpanded = false
 local isAboveBossInfo = false
+local resistanceListLimit = 10
 local stageGrace = 0
 local stageMain = 1
 local stageBoss = 2
@@ -169,16 +170,15 @@ local function CreatePanelDisplayList()
 
 			if bossInfo then
 				local nResistances = #bossInfo.resistances or 0
-				printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > 4 and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(11))
-				local row = 11
+				local headerRow = 11
+				printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > resistanceListLimit and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(headerRow))
 				for i, resistance in ipairs(bossInfo.resistances) do
-					row = row + 1
-					printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(row))
-					local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
-					printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 13 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(row))
-					if not isBossInfoExpanded and i > 3 then
+					if not isBossInfoExpanded and i > resistanceListLimit then
 						break
 					end
+					printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(headerRow+i))
+					local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
+					printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 13 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(headerRow+i))
 				end
 			end
 		end
