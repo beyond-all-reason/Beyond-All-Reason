@@ -371,6 +371,7 @@ local LandUnitsList = {
 			["corgatreap_scav"] = 4,
 			--Legion
 			["legaheattank_scav"] = 4,
+			["legamph_scav"] = 3,
 			["leginc_scav"] = 2,
 			["legfloat_scav"] = 4,
 		},
@@ -2253,7 +2254,7 @@ addNewSquad({
 	maxAnger = tierConfiguration[5].maxAnger,
 	minAnger = tierConfiguration[5].minAnger,
 	units = {
-		{coun = 3, unit = "armmart_scav"},
+		{count = 3, unit = "armmart_scav"},
 		{count = 1, unit = "armmerl_scav"},
 		{count = 1, unit = "armyork_scav"},
 		{count = 3, unit = "cormart_scav"},
