@@ -62,6 +62,7 @@ function widget:Initialize()
 		if isValidOption(newMode) then
 			mode = newMode
 			reloadBindings()
+			widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
 		end
 	end
 	WG['minimaprotationmanager'].getMode = function()
