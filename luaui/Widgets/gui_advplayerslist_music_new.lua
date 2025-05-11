@@ -141,12 +141,14 @@ local function ReloadMusicPlaylists()
 			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
 			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
 		end
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/loading', allowedExtensions))
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
+		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
 
 		-- Scavengers --------------------------------------------------------------------------------------------------------------------
@@ -154,12 +156,14 @@ local function ReloadMusicPlaylists()
 			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
 			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
 		end
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/loading', allowedExtensions))
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
+		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
 
 		-- April Fools --------------------------------------------------------------------------------------------------------------------
@@ -169,12 +173,14 @@ local function ReloadMusicPlaylists()
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 		elseif (not ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
 			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
 			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
 			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 		end
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
@@ -182,6 +188,7 @@ local function ReloadMusicPlaylists()
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 
 		-- Christmas ----------------------------------------------------------------------------------------------------------------------
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
@@ -190,11 +197,13 @@ local function ReloadMusicPlaylists()
 		table.append(eventPeaceTracks, VFS.DirList('music/map/peace', allowedExtensions))
 		table.append(eventWarLowTracks, VFS.DirList('music/map/warlow', allowedExtensions))
 		table.append(eventWarHighTracks, VFS.DirList('music/map/warhigh', allowedExtensions))
+		table.append(interludeTracks, VFS.DirList('music/map/interludes', allowedExtensions))
 
 		table.append(bonusTracks, VFS.DirList('music/map/loading', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList('music/map/peace', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList('music/map/warlow', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList('music/map/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList('music/map/interludes', allowedExtensions))
 	end
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
