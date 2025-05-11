@@ -331,6 +331,7 @@ local autocompleteCommands = {
 	'shadows',
 	'sharedialog',
 	'showelevation',
+	'showinfometal',
 	'showmetalmap',
 	'showpathcost',
 	'showpathflow',
