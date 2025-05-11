@@ -148,7 +148,9 @@ return {
 		},
 		weapons = {
 			[1] = {
+				burstcontrolwhenoutofarc = 2,
 				def = "ARMMG_WEAPON",
+				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
