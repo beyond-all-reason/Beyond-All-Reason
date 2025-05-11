@@ -55,6 +55,7 @@ CloseTimer()
 
 missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 {
+	//get PRINT(canshoot, counter, newHealth, oldHealth);
 	oldHealth = newHealth;
 	newHealth = health;
 	burstDelay = burstrate;
@@ -68,6 +69,7 @@ missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 		if(NOT (newLosState == oldLosState))									//LOS state changed
 		{
 			canshoot = counter - missilesFired;									//Switches to new missile count. If some missiles were fired needs to shoot less missiles
+			oldHealth = newHealth;												//Prevents bug: When out of LOS but in radar the health return is 0, so when unit enters LOS it triggers the repair script and fires additional missiles
 		}
 		
 		if(newHealth > oldHealth)												//Target is being repaired
@@ -78,14 +80,14 @@ missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 			}
 			if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
 			{
-				if((((newHealth - oldHealth) / ((damage - (newHealth % damage)) / 21)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit
+				if((((newHealth - oldHealth) / (((damage - (newHealth % (damage))) / 20) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
 				{
 					newExtraMissile = 1;
 				}
 			}
 			else
 			{
-				newExtraMissile = (((newHealth - oldHealth) / 22) - 0.5);		//If the change is greater than 500 over 3.5s then fire an extra missile. 2 extra for 1000 etc
+				newExtraMissile = (((newHealth - oldHealth) / 20) - 0.5);		//If the change is greater than 500 over 3.5s fire an extra missile. 2 extra for 1000 etc
 			}
 			if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
 			{
