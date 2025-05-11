@@ -34,7 +34,7 @@ local labGrids = {
 		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
 		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
 		-- page2
-		"legamph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
+		"legamph", "leghrk", "legsnapper", "corsktl",				-- amphbious bot, Thanatos, snapper, skuttle
 		"legdecom",					-- decoycom
 	},
 	-- T1 vehicle
