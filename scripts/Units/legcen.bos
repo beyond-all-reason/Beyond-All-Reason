@@ -374,15 +374,19 @@ FireWeapon1()
 	if (gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-4.0] now;
-		sleep 500;
+		move barrel1 to z-axis [-4.0] speed [32.00000];
+		sleep 100;
+		emit-sfx 1024 + 0 from flare1;
+		sleep 300;
 		move barrel1 to z-axis [0.000000] speed [4.00000];
 	}
 	else if (gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-4.0] now;
-		sleep 500;
+		move barrel2 to z-axis [-4.0] speed [32.00000];
+		sleep 100;
+		emit-sfx 1024 + 0 from flare2;
+		sleep 300;
 		move barrel2 to z-axis [0.000000] speed [4.00000];
 	}
 	gun_1 = !gun_1;

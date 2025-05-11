@@ -452,6 +452,11 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	sleep 2500;
+	move barrel to z-axis [0.0] speed [10.0];
+	wait-for-move barrel along z-axis;
+	sleep 1000;
+	move barrel to z-axis [5.0] speed [10.0];
 	
 	return (0);
 }
@@ -469,10 +474,11 @@ Open()
 
 Close()
 {
-	move barrel to z-axis [0.0] speed [10.0];
-	turn arm to x-axis <0.0> speed <90.0>;
+	move barrel to z-axis [0.0] speed [15.0];
 	turn sleeve to x-axis <0.0> speed <90.0>;
 	wait-for-turn sleeve around x-axis;
+	turn arm to x-axis <0.0> speed <90.0>;
+	wait-for-turn arm around x-axis;
 	turn armorl to z-axis <0.0> speed <60.0>;
 	turn armorr to z-axis <0.0> speed <60.0>;
 }
