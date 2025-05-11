@@ -388,6 +388,7 @@ ExecuteRestoreAfterDelay()
 	call-script OpenCloseAnim(0);
 }
 
+// Primary Weapons
 Shot1(zero)
 {
 	signal SIGNAL_FIRE1;
@@ -425,10 +426,6 @@ Shot1(zero)
 	
 	return(1);
 }
-
-
-
-// Primary Weapons
 
 AimFromWeapon1(pieceIndex)
 {

@@ -105,7 +105,7 @@ return {
 		},
 		weapondefs = {
 			armmg_weapon = {
-				accuracy = 7,
+				accuracy = 5,
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 12,
