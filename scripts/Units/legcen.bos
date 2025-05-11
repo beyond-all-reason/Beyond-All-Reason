@@ -352,8 +352,8 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	turn aimy to y-axis heading speed <150.0>;
-	turn aimx to x-axis <0.0> - pitch speed <50.0>;
+	turn aimy to y-axis heading speed <200.0>;
+	turn aimx to x-axis <0.0> - pitch speed <100.0>;
 
     wait-for-turn aimy around y-axis;
 
@@ -368,29 +368,27 @@ AimFromWeapon1(pieceIndex)
 
 FireWeapon1()
 {
+	return(0);
+}
+
+Shot1(zero)
+{
 	signal SIGNAL_FIRE1;
 	set-signal-mask SIGNAL_FIRE1;
-	
 	if (gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from flare1;
-		move barrel1 to z-axis [-4.0] speed [32.00000];
-		sleep 100;
-		emit-sfx 1024 + 0 from flare1;
-		sleep 300;
+		move barrel1 to z-axis [-4.0] now;
 		move barrel1 to z-axis [0.000000] speed [4.00000];
 	}
 	else if (gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from flare2;
-		move barrel2 to z-axis [-4.0] speed [32.00000];
-		sleep 100;
-		emit-sfx 1024 + 0 from flare2;
-		sleep 300;
+		move barrel2 to z-axis [-4.0] now;
 		move barrel2 to z-axis [0.000000] speed [4.00000];
 	}
 	gun_1 = !gun_1;
-	return(1);
+	return(0);
 }
 
 QueryWeapon1(pieceIndex)
