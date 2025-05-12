@@ -426,6 +426,7 @@ local armorDefs = {
 		"legfus",
 
 		"coruwgeo",
+		"leguwgeo",
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",

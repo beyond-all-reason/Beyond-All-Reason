@@ -497,16 +497,16 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
-   ['armuwgeo']       = 101201,
+   --['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
    --['coruwgeo']       = 101251,
    ['leggeo']         = 101275,
    ['armgmm']         = 101300,
    ['legageo']        = 101325,
    ['corageo']        = 101350,
-   ['coruwageo']      = 101351,
+   --['coruwageo']      = 101351,
    ['armageo']        = 101400,
-   ['armuwageo']      = 101401,
+   --['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
    ['legrampart']       = 101475,
 
@@ -730,8 +730,9 @@ local unitOrderTable = {
    --WATER ECO NRG GEOS
    ['armuwgeo']       = 204000,
    ['coruwgeo']       = 204100,
-   ['armuwageo']       = 204500,
-   ['coruwageo']       = 204600,
+   ['leguwgeo']       = 204101,
+   ['armuwageo']      = 204500,
+   ['coruwageo']      = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armuwfus']       = 205000,

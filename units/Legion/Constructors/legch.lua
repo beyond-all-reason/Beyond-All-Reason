@@ -80,7 +80,7 @@ return {
 			[40] = "legfmg",
 			[41] = "legfrl",
 			[42] = "legtl",
-			[43] = "coruwgeo",
+			[43] = "leguwgeo",
 			[44] = "corasy",
 			[45] = "leghive",
 			[46] = "legfhive",
