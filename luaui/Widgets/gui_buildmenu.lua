@@ -399,7 +399,7 @@ end
 -- update queue number
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	if spIsUnitSelected(factID) then
-		doUpdateClock = os_clock() + 0.01
+		doUpdateClock = os_clock() + 0.001
 	end
 end
 
@@ -409,14 +409,12 @@ local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	if updateSelection then
 		updateSelection = false
-		if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
-			SelectedUnitsCount = spGetSelectedUnitsCount()
-		end
 		selectedBuilders = {}
-		local prevSelectedFactoryCount = selectedFactoryCount
 		selectedBuilderCount = 0
+		local prevSelectedFactoryCount = selectedFactoryCount
 		selectedFactoryCount = 0
 		local selBuilderDefs = {}
+		SelectedUnitsCount = spGetSelectedUnitsCount()
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
@@ -439,18 +437,18 @@ function widget:Update(dt)
 			-- check if builder type selection actually differs from previous selection
 			if not doUpdate then
 				if #selBuilderDefs ~= #prevSelBuilderDefs then
-					doUpdateClock = os_clock() + 0.01
+					doUpdateClock = os_clock() + 0.001
 				else
 					for uDefID, _ in pairs(prevSelBuilderDefs) do
 						if not selBuilderDefs[uDefID] then
-							doUpdateClock = os_clock() + 0.01
+							doUpdateClock = os_clock() + 0.001
 							break
 						end
 					end
 					if not doUpdate then
 						for uDefID, _ in pairs(selBuilderDefs) do
 							if not prevSelBuilderDefs[uDefID] then
-								doUpdateClock = os_clock() + 0.01
+								doUpdateClock = os_clock() + 0.001
 								break
 							end
 						end
@@ -459,6 +457,12 @@ function widget:Update(dt)
 			end
 		end
 		prevSelBuilderDefs = selBuilderDefs
+	end
+
+	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
+		buildmenuShows = false
+	else
+		buildmenuShows = true
 	end
 
 	sec = sec + dt
@@ -494,16 +498,7 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 
-		disableInput = disableInputWhenSpec and isSpec
-		if Spring.IsGodModeEnabled() then
-			disableInput = false
-		end
-	end
-
-	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
-		buildmenuShows = false
-	else
-		buildmenuShows = true
+		disableInput = Spring.IsGodModeEnabled() and false or (disableInputWhenSpec and isSpec)
 	end
 end
 
@@ -772,6 +767,17 @@ end
 
 function widget:DrawScreen()
 
+	if WG['buildmenu'] then
+		WG['buildmenu'].hoverID = nil
+	end
+
+	if not buildmenuShows then
+		if WG['guishader'] and dlistGuishader then
+			WG['guishader'].RemoveDlist('buildmenu')
+		end
+		return
+	end
+
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 
@@ -787,271 +793,261 @@ function widget:DrawScreen()
 		doUpdate = true
 	end
 
-	if WG['buildmenu'] then
-		WG['buildmenu'].hoverID = nil
+	local x, y, b, b2, b3 = spGetMouseState()
+	local now = os_clock()
+	if doUpdate or (doUpdateClock and now >= doUpdateClock) or refreshBuildmenu then
+		if doUpdateClock and now >= doUpdateClock then
+			doUpdateClock = nil
+		end
+		if not useRenderToTexture then
+			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+		end
+		RefreshCommands()
+		doUpdate = nil
+		refreshBuildmenu = true
 	end
-	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
-		if WG['guishader'] and dlistGuishader then
-			WG['guishader'].RemoveDlist('buildmenu')
-		end
-	else
-		local x, y, b, b2, b3 = spGetMouseState()
-		local now = os_clock()
-		if doUpdate or (doUpdateClock and now >= doUpdateClock) or refreshBuildmenu then
-			if doUpdateClock and now >= doUpdateClock then
-				doUpdateClock = nil
-			end
-			if not useRenderToTexture then
-				dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-			end
-			RefreshCommands()
-			doUpdate = nil
-			refreshBuildmenu = true
-		end
 
-		-- create buildmenu drawlists
-		if WG['guishader'] and dlistGuishader then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
-		end
+	-- create buildmenu drawlists
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+	end
 
-		-- create buildmenu
-		if refreshBuildmenu then
-			refreshBuildmenu = false
-			if useRenderToTexture then
-				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-					buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
-						fbo = true,
-					})
-					gl.RenderToTexture(buildmenuBgTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenuBg()
-						gl.PopMatrix()
-					end)
-				end
-				if buildmenuTex then
-					gl.RenderToTexture(buildmenuTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenu()
-						gl.PopMatrix()
-					end)
-				end
-			else
-				if not dlistBuildmenuBg then
-					dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-				end
-				if not dlistBuildmenu then
-					dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
-				end
-			end
-		end
-
-		-- draw buildmenu background
+	-- create buildmenu
+	if refreshBuildmenu then
+		refreshBuildmenu = false
 		if useRenderToTexture then
-			-- background element
-			if buildmenuBgTex then
-				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-				gl.Texture(buildmenuBgTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			if not buildmenuTex and width > 0.05 and height > 0.05 then
+				buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(buildmenuBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawBuildmenuBg()
+					gl.PopMatrix()
+				end)
+			end
+			if buildmenuTex then
+				gl.RenderToTexture(buildmenuTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawBuildmenu()
+					gl.PopMatrix()
+				end)
 			end
 		else
-			gl.CallList(dlistBuildmenuBg)
+			if not dlistBuildmenuBg then
+				dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
+			end
+			if not dlistBuildmenu then
+				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+			end
 		end
+	end
 
-		local hovering = false
-		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
-			hovering = true
+	-- draw buildmenu background
+	if useRenderToTexture then
+		if buildmenuBgTex and backgroundRect then
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(buildmenuBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 		end
+	else
+		gl.CallList(dlistBuildmenuBg)
+	end
 
-		if preGamestartPlayer or selectedBuilderCount ~= 0 then
-			-- pre process + 'highlight' under the icons
-			local hoveredCellID
-			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if hovering then
-					for cellRectID, cellRect in pairs(cellRects) do
-						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-							hoveredCellID = cellRectID
-							local uDefID = cmds[cellRectID].id * -1
-							WG['buildmenu'].hoverID = uDefID
-							gl.Color(1, 1, 1, 1)
-							local alt, ctrl, meta, shift = Spring.GetModKeyState()
-							if WG['tooltip'] and not meta then
-								-- when meta: unitstats does the tooltip
-								local text
-								local textColor = "\255\215\255\215"
-								if units.unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
-								else
-									text = UnitDefs[uDefID].translatedHumanName
-								end
-								local tooltip = unitTranslatedTooltip[uDefID]
-								if unitMetal_extractor[uDefID] then
-									tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
-								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
+	local hovering = false
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		Spring.SetMouseCursor('cursornormal')
+		hovering = true
+	end
+
+	if preGamestartPlayer or selectedBuilderCount ~= 0 then
+		-- pre process + 'highlight' under the icons
+		local hoveredCellID
+		if not WG['topbar'] or not WG['topbar'].showingQuit() then
+			if hovering then
+				for cellRectID, cellRect in pairs(cellRects) do
+					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+						hoveredCellID = cellRectID
+						local uDefID = cmds[cellRectID].id * -1
+						WG['buildmenu'].hoverID = uDefID
+						gl.Color(1, 1, 1, 1)
+						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						if WG['tooltip'] and not meta then
+							-- when meta: unitstats does the tooltip
+							local text
+							local textColor = "\255\215\255\215"
+							if units.unitRestricted[uDefID] then
+								text = Spring.I18N('ui.buildMenu.disabled', { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
+							else
+								text = UnitDefs[uDefID].translatedHumanName
 							end
-
-							-- highlight --if b and not disableInput then
-							glBlending(GL_SRC_ALPHA, GL_ONE)
-							RectRound(cellRects[cellRectID][1] + cellPadding, cellRects[cellRectID][2] + cellPadding, cellRects[cellRectID][3] - cellPadding, cellRects[cellRectID][4] - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
-							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-							break
+							local tooltip = unitTranslatedTooltip[uDefID]
+							if unitMetal_extractor[uDefID] then
+								tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+							end
+							WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
 						end
+
+						-- highlight --if b and not disableInput then
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						RectRound(cellRects[cellRectID][1] + cellPadding, cellRects[cellRectID][2] + cellPadding, cellRects[cellRectID][3] - cellPadding, cellRects[cellRectID][4] - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
+						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+						break
 					end
 				end
 			end
+		end
 
-			-- draw buildmenu content
-			if buildmenuTex then
-				-- content
-				gl.Color(1,1,1,1)
-				gl.Texture(buildmenuTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-				gl.Texture(false)
-			elseif dlistBuildmenu then
-				gl.CallList(dlistBuildmenu)
-			end
+		-- draw buildmenu content
+		if buildmenuTex then
+			-- content
+			gl.Color(1,1,1,1)
+			gl.Texture(buildmenuTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.Texture(false)
+		elseif dlistBuildmenu then
+			gl.CallList(dlistBuildmenu)
+		end
 
-			-- draw highlight
-			local usedZoom
-			local cellColor
-			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		-- draw highlight
+		local usedZoom
+		local cellColor
+		if not WG['topbar'] or not WG['topbar'].showingQuit() then
+			if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
-					-- paginator buttons
-					local paginatorHovered = false
-					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-						paginatorHovered = 1
+				-- paginator buttons
+				local paginatorHovered = false
+				if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+					paginatorHovered = 1
+				end
+				if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+					paginatorHovered = 2
+				end
+				if paginatorHovered then
+					if WG['tooltip'] then
+						local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
+						WG['tooltip'].ShowTooltip('buildmenu', text)
 					end
-					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-						paginatorHovered = 2
-					end
-					if paginatorHovered then
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
-						-- gloss
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
-					end
+					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
+					-- gloss
+					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
+					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
+				end
 
-					-- draw cell hover
-					if hoveredCellID then
-						local uDefID = cmds[hoveredCellID].id * -1
-						local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
-						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
-							prevQueueNr = cmds[hoveredCellID].params[1]
-							prevB = b
-							prevB3 = b3
-							prevHoveredCellID = hoveredCellID
-							hoverCellSelected = cellIsSelected
-							hoverUdefID = uDefID
-							if hoverDlist then
-								hoverDlist = gl.DeleteList(hoverDlist)
-							end
-							hoverDlist = gl.CreateList(function()
-
-								-- determine zoom amount and cell color
-								usedZoom = hoverCellZoom
-								if not cellIsSelected then
-									if (b or b2) and cellIsSelected then
-										usedZoom = clickSelectedCellZoom
-									elseif cellIsSelected then
-										usedZoom = selectedCellZoom
-									elseif (b or b2) and not disableInput then
-										usedZoom = clickCellZoom
-									elseif b3 and not disableInput and cmds[hoveredCellID].params[1] then
-										-- has queue
-										usedZoom = rightclickCellZoom
-									end
-									-- determine color
-									if (b or b2) and not disableInput then
-										cellColor = { 0.3, 0.8, 0.25, 0.2 }
-									elseif b3 and not disableInput then
-										cellColor = { 1, 0.35, 0.3, 0.2 }
-									else
-										cellColor = { 0.63, 0.63, 0.63, 0 }
-									end
-								else
-									-- selected cell
-									if (b or b2 or b3) then
-										usedZoom = clickSelectedCellZoom
-									else
-										usedZoom = selectedCellZoom
-									end
-									cellColor = { 1, 0.85, 0.2, 0.25 }
-								end
-								if not (units.unitRestricted[uDefID]) then
-
-									local unsetShowPrice
-									if not showPrice then
-										unsetShowPrice = true
-										showPrice = true
-									end
-
-									-- re-draw cell with hover zoom (and price shown)
-									font2:Begin()
-									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
-									font2:End()
-
-									if unsetShowPrice then
-										showPrice = false
-										unsetShowPrice = nil
-									end
-								end
-							end)
-						end
+				-- draw cell hover
+				if hoveredCellID then
+					local uDefID = cmds[hoveredCellID].id * -1
+					local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
+					if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
+						prevQueueNr = cmds[hoveredCellID].params[1]
+						prevB = b
+						prevB3 = b3
+						prevHoveredCellID = hoveredCellID
+						hoverCellSelected = cellIsSelected
+						hoverUdefID = uDefID
 						if hoverDlist then
-							gl.CallList(hoverDlist)
+							hoverDlist = gl.DeleteList(hoverDlist)
 						end
+						hoverDlist = gl.CreateList(function()
+
+							-- determine zoom amount and cell color
+							usedZoom = hoverCellZoom
+							if not cellIsSelected then
+								if (b or b2) and cellIsSelected then
+									usedZoom = clickSelectedCellZoom
+								elseif cellIsSelected then
+									usedZoom = selectedCellZoom
+								elseif (b or b2) and not disableInput then
+									usedZoom = clickCellZoom
+								elseif b3 and not disableInput and cmds[hoveredCellID].params[1] then
+									-- has queue
+									usedZoom = rightclickCellZoom
+								end
+								-- determine color
+								if (b or b2) and not disableInput then
+									cellColor = { 0.3, 0.8, 0.25, 0.2 }
+								elseif b3 and not disableInput then
+									cellColor = { 1, 0.35, 0.3, 0.2 }
+								else
+									cellColor = { 0.63, 0.63, 0.63, 0 }
+								end
+							else
+								-- selected cell
+								if (b or b2 or b3) then
+									usedZoom = clickSelectedCellZoom
+								else
+									usedZoom = selectedCellZoom
+								end
+								cellColor = { 1, 0.85, 0.2, 0.25 }
+							end
+							if not (units.unitRestricted[uDefID]) then
+
+								local unsetShowPrice
+								if not showPrice then
+									unsetShowPrice = true
+									showPrice = true
+								end
+
+								-- re-draw cell with hover zoom (and price shown)
+								font2:Begin()
+								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
+								font2:End()
+
+								if unsetShowPrice then
+									showPrice = false
+									unsetShowPrice = nil
+								end
+							end
+						end)
+					end
+					if hoverDlist then
+						gl.CallList(hoverDlist)
 					end
 				end
 			end
+		end
 
-			-- draw builders buildoption progress
-			if showBuildProgress then
-				local numCellsPerPage = rows * colls
-				local maxCellRectID = numCellsPerPage * currentPage
-				if maxCellRectID > cmdsCount then
-					maxCellRectID = cmdsCount
-				end
-				-- loop selected builders
-				local drawncellRectIDs = {}
-				for builderUnitID, _ in pairs(selectedBuilders) do
-					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
-					if unitBuildID then
-						local unitBuildDefID = spGetUnitDefID(unitBuildID)
-						if unitBuildDefID then
-							-- loop all shown cells
-							for cellRectID, _ in pairs(cellRects) do
-								if not drawncellRectIDs[cellRectID] then
-									if cellRectID > maxCellRectID then
-										break
-									end
-									local cellUnitDefID = cmds[cellRectID].id * -1
-									if unitBuildDefID == cellUnitDefID then
-										drawncellRectIDs[cellRectID] = true
-										local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
-										progress = 1 - progress -- make the effect wind counter-clockwise
-										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
-									end
+		-- draw builders buildoption progress
+		if showBuildProgress then
+			local numCellsPerPage = rows * colls
+			local maxCellRectID = numCellsPerPage * currentPage
+			if maxCellRectID > cmdsCount then
+				maxCellRectID = cmdsCount
+			end
+			-- loop selected builders
+			local drawncellRectIDs = {}
+			for builderUnitID, _ in pairs(selectedBuilders) do
+				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
+				if unitBuildID then
+					local unitBuildDefID = spGetUnitDefID(unitBuildID)
+					if unitBuildDefID then
+						-- loop all shown cells
+						for cellRectID, _ in pairs(cellRects) do
+							if not drawncellRectIDs[cellRectID] then
+								if cellRectID > maxCellRectID then
+									break
+								end
+								local cellUnitDefID = cmds[cellRectID].id * -1
+								if unitBuildDefID == cellUnitDefID then
+									drawncellRectIDs[cellRectID] = true
+									local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
+									progress = 1 - progress -- make the effect wind counter-clockwise
+									RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 								end
 							end
 						end
@@ -1082,7 +1078,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
 		if doUpdateClock == nil then
-			doUpdateClock = os_clock() + 0.01
+			doUpdateClock = os_clock() + 0.001
 		end
 	end
 	if cmdID == CMD_STOP_PRODUCTION then
@@ -1225,7 +1221,7 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						end
-						doUpdateClock = os_clock() + 0.01
+						doUpdateClock = os_clock() + 0.001
 						return true
 					end
 				end
