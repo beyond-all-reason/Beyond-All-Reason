@@ -80,7 +80,7 @@ return {
 			"legtide",
 			"coruwms",
 			"coruwes",
-			"legfmkr",
+			"legfeconv",
 			"corsy",
 			"corfdrag",
 			"legtl",

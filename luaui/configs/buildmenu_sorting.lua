@@ -713,13 +713,14 @@ local unitOrderTable = {
    --WATER ECO NRG CONVERTERS
    ['armfmkr']        = 200400,
    ['corfmkr']        = 200500,
-   ['legfmkr']        = 200550,
+   ['legfeconv']        = 200550,
    ['armuwmmm']       = 200600,
    ['coruwmmm']       = 200700,
 
    --WATER ECO METAL STORAGE
    ['armuwms']        = 201000,
    ['coruwms']        = 201500,
+   ['leguwmstore']    = 201501,
 
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
@@ -739,6 +740,7 @@ local unitOrderTable = {
    --WATER ECO NRG STORAGE
    ['armuwes']        = 207000,
    ['coruwes']        = 207500,
+   ['leguwestore']    = 207501,
 
    --WATER CONSTRUCTION
    ['armnanotcplat']  = 210000,

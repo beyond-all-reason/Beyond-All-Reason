@@ -74,7 +74,7 @@ return {
 			 "legestor",
 			 "legmstor",
 			 "coruwes",
-			 "legfmkr",
+			 "legfeconv",
 			 "coruwms",
 			 "coruwgeo",
 			 "leggat",

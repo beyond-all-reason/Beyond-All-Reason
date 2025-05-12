@@ -50,7 +50,7 @@ return {
 			"legtide",
 			"leggeo",
 			"coruwgeo",
-			"legfmkr",
+			"legfeconv",
 			"coruwms",
 			"coruwes",
 			"legsy",
