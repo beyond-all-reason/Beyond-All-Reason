@@ -1,11 +1,9 @@
-
-local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	isPotatoGpu = true
+	return false
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
-	isPotatoGpu = true
+	return false
 end
 
 
@@ -21,7 +19,7 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = 999999,
-        enabled   = not isPotatoGpu,
+        enabled   = true,
         depends   = {'gl4'},
     }
 end

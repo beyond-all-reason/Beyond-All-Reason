@@ -18,7 +18,7 @@ Our intelligence reports that Cortex have laid a minefield along the bridge, so 
  
 Tips:
  - Ghosts are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
- - Fatboy has a very large range, and a huge area of effect, but a is slow and hard to maneuver. Use Gunslinger to keep any smaller Tier 1 units away from him. 
+ - Fatboy has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Gunslinger to keep any smaller Tier 1 units away from him. 
  - Gunslinger will heal himself quickly after taking damage, and will gain extra HP and a faster reload time with experience gained from damaging enemy units. 
  - Welder is quite tanky, and can be used to absorb damage from any defenses. 
  - Compass has a very long line-of-sight, but is extremely fragile.

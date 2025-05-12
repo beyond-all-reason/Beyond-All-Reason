@@ -226,7 +226,7 @@ local unitOrderTable = {
 	['corgatreap']     = 006350,
 
 	['corhrk']         = 006400, --ROCKETS
-	['armmerl']        = 006410,
+	['leghrk']         = 006410,
 	['corvroc']        = 006420,
 	['armmerl']        = 006430,
 	['legavroc']       = 006435,

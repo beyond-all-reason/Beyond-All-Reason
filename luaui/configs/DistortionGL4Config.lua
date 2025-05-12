@@ -1467,18 +1467,19 @@ local unitDistortions = {
 		-- 					lifeTime = 0,  
 		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
 		-- },
-		shielddistortion = {
-			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20, 
-								noiseStrength = 5.5, noiseScaleSpace = -0.15, distanceFalloff = -0.5,
-								rampUp = 0, decay = 0,
-								--magnificationRate = -8.0,
-								lifeTime = 0, windAffected = -1, riseRate = -0.6,
-								effectType = 7},
+		-- SHIELD DISTORTION disabled for now, as it is too distorting in massive shieldbubbles
+		-- shielddistortion = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
+		-- 						pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 20, 
+		-- 						noiseStrength = 5.5, noiseScaleSpace = -0.15, distanceFalloff = -0.5,
+		-- 						rampUp = 0, decay = 0,
+		-- 						--magnificationRate = -8.0,
+		-- 						lifeTime = 0, windAffected = -1, riseRate = -0.6,
+		-- 						effectType = 7},
 
-		},
+		-- },
 	},
 
 	['armfgate'] = {
@@ -1800,6 +1801,80 @@ local unitDistortions = {
 		},
 	},
 
+	['legmos'] = {
+		-- motionl = { --motion blur only works when unit is moving
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'blur',
+		-- 	distortionConfig = { posx = 25, posy = 0, posz = 2.5, radius = 15,
+		-- 					onlyModelMap = -1,
+		-- 					effectStrength = -10
+		-- 					noiseStrength = 1, noiseScaleSpace = 1,
+		-- 					--riseRate = -8, windAffected = -1,
+		-- 					lifeTime = 0,  effectType = 11},
+		-- },
+		blurl = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = 3, posy = -1, posz = 2.5, radius = 40,
+							dirx = 1, diry = -0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		blurr = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = -3.0, posy = -1, posz = 2.5, radius = 40,
+							dirx = -1, diry = -0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85, onlyModelMap = 0,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrustdistortion = {
+			distortionType = 'cone',
+			pieceName = 'thruster',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+							distanceFalloff = 1.3,
+							noiseStrength = 6, noiseScaleSpace = 0.55,
+							riseRate = 0.5, lifeTime = 0, effectType = 0},
+		},
+	},
+
+	['legmost3'] = {
+		blurl = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = 3, posy = -1, posz = 2.5, radius = 80,
+							dirx = 1, diry = 0.05, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		blurr = {
+			distortionType = 'cone',
+			pieceName = 'blur',
+			distortionConfig = { posx = -3.0, posy = -1, posz = 2.5, radius = 80,
+							dirx = -1, diry = 0.15, dirz = 0, theta = 0.9,
+							distanceFalloff = 0.85, onlyModelMap = 0,
+							noiseStrength = 6.1, noiseScaleSpace = 0.4,
+							riseRate = -8, windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrustdistortion = {
+			distortionType = 'cone',
+			pieceName = 'thrust',
+			distortionConfig = { posx = 2, posy = 0, posz = 14, radius = 65,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+							distanceFalloff = 1.3,
+							noiseStrength = 6, noiseScaleSpace = 0.55,
+							riseRate = 0.5, lifeTime = 0, effectType = 0},
+		},
+	},
+
 	['corcrwh'] = {
 		thrust1 = {
 			distortionType = 'cone',
@@ -2002,7 +2077,7 @@ do
 			local alreadyhasjet = false
 			for j, distortion in pairs(unitDistortions[unitDefName]) do
 				if distortion.pieceName == airjet.piece then
-					Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
+					-- Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
 					alreadyhasjet = true
 					break
 				end
@@ -2093,11 +2168,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepfl',
 				pieceName = 'footfl',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[2] = {
@@ -2106,11 +2181,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepbr',
 				pieceName = 'footbr',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[3] = {
@@ -2119,11 +2194,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepfr',
 				pieceName = 'footfr',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 			[4] = {
@@ -2132,11 +2207,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corsumofootstepbl',
 				pieceName = 'footbl',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
-								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 1, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 0.35, noiseScaleSpace = 0.9, distanceFalloff = 0.7, onlyModelMap = 1, 
+								effectStrength = 0.8, refractiveIndex = -1.02, --needed for shockwave
+								lifeTime = 15, rampUp = 3, decay = 10, startRadius = 0.4,
+								shockWidth = 0.6, effectType = 'groundShockwave'},
 	
 			},
 		},
@@ -2196,21 +2271,21 @@ local unitEventDistortionsNames = {
 		},
 
 
-		['armmark'] = {
-			[1] = {
-				-- radarwave
-				alwaysVisible = false,
-				distortionType = 'point',
-				distortionName = 'radarwave',
-				pieceName = 'none',
-				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
-								effectStrength = -1.5, --needed for shockwave
-								lifeTime = 60, rampUp = 20, decay = 15,
-								shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
+		-- ['armmark'] = {
+		-- 	[1] = {
+		-- 		-- radarwave
+		-- 		alwaysVisible = false,
+		-- 		distortionType = 'point',
+		-- 		distortionName = 'radarwave',
+		-- 		pieceName = 'none',
+		-- 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+		-- 						noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
+		-- 						effectStrength = -1.5, --needed for shockwave
+		-- 						lifeTime = 60, rampUp = 20, decay = 15,
+		-- 						shockWidth = 0.7, startRadius = 0.1, effectType = 'groundShockwave'},
 	
-			},
-		},
+		-- 	},
+		-- },
 
 		['cordemon'] = {
 			[1] = {

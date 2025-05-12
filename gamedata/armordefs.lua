@@ -458,7 +458,8 @@ local armorDefs = {
 		"scavdrag",
 		"scavfort",
 		"legmohocon",
-		"legmohoconct"
+		"legmohoconct",
+		"leghrk"
 	},
 	mines = {
 		"armfmine3",
