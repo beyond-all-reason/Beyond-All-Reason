@@ -26,6 +26,7 @@ local soundVolume = 0.5
 local setHeight = 0.046
 local maxIcons = 9
 local showRez = true
+local doUpdateForce = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -607,7 +608,7 @@ local sec = 0
 local sec2 = 0
 local timerStart = Spring.GetTimer()
 local function Update()
-	if Spring.GetGameFrame() <= initializeGameFrame then
+	if Spring.GetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
 		return
 	end
 	doCheckUnitGroupsPos = true
