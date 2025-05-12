@@ -20,7 +20,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
 
 -- Constants
-local CMD = Spring.Utilities.getTableFromNamedTable("CMD")
 local FRAME_CHECK_FREQUENCY = 20
 local GUNSHIP_STATES = {
 	IDLE = 1,
@@ -32,7 +31,8 @@ local STATE_NAMES = {
 	[GUNSHIP_STATES.HAS_TARGET] = "HAS_TARGET",
 	[GUNSHIP_STATES.READY_TO_STOP] = "READY_TO_STOP",
 }
-local CMD_OPTIONS = { internal = false }
+-- Todo figure out options to make the command silent
+local CMD_OPTIONS = 0
 
 -- Gadget variables
 local gunshipDefs = {}
@@ -64,7 +64,6 @@ local function registerGunship(unitID) end
 function gadget:Initialize()
 	-- Find all gunship units
 	for defID, unitDef in pairs(UnitDefs) do
-		-- Todo: see if drones need to be excluded
 		if
 			(unitDef.canFly or unitDef.isAirUnit)
 			and (unitDef.gunship or unitDef.isHoveringAirUnit or unitDef.hoverattack)
@@ -84,8 +83,13 @@ function gadget:Initialize()
 		local unitDefID = spGetUnitDefID(unitID)
 		if gunshipDefs[unitDefID] then
 			local initState = GUNSHIP_STATES.IDLE
+			local numCommands = #spGetUnitCommands(unitID, 1)
 			if isTargettingUnit(unitID, unitDefID) then
 				initState = GUNSHIP_STATES.HAS_TARGET
+			end
+			-- Stops any loaded in gunships that are idle and have no commands to fix gunships that are loaded in the strafe without target state
+			if initState == GUNSHIP_STATES.IDLE and numCommands == 0 then
+				spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
 			end
 			-- Initialize previous command for new gunship unit ID
 			gunshipsToTrack[unitID] = {
