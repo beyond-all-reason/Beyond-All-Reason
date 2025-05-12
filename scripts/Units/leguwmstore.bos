@@ -2,10 +2,31 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base;
+piece  base, fan1, fan2, fan3, fan4, fan5;
 
 Create()
 {
+	SLEEP_UNTIL_UNITFINISHED;
+	spin fan1 around y-axis speed <100> accelerate <1>;
+	spin fan2 around y-axis speed <100> accelerate <1>;
+	spin fan3 around y-axis speed <100> accelerate <1>;
+	spin fan4 around y-axis speed <100> accelerate <1>;
+	spin fan5 around y-axis speed <100> accelerate <1>;
+
+	while( TRUE )
+	{
+		emit-sfx 259 from fan1;
+		sleep 50;
+		emit-sfx 259 from fan2;
+		sleep 50;
+		emit-sfx 259 from fan3;
+		sleep 50;
+		emit-sfx 259 from fan4;
+		sleep 50;
+		emit-sfx 259 from fan5;
+		sleep 50;
+	}
+
 }
 
 

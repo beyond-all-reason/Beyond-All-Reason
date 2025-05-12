@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, doora, doorb, converterCell;
+piece  base, doora, doorb, converterCell, light, sidelight1, sidelight2, sidelight3, floatlight1, floatlight2, floatlight3;
 static-var  mmState, Active;
 
 
@@ -21,14 +21,14 @@ MMStatus(State)
 	Active = State;
 	if (State)
 	{
-		//show light;
+		show light;
 		turn doora to y-axis <0> speed <70>;
 		turn doorb to y-axis <0> speed <70>;
 
 	}
 	else
 	{
-		//hide light;
+		hide light;
 		turn doora to y-axis <70> speed <70>;
 		turn doorb to y-axis <-70> speed <70>;
 	}
@@ -38,6 +38,7 @@ Create()
 {
     turn doora to y-axis <70> speed <70>;
 	turn doorb to y-axis <-70> speed <70>;
+	turn floatlight1 to y-axis <30> now;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
 }
