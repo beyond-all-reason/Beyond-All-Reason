@@ -269,7 +269,7 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] then
+	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
 		if unitTeam ~= GaiaTeam then
 			comms[unitID] = GetCommAttributes(unitID, unitDefID)
 		end
@@ -303,11 +303,7 @@ local function CheckAllComs()
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local unitTeam = GetUnitTeam(unitID)
-		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
-		end
+		CheckCom(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 
@@ -492,11 +488,18 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
+	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
+	
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
 	sec = 99
+
+	if spec and prevSpec ~= spec then
+		CheckedForSpec = true
+		CheckAllComs()
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)

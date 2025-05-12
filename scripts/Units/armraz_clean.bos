@@ -422,20 +422,6 @@ lua_UnitScriptDistortion(lightIndex, count)
 	return 0;
 }
 
-
-RestoreAfterDelay()
-{
-	set-signal-mask SIGNAL_AIM1;
-	sleep 3500;
-	//turn aimx1 to x-axis <0> speed <75>;
-	//turn aimy1 to y-axis <0> speed <75>;
-	
-	start-script CATT1_Restore();
-	dbg(1);
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
-}
-
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = torso;
@@ -454,42 +440,27 @@ QueryWeapon1(pieceIndex)
 #define CATT1_PIECE_X aimx1
 
 #define CATT1_MAX_VELOCITY <7.5>
-#define CATT1_ACCELERATION <0.5>
+#define CATT1_ACCELERATION <1.0>
 #define CATT1_JERK <1.5>
-#define CATT1_PRECISION <5>
+#define CATT1_PRECISION <7.5>
 #define CATT1_RESTORE_SPEED <1.0>
-#define CATT1_RESTORE_DELAY 1000
+#define CATT1_RESTORE_DELAY 3000
 #define CATT1_PITCH_SPEED <75>
 
 #include "../constant_acceleration_turret_turning_1.h"
 
 AimWeapon1(heading, pitch)
 {
-	
 	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	spin rbarrel around z-axis speed <1000>;
 	spin lbarrel around z-axis speed <1000>;
-
-
-	/*
-	turn aimy1 to y-axis heading speed <225.005495>;
-	turn aimx1 to x-axis <0.0> - pitch speed <75.005495>;
-	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((wpn1_lasthead == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(wpn1_lasthead - heading), <11>)){
-		wpn1_lasthead = 0xbadface;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-	}
-	wpn1_lasthead = heading;
-	*/
-	set-signal-mask SIGNAL_AIM1;
 
 	call-script CATT1_Aim(heading,pitch);
 
 	stop-spin rbarrel around z-axis decelerate <10>;
 	stop-spin lbarrel around z-axis decelerate <10>;
 
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
