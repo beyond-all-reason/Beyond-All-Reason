@@ -85,6 +85,7 @@ local hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 local lastMapmarkCoords
 local lastUnitShare
 local lastLineUnitShare
+local lastDrawUiUpdate = os.clock()
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local mySpec = Spring.GetSpectatingState()
@@ -1889,7 +1890,11 @@ function widget:DrawScreen()
 			})
 		end
 		if uiTex then
+			if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
+				updateDrawUi = true
+			end
 			if updateDrawUi ~= nil then
+				lastDrawUiUpdate = clock()
 				gl.RenderToTexture(uiTex, function()
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 					gl.PushMatrix()
