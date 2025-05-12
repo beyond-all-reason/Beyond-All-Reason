@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author = "JRTaylord: https://github.com/JRTaylord",
 		date = "May 7, 2025",
 		license = "GNU GPL, v2 or later",
-		layer = 0, -- Lower layers execute first
+		layer = 0, -- Todo: ask which layer should this be on
 		enabled = true,
 	}
 end
@@ -24,12 +24,10 @@ local FRAME_CHECK_FREQUENCY = 20
 local GUNSHIP_STATES = {
 	IDLE = 1,
 	HAS_TARGET = 2,
-	READY_TO_STOP = 3,
 }
 local STATE_NAMES = {
 	[GUNSHIP_STATES.IDLE] = "IDLE",
 	[GUNSHIP_STATES.HAS_TARGET] = "HAS_TARGET",
-	[GUNSHIP_STATES.READY_TO_STOP] = "READY_TO_STOP",
 }
 -- Todo figure out options to make the command silent
 local CMD_OPTIONS = CMD.OPT_INTERNAL
@@ -59,8 +57,6 @@ local function debugPrintGunshipState(state, unitID, unitDefID)
 	spEcho(gunshipDefs[unitDefID].name .. " " .. unitID .. " state: " .. STATE_NAMES[state])
 end
 
-local function registerGunship(unitID) end
-
 function gadget:Initialize()
 	-- Find all gunship units
 	for defID, unitDef in pairs(UnitDefs) do
@@ -77,18 +73,19 @@ function gadget:Initialize()
 	end
 
 	-- Register any existing gunships to ensure this fix works when loading scenarios or saved games
+	-- Todo: ask more experienced devs if this is needed and if so, figure out/ask how to test this because save games don't load dev code based on my testing
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if gunshipDefs[unitDefID] then
 			local initState = GUNSHIP_STATES.IDLE
+			local currCommand = spGetUnitCommands(unitID, 1)[1]
 			local numCommands = #spGetUnitCommands(unitID, 1)
-			if isTargettingUnit(unitID, unitDefID) then
+			if hasTarget or (numCommands > 0 and currCommand.id == CMD.ATTACK) then
 				initState = GUNSHIP_STATES.HAS_TARGET
-			end
 			-- Stops any loaded in gunships that are idle and have no commands to fix gunships that are loaded in the strafe without target state
-			if initState == GUNSHIP_STATES.IDLE and numCommands == 0 then
+			elseif initState == GUNSHIP_STATES.IDLE and numCommands == 0 then
 				spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
 			end
 			-- Initialize previous command for new gunship unit ID
@@ -127,21 +124,22 @@ function gadget:GameFrame(frameNum)
 	for unitID, currentGunship in pairs(gunshipsToTrack) do
 		local unitDefID = currentGunship.unitDefID
 		local hasTarget = isTargettingUnit(unitID, unitDefID)
+		local currCommand = spGetUnitCommands(unitID, 1)[1]
 		local numCommands = #spGetUnitCommands(unitID, 1)
 
-		if hasTarget and currentGunship.state ~= GUNSHIP_STATES.HAS_TARGET then
+		if
+			currentGunship.state ~= GUNSHIP_STATES.HAS_TARGET
+			and (hasTarget or (numCommands > 0 and currCommand.id == CMD.ATTACK))
+		then
 			-- When the gunship has a target, update state to match
 			currentGunship.state = GUNSHIP_STATES.HAS_TARGET
-		elseif not hasTarget and currentGunship.state == GUNSHIP_STATES.HAS_TARGET then
+		elseif not hasTarget and numCommands == 0 and currentGunship.state == GUNSHIP_STATES.HAS_TARGET then
 			-- When the gunship loses a target, update the state so it is ready to stop in the next cycle
-			currentGunship.state = GUNSHIP_STATES.READY_TO_STOP
-		elseif currentGunship.state == GUNSHIP_STATES.READY_TO_STOP and numCommands == 0 then
-			-- When the gunship is out of commands and ready to stop, tell it to stop and put in the idle state
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
 			currentGunship.state = GUNSHIP_STATES.IDLE
 		end
 
 		-- Debug print statement for the gunship's state
-		debugPrintGunshipState(currentGunship.state, unitID, unitDefID)
+		-- debugPrintGunshipState(currentGunship.state, unitID, unitDefID)
 	end
 end
