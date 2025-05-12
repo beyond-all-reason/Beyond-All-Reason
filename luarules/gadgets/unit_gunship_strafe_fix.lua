@@ -32,7 +32,7 @@ local STATE_NAMES = {
 	[GUNSHIP_STATES.READY_TO_STOP] = "READY_TO_STOP",
 }
 -- Todo figure out options to make the command silent
-local CMD_OPTIONS = 0
+local CMD_OPTIONS = CMD.OPT_INTERNAL
 
 -- Gadget variables
 local gunshipDefs = {}
