@@ -174,3 +174,6 @@ bind           Alt+sc_]  blueprint_next
 
 // quotas
 bind           Alt+sc_g  factoryqueuemode
+
+// stateprefs
+bind           Any+Ctrl  stateprefs_record
