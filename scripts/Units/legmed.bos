@@ -74,7 +74,7 @@ missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 		
 		if(newHealth > oldHealth)												//Target is being repaired
 		{
-			if(missilesFired == 0)
+			if(missilesFired == 0)												//If being repaired reset missile count until ready to fire
 			{
 				canshoot = counter;
 			}
