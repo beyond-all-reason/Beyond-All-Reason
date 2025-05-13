@@ -40,7 +40,7 @@ return {
 			"legadvsol",
 			"legwin",
 			"leggeo",
-			"coruwgeo",
+			"leguwgeo",
 			"legmstor",
 			"legestor",
 			"legmex",

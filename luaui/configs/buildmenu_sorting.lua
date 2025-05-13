@@ -497,16 +497,16 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
-   ['armuwgeo']       = 101201,
+   --['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
    --['coruwgeo']       = 101251,
    ['leggeo']         = 101275,
    ['armgmm']         = 101300,
    ['legageo']        = 101325,
    ['corageo']        = 101350,
-   ['coruwageo']      = 101351,
+   --['coruwageo']      = 101351,
    ['armageo']        = 101400,
-   ['armuwageo']      = 101401,
+   --['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
    ['legrampart']       = 101475,
 
@@ -713,13 +713,14 @@ local unitOrderTable = {
    --WATER ECO NRG CONVERTERS
    ['armfmkr']        = 200400,
    ['corfmkr']        = 200500,
-   ['legfmkr']        = 200550,
+   ['legfeconv']        = 200550,
    ['armuwmmm']       = 200600,
    ['coruwmmm']       = 200700,
 
    --WATER ECO METAL STORAGE
    ['armuwms']        = 201000,
    ['coruwms']        = 201500,
+   ['leguwmstore']    = 201501,
 
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
@@ -729,8 +730,9 @@ local unitOrderTable = {
    --WATER ECO NRG GEOS
    ['armuwgeo']       = 204000,
    ['coruwgeo']       = 204100,
-   ['armuwageo']       = 204500,
-   ['coruwageo']       = 204600,
+   ['leguwgeo']       = 204101,
+   ['armuwageo']      = 204500,
+   ['coruwageo']      = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armuwfus']       = 205000,
@@ -739,6 +741,7 @@ local unitOrderTable = {
    --WATER ECO NRG STORAGE
    ['armuwes']        = 207000,
    ['coruwes']        = 207500,
+   ['leguwestore']    = 207501,
 
    --WATER CONSTRUCTION
    ['armnanotcplat']  = 210000,
