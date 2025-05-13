@@ -1,18 +1,5 @@
 // Mono-space font required
 {
-"terrain": {
-	"analyze": "armcom",
-
-	// These constants control how to decide between Seas and Lakes.
-	"lake_tiles": 100,  // 300,
-	"lake_width_tiles": 10,  // 32,
-
-	// At least area_min_tiles connected Tiles are necessary for an Area to be created.
-	"area_min_tiles": 32,  // 64,
-
-	"areas_merge_size": 64,  // 80,
-	"areas_merge_altitude": 64  // 80  // 10 * altitude_scale
-},
 
 "building": {
 	"class_land": {
@@ -64,8 +51,8 @@
 		"fac_strider": {
 			"type": ["rectangle", "factory"],
 			"offset": [0, 24],
-			"yard": [10, 10],
-			"size": [10, 10]
+			"yard": [16, 16],
+			"size": [16, 16]
 		},
 		"solar": {
 			"type": ["rectangle", "engy_low"],
