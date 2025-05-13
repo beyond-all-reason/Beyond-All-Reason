@@ -257,7 +257,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "cormstor", "leguwestore", "legfeconv",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv",  }, -- e storage, m sotrage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide"},             -- T1.5 mex, uw m storage, tidal
 			{ "legestor", "legmstor", "leguwestore", "legfeconv",  }, -- e storage, m sotrage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide"},             -- T1.5 mex, uw m storage, tidal
@@ -329,15 +329,15 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "cormstor", "leguwestore", "legfeconv",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "legtl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "legfrl", },                          -- basic AA, floating AA
+			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
+			{ "legrl", "legfrl", },                          -- basic AA, floating AA
 			{ "legctl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "legfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -842,7 +842,7 @@ local unitGrids = {
 		},
 		{
 			{ "leggat", "legbar", "legkark", "legcen", },     -- decurion, barrage, karkinos, centaur
-			{ "corrl", "legrail", "legmg", "legdtr", },       -- basic AA, lance, cacophony, dragon maw
+			{ "legrl", "legrail", "legmg", "legdtr", },       -- basic AA, lance, cacophony, dragon maw
 			{ "legctl", "leghive", "legtl", "", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
 		},
 		{
@@ -1903,7 +1903,7 @@ local unitGrids = {
 			{ "legctl", "legfloat", },               				-- coastal torp launcher, triton
 		},
 		{
-			{ "legarad", "coreyes", "legforti", "legajam", },        -- adv radar, camera, wall, adv jammer
+			{ "legarad", "legeyes", "legforti", "legajam", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
 			{ },                                          			  -- med mine
 		},
