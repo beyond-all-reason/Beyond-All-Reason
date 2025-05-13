@@ -49,13 +49,13 @@ CloseTimer()
 {
 	signal SIG_OPEN;
 	start-script Close();
-	sleep restore_delay - 5000;
+	sleep restore_delay - 4500;
 	justFired = justFired - 1;
 }
 
 missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 {
-	//get PRINT(canshoot, counter, newHealth, oldHealth);
+	//get PRINT(canshoot, counter, missilesFired, oldHealth);
 	oldHealth = newHealth;
 	newHealth = health;
 	burstDelay = burstrate;
@@ -73,25 +73,32 @@ missile_counter(status, counter, targetID, burstrate, health, losstate, damage)
 		}
 		
 		if(newHealth > oldHealth)												//Target is being repaired
-		{	
-			if(newExtraMissile > oldExtraMissile)								//Only when an extra missile is needed
+		{
+			if(missilesFired == 0)
 			{
-				oldExtraMissile = newExtraMissile;
-			}
-			if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
-			{
-				if((((newHealth - oldHealth) / (((damage - (newHealth % (damage))) / 20) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
-				{
-					newExtraMissile = 1;
-				}
+				canshoot = counter;
 			}
 			else
 			{
-				newExtraMissile = (((newHealth - oldHealth) / 20) - 0.5);		//If the change is greater than 500 over 3.5s fire an extra missile. 2 extra for 1000 etc
-			}
-			if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
-			{
-				canshoot = canshoot + newExtraMissile - oldExtraMissile;
+				if(newExtraMissile > oldExtraMissile)								//Only when an extra missile is needed
+				{
+					oldExtraMissile = newExtraMissile;
+				}
+				if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
+				{
+					if((((newHealth - oldHealth) / (((damage - (newHealth % damage)) / 20) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
+					{
+						newExtraMissile = 1;
+					}
+				}
+				else
+				{
+					newExtraMissile = (((newHealth - oldHealth) / 15));		//If the change is greater than 500 over 3.5s fire an extra missile. 2 extra for 1000 etc
+				}
+				if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
+				{
+					canshoot = canshoot + newExtraMissile - oldExtraMissile;
+				}
 			}
 		}
 		if(timeout == 1)														//Prevents same target refresh until missiles hit it
