@@ -4,7 +4,7 @@
 	"prefix": "",
 	"suffix": "",
 	"unit": {
-		"armcom": {
+		"legcom": {
 			// Choice importance, 0 by default
 			"importance": 0.5,
 
@@ -23,28 +23,7 @@
 			},
 
 			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
-			"side": "armada"
-		},
-		"corcom": {
-			// Choice importance, 0 by default
-			"importance": 0.5,
-
-			// Morph params
-			"upgrade": {
-//				"time": 120,  // Force-morph delay, in seconds
-				"module": []
-			},
-
-			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
-			"hide": {
-				"time": 270,  // seconds
-				"threat": 7,
-				"air": true,
-				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]
-			},
-
-			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
-			"side": "cortex"
+			"side": "legion"
 		}
 	}
 }
