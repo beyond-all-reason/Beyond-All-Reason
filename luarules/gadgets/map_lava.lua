@@ -28,6 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
+	local lavaSlow = lava.slow 
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -123,7 +124,7 @@ if gadgetHandler:IsSyncedCode() then
 				if y and y < lavaLevel then
 					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
+					lavaUnits[unitID] = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , 0.9)
 					--Spring.Echo(lavaUnits[unitID])
 				elseif lavaUnits[unitID] then
 					lavaUnits[unitID] = nil
