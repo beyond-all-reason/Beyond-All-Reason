@@ -69,25 +69,25 @@ function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
 
 	radius = radius or 8
 	if not moveClass then
-		Spring.Echo('RequestPath receive a nil moveClass',moveClass)
+		--Spring.Echo('RequestPath receive a nil moveClass',moveClass)
 		return
 	end
 	if not POS1 or not POS2 then
-		Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
+		--Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
 		return
 	end
 	local metapath = Spring.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
 	if not metapath then
-		Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+		--Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
 		return
 	end
 	local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 	if not waypoints then
-		Spring.Echo(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
+		--Spring.Echo(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
 		return
 	end
 	if #waypoints == 0 then
-		Spring.Echo(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		--Spring.Echo(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
 		return
 	end	
 	return waypoints, pathStartIdx
@@ -119,7 +119,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 		local z = end_z - nextPositionZ
 		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
 		--Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'$: '..uname)
-		Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+		--Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
 		if dist <= radius * 1.1 then
 			return dist,nextPositionX,nextPositionY,nextPositionZ
 		end
@@ -177,7 +177,7 @@ function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,rad
 	local z = end_z - wp[3]
 	local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
 	--Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'& '..uname)
-	Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
+	--Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
 	return dist,wp[1],wp[2],wp[3]
 end
 

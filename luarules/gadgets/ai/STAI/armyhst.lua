@@ -233,7 +233,12 @@ function ArmyHST:Init()
 		corshiva = true,
 
 		}
+	self.heavyAmphibious = {
+	
+		corparrow = true,
+		armcroc = true,
 
+		}
 	self.spiders = {
 		cortermite = true,
 		armsptk = true,

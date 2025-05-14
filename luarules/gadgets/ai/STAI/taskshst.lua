@@ -67,6 +67,34 @@ function TasksHST:startLabsParams()
 			},
 
 		}
+	self.labs.amphibiousComplex = {
+		{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1, mtype = nil, max = 3,},
+			wave = 1},
+		{category = 'amphibious',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 0,max = 20},
+			wave = 5},
+		{category = 'heavyAmphibious',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 0,max = 20},
+			wave = 5},
+		{category = 'wartechs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 1},
+			wave = 1},
+				--decoy etc
+
+		}
 	self.labs.default = {
 			{category = 'techs',
 			economy = function()

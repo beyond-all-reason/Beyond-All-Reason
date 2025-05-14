@@ -124,7 +124,7 @@ function MapHST:InitPathCost()
  	self.heightMapZ = (self.elmoMapSizeZ / 512)
 -- 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
 -- 	self:EchoDebug(Spring.GetPathNodeCosts(id))
- 	Spring.Echo('INIT new array node cost',Spring.InitPathNodeCostsArray(game:GetTeamID(),self.heightMapX,self.heightMapZ))
+	self:EchoDebug('INIT new array node cost',Spring.InitPathNodeCostsArray(game:GetTeamID(),self.heightMapX,self.heightMapZ))
 	local cost = 0
 	local index = 1
 	local heightpow = self.heightMapX * self.heightMapZ
@@ -141,7 +141,7 @@ function MapHST:InitPathCost()
 			index = index + 1
 		end
 	end
-	Spring.Echo('SET new array node layer non sync',Spring.SetPathNodeCosts(game:GetTeamID()))
+	self:EchoDebug('SET new array node layer non sync',Spring.SetPathNodeCosts(game:GetTeamID()))
 -- 	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
@@ -765,10 +765,50 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	position = position or builder:GetPosition()
 	local layer, net = self:MobilityOfUnit(builder)
 	local uname = unittype:Name()
-	local spotPosition = nil
+	local spotPosition = true
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
+	local CELL
 	for index, spot in pairs(sortlist) do
+		spotPosition = true
+		if spotPosition and not self.ai.buildingshst:PlansOverlap(spot, uname) then
+			self:EchoDebug(spot.x,spot.z,'dont overlap')
+		else
+			self:EchoDebug(spot.x,spot.z,'reject cause Plans Overlap')
+			spotPosition = false
+		end
+		if spotPosition and map:CanBuildHere(unittype, spot) then
+			self:EchoDebug(spot.x,spot.z,'is buildable')
+		else
+			self:EchoDebug(spot.x,spot.z,'reject cause CANTBUILDHERE')
+			spotPosition = false
+		end
+		
+		CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
+		if spotPosition and  (not CELL or CELL.ENEMY == 0) then
+			self:EchoDebug(spot.x,spot.z,'no enemy')
+		else
+			self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
+			spotPosition = false
+		end
+		if spotPosition and self.ai.targethst:IsSafeCell(spot, builder) then
+			self:EchoDebug(spot.x,spot.z,'is safe')
+		else
+			self:EchoDebug(spot.x,spot.z,'reject cause NOTSAFE')
+			spotPosition = false
+		end
+
+		if spotPosition and self:UnitCanGoHere(builder, spot) then
+			self:EchoDebug(spot.x,spot.z,'is reachable')
+		else
+			self:EchoDebug(spot.x,spot.z,'reject cause CANT GO HERE')
+			spotPosition = false
+		end
+		if spotPosition == true then
+			return spot
+		end
+	end
+	--[[for index, spot in pairs(sortlist) do
 		if self:UnitCanGoHere(builder, spot) then
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
@@ -792,7 +832,7 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 			self:EchoDebug(spot.x,spot.z,'reject cause CANT GO HER')
 		end
 	end
-	return spotPosition
+	return spotPosition]]
 end
 
 function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest free geo spot for the request unittype

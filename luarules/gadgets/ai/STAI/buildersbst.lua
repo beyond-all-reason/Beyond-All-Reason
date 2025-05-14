@@ -393,7 +393,7 @@ function BuildersBST:ProgressQueue()
 			end
 			if jobName and utype and not p then
 				utype, jobName, p = self:findPlace(utype, jobName, JOB.category, JOB.location)
-				self:EchoDebug('p', p)
+				self:EchoDebug('find pos for:',jobName,'p', p)
 			end
 			if jobName and not utype then
 				self:Warn('warning', self.name, " cannot build:", jobName, ", couldnt grab the unit type from the engine")

@@ -67,7 +67,8 @@ function LabsHST:factoriesRating()
 		if self.ai.armyhst.factoryMobilities[i][1] == 'hov' or self.ai.armyhst.factoryMobilities[i][1] == 'amp' then
 			if not t['armsy'] or  t['armsy'] < 0.33 then
 				t[i] = nil
-
+			elseif i == 'armamsub' or i == 'coramsub' then
+				t[i] = (t['armsy'] + t['armvp']) * 0.5
 			elseif not t['armvp'] or  (t['armvp'] < 0.6 and t['armsy'] < 0.6) then
 
 				t[i] = 1

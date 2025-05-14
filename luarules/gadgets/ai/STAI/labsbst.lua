@@ -140,6 +140,10 @@ function LabsBST:Update()
 end
 
 function LabsBST:getQueue()
+	if self.name == 'armamsub' or self.name == 'coramsub' then
+		return self.ai.taskshst.labs.amphibiousComplex
+	
+	end
 	if self.spec.techLevel >= 3 then
 		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
 			return self.ai.taskshst.labs.premode

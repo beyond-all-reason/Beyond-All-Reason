@@ -2,8 +2,8 @@ function gadget:GetInfo()
 	return {
 		name = "Shard AI Loader",
 		desc = "Shard by AF for Spring Lua",
-		author = "eronoobos, based on gadget by raaar, and original AI by AF",
-		date = "April 2020",
+		author = "eronoobos, based on gadget by raaar, and original AI by AF,maintained by Pandaro(bio)",
+		date = "May 2025",
 		license = "GPL",
 		layer = 999999,
 		enabled = true,
@@ -237,7 +237,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:Initialize()
 		spEcho("Looking for AIs")
-
+		
 		for i = 1, #teamList do
 			local id = teamList[i]
 			local _, _, _, isAI, side, allyId = spGetTeamInfo(id, false)
@@ -315,6 +315,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:GameStart()
 		-- Initialise AIs
+		
 		for _, thisAI in ipairs(Shard.AIs) do
 			local _, _, _, isAI, side = spGetTeamInfo(thisAI.id, false)
 			thisAI.side = side
@@ -333,11 +334,7 @@ else	-- UNSYNCED CODE
 	function gadget:GameFrame(n)
 		-- for each AI...
 		
-		RAM = gcinfo()
-		--print('ram used by AI',RAM, 'sync or other use ', RAM - lastRamRead)
-		
 		for i, thisAI in ipairs(Shard.AIs) do
-			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
@@ -358,14 +355,6 @@ else	-- UNSYNCED CODE
 			end
 			
 		end
-		RAM = gcinfo()-RAM
-		if RAM > 10 then
-			print('mainloopram',RAM)
-		end
-		
-		--lastRamRead = gcinfo()
-		--RAM = lastRamRead - RAM
-		--print(RAM .. ' kb of RAM used by AI in this update',lastRamRead)
 	end
 
 	function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
@@ -434,7 +423,6 @@ else	-- UNSYNCED CODE
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
 				thisAI:UnitIdle(unit,unitDefId, teamId)
-				-- thisAI:UnitIdle(unitId, unitDefId, teamId)
 			end
 		end
 	end
@@ -467,14 +455,12 @@ else	-- UNSYNCED CODE
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
 				thisAI:UnitCreated(unit, unitDefId, teamId, oldTeamId)
 			end
 		end
 	end
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
--- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -482,10 +468,9 @@ else	-- UNSYNCED CODE
 				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		spEcho('uelram',gcinfo()-RAM)
 	end
+
 	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
--- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -493,10 +478,9 @@ else	-- UNSYNCED CODE
 				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		spEcho('ullram',gcinfo()-RAM)
 	end
+
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
--- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -504,10 +488,9 @@ else	-- UNSYNCED CODE
 				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		spEcho('uerram',gcinfo()-RAM)
 	end
+
 	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
--- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -515,16 +498,14 @@ else	-- UNSYNCED CODE
 				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
--- 		spEcho('ulrram',gcinfo()-RAM)
 	end
 
 -- 	function gadget:UnitMoved(a,b,c,d)
 -- 		print('unit moved',a,b,c,d)
 -- 	end
 
--- 	function gadget:UnitMoveFailed(a,b,c,d)
--- 		print('unit move failed',a,b,c,d)
--- 	end
+ 	--function gadget:UnitMoveFailed(a,b,c,d)
+ 	--end
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end
