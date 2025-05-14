@@ -602,17 +602,10 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			cacheTable[3] = mpz
 			local vaokey = allystring .. weaponType
 
-			for i = 1,13 do
-				cacheTable[i+3] = ringParams[i]
+			for j = 1,13 do
+				cacheTable[j+3] = ringParams[j]
 			end
-			if true then
-				local s = ' '
-				for i = 1,16 do
-					s = s .. "; " ..tostring(cacheTable[i])
-				end
-				--Spring.Echo("Adding rings for", unitID, x,z)
-				--Spring.Echo("added",vaokey,s)
-			end
+
 			local instanceID = 1000000 * i + unitID
 			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
 			addedrings = addedrings + 1
@@ -786,6 +779,7 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
+local buildUnitDefID = nil
 function widget:Update(dt)
 	--spec, fullview = spGetSpectatingState()
 	--if spec then
@@ -839,6 +833,70 @@ function widget:Update(dt)
 		end
 		--Spring.Echo("removestep", removestep , scanned)
 	end
+	-- DRAW THE ATTACK RING FOR THE ACTIVELY BUILDING UNIT
+	local cmdID = select(2, Spring.GetActiveCommand())
+	-- remove from queue every frame cause mouse will probably move anyway
+	-- we kinda also need to remove if the allyenemy state changed
+	if (buildUnitDefID ~= nil)  then
+		local rings = unitDefRings[buildUnitDefID]
+		if rings then
+			-- find out which VBO to remove from:
+			local allystring = 'ally'
+			for i, weaponType in ipairs(rings['weapons']) do
+				for j,allyenemy in ipairs(allyenemypairs) do -- remove from all
+					local vaokey = allyenemy .. weaponType
+					local instanceID = 2000000 + 100000* i +  buildUnitDefID
+					if defenseRangeVAOs[vaokey].instanceIDtoIndex[instanceID] then
+						popElementInstance(defenseRangeVAOs[vaokey], instanceID)
+					end
+				end
+			end
+		end
+		buildUnitDefID = nil
+	end
+
+	if (cmdID ~= nil and (cmdID < 0)) then 
+		buildUnitDefID = -1* cmdID
+		if unitDefRings[buildUnitDefID] then
+			local rings = unitDefRings[buildUnitDefID]
+			-- only add to ally, independent of buttonconfig (ugh) 
+			-- todo, this wont show the respective attack range ring if the button for it is off. 
+			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
+			-- instead of during the draw pass
+
+			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
+			local _, coords = Spring.TraceScreenRay(mx, my, true)
+			--Spring.Echo(cmdID, "Attempting to draw rings at") 
+			--Spring.Echo(mx, my, coords[1], coords[2], coords[3])
+			
+			if coords and coords[1] and coords[2] and coords[3] then 
+				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
+				local allystring = 'ally'
+				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
+					local allystring = "ally"
+					if buttonConfig[allystring][weaponType] then
+						--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+						local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
+
+						cacheTable[1] = bpx
+						cacheTable[2] = ringParams[18]
+						cacheTable[3] = bpz
+						local vaokey = allystring .. weaponType
+
+						for j = 1,13 do
+							cacheTable[j+3] = ringParams[j]
+						end
+						--Spring.Echo("Drawing ring for", buildUnitDefID, "at", bpx, ringParams[18], bpz)
+						local instanceID = 2000000 + 100000* i +  buildUnitDefID
+						pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
+
+					end
+				end
+			end
+		end
+
+	end -- not build command
+
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -883,7 +941,7 @@ local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 			local defRangeClass = allyState..wt
 			local iT = defenseRangeVAOs[defRangeClass]
 
-			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+			if iT.usedElements > 0 then -- and buttonConfig[allyState][wt] then  -- remove the buttonConfig check, as we might have queued buildings here, and we already discarded addition of unwanted rings based on buttonConfig in visibleUnitCreated
 				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
 				defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig[wt][alpha])
 				if linethickness then
