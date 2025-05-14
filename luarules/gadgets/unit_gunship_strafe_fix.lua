@@ -20,15 +20,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
 
 -- Constants
-local FRAME_CHECK_FREQUENCY = 20
-local GUNSHIP_STATES = {
-	IDLE = 1,
-	HAS_TARGET = 2,
-}
-local STATE_NAMES = {
-	[GUNSHIP_STATES.IDLE] = "IDLE",
-	[GUNSHIP_STATES.HAS_TARGET] = "HAS_TARGET",
-}
 -- Todo figure out options to make the command silent
 local CMD_OPTIONS = CMD.OPT_INTERNAL
 
@@ -53,8 +44,12 @@ local function isTargettingUnit(unitID, unitDefID)
 	return false
 end
 
-local function debugPrintGunshipState(state, unitID, unitDefID)
-	spEcho(gunshipDefs[unitDefID].name .. " " .. unitID .. " state: " .. STATE_NAMES[state])
+local function stopGunshipIfNoCmdAndTarget(unitId, unitDefID)
+	local numCommands = #spGetUnitCommands(unitID, 1)
+	local hasTarget = isTargettingUnit(unitID, unitDefID)
+	if numCommands == 0 and not hasTarget then
+		spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
+	end
 end
 
 function gadget:Initialize()
@@ -72,27 +67,14 @@ function gadget:Initialize()
 		end
 	end
 
-	-- Register any existing gunships to ensure this fix works when loading scenarios or saved games
-	-- Todo: ask more experienced devs if this is needed and if so, figure out/ask how to test this because save games don't load dev code based on my testing
+	-- Register any existing gunships and stops them if already idle to ensure this fix works when loading scenarios or saved games
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if gunshipDefs[unitDefID] then
-			local initState = GUNSHIP_STATES.IDLE
-			local currCommand = spGetUnitCommands(unitID, 1)[1]
-			local numCommands = #spGetUnitCommands(unitID, 1)
-			if hasTarget or (numCommands > 0 and currCommand.id == CMD.ATTACK) then
-				initState = GUNSHIP_STATES.HAS_TARGET
-			-- Stops any loaded in gunships that are idle and have no commands to fix gunships that are loaded in the strafe without target state
-			elseif initState == GUNSHIP_STATES.IDLE and numCommands == 0 then
-				spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
-			end
-			-- Initialize previous command for new gunship unit ID
-			gunshipsToTrack[unitID] = {
-				unitDefID = unitDefID,
-				state = initState,
-			}
+			stopGunshipIfNoCmdAndTarget(unitID, unitDefID)
+			gunshipsToTrack[unitID] = true
 		end
 	end
 end
@@ -102,10 +84,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if gunshipDefs[unitDefID] then
 		-- Initialize previous command for new gunship unit ID
-		gunshipsToTrack[unitID] = {
-			unitDefID = unitDefID,
-			state = GUNSHIP_STATES.IDLE,
-		}
+		gunshipsToTrack[unitID] = true
 	end
 end
 
@@ -114,32 +93,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 	gunshipsToTrack[unitID] = nil
 end
 
--- Game frame update (called every simulation frame)
-function gadget:GameFrame(frameNum)
-	-- Only call this once every 20 frames
-	if frameNum % FRAME_CHECK_FREQUENCY ~= 0 then
-		return
-	end
-
-	for unitID, currentGunship in pairs(gunshipsToTrack) do
-		local unitDefID = currentGunship.unitDefID
-		local hasTarget = isTargettingUnit(unitID, unitDefID)
-		local currCommand = spGetUnitCommands(unitID, 1)[1]
-		local numCommands = #spGetUnitCommands(unitID, 1)
-
-		if
-			currentGunship.state ~= GUNSHIP_STATES.HAS_TARGET
-			and (hasTarget or (numCommands > 0 and currCommand.id == CMD.ATTACK))
-		then
-			-- When the gunship has a target, update state to match
-			currentGunship.state = GUNSHIP_STATES.HAS_TARGET
-		elseif not hasTarget and numCommands == 0 and currentGunship.state == GUNSHIP_STATES.HAS_TARGET then
-			-- When the gunship loses a target, update the state so it is ready to stop in the next cycle
-			spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
-			currentGunship.state = GUNSHIP_STATES.IDLE
-		end
-
-		-- Debug print statement for the gunship's state
-		-- debugPrintGunshipState(currentGunship.state, unitID, unitDefID)
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if gunshipsToTrack[unitID] and cmdID == CMD.ATTACK then
+		stopGunshipIfNoCmdAndTarget(unitID, unitDefID)
 	end
 end
