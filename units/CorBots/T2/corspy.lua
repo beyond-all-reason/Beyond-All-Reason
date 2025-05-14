@@ -134,6 +134,10 @@ return {
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					nofire = true,
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

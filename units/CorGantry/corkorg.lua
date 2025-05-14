@@ -246,6 +246,7 @@ return {
 				customparams = {
 					nodecal = true,
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -281,6 +282,7 @@ return {
 				customparams = {
 					nofire = true,
 					noattackrangearc= 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 150,
@@ -296,6 +298,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -311,6 +314,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
