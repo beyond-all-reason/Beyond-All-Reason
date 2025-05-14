@@ -54,13 +54,13 @@ end
 
 function gadget:Initialize()
 	-- Find all gunship units
-	for defID, unitDef in pairs(UnitDefs) do
+	for unitDefID, unitDef in pairs(UnitDefs) do
 		if
 			(unitDef.canFly or unitDef.isAirUnit)
 			and (unitDef.gunship or unitDef.isHoveringAirUnit or unitDef.hoverattack)
 			and #unitDef.weapons > 0
 		then
-			gunshipDefs[defID] = {
+			gunshipDefs[unitDefID] = {
 				name = unitDef.name,
 				weaponCount = #unitDef.weapons,
 			}
