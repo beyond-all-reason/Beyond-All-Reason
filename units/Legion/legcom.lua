@@ -82,7 +82,7 @@ return {
 			[18] = "leguwestore",
 			[20] = "legfeconv",
 			[21] = "corsy",
-			[22] = "corfdrag",
+			[22] = "legfdrag",
 			[23] = "legtl",
 			[24] = "legfrl",
 			[25] = "legfrad",

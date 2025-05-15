@@ -767,19 +767,22 @@ function LuaShader:Deactivate()
 			local fontSize = 16
 			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
 			
-			local function DrawPrintf(sometimesself, xoffset)
+			local function DrawPrintf(sometimesself, xoffset, yoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)
 				
 				xoffset = xoffset or 0
+				yoffset = yoffset or 0
 				if type(sometimesself) == 'table' then 
 					xoffset = xoffset or 0
+					yoffset = yoffset or 0
 				elseif type(sometimesself) == 'number' then 
+					yoffset = xoffset
 					xoffset = sometimesself
 				end
 
 				local mx,my = Spring.GetMouseState()
 				mx = mx + xoffset
-				my = my - 32
+				my = my - 32 + yoffset
 
 				gl.PushMatrix()
 				font3:Begin()
