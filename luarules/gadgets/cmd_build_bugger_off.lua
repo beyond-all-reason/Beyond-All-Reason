@@ -13,15 +13,6 @@ function gadget:GetInfo()
 	}
 end
 
-local debugLog = false
-
-function print(Message)
-	if debugLog then
-		Spring.Echo(Message)
-	end
-end
-
-
 if gadgetHandler:IsSyncedCode() then
 	local shouldNotBuggeroff = {}
 	local cachedUnitDefs = {}
@@ -34,16 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 		cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
 	end
 
-	local function builderTeam(unitID)
-		-- Instead of initializing entire structure in gadget:initialize
-		if cachedBuilderTeams[unitID] == nil then
-			cachedBuilderTeams[unitID] = Spring.GetUnitTeam(unitID)
-		end
-
-		return cachedBuilderTeams[unitID]
-	end
-
-	local function WillBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
+	local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
 		local ux, uy, uz = Spring.GetUnitPosition(unitID)
 		if not ux then return false end
 		
@@ -77,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SEARCH_RADIUS_OFFSET  = 200
 	local FAST_UPDATE_FREQUENCY = 30
 	local SLOW_UPDATE_FREQUENCY = 100
-	local BUGGEROFF_RADIUS_ESCALATION_INCREMENT = 5 * FAST_UPDATE_FREQUENCY / 10
+	local BUGGEROFF_RADIUS_ESCALATION_INCREMENT = FAST_UPDATE_FREQUENCY * 0.5
 
 	local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, radius)
 		if Spring.AreTeamsAllied(Spring.GetUnitTeam(interferingUnitID), builderTeam) == false then
@@ -88,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		if WillBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_SECONDS, radius) then
+		if willBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_SECONDS, radius) then
 			return true
 		end
 
@@ -113,7 +95,6 @@ if gadgetHandler:IsSyncedCode() then
 			local visited = {}
 			
 			if cmdID == nil or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS or cmdID > -1 then
-				print("Too far/no build order first, demoting to slow " .. frame)
 				watchedBuilders[builderID]	  	= nil
 				slowUpdateBuilders[builderID]   = true
 				builderRadiusOffsets[builderID] = 0
@@ -133,7 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 						-- Only buggeroff from one build site at a time
 						visited[interferingUnitID] = true
 						local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
-						if shouldIssueBuggeroff(builderTeam(builderID), interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
+						if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
 							local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitX, unitZ)
 
 							if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then 
@@ -175,11 +156,9 @@ if gadgetHandler:IsSyncedCode() then
 
 			local x, _, z = Spring.GetUnitPosition(builderID)
 			if hasBuildCommand == false then
-				print("Clearing watched builder slow" .. frame)
 				slowUpdateBuilders[builderID]   = nil
 				builderRadiusOffsets[builderID] = nil
 			elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
-				print("Promote to fast" .. frame)
 				slowUpdateBuilders[builderID]   = nil
 				watchedBuilders[builderID]		= true
 			end
@@ -192,15 +171,21 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Initialize()
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			local unitList = Spring.GetTeamUnits(teamID)
+			for _, unitID in ipairs(unitList) do
+				gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
+			end
+		end	
+	end
+
 	function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-		if cachedUnitDefs[unitDefID].isBuilder then
-			cachedBuilderTeams[unitID] = nil
-		end
+		cachedBuilderTeams[unitID] = nil
 	end
 
 	function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if cachedUnitDefs[unitDefID].isBuilder then
-			print("Watching builder slow" .. cmdTag)
 			slowUpdateBuilders[unitID]   = true
 			builderRadiusOffsets[unitID] = 0
 		end
