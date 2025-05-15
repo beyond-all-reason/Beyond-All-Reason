@@ -113,6 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 		deserializedOrder = gadget:ResetTable(deserializedOrder)
 		for s in string.gmatch(str, "([^&]+)") do
 			local key, value = string.match(s, "(%w+):(.+)")
+			if not value then spEcho('Deserialize Order missing value',s,key,value) return end
 			if string.find(value,'|') or string.find(value,',') then
 				deserializedOrder[key] = self:StringToTable(value)
 			else

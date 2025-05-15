@@ -26,14 +26,14 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 1, mtype = 5, max = 2,},
+			numeric = {min = 1, mtype = 5, max = 3,},
 			wave = 1},
 		{category = 'rezs',
 			economy = function()
 				return true
 			end,
 			numeric = {min = 10,  max = 10,},
-			wave = 1},
+			wave = 2},
 		{category = 'scouts',
 			economy = function()
 				return true
@@ -45,7 +45,7 @@ function TasksHST:startLabsParams()
 				return self.ai.ecohst.Metal.full > 0.9 and self.ai.ecohst.Energy.full > 0.5
 			end,
 			numeric = {max = 40},
-			wave = 10},
+			wave = 5},
 	}
 	self.labs.premode = {
 		{category = 'techs',
@@ -195,7 +195,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'rezs',
 			economy = function()
-				if M.income > 100 then
+				if E.income > 100 then
 					return true
 				end
 			end,

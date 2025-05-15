@@ -210,11 +210,23 @@ function ShardUnit:FactoryUnWait()
 
 end
 ]]
-
+--[[
 function ShardUnit:GetUnitCommands(count)
 	count = count or 1
 	local currentOrder = Spring.GetUnitCommands(self.id,count)
 	return currentOrder
+end
+]]
+
+function ShardUnit:GetUnitCommands(count)
+    if count == 0 then
+		Spring.Echo(self:Name(), self.id, "Get Unit Commands received 0 as parameter index")
+        return {} -- FIXME: Why am I receiving 0 count?
+    end
+
+    count = count or 1
+    local currentOrder = Spring.GetUnitCommands(self.id,count)
+    return currentOrder
 end
 
 function ShardUnit:Stop()
@@ -455,7 +467,7 @@ function ShardUnit:GetPosition()
 	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
 	local isDead = Spring.GetUnitIsDead(self.id)
 	if not bpx then
-		Spring.Echo(self:Name(), self.id, "Get Position return nil position")
+		--Spring.Echo(self:Name(), self.id, "Get Position return nil position")
 		return
 	end
 	if self.position == nil then
