@@ -121,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
                 builderRadiusOffsets[builderID] = nil
                 return
             end
-            local builtUnitDefID = cmdID * -1
+            local builtUnitDefID = -cmdID
             if distance(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS then
                 print("Too far, demoting to slow")
                 watchedBuilders[builderID]    = nil
