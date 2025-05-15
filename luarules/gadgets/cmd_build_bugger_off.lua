@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDef.isImmobile then
 			shouldNotBuggeroff[unitDefID] = true
 		end
-        
+		
 		cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
 	end
 
@@ -39,6 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 		if cachedBuilderTeams[unitID] == nil then
 			cachedBuilderTeams[unitID] = Spring.GetUnitTeam(unitID)
 		end
+
 		return cachedBuilderTeams[unitID]
 	end
 
@@ -49,12 +50,10 @@ if gadgetHandler:IsSyncedCode() then
 		local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 		if not vx then return false end
 		
-		-- Predict future position
 		local futureX = ux + vx * seconds * Game.gameSpeed
 		local futureY = uy + vy * seconds * Game.gameSpeed
 		local futureZ = uz + vz * seconds * Game.gameSpeed
 		
-		-- Compute distance to target
 		local dx = futureX - tx
 		local dy = futureY - ty
 		local dz = futureZ - tz
@@ -105,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-        for builderID, _ in pairs(watchedBuilders) do
+		for builderID, _ in pairs(watchedBuilders) do
 			local cmdID, options, tag, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
 			local isBuilding  = false
 			local x, y, z	 = Spring.GetUnitPosition(builderID)
@@ -113,16 +112,17 @@ if gadgetHandler:IsSyncedCode() then
 			local visited = {}
 			if targetID then isBuilding = true end
 			
-			if cmdID == nil or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS or cmdID > -1 then --or isBuilding then
+			if cmdID == nil or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS or cmdID > -1 then
 				print("Too far/no build order first, demoting to slow " .. frame)
 				watchedBuilders[builderID]	  = nil
 				slowUpdateBuilders[builderID]   = true
 				builderRadiusOffsets[builderID] = 0
+
 			elseif math.distance2d(targetX, targetZ, x, z) < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and isBuilding == false then
-				local builtUnitDefID   = -cmdID
-				local buggerOffRadius  = cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
-				local searchRadius     = cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
-				local interferingUnits = Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
+				local builtUnitDefID	= -cmdID
+				local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
+				local searchRadius		= cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
+				local interferingUnits	= Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
 
 				-- Escalate the radius every update. We want to send units away the minimum distance, but  
 				-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
@@ -142,13 +142,14 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
+
 			elseif isBuilding then
-                -- We want to keep updating in case he's got another job nearby
+				-- We want to keep updating in case he's got another job nearby
 				builderRadiusOffsets[builderID] = 0
 			end
 		end
 
-        if frame % SLOW_UPDATE_FREQUENCY ~= 0 then
+		if frame % SLOW_UPDATE_FREQUENCY ~= 0 then
 			return
 		end
 
@@ -181,7 +182,7 @@ if gadgetHandler:IsSyncedCode() then
 			elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
 				print("Promote to fast" .. frame)
 				slowUpdateBuilders[builderID]   = nil
-				watchedBuilders[builderID]      = true
+				watchedBuilders[builderID]		= true
 			end
 		end
 	end
@@ -190,15 +191,14 @@ if gadgetHandler:IsSyncedCode() then
 		if cachedUnitDefs[unitDefID].isBuilder then
 			cachedBuilderTeams[unitID] = unitTeam
 		end
-
-    end
+	end
 
 	function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		if cachedUnitDefs[unitDefID].isBuilder then
 			cachedBuilderTeams[unitID] = nil
 		end
+	end
 
-    end
 	function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if cachedUnitDefs[unitDefID].isBuilder then
 			print("Watching builder slow" .. cmdTag)
