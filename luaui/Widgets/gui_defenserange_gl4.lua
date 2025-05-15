@@ -433,7 +433,7 @@ end
 
 -- nukes and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 512
+local largeCircleSegments = 1024
 
 -- others:
 local smallCircleVBO = nil
@@ -510,7 +510,7 @@ local function initGL4()
 	largeCircleVBO = makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
 		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
-		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then
+		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
 		else
@@ -879,26 +879,24 @@ function widget:Update(dt)
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
 				local allystring = 'ally'
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
-					local allystring = "ally"
-					buildDrawOverride[weaponType] = true
-					if buttonConfig[allystring][weaponType] then
-						--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-						local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
-
-						cacheTable[1] = bpx
-						cacheTable[2] = ringParams[18]
-						cacheTable[3] = bpz
-						local vaokey = allystring .. weaponType
-
-						for j = 1,13 do
-							cacheTable[j+3] = ringParams[j]
-						end
-						--Spring.Echo("Drawing ring for", buildUnitDefID, "at", bpx, ringParams[18], bpz)
-						local instanceID = 2000000 + 100000* i +  buildUnitDefID
-						pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
-
-					end
-				end
+                   local allystring = "ally"
+                   buildDrawOverride[weaponType] = true
+                   -- allow rings if either normal ally-rings are on, OR build-queue preview is explicitly enabled
+                   if buttonConfig[allystring][weaponType]
+                      or colorConfig.drawAllyCategoryBuildQueue
+                   then
+                       local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
+                       cacheTable[1] = bpx
+                       cacheTable[2] = ringParams[18]
+                       cacheTable[3] = bpz
+                       for j = 1,13 do
+                           cacheTable[j+3] = ringParams[j]
+                       end
+                       local vaokey    = allystring .. weaponType
+                       local instanceID = 2000000 + 100000 * i + buildUnitDefID
+                       pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
+                   end
+               end
 			end
 		end
 

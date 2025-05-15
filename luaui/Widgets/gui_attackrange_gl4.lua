@@ -421,7 +421,7 @@ end
 ------ GL4 THINGS  -----
 -- AA and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 512
+local largeCircleSegments = 1024
 
 -- others:
 local smallCircleVBO = nil
@@ -705,7 +705,7 @@ local function initGL4()
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
 		attackRangeVAOs
 		[atkRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
-		if atkRangeClass:find("cannon", nil, true) or atkRangeClass:find("AA", nil, true) then
+		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
 			attackRangeVAOs
 			[atkRangeClass].vertexVBO = largeCircleVBO
 			attackRangeVAOs
