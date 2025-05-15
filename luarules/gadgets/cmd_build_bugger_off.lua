@@ -203,7 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 		if cachedUnitDefs[unitDefID].isBuilder then
 			print("Watching builder slow" .. cmdTag)
 			slowUpdateBuilders[unitID]   = true
-			builderRadiusOffsets[unitID] = 1
+			builderRadiusOffsets[unitID] = 0
 		end
 	end
 end
