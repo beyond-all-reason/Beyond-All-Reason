@@ -12,29 +12,28 @@ function gadget:GetInfo()
 	}
 end
 
+-- Only run in synced code
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local spGetUnitCommands = Spring.GetUnitCommands
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitDefID = Spring.GetUnitDefID
-local spEcho = Spring.Echo
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 
 -- Constants
 -- Todo figure out options to make the command silent
 local CMD_OPTIONS = CMD.OPT_INTERNAL
 
 -- Gadget variables
-local gunshipDefs = {}
+local gunshipWeaponCounts = {}
 local gunshipsToTrack = {}
-
--- Only run in synced code
-if not gadgetHandler:IsSyncedCode() then
-	return false
-end
 
 -- Helper functions
 local function isTargettingUnit(unitID, unitDefID)
-	local weaponCount = gunshipDefs[unitDefID].weaponCount
+	local weaponCount = gunshipWeaponCounts[unitDefID]
 	for weaponNum = 1, weaponCount do
 		local targetType, _, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
 		if targetType == 1 and targetID then
@@ -44,8 +43,8 @@ local function isTargettingUnit(unitID, unitDefID)
 	return false
 end
 
-local function stopGunshipIfNoCmdAndTarget(unitId, unitDefID)
-	local numCommands = #spGetUnitCommands(unitID, 1)
+local function stopGunshipIfNoCmdAndTarget(unitID, unitDefID)
+	local numCommands = spGetUnitCommandCount(unitID)
 	local hasTarget = isTargettingUnit(unitID, unitDefID)
 	if numCommands == 0 and not hasTarget then
 		spGiveOrderToUnit(unitID, CMD.STOP, {}, CMD_OPTIONS)
@@ -57,13 +56,10 @@ function gadget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if
 			(unitDef.canFly or unitDef.isAirUnit)
-			and (unitDef.gunship or unitDef.isHoveringAirUnit or unitDef.hoverattack)
+			and (unitDef.isHoveringAirUnit or unitDef.hoverattack)
 			and #unitDef.weapons > 0
 		then
-			gunshipDefs[unitDefID] = {
-				name = unitDef.name,
-				weaponCount = #unitDef.weapons,
-			}
+			gunshipWeaponCounts[unitDefID] = #unitDef.weapons
 		end
 	end
 
@@ -72,7 +68,7 @@ function gadget:Initialize()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
-		if gunshipDefs[unitDefID] then
+		if gunshipWeaponCounts[unitDefID] then
 			stopGunshipIfNoCmdAndTarget(unitID, unitDefID)
 			gunshipsToTrack[unitID] = true
 		end
@@ -81,8 +77,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	-- Called when a unit is created
-	local unitDefID = spGetUnitDefID(unitID)
-	if gunshipDefs[unitDefID] then
+	if gunshipWeaponCounts[unitDefID] then
 		-- Initialize previous command for new gunship unit ID
 		gunshipsToTrack[unitID] = true
 	end
