@@ -85,6 +85,14 @@ local BaseClasses = {
 		},
 	},
 
+	LaserCannonExplosion = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = {
+			posx = 0, posy = 10, posz = 0, radius = 125,
+			lifeTime = 0, sustain = 0, effectType = 0,
+		},
+	},
+
 	PlasmaTrailProjectile = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
@@ -92,6 +100,16 @@ local BaseClasses = {
 						noiseStrength = 6, noiseScaleSpace = 0.25, distanceFalloff = 1.5, onlyModelMap = 1,
 						windAffected = -1, riseRate = 0, yoffset = 5,
 						lifeTime = 0, rampUp = 30, decay = 5, effectType = 0},
+	},
+
+	RailgunTrailProjectile = {
+		distortionType = 'point',
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
+						--dirx =  0, diry = 1, dirz = 1.0, theta = 0.12,
+						noiseStrength = 8, noiseScaleSpace = -0.35, distanceFalloff = 0.8, onlyModelMap = 0,
+						refractiveIndex = 1.04,
+						windAffected = -0.5, riseRate = 0.5, --yoffset = -2,
+						lifeTime = 0, rampUp = 0, decay = 0, effectType = 0},
 	},
 
 	LaserBeamShockWaveProjectile = {
@@ -297,8 +315,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.9, noiseStrength = 0.2, onlyModelMap = 0,
-			lifeTime = 15, refractiveIndex = 2.0, decay = 7, rampUp = 5,
-			effectStrength = 5.0, startRadius = 0.24, shockWidth = -0.55, --needed for airshockwaves
+			lifeTime = 13, refractiveIndex = 2.0, decay = 7, rampUp = 5,
+			effectStrength = 4.0, startRadius = 0.24, shockWidth = -0.85, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -308,7 +326,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						noiseStrength = 2, noiseScaleSpace = 0.10,
 						effectStrength = 1.5, --needed for shockwaves
-						lifeTime = 40, decay = 35, rampUp = 5,
+						lifeTime = 20, decay = 10, rampUp = 10,
 						shockWidth = 4, refractiveIndex = -2.1,
 						startRadius = 0.16,
 						effectType = 'groundShockwave'},
@@ -319,7 +337,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						noiseStrength = 1.5, noiseScaleSpace = 0.30,
 						effectStrength = 0.7, --needed for shockwaves
-						lifeTime = 125, decay = 75, rampUp = 50,
+						lifeTime = 100, decay = 75, rampUp = 25,
 						shockWidth = 1, refractiveIndex = -10.1,
 						startRadius = 0.15,
 						effectType = 'groundShockwave'},
@@ -378,6 +396,14 @@ local BaseClasses = {
 			effectStrength = 2.0, startRadius = 0.20, shockWidth = -0.60, --needed for all distortions
 			effectType = "airShockwave", },
 	},
+	-- AirShockWaveMG = { --for machineguns
+	-- 	distortionType = 'point', -- or cone or beam
+	-- 	distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+	-- 		noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,
+	-- 		lifeTime = 4, refractiveIndex = 1.03, decay = 2, rampUp = 1,
+	-- 		effectStrength = 1.0, startRadius = 0.10, shockWidth = -0.90, --needed for all distortions
+	-- 		effectType = "airShockwave", },
+	-- },
 	AirShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
@@ -980,6 +1006,7 @@ local projectileDefDistortions  = {
 
 			local projectileSpeed = weaponDef.weaponVelocity or 10
 			local weaponRange = weaponDef.range or 0
+			local weaponReloadTime = weaponDef.reloadtime
 			local areaofeffect = weaponDef.damageAreaOfEffect or 0
 			--local weaponImpulse = weaponDef.impulseFactor or 0 (doesn't seem to work)
 			local life = 12
@@ -1034,9 +1061,22 @@ local projectileDefDistortions  = {
 				end
 
 			elseif weaponDef.type == 'LaserCannon' then
+			-- take the name in lower-case
+				local lname = weaponDef.name:lower()
 
-				sizeclass = GetClosestSizeClass(radius)
-				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+				-- if it's a machine-gun or rapid-fire, give it NO distortion
+				if lname:find('mg_weapon') or lname:find('legflak') or lname:find('machinegun') or lname:find('shotgun') then
+					Spring.Echo("LaserCannon no distortion for "..weaponDef.name)
+					--projectileDefDistortions[weaponID] = GetDistortionClass("NoEffect", sizeclass, overrideTable)
+
+				-- otherwise give it the regular cannon distortion
+				else
+					local sizeclass = GetClosestSizeClass(radius)
+					projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+				end
+			
+				
+				
 
 			elseif weaponDef.type == 'DistortionningCannon' then
 				--sizeclass = GetClosestSizeClass(33 + (radius*2.5))
@@ -1115,6 +1155,9 @@ local projectileDefDistortions  = {
 
 				elseif weaponDef.type == 'Flame' then
 					explosionDistortions[weaponID] = {GetDistortionClass("FireHeat", GetClosestSizeClass(radius), overrideTable)}
+
+				-- elseif weaponDef.type == 'LaserCannon' then -- No shockwaves for lasercannons
+				-- 	explosionDistortions[weaponID] = {GetDistortionClass("AirShockWaveMG", GetClosestSizeClass(radius), overrideTable)}
 				
 				elseif weaponDef.type == 'TorpedoLauncher' then
 					explosionDistortions[weaponID] = {GetDistortionClass("TorpedoShockWave", GetClosestSizeClass(radius), overrideTable)}
@@ -1998,6 +2041,10 @@ explosionDistortionsNames['armvulc_rflrpc'] = {
 	GetDistortionClass("ExplosionHeat", "Smallest", {
 		lifeTime = 80, decay = 40, rampup = 5}),
 }
+
+projectileDefDistortionsNames["legerailtank_t3_rail_accelerator"] =
+GetDistortionClass("RailgunTrailProjectile", "Femto", {
+})
 
 local scavbosses = {
 	"veryeasy",
