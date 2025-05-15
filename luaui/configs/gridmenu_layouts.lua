@@ -360,7 +360,7 @@ local unitGrids = {
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
-	-- Commanders
+	-- Armada Commanders
 	armcom = {
 		{
 			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
@@ -392,7 +392,7 @@ local unitGrids = {
 		{
 			{ "armllt", "armbeamer", "armhlt", "", },  		  -- LLT, beamer, HLT
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armtl", "armfrock"},               -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armdl", "armguard", "armtl", "armfrock"},      -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
@@ -407,13 +407,13 @@ local unitGrids = {
 	},
 	armcomlvl3 = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armmex", "armsolar", "armwin", "armadvsol", "armuwgeo", },  -- mex, solar, wind, adv. solar, offshore geo 
+			{ "armmakr", "armgeo", "armamex", "armfmkr", "armtide",  },    -- T1 converter, geo, twilight, (fl. T1 converter), (tidal)
+			{ "armestor", "armmstor", "", "armuwes", "armuwms", },         -- e storage, m storage, (uw e stor), (uw m stor)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
+			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
 			{ "armdl", "armguard", "armtl", "armfrock"},     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
 		},
 		{
@@ -429,14 +429,14 @@ local unitGrids = {
 	},
 	armcomlvl4 = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armmex", "armsolar", "armwin", "armadvsol", "armuwgeo", },  -- mex, solar, wind, adv. solar, offshore geo 
+			{ "armmakr", "armgeo", "armamex", "armfmkr", "armtide",  },    -- T1 converter, geo, twilight, (fl. T1 converter), (tidal)
+			{ "armestor", "armmstor", "", "armuwes", "armuwms", },         -- e storage, m storage, (uw e stor), (uw m stor)
 		},
 		{
-			{ "armpb", "armbeamer", "armhlt", "armclaw", },  -- pitbull, beamer, HLT, lightning turret
+			{ "armpb", "armbeamer", "armhlt", "armclaw", },   -- pitbull, beamer, HLT, lightning turret
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armamb", "armtl", },     -- coastal torp launcher, rattlesnake, offshore torp launcher,
+			{ "armdl", "armamb", "armtl", "armfrock" },       -- coastal torp launcher, rattlesnake, offshore torp launcher, scumbag
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -451,9 +451,9 @@ local unitGrids = {
 	},
 	armcomlvl5 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },     -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },        -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },       -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
@@ -473,9 +473,9 @@ local unitGrids = {
 	},
 	armcomlvl6 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },     -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },        -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },       -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
@@ -495,9 +495,9 @@ local unitGrids = {
 	},
 	armcomlvl7 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },     -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },        -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },       -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
@@ -517,41 +517,41 @@ local unitGrids = {
 	},
 	armcomlvl8 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },  -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },     -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },    -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
-			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
-			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
+			{ "armpb", "armanni", "armamb", "armclaw", },                   -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },          -- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	                    -- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
-			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+			{ "armarad", "armeyes", "armfort", "armjamt", "armgate", },     -- adv radar, camera, t2 wall, radar jammer, plasma shield
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },                 -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },             -- juno, Lmine, Mmine, Hmine
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "armlab", "armvp", "armap", "armsy", },   -- bot lab, veh lab, air lab, shipyard
 			{ "armnanotc", "", "armnanotcplat", },      -- nano, empty, floating nano
 			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
 		}
 	},
 	armcomlvl9 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },     -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },        -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },       -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
-			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
-			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, empty, adv torpedo launcher
+			{ "armpb", "armanni", "armamb", "armclaw", },                      -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },             -- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	                       -- coastal torpedo launcher, empty, adv torpedo launcher
 		},
 		{
-			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+			{ "armarad", "armeyes", "armfort", "armjamt", "armgate", },        -- adv radar, camera, t2 wall, cloak jammer, plasma shield
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },                    -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },                -- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -561,19 +561,19 @@ local unitGrids = {
 	},
 	armcomlvl10 = {
 		{
-			{ "armmoho", "armfus", "armafus", "armadvsol", },             -- moho, fusion, afus, advsolar
-			{ "armmmkr", "armageo", "armamex", "armtide" },      -- T2 converter, T2 geo, twilight, tidal
-			{ "armuwadves", "armuwadvms", "armuwmme", "armuwmmm",},--hardened energy storage, hardened metal storage, uw t2 metal extract, floating adv Econverter
+			{ "armmoho", "armfus", "armafus", "armadvsol", "armuwageo", },     -- moho, fusion, afus, advsolar, offshore adv geo
+			{ "armmmkr", "armageo", "armamex", "armuwmmm", "armtide" },        -- T2 converter, T2 geo, twilight, , tidal
+			{ "armuwadves", "armuwadvms", "armshockwave", "armuwmme", },       -- hardened energy storage, hardened metal storage, shockwave, uw t2 metal extract, floating adv Econverter
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armclaw", },        -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
-			{ "armflak", "armmercury", "armbeamer", "armfflak", },-- flak, long-range AA, beamer, floating flak
-			{ "armdl", "", "armatl", },              	-- coastal torpedo launcher, adv torpedo launcher, lolcannon
+			{ "armpb", "armanni", "armamb", "armclaw", },                   -- pop-up gauss, annihilator, pop-up artillery, dragonclaw
+			{ "armflak", "armmercury", "armbeamer", "armfflak", },          -- flak, long-range AA, beamer, floating flak
+			{ "armdl", "", "armatl", },              	                    -- coastal torpedo launcher, adv torpedo launcher, lolcannon
 		},
 		{
-			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
-			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
+			{ "armarad", "armeyes", "armfort", "armjamt", "armgate", },     -- adv radar, camera, t2 wall, cloak jammer
+			{ "armfrad", "armfdrag", "armdrag", "armasp" },                 -- intrusion counter, decoy fusion, air repair pad
+			{ "armjuno", "armmine1", "armmine2", "armmine3", },             -- juno, Lmine, Mmine, Hmine
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -581,7 +581,7 @@ local unitGrids = {
 			{ "armhp", "armfhp", "", "armdecom",},      -- hover lab, floating hover lab, empty, decoy commander
 		}
 	},
-	
+
 	-- cortex commanders
 	corcom = {
 		{
