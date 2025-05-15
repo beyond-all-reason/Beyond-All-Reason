@@ -784,6 +784,7 @@ local unitOrderTable = {
    --WATER DEFENSES LAND
    ['armfdrag']       = 230100,
    ['corfdrag']       = 230200,
+   ['legfdrag']       = 230250,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
    ['legfmg']        = 230401,

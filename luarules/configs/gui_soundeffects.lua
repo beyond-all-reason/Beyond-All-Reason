@@ -2645,6 +2645,11 @@ GUIUnitSoundEffects = {
         BaseSoundActivate = "arm-bld-mm-activate",
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
+	legfdrag = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall-water",
+	},
 
 	legtide = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
