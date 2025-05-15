@@ -98,7 +98,7 @@ return {
 			"legrad",
 			"legfrad",
             "legstronghold",
-			"corfdrag",
+			"legfdrag",
 			"leglab",
 			"legvp",
 			"legap",

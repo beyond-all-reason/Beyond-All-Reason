@@ -906,7 +906,8 @@
 			"legabm": "Aegis",
 			"legrwall": "Dragon's Constitution",
 			"legjav": "Javelin",
-			"legamph": "Telchine"
+			"legamph": "Telchine",
+			"legfdrag": "Shark's Teeth"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1807,7 +1808,8 @@
 			"legabm": "Anti-Nuke System",
 			"legrwall": "Railgun Defense Wall",
 			"legjav": "Amphibious Raider",
-			"legamph": "Advanced Amphibious Assault Bot/Coast Guard"
+			"legamph": "Advanced Amphibious Assault Bot/Coast Guard",
+			"legfdrag": "Naval Fortification"
 		}
 	}
 }
