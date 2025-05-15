@@ -22,7 +22,7 @@ return {
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFAST.s3o",
-		script = "Units/ARMFAST.cob",
+		script = "Units/ARMFAST_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 351,
