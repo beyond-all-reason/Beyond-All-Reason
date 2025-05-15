@@ -34,7 +34,7 @@ return {
 			[2] = "legamphtank",
 			[3] = "legfloat",
 			[4] = "legamph",
-			[5] = "corcrash",
+			[5] = "legaabot",
 			[6] = "coraak",
 			[7] = "legdecom",
 		},
