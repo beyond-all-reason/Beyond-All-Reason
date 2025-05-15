@@ -171,8 +171,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local isBuilding  = false
-			local targetID	= Spring.GetUnitIsBuilding(builderID)
-			if targetID then isBuilding = true end
+			if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
 
 			local x, _, z = Spring.GetUnitPosition(builderID)
 			if hasBuildCommand == false then
