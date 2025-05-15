@@ -1166,6 +1166,10 @@ function widget:Update(dt)
 		nextSlowUpdate = now + 0.5
 
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		if r['metal'][7] > 1 or r['metal'][8] > 1 or r['energy'][7] > 1 or r['energy'][8] > 1 then
+			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+			smoothedResources = r
+		end
 
 		-- resbar values and overflow
 		updateAllyTeamOverflowing()
