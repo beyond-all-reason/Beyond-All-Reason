@@ -138,8 +138,7 @@ if gadgetHandler:IsSyncedCode() then
                 -- if there are many units in the way, they may cause a traffic jam and need to clear more room.
                 builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + 5 
 
-                for i = 1, #interferingUnits do
-                    local interferingUnitID = interferingUnits[i]
+                for _, interferingUnitID in ipairs(interferingUnits) do
                     if builderID ~= interferingUnitID then
                         local unitPosition = {Spring.GetUnitPosition(interferingUnitID)}
                         local unitTeam     = Spring.GetUnitTeam(interferingUnitID)
