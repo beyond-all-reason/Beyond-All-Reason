@@ -92,6 +92,22 @@ if not math.triangulate then
 	end
 end
 
+if not math.closestPointOnCircle then
+	function math.closestPointOnCircle(cx, cz, radius, tx, tz)
+        local dx = tx - cx
+        local dz = tz - cz
+        local dist = math.diag(dx, dz)
+        if dist == 0 then
+            -- Target is exactly at center; choose arbitrary point on circle
+            return cx + radius, cz
+        end
+        local scale = radius / dist
+        local closestX = cx + dx * scale
+        local closestZ = cz + dz * scale
+        return closestX, closestZ
+    end
+end
+
 if not math.HSLtoRGB then
 	function math.HSLtoRGB(ch, cs, cl)
 		if cs == 0 then
