@@ -106,15 +106,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		for builderID, _ in pairs(watchedBuilders) do
 			local cmdID, options, tag, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
-			local isBuilding  = false
-			local x, y, z	 = Spring.GetUnitPosition(builderID)
-			local targetID	= Spring.GetUnitIsBuilding(builderID)
+			local isBuilding  	= false
+			local x, y, z		= Spring.GetUnitPosition(builderID)
+			local targetID		= Spring.GetUnitIsBuilding(builderID)
 			if targetID then isBuilding = true end
 			local visited = {}
 			
 			if cmdID == nil or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS or cmdID > -1 then
 				print("Too far/no build order first, demoting to slow " .. frame)
-				watchedBuilders[builderID]	  = nil
+				watchedBuilders[builderID]	  	= nil
 				slowUpdateBuilders[builderID]   = true
 				builderRadiusOffsets[builderID] = 0
 
