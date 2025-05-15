@@ -54,11 +54,7 @@ end
 function gadget:Initialize()
 	-- Find all gunship units
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if
-			(unitDef.canFly or unitDef.isAirUnit)
-			and (unitDef.isHoveringAirUnit or unitDef.hoverattack)
-			and #unitDef.weapons > 0
-		then
+		if (unitDef.isHoveringAirUnit or unitDef.hoverattack) and #unitDef.weapons > 0 then
 			gunshipWeaponCounts[unitDefID] = #unitDef.weapons
 		end
 	end
