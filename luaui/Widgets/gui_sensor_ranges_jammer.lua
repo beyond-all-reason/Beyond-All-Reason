@@ -360,7 +360,7 @@ function widget:DrawWorld()
 	--if true then return end
 	glColorMask(false, false, false, false)
 	glStencilTest(true)
-	glDepthTest(GL.LEQUAL)
+	glDepthTest(false) --GL.LEQUAL
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()

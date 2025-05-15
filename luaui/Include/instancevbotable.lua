@@ -773,9 +773,12 @@ end
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
-function makeCircleVBO(circleSegments, radius, name)
+function makeCircleVBO(circleSegments, radius, startCenter, name)
 	-- Makes circle of radius in xy space
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
+	-- Startcenter places a vertex in the center, this is nice for triangle fans,
+	-- but when drawing lines with this vbo, start at an offset of 1
+	-- Fun note: its NOT faster to draw stenciled circles with this. 
 	if not radius then radius = 1 end
 	circleSegments  = circleSegments -1 -- for po2 buffers
 	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -786,6 +789,12 @@ function makeCircleVBO(circleSegments, radius, name)
 	}
 
 	local VBOData = {}
+	if startCenter then
+		VBOData[#VBOData+1] = 0 -- X
+		VBOData[#VBOData+1] = 0 -- Y
+		VBOData[#VBOData+1] = 0 -- circumference [0-1]
+		VBOData[#VBOData+1] = radius
+	end
 
 	for i = 0, circleSegments  do -- this is +1
 		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) * radius -- X
@@ -795,7 +804,7 @@ function makeCircleVBO(circleSegments, radius, name)
 	end
 
 	circleVBO:Define(
-		circleSegments + 1,
+		circleSegments + 1 + (startCenter and 1 or 0) , -- +1 for center point if startCenter is true
 		VBOLayout
 	)
 	circleVBO:Upload(VBOData)
