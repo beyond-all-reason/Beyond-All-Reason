@@ -322,6 +322,8 @@ Create()
 	isMoving = FALSE;
 	isOpen = 0;
 	spray = nanoFlare1;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script OpenCloseAnim(0);
 }
 
 //static-var isOpen;
