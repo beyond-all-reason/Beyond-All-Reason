@@ -155,7 +155,6 @@ return {
 					noattackrangearc= 1,
 				},
 			},
-			},
 			empmissile = {
 				areaofeffect = 196,
 				avoidfeature = false,
@@ -241,13 +240,11 @@ return {
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",
 					spark_range = "125",
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 300,
 					subs = 30,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 		},
