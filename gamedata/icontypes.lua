@@ -3616,6 +3616,10 @@ local icontypes = {
 		bitmap = "icons/kbot_t2_barrage.png",
 		size = 1.6
 	},
+	legfdrag = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 
 	blank = {
 		bitmap = "icons/blank.png",
