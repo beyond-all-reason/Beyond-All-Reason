@@ -795,7 +795,7 @@ local function updateResbarValues(res, update)
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
-		updateRes[res][1] = glTexture
+		updateRes[res][1] = true
 		local maxStorageRes = smoothedResources[res][2]
 		local cappedCurRes = smoothedResources[res][1]    -- limit so when production dies the value wont be much larger than what you can store
 		if cappedCurRes >maxStorageRes * 1.07 then cappedCurRes =maxStorageRes * 1.07 end
