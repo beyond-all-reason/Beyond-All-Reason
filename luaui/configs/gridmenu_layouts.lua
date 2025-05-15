@@ -12,9 +12,9 @@ local labGrids = {
 		"", "", "corcrash",                                        -- aa bot
 	},
 	leglab = {
-		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
+		"legck", "legrezbot", "leggob", "",                      -- T1 con, rez bot, AK
 		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
-		"", "", "corcrash",                                        -- aa bot
+		"", "", "legaabot",                                        -- aa bot
 	},
 	-- T2 bot
 	armalab = {
@@ -154,7 +154,7 @@ local labGrids = {
 	legamsub = {
 		"legotter", "legdecom", "legamphtank", "", 		-- amphibious con, decoy com, t1 amphibious tank, idk
 		"",         "legfloat", "legamph",            "", 		-- idk, t2 floating tank, idk, idk
-		"",         "corcrash", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
+		"",         "legaabot", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
 	},
 	-- hover labs
 	armhp = {
@@ -1909,7 +1909,7 @@ local unitGrids = {
 		},
 		{
 			{ "legdtr", "legstr", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
-			{ "legflak", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
+			{ "legflak", "legrhapsis", "legaabot", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
 			{ "legctl", "legfloat", },               				-- coastal torp launcher, triton
 		},
 		{

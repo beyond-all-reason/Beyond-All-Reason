@@ -731,6 +731,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
 	},
+	legrezbot = {
+		bitmap = "icons/bot_t1_rez.png",
+		size = 0.74000001
+	},
 	armrespawn = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
@@ -1308,6 +1312,10 @@ local icontypes = {
 		size = 1.83749986
 	},
 	corcrash = {
+		bitmap = "icons/bot_amph_aa.png",
+		size = 1.04999995
+	},
+	legaabot = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
