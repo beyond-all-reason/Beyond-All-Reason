@@ -2111,11 +2111,19 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	leguwestore = {
+		bitmap = "icons/energystorage.png",
+		size = 1.10249984
+	},
 	coruwfus = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
 	coruwgeo = {
+		bitmap = "icons/energy6_1.3.png",
+		size = 1.36499989
+	},
+	leguwgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
@@ -2128,6 +2136,10 @@ local icontypes = {
 		size = 1.20749986
 	},
 	coruwms = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	leguwmstore = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
@@ -2811,7 +2823,7 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	legfmkr = {
+	legfeconv = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
@@ -3591,6 +3603,10 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	leghrk = {
+		bitmap = "icons/kbot_t2_barrage.png",
+		size = 1.6
 	},
 
 	blank = {

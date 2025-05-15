@@ -1,4 +1,5 @@
 # May 2025
+• [Tiger, Turtle, Sumo] Mass 750, to make them transportable by light transports.
 • [Spybot] Emp immune again. Max stuntime vs units 8 -> 10
 • [Banisher] Energycost 17000 -> 23000, Turnrate 300 -> 250, Acceleration 0.2269 -> 0.2
 • [Tzar] Buildcost 26100 -> 30000
