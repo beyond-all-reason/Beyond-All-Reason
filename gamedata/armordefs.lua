@@ -239,6 +239,7 @@ local armorDefs = {
 		"cormwall",
 		"legrwall",
 		"cornecro",
+		"legrezbot",
 		"corplat",
 		"corphantom",
 		"corprinter",

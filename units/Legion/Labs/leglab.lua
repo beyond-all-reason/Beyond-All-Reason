@@ -34,7 +34,7 @@ return {
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "legck",
-			[2] = "cornecro",
+			[2] = "legrezbot",
 			[3] = "leggob",
 			[4] = "leglob",
 			[5] = "legcen",

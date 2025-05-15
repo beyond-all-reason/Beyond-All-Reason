@@ -12,7 +12,7 @@ local labGrids = {
 		"", "", "corcrash",                                        -- aa bot
 	},
 	leglab = {
-		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
+		"legck", "legrezbot", "leggob", "",                      -- T1 con, rez bot, AK
 		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
 		"", "", "legaabot",                                        -- aa bot
 	},

@@ -33,6 +33,7 @@ local unitOrderTable = {
 
 	['armrectr']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
+	['legrezbot']      = 002151,
 
 	['armmlv']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
