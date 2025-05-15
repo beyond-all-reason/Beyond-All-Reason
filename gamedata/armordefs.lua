@@ -197,6 +197,7 @@ local armorDefs = {
 		"corch",
 		"corck",
 		"corcrash",
+		"legaabot",
 		"corcv",
 		"cordrag",
 		"corestor",

@@ -40,7 +40,7 @@ return {
 			[5] = "legcen",
 			[6] = "legbal",
 			[7] = "legkark",
-			[8] = "corcrash",
+			[8] = "legaabot",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

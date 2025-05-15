@@ -1311,6 +1311,10 @@ local icontypes = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
+	legaabot = {
+		bitmap = "icons/bot_amph_aa.png",
+		size = 1.04999995
+	},
 	corcrus = {
 		bitmap = "icons/ship_t2_cruiser.png",
 		size = 2.25749993

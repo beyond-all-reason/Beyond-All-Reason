@@ -328,6 +328,7 @@ local unitOrderTable = {
 	-- LAND AA
 	['armjeth']        = 008000,
 	['corcrash']       = 008010,
+	['legaabot']       = 008011,
 	['armaak']         = 008020,
 	['coraak']         = 008030,
 
