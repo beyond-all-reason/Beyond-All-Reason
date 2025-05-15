@@ -252,7 +252,7 @@ local function visibleUnitsRemove(unitID, reason)
 		end
 		-- call all listeners
 		if Script.LuaUI('VisibleUnitRemoved') then
-			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 		end
 	else
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
@@ -385,8 +385,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
 		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
-	visibleUnitsRemove(unitID, reason or "destroyed")
-	alliedUnitsRemove(unitID, reason or "destroyed")
+	visibleUnitsRemove(unitID, reason or "UnitDestroyed")
+	alliedUnitsRemove(unitID, reason or "UnitDestroyed")
 end
 
 --function widget:CrashingAircraft(unitID, unitDefID, teamID)
