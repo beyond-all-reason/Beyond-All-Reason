@@ -32,7 +32,7 @@ local labGrids = {
 
 	legalab = {
 		"legack", "legaceb", "legstr", "corspy", "legdecom", "leginfestor",          -- T2 con, proteus, strider, spy, decoycom, infestor
-		"corvoyr", "corspec", "legshot", "corhrk", "corsktl", "",                    -- radar bot, jammer bot, phanlax, arbiter, skuttle
+		"corvoyr", "corspec", "legshot", "leghrk", "corsktl", "",                    -- radar bot, jammer bot, phanlax, thanatos, skuttle
 		"legbart", "legsrail", "coraak", "leginc", "legamph", "legsnapper",          -- belcher, railgun, AA bot, incinerator, telchine, snapper
     
 	},
@@ -805,9 +805,9 @@ local unitGrids = {
 	-- legion commanders
     legcom = {
 		{
-			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
-			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "legsolar", "legwin", },                        -- mex, solar, wind
+			{ "legeconv", "", "legfeconv", "legtide", },                    -- T1.5 mex,  floating converter, tidal
+			{ "legestor", "legmstor", "leguwestore", "leguwmstore", },  -- e storage, m sotrage, uw e storage, uw m storage
 		},
 		{
 			{ "leglht", "legtl", },                          -- LLT, offshore torp launcher
@@ -827,14 +827,14 @@ local unitGrids = {
 	},
 	legcomlvl2 = {
 		{
-			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
-			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "legsolar", "legwin", },                         -- mex, solar, wind
+			{ "legeconv", "", "legfeconv", "legtide"},                   -- T1.5 mex, floating converter, tidal
+			{ "legestor", "legmstor", "leguwestore", "leguwmstore",  },  -- e storage, m sotrage, uw e storage, uw m storage,
 		},
 		{
-			{ "leglht", "legtl", "leggob", "leglob",},       -- LLT, offshore torp launcher, goblin, lobber
-			{ "legrl", "legfrl", "legrail", "legbar",},             -- basic AA, floating AA, blank, barrage
-			{ "legctl", },                                    -- coastal torp launcher
+			{ "leglht", "legtl", "leggob", "leglob", "", "",},        -- LLT, offshore torp launcher, goblin, lobber
+			{ "legrl", "legfrl", "leghades", "leghelios",},           -- basic AA, floating AA, alaris, helios
+			{ "legctl", },                                            -- coastal torp launcher
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
@@ -849,19 +849,19 @@ local unitGrids = {
 	},
 	legcomlvl3 = {
 		{
-			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
-			{ "legeconv", "leggeo", "legmext15", "legtide", },   -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "legestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "legsolar", "legwin", "legadvsol", "", "leguwgeo", },     -- mex, solar, wind, adv. solar, (uw geo)
+			{ "legeconv", "leggeo", "legmext15", "", "legfeconv", "legtide", },   -- T1 converter, geo, T1.5 legion mex, (fl. T1 converter), (tidal)
+			{ "legestor", "legmstor", "", "", "leguwestore", "leguwmstore", },    -- e storage, m storage, (uw e stor), (uw m stor)
 		},
 		{
-			{ "leggat", "legbar", "legkark", "legcen", },     -- decurion, barrage, karkinos, centaur
-			{ "corrl", "legrail", "legmg", "legdtr", },       -- basic AA, lance, cacophony, dragon maw
-			{ "legctl", "leghive", "legtl", "", },-- coastal torp launcher, hive, offshore torp launcher, dragon tail
+			{ "leggat", "legbar", "legkark", "legcen", "legmg", "legdtr", },      -- decurion, barrage, karkinos, phobos (centaur), cacophony, dragon jaw
+			{ "legrl", "legfrl", "legrail", "", "", "", },                        -- basic AA, floating AA, lance
+			{ "legctl", "leghive", "legtl", "", "", "", },                        -- coastal torp launcher, hive, offshore torp launcher, 
 		},
 		{
-			{ "legavrad", "legeyes", "legdrag", "legavjam", }, -- radar bot, perimeter camera, dragon's teeth, jammer bot
-			{ "legfrad", "corfdrag",},                       -- floating radar, shark's teeth
-			{ "corjuno", "legrad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legdrag", "legavjam", },      -- radar bot, perimeter camera, dragon's teeth, jammer bot
+			{ "legfrad", "corfdrag",},                              -- floating radar, shark's teeth
+			{ "corjuno", "legrad", "legstronghold"},                -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -871,19 +871,19 @@ local unitGrids = {
 	},
 	legcomlvl4 = {
 		{
-			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
-			{ "legeconv", "leggeo", "legmext15", "legtide", },   -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "legestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "legsolar", "legwin", "legadvsol", "", "leguwgeo", },     -- mex, solar, wind, adv. solar, (uw geo)
+			{ "legeconv", "leggeo", "legmext15", "", "legfeconv", "legtide", },   -- T1 converter, geo, T1.5 legion mex, (fl. T1 converter), (tidal)
+			{ "legestor", "legmstor", "", "", "leguwestore", "leguwmstore", },    -- e storage, m storage, (uw e stor), (uw m stor)
 		},
 		{
-			{ "leggat", "legbart", "legshot", "legstr", },     	-- decurion, belcher, phalanx, strider
-			{ "legvflak", "legmed", "legmg", "legdtr", },       	-- aa vehicle, medusa, cacophony, dragon maw
-			{ "legctl", "legvcarry", "coratl", "", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "leggat", "legbart", "legshot", "legstr", "legmg", "legdtr", },     -- decurion, belcher, phalanx, strider, cacophony, dragon jaw
+			{ "legvflak", "legmed", "", "", "cormabm", "",},                      -- aa vehicle, medusa, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "", "legflak", "corenaa",},        -- coastal torp launcher, mantis, adv. offshore torp launcher, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legavjam", },    -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},         -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},              -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -893,19 +893,19 @@ local unitGrids = {
 	},
 	legcomlvl5 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "legsolar", "coruwageo",},   		-- adv mex, fusion, wind, adv. solar, solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide",},   			                -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm",},                -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legstr", },     	-- decurion, belcher, phalanx, strider
-			{ "legvflak", "legmed", "legmg", "legdtr", },       	-- aa vehicle, medusa, cacophony, dragon maw
-			{ "legctl", "legvcarry", "coratl", "", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "legaheattank", "leginf", "legshot", "legstr", "legmg", "legdtr",},     -- prometheus, inferno, phalanx, strider, cacophony, dragon jaw
+			{ "legvflak", "legmed", "", "", "cormabm", "", },       	              -- aa vehicle, medusa, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "", "legfalk", "corenaa", },		      -- coastal torp launcher, mantis, offshore torp launcher, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legavjam", },    -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},         -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},              -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -915,19 +915,19 @@ local unitGrids = {
 	},
 	legcomlvl6 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "", "coruwageo", },   	  -- adv mex, fusion, wind, adv. solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide", },   			      -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm", },         -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
-			{ "legvflak", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
-			{ "legctl", "legvcarry", "coratl", "legdtr", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "legaheattank", "leginf", "legshot", "legmrv", "legmg", "legdtr", },    -- prometheus, inferno, phalanx, quickshot, cacophony, dragon jaw
+			{ "legvflak", "legmed", "legbastion", "legkeres", "cormabm", "", },       -- aa vehicle, medusa, bastion, keres, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "", "legflak", "corenaa" },		      -- coastal torp launcher, mantis, adv offshore torp launcher, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legajam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legajam", },      -- radar bot, perimeter camera, t2 wall, jammer bot
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},          -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},               -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -937,14 +937,14 @@ local unitGrids = {
 	},
 	legcomlvl7 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "", "coruwageo", },   	-- adv mex, fusion, wind, adv. solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide", },   			    -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm", },       -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
-			{ "corsent", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
-			{ "legctl", "legvcarry", "coratl", "legdtr", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "legaheattank", "leginf", "legshot", "legmrv", "legmg", "legdtr", },     	-- prometheus, inferno, phalanx, quickshot, cacophony, dragon jaw
+			{ "legvflak", "legmed", "legbastion", "legkeres", "cormabm", "", },         -- aa vehicle, medusa, bastion, keres, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "", "legflak", "corenaa" },		        -- coastal torp launcher, mantis, adv offshore torp launcher, T2 AA, naval T2 AA
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
@@ -959,19 +959,19 @@ local unitGrids = {
 	},
 	legcomlvl8 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "", "coruwageo", },   	-- adv mex, fusion, wind, adv. solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide", },   			    -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm", },       -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
-			{ "legvflak", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
-			{ "legctl", "legvcarry", "coratl", "legdtr", },		-- coastal torp launcher, mantis, offshore torp launcher, dragon tail
+			{ "legaheattank", "leginf", "legshot", "legmrv", "legmg", "legdtr", },         -- prometheus, inferno, phalanx, quickshot, cacophony, dragon jaw
+			{ "legvflak", "legmed", "legbastion", "legkeres", "cormabm", "", },            -- aa vehicle, medusa, bastion, keres, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "", "legflak", "corenaa" },		           -- coastal torp launcher, mantis, adv offshore torp launcher, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legavjam", "legdeflector", },            -- radar bot, perimeter camera, t2 wall, jammer bot, plasma shield
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},                                 -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},                                      -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -981,19 +981,19 @@ local unitGrids = {
 	},
 	legcomlvl9 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "", "coruwageo", },   	-- adv mex, fusion, wind, adv. solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide", },   			    -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm", },       -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
-			{ "legvflak", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
-			{ "legctl", "legvcarry", "coratl", "legeshotgunmech", },		-- coastal torp launcher, mantis, offshore torp launcher, praetorian
+			{ "legaheattank", "leginf", "legshot", "legmrv", "legmg", "legdtr", },          -- prometheus, inferno, phalanx, quickshot, cacophony, dragon jaw
+			{ "legvflak", "legmed", "legbastion", "legkeres", "cormabm", "", },             -- aa vehicle, medusa, bastion, keres, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "legeshotgunmech", "legflak", "corenaa" },	-- coastal torp launcher, mantis, adv offshore torp launcher, praetorian, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legavjam", "legdeflector",},              -- radar bot, perimeter camera, t2 wall, jammer bot, plasma shield
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},                                  -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},                                       -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -1003,19 +1003,19 @@ local unitGrids = {
 	},
 	legcomlvl10 = {
 		{
-			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
-			{ "legadveconv", "leggeo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
-			{ "legadvestore", "legamstor", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legwin", "legadvsol", "", "coruwageo", },   	-- adv mex, fusion, wind, adv. solar, uw adv. geo
+			{ "legadveconv", "legageo", "", "", "", "legtide", },   			    -- adv metalmaker, adv geo, empty, tidal generator
+			{ "legadvestore", "legamstor", "", "", "coruwmme", "coruwmmm", },       -- hardened energy storage, hardened metal storage, uw T2 mex, T2 fl. conv
 		},
 		{
-			{ "legaheattank", "leginf", "legshot", "legmrv", },     	-- decurion, belcher, phalanx, quickshot
-			{ "legvflak", "legmed", "legmg", "legkeres", },       	-- aa vehicle, medusa, cacophony, keres
-			{ "legctl", "legvcarry", "coratl", "legeshotgunmech", },		-- coastal torp launcher, mantis, offshore torp launcher, praetorian
+			{ "legaheattank", "leginf", "legshot", "legmrv", "legmg", "legdtr", },     	    -- prometheus, inferno, phalanx, quickshot, cacophony, dragon jaw
+			{ "legvflak", "legmed", "legbastion", "legkeres", "cormabm", "", },             -- aa vehicle, medusa, bastion, keres, mobile anti-nuke
+			{ "legctl", "legvcarry", "coratl", "legeshotgunmech", "legflak", "corenaa" },	-- coastal torp launcher, mantis, adv offshore torp launcher, praetorian, T2 AA, naval T2 AA
 		},
 		{
-			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "corfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
-			{ "corjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
+			{ "legavrad", "legeyes", "legforti", "legavjam", "legdeflector",},              -- radar bot, perimeter camera, t2 wall, jammer bot, plasma shield
+			{ "legfrad", "corfdrag", "legdrag", "corasp"},                                  -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "corjuno", "legarad", "legstronghold"},                                       -- juno, radar, t2 transport
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
@@ -1322,24 +1322,24 @@ local unitGrids = {
 
 	legch = {
 		{
-			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
-			{ "legeconv", "leggeo", "legmext15", "legtide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "legestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "legsolar", "legwin", "legadvsol", },       -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", "legtide", },      -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", "coruwes", "legfmkr", },      -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
-			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, rhapsis, t1.5 flak, floating AA
-			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
+			{ "leglht", "legmg", "leghive", "legdtr", },     	    -- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "leglupara", "legfrl" },       -- basic AA, rhapsis, t1.5 flak, floating AA
+			{ "legctl", "legcluster", "legtl", "legfmg", },         -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
 		},
 		{
-			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "legfrad", "corfdrag", },                       -- floating radar, shark's teeth
-			{ "corjuno", },                                   -- juno
+			{ "legrad", "legeyes", "legdrag", "legjam", },          -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legfrad", "corfdrag", },                             -- floating radar, shark's teeth
+			{ "corjuno", },                                         -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legavp", "legnanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leglab", "legvp", "legap", "corsy", },               -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legavp", "legnanotcplat", "corasy", },  -- nano, T2 veh lab, floating nano
+			{ "leghp", "legfhp", "legamsub", "corplat", },          -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1439,13 +1439,13 @@ local unitGrids = {
 
     legotter = {
 		{
-			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
-			{ "legeconv", "leggeo", "legmext15", "legtide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "legestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "legmex", "legsolar", "legwin", "legadvsol", "", "",},                   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", "leguwgeo", "legfeconv", "legtide", },       -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", "", "", "leguwestore", "leguwstore", },            -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
-			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
+			{ "leglht", "legmg", "leghive", "legdtr", },          -- LHT, machine gun, drone pad, riot turret
+			{ "legrl", "legrhapsis", "leglupara", "legfrl" },     -- basic AA, rhapsis, lupara, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
