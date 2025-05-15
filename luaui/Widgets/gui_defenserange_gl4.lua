@@ -79,6 +79,7 @@ local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
+	drawAllyCategoryBuildQueue = true,
     ground = {
         color = {1.3, 0.18, 0.04, 0.4},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
@@ -582,7 +583,9 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	local addedrings = 0
 	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
 		local allystring = alliedUnit and "ally" or "enemy"
-		if buttonConfig[allystring][weaponType] then
+		-- We want to continue to maintain ally lists, because these ally lists will be 
+		if buttonConfig[allystring][weaponType] or (colorConfig.drawAllyCategoryBuildQueue and (allystring == "ally")) then 
+			
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 
 			local weaponID = i
@@ -780,6 +783,8 @@ function widget:GameFrame(gf)
 end
 
 local buildUnitDefID = nil
+local buildDrawOverride = { ground = false, air = false, nuke = false , cannon = false, lrpc = false}
+
 function widget:Update(dt)
 	--spec, fullview = spGetSpectatingState()
 	--if spec then
@@ -843,6 +848,7 @@ function widget:Update(dt)
 			-- find out which VBO to remove from:
 			local allystring = 'ally'
 			for i, weaponType in ipairs(rings['weapons']) do
+				buildDrawOverride[weaponType] = false
 				for j,allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType
 					local instanceID = 2000000 + 100000* i +  buildUnitDefID
@@ -874,6 +880,7 @@ function widget:Update(dt)
 				local allystring = 'ally'
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
 					local allystring = "ally"
+					buildDrawOverride[weaponType] = true
 					if buttonConfig[allystring][weaponType] then
 						--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 						local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
@@ -934,6 +941,7 @@ for i, weaponType in ipairs(allrings) do
 	end
 end
 
+
 local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 	local stencilMask
 	for i,allyState in ipairs(allyenemypairs) do
@@ -941,7 +949,9 @@ local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 			local defRangeClass = allyState..wt
 			local iT = defenseRangeVAOs[defRangeClass]
 
-			if iT.usedElements > 0 then -- and buttonConfig[allyState][wt] then  -- remove the buttonConfig check, as we might have queued buildings here, and we already discarded addition of unwanted rings based on buttonConfig in visibleUnitCreated
+			 -- if we might have queued buildings here, and we already discarded addition of unwanted rings based on buttonConfig in visibleUnitCreated
+				
+			if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then 
 				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
 				defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig[wt][alpha])
 				if linethickness then
