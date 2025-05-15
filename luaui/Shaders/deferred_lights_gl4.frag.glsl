@@ -1016,8 +1016,8 @@ void main(void)
 
 	// Add a half a bit of blue noise to the color to prevent banding, especially with contrast adaptive sharpening:
 	// Which should kinda be color dependent anyway, so lets find the max of all the color, and use that to ensure we get half a bit on the output:
-
-	fragColor.rgb -= v_lightcolor.rgb * (blueNoiseSample.rgb - 0.5) * (1.0 / 256.0);
+	//v_lightcolor.rgb
+	fragColor.rgb -=  (blueNoiseSample.rgb - 0.5) * (1.0 / 384.0);
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
