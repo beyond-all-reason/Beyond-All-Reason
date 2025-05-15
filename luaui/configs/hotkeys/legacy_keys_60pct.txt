@@ -294,7 +294,9 @@ bind Ctrl+Shift+sc_o cameraflip
 
 //if not WG[bind Set target default ] then
 bind Alt+sc_y settarget
+bind Shift+Alt+sc_y settarget
 bind sc_y settargetnoground
+bind Shift+sc_y settargetnoground
 
 bind Ctrl+meta+sc_q group unset
 // if WG[bind Auto Group ] then

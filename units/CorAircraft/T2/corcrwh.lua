@@ -127,6 +127,9 @@ return {
 				damage = {
 					vtol = 76,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			dragonmawh = {
 				accuracy = 700,
