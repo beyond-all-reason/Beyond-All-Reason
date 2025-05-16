@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- gui_emp_decloak_range.lua
--- v7: EMP ring gently fades/pulses between two colors in glow-pass
+-- v8: EMP + decloak range with main-pass opacity pulsating per prop
 --------------------------------------------------------------------------------
 
 local widget = widget ---@type Widget
@@ -8,12 +8,12 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
     return {
         name      = "EMP + decloak range",
-        desc      = "When spy or gremlin is selected, displays emp range always and decloak range only while cloaked; EMP glow now pulses",
-        author    = "[teh]decay, updated by IceXuick",
-        date      = "14 May 2025",
+        desc      = "When spy/gremlin is selected, displays EMP range always and decloak range only while cloaked; main-pass opacity pulses per prop",
+        author    = "[teh]decay, updated by ChatGPT",
+        date      = "16 May 2025",
         license   = "The BSD License",
         layer     = 0,
-        version   = 7,
+        version   = 8,
         enabled   = true,
     }
 end
@@ -24,12 +24,19 @@ end
 local onlyDrawRangeWhenSelected = true
 local fadeOnCameraDistance      = true
 local showLineGlow              = true
-local opacityMultiplier         = 1.3
+local opacityMultiplier         = 1.0
 local fadeMultiplier            = 1.2  -- lower value: fades out sooner
 local circleDivs                = 64   -- detail of range circle
 
--- pulse speed (radians per second) for glow color cycling
-local pulseSpeed = math.pi * 1.5  -- speed of one full cycle 
+-- pulse speeds (radians per second) for main-pass opacity
+local pulseSpeedDecloak = math.pi * 0.75   -- one cycle every 2s for decloak
+local pulseSpeedEMP     = math.pi * 1.5 -- one cycle every 4s for EMP
+
+-- opacity bounds for main-pass
+local decloakAlphaMin = 0.25
+local decloakAlphaMax = 0.85
+local empAlphaMin     = 0.15
+local empAlphaMax     = 0.6
 
 --------------------------------------------------------------------------------
 -- GLSL & Spring API LOCALS
@@ -68,15 +75,22 @@ local units                = {}  -- [unitID] = { decloakDist, empRadius }
 --------------------------------------------------------------------------------
 local lower = string.lower
 local isSpy, isGremlin = {}, {}
-
 for udid, ud in pairs(UnitDefs) do
     local name = ud.name:lower()
-    local decloakDist = ud.mincloakdistance or ud.decloakDistance
+    local decloakDist = ud.mincloakdistance or ud.decloakDistance or 0
     if name:find("spy") or name:find("armamex") then
-        local wdid = WeaponDefNames[lower(ud.selfDExplosion)].id
-        isSpy[udid] = { decloakDist, WeaponDefs[wdid].damageAreaOfEffect }
+        -- spy's EMP radius from its self-destruct weapon
+        local wdefName = lower(ud.selfDExplosion)
+        local wdef = WeaponDefNames[wdefName]
+        if wdef then
+            isSpy[udid] = { decloakDist, WeaponDefs[wdef.id].damageAreaOfEffect }
+        else
+            isSpy[udid] = { decloakDist, 0 }
+        end
     end
-    if name:find("armgremlin") or name:find("armamb") or name:find("armpb") or name:find("armferret") or name:find("armckfus") then
+    if name:find("armgremlin") or name:find("armamb") or name:find("armpb") or name:find("armferret")
+       or name:find("armckfus") or name:find("armsnipe") or name:find("eyes") or name:find("mine")
+       or name:find("armcom") or name:find("corcom") or name:find("legcom") then
         isGremlin[udid] = decloakDist
     end
 end
@@ -168,10 +182,10 @@ function widget:DrawWorldPreUnit()
     local camX, camY, camZ = spGetCameraPosition()
     glDepthTest(true)
 
-    -- current time for pulsing
+    -- current time for pulses
     local t = spGetGameSeconds()
-    -- normalized pulse [0,1]
-    local pulse = (math.sin(t * pulseSpeed) + 1) * 0.5
+    local pulseD = (math.sin(t * pulseSpeedDecloak) + 1) * 0.5
+    local pulseE = (math.sin(t * pulseSpeedEMP) + 1) * 0.5
 
     for unitID, prop in pairs(units) do
         local dx, dy, dz = spGetUnitPosition(unitID)
@@ -185,37 +199,40 @@ function widget:DrawWorldPreUnit()
 
                 local cloaked = spGetUnitIsCloaked(unitID) == true
 
-                -- glow pass
-                if showLineGlow then
-                    glLineWidth(12)
-                    if prop[1] > 0 and cloaked then
-                        glColor(0.6, 0.6, 1.0, 0.06 * alphaScale * opacityMultiplier)
-                        glDrawGroundCircle(dx, dy, dz, prop[1], circleDivs)
-                    end
-                    -- if prop[2] > 0 then
-                    --     -- interpolate color
-                    --     local r = 0.3 * pulse + 0.7 * (1-pulse)
-                    --     local g = 0.3 * pulse + 0.7 * (1-pulse)
-                    --     local b = 1 * pulse + 1 * (1-pulse)
-                    --     glColor(r, g, b, 0.15 * alphaScale * opacityMultiplier)
-                    --     glDrawGroundCircle(dx, dy, dz, prop[2], circleDivs)
-                    -- end
-                end
+                -- -- glow pass unchanged
+                -- if showLineGlow then
+                --     glLineWidth(12)
+                --     if prop[1] > 0 and cloaked then
+                --         glColor(0.6, 0.6, 1.0, 0.06 * alphaScale * opacityMultiplier)
+                --         glDrawGroundCircle(dx, dy, dz, prop[1], circleDivs)
+                --     end
+                --     if prop[2] > 0 then
+                --         local r = 0.3 * pulseD + 0.7 * (1-pulseD)
+                --         local g = 0.3 * pulseD + 0.7 * (1-pulseD)
+                --         local b = 1.0
+                --         glColor(r, g, b, 0.15 * alphaScale * opacityMultiplier)
+                --         glDrawGroundCircle(dx, dy, dz, prop[2], circleDivs)
+                --     end
+                -- end
 
-                -- main pass (static colors)
-                local lw = math.max(0.4, 2.6 - math.min(2, distToCam/2000))
+                -- main pass with opacity pulses
+                local lw = math.max(1.5, 2.5 - math.min(2, distToCam/2000))
                 glLineWidth(lw)
                 if prop[1] > 0 and cloaked then
-                    glColor(0.28, 0.28, 1.0, 0.45 * alphaScale * opacityMultiplier)
+                    local r = 0.09 * pulseE + 0.8 * (1-pulseE)
+                    local g = 0.09 * pulseE + 0.8 * (1-pulseE)
+                    local b = 0.09 * pulseE + 0.8 * (1-pulseE)
+                    local alpha = decloakAlphaMin * (1-pulseD) + decloakAlphaMax * pulseD
+                    glColor(r, g, b, alpha * alphaScale * opacityMultiplier)
                     glDrawGroundCircle(dx, dy, dz, prop[1], circleDivs)
                 end
                 if prop[2] > 0 then
-                    -- interpolate color
-                        local r = 0.3 * pulse + 0.8 * (1-pulse)
-                        local g = 0.3 * pulse + 0.8 * (1-pulse)
-                        local b = 1 * pulse + 1 * (1-pulse)
-                        glColor(r, g, b, 0.25 * alphaScale * opacityMultiplier)
-                        glDrawGroundCircle(dx, dy, dz, prop[2], circleDivs)
+                    local r = 0.7 * pulseE + 0.6 * (1-pulseE)
+                    local g = 0.7 * pulseE + 0.6 * (1-pulseE)
+                    local b = 1.0
+                    local alpha = empAlphaMin * (1-pulseE) + empAlphaMax * pulseE
+                    glColor(r, g, b, alpha * alphaScale * opacityMultiplier)
+                    glDrawGroundCircle(dx, dy, dz, prop[2], circleDivs)
                 end
             end
         end
