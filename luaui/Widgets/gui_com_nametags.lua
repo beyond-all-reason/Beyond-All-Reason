@@ -73,7 +73,10 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 50
 local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 10
-local font, shadowFont, fonticon, fontfileScale2
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+local fontfileScale2 = fontfileScale * 0.66
+local fonticon = gl.LoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOutlineSize * fontfileScale2, fontfileOutlineStrength * 0.33)
 
 local singleTeams = false
 if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
@@ -363,7 +366,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if not fontfileScale or fontfileScale ~= newFontfileScale then
+	if fontfileScale ~= newFontfileScale then
 		RemoveLists()
 		CheckAllComs()
 		fontfileScale = newFontfileScale
@@ -432,9 +435,11 @@ function widget:DrawWorld()
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
 	-- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
-	if spec and not CheckedForSpec and Spring.GetGameFrame() > 0 then
-		CheckedForSpec = true
-		CheckAllComs()
+	if not CheckedForSpec and Spring.GetGameFrame() > 1 then
+		if spec then
+			CheckedForSpec = true
+			CheckAllComs()
+		end
 	end
 
 	glDepthTest(true)
@@ -483,12 +488,18 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
+	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
-
+	
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
 	sec = 99
+
+	if spec and prevSpec ~= spec then
+		CheckedForSpec = true
+		CheckAllComs()
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
