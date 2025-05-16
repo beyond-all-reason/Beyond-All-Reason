@@ -89,7 +89,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		cannonMode = false,
 		stencilMask = 1,
 		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.0, -- alpha of inner rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.74},
@@ -100,18 +100,18 @@ local colorConfig = { --An array of R, G, B, Alpha
 		cannonMode = false,
 		stencilMask = 2,
 		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.0, -- alpha of inner rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     nuke = {
-        color = {1.2, 1.0, 0.3, 0.8},
+        color = {1.05, 1.0, 0.2, 0.76},
         fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0,
         internallinethickness = 2.0,
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 4,
-		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.10, -- alpha of inner rings
+		externalalpha = 0.80, -- alpha of outer rings
+		internalalpha = 0.15, -- alpha of inner rings
     },
     cannon = {
         color = {1.3, 0.18, 0.04, 0.74}, --orange 1.2, 0.55, 0.08, 0.74
@@ -122,7 +122,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		cannonMode = true,
 		stencilMask = 8,
 		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.08, -- alpha of inner rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
 	lrpc = {
         color = {1.3, 0.18, 0.04, 0.7},
