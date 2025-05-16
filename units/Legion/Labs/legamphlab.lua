@@ -9,7 +9,7 @@ return {
 		buildtime = 11400,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "96 44 89",
+		collisionvolumescales = "98 50 91",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 160,
