@@ -28,20 +28,21 @@ return {
 		sightdistance = 240,
 		terraformspeed = 750,
 		workertime = 150,
-		yardmap = [[h
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    ]],
+		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
+	-- 	yardmap = [[h
+    -- oo oo oo oo oo oo
+    -- oo oo oo oo oo oo
+    -- oo oo oo oo oo oo
+    -- oo oo oo oo oo oo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- oe ee ee ee ee eo
+    -- ]],
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",

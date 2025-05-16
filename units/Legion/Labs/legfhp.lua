@@ -27,7 +27,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
-		waterline = 0,
+		waterline = 4,
 		workertime = 100,
 		yardmap = "weeeew weeeew weeeew weeeew weeeew weeeew",
 		buildoptions = {
