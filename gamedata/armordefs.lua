@@ -432,7 +432,7 @@ local armorDefs = {
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",
-		"legamsub",
+		"legamphlab",
 
 		"legcv",
 		"legck",

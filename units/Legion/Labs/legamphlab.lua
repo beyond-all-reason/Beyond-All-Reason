@@ -1,11 +1,11 @@
 return {
-	legamsub = {
+	legamphlab = {
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 5600,
 		metalcost = 1200,
 		builder = true,
-		buildpic = "LEGAMSUB.DDS",
+		buildpic = "legamphlab.DDS",
 		buildtime = 11400,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -6",
@@ -21,14 +21,27 @@ return {
 		health = 2800,
 		maxslope = 10,
 		minwaterdepth = 25,
-		objectname = "Units/CORAMSUB.s3o",
-		script = "Units/CORAMSUB.cob",
+		objectname = "Units/legamphlab.s3o",
+		script = "Units/legamphlab.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
 		terraformspeed = 750,
 		workertime = 150,
-		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
+		yardmap = [[h
+    oo oo oo oo oo oo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    oe ee ee ee ee eo
+    ]],
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",
@@ -40,14 +53,14 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
+			buildinggrounddecaltype = "decals/legamphlab_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
-			model_author = "FireStorm",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorBuildings/SeaFactories",
+			model_author = "Tharsis, ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Labs",
 		},
 		featuredefs = {
 			dead = {
@@ -61,7 +74,7 @@ return {
 				footprintz = 7,
 				height = 5,
 				metal = 800,
-				object = "Units/coramsub_dead.s3o",
+				object = "Units/legamphlab_dead.s3o",
 				reclaimable = true,
 			},
 		},

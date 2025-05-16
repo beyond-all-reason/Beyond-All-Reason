@@ -68,7 +68,7 @@ return {
 			[28] = "legctl",
 			[29] = "legjam",
 			[30] = "legfhp",
-			[31] = "legamsub",
+			[31] = "legamphlab",
 			[32] = "corplat",
 			[33] = "corsy",
 			[34] = "legtide",

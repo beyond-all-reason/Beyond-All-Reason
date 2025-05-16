@@ -2315,7 +2315,7 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	legamsub = {
+	legamphlab = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
