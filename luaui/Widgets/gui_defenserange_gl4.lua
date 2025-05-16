@@ -81,10 +81,10 @@ local colorConfig = { --An array of R, G, B, Alpha
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
 	drawAllyCategoryBuildQueue = true,
     ground = {
-        color = {1.3, 0.18, 0.04, 0.4},
+        color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
-        internallinethickness = 2.0, -- can be 1.8 if we can distiquish its looks from attackranges
+        externallinethickness = 5.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
+        internallinethickness = 3.0, -- can be 1.8 if we can distiquish its looks from attackranges
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 1,
@@ -92,10 +92,10 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.10, -- alpha of inner rings
     },
     air = {
-        color = {0.8, 0.44, 1.6, 0.70},
+        color = {0.8, 0.44, 1.6, 0.74},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 1.8,
+        externallinethickness = 5.0,
+        internallinethickness = 3.0,
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 2,
@@ -103,31 +103,32 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.10, -- alpha of inner rings
     },
     nuke = {
-        color = {1.2, 1.0, 0.3, 0.8},
+        color = {1.05, 1.0, 0.2, 0.76},
         fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 1.0,
+        externallinethickness = 5.0,
+        internallinethickness = 2.0,
 		stenciled = true,
 		cannonMode = false,
 		stencilMask = 4,
-		externalalpha = 0.75, -- alpha of outer rings
-		internalalpha = 0.20, -- alpha of inner rings
+		externalalpha = 0.80, -- alpha of outer rings
+		internalalpha = 0.15, -- alpha of inner rings
     },
     cannon = {
-        color = {1.3, 0.18, 0.04, 0.74},
+        color = {1.3, 0.18, 0.04, 0.74}, --orange 1.2, 0.55, 0.08, 0.74
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 1.0,
+        externallinethickness = 5.0,
+        internallinethickness = 2.5,
 		stenciled = true,
 		cannonMode = true,
 		stencilMask = 8,
 		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
 	lrpc = {
-        color = {1.3, 0.18, 0.04, 0.66},
+        color = {1.3, 0.18, 0.04, 0.7},
         fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 2.0,
-        internallinethickness = 1.0,
+        externallinethickness = 3.0,
+        internallinethickness = 1.5,
 		stenciled = false,
 		cannonMode = true,
 		externalalpha = 0.25, -- alpha of outer rings
@@ -433,7 +434,7 @@ end
 
 -- nukes and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 512
+local largeCircleSegments = 1024
 
 -- others:
 local smallCircleVBO = nil
@@ -510,7 +511,7 @@ local function initGL4()
 	largeCircleVBO = makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
 		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
-		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then
+		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
 		else
@@ -879,26 +880,24 @@ function widget:Update(dt)
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
 				local allystring = 'ally'
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
-					local allystring = "ally"
-					buildDrawOverride[weaponType] = true
-					if buttonConfig[allystring][weaponType] then
-						--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-						local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
-
-						cacheTable[1] = bpx
-						cacheTable[2] = ringParams[18]
-						cacheTable[3] = bpz
-						local vaokey = allystring .. weaponType
-
-						for j = 1,13 do
-							cacheTable[j+3] = ringParams[j]
-						end
-						--Spring.Echo("Drawing ring for", buildUnitDefID, "at", bpx, ringParams[18], bpz)
-						local instanceID = 2000000 + 100000* i +  buildUnitDefID
-						pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
-
-					end
-				end
+                   local allystring = "ally"
+                   buildDrawOverride[weaponType] = true
+                   -- allow rings if either normal ally-rings are on, OR build-queue preview is explicitly enabled
+                   if buttonConfig[allystring][weaponType]
+                      or colorConfig.drawAllyCategoryBuildQueue
+                   then
+                       local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
+                       cacheTable[1] = bpx
+                       cacheTable[2] = ringParams[18]
+                       cacheTable[3] = bpz
+                       for j = 1,13 do
+                           cacheTable[j+3] = ringParams[j]
+                       end
+                       local vaokey    = allystring .. weaponType
+                       local instanceID = 2000000 + 100000 * i + buildUnitDefID
+                       pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
+                   end
+               end
 			end
 		end
 
