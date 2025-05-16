@@ -30,9 +30,9 @@ return {
 		workertime = 150,
 		yardmap = [[h
     oo oo oo oo oo oo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
-    oe ee ee ee ee eo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
     oe ee ee ee ee eo
     oe ee ee ee ee eo
     oe ee ee ee ee eo
