@@ -125,7 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 			elseif isBuilding then
-				-- We want to keep updating in case he's got another job nearby
+				-- We want to keep updating in case the constructor has another job nearby
 				builderRadiusOffsets[builderID] = 0
 			end
 		end
