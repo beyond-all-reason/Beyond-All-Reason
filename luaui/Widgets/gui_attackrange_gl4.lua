@@ -78,7 +78,7 @@ local colorConfig = {
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 2800, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 4000, 6000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -96,7 +96,7 @@ local colorConfig = {
 	},
 	AA = {
 		color = { 0.8, 0.44, 2.0, 0.40 },
-		fadeparams = { 1500, 3200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 2000, 5000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -105,10 +105,10 @@ local colorConfig = {
 	},
 	cannon = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 1500, 3200, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 5000, 8500, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
-		internallinethickness = 2.0,
+		internallinethickness = 1.8,
 		minimapexternallinethickness = 1.0,
 		minimapinternallinethickness = 0.5,
 	},
@@ -421,7 +421,7 @@ end
 ------ GL4 THINGS  -----
 -- AA and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 512
+local largeCircleSegments = 1024
 
 -- others:
 local smallCircleVBO = nil
@@ -705,7 +705,7 @@ local function initGL4()
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
 		attackRangeVAOs
 		[atkRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
-		if atkRangeClass:find("cannon", nil, true) or atkRangeClass:find("AA", nil, true) then
+		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
 			attackRangeVAOs
 			[atkRangeClass].vertexVBO = largeCircleVBO
 			attackRangeVAOs
