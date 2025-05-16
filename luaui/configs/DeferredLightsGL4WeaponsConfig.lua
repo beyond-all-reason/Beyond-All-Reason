@@ -1198,12 +1198,12 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 lifetime = 120, sustain = 4})
 
 --muzzleflashes for corkorg broken??
--- muzzleFlashLightsNames["corkorg_corkorg_fire"] =
--- GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
--- 											 r = 1.0, g = 0.75, b = 0.2, a = 0.3,
--- 											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 10,
--- 											 modelfactor = 0.3, specular = 0.3, scattering = 0.2, lensflare = 0,
--- 											 lifetime = 9, sustain = 2})
+muzzleFlashLightsNames["corkorg_corkorg_fire"] =
+GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
+											 r = 1.1, g = 0.85, b = 0.3, a = 0.6,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.04, colortime = 15,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.1, lensflare = 0,
+											 lifetime = 20, sustain = 2})
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =

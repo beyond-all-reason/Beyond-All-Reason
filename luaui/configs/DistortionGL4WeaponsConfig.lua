@@ -623,7 +623,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 1.0,
 			lifeTime = 15,  refractiveIndex = 1.05,
-			--windAffected = 0.5,  riseRate = 1,
+			--
 			effectStrength = 1.0, --needed for irshockwaves
 			effectType = 'airShockwave', },
 
@@ -1643,6 +1643,21 @@ projectileDefDistortionsNames["corsala_cor_heat_laser"] =
 
 projectileDefDistortionsNames["corkorg_corkorg_laser"] =
 	GetDistortionClass("HeatRayHeatXL", "KorgLaser")
+
+muzzleFlashDistortionsNames['corkorg_corkorg_fire'] = {
+	GetDistortionClass("MuzzleShockWaveXL", "Micro", {
+		decay = 4, rampUp = 3,
+		startRadius = 0.7,
+		windAffected = -1,  riseRate = -1,
+		lifeTime = 7, effectStrength = 2.5, shockWidth = -0.87,
+	})
+}
+
+muzzleFlashDistortionsNames['armguard_plasma'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano", {
+		lifeTime = 8, effectStrength = 1.2,
+	}),
+}
 
 projectileDefDistortionsNames["armspid_spider"] = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
