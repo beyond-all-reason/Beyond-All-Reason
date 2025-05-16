@@ -27490,7 +27490,7 @@ local unitLights = {
 		thrust1 = {
 			lightType = 'cone',
 			pieceName = 'thrustrra',
-			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
 							r = 0.45, g = 0.7, b = 1, a = 0.24,
 							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
@@ -27499,7 +27499,7 @@ local unitLights = {
 		thrust2 = {
 			lightType = 'cone',
 			pieceName = 'thrustrla',
-			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
 							r = 0.45, g = 0.7, b = 1, a = 0.24,
 							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
@@ -27508,7 +27508,7 @@ local unitLights = {
 		thrust3 = {
 			lightType = 'cone',
 			pieceName = 'thrustfla',
-			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
 							r = 0.45, g = 0.7, b = 1, a = 0.24,
 							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
@@ -27517,7 +27517,7 @@ local unitLights = {
 		thrust4 = {
 			lightType = 'cone',
 			pieceName = 'thrustfra',
-			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
 							r = 0.45, g = 0.7, b = 1, a = 0.24,
 							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
