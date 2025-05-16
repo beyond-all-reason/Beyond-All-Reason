@@ -14,6 +14,8 @@ if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePla
 	return
 end
 
+Spring.SetConfigInt("ui_rendertotexture", 0)
+
 -- PushMatrix and PopMatrix still perform accounting and can generate errors on headless.
 -- Problem here is CallList won't really call dlists, so when a PushMatrix or PopMatrix
 -- is placed inside a display list, this can cause problems.
