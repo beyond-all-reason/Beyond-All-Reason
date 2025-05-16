@@ -56,7 +56,7 @@ return {
 				footprintz = 7,
 				height = 20,
 				metal = 715,
-				object = "Units/leghp_dead.s3o",
+				object = "Units/legfhp_dead.s3o",
 				reclaimable = true,
 			},
 		},
