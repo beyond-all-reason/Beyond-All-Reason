@@ -651,7 +651,7 @@ local BaseClasses = {
 	},
 	FlameProjectileXL = {
 		distortionType = 'point', -- or cone or beam
-		fraction = 3, -- only spawn every nth distortion
+		fraction = 8, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
 			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.6, onlyModelMap = 0,
