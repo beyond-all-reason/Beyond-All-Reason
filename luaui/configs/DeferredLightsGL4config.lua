@@ -3205,6 +3205,17 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0 },
 		},
 	},
+	['legjuno'] = {
+		top = {
+			lightType = 'point',
+			pieceName = 'junoSphere',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							color2r = 0, color2g = 0, color2b = 0.2, colortime = -1,
+							r = 1.1, g = 0.2, b = 0.2, a = 0.8,
+							modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0 },
+		},
+	},
 	['armjam'] = {
 		cloaklightred = {
 			lightType = 'point',

@@ -177,6 +177,7 @@ local armorDefs = {
 		"armzeus",
 		"armamsub",
 		"corjuno",
+		"legjuno",
 		"corageo",
 		"legageo",
 		"armconsul",

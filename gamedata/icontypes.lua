@@ -1635,6 +1635,10 @@ local icontypes = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
+	legjuno = {
+		bitmap = "icons/juno.png",
+		size = 1.29999995
+	},
 	corkarg = {
 		bitmap = "icons/corkarg_2.05.png",
 		size = 2.424999

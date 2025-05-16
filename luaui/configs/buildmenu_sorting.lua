@@ -588,6 +588,7 @@ local unitOrderTable = {
    ['legajam']        = 103451,
    ['armjuno']        = 103500,
    ['corjuno']        = 103550,
+   ['legjuno']        = 103551,
 
    ['armsd']          = 103600,
    ['corsd']          = 103625,

@@ -88,7 +88,7 @@ return {
             "legdtr",
 			"legvcarry",
 			"legmg",
-			"corjuno",
+			"legjuno",
 			"legctl",
 			"corenaa",
             "legbastion",

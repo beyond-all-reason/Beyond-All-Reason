@@ -64,7 +64,7 @@ return {
 			[24] = "legrl",
 			[25] = "legrhapsis",
 			[26] = "leglupara",
-			[27] = "corjuno",
+			[27] = "legjuno",
 			[28] = "legctl",
 			[29] = "legjam",
 			[30] = "legfhp",
