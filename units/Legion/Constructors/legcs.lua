@@ -60,7 +60,7 @@ return {
 			"legamsub",
 			"corplat",
 			"legfrad",
-			"corfdrag",
+			"legfdrag",
 			"legtl",
 			"legfhive",
 			"legfrl",

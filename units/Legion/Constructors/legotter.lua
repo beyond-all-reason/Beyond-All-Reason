@@ -78,7 +78,7 @@ return {
 			[35] = "leguwmstore",
 			[36] = "leguwestore",
 			[37] = "legfeconv",
-			[38] = "corfdrag",
+			[38] = "legfdrag",
 			[39] = "legfrad",
 			[40] = "legfmg",
 			[41] = "legfrl",

@@ -876,8 +876,9 @@ void main(void)
 	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	attenuation = pow(attenuation, 1.0);
 
-	
-	vec4 blueNoiseSample = textureLod(blueNoise, gl_FragCoord.xy / 64.0, 0.0);
+	//Give each light a unique blue noise sampling offset 
+	vec2 blueNoiseUV = (gl_FragCoord.xy + float(v_noiseoffset.a)*7.0)/64.0;
+	vec4 blueNoiseSample = textureLod(blueNoise, blueNoiseUV, 0.0);
 
 	// Do screen-space sampling for shadowing because you are a silly boy:
 	float unoccluded = 1.0;
@@ -1014,7 +1015,9 @@ void main(void)
 	fragColor.rgb *= intensityMultiplier;
 
 	// Add a half a bit of blue noise to the color to prevent banding, especially with contrast adaptive sharpening:
-	fragColor.rgb -= (blueNoiseSample.rgb - 0.5) * (1.0 / 384.0);
+	// Which should kinda be color dependent anyway, so lets find the max of all the color, and use that to ensure we get half a bit on the output:
+	//v_lightcolor.rgb
+	fragColor.rgb -=  (blueNoiseSample.rgb - 0.5) * (1.0 / 384.0);
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
