@@ -62,7 +62,7 @@ if gadgetHandler:IsSyncedCode() then
 	local BUGGEROFF_RADIUS_ESCALATION_INCREMENT = FAST_UPDATE_FREQUENCY * 0.5
 
 	local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, radius)
-		if Spring.AreTeamsAllied(Spring.GetUnitTeam(interferingUnitID), builderTeam) == false then
+		if not Spring.AreTeamsAllied(Spring.GetUnitTeam(interferingUnitID), builderTeam) then
 			return false
 		end
 
