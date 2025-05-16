@@ -1646,7 +1646,6 @@ projectileDefDistortionsNames["corkorg_corkorg_laser"] =
 
 muzzleFlashDistortionsNames['corkorg_corkorg_fire'] = {
 	GetDistortionClass("MuzzleShockWaveXL", "Micro", {
-		noiseScaleSpace = 1.9, noiseStrength = 1.5
 		decay = 4, rampUp = 3,
 		startRadius = 0.7,
 		windAffected = -1,  riseRate = -1,
