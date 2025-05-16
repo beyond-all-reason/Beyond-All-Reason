@@ -1645,11 +1645,11 @@ projectileDefDistortionsNames["corkorg_corkorg_laser"] =
 	GetDistortionClass("HeatRayHeatXL", "KorgLaser")
 
 muzzleFlashDistortionsNames['corkorg_corkorg_fire'] = {
-	GetDistortionClass("MuzzleShockWaveXL", "Micro", {
-		decay = 4, rampUp = 3,
+	GetDistortionClass("MuzzleShockWaveXL", "Nano", {
+		decay = 5, rampUp = 0,
 		startRadius = 0.7,
 		windAffected = -1,  riseRate = -1,
-		lifeTime = 7, effectStrength = 2.5, shockWidth = -0.87,
+		lifeTime = 6, effectStrength = 2.0, shockWidth = -0.92,
 	})
 }
 
