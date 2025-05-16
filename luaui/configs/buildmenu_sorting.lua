@@ -33,6 +33,7 @@ local unitOrderTable = {
 
 	['armrectr']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
+	['legrezbot']      = 002151,
 
 	['armmlv']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
@@ -328,6 +329,7 @@ local unitOrderTable = {
 	-- LAND AA
 	['armjeth']        = 008000,
 	['corcrash']       = 008010,
+	['legaabot']       = 008011,
 	['armaak']         = 008020,
 	['coraak']         = 008030,
 
@@ -784,6 +786,7 @@ local unitOrderTable = {
    --WATER DEFENSES LAND
    ['armfdrag']       = 230100,
    ['corfdrag']       = 230200,
+   ['legfdrag']       = 230250,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
    ['legfmg']        = 230401,
