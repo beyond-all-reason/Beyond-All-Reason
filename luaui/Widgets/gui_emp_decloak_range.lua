@@ -187,7 +187,7 @@ function widget:DrawWorldPreUnit()
 
                 -- glow pass
                 if showLineGlow then
-                    glLineWidth(10)
+                    glLineWidth(12)
                     if prop[1] > 0 and cloaked then
                         glColor(0.6, 0.6, 1.0, 0.06 * alphaScale * opacityMultiplier)
                         glDrawGroundCircle(dx, dy, dz, prop[1], circleDivs)
