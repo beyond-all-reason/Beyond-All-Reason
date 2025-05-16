@@ -31,9 +31,6 @@ local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitStates = Spring.GetUnitStates
-local spIsUnitInView = Spring.IsUnitInView
-local gameFrame = Spring.GetGameFrame()
 
 
 local unitConf = {}
@@ -106,30 +103,25 @@ function widget:Initialize()
 end
 
 local function updateIcons()
+	local gf = Spring.GetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
-		if queue > 0 then
-			local isInView = spIsUnitInView (unitID)
-			if isInView then 
-				local active = spGetUnitStates(unitID).active
-				if not active then
-					if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
-							pushElementInstance(
-								iconVBO, -- push into this Instance VBO Table
-								{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-								0, --Spring.GetUnitTeam(featureID), -- teamID
-								4, -- how many vertices should we make ( 2 is a quad)
-								gameFrame, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-								0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-								unitID, -- this is the key inside the VBO Table, should be unique per unit
-								false, -- update existing element
-								true, -- noupload, dont use unless you know what you want to batch push/pop
-								unitID) -- last one should be featureID!
-						end
-					end
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+		if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
+			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
+					pushElementInstance(
+						iconVBO, -- push into this Instance VBO Table
+						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+						 0, --Spring.GetUnitTeam(featureID), -- teamID
+						 4, -- how many vertices should we make ( 2 is a quad)
+						 gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+						 0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+						 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+						unitID, -- this is the key inside the VBO Table, should be unique per unit
+						false, -- update existing element
+						true, -- noupload, dont use unless you know what you want to batch push/pop
+						unitID) -- last one should be featureID!
 				end
 			end
 		elseif iconVBO.instanceIDtoIndex[unitID] then
@@ -142,8 +134,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	gameFrame = n
-	if n % 24 == 0 then
+	if Spring.GetGameFrame() % 24 == 0 then
 		updateIcons()
 	end
 end
