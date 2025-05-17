@@ -38,6 +38,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
+			faction = "armada",
+			movementType = "bot",
 		},
 		featuredefs = {
 			dead = {
