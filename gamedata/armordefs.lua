@@ -177,6 +177,7 @@ local armorDefs = {
 		"armzeus",
 		"armamsub",
 		"corjuno",
+		"legjuno",
 		"corageo",
 		"legageo",
 		"armconsul",
@@ -432,7 +433,7 @@ local armorDefs = {
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",
-		"legamsub",
+		"legamphlab",
 
 		"legcv",
 		"legck",

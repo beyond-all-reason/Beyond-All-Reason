@@ -588,6 +588,7 @@ local unitOrderTable = {
    ['legajam']        = 103451,
    ['armjuno']        = 103500,
    ['corjuno']        = 103550,
+   ['legjuno']        = 103551,
 
    ['armsd']          = 103600,
    ['corsd']          = 103625,
@@ -758,7 +759,7 @@ local unitOrderTable = {
    ['legfhp']         = 212250,
    ['armamsub']       = 213100,
    ['coramsub']       = 213200,
-   ['legamsub']       = 213250,
+   ['legamphlab']       = 213250,
    ['armplat']        = 214100,
    ['corplat']        = 214200,
    	--T2

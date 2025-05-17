@@ -1635,6 +1635,10 @@ local icontypes = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
+	legjuno = {
+		bitmap = "icons/juno.png",
+		size = 1.29999995
+	},
 	corkarg = {
 		bitmap = "icons/corkarg_2.05.png",
 		size = 2.424999
@@ -2315,7 +2319,7 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	legamsub = {
+	legamphlab = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},

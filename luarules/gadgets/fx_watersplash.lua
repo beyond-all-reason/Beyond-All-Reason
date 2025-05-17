@@ -31,6 +31,7 @@ local nonexplosiveWeapons = {
 local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
+local COR_JUNO = WeaponDefNames['legjuno_juno_pulse'].id --juno can explode on water
 local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
 local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'] and WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
 -- maybe need addition of scav version or better solution

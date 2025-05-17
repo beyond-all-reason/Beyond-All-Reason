@@ -88,7 +88,7 @@ return {
 			"leghive",
 			"legdtr",
 			"legrl",
-			"corjuno",
+			"legjuno",
 			"legctl",
 			"legfrl",
 			"legeyes",

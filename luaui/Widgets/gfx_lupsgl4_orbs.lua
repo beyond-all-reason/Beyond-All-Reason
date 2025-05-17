@@ -129,6 +129,13 @@ local armjunoShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
+local legjunoShieldSphere = table.merge(defaults, {
+	pos = { 0, 69, 0 },
+	size = 9,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
 local corjunoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
@@ -170,6 +177,10 @@ local legdeflectorShieldSphere = table.merge(defaults, {
 local UnitEffects = {
 	["armjuno"] = {
 		{ class = 'ShieldSphere', options = armjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+	},
+	["legjuno"] = {
+		{ class = 'ShieldSphere', options = legjunoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
