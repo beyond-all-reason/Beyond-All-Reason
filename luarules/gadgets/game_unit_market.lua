@@ -105,6 +105,7 @@ end
 local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
 local tax_resource_amount = Spring.GetModOptions().tax_resource_sharing_amount or 0
 
+
 local disable_unit_sharing_enabled = (
     Spring.GetModOptions().disable_unit_sharing_economy_and_production
     or Spring.GetModOptions().disable_unit_sharing_combat_units
@@ -112,7 +113,7 @@ local disable_unit_sharing_enabled = (
     or tax_resource_sharing_enabled)
 local saleWhitelist = {}
 if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
-    AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist their unfinished blueprint after buying it
+    AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist an allied blueprint after buying it
 end
 
 local function setUnitOnSale(unitID, specifiedPrice, toggle)

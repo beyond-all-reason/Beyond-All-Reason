@@ -254,10 +254,7 @@ local options = {
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
-		lock	= {"disable_unit_sharing_economy_and_production","disable_assist_ally_construction"},
-		unlock	= {"disable_unit_sharing_economy_and_production_forced","disable_assist_ally_construction_forced"},
 	},
-
 	{
 		key		= "disable_assist_ally_construction",
 		name	= "Disable Assist Ally Construction",
@@ -274,20 +271,6 @@ local options = {
         section = "options_main",
         def     = false,
     },
-    {
-		key		= "disable_assist_ally_construction_forced",
-		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
-		name	= "\255\252\191\76".."Disable Assist Ally Construction            [■]",
-		type	= "subheader",
-		section	= "options_main",
-	},
-	{
-		key		= "disable_unit_sharing_economy_and_production_forced",
-		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
-		name	= "\255\252\191\76".."Disable Economy and Lab Sharing       [■]",
-		type	= "subheader",
-		section	= "options_main",
-	},
     {
         key     = "disable_unit_sharing_combat_units",
         name    = "Disable Combat Unit Sharing",
