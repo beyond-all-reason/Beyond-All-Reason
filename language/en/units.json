@@ -202,6 +202,7 @@
 			"armraz": "Razorback",
 			"armrecl": "Grim Reaper",
 			"armrectr": "Lazarus",
+			"legrezbot": "Zagreus",
 			"armrectrt4": "Epic Rector",
 			"armrl": "Nettle",
 			"armrock": "Rocketeer",
@@ -436,6 +437,7 @@
 			"corcomlvl9": "Cortex Commander Level 9",
 			"corcomlvl10": "Cortex Commander Level 10",
 			"corcrash": "Trasher",
+			"legaabot": "Toxotai",
 			"corcrus": "Buccaneer",
 			"corcrw": "Archaic Dragon",
 			"corcrwh": "Dragon",
@@ -517,6 +519,7 @@
 			"corjamt": "Castro",
 			"corjugg": "Behemoth",
 			"corjuno": "Juno",
+			"legjuno": "Juno",
 			"corkarg": "Karganeth",
 			"corkarganetht4": "Epic Karganeth",
 			"corkorg": "Juggernaut",
@@ -685,7 +688,7 @@
 			"legack": "Advanced Construction Bot",
 			"legacv": "Advanced Construction Vehicle",
 			"legadvsol": "Advanced Solar Collector",
-			"legamsub": "Amphibious Complex",
+			"legamphlab": "Amphibious Complex",
 			"legamphtank": "Cetus",
 			"legassistdrone": "Assist Drone",
 			"legassistdrone_land": "Assist Vehicle",
@@ -740,7 +743,7 @@
 			"legerailtank": "Daedalus",
 			"legeheatraymech": "Sol Invictus",
 			"legelrpcmech": "Astraeus",
-			"legfhp": "Naval Hovercraft Platform",
+			"legfhp": "Offshore Hovercraft Platform",
 			"legfig": "Noctua",
 			"legfhive": "Hive",
 			"legfmkr": "Naval Energy Converter",
@@ -906,7 +909,8 @@
 			"legabm": "Aegis",
 			"legrwall": "Dragon's Constitution",
 			"legjav": "Javelin",
-			"legamph": "Telchine"
+			"legamph": "Telchine",
+			"legfdrag": "Shark's Teeth"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1100,6 +1104,7 @@
 			"armraz": "Battle Mech",
 			"armrecl": "Resurrection Sub",
 			"armrectr": "Stealthy Rez / Repair / Reclaim Bot",
+			"legrezbot": "Stealthy Resurrection / Repair / Reclaim Bot",
 			"armrectrt4": "Stealthy Rez / Repair / Reclaim Bot",
 			"armrl": "Light Anti-air Tower",
 			"armrock": "Rocket Bot - good vs. static defenses",
@@ -1335,6 +1340,7 @@
 			"corcomlvl9": "Specialized in frontline warfare",
 			"corcomlvl10": "Specialized in frontline warfare",
 			"corcrash": "Amphibious Anti-air Bot",
+			"legaabot": "Amphibious Anti-Air Bot",
 			"corcrus": "Cruiser",
 			"corcrw": "Flying Fortress",
 			"corcrwh": "Flying Fortress",
@@ -1422,6 +1428,7 @@
 			"corjamt": "Short-Range Jamming Device",
 			"corjugg": "(barely) Mobile Heavy Turret",
 			"corjuno": "Anti Radar / Jammer / Minefield / ScoutSpam Weapon",
+			"legjuno": "Anti Radar / Jammer / Minefield / ScoutSpam Weapon",
 			"corkarg": "All-Terrain Assault Mech",
 			"corkarganetht4": "All-Terrain Amphibious Assault Mech",
 			"corkorg": "Experimental Assault Bot",
@@ -1589,7 +1596,7 @@
 			"legack": "Tech 2 Constructor",
 			"legacv": "Tech 2 Constructor",
 			"legadvsol": "Produces 100 Energy",
-			"legamsub": "Produces Amphibious / Underwater Units",
+			"legamphlab": "Produces Amphibious / Underwater Units",
 			"legamphtank": "Light Amphibious Tank",
 			"legassistdrone": "Portable Buildpower",
 			"legassistdrone_land": "Portable Buildpower",
@@ -1807,7 +1814,8 @@
 			"legabm": "Anti-Nuke System",
 			"legrwall": "Railgun Defense Wall",
 			"legjav": "Amphibious Raider",
-			"legamph": "Advanced Amphibious Assault Bot/Coast Guard"
+			"legamph": "Advanced Amphibious Assault Bot/Coast Guard",
+			"legfdrag": "Naval Fortification"
 		}
 	}
 }

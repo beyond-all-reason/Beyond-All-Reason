@@ -161,6 +161,9 @@ return {
 					commanders = 1,
 					vtol = 150,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			flak = {
 				accuracy = 1000,
@@ -260,6 +263,9 @@ return {
 				damage = {
 					default = 270,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

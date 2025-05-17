@@ -52,7 +52,7 @@ return {
 			"legflak",
 			"legck",
 			"leggob",
-			"corcrash",
+			"legaabot",
 			"legstr",
 			"legfloat",
 			"legch",
