@@ -19,12 +19,17 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
-local disable_share_econ_and_lab = Spring.GetModOptions().disable_unit_sharing_economy_and_production
-local disable_share_combat_units = Spring.GetModOptions().disable_unit_sharing_combat_units
-local disable_share_all = Spring.GetModOptions().disable_unit_sharing_all
 
-if not disable_share_econ_and_lab and not disable_share_combat_units and not disable_share_all then 
+local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
+
+
+local unit_sharing_mode = Spring.GetModOptions().unit_sharing_mode
+
+local disable_share_econ_and_lab = unit_sharing_mode == "disable_econ_and_lab_sharing" or "disable_econ_and_lab_and_combat_units"
+local disable_share_combat_units = unit_sharing_mode == "disable_econ_lab_and_combat_units"
+local disable_share_all = unit_sharing_mode == "disable_all"
+
+if not unit_sharing_mode or unit_sharing_mode == "enable_all" then 
 	return false
 end
 

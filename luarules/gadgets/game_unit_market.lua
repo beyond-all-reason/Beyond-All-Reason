@@ -105,12 +105,10 @@ end
 local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
 local tax_resource_amount = Spring.GetModOptions().tax_resource_sharing_amount or 0
 
-
+local unit_sharing_mode = Spring.GetModOptions().unit_sharing_mode
 local disable_unit_sharing_enabled = (
-    Spring.GetModOptions().disable_unit_sharing_economy_and_production
-    or Spring.GetModOptions().disable_unit_sharing_combat_units
-    or Spring.GetModOptions().disable_unit_sharing_all
-    or tax_resource_sharing_enabled)
+    unit_sharing_mode and unit_sharing_mode ~= "enable_all"
+)
 local saleWhitelist = {}
 if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
     AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist an allied blueprint after buying it
@@ -165,7 +163,7 @@ local function getAIdiscount(newTeamID, oldTeamID, price)
     end
 end
 
-local function tryToBuyUnit(unitID, msgFromTeamID)
+local function tryToBuyUnit(unitID, buyerTeamID)
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end

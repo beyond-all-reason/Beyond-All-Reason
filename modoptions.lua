@@ -264,29 +264,21 @@ local options = {
 		def		=  false,
 	},
     {
-        key     = "disable_unit_sharing_economy_and_production",
-        name    = "Disable Economy and Lab Sharing",
-        desc    = "Disable sharing of economy and labs (including mobile engineers)",
-        type    = "bool",
-        section = "options_main",
-        def     = false,
+        key		= "unit_sharing_mode",
+        name	= "Unit Sharing",
+        desc	= "Restrictions on which units can be shared",
+        type	= "list",
+        def		= "enable_all",
+        section	= "options_main",
+        items	= {
+            { key= "enable_all", 	name= "Enable Unit Sharing", 				desc="Allow all units to be shared"},
+            { key= "disable_econ_and_lab_sharing", 		name= "No Economy and Lab Sharing", 	desc="Disable sharing of economy and labs (including mobile engineers)"},
+            { key= "disable_econ_lab_and_combat_units", 	name= "No Eco, Lab, or Combat Unit Sharing  ",			desc="Disable sharing of economy and labs, as well as combat units and tactical structures (e.g static defense, jammers, LRPC's). Can still share air scouts and transports"},
+            { key= "disable_all", 	name= "Disable Unit Sharing", 			desc="Disable all unit sharing"},
+        }
     },
-    {
-        key     = "disable_unit_sharing_combat_units",
-        name    = "Disable Combat Unit Sharing",
-        desc    = "Disable sharing combat units and tactical structures (e.g static defense, jammers, LRPC's)",
-        type    = "bool",
-        section = "options_main",
-        def     = false,
-    },
-    {
-        key     = "disable_unit_sharing_all",
-        name    = "Disable All Unit Sharing",
-        desc    = "Disable all unit sharing (including scouts and transports)",
-        type    = "bool",
-        section = "options_main",
-        def     = false,
-    },
+
+
 	{
 		key		= "unit_market",
 		name	= "Unit Market",
