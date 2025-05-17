@@ -244,9 +244,8 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-        "Set to [0] to turn off. Recommend: [0.4]. (Ranges: 0 - 0.99)\n"..
-        "Enable [Unit Market] to allow buying t2 cons\n"..
-        "Disables reclaiming allied units, [Economy and Lab Sharing] and [Assisting Ally Construction] to prevent loopholes\n",
+        "Set to [0] to turn off. Recommend: [0.3]. (Ranges: 0 - 0.99)\n"..
+        "Recommended Settings: Enable [Disable Assist Ally Construction], Unit Sharing Mode to [No Economy and Lab Sharing] or higher, and [Enable T2 Con Buying]",
 		type	= "number",
 		def		= 0,
 		min		= 0,
@@ -277,7 +276,14 @@ local options = {
             { key= "disable_all", 	name= "Disable Unit Sharing", 			desc="Disable all unit sharing"},
         }
     },
-
+    {
+		key		= "enable_t2con_buying",
+		name	= "Enable T2 con buying",
+		desc	= "Enables exclusive t2 con buying via Unit Market. If you want to trade all units, enable [Unit Market] instead",
+		type	= "bool",
+		section	= "options_main",
+		def		=  false,
+	},
 
 	{
 		key		= "unit_market",

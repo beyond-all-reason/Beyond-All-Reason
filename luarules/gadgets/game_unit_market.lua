@@ -1,4 +1,6 @@
-if not Spring.GetModOptions().unit_market then
+
+
+if (not Spring.GetModOptions().enable_t2con_buying) and (not Spring.GetModOptions().unit_market) then
     return
 end
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
@@ -110,9 +112,11 @@ local disable_unit_sharing_enabled = (
     unit_sharing_mode and unit_sharing_mode ~= "enable_all"
 )
 local saleWhitelist = {}
-if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
+
+if Spring.GetModOptions().disable_assist_ally_construction then
     AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist an allied blueprint after buying it
 end
+local enable_t2con_buying_only = Spring.GetModOptions().enable_t2con_buying
 
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
@@ -125,8 +129,8 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
     if not AllowPlayersSellUnfinished and not finished then return false end
 
     -- When tax resource sharing is on, only allow selling t2 cons through unit market
-    if tax_resource_sharing_enabled then
-        if not unitDef.customParams.shareable_under_resource_tax then return false end
+    if enable_t2con_buying_only then
+        if not unitDef.customParams.t2con_shareable_under_no_econ_sharing then return false end
     end
     if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)

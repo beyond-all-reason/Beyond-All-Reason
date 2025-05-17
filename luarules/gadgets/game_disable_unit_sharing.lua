@@ -70,8 +70,9 @@ local function unitTypeAllowedToBeShared(unitDefID)
 end
 GG.disable_unit_sharing_unitTypeAllowedToBeShared = unitTypeAllowedToBeShared
 
-if Spring.GetModOptions().unit_market then
-	-- If unit market is enabled, let unit market define AllowUnitTransfer
+
+if Spring.GetModOptions().enable_t2con_buying or Spring.GetModOptions().unit_market then
+	-- If unit market is enabled, let unit market define AllowUnitTransfer referencing unitTypeAllowedToBeShared
 	return false
 end
 

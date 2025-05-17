@@ -138,7 +138,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture) -- prevent players from sharing unfinished blueprints, which would allow two players to work on the same construction
 	if(capture) then
 		return true
 	end
