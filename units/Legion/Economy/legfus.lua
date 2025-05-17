@@ -31,8 +31,8 @@ return {
 		sightdistance = 273,
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 10,
+			buildinggrounddecalsizey = 10,
 			buildinggrounddecaltype = "decals/legfus_aoplane.dds",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",

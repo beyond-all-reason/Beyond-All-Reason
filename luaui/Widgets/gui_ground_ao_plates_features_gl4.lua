@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 --------------- Configurables -------------------
-local decalAlpha = 0.33
+local decalAlpha = 0.66
 
 --------------- Atlas textures ----------------
 
@@ -235,7 +235,7 @@ function widget:Initialize()
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
 	shaderConfig.ZPULL = 512.0 -- send 16 elmos forward in depth buffer"
-	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, pow(texcolor.a,0.5) * g_uv.z);"
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, pow(texcolor.a,0.85) * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
