@@ -1,14 +1,14 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "Unit Wait Icons",
-      desc      = "Shows the wait/pause icon above units",
-      author    = "Floris, Beherith",
-      date      = "June 2024",
-      license   = "GNU GPL, v2 or later",
-      layer     = -40,
-      enabled   = true
+	return {
+		name		= "Unit Wait Icons",
+		desc		= "Shows the wait/pause icon above units",
+		author		= "Floris, Beherith",
+		date		= "June 2024",
+		license		= "GNU GPL, v2 or later",
+		layer		= -40,
+		enabled		= true
    }
 end
 
@@ -21,6 +21,7 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 local CMD_WAIT = CMD.WAIT
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
+local trackedUnits = {}
 local teamList = {} -- {team1, team2, team3....}
 
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -31,6 +32,8 @@ local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitStates = Spring.GetUnitStates
+local spIsUnitInView = Spring.IsUnitInView
 
 
 local unitConf = {}
@@ -80,16 +83,16 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spec, fullview = Spring.GetSpectatingState()
-	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
-	clearInstanceTable(iconVBO) -- clear all instances
-	unitScope = {}
-	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
-	end
-	uploadAllElements(iconVBO) -- upload them all
-end
+-- function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+-- 	spec, fullview = Spring.GetSpectatingState()
+-- 	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
+-- 	clearInstanceTable(iconVBO) -- clear all instances
+-- 	unitScope = {}
+-- 	for unitID, unitDefID in pairs(extVisibleUnits) do
+-- 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
+-- 	end
+-- 	uploadAllElements(iconVBO) -- upload them all
+-- end
 
 
 function widget:Initialize()
@@ -97,32 +100,47 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-	end
+	refreshTrackedUnits()
+	-- if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+	-- 	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	-- end
 end
+
+
 
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
 	local queue
-	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
-		if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
-			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
-					pushElementInstance(
-						iconVBO, -- push into this Instance VBO Table
-						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-						 0, --Spring.GetUnitTeam(featureID), -- teamID
-						 4, -- how many vertices should we make ( 2 is a quad)
-						 gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-						 0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-						 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-						unitID, -- this is the key inside the VBO Table, should be unique per unit
-						false, -- update existing element
-						true, -- noupload, dont use unless you know what you want to batch push/pop
-						unitID) -- last one should be featureID!
+	for unitID, unitDefID in pairs(trackedUnits) do
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
+		if queue > 0 then
+			local isInView = spIsUnitInView (unitID)
+			if isInView then 
+				local active = spGetUnitStates(unitID).active
+				if not active then
+					if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+						if spValidUnitID(unitID) then --and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) 
+							pushElementInstance(
+								iconVBO, -- push into this Instance VBO Table
+								{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+								0, --Spring.GetUnitTeam(featureID), -- teamID
+								4, -- how many vertices should we make ( 2 is a quad)
+								gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+								0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+								unitID, -- this is the key inside the VBO Table, should be unique per unit
+								false, -- update existing element
+								true, -- noupload, dont use unless you know what you want to batch push/pop
+								unitID) -- last one should be featureID!
+						end
+					elseif iconVBO.instanceIDtoIndex[unitID] then
+						popElementInstance(iconVBO, unitID, true)
+					end
+				elseif iconVBO.instanceIDtoIndex[unitID] then
+			popElementInstance(iconVBO, unitID, true)
 				end
+			elseif iconVBO.instanceIDtoIndex[unitID] then
+				popElementInstance(iconVBO, unitID, true)	
 			end
 		elseif iconVBO.instanceIDtoIndex[unitID] then
 			popElementInstance(iconVBO, unitID, true)
@@ -139,16 +157,66 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
-		unitScope[unitID] = unitDefID
+-- function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
+-- 	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
+-- 		unitScope[unitID] = unitDefID
+-- 	end
+-- end
+
+-- function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+-- 	unitScope[unitID] = nil
+-- 	if iconVBO.instanceIDtoIndex[unitID] then
+-- 		popElementInstance(iconVBO, unitID)
+-- 	end
+-- end
+
+function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
+	if (myTeamID == unitTeam) then
+		--local unitDef = UnitDefs[unitDefID]
+		local _, _, _, _, build = Spring.GetUnitHealth(unitID) --is it finished?
+		local isBuilt = build >= 1
+		if isBuilt and unitDef then
+			--unitTracking.trackedNum = unitTracking.trackedNum + 1
+			trackedUnits[unitID] = {unitDefID}
+		end
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	unitScope[unitID] = nil
-	if iconVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(iconVBO, unitID)
+function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculations
+	if (myTeamID == unitTeam) then
+		if trackedUnits[unitID] then
+			 trackedUnits[unitID] = nil
+		end
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, unitTeam)
+	UntrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam)
+	TrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	TrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
+	UntrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:PlayerChanged()
+	refreshTrackedUnits()
+	if displayComCounter then
+		countComs(true)
+	end
+end
+
+function refreshTrackedUnits()
+	local trackedUnits = {}
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do  -- needed for exact calculations
+		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
 	end
 end
 
@@ -171,4 +239,3 @@ function widget:DrawWorld()
 		gl.DepthTest(false)
 		gl.DepthMask(true)
 	end
-end
