@@ -28,6 +28,7 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
 local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
+local sharingFullyDisabled = Spring.GetModOptions().tax_resource_sharing_amount == 1
 
 ----------------------------------------------------------------
 -- Callins
@@ -47,6 +48,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	else
 		-- We don't handle whatever this resource is, allow it
 		return true
+	end
+
+	if sharingFullyDisabled then
+		return false   -- if tax is 100%, don't eat the sender's money and just block the transfer
 	end
 
 	-- Calculate the maximum amount the receiver can receive
@@ -86,7 +91,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			return true
 		end
 		targetTeam = Spring.GetUnitTeam(targetID)
-		if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+		if not unitTeam or not targetTeam then -- be permissive in case of undefined teams
+			return true
+		elseif unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			return false
 		end
 	-- Also block guarding allied units that can reclaim
@@ -94,8 +101,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
 		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
-
-		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+		if not unitTeam or not targetTeam then 
+			return true
+		elseif (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			-- Labs are considered able to reclaim. In practice you will always use this modoption with "disable_assist_ally_construction", so disallowing guard labs here is fine
 			if targetUnitDef.canReclaim then
 				return false

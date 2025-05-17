@@ -76,6 +76,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			t2con_shareable_under_no_econ_sharing = 1,
 		},
 		featuredefs = {
 			dead = {
