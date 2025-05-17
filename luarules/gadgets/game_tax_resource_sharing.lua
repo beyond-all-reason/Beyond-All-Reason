@@ -28,6 +28,7 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
 local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
+local sharingFullyDisabled = Spring.GetModOptions().tax_resource_sharing_amount == 1
 
 ----------------------------------------------------------------
 -- Callins
@@ -47,6 +48,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	else
 		-- We don't handle whatever this resource is, allow it
 		return true
+	end
+
+	if sharingFullyDisabled then
+		return false   -- if tax is 100%, don't eat the sender's money and just block the transfer
 	end
 
 	-- Calculate the maximum amount the receiver can receive
