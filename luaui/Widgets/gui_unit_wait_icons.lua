@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-      name      = "Unit Wait Icons_memory6-----------------------------------------",
+      name      = "Unit Wait Icons",
       desc      = "Shows the wait/pause icon above units",
       author    = "Floris, Beherith, Robert82",
       date      = "June 2024",
@@ -161,7 +161,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	TrackUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	UntrackUnit(unitID, unitDefID, unitTeam)
 end
 
