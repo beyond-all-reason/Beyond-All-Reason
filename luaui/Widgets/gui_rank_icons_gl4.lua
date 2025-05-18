@@ -166,19 +166,6 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 		unitID) -- last one should be UNITID!
 end
 
-local function ProcessAllUnits()
-	clearInstanceTable(rankVBO)
-	local units = Spring.GetAllUnits()
-	--Spring.Echo("Refreshing Ground Plates", #units)
-	for _, unitID in ipairs(units) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		if unitDefID then
-			updateUnitRank(unitID, unitDefID, true)
-		end
-	end
-	uploadAllElements(rankVBO)
-end
-
 local function RemovePrimitive(unitID,reason)
 	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	if rankVBO.instanceIDtoIndex[unitID] then
@@ -243,6 +230,19 @@ local function updateUnitRank(unitID, unitDefID, noUpload)
 			AddPrimitiveAtUnit(unitID, unitDefID, noUpload, "updateUnitRank", newrank, false)
 		end
 	end
+end
+
+local function ProcessAllUnits()
+	clearInstanceTable(rankVBO)
+	local units = Spring.GetAllUnits()
+	--Spring.Echo("Refreshing Ground Plates", #units)
+	for _, unitID in ipairs(units) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if unitDefID then
+			updateUnitRank(unitID, unitDefID, true)
+		end
+	end
+	uploadAllElements(rankVBO)
 end
 
 function widget:PlayerChanged(playerID)
