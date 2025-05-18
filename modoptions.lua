@@ -278,7 +278,7 @@ local options = {
     },
     {
 		key		= "enable_t2con_buying",
-		name	= "Enable T2 Con Buying",
+		name	= "Enable T2 con buying",
 		desc	= "Enables exclusive t2 con buying via Unit Market. To trade all units, enable [Unit Market] instead",
 		type	= "bool",
 		section	= "options_main",

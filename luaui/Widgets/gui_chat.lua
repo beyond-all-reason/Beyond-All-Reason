@@ -1344,16 +1344,6 @@ function widget:RecvLuaMsg(msg, playerID)
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 	end
-
-	if msg:sub(1,21) == "tax_resource_sharing:" then
-		local argsString = msg:sub(22)
-		local format = "([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)"
-		local senderName, receiverName, resourceName, taxedAmount, transferTax = string.match(argsString, format)
-		if senderName and receiverName and resourceName and taxedAmount and transferTax then
-			local line = senderName.." sent "..taxedAmount.." "..resourceName.." to "..receiverName.." (-"..transferTax.." tax)"
-			processAddConsoleLine(spGetGameFrame(), line)
-		end
-	end
 end
 
 local function drawChatInputCursor()
