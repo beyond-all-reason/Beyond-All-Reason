@@ -1370,13 +1370,14 @@ function UnitDef_Post(name, uDef)
 		end
 		if name == "armshltx" or name == "corgant" or name == "armshltxuw" or name == "corgantuw" then
 			uDef.workertime = 2000
+			uDef.buildtime = uDef.buildtime * 1.33
 		end
 
 		if tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015 / 5) * 500
 		end
 		if tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime then
-			uDef.buildtime = math.ceil(uDef.buildtime * 0.002) * 1000
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.0015) * 1000
 		end
 
 		if name == "armnanotc" or name == "cornanotc" or name == "armnanotcplat" or name == "cornanotcplat" then
