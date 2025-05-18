@@ -309,6 +309,10 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "rightBJet", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "leftBJet", light = 1 },
 	},
+	["legaca"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 15, piece = "airjet1", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 15, piece = "airjet2", light = 1 },
+	},
 	["armsb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 36, piece = "thrustc", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },
