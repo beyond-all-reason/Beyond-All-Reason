@@ -102,8 +102,6 @@ end
 
 local function addGremlin(unitID, unitDefID)
     units[unitID] = { isGremlin[unitDefID], 0 }
-    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, 0)
-    spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
 end
 
 --------------------------------------------------------------------------------
