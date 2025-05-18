@@ -1,14 +1,14 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-	return {
-		name		= "Unit Wait Icons",
-		desc		= "Shows the wait/pause icon above units",
-		author		= "Floris, Beherith",
-		date		= "June 2024",
-		license		= "GNU GPL, v2 or later",
-		layer		= -40,
-		enabled		= true
+   return {
+      name      = "Unit Wait Icons_memory6-----------------------------------------",
+      desc      = "Shows the wait/pause icon above units",
+      author    = "Floris, Beherith, Robert82",
+      date      = "June 2024",
+      license   = "GNU GPL, v2 or later",
+      layer     = -40,
+      enabled   = truev
    }
 end
 
@@ -22,6 +22,7 @@ local CMD_WAIT = CMD.WAIT
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local trackedUnits = {}
+local waitingUnits = {}
 local teamList = {} -- {team1, team2, team3....}
 
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -109,46 +110,22 @@ end
 
 
 local function updateIcons()
-	local gf = Spring.GetGameFrame()
-	local queue
-	for unitID, unitDefID in pairs(trackedUnits) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
-		if queue > 0 then
-			local isInView = spIsUnitInView (unitID)
-			if isInView then 
-				local active = spGetUnitStates(unitID).active
-				if not active then
-					if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						if spValidUnitID(unitID) then --and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) 
-							pushElementInstance(
-								iconVBO, -- push into this Instance VBO Table
-								{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-								0, --Spring.GetUnitTeam(featureID), -- teamID
-								4, -- how many vertices should we make ( 2 is a quad)
-								gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-								0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-								unitID, -- this is the key inside the VBO Table, should be unique per unit
-								false, -- update existing element
-								true, -- noupload, dont use unless you know what you want to batch push/pop
-								unitID) -- last one should be featureID!
-						end
-					elseif iconVBO.instanceIDtoIndex[unitID] then
-						popElementInstance(iconVBO, unitID, true)
-					end
-				elseif iconVBO.instanceIDtoIndex[unitID] then
-			popElementInstance(iconVBO, unitID, true)
-				end
-			elseif iconVBO.instanceIDtoIndex[unitID] then
-				popElementInstance(iconVBO, unitID, true)	
-			end
-		elseif iconVBO.instanceIDtoIndex[unitID] then
-			popElementInstance(iconVBO, unitID, true)
-		end
-	end
-	if iconVBO.dirty then
-		uploadAllElements(iconVBO)
-	end
+  local gf = Spring.GetGameFrame()
+
+  for unitID, unitDefID in pairs(waitingUnits) do
+    if spIsUnitInView(unitID) then
+      if not iconVBO.instanceIDtoIndex[unitID] and spValidUnitID(unitID) then
+        pushElementInstance(iconVBO,
+          {unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],
+           0, 4, gf, 0, 0.75, 0,  0,1,0,1,  0,0,0,0},
+          unitID, false, true, unitID)
+      end
+    elseif iconVBO.instanceIDtoIndex[unitID] then
+      popElementInstance(iconVBO, unitID, true)
+    end
+  end
+
+  if iconVBO.dirty then uploadAllElements(iconVBO) end
 end
 
 function widget:GameFrame(n)
@@ -157,36 +134,18 @@ function widget:GameFrame(n)
 	end
 end
 
--- function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
--- 	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
--- 		unitScope[unitID] = unitDefID
--- 	end
--- end
-
--- function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
--- 	unitScope[unitID] = nil
--- 	if iconVBO.instanceIDtoIndex[unitID] then
--- 		popElementInstance(iconVBO, unitID)
--- 	end
--- end
 
 function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
-	if (myTeamID == unitTeam) then
-		--local unitDef = UnitDefs[unitDefID]
-		local _, _, _, _, build = Spring.GetUnitHealth(unitID) --is it finished?
-		local isBuilt = build >= 1
-		if isBuilt and unitDef then
-			--unitTracking.trackedNum = unitTracking.trackedNum + 1
-			trackedUnits[unitID] = {unitDefID}
-		end
+	if (myTeamID == unitTeam) and unitConf[unitDefID] then
+		trackedUnits[unitID] = unitDefID
 	end
 end
 
 function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculations
-	if (myTeamID == unitTeam) then
-		if trackedUnits[unitID] then
-			 trackedUnits[unitID] = nil
-		end
+	trackedUnits[unitID] = nil
+	UnmarkAsWaiting(uID)
+	if iconVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(iconVBO, unitID)
 	end
 end
 
@@ -198,13 +157,60 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	TrackUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	TrackUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
 	UntrackUnit(unitID, unitDefID, unitTeam)
 end
+
+
+local function MarkAsWaiting(unitID, unitDefID, unitTeam)
+  if (not onlyOwnTeam or unitTeam == myTeamID) and unitConf[unitDefID] then
+    waitingUnits[unitID] = unitDefID
+  end
+end
+
+local function UnmarkAsWaiting(unitID)
+  waitingUnits[unitID] = nil           -- erase flag
+  if iconVBO.instanceIDtoIndex[unitID] then
+    popElementInstance(iconVBO, unitID)
+  end
+end
+
+-- fires for *every* accepted command
+function widget:UnitCommand(unitID, unitDefID, unitTeam,
+                             cmdID, cmdParams, cmdOpts, cmdTag)
+  if onlyOwnTeam and unitTeam ~= myTeamID then return end   -- filter once
+
+  if cmdID == CMD_WAIT then          -- player pressed WAIT key
+    if waitingUnits[unitID] then
+      UnmarkAsWaiting(unitID)        -- toggle OFF
+    else
+      MarkAsWaiting(unitID, unitDefID, unitTeam) -- toggle ON
+    end
+
+  elseif waitingUnits[unitID] then   -- any other cmd cancels the wait
+    UnmarkAsWaiting(unitID)
+  end
+end
+
+-- WAIT reached the head of the queue and disappeared
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
+  if cmdID == CMD_WAIT then
+    UnmarkAsWaiting(unitID)
+  end
+end
+
+-- unit has no more commands
+function widget:UnitIdle(unitID, unitDefID, unitTeam)
+  UnmarkAsWaiting(unitID)
+end
+
+
+
+
 
 function widget:PlayerChanged()
 	refreshTrackedUnits()
@@ -213,16 +219,40 @@ function widget:PlayerChanged()
 	end
 end
 
+-- function refreshTrackedUnits()
+-- 	trackedUnits = {}
+-- 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+-- 		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
+-- 	end
+-- end
+
+
+
 function refreshTrackedUnits()
-	local trackedUnits = {}
-	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do  -- needed for exact calculations
-		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
-	end
+  trackedUnits  = {}
+  waitingUnits  = {}      -- forget any previous “waiting” flags
+
+  local units = Spring.GetTeamUnits(myTeamID)
+  for i = 1, #units do
+    local uID   = units[i]
+    local uDef  = Spring.GetUnitDefID(uID)
+
+    TrackUnit(uID, uDef, myTeamID)          -- rebuild the tracked set
+
+    -- if this unit is already paused, mark it right now ---------------
+    local isFactory = unitConf[uDef] and unitConf[uDef][3]
+    local q = (isFactory and Spring.GetFactoryCommands(uID, 1))
+           or               Spring.GetUnitCommands   (uID, 1)
+
+    if q and q[1] and q[1].id == CMD_WAIT then
+      MarkAsWaiting(uID, uDef, myTeamID)    -- adds to waitingUnits
+    end
+  end
 end
+
 
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
-
 	if iconVBO.usedElements > 0 then
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
@@ -239,3 +269,4 @@ function widget:DrawWorld()
 		gl.DepthTest(false)
 		gl.DepthMask(true)
 	end
+end
