@@ -2611,10 +2611,11 @@ function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	return
 end
 
-function widgetHandler:VisibleExplosionBatch(explosionSize, explosionStride, ...)
+function widgetHandler:VisibleExplosionBatch(dataSize, dataStride, data)
+	-- dataSize, dataStride, data are flattened tables of (px, py, pz, weaponID, ownerID)
 	tracy.ZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
-		w:VisibleExplosionBatch(explosionSize, explosionStride, ...)
+		w:VisibleExplosionBatch(dataSize, dataStride, data)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2627,10 +2628,11 @@ function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
 	tracy.ZoneEnd()
 	return
 end
-function widgetHandler:BarrelfireBatch(barrelfireSize, barrefireStride, ...)
+function widgetHandler:BarrelfireBatch(dataSize, dataStride, data)
+	-- dataSize, dataStride, data are flattened tables of (px, py, pz, weaponID, ownerID)
 	tracy.ZoneBeginN("W:BarrelfireBatch")
 	for _, w in ipairs(self.BarrelfireBatchList) do
-		w:BarrelfireBatch(barrelfireSize, barrefireStride, ...)
+		w:BarrelfireBatch(dataSize, dataStride, data)
 	end
 	tracy.ZoneEnd()
 	return

@@ -1004,6 +1004,7 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID, noUpload)
+	--Spring.Echo("widget:VisibleExplosion", px, py, pz, weaponID, ownerID)
 	if targetable[weaponID] and py-300 > Spring.GetGroundHeight(px, pz) then	-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
@@ -1020,19 +1021,17 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID, noUpload)
 	end
 end
 
-function widget:VisibleExplosionBatch(count, stride, ...)
-	--Spring.Echo("VisibleExplosionBatch", count, stride)
-	local args = {...}
+function widget:VisibleExplosionBatch(dataSize, dataStride, data)
 	local noUpload = true
 	local startElementIndex = pointLightVBO.usedElements
-	for i=1, count, stride do
-		widget:VisibleExplosion(args[i], args[i+1], args[i+2], args[i+3], args[i+4], noUpload)
+	for i=1, dataSize, dataStride do
+		widget:VisibleExplosion(data[i], data[i+1], data[i+2], data[i+3], data[i+4], noUpload)
 	end
 	if noUpload then
 		uploadElementRange(pointLightVBO, startElementIndex -1, pointLightVBO.usedElements)
 	end
 end
-
+ 
 
 function widget:Barrelfire(px, py, pz, weaponID, ownerID, noUpload)
 	if muzzleFlashLights[weaponID] then
@@ -1046,14 +1045,13 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID, noUpload)
 	end
 end
 
-function widget:BarrelfireBatch(count, stride, ...)
+function widget:BarrelfireBatch(dataSize, dataStride, data)
 	--Spring.Echo("BarrelfireBatch", count, stride)
-	local args = {...}
 	local noUpload = true
 	local startElementIndex = pointLightVBO.usedElements
-	for i=1, count, stride do
+	for i=1, dataSize, dataStride do
 		--Spring.Echo("BarrelfireBatch", args[i], args[i+1], args[i+2], args[i+3], args[i+4])
-		widget:Barrelfire(args[i], args[i+1], args[i+2], args[i+3], args[i+4], noUpload)
+		widget:Barrelfire(data[i], data[i+1], data[i+2], data[i+3], data[i+4], noUpload)
 	end
 	if noUpload then
 		uploadElementRange(pointLightVBO, startElementIndex-1, pointLightVBO.usedElements)
