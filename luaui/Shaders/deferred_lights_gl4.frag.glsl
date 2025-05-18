@@ -659,6 +659,7 @@ void main(void)
 			targetcolor = texture(mapDiffuse    , v_screenUV) * nightFactor;
 		}
 	}
+	normals.xyz = normalize(normals.xyz);
 	
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
@@ -875,6 +876,10 @@ void main(void)
 	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	attenuation = pow(attenuation, 1.0);
 
+	//Give each light a unique blue noise sampling offset 
+	vec2 blueNoiseUV = (gl_FragCoord.xy + float(v_noiseoffset.a)*7.0)/64.0;
+	vec4 blueNoiseSample = textureLod(blueNoise, blueNoiseUV, 0.0);
+
 	// Do screen-space sampling for shadowing because you are a silly boy:
 	float unoccluded = 1.0;
 	#ifdef SCREENSPACESHADOWS
@@ -892,8 +897,7 @@ void main(void)
 
 			// Generate a small, random offset to jiggle the samples a little bit, this provides a bit of noise to the shadowing
 			//float randomOffset = rand(gl_FragCoord.xy * 0.013971639) * (- 0.25);
-			float blueNoiseSample = textureLod(blueNoise, gl_FragCoord.xy / 64.0, 0.0).r;
-			float randomOffset = blueNoiseSample * (-0.25);
+			float randomOffset = blueNoiseSample.a * (-0.25);
 			// Collect occludedness in this variable
 			float occludedness = 0.0;
 			
@@ -1009,6 +1013,11 @@ void main(void)
 	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)* BLEEDFACTOR; 
 	
 	fragColor.rgb *= intensityMultiplier;
+
+	// Add a half a bit of blue noise to the color to prevent banding, especially with contrast adaptive sharpening:
+	// Which should kinda be color dependent anyway, so lets find the max of all the color, and use that to ensure we get half a bit on the output:
+	//v_lightcolor.rgb
+	fragColor.rgb -=  (blueNoiseSample.rgb - 0.5) * (1.0 / 384.0);
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);

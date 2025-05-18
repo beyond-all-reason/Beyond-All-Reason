@@ -65,6 +65,7 @@ local ContributorAINames = {
     "Raghna",
     "RebelNode",
     "Requiem",
+	"Robert82",
     "Rubus",
     "Russell Lucas-Nutt",
     "Ryan Krause",

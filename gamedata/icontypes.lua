@@ -731,6 +731,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
 	},
+	legrezbot = {
+		bitmap = "icons/bot_t1_rez.png",
+		size = 0.74000001
+	},
 	armrespawn = {
 		bitmap = "icons/nanot2.png",
 		size = 1.64999998
@@ -1311,6 +1315,10 @@ local icontypes = {
 		bitmap = "icons/bot_amph_aa.png",
 		size = 1.04999995
 	},
+	legaabot = {
+		bitmap = "icons/bot_amph_aa.png",
+		size = 1.04999995
+	},
 	corcrus = {
 		bitmap = "icons/ship_t2_cruiser.png",
 		size = 2.25749993
@@ -1624,6 +1632,10 @@ local icontypes = {
 		size = 3.14999986
 	},
 	corjuno = {
+		bitmap = "icons/juno.png",
+		size = 1.29999995
+	},
+	legjuno = {
 		bitmap = "icons/juno.png",
 		size = 1.29999995
 	},
@@ -2111,11 +2123,19 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	leguwestore = {
+		bitmap = "icons/energystorage.png",
+		size = 1.10249984
+	},
 	coruwfus = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
 	},
 	coruwgeo = {
+		bitmap = "icons/energy6_1.3.png",
+		size = 1.36499989
+	},
+	leguwgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
@@ -2128,6 +2148,10 @@ local icontypes = {
 		size = 1.20749986
 	},
 	coruwms = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	leguwmstore = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
@@ -2295,7 +2319,7 @@ local icontypes = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
 	},
-	legamsub = {
+	legamphlab = {
 		bitmap = "icons/factory_amph.png",
 		size = 1.52250004
 	},
@@ -2811,7 +2835,7 @@ local icontypes = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
 	},
-	legfmkr = {
+	legfeconv = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
@@ -3591,6 +3615,14 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
+	},
+	leghrk = {
+		bitmap = "icons/kbot_t2_barrage.png",
+		size = 1.6
+	},
+	legfdrag = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
 	},
 
 	blank = {
