@@ -57,7 +57,6 @@ local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-local currentResValue = { metal = 1000, energy = 1000 }
 local energyOverflowLevel, metalOverflowLevel
 local wholeTeamWastingMetalCount = 0
 local allyteamOverflowingMetal = false
@@ -162,7 +161,7 @@ local smoothedResources = {
     metal = {0, 0, 0, 0, 0, 0},  -- Init
     energy = {0, 0, 0, 0, 0, 0}  -- Init
 }
-local smoothingFactor = 0.2
+local smoothingFactor = 0.5
 local function smoothResources()
     local currentResources = r
     for _, resType in ipairs({'metal', 'energy'}) do
@@ -637,7 +636,7 @@ local function drawResbarValue(res)
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -869,7 +868,6 @@ local function updateResbarValues(res, update)
 		end
 
 		-- resbar text
-		currentResValue[res] = short(cappedCurRes)
 		if not useRenderToTexture then
 			if dlistResValues[res] then
 				glDeleteList(dlistResValues[res])
@@ -1158,15 +1156,20 @@ function widget:Update(dt)
 	end
 
 	if now > nextSmoothUpdate then
-		nextSmoothUpdate = now + 0.10
+		nextSmoothUpdate = now + 0.07
 		smoothResources()
 	end
-	if now > nextSlowUpdate then
-		nextSlowUpdate = now + 0.5
 
+	if now > nextSlowUpdate then
+		nextSlowUpdate = now + 0.25
+		local prevR = r
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-		if r['metal'][7] > 1 or r['metal'][8] > 1 or r['energy'][7] > 1 or r['energy'][8] > 1 then
-			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		-- check if we need to smooth the resources
+		if (r['metal'][7] > 1 and r['metal'][7] ~= prevR['metal'][7] and r['metal'][7] / r['metal'][2] > 0.05) or
+			(r['metal'][8] > 1 and r['metal'][8] ~= prevR['metal'][8] and r['metal'][8] / r['metal'][2] > 0.05) or
+			(r['energy'][7] > 1 and r['energy'][7] ~= prevR['energy'][7] and r['energy'][7] / r['energy'][2] > 0.05) or
+			(r['energy'][8] > 1 and r['energy'][8] ~= prevR['energy'][8] and r['energy'][8] / r['energy'][2] > 0.05)
+		then
 			smoothedResources = r
 		end
 
@@ -1354,6 +1357,7 @@ local function drawResBars()
 
 				res = 'energy'
 				drawResbarValue(res)
+
 				if updateRes[res][2] then
 					updateRes[res][2] = false
 					drawResbarPullIncome(res)
