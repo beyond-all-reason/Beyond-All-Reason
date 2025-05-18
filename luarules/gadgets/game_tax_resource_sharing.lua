@@ -36,7 +36,7 @@ local sharingFullyDisabled = Spring.GetModOptions().tax_resource_sharing_amount 
 
 
 
-function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
+function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
 
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
 	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
@@ -56,7 +56,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 
 	-- Calculate the maximum amount the receiver can receive
 	--Current, Storage, Pull, Income, Expense
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
+	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverId, resourceName)
 
 	-- rShare is the share slider setting, don't exceed their share slider max when sharing
 	local maxShare = rStor * rShare - rCur
@@ -65,9 +65,15 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	local totalAmount = taxedAmount / (1-sharingTax)
 	local transferTax = totalAmount * sharingTax
 
-	Spring.SetTeamResource(receiverTeamId, resourceName, rCur+taxedAmount)
-	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderTeamId, resourceName)
-	Spring.SetTeamResource(senderTeamId, resourceName, sCur-totalAmount)
+	Spring.SetTeamResource(receiverId, resourceName, rCur+taxedAmount)
+	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderId, resourceName)
+	Spring.SetTeamResource(senderId, resourceName, sCur-totalAmount)
+
+	local senderName = Spring.GetPlayerInfo(senderId, false)
+	local receiverName = Spring.GetPlayerInfo(receiverId, false) or "Unknown"
+
+	local msg = senderName.." sent "..math.round(taxedAmount).." "..resourceName.." to "..receiverName.." (-"..math.round(transferTax).." "..resourceName.." taxed)"
+	Spring.Echo(msg)
 
 	-- Block the original transfer
 	return false
