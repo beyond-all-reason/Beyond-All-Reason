@@ -760,19 +760,21 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.useScum then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
-				for _ = 1,100 do
-					spawnPosX = mRandom(spread, MAPSIZEX - spread)
-					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-					end
-					if canSpawnBurrow then
-						break
+				if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+					for _ = 1,100 do
+						spawnPosX = mRandom(spread, MAPSIZEX - spread)
+						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+						end
+						if canSpawnBurrow then
+							break
+						end
 					end
 				end
 			end
@@ -1212,23 +1214,25 @@ if gadgetHandler:IsSyncedCode() then
 		local spawnPosX, spawnPosY, spawnPosZ
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
-			local flatCheck, occupancyCheck, scumCheck = 0,0,0
-			for _ = 1,5 do
-				spawnPosX = mRandom(spread, MAPSIZEX - spread)
-				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true) -- 90% of map should be flat
-				flatCheck = flatCheck + 1
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread) -- spread about 96 is suspicious, Probably this fails the most ofte
-					occupancyCheck = occupancyCheck + 1
-				end
-				if canSpawnStructure then
-					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) -- this is a func of creep coverage, assume ~50 % of map covered
-					scumCheck = scumCheck + 1
-				end
-				if canSpawnStructure then
-					break
+			if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+				local flatCheck, occupancyCheck, scumCheck = 0,0,0
+				for _ = 1,5 do
+					spawnPosX = mRandom(spread, MAPSIZEX - spread)
+					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true) -- 90% of map should be flat
+					flatCheck = flatCheck + 1
+					if canSpawnStructure then
+						canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread) -- spread about 96 is suspicious, Probably this fails the most ofte
+						occupancyCheck = occupancyCheck + 1
+					end
+					if canSpawnStructure then
+						canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) -- this is a func of creep coverage, assume ~50 % of map covered
+						scumCheck = scumCheck + 1
+					end
+					if canSpawnStructure then
+						break
+					end
 				end
 			end
 			if tracy then
