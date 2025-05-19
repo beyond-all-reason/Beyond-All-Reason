@@ -1090,7 +1090,7 @@ local function loadBlueprintsFromFile()
 		return
 	end
 
-	if decoded.savedBlueprints == 0 then
+	if type(decoded.savedBlueprints) ~= "table" then
 		decoded.savedBlueprints = {}
 	end
 

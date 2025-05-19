@@ -304,6 +304,8 @@ WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl
 		if not scale then
 			scale = 1
 		end
+		if scale == 0 then scale = 0.001 end
+
 		local offset = offset or 0
 		local ycMult = (sy-py) / (sx-px)
 
