@@ -88,7 +88,12 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 	return true
 end
 
-
+local isNonFactoryBuilder = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isBuilder and not unitDef.isFactory then
+		isNonFactoryBuilder[unitDefID] = true
+	end
+end
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
@@ -128,17 +133,15 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 
 	-- Disallow changing the move_state value of non-factory builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
 	local unitDef = UnitDefs[unitDefID]
-	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and unitDef.isBuilder and not unitDef.isFactory) then
+	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and isNonFactoryBuilder[unitDefID] ) then
 		spGiveOrderToUnit(unitID, CMD.MOVE_STATE, 0) -- make toggling still work between Hold and Maneuver
 		return false
 	end
 	return true
 end
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	local unitDef = UnitDefs[unitDefID]
-	if unitDef.isBuilder and not unitDef.isFactory and spGetUnitStates(unitID).movestate == 2 then -- prevent non-factory builders from being created with move_state ROAM
+	if isNonFactoryBuilder[unitDefID] and spGetUnitStates(unitID).movestate == 2 then -- prevent non-factory builders from being created with move_state ROAM
 		spGiveOrderToUnit(unitID, CMD.MOVE_STATE, 0)
 	end
 end

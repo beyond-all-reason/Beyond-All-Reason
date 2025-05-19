@@ -118,6 +118,12 @@ if Spring.GetModOptions().disable_assist_ally_construction then
 end
 local enable_t2con_buying_only = Spring.GetModOptions().enable_t2con_buying
 
+local isT2con = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+        if unitDef.customParams and unitDef.customParams.t2con_shareable_under_no_econ_sharing then
+            isT2con[unitDefID] = true
+        end
+end
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
     if not spValidUnitID(unitID) then return false end
@@ -130,7 +136,7 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
     -- When tax resource sharing is on, only allow selling t2 cons through unit market
     if enable_t2con_buying_only then
-        if not unitDef.customParams.t2con_shareable_under_no_econ_sharing then return false end
+        if not isT2con[unitDefID] then return false end
     end
     if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)
