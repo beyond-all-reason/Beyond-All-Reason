@@ -73,7 +73,7 @@ local colorConfig = {
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.75, -- alpha of outer rings
-	internalalpha = 0.15, -- alpha of inner rings
+	internalalpha = 0.12, -- alpha of inner rings
 	fill_alpha = 0.12, -- this is the solid color in the middle of the stencil
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
@@ -121,6 +121,39 @@ local colorConfig = {
 		minimapexternallinethickness = 2.0,
 		minimapinternallinethickness = 0.5,
 	},
+	-- ground_water = {
+	-- 	color       = { 0.2, 0.5, 1.0, 0.60 },  -- RGBA blue
+	-- 	fadeparams  = colorConfig.ground.fadeparams,
+	-- 	groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
+	-- 	externallinethickness      = colorConfig.ground.externallinethickness,
+	-- 	internallinethickness      = colorConfig.ground.internallinethickness,
+	-- 	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	-- 	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+	-- },
+}
+
+-- Sub WEAPON types:
+
+-- DGUN
+colorConfig.ground_dgun = {
+    color                       = colorConfig.ground.color,       -- reuse ground colour
+    fadeparams                  = colorConfig.ground.fadeparams,  -- same fade curve
+    groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
+    externallinethickness      = colorConfig.ground.externallinethickness,
+	internallinethickness      = colorConfig.ground.internallinethickness,
+	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+}
+
+-- WATER WEAPONS
+colorConfig.ground_water = {
+  color                      = {0.48, 0.67, 1.0, 0.30},
+  fadeparams                 = colorConfig.ground.fadeparams,
+  groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
+  externallinethickness      = colorConfig.ground.externallinethickness,
+  internallinethickness      = colorConfig.ground.internallinethickness,
+  minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+  minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
 }
 
 ----------------------------------
@@ -216,6 +249,12 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 
+		-- ── your debug & color‐pick here ──
+    -- Spring.Echo(string.format(
+    --   "[AttackRange] %s.waterweapon = %s",
+    --   weaponDef.name, tostring(weaponDef.waterweapon)
+    -- ))
+
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
@@ -228,8 +267,32 @@ local function initializeUnitDefRing(unitDefID)
 				damage = weaponDef.damages[defaultdamagetag]
 			end
 			dps = damage * (weaponDef.salvoSize or 1) / (weaponDef.reload or 1)
-			local color = colorConfig[weaponTypeMap[weaponType]].color
-			local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
+			-- local color = colorConfig[weaponTypeMap[weaponType]].color
+			-- local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
+
+			-- after you have `weaponDef` and `weaponType`…
+		local baseKey = weaponTypeMap[ weaponType ]      -- e.g. "ground", "AA", etc.
+		local cfgKey  = baseKey
+
+		-- 1) DGun override
+		if weaponDef.type == "DGun" then
+			cfgKey = baseKey .. "_dgun"
+			--Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
+		-- 2) then water override
+		elseif weaponDef.waterWeapon
+			or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
+		then
+			cfgKey = baseKey .. "_water"
+			--Spring.Echo("[AttackRange] using water style for:", weaponDef.name)
+		end
+
+    -- safety fallback if you typo the key
+    if not colorConfig[cfgKey] then
+        cfgKey = baseKey
+    end
+
+    local color      = colorConfig[cfgKey].color
+    local fadeparams = colorConfig[cfgKey].fadeparams
 
 			local isCylinder = 0 
 			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
@@ -238,7 +301,7 @@ local function initializeUnitDefRing(unitDefID)
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
 			local wName = weaponDef.name
-			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus then
+			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus or weaponDef.customParams.norangering then
 				range = 0
 			end
 			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))

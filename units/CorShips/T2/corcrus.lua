@@ -138,6 +138,9 @@ return {
 					default = 75,
 					vtol = 15,
 				},
+				customparams = {
+					norangering = 1,
+				},
 			},
 			advdepthcharge = {
 				areaofeffect = 32,
