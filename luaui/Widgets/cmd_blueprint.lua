@@ -1052,7 +1052,7 @@ local function serializeBlueprint(blueprint)
 end
 
 ---@param serializedBlueprint SerializedBlueprint
----@return Blueprint
+---@return Blueprint | nil
 local function deserializeBlueprint(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
 	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
@@ -1066,6 +1066,9 @@ local function deserializeBlueprint(serializedBlueprint)
 		end
 	end)
 
+	if #result.units == 0 then -- empty blueprint
+		return
+	end
 	postProcessBlueprint(result)
 
 	return result
