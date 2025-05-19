@@ -124,3 +124,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 	return true
 end
+
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.RECLAIM)
+	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
+end
+
+	

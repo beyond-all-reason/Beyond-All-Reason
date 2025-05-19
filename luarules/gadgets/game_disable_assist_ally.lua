@@ -144,3 +144,12 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	end
 	return not Spring.GetUnitIsBeingBuilt(unitID)
 end
+
+
+
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD.REPAIR)
+	gadgetHandler:RegisterAllowCommand(CMD.MOVE_STATE)
+end
