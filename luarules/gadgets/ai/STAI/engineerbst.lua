@@ -39,7 +39,7 @@ function EngineerBST:Update()
 			self:EchoDebug('guarding')
 			self.ai.engineerhst.Engineers[self.id] = myBuilder
 			self.builder = myBuilder
-			print('engineers 42 ',self.ai.engineerhst.Builders,self.ai.engineerhst.Builders[myBuilder])
+			self:EchoDebug('engineers 42 ',self.ai.engineerhst.Builders,self.ai.engineerhst.Builders[myBuilder])
 			self.ai.engineerhst.Builders[myBuilder][self.id] = true
 		end
 	end

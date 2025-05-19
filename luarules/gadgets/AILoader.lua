@@ -75,14 +75,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RezTable()
-			return table.remove(syncTables) or {} 
+			return table.remove(syncTables) or {}
 	end
 
 
 	-- Function to recursively process a table and discard everything that is not a table
 	function gadget:KillTable(t)
 		if not t or type(t) ~= 'table' then
-			spEcho("incorrect type in SIT_TABLE",t)    
+			spEcho("incorrect type in SIT_TABLE",t)
 			return
 		end
 		--spEcho("SIT_TABLE: Before clearing", t)
@@ -129,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 		local i = 1
 		if string.find(str,'|') then
 			for s in string.gmatch(str, "([^|]+)") do
-				
+
 				StrToTbl[i] = gadget:RezTable()
 				for value in string.gmatch(s, "([^,]+)") do
 				table.insert(StrToTbl[i],tonumber(value) or value)
@@ -146,7 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg)
-		
+
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 			spEcho('warn:  Shard  receive a old give order protocol',msg)
 			cmdCounter.old = cmdCounter.old + 1
@@ -155,7 +155,7 @@ if gadgetHandler:IsSyncedCode() then
 		if string.sub(msg,1,12) ~= '@Shard[STGO]' or string.sub(msg,-12,-1) ~= '[STGO]Shard@' then
 			--spEcho('not a STAI Give Order ',string.sub(msg,1,10),string.sub(msg,-10,-1))
 			return
-			
+
 		else
 			msg = string.sub(msg,13,-13)
 			local order = gadget:RezTable()
@@ -164,7 +164,7 @@ if gadgetHandler:IsSyncedCode() then
 				spEcho('Deserialize Order failed')
 				return
 			end
-			
+
 			if order.method == '1-1' then
 				--('Receiveluarulesmsg GiveOrder to:',UnitDefs[spGetUnitDefID ( order.id )].name,order.cmd)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
@@ -175,7 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 				if cmdTag < 0 then
 					cmdTag = 'BUILD'
 				end
-				
+
 				cmdCounter[cmdTag]	= cmdCounter[cmdTag]  or 0
 				cmdCounter[cmdTag] = cmdCounter[cmdTag] + 1
 				if not cmd then
@@ -201,8 +201,8 @@ if gadgetHandler:IsSyncedCode() then
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.iz = cmdCounter.iz + 1
 				if not cmd then
-					spEcho('GiveOrderToUnitArray Error:',cmd)	
-				end	
+					spEcho('GiveOrderToUnitArray Error:',cmd)
+				end
 			elseif order.method == '2-2' then
 				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
@@ -221,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				spEcho('Shard AI Loader: unknown method',order.method)
 			end
-			
+
 		end
 		--spEcho('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
 		--spEcho('cmdCounter',cmdCounter)
@@ -230,7 +230,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Shutdown()
 		spEcho("Shard AI sync gadget shutdown")
 		spEcho('STAI commands issued:',cmdCounter)
-		
+
 	end
 
 else	-- UNSYNCED CODE
@@ -238,7 +238,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:Initialize()
 		spEcho("Looking for AIs")
-		
+
 		for i = 1, #teamList do
 			local id = teamList[i]
 			local _, _, _, isAI, side, allyId = spGetTeamInfo(id, false)
@@ -316,7 +316,7 @@ else	-- UNSYNCED CODE
 
 	function gadget:GameStart()
 		-- Initialise AIs
-		
+
 		for _, thisAI in ipairs(Shard.AIs) do
 			local _, _, _, isAI, side = spGetTeamInfo(thisAI.id, false)
 			thisAI.side = side
@@ -334,7 +334,7 @@ else	-- UNSYNCED CODE
 --local RAM
 	function gadget:GameFrame(n)
 		-- for each AI...
-		
+
 		for i, thisAI in ipairs(Shard.AIs) do
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
@@ -344,7 +344,7 @@ else	-- UNSYNCED CODE
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
 				memoryRecord = math.max(memoryRecord,ramuse)
-				spEcho("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
+				--spEcho("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
@@ -354,13 +354,13 @@ else	-- UNSYNCED CODE
 					garbagelimit = newgarbagelimit
 				end
 			end
-			
+
 		end
 	end
 
 	function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 		-- for each AI...
-		
+
 		local unit = Shard:shardify_unit(unitId)
 		for _, thisAI in ipairs(Shard.AIs) do
 			if spGetUnitTeam(unitId) == thisAI.id then
@@ -525,7 +525,7 @@ else	-- UNSYNCED CODE
 			Shard.randomseed = rseed
 		end
 	end
-	
+
 	function gadget:Shutdown()
 		spEcho("Shard AI unsync gadget shutdown")
 		spEcho('STAI memory record:',memoryRecord)
