@@ -235,7 +235,7 @@ return {
 					vtol = 200,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 			mediumplasma = {

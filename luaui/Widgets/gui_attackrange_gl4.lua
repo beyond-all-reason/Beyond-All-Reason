@@ -147,13 +147,24 @@ colorConfig.ground_dgun = {
 
 -- WATER WEAPONS
 colorConfig.ground_water = {
-  color                      = {0.48, 0.67, 1.0, 0.30},
+  color                      = {0.32, 0.48, 1.0, 0.30},
   fadeparams                 = colorConfig.ground.fadeparams,
   groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
   externallinethickness      = colorConfig.ground.externallinethickness,
   internallinethickness      = colorConfig.ground.internallinethickness,
   minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
   minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+}
+
+-- EMP (paralyzer) weapons
+colorConfig.ground_emp = {
+  color                       = { 0.72, 0.72, 1.0, 0.60 },    -- EMP light blue
+  fadeparams                  = colorConfig.ground.fadeparams,
+  groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
+  externallinethickness       = colorConfig.ground.externallinethickness,
+  internallinethickness       = colorConfig.ground.internallinethickness,
+  minimapexternallinethickness= colorConfig.ground.minimapexternallinethickness,
+  minimapinternallinethickness= colorConfig.ground.minimapinternallinethickness,
 }
 
 ----------------------------------
@@ -274,8 +285,12 @@ local function initializeUnitDefRing(unitDefID)
 		local baseKey = weaponTypeMap[ weaponType ]      -- e.g. "ground", "AA", etc.
 		local cfgKey  = baseKey
 
-		-- 1) DGun override
-		if weaponDef.type == "DGun" then
+		-- 1) paralyzer/EMP weapons
+		if weaponDef.paralyzer then
+			cfgKey = baseKey .. "_emp"
+			Spring.Echo("[AttackRange] using EMP colour for:", weaponDef.name)
+  		-- 2) DGun override
+		elseif weaponDef.type == "DGun" then
 			cfgKey = baseKey .. "_dgun"
 			--Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
 		-- 2) then water override
@@ -600,11 +615,11 @@ local function AddSelectedUnit(unitID, mouseover)
 					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				else
 					if weaponDef.range < 700 then 
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground
 					elseif weaponDef.range > 2600 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"						
 					end
 				end
 			end

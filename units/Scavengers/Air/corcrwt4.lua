@@ -121,6 +121,9 @@ return {
 				waterweapon = false,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 40,
 					subs = 10,
@@ -206,6 +209,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 200,
 					default = 2000,
@@ -245,6 +251,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 500,
 					default = 5000,
