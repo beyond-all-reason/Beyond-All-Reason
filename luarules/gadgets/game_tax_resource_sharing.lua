@@ -70,8 +70,14 @@ function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount
 	Spring.SetTeamResource(senderId, resourceName, sCur-totalAmount)
 
 	local senderName = Spring.GetPlayerInfo(senderId, false)
-	local receiverName = Spring.GetPlayerInfo(receiverId, false) or "Unknown"
 
+	local _, _, _, isAiTeam = Spring.GetTeamInfo(receiverId)
+	local receiverName
+	if isAiTeam then
+		_, receiverName = Spring.GetAIInfo(receiverId, false) 
+	else 
+		receiverName = Spring.GetPlayerInfo(receiverId, false) 
+	end
 	local msg = senderName.." sent "..math.round(taxedAmount).." "..resourceName.." to "..receiverName.." (-"..math.round(transferTax).." "..resourceName.." taxed)"
 	Spring.Echo(msg)
 
