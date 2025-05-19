@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-	  name      = "Unit Wait Icons",
+	  name      = "Unit Wait Icons7",
 	  desc      = "Shows the wait/pause icon above units",
 	  author    = "Floris, Beherith, Robert82",
 	  date      = "May 2025",
@@ -12,26 +12,22 @@ function widget:GetInfo()
    }
 end
 
---local onlyOwnTeam = true -- do we need it?
-
 local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
 local iconSequenceNum = 44	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
-local trackedUnits = {}
 local waitingUnits = {}
 local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
 local checkDelay = 5
 local unitsPerFrame = 300
+local gf = Spring.GetGameFrame()
 
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
-local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
-local spIsGUIHidden = Spring.IsGUIHidden()
 
 
 local unitConf = {}
@@ -87,7 +83,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	refreshTrackedUnits()
+	initUnits()
 end
 local function MarkAsWaiting(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID and unitConf[unitDefID] then --(not onlyOwnTeam or
@@ -113,23 +109,13 @@ local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
 	end
 end
 
-function TrackUnit(unitID, unitDefID, unitTeam)
-	if (myTeamID == unitTeam) and unitConf[unitDefID] then
-		trackedUnits[unitID] = unitDefID
-	end
-end
 
-function UntrackUnit(unitID, unitDefID, unitTeam)
-	trackedUnits[unitID] = nil
+function forgetUnit(unitID, unitDefID, unitTeam)
 	needsCheck[unitID]   = nil 
 	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
-	if iconVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(iconVBO, unitID)
-	end
 end
 
-local function updateIcons()
-	local gf = Spring.GetGameFrame()  
+local function updateIcons() 
 	for unitID, unitDefID in pairs(waitingUnits) do
 		if not iconVBO.instanceIDtoIndex[unitID] then--if visibleUnits[unitID] then
 			if spValidUnitID(unitID) then
@@ -151,25 +137,17 @@ local function updateIcons()
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam)
-	UntrackUnit(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitGiven(unitID, unitDefID, unitTeam)
-	TrackUnit(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	TrackUnit(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
-	UntrackUnit(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and 
 		needsCheck[unitID] = {
-		frame = Spring.GetGameFrame() + checkDelay,
+		frame = gf + checkDelay,
 		defID = unitDefID,
 		team  = unitTeam
 		}
@@ -179,25 +157,17 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
 	CheckWaitingStatus(unitID, unitDefID, unitTeam)
 end
 
--- unit has no more commands
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	CheckWaitingStatus(unitID, unitDefID, unitTeam)
 end
 
-
-function widget:PlayerChanged()
-	refreshTrackedUnits()
-end
-
-function refreshTrackedUnits()
-	trackedUnits  = {}
+function initUnits()
 	waitingUnits  = {}      -- forget any previous “waiting” flags
 	local unitDefID
 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
 		unitDefID = Spring.GetUnitDefID(unitID)
- 		TrackUnit(unitID, unitDefID, myTeamID)
 		needsCheck[unitID] = {
-			frame = Spring.GetGameFrame() + checkDelay,
+			frame = gf + checkDelay,
 			defID = unitDefID,
 			team  = myTeamID
 			}
@@ -207,6 +177,7 @@ end
 
 function widget:GameFrame(n)
 	local currentUnitPerFrame = 0
+	gf = n
 	for unitID, data in pairs(needsCheck) do
 		currentUnitPerFrame = currentUnitPerFrame +1
 		if currentUnitPerFrame < unitsPerFrame then
@@ -216,7 +187,7 @@ function widget:GameFrame(n)
 			end
 		end
 	end
-	if Spring.GetGameFrame() % 24 == 0 and next(waitingUnits) then
+	if gf % 24 == 0 and next(waitingUnits) then
 		updateIcons()
 	end
 end
