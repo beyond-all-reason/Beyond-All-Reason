@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-	  name      = "Unit Wait Icons7.1",
+	  name      = "Unit Wait Icons",
 	  desc      = "Shows the wait/pause icon above units",
 	  author    = "Floris, Beherith, Robert82",
 	  date      = "May 2025",
@@ -25,8 +25,6 @@ local checkDelay = 5
 local unitsPerFrame = 300
 local gf = Spring.GetGameFrame()
 
-
-
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spec, fullview = Spring.GetSpectatingState()
@@ -35,9 +33,8 @@ local spValidUnitID = Spring.ValidUnitID
 
 local gl_DepthTest    = gl.DepthTest
 local gl_Texture      = gl.Texture
-local spIsGUIHidden   = Spring.IsGUIHidden()  -- still call it each draw, but localize
+local spIsGUIHidden   = Spring.IsGUIHidden()
 local spGetConfigInt  = Spring.GetConfigInt
-
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
