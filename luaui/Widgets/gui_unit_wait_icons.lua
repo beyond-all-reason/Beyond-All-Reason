@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-	  name      = "Unit Wait Icons7",
+	  name      = "Unit Wait Icons7.1",
 	  desc      = "Shows the wait/pause icon above units",
 	  author    = "Floris, Beherith, Robert82",
 	  date      = "May 2025",
@@ -18,16 +18,25 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
+local spec, fullview = Spring.GetSpectatingState()
 local waitingUnits = {}
 local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
 local checkDelay = 5
 local unitsPerFrame = 300
 local gf = Spring.GetGameFrame()
 
+
+
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
+local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
+
+local gl_DepthTest    = gl.DepthTest
+local gl_Texture      = gl.Texture
+local spIsGUIHidden   = Spring.IsGUIHidden()  -- still call it each draw, but localize
+local spGetConfigInt  = Spring.GetConfigInt
 
 
 local unitConf = {}
@@ -193,21 +202,21 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then return end
+	if spIsGUIHidden then return end
 	if iconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		gl.DepthTest(true)
+		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		gl_DepthTest(true)
 		gl.DepthMask(false)
 		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
 		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl.Texture(iconSequenceImages..animFrame..'.png')
+		gl_Texture(iconSequenceImages..animFrame..'.png')
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
 		energyIconShader:SetUniform("addRadius",0)
 		iconVBO.VAO:DrawArrays(GL.POINTS,iconVBO.usedElements)
 		energyIconShader:Deactivate()
-		gl.Texture(false)
-		gl.DepthTest(false)
+		gl_Texture(false)
+		gl_DepthTest(false)
 		gl.DepthMask(true)
 	end
 end
