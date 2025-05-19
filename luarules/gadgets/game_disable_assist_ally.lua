@@ -20,7 +20,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-
 if allowAssist then
 	return false
 end
@@ -56,7 +55,7 @@ end
 
 local function existsNonOwnedMex(myTeam, x, y, z)
     local units = Spring.GetUnitsInCylinder(x, z, 10)
-    for k, unitID in ipairs(units) do
+    for _, unitID in ipairs(units) do
         if isMex[Spring.GetUnitDefID(unitID)] then
             if Spring.GetUnitTeam(unitID) ~= myTeam then
                 return true
@@ -68,7 +67,7 @@ end
 
 local function existsNonOwnedGeo(myTeam, x, y, z)
     local units = Spring.GetUnitsInCylinder(x, z, 10)
-    for k, unitID in ipairs(units) do
+    for _, unitID in ipairs(units) do
         if isGeo[Spring.GetUnitDefID(unitID)] then
             if Spring.GetUnitTeam(unitID) ~= myTeam then
                 return true
@@ -140,14 +139,16 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	return true
 end
 
+-- Prevent non-factory builders from being created with move_state ROAM
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isNonFactoryBuilder[unitDefID] and spGetUnitStates(unitID).movestate == 2 then -- prevent non-factory builders from being created with move_state ROAM
+	if isNonFactoryBuilder[unitDefID] and spGetUnitStates(unitID).movestate == 2 then 
 		spGiveOrderToUnit(unitID, CMD.MOVE_STATE, 0)
 	end
 end
 
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture) -- prevent players from sharing unfinished blueprints, which would allow two players to work on the same construction
+-- Prevent players from sharing unfinished blueprints, which would allow two players to work on the same construction
+function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture) 
 	if(capture) then
 		return true
 	end

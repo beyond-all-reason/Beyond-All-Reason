@@ -116,33 +116,33 @@ local saleWhitelist = {}
 if Spring.GetModOptions().disable_assist_ally_construction then
     AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist an allied blueprint after buying it
 end
-local enable_t2con_buying_only = Spring.GetModOptions().enable_t2con_buying
 
+local enable_t2con_buying_only = Spring.GetModOptions().enable_t2con_buying
 local isT2con = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
         if unitDef.customParams and unitDef.customParams.t2con_shareable_under_no_econ_sharing then
             isT2con[unitDefID] = true
         end
 end
+
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
     if not spValidUnitID(unitID) then return false end
-    local unitDefID = spGetUnitDefID(unitID)
-    if not unitDefID then return false end
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return false end
-    local finished = not Spring.GetUnitIsBeingBuilt(unitID)
-    if not AllowPlayersSellUnfinished and not finished then return false end
-
-    -- When tax resource sharing is on, only allow selling t2 cons through unit market
-    if enable_t2con_buying_only then
-        if not isT2con[unitDefID] then return false end
-    end
     if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)
         return false
     end
-    
+
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return false end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return false end
+
+    if not AllowPlayersSellUnfinished and Spring.GetUnitIsBeingBuilt(unitID) then return false end
+    if enable_t2con_buying_only then
+        if not isT2con[unitDefID] then return false end
+    end
+
     local price
     if not specifiedPrice or specifiedPrice <= 0 then
         price = unitDef.metalCost
@@ -188,9 +188,8 @@ local function tryToBuyUnit(unitID, buyerTeamID)
     local price = unitsForSale[unitID]
 
     if isAiTeam then
-        local discount = getAIdiscount(buyerTeamID, sellerTeamID, price) -- if AI ally owes you metal, you can discount
+        local discount = getAIdiscount(buyerTeamID, sellerTeamID, price) -- if AI ally owes you metal, you get discount up to that amount
         price = price - discount
-        --Spring.Echo("debug discount: "..discount) -- debug: if AI owes you money...
     end
 
     if (current < price) then return end
@@ -209,6 +208,7 @@ local function tryToBuyUnit(unitID, buyerTeamID)
     UnitSoldBroadcast(unitID, price, sellerTeamID, buyerTeamID)
 end
 
+-- use a whitelist to allow buying through unit sharing restrictions
 if disable_unit_sharing_enabled then
     function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
         if(capture) then

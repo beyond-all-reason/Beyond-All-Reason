@@ -21,8 +21,6 @@ end
 
 
 local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
-
-
 local unit_sharing_mode = Spring.GetModOptions().unit_sharing_mode
 
 local disable_share_econ_and_lab = unit_sharing_mode == "disable_econ_and_lab_sharing" or "disable_econ_and_lab_and_combat_units"
@@ -33,20 +31,18 @@ if not unit_sharing_mode or unit_sharing_mode == "enable_all" then
 	return false
 end
 
-
-
 local isEconOrLab = {} 
 local isCombatUnitOrTacticalBuilding = {} 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	-- Mark labs and mobile production
-	-- Mark econ units
 	local treatAsCombatUnit = unitDef.customParams.disableunitsharing_treatascombatunit == "1"
 	if not treatAsCombatUnit then
+		-- Mark econ units
 		if unitDef.customParams.unitgroup == "energy" or unitDef.customParams.unitgroup == "metal" then
 			isEconOrLab[unitDefID] = true
 		elseif unitDef.canResurrect then
 			isEconOrLab[unitDefID] = true
+		-- Mark labs and mobile production
 		elseif (unitDef.isFactory or unitDef.isBuilder) then
 			isEconOrLab[unitDefID] = true
 		end
