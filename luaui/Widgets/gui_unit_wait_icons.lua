@@ -18,7 +18,6 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
-local spec, fullview = Spring.GetSpectatingState()
 local waitingUnits = {}
 local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
 local checkDelay = 5
@@ -27,12 +26,10 @@ local gf = Spring.GetGameFrame()
 
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
-local spec, fullview = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 
-local gl_DepthTest    = gl.DepthTest
-local gl_Texture      = gl.Texture
 local spIsGUIHidden   = Spring.IsGUIHidden()
 local spGetConfigInt  = Spring.GetConfigInt
 
@@ -107,21 +104,22 @@ local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
 local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
-	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+	if not unitConf[unitDefID] then return end
+	local queue = unitConf[unitDefID] and unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
 	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
 		MarkAsWaiting(unitID, unitDefID, unitTeam)
-	else 
+	else
 		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 	end
 end
 
 
 function forgetUnit(unitID, unitDefID, unitTeam)
-	needsCheck[unitID]   = nil 
+	needsCheck[unitID]   = nil
 	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
-local function updateIcons() 
+local function updateIcons()
 	for unitID, unitDefID in pairs(waitingUnits) do
 		if not iconVBO.instanceIDtoIndex[unitID] then--if visibleUnits[unitID] then
 			if spValidUnitID(unitID) then
@@ -146,12 +144,12 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam)
 	forgetUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	forgetUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and 
+	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and
 		needsCheck[unitID] = {
 		frame = gf + checkDelay,
 		defID = unitDefID,
@@ -176,7 +174,7 @@ function initUnits()
 			frame = gf + checkDelay,
 			defID = unitDefID,
 			team  = myTeamID
-			}
+		}
 	end
 end
 
@@ -202,18 +200,18 @@ function widget:DrawWorld()
 	if spIsGUIHidden then return end
 	if iconVBO.usedElements > 0 then
 		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		gl_DepthTest(true)
+		gl.DepthTest(true)
 		gl.DepthMask(false)
 		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
 		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl_Texture(iconSequenceImages..animFrame..'.png')
+		gl.Texture(iconSequenceImages..animFrame..'.png')
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
 		energyIconShader:SetUniform("addRadius",0)
 		iconVBO.VAO:DrawArrays(GL.POINTS,iconVBO.usedElements)
 		energyIconShader:Deactivate()
-		gl_Texture(false)
-		gl_DepthTest(false)
+		gl.Texture(false)
+		gl.DepthTest(false)
 		gl.DepthMask(true)
 	end
 end
