@@ -49,16 +49,17 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
-    local freeArea = WG['topbar'].GetFreeArea()
-    widgetScale = freeArea[5]
-    area[1] = freeArea[1]
-    area[2] = freeArea[2]
-    area[3] = freeArea[1] + floor(90 * widgetScale)
-    if area[3] > freeArea[3] then
-        area[3] = freeArea[3]
-    end
-    area[4] = freeArea[4]
-
+	if WG['topbar'] then
+		local freeArea = WG['topbar'].GetFreeArea()
+		widgetScale = freeArea[5]
+		area[1] = freeArea[1]
+		area[2] = freeArea[2]
+		area[3] = freeArea[1] + floor(90 * widgetScale)
+		if area[3] > freeArea[3] then
+			area[3] = freeArea[3]
+		end
+		area[4] = freeArea[4]
+	end
 	if dlistGuishader ~= nil then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('converter_usage')
