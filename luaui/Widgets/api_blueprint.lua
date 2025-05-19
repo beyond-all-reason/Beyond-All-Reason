@@ -304,7 +304,7 @@ local function getUnitsBounds(units)
 		{}
 	)
 
-	return r.xMin, r.xMax, r.zMin, r.zMax
+	return r.xMin or 0, r.xMax or 0, r.zMin or 0, r.zMax or 0
 end
 
 local function getBlueprintDimensions(blueprint, facing)
