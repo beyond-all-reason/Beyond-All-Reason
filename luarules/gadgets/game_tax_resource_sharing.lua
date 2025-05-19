@@ -22,6 +22,11 @@ if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
 	return false
 end
 
+
+local spGetUnitTeam = Spring.GetUnitTeam
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitDefID =  Spring.GetUnitDefID
+local spAreTeamsAllied = Spring.AreTeamsAllied
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
@@ -33,12 +38,6 @@ local sharingFullyDisabled = Spring.GetModOptions().tax_resource_sharing_amount 
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-
-
-local spGetUnitTeam = Spring.GetUnitTeam
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitDefID =  Spring.GetUnitDefID
-local spAreTeamsAllied = Spring.AreTeamsAllied
 
 function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
 
@@ -54,24 +53,27 @@ function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount
 		return true
 	end
 
-	if sharingFullyDisabled then
-		return false   -- if tax is 100%, don't eat the sender's money and just block the transfer
+	if sharingFullyDisabled then -- if tax is 100%, don't eat the sender's money and just block the transfer
+		return false   
 	end
 
-	-- Calculate the maximum amount the receiver can receive
-	--Current, Storage, Pull, Income, Expense
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverId, resourceName)
+	local rCurrent, rStorage, _, _, _, rShare = Spring.GetTeamResources(receiverId, resourceName)
 
-	-- rShare is the share slider setting, don't exceed their share slider max when sharing
-	local maxShare = rStor * rShare - rCur
+	-- rShare is their share slider setting from between 0 and 1. 
+	-- To avoid taxed resources immediately being shared, only allow sending up to their share slider
+	local maxCanReceive = rStorage * rShare - rCurrent
 
-	local taxedAmount = math.min((1-sharingTax)*amount, maxShare)
+	local taxedAmount = math.min((1-sharingTax)*amount, maxCanReceive)
 	local totalAmount = taxedAmount / (1-sharingTax)
 	local transferTax = totalAmount * sharingTax
 
-	Spring.SetTeamResource(receiverId, resourceName, rCur+taxedAmount)
-	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderId, resourceName)
-	Spring.SetTeamResource(senderId, resourceName, sCur-totalAmount)
+	local sCurrent, _, _, _, _, _ = Spring.GetTeamResources(senderId, resourceName)
+
+	Spring.SetTeamResource(receiverId, resourceName, rCurrent+taxedAmount)
+	Spring.SetTeamResource(senderId, resourceName, sCurrent-totalAmount)
+
+
+	-- Display a console message about the transfer
 
 	local senderName = Spring.GetPlayerInfo(senderId, false)
 
@@ -82,21 +84,12 @@ function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount
 	else 
 		receiverName = Spring.GetPlayerInfo(receiverId, false) 
 	end
-	local msg = senderName.." sent "..math.round(taxedAmount).." "..resourceName.." to "..receiverName.." (-"..math.round(transferTax).." "..resourceName.." taxed)"
-	Spring.Echo(msg)
+
+	Spring.Echo(senderName.." sent "..math.round(taxedAmount).." "..resourceName.." to "..receiverName.." (-"..math.round(transferTax).." "..resourceName.." taxed)")
 
 	-- Block the original transfer
 	return false
 end
-
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
-		return true
-	end
-	return false
-end
-
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 	
