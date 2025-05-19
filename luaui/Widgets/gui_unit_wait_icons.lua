@@ -2,17 +2,17 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-      name      = "Unit Wait Icons",
-      desc      = "Shows the wait/pause icon above units",
-      author    = "Floris, Beherith, Robert82",
-      date      = "June 2024",
-      license   = "GNU GPL, v2 or later",
-      layer     = -40,
-      enabled   = truev
+	  name      = "Unit Wait Icons",
+	  desc      = "Shows the wait/pause icon above units",
+	  author    = "Floris, Beherith, Robert82",
+	  date      = "May 2025",
+	  license   = "GNU GPL, v2 or later",
+	  layer     = -40,
+	  enabled   = truev
    }
 end
 
-local onlyOwnTeam = true
+--local onlyOwnTeam = true -- do we need it?
 
 local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
 local iconSequenceNum = 44	-- always starts at 1
@@ -20,21 +20,18 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
-local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local trackedUnits = {}
 local waitingUnits = {}
-local teamList = {} -- {team1, team2, team3....}
+local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
+local checkDelay = 5
+local unitsPerFrame = 300
 
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetUnitStates = Spring.GetUnitStates
-local spIsUnitInView = Spring.IsUnitInView
+local spIsGUIHidden = Spring.IsGUIHidden()
 
 
 local unitConf = {}
@@ -84,17 +81,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
--- 	spec, fullview = Spring.GetSpectatingState()
--- 	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
--- 	clearInstanceTable(iconVBO) -- clear all instances
--- 	unitScope = {}
--- 	for unitID, unitDefID in pairs(extVisibleUnits) do
--- 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
--- 	end
--- 	uploadAllElements(iconVBO) -- upload them all
--- end
-
 
 function widget:Initialize()
 	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
@@ -102,50 +88,65 @@ function widget:Initialize()
 		return
 	end
 	refreshTrackedUnits()
-	-- if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-	-- 	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-	-- end
 end
-
-
-
-local function updateIcons()
-  local gf = Spring.GetGameFrame()
-
-  for unitID, unitDefID in pairs(waitingUnits) do
-    if spIsUnitInView(unitID) then
-      if not iconVBO.instanceIDtoIndex[unitID] and spValidUnitID(unitID) then
-        pushElementInstance(iconVBO,
-          {unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],
-           0, 4, gf, 0, 0.75, 0,  0,1,0,1,  0,0,0,0},
-          unitID, false, true, unitID)
-      end
-    elseif iconVBO.instanceIDtoIndex[unitID] then
-      popElementInstance(iconVBO, unitID, true)
-    end
-  end
-
-  if iconVBO.dirty then uploadAllElements(iconVBO) end
-end
-
-function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 24 == 0 then
-		updateIcons()
+local function MarkAsWaiting(unitID, unitDefID, unitTeam)
+	if unitTeam == myTeamID and unitConf[unitDefID] then --(not onlyOwnTeam or
+		waitingUnits[unitID] = unitDefID
 	end
 end
 
+local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	if waitingUnits[unitID] then
+		waitingUnits[unitID] = nil           -- erase flag
+	end
+	if iconVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(iconVBO, unitID)
+	end
+end
 
-function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
+local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
+	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
+		MarkAsWaiting(unitID, unitDefID, unitTeam)
+	else 
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	end
+end
+
+function TrackUnit(unitID, unitDefID, unitTeam)
 	if (myTeamID == unitTeam) and unitConf[unitDefID] then
 		trackedUnits[unitID] = unitDefID
 	end
 end
 
-function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculations
+function UntrackUnit(unitID, unitDefID, unitTeam)
 	trackedUnits[unitID] = nil
-	UnmarkAsWaiting(uID)
+	needsCheck[unitID]   = nil 
+	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 	if iconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(iconVBO, unitID)
+	end
+end
+
+local function updateIcons()
+	local gf = Spring.GetGameFrame()  
+	for unitID, unitDefID in pairs(waitingUnits) do
+		if not iconVBO.instanceIDtoIndex[unitID] then--if visibleUnits[unitID] then
+			if spValidUnitID(unitID) then
+			pushElementInstance(iconVBO,
+				{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],
+				0, 4, gf, 0, 0.75, 0,  0,1,0,1,  0,0,0,0},
+				unitID, false, true, unitID)
+			end
+		end
+	end
+	for unitID in pairs(iconVBO.instanceIDtoIndex) do
+		if not waitingUnits[unitID] then
+			popElementInstance(iconVBO, unitID, true)
+		end
+	end
+	if iconVBO.dirty then
+		uploadAllElements(iconVBO)
 	end
 end
 
@@ -161,95 +162,64 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	TrackUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)	
 	UntrackUnit(unitID, unitDefID, unitTeam)
 end
 
-
-local function MarkAsWaiting(unitID, unitDefID, unitTeam)
-  if (not onlyOwnTeam or unitTeam == myTeamID) and unitConf[unitDefID] then
-    waitingUnits[unitID] = unitDefID
-  end
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and 
+		needsCheck[unitID] = {
+		frame = Spring.GetGameFrame() + checkDelay,
+		defID = unitDefID,
+		team  = unitTeam
+		}
 end
 
-local function UnmarkAsWaiting(unitID)
-  waitingUnits[unitID] = nil           -- erase flag
-  if iconVBO.instanceIDtoIndex[unitID] then
-    popElementInstance(iconVBO, unitID)
-  end
-end
-
--- fires for *every* accepted command
-function widget:UnitCommand(unitID, unitDefID, unitTeam,
-                             cmdID, cmdParams, cmdOpts, cmdTag)
-  if onlyOwnTeam and unitTeam ~= myTeamID then return end   -- filter once
-
-  if cmdID == CMD_WAIT then          -- player pressed WAIT key
-    if waitingUnits[unitID] then
-      UnmarkAsWaiting(unitID)        -- toggle OFF
-    else
-      MarkAsWaiting(unitID, unitDefID, unitTeam) -- toggle ON
-    end
-
-  elseif waitingUnits[unitID] then   -- any other cmd cancels the wait
-    UnmarkAsWaiting(unitID)
-  end
-end
-
--- WAIT reached the head of the queue and disappeared
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
-  if cmdID == CMD_WAIT then
-    UnmarkAsWaiting(unitID)
-  end
+	CheckWaitingStatus(unitID, unitDefID, unitTeam)
 end
 
 -- unit has no more commands
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
-  UnmarkAsWaiting(unitID)
+	CheckWaitingStatus(unitID, unitDefID, unitTeam)
 end
-
-
-
 
 
 function widget:PlayerChanged()
 	refreshTrackedUnits()
-	if displayComCounter then
-		countComs(true)
+end
+
+function refreshTrackedUnits()
+	trackedUnits  = {}
+	waitingUnits  = {}      -- forget any previous “waiting” flags
+	local unitDefID
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+		unitDefID = Spring.GetUnitDefID(unitID)
+ 		TrackUnit(unitID, unitDefID, myTeamID)
+		needsCheck[unitID] = {
+			frame = Spring.GetGameFrame() + checkDelay,
+			defID = unitDefID,
+			team  = myTeamID
+			}
 	end
 end
 
--- function refreshTrackedUnits()
--- 	trackedUnits = {}
--- 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
--- 		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
--- 	end
--- end
 
-
-
-function refreshTrackedUnits()
-  trackedUnits  = {}
-  waitingUnits  = {}      -- forget any previous “waiting” flags
-
-  local units = Spring.GetTeamUnits(myTeamID)
-  for i = 1, #units do
-    local uID   = units[i]
-    local uDef  = Spring.GetUnitDefID(uID)
-
-    TrackUnit(uID, uDef, myTeamID)          -- rebuild the tracked set
-
-    -- if this unit is already paused, mark it right now ---------------
-    local isFactory = unitConf[uDef] and unitConf[uDef][3]
-    local q = (isFactory and Spring.GetFactoryCommands(uID, 1))
-           or               Spring.GetUnitCommands   (uID, 1)
-
-    if q and q[1] and q[1].id == CMD_WAIT then
-      MarkAsWaiting(uID, uDef, myTeamID)    -- adds to waitingUnits
-    end
-  end
+function widget:GameFrame(n)
+	local currentUnitPerFrame = 0
+	for unitID, data in pairs(needsCheck) do
+		currentUnitPerFrame = currentUnitPerFrame +1
+		if currentUnitPerFrame < unitsPerFrame then
+			if n >= data.frame then
+				CheckWaitingStatus(unitID, data.defID, data.team)
+				needsCheck[unitID] = nil -- done, remove from queue
+			end
+		end
+	end
+	if Spring.GetGameFrame() % 24 == 0 and next(waitingUnits) then
+		updateIcons()
+	end
 end
-
 
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
