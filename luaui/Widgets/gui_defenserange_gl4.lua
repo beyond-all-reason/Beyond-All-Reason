@@ -204,7 +204,7 @@ local function initializeUnitDefRing(unitDefID)
 	        local cfg    = colorConfig[baseKey]
 	        if (baseKey == "ground") and (weaponDef.waterWeapon) then
 	            cfg = colorConfig.ground_water
-	            Spring.Echo("[DefenseRange] using water colour for:", weaponDef.name)
+	            --Spring.Echo("[DefenseRange] using water colour for:", weaponDef.name)
 	        end
 	        local color      = cfg.color
 	        local fadeparams = cfg.fadeparams

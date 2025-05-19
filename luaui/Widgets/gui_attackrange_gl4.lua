@@ -274,17 +274,17 @@ local function initializeUnitDefRing(unitDefID)
 		local baseKey = weaponTypeMap[ weaponType ]      -- e.g. "ground", "AA", etc.
 		local cfgKey  = baseKey
 
-		-- 1) DGun override (takes absolute precedence) 
-    if weaponDef.type == "DGun" then
-        cfgKey = baseKey .. "_dgun"
-        Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
-    -- 2) then water override (as before)
-    elseif weaponDef.waterWeapon
-        or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
-    then
-        cfgKey = baseKey .. "_water"
-        Spring.Echo("[AttackRange] using water style for:", weaponDef.name)
-    end
+		-- 1) DGun override
+		if weaponDef.type == "DGun" then
+			cfgKey = baseKey .. "_dgun"
+			--Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
+		-- 2) then water override
+		elseif weaponDef.waterWeapon
+			or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
+		then
+			cfgKey = baseKey .. "_water"
+			--Spring.Echo("[AttackRange] using water style for:", weaponDef.name)
+		end
 
     -- safety fallback if you typo the key
     if not colorConfig[cfgKey] then
