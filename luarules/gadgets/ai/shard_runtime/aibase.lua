@@ -101,8 +101,7 @@ function AIBase:EchoDebug(...)
 	end
 end
 
-if tracy and true then 
-	
+if tracy  then 
 	Spring.Echo("Enabled Tracy support for AIBase")
 	AIBase.lastGCinfo = 0
 	local logRAM = true
