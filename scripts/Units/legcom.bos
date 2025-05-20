@@ -715,7 +715,7 @@ AimFromWeapon2(piecenum)
 AimWeapon2(heading, pitch)
 {
 	//get PRINT(get GROUND_WATER_HEIGHT(get UNIT_XZ));
-	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -3500000 )
+	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000 )
     {
      return (0);
     }	

@@ -177,6 +177,7 @@ local armorDefs = {
 		"armzeus",
 		"armamsub",
 		"corjuno",
+		"legjuno",
 		"corageo",
 		"legageo",
 		"armconsul",
@@ -197,6 +198,7 @@ local armorDefs = {
 		"corch",
 		"corck",
 		"corcrash",
+		"legaabot",
 		"corcv",
 		"cordrag",
 		"corestor",
@@ -238,6 +240,7 @@ local armorDefs = {
 		"cormwall",
 		"legrwall",
 		"cornecro",
+		"legrezbot",
 		"corplat",
 		"corphantom",
 		"corprinter",
@@ -430,7 +433,7 @@ local armorDefs = {
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",
-		"legamsub",
+		"legamphlab",
 
 		"legcv",
 		"legck",
@@ -459,7 +462,8 @@ local armorDefs = {
 		"scavfort",
 		"legmohocon",
 		"legmohoconct",
-		"leghrk"
+		"leghrk",
+		"legfdrag"
 	},
 	mines = {
 		"armfmine3",

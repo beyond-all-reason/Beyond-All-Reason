@@ -404,8 +404,8 @@ local function drawStats(uDefID, uID)
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost
 		local buildRem = 1 - buildProg
-		local mRem = mTotal * buildRem
-		local eRem = eTotal * buildRem
+		local mRem = math.floor(mTotal * buildRem)
+		local eRem = math.floor(eTotal * buildRem)
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 
