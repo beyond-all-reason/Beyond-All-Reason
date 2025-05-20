@@ -28,6 +28,9 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
+local cortronWeaponDef = WeaponDefNames['cortron_cortron_weapon']
+local COR_TRON = cortronWeaponDef and cortronWeaponDef.id
+
 local splashCEG1 = "splash-tiny"
 local splashCEG2 = "splash-small"
 local splashCEG3 = "splash-medium"
