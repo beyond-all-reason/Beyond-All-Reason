@@ -117,7 +117,6 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			local splashCEG = weaponSplashCEG[weaponID]
 			if splashCEG then
-				Spring.Echo(splashCEG)
 				Spring.SpawnCEG(splashCEG, px, 0, pz)
 			end
 			return true
