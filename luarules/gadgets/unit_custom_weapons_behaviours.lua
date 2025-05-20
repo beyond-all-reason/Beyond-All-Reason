@@ -110,6 +110,16 @@ end
 
 --- Weapon behaviors -----------------------------------------------------------
 
+local function isProjectileFalling(projectileID)
+	local _, velocityY = spGetProjectileVelocity(projectileID)
+	return velocityY < 0
+end
+
+local function isProjectileInWater(projectileID)
+	local _, positionY = spGetProjectilePosition(projectileID)
+	return positionY <= 0
+end
+
 -- Cruise
 
 weaponCustomParamKeys.cruise = {
