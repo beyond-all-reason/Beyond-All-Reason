@@ -389,7 +389,11 @@ function gadget:Initialize()
 		end
 	end
 
-	if not next(weaponParams) then
+	if next(weaponParams) then
+		for weaponDefID in pairs(weaponParams) do
+			Script.SetWatchProjectile(weaponDefID, true)
+		end
+	else
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
 		gadgetHandler:RemoveGadget(self)
 	end
