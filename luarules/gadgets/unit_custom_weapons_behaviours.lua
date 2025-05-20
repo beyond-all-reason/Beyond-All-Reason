@@ -287,34 +287,28 @@ end
 
 -- Water penetration (torpedo)
 
-checkingFunctions.torpwaterpen = {}
-checkingFunctions.torpwaterpen["ypos<0"] = function(proID)
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		return true
-	else
-		return false
-	end
-end
+local function torpedoWaterPen(projectileID)
+	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-applyingFunctions.torpwaterpen = function(proID)
-	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
-	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
-	--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+	-- Underwater projectiles have lower visibility, so remaining on surface is preferable.
+	-- Only dive below the water's surface if the target is likely an underwater unit.
+	local diveSpeed = 0
 
-	local bypass = false
-	local targetType, targetID = spGetProjectileTarget(proID)
-
-	if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then --ground attack borks it; skip
-		local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
-		if (unitPosY ~= nil) and unitPosY < -10 then
-			bypass = true
-			spSetProjectileVelocity(proID, velocityX / 1.3, velocityY / 6, velocityZ / 1.3) --apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+	if targetType == targetedUnit and targetID then
+		local _, positionY = spGetUnitPosition(targetID)
+		if positionY and positionY < -10 then
+			diveSpeed = velocityY / 6
 		end
 	end
 
-	if not bypass then
-		spSetProjectileVelocity(proID, velocityX, 0, velocityZ)
+	spSetProjectileVelocity(projectileID, velocityX / 1.3, diveSpeed, velocityZ / 1.3)
+end
+
+weaponSpecialEffect.torpwaterpen = function(params, projectileID)
+	if isProjectileInWater(projectileID) then
+		torpedoWaterPen(projectileID)
+		return true
 	end
 end
 
