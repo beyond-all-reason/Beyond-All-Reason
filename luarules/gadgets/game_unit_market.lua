@@ -159,6 +159,7 @@ end
 
 local function getAIdiscount(newTeamID, oldTeamID, price)
     if not AllyAIsalesEverything then return 0 end
+    if tax_resource_sharing_enabled then return 0 end
 
     local myDiscount = AllyAItab[oldTeamID] and AllyAItab[oldTeamID][newTeamID] or 0
     local finalDiscount = math.min(price, myDiscount) -- Ensure finalDiscount doesn't exceed price
