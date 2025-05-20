@@ -5,7 +5,7 @@ namespace Side {
  */
 TypeMask ARMADA = aiSideMasker.GetTypeMask("armada");
 TypeMask CORTEX = aiSideMasker.GetTypeMask("cortex");
-TypeMask LEGION = ARMADA;  // legion, depending on modoptions initialized in <profile>/init.as
+TypeMask LEGION = aiSideMasker.GetTypeMask("legion");
 
 }  // namespace Side
 
