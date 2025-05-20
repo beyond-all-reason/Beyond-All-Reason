@@ -204,33 +204,20 @@ weaponCustomParamKeys.sector_fire = {
 	end,
 }
 
-checkingFunctions.sector_fire = {}
-checkingFunctions.sector_fire["always"] = function(proID)
-	-- as soon as the siege projectile is created, pass true on the
-	-- checking function, to go to applying function
-	-- so the unit state is only checked when the projectile is created
+weaponSpecialEffect.sector_fire = function(params, projectileID)
+	local rangeReductionMax = params.max_range_reduction
+	local transformXZ = 1 - (math_random() ^ (1 + rangeReductionMax)) * rangeReductionMax
+
+	local angleSpread = params.spread_angle * (math_random() - 0.5)
+	local transformX = math_cos(angleSpread)
+	local transformZ = math_sin(angleSpread)
+
+	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+	velocityX = (velocityX * transformX - velocityZ * transformZ) * transformXZ
+	velocityZ = (velocityX * transformZ + velocityZ * transformX) * transformXZ
+	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
+
 	return true
-end
-applyingFunctions.sector_fire = function(proID)
-	local params = projectiles[proID]
-	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(proID)
-
-	local angleSpread = tonumber(params.spread_angle)
-	local rangeReductionMax = tonumber(params.max_range_reduction)
-
-	local angleFactor = (angleSpread * (math_random() - 0.5)) * math_pi / 180
-	local angleCos = math_cos(angleFactor)
-	local angleSin = math_sin(angleFactor)
-
-	local vx_new = velocityX * angleCos - velocityZ * angleSin
-	local vz_new = velocityX * angleSin + velocityZ * angleCos
-
-	local velocityFactor = 1 - (math_random() ^ (1 + rangeReductionMax)) * rangeReductionMax
-
-	velocityX = vx_new * velocityFactor
-	velocityZ = vz_new * velocityFactor
-
-	spSetProjectileVelocity(proID, velocityX, velocityY, velocityZ)
 end
 
 -- Split
