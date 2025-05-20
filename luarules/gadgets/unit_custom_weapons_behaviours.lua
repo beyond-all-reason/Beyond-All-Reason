@@ -263,34 +263,26 @@ weaponCustomParamKeys.cannonwaterpen = {
 	model = tostring,
 }
 
-checkingFunctions.cannonwaterpen = {}
-checkingFunctions.cannonwaterpen["ypos<0"] = function(proID)
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		return true
-	else
-		return false
-	end
+local function cannonWaterPen(params, projectileID)
+	local spawnDefID, cache, velocity = getSpawnParams(params, projectileID)
+
+	Spring.DeleteProjectile(projectileID)
+	Spring.SpawnCEG(params.waterpenceg, cache.pos[1], cache.pos[2], cache.pos[3])
+
+	cache.gravity = gravityPerFrame * 0.5
+
+	velocity[1] = velocity[1] * 0.5
+	velocity[2] = velocity[2] * 0.5
+	velocity[3] = velocity[3] * 0.5
+
+	Spring.SpawnProjectile(spawnDefID, cache)
 end
 
-applyingFunctions.cannonwaterpen = function(proID)
-	local projectileX, projectileY, projectileZ = Spring.GetProjectilePosition(proID)
-	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
-	velocityX, velocityY, velocityZ = velocityX * 0.5, velocityY * 0.5, velocityZ * 0.5
-	local ownerID = spGetProjectileOwnerID(proID)
-	local params = projectiles[proID]
-	local projectileParams = {
-		pos = { projectileX, projectileY, projectileZ },
-		speed = { velocityX, velocityY, velocityZ },
-		owner = ownerID,
-		ttl = 3000,
-		gravity = -Game.gravity / 3600,
-		model = params.model,
-		cegTag = params.cegtag,
-	}
-	Spring.SpawnProjectile(weaponDefNamesID[params.def], projectileParams)
-	Spring.SpawnCEG(params.waterpenceg, projectileX, projectileY, projectileZ, 0, 0, 0, 0, 0)
-	Spring.DeleteProjectile(proID)
+weaponSpecialEffect.cannonwaterpen = function(projectileID)
+	if isProjectileInWater(projectileID) then
+		cannonWaterPen(projectileID)
+		return true
+	end
 end
 
 -- Water penetration (torpedo)
