@@ -108,8 +108,8 @@ end
 function gadget:Initialize()
 	local minHeight, maxHeight = Spring.GetGroundExtremes()
 	if minHeight < 100 then
-		for _,wDef in pairs(WeaponDefs) do
-			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
+		for wDefID, wDef in pairs(WeaponDefs) do
+			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and (not weaponNoSplash[wDefID]) then
 				Script.SetWatchExplosion(wDef.id, true)
 			end
 		end
