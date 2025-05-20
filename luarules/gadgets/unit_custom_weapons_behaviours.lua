@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+--------------------------------------------------------------------------------
+-- Localization ----------------------------------------------------------------
+
 local math_random = math.random
 local math_sqrt = math.sqrt
 local math_cos = math.cos
@@ -32,6 +35,9 @@ local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetUnitIsDead = Spring.GetUnitIsDead
 
+--------------------------------------------------------------------------------
+-- Initialization --------------------------------------------------------------
+
 local projectiles = {}
 local projectileData = {}
 local checkingFunctions = {}
@@ -45,6 +51,11 @@ for id, def in pairs(WeaponDefs) do
 		specialWeaponCustomDefs[id] = def.customParams
 	end
 end
+
+--------------------------------------------------------------------------------
+-- Local functions -------------------------------------------------------------
+
+-- Cruise
 
 checkingFunctions.cruise = {}
 checkingFunctions.cruise["distance>0"] = function(proID)
@@ -102,34 +113,7 @@ applyingFunctions.cruise = function(proID)
 	return false
 end
 
-checkingFunctions.sector_fire = {}
-checkingFunctions.sector_fire["always"] = function(proID)
-	-- as soon as the siege projectile is created, pass true on the
-	-- checking function, to go to applying function
-	-- so the unit state is only checked when the projectile is created
-	return true
-end
-applyingFunctions.sector_fire = function(proID)
-	local params = projectiles[proID]
-	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(proID)
-
-	local angleSpread = tonumber(params.spread_angle)
-	local rangeReductionMax = tonumber(params.max_range_reduction)
-
-	local angleFactor = (angleSpread * (math_random() - 0.5)) * math_pi / 180
-	local angleCos = math_cos(angleFactor)
-	local angleSin = math_sin(angleFactor)
-
-	local vx_new = velocityX * angleCos - velocityZ * angleSin
-	local vz_new = velocityX * angleSin + velocityZ * angleCos
-
-	local velocityFactor = 1 - (math_random() ^ (1 + rangeReductionMax)) * rangeReductionMax
-
-	velocityX = vx_new * velocityFactor
-	velocityZ = vz_new * velocityFactor
-
-	spSetProjectileVelocity(proID, velocityX, velocityY, velocityZ)
-end
+-- Retarget
 
 checkingFunctions.retarget = {}
 checkingFunctions.retarget["always"] = function(proID)
@@ -174,15 +158,38 @@ applyingFunctions.retarget = function(proID)
 	return false
 end
 
-checkingFunctions.cannonwaterpen = {}
-checkingFunctions.cannonwaterpen["ypos<0"] = function(proID)
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		return true
-	else
-		return false
-	end
+-- Sector fire
+
+checkingFunctions.sector_fire = {}
+checkingFunctions.sector_fire["always"] = function(proID)
+	-- as soon as the siege projectile is created, pass true on the
+	-- checking function, to go to applying function
+	-- so the unit state is only checked when the projectile is created
+	return true
 end
+applyingFunctions.sector_fire = function(proID)
+	local params = projectiles[proID]
+	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(proID)
+
+	local angleSpread = tonumber(params.spread_angle)
+	local rangeReductionMax = tonumber(params.max_range_reduction)
+
+	local angleFactor = (angleSpread * (math_random() - 0.5)) * math_pi / 180
+	local angleCos = math_cos(angleFactor)
+	local angleSin = math_sin(angleFactor)
+
+	local vx_new = velocityX * angleCos - velocityZ * angleSin
+	local vz_new = velocityX * angleSin + velocityZ * angleCos
+
+	local velocityFactor = 1 - (math_random() ^ (1 + rangeReductionMax)) * rangeReductionMax
+
+	velocityX = vx_new * velocityFactor
+	velocityZ = vz_new * velocityFactor
+
+	spSetProjectileVelocity(proID, velocityX, velocityY, velocityZ)
+end
+
+-- Split
 
 checkingFunctions.split = {}
 checkingFunctions.split["yvel<0"] = function(proID)
@@ -192,35 +199,6 @@ checkingFunctions.split["yvel<0"] = function(proID)
 	else
 		return false
 	end
-end
-
-checkingFunctions.torpwaterpen = {}
-checkingFunctions.torpwaterpen["ypos<0"] = function(proID)
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		return true
-	else
-		return false
-	end
-end
-
---a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
-checkingFunctions.torpwaterpenretarget = {}
-checkingFunctions.torpwaterpenretarget["ypos<0"] = function(proID)
-	checkingFunctions.retarget["always"](proID) --subcontract that part
-
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		--and delegate that too
-		applyingFunctions.torpwaterpen(proID)
-	else
-		return false
-	end
-end
-
---fake function
-applyingFunctions.torpwaterpenretarget = function(proID)
-	return false
 end
 
 applyingFunctions.split = function(proID)
@@ -245,24 +223,15 @@ applyingFunctions.split = function(proID)
 	Spring.DeleteProjectile(proID)
 end
 
-applyingFunctions.torpwaterpen = function(proID)
-	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
-	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
-	--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+-- Water penetration (cannon)
 
-	local bypass = false
-	local targetType, targetID = spGetProjectileTarget(proID)
-
-	if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then --ground attack borks it; skip
-		local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
-		if (unitPosY ~= nil) and unitPosY < -10 then
-			bypass = true
-			spSetProjectileVelocity(proID, velocityX / 1.3, velocityY / 6, velocityZ / 1.3) --apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
-		end
-	end
-
-	if not bypass then
-		spSetProjectileVelocity(proID, velocityX, 0, velocityZ)
+checkingFunctions.cannonwaterpen = {}
+checkingFunctions.cannonwaterpen["ypos<0"] = function(proID)
+	local _, positionY, _ = Spring.GetProjectilePosition(proID)
+	if positionY <= 0 then
+		return true
+	else
+		return false
 	end
 end
 
@@ -285,6 +254,63 @@ applyingFunctions.cannonwaterpen = function(proID)
 	Spring.SpawnCEG(params.waterpenceg, projectileX, projectileY, projectileZ, 0, 0, 0, 0, 0)
 	Spring.DeleteProjectile(proID)
 end
+
+-- Water penetration (torpedo)
+
+checkingFunctions.torpwaterpen = {}
+checkingFunctions.torpwaterpen["ypos<0"] = function(proID)
+	local _, positionY, _ = Spring.GetProjectilePosition(proID)
+	if positionY <= 0 then
+		return true
+	else
+		return false
+	end
+end
+
+applyingFunctions.torpwaterpen = function(proID)
+	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
+	--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
+	--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+
+	local bypass = false
+	local targetType, targetID = spGetProjectileTarget(proID)
+
+	if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then --ground attack borks it; skip
+		local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
+		if (unitPosY ~= nil) and unitPosY < -10 then
+			bypass = true
+			spSetProjectileVelocity(proID, velocityX / 1.3, velocityY / 6, velocityZ / 1.3) --apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+		end
+	end
+
+	if not bypass then
+		spSetProjectileVelocity(proID, velocityX, 0, velocityZ)
+	end
+end
+
+-- Water penetration with retargeting (torpedo)
+
+--a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
+checkingFunctions.torpwaterpenretarget = {}
+checkingFunctions.torpwaterpenretarget["ypos<0"] = function(proID)
+	checkingFunctions.retarget["always"](proID) --subcontract that part
+
+	local _, positionY, _ = Spring.GetProjectilePosition(proID)
+	if positionY <= 0 then
+		--and delegate that too
+		applyingFunctions.torpwaterpen(proID)
+	else
+		return false
+	end
+end
+
+--fake function
+applyingFunctions.torpwaterpenretarget = function(proID)
+	return false
+end
+
+--------------------------------------------------------------------------------
+-- Engine call-ins -------------------------------------------------------------
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if specialWeaponCustomDefs[weaponDefID] then
