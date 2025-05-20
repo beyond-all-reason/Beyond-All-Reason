@@ -24,38 +24,98 @@ local math_sqrt = math.sqrt
 local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
+local distance3dSquared = math.distance3dSquared
 
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spSetProjectileTarget = Spring.SetProjectileTarget
-
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundNormal = Spring.GetGroundNormal
+local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
+local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitPosition = Spring.GetUnitPosition
+local spSetProjectilePosition = Spring.SetProjectilePosition
+local spSetProjectileTarget = Spring.SetProjectileTarget
+local spSetProjectileVelocity = Spring.SetProjectileVelocity
+
+local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
+
+local targetedGround = string.byte('g')
+local targetedUnit = string.byte('u')
 
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
-local projectiles = {}
-local projectileData = {}
-local checkingFunctions = {}
-local applyingFunctions = {}
+local weaponCustomParamKeys = {} -- [effect] = { key => conversion function }
+local weaponSpecialEffect = {}
 
-local specialWeaponCustomDefs = {}
-local weaponDefNamesID = {}
-for id, def in pairs(WeaponDefs) do
-	weaponDefNamesID[def.name] = id
-	if def.customParams.speceffect then
-		specialWeaponCustomDefs[id] = def.customParams
-	end
-end
+local weaponParams = {}
+
+local projectiles = {}
+local projectilesData = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
+local function parseCustomParams(weaponDef)
+	local success = true
+
+	local effectName = weaponDef.customParams.speceffect
+
+	if not weaponSpecialEffect[effectName] then
+		local message = weaponDef.name .. " has bad speceffect: " .. effectName
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+
+		success = false
+	end
+
+	local effectParams = {}
+
+	if weaponCustomParamKeys[effectName] then
+		for key, conversion in pairs(weaponCustomParamKeys[effectName]) do
+			if weaponDef.customParams[key] then
+				local value = conversion(weaponDef.customParams[key])
+				if value ~= nil then
+					effectParams[key] = value
+				else
+					local message = weaponDef.name .. " has bad customparam: " .. key
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+
+					success = false
+				end
+			end
+		end
+	end
+
+	-- Modders/tweakdefs are likely to use these values for a while:
+	if weaponDef.customParams.def or weaponDef.customParams.when then
+		local message = weaponDef.name .. " uses old customparams (def/when)"
+		Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+	end
+
+	if success then
+		return effectName, effectParams
+	end
+end
+
+local function toWeaponDefID(value)
+	local spawnDef = WeaponDefNames[value]
+	return spawnDef and spawnDef.id or nil
+end
+
+local function toPositiveNumber(value)
+	value = tonumber(value)
+	return value and math.max(0, value) or nil
+end
+
+--- Weapon behaviors -----------------------------------------------------------
+
 -- Cruise
+
+weaponCustomParamKeys.cruise = {
+	cruise_min_height = toPositiveNumber,
+	lockon_dist = toPositiveNumber,
+}
 
 checkingFunctions.cruise = {}
 checkingFunctions.cruise["distance>0"] = function(proID)
@@ -160,6 +220,17 @@ end
 
 -- Sector fire
 
+weaponCustomParamKeys.sector_fire = {
+	max_range_reduction = function(value)
+		value = tonumber(value)
+		return value and math.clamp(value, 0, 1)
+	end,
+	spread_angle = function(value)
+		value = tonumber(value)
+		return value and value * math_pi / 180 or nil
+	end,
+}
+
 checkingFunctions.sector_fire = {}
 checkingFunctions.sector_fire["always"] = function(proID)
 	-- as soon as the siege projectile is created, pass true on the
@@ -190,6 +261,14 @@ applyingFunctions.sector_fire = function(proID)
 end
 
 -- Split
+
+weaponCustomParamKeys.split = {
+	speceffect_def = toWeaponDefID,
+	number = tonumber,
+	splitexplosionceg = tostring,
+	cegtag = tostring,
+	model = tostring,
+}
 
 checkingFunctions.split = {}
 checkingFunctions.split["yvel<0"] = function(proID)
@@ -224,6 +303,13 @@ applyingFunctions.split = function(proID)
 end
 
 -- Water penetration (cannon)
+
+weaponCustomParamKeys.cannonwaterpen = {
+	speceffect_def = toWeaponDefID,
+	waterpenceg = tostring,
+	cegtag = tostring,
+	model = tostring,
+}
 
 checkingFunctions.cannonwaterpen = {}
 checkingFunctions.cannonwaterpen["ypos<0"] = function(proID)
@@ -312,24 +398,45 @@ end
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
-function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if specialWeaponCustomDefs[weaponDefID] then
-		projectiles[proID] = specialWeaponCustomDefs[weaponDefID]
-		projectileData[proID] = nil
+function gadget:Initialize()
+	local metatables = {}
+
+	for effectName, effectMethod in pairs(weaponSpecialEffect) do
+		-- Add self-call syntax to weapon special effects:
+		metatables[effectName] = { __call = effectMethod }
+	end
+
+	for weaponDefID, weaponDef in pairs(WeaponDefs) do
+		if weaponDef.customParams.speceffect then
+			local effectName, effectParams = parseCustomParams(weaponDef)
+
+			if effectName then
+				weaponParams[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+			end
+		end
+	end
+
+	if not next(weaponParams) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
+		gadgetHandler:RemoveGadget(self)
 	end
 end
 
-function gadget:ProjectileDestroyed(proID)
-	projectiles[proID] = nil
-	projectileData[proID] = nil
+function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
+	if weaponParams[weaponDefID] then
+		projectiles[projectileID] = weaponParams[weaponDefID]
+	end
 end
 
-function gadget:GameFrame(f)
-	for proID, infos in pairs(projectiles) do
-		if checkingFunctions[infos.speceffect][infos.when](proID) == true then
-			applyingFunctions[infos.speceffect](proID)
-			projectiles[proID] = nil
-			projectileData[proID] = nil
+function gadget:ProjectileDestroyed(projectileID)
+	projectiles[projectileID] = nil
+	projectilesData[projectileID] = nil
+end
+
+function gadget:GameFrame(frame)
+	for projectileID, effect in pairs(projectiles) do
+		if effect(projectileID) then
+			projectiles[projectileID] = nil
 		end
 	end
 end
