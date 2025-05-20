@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name 	= "Manual launch command",
@@ -36,9 +38,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		cmdParams[2] = CMD.MANUALFIRE
 		Spring.GiveOrderToUnit(unitID, CMD.INSERT, cmdParams, cmdOptions.coded)
 		return false
-	end
-
-	if cmdID == CMD_MANUAL_LAUNCH then
+	elseif cmdID == CMD_MANUAL_LAUNCH then
 		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions.coded)
 		return false
 	end
@@ -56,4 +56,6 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(CMD_MANUAL_LAUNCH)
+	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_MANUAL_LAUNCH)
 end

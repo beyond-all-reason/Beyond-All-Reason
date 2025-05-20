@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Scenario Loadout",
@@ -41,15 +43,10 @@ local startMetal = 1000
 local startEnergy = 1000
 local teamList = {}
 local additionalStorage = {}
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:Initialize()
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
-	local gaiateamid = Spring.GetGaiaTeamID()
+	gaiaTeamID = Spring.GetGaiaTeamID()
 end
 
 function gadget:GamePreload()
@@ -76,15 +73,15 @@ function gadget:GamePreload()
 							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
 							if unitID then
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-								if UnitDefNames[unit.name].energyStorage > 0 or UnitDefNames[unit.name].metalStorage > 0 then 
-									if additionalStorage[unit.team] == nil then 
+								if UnitDefNames[unit.name].energyStorage > 0 or UnitDefNames[unit.name].metalStorage > 0 then
+									if additionalStorage[unit.team] == nil then
 										additionalStorage[unit.team] = {metal = 0, energy = 0}
 									end
 									additionalStorage[unit.team].metal  = additionalStorage[unit.team].metal + (UnitDefNames[unit.name].metalStorage  or 0 )
 									additionalStorage[unit.team].energy  = additionalStorage[unit.team].energy + (UnitDefNames[unit.name].energyStorage or 0 )
 								end
 							end
-							if unit.name == "armnanotc" or unit.name == "cornanotc" or unit.name == "armnanotcplat" or unit.name == "cornanotcplat" then
+							if string.find(unit.name, "nanotc") then
 								nanoturretunitIDs[unitID] = true
 							end
 							if unit.neutral == true or unit.neutral == 'true' then
@@ -103,7 +100,7 @@ function gadget:GamePreload()
 					for k, feature in pairs(featureloadout) do
 						if FeatureDefNames[feature.name] then
 							local rot = tonumber(feature.rot) or 0
-							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiateamid)
+							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiaTeamID)
 							if feature.resurrectas and UnitDefNames[feature.resurrectas] then
 								Spring.SetFeatureResurrect(featureID, feature.resurrectas)
 							end
@@ -127,8 +124,8 @@ function gadget:GameFrame(n)
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
 		end
-		if next(additionalStorage) then 
-			for teamID, additionalstorage in pairs(additionalStorage) do 
+		if next(additionalStorage) then
+			for teamID, additionalstorage in pairs(additionalStorage) do
 				local m, mstore = Spring.GetTeamResources(teamID, "metal")
 				local e, estore = Spring.GetTeamResources(teamID, "energy")
 				Spring.SetTeamResource(teamID, 'ms', mstore + additionalstorage.metal)
@@ -145,8 +142,8 @@ function gadget:GameFrame(n)
 			local teamID = teamList[i]
 			local m, mstore = Spring.GetTeamResources(teamID, "metal")
 			local e, estore = Spring.GetTeamResources(teamID, "energy")
-			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end 
-			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end 
+			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end
+			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end
 		end
 	end
 	]]--

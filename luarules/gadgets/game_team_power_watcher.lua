@@ -1,5 +1,7 @@
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Team Power Watcher",
@@ -13,15 +15,20 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
+local teamIsOverPoweredRatio = 1.25
+local alliesAreWinningRatio = 1.25
+
 local teamList = Spring.GetTeamList()
 local scavengerTeam
 local raptorTeam
 local aiTeams = {}
 local neutralTeam
 local humanTeams = {}
+local playerTeams = {}
 local teamPowers = {}
 local peakTeamPowers = {}
 local unitsWithPower = {}
+local playerAllies = {}
 local powerThresholds = {
     {techLevel = 0.5, threshold = 0},
     {techLevel = 1, threshold = 9000},
@@ -34,21 +41,25 @@ local powerThresholds = {
     {techLevel = 4.5, threshold = 725000}
 }
 
+local pveTeamID = scavengerTeam or raptorTeam
+local scavengerTeam = Spring.Utilities.GetScavTeamID()
+local raptorTeam = Spring.Utilities.GetRaptorTeamID()
 for _, teamID in ipairs(teamList) do
-    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-    if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-        scavengerTeam = teamID
-    elseif (teamLuaAI and string.find(teamLuaAI, "RaptorsAI")) then
-        raptorTeam = teamID
-    elseif select (4, Spring.GetTeamInfo(teamID, false)) then
+    local allyID = select(6, Spring.GetTeamInfo(teamID))
+    if teamID ~= scavengerTeam and teamID ~= raptorTeam and select (4, Spring.GetTeamInfo(teamID, false)) then
         aiTeams[teamID] = true
+        playerTeams[teamID] = true
+        playerAllies[allyID] = playerAllies[allyID] or {}
+        playerAllies[allyID][teamID] = true
     elseif teamID == tonumber(teamList[#teamList]) then
         neutralTeam = teamID
     else
         humanTeams[teamID] = true
+        playerTeams[teamID] = true
+        playerAllies[allyID] = playerAllies[allyID] or {}
+        playerAllies[allyID][teamID] = true
     end
 end
-
 --assign team powers/peak powers to 0 to prevent nil
 for _, teamNumber in ipairs(teamList) do
     teamPowers[teamNumber] = 0
@@ -63,7 +74,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
         unitsWithPower[unitID] = nil
             teamPowers[unitTeam] = math.max(teamPowers[unitTeam] - UnitDefs[unitDefID].power, 0)
 end
@@ -133,7 +144,7 @@ local function averagePlayerTeamPower()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if isPlayerTeam(id) then
+        if isPlayerTeam(id) and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -149,7 +160,7 @@ local function lowestPlayerTeamPower()
     local lowestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
-        if isPlayerTeam(teamID) then
+        if isPlayerTeam(teamID) and power > 0 then
             if power < lowestPower then
                 lowestPower = power
                 lowestTeamID = teamID
@@ -183,7 +194,7 @@ local function averageHumanTeamPower()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if humanTeams[id] then
+        if humanTeams[id] and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -199,7 +210,7 @@ local function lowestHumanTeamPower()
     local lowestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
-        if humanTeams[teamID] then
+        if humanTeams[teamID] and power > 0 then
             if power < lowestPower then
                 lowestPower = power
                 lowestTeamID = teamID
@@ -210,14 +221,14 @@ local function lowestHumanTeamPower()
     return {teamID = lowestTeamID, power = lowestPower}
 end
 
--- Returns the highest team power of the allies belonging to input team. Returns as a table {teamID, power}.
-local function highestAlliedTeamPower(teamID)
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Returns the highest team power of the allies belonging to input team or allyID. Returns as a table {teamID, power}.
+local function highestAlliedTeamPower(teamID, allyID)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
     local highestTeamID = nil
 
     for id, power in pairs(teamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) and power > 0 then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = id
@@ -228,14 +239,14 @@ local function highestAlliedTeamPower(teamID)
     return {teamID = highestTeamID, power = highestPower}
 end
 
--- Returns the average of all allies of the input teamID. Returns a number.
-local function averageAlliedTeamPower(teamID) 
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Returns the average of all allies of the input teamID or allyID. Returns a number.
+local function averageAlliedTeamPower(teamID, allyID) 
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -245,14 +256,14 @@ local function averageAlliedTeamPower(teamID)
     return averagePower
 end
 
--- Returns the lowest of the teamID's allies power as a table {teamID, power}.
-local function lowestAlliedTeamPower(teamID)
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Returns the lowest of the teamID's allies or allyID's power as a table {teamID, power}.
+local function lowestAlliedTeamPower(teamID, allyID)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local lowestPower = math.huge
     local lowestTeamID = nil
 
     for id, power in pairs(teamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) and power > 0 then
             if power < lowestPower then
                 lowestPower = power
                 lowestTeamID = id
@@ -298,7 +309,7 @@ local function averagePlayerTechGuesstimate()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if isPlayerTeam(id) then
+        if isPlayerTeam(id) and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -324,7 +335,7 @@ local function averageHumanTechGuesstimate()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if humanTeams[id] then
+        if humanTeams[id] and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -344,14 +355,14 @@ local function averageHumanTechGuesstimate()
     return techLevel
 end
 
--- Compare average powers of all allied teams of the input teamID and return an estimated tech level number.
-local function averageAlliedTechGuesstimate(teamID)
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Compare average powers of all allied teams of the input teamID or allyID  and return an estimated tech level number.
+local function averageAlliedTechGuesstimate(teamID, allyID)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) and power > 0 then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -411,14 +422,14 @@ local function highestPlayerPeakPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
--- Returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID as a table {teamID, power}.
-local function highestAlliedPeakPower(teamID) 
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID or allyID  as a table {teamID, power}.
+local function highestAlliedPeakPower(teamID, allyID) 
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
     local highestTeamID = nil
 
     for id, power in pairs(peakTeamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = id
@@ -445,14 +456,14 @@ local function averageHumanPeakPower()
     return averagePower
 end
 
--- Returns the average of all the peak powers achieved by allied teams of the input teamID as a number.
-local function averageAlliedPeakPower(teamID)
-    local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+-- Returns the average of all the peak powers achieved by allied teams of the input teamID or allyID as a number.
+local function averageAlliedPeakPower(teamID, allyID)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(peakTeamPowers) do
-        if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+        if allyID == select(6, Spring.GetTeamInfo(id)) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -462,6 +473,110 @@ local function averageAlliedPeakPower(teamID)
     return averagePower
 end
 
+-- Returns the ratio number of the input teamID compared to the average of all players.
+local function teamComparedToAveragedPlayers(teamID)
+    local totalPower = 0
+    local teamCount = 0
+    local teamPower = teamPowers[teamID]
+
+    for id, power in pairs(teamPowers) do
+        if playerTeams[id] and power > 0 then
+            totalPower = totalPower + power
+            teamCount = teamCount + 1
+        end
+    end
+
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
+
+    local ratio = averagePower > 0 and teamPower / averagePower or 0
+    return ratio
+end
+
+-- Returns boolean true if the input teamID is considered significantly more powerful by the API. Second argument allows user-defined ratio.
+local function isTeamOverPowered(teamID, marginRatio)
+    marginRatio = marginRatio or teamIsOverPoweredRatio
+    local totalPower = 0
+    local teamCount = 0
+    local teamPower = teamPowers[teamID]
+
+    for id, power in pairs(teamPowers) do
+        if playerTeams[id] and power > 0 then
+            totalPower = totalPower + power
+            teamCount = teamCount + 1
+        end
+    end
+
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
+
+    local ratio = averagePower > 0 and teamPower / averagePower or 0
+    if marginRatio and ratio > marginRatio then
+        return true
+    else
+        return false
+    end
+end
+
+-- Returns the ratio number of the input teamID's allies or allyID compared to the average of all player allies.
+local function alliesComparedToAverage(teamID, allyID)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
+    local allyPowers = {}
+    local allyCount = 0
+    local totalPower = 0
+
+    for allyNumber, teams in pairs(playerAllies) do
+        local allyPower = 0
+        for id, _ in pairs (teams) do
+            if playerTeams[id] then
+                local power = teamPowers[id]
+                allyPower = allyPower + power
+            end
+        end
+        if allyPower > 0 then
+            allyPowers[allyNumber] = allyPower
+            allyCount = allyCount + 1
+            totalPower = totalPower + allyPower
+        end
+    end
+
+    local averagePower = allyCount > 0 and totalPower / allyCount or 0
+
+    local ratio = averagePower > 0 and allyPowers[allyID] and allyPowers[allyID] / averagePower or 0
+    return ratio
+end
+
+-- Returns boolean true if the input teamID's allies or allyID is considered significantly more powerful by the API. Third argument allows user-defined ratio.
+local function isAllyTeamWinning(teamID, allyID, marginRatio)
+    allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
+    marginRatio = marginRatio or alliesAreWinningRatio
+    local allyPowers = {}
+    local allyCount = 0
+    local totalPower = 0
+
+    for allyNumber, teams in pairs(playerAllies) do
+        local allyPower = 0
+        for id, _ in pairs (teams) do
+            if playerTeams[id] then
+                local power = teamPowers[id]
+                allyPower = allyPower + power
+            end
+        end
+        if allyPower > 0 then
+            allyPowers[allyNumber] = allyPower
+            allyCount = allyCount + 1
+            totalPower = totalPower + allyPower
+        end
+    end
+
+    local averagePower = allyCount > 0 and totalPower / allyCount or 0
+    local ratio = averagePower > 0 and allyPowers[allyID] and allyPowers[allyID] / averagePower or 0
+    if ratio > marginRatio then
+        return true
+    else
+        return false
+    end
+end
+
+
 function gadget:Initialize()
     GG.PowerLib = {}
     GG.PowerLib["ScavengerTeam"] = scavengerTeam
@@ -469,6 +584,7 @@ function gadget:Initialize()
     GG.PowerLib["AiTeams"] = aiTeams
     GG.PowerLib["NeutralTeam"] = neutralTeam
     GG.PowerLib["HumanTeams"] = humanTeams
+    GG.PowerLib["PlayerTeams"] = playerTeams
     GG.PowerLib["TeamPowers"] = teamPowers
     GG.PowerLib["PeakTeamPowers"] = peakTeamPowers
     GG.PowerLib["PowerThresholds"] = powerThresholds
@@ -494,4 +610,8 @@ function gadget:Initialize()
     GG.PowerLib["HighestAlliedPeakPower"] = highestAlliedPeakPower
     GG.PowerLib["AverageHumanPeakPower"] = averageHumanPeakPower
     GG.PowerLib["AverageAlliedPeakPower"] = averageAlliedPeakPower
+    GG.PowerLib["TeamComparedToAveragedPlayers"] = teamComparedToAveragedPlayers
+    GG.PowerLib["IsTeamOverPowered"] = isTeamOverPowered
+    GG.PowerLib["AlliesComparedToAverage"] = alliesComparedToAverage
+    GG.PowerLib["IsAllyTeamWinning"] = isAllyTeamWinning
 end

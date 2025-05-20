@@ -4,7 +4,7 @@ return {
 		maxdec = 0.04415,
 		energycost = 3100,
 		metalcost = 190,
-		buildpic = "legmh.DDS",
+		buildpic = "LEGMH.DDS",
 		buildtime = 3300,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 0",
@@ -121,7 +121,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "leglargerocket.s3o",
@@ -151,6 +150,10 @@ return {
 				damage = {
 					default = 400,
 					subs = 175,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 805,
 				},
 			},
 		},

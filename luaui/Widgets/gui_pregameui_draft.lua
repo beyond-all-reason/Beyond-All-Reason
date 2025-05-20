@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pregame UI - Draft Spawn Order",
@@ -237,19 +239,7 @@ local function colourNames(teamID, blink)
 	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	local R255 = math.floor(nameColourR * mult * 255)
-	local G255 = math.floor(nameColourG * mult * 255)
-	local B255 = math.floor(nameColourB * mult * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+	return Spring.Utilities.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
 end
 
 local function canPlayerPlaceNow(playerID)

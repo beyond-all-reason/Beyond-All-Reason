@@ -3,7 +3,6 @@ return {
 		areaofeffect = 8,
 		cratermult = 0,
 		edgeeffectiveness = 1,
-		impulseboost = 0,
 		noselfdamage = true,
 		damage = {
 			default = 111000,

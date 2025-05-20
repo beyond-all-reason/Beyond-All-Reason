@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "Only Target onlytargetcategory",
@@ -40,15 +42,19 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if cmdID == CMD.ATTACK
-	and cmdParams[2] == nil
+	-- accepts: CMD.ATTACK
+	if cmdParams[2] == nil
 	and unitOnlyTargetsCategory[unitDefID]
 	and type(cmdParams[1]) == 'number'
 	and not (unitCategories[Spring.GetUnitDefID(cmdParams[1])] and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
 		return false
 	else
-		if cmdID == CMD.ATTACK and cmdParams[2] and unitDontAttackGround[unitDefID] then
+		if cmdParams[2] and unitDontAttackGround[unitDefID] then
 			return false
 		else
 			return true

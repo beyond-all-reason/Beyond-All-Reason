@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Mapmarks FX",
@@ -164,6 +166,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+function widget:ClearMapMarks()
+	commands = {}
+end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end

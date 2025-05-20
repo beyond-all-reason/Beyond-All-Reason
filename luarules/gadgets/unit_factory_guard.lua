@@ -4,6 +4,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Factory Guard",
@@ -73,7 +75,8 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_FACTORY_GUARD and isFactory[unitDefID] then
+	--accepts: CMD_FACTORY_GUARD
+	if isFactory[unitDefID] then
 		setFactoryGuardState(unitID, cmdParams[1])
 		return false  -- command was used
 	end
@@ -174,6 +177,7 @@ function gadget:UnitCreated(unitID, unitDefID, _)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_FACTORY_GUARD)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end

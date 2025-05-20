@@ -86,7 +86,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-medium",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Rapid-fire a2g plasma guns",

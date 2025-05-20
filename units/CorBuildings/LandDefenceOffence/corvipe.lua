@@ -112,7 +112,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 70,
 				flighttime = 1.05,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile3fast.s3o",
 				name = "Heavy g2g sabot rocket launcher",
@@ -146,6 +145,11 @@ return {
 					subs = 5,
 					vtol = 26,
 				},
+				customparams = {
+					exclude_preaim = true,
+					overrange_distance = 840,
+					projectile_destruction_method = "descend",
+				}
 			},
 		},
 		weapons = {

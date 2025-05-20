@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Raptor Defense Nuke Controller",
@@ -27,36 +29,25 @@ else
 	return false
 end
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
+local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 local nukeDefs = {}
-for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav", "legsilo_scav", "corjuno_scav", "armjuno_scav", "legstarfall_scav"}) do 
-	if UnitDefNames[unitDefName] then 
-		nukeDefs[UnitDefNames[unitDefName].id] = true
+for unitDefID, def in ipairs(UnitDefs) do
+	if def.weapons then
+		for i = 1, #def.weapons do
+			local wDef = WeaponDefs[def.weapons[i].weaponDef]
+			if wDef.targetable == 1 then
+				nukeDefs[unitDefID] = true
+				break
+			end
+		end
 	end
 end
 
 local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if nukeDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if nukeDefs[unitDefID] and (unitTeam == pveTeamID) then
         aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,10)
     end
 end

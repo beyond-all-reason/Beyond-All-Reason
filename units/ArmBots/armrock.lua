@@ -112,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile2.s3o",
@@ -138,6 +137,10 @@ return {
 				weaponvelocity = 190,
 				damage = {
 					default = 157,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 547,
 				},
 			},
 		},

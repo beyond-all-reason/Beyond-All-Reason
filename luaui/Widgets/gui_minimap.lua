@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Minimap",
@@ -10,7 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+
+local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
@@ -61,6 +65,10 @@ end
 
 local function clear()
 	dlistMinimap = gl.DeleteList(dlistMinimap)
+	if uiBgTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('minimap')
 		dlistGuishader = nil
@@ -102,13 +110,17 @@ function widget:ViewResize()
 	usedWidth = math.floor(maxWidth * vsy)
 	usedHeight = math.floor(maxHeight * vsy)
 
-	backgroundRect = { 0, vsy - (usedHeight), usedWidth, vsy }
+	backgroundRect = { 0, vsy - (usedHeight) - elementPadding, usedWidth + elementPadding, vsy }
 
 	if not dualscreenMode then
 		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 		checkGuishader(true)
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
+	if uiBgTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+	end
 end
 
 function widget:Initialize()
@@ -180,6 +192,10 @@ end
 
 
 
+local function drawBackground()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 0, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+end
+
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
@@ -219,15 +235,41 @@ function widget:DrawScreen()
 			Spring.SendCommands("minimap minimize 0")
 		end
 
+
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
-		if not dlistMinimap then
-			dlistMinimap = gl.CreateList(function()
-				UiElement(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], 0, 0, 1, 0)
-			end)
+		if useRenderToTexture then
+			if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
+				uiBgTex = gl.CreateTexture(math.floor(backgroundRect[3]-backgroundRect[1]), math.floor(backgroundRect[4]-backgroundRect[2]), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawBackground()
+					gl.PopMatrix()
+				end)
+			end
+			if uiBgTex then
+				-- background element
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(uiBgTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			end
+		else
+			if not dlistMinimap then
+				dlistMinimap = gl.CreateList(function()
+					drawBackground()
+				end)
+			end
+			gl.CallList(dlistMinimap)
 		end
-		gl.CallList(dlistMinimap)
 	end
 
 	gl.DrawMiniMap()

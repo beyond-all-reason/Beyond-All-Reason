@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Self-Destruct Icons",
@@ -10,7 +12,6 @@ function widget:GetInfo()
    }
 end
 
-local unitCanFly = {}
 local ignoreUnitDefs = {}
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -19,9 +20,6 @@ for udid, unitDef in pairs(UnitDefs) do
 	unitConf[udid] = 7 +(scale/2.5)
 	if string.find(unitDef.name, 'droppod') then
 		ignoreUnitDefs[udid] = true
-	end
-	if unitDef.canFly then
-		unitCanFly[udid] = true
 	end
 end
 
@@ -49,10 +47,9 @@ local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
-local spGetCommandQueue			= Spring.GetCommandQueue
+local spGetUnitCommands			= Spring.GetUnitCommands
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
-local spGetUnitMoveTypeData		= Spring.GetUnitMoveTypeData
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitTransporter		= Spring.GetUnitTransporter
 
@@ -101,7 +98,7 @@ local function hasSelfDQueued(unitID)
 	if unitDefID and UnitDefs[unitDefID].isFactory then
 		limit = 1
 	end
-	local cmdQueue = spGetCommandQueue(unitID, limit) or {}
+	local cmdQueue = spGetUnitCommands(unitID, limit) or {}
 	if #cmdQueue > 0 then
 		for i = 1, #cmdQueue do
 			if cmdQueue[i].id == CMD.SELFD then
@@ -236,7 +233,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			-- factories can receive shift-selfd orders, but they go to the units produced, not the factory itself
 			return
 		end
-		local cmdQueue = spGetCommandQueue(unitID, -1)
+		local cmdQueue = spGetUnitCommands(unitID, -1)
 		local hasCmdQueue = #cmdQueue > 0
 
 		if not cmdOpts.shift or not hasCmdQueue then
@@ -288,9 +285,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	queuedSelfD[unitID] = nil
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		activeSelfD[unitID] = nil
-		queuedSelfD[unitID] = nil
-	end
+
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	activeSelfD[unitID] = nil
+	queuedSelfD[unitID] = nil
 end

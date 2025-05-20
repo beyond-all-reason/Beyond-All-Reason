@@ -81,7 +81,6 @@ return {
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:raptorspike-medium-sparks-burn",
 				firesubmersed = true,
-				impulseboost = 2.2,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/spike.s3o",

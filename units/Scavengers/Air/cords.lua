@@ -95,7 +95,6 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.3,
 				impulsefactor = 0.3,
 				model = "akbomb.s3o",
 				name = "AK Bomb",

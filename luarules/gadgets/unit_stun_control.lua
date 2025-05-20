@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Stun Control",
@@ -25,9 +27,13 @@ end
 
 local CMD_ONOFF = CMD.ONOFF
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_ONOFF)
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_ONOFF) and Spring.GetUnitIsStunned(unitID) then
+	-- accepts: CMD.ONOFF
+	if Spring.GetUnitIsStunned(unitID) then
 		return false
 	else
 		return true

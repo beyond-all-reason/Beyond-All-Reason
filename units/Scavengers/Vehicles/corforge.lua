@@ -135,7 +135,6 @@ return {
 				explosiongenerator = "custom:burnblack",
 				firestarter = 100,
 				flamegfxtime = 1,
-				impulseboost = 16,
 				intensity = 0.6,
 				name = "FlameThrower",
 				noselfdamage = true,

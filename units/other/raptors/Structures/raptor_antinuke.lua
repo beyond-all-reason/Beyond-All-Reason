@@ -86,7 +86,6 @@ return {
 				explosiongenerator = "custom:antinuke",
 				firestarter = 100,
 				flighttime = 30,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptor = 1,
 				model = "SimpleFlareXL.s3o",

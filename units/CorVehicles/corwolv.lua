@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				mygravity = 0.276,
 				name = "LightArtillery",

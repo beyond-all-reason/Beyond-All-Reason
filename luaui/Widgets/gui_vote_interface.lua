@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Vote interface",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
+local L_DEPRECATED = LOG.DEPRECATED
 
 local titlecolor = "\255\190\190\190"
 
@@ -33,6 +37,7 @@ local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myP
 
 local isreplay = Spring.IsReplay()
 
+local ColorString = Spring.Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -364,32 +369,16 @@ function widget:GameFrame(n)
 	end
 end
 
-local function colourNames(teamID, returnRgbToo)
+local function colourNames(teamID)
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
 	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	--end
-	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-	local G255 = math.floor(nameColourG * 255)
-	local B255 = math.floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	if returnRgbToo then
-		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255), R255, G255, B255 --works thanks to zwzsg
-	else
-		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
-	end
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
 function widget:AddConsoleLine(lines, priority)
-
+	if priority and priority == L_DEPRECATED then return end
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
 		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines

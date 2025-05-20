@@ -85,7 +85,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",
 				firesubmersed = false,
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,

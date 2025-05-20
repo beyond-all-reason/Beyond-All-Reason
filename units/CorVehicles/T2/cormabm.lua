@@ -28,7 +28,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "Units/CORMABM.s3o",
 		radardistance = 50,
-		script = "Units/CORMABM.cob",
+		script = "Units/CORMABM_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 450,
@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "custom:antinuke",
 				firestarter = 100,
 				flighttime = 20,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
@@ -156,6 +155,9 @@ return {
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 500,
 				},

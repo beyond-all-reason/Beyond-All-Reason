@@ -113,7 +113,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge-aa",
 				firestarter = 90,
 				flighttime = 2.2,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "corscreamermissile.s3o",
@@ -147,6 +146,9 @@ return {
 				weaponacceleration = 1000,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
+				customparams = {
+					stockpilelimit = 5,
+				},
 				damage = {
 					vtol = 750,
 				},

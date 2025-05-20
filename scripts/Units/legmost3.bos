@@ -1,0 +1,362 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+//piece  base, lflare, rflare, lwingd, lwingu, rwingd, rwingu, thrusta, thrustb, rlauncher, llauncher;
+
+piece base, flare1, flare2, shell, 
+sleeve, aimx1, launcher, launcherl, launcherr, flare1r, flare2r, flare1l, flare2l,
+thruster, blades, thrust, blur,
+wing_bl, wing_br, wing_fl, wing_fr;
+
+static-var gun_1, speedwings, bMoving, statechg_DesiredState, statechg_StateChanging, restore_delay;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM				3
+
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			bMoving = 0;
+			call-script deactivatescr();
+			currentstate = 1;
+			turn wing_bl to z-axis <-5> speed <100>;
+			turn wing_br to z-axis <-5> speed <100>;
+			turn wing_fl to z-axis <0> speed <100>;
+			turn wing_fr to z-axis <0> speed <100>;
+			wait-for-turn wing_fr around z-axis;			
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+activatescr()
+{	
+	//yadda yadda
+	turn wing_br to y-axis <-10> speed <100>;
+	turn wing_fr to y-axis <10> speed <100>;
+	turn wing_br to x-axis <0> speed <100>;
+	turn wing_fr to x-axis <0> speed <100>;
+	turn wing_bl to y-axis <10> speed <100>;
+	turn wing_fl to y-axis <-10> speed <100>;
+	turn wing_bl to x-axis <0> speed <100>;
+	turn wing_fl to x-axis <0> speed <100>;
+	wait-for-turn wing_fr around x-axis;
+	bMoving = 1;
+	show blur;
+	return (0);
+}
+
+deactivatescr()
+{
+	bMoving = 0;
+	hide blur;
+	turn wing_bl to z-axis <-5> speed <100>;
+	turn wing_br to z-axis <-5> speed <100>;
+	turn wing_fl to z-axis <0> speed <100>;
+	turn wing_fr to z-axis <0> speed <100>;
+	wait-for-turn wing_fr around z-axis;
+
+	turn wing_fr to x-axis <90> speed <100>;
+	turn wing_br to x-axis <90> speed <100>;
+	turn wing_fl to x-axis <90> speed <100>;
+	turn wing_bl to x-axis <90> speed <100>;
+
+	turn wing_br to y-axis <-70> speed <100>;
+	turn wing_fr to y-axis <-70> speed <100>;
+	turn wing_bl to y-axis <80> speed <100>;
+	turn wing_fl to y-axis <70> speed <100>;
+
+	turn launcher to x-axis <0> speed <20>;
+	turn launcherr to x-axis <0> speed <20>;
+	turn launcherl to x-axis <0> speed <20>;
+	move sleeve to y-axis [0] speed [10];
+
+	turn thruster to x-axis <-90.000000> speed <120.000000>;
+
+	return (0);
+
+}
+
+IdleHover()
+{
+	while(TRUE){
+		if(bMoving == 1){
+			turn wing_bl to z-axis <-55> speed <350>;
+			turn wing_br to z-axis <28> speed <550>;
+			turn wing_fl to z-axis <28> speed <550>;
+			turn wing_fr to z-axis <-55> speed <350>;
+			sleep 55;
+			turn wing_bl to z-axis <5> speed <550>;
+			turn wing_br to z-axis <-35> speed <350>;
+			turn wing_fl to z-axis <-35> speed <350>;
+			turn wing_fr to z-axis <15> speed <550>;
+			sleep 60;
+			turn wing_bl to z-axis <-32> speed <350>;
+			turn wing_br to z-axis <28> speed <550>;
+			turn wing_fl to z-axis <28> speed <550>;
+			turn wing_fr to z-axis <-32> speed <350>;
+			sleep 57;
+			turn wing_bl to z-axis <15> speed <550>;
+			turn wing_br to z-axis <-42> speed <350>;
+			turn wing_fl to z-axis <-42> speed <350>;
+			turn wing_fr to z-axis <15> speed <550>;
+			sleep 62;
+		}
+		else sleep 200;
+	}
+}
+
+Create()
+{
+	hide aimx1;
+	hide flare1;
+	hide flare2;
+	hide flare1l;
+	hide flare2l;
+	hide flare1r;
+	hide flare2r;
+	hide thrust;
+	hide blur;
+
+	turn wing_bl to z-axis <-5> now;
+	turn wing_br to z-axis <5> now;
+	turn wing_fr to x-axis <90> now;
+	turn wing_br to x-axis <90> now;
+	turn wing_fl to x-axis <90> now;
+	turn wing_bl to x-axis <90> now;
+
+	turn wing_br to y-axis <-70> now;
+	turn wing_fr to y-axis <-70> now;
+	turn wing_bl to y-axis <80> now;
+	turn wing_fl to y-axis <70> now;
+
+	turn thruster to x-axis <-90.000000> now;
+
+	gun_1=0;
+	speedwings=200;
+	bMoving = 0;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script IdleHover();
+	call-script activatescr();
+}
+
+Activate()
+{
+	show thrust;
+	spin blades around z-axis speed <240> accelerate <5>;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	hide thrust;
+	/**turn wing_bl to z-axis <-5> speed <50>;
+	turn wing_br to z-axis <-5> speed <50>;
+	turn wing_fl to z-axis <0> speed <50>;
+	turn wing_fr to z-axis <0> speed <50>;
+	wait-for-turn wing_fr around z-axis;**/
+	stop-spin blades around z-axis decelerate <5>;
+	start-script RequestState(1);
+}
+
+MoveRate0()
+{
+	turn thruster to x-axis <-90.000000> speed <150.000000>;
+}
+
+MoveRate1()
+{
+	turn thruster to x-axis <0.000000> speed <85.000000>;
+}
+
+MoveRate2()
+{
+	turn thruster to x-axis <0.000000> speed <85.000000>;
+}
+
+MoveRate3()
+{
+	turn thruster to x-axis <0.000000> speed <85.000000>;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+	if (Stunned) {
+        return (1);
+    }
+	turn launcher to x-axis <0> speed <20>;
+	turn launcherl to x-axis <0> speed <20>;
+	turn launcherr to x-axis <0> speed <20>;
+	move sleeve to y-axis [0] speed [10];
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask 0;
+	set-signal-mask SIG_AIM;
+	set-signal-mask SIG_MOVE;
+	sleep 2000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+#define BASEPIECE base
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+AimFromPrimary(piecenum)
+{
+	piecenum = aimx1;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+
+	move sleeve to y-axis [-15] speed [50];
+	turn launcher to x-axis <0> - pitch speed <100>;
+	turn launcherl to x-axis <0> - pitch speed <100>;
+	turn launcherr to x-axis <0> - pitch speed <100>;
+	
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+QueryPrimary(piecenum)
+{
+	if (gun_1==0)
+	{
+		piecenum = flare1l;
+	}
+	if (gun_1==1)
+	{
+		piecenum = flare2l;
+	}
+	if (gun_1==2)
+	{
+		piecenum = flare1;
+	}
+	if (gun_1==3)
+	{
+		piecenum = flare2;
+	}
+	if (gun_1==4)
+	{
+		piecenum = flare1r;
+	}
+	if (gun_1==5)
+	{
+		piecenum = flare2r;
+	}
+	gun_1 = gun_1 + 1;
+	if (gun_1==6)
+	{
+		gun_1=0;
+	}
+}
+
+FirePrimary()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	if (gun_1==0)
+	{
+		emit-sfx 1024 + 0 from flare1;
+	}
+	else 
+	{
+		emit-sfx 1024 + 0 from flare2;
+	}
+	sleep 200;
+	
+	start-script RestoreAfterDelay();
+	return (0);
+}
+
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode thruster type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode thruster type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode thruster type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+    explode base type BITMAPONLY | NOHEATCLOUD;
+    explode thruster type BITMAPONLY | NOHEATCLOUD;
+    explode thrust type BITMAPONLY | NOHEATCLOUD;
+    explode flare1 type BITMAPONLY | NOHEATCLOUD;
+    explode flare2 type BITMAPONLY | NOHEATCLOUD;
+    return(corpsetype);
+	return corpsetype;
+}

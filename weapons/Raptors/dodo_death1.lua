@@ -7,7 +7,6 @@ return {
 		edgeeffectiveness = 0.075,
 		explosiongenerator = "custom:raptorunitexplosion-large-red",
 		explosionspeed = 999999,
-		impulseboost = 0.2,
 		impulsefactor = 0.2,
 		interceptedbyshieldtype = 1,
 		name = "CrawlingBomb",

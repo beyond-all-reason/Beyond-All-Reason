@@ -43,6 +43,7 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

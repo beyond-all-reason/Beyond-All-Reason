@@ -123,7 +123,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 72,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",

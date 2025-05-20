@@ -32,6 +32,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.495,
 		turnrate = 120,
+		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Protar, Tharsis",
@@ -114,7 +115,6 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
@@ -122,7 +122,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				--proximitypriority = -1,
-				range = 750,
+				range = 725,
 				reloadtime = .033,
 				rgbcolor = "1 0.55 0",
 				rgbcolor2 = "0.9 1.0 0.5",
@@ -131,7 +131,6 @@ return {
 				soundstart = "heatray3burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -142,9 +141,9 @@ return {
 					vtol = 11,
 				},
 				customparams = {
+					exclude_preaim = true,
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
-
+				},
 			},
 		},
 		weapons = {

@@ -95,7 +95,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 100,
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Light g2g plasma cannon",
 				noselfdamage = true,

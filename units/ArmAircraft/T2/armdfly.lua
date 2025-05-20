@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -99,7 +100,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 1000,
 				explosiongenerator = "custom:laserhit-emp",
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.05,
 				name = "Heavy a2g EMP beam",
@@ -128,7 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMDFLY_PARALYZER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

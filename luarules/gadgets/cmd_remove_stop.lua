@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name 	= "Remove Stop",
@@ -42,7 +44,8 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_STOP and stopRemoveDefs[unitDefID]) then
+	-- accepts: CMD.STOP
+	if stopRemoveDefs[unitDefID] then
 		return false
 	end
 	return true
@@ -60,6 +63,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_STOP)
 	-- load active units
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)

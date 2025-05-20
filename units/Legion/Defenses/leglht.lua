@@ -32,8 +32,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leglht_aoplane.dds",
-			buildinggrounddecalsizey = 4,
-			buildinggrounddecalsizex = 4,
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			basename = "base",
@@ -120,9 +120,9 @@ return {
 				explosiongenerator = "custom:laserhit-small",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
+				leadlimit = 0,
 				name = "Light g2g Heat Ray",
 				noselfdamage = true,
 				predictboost = 1,
@@ -134,7 +134,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 2.66,
 				tolerance = 10000,
 				turret = true,
@@ -145,6 +144,9 @@ return {
 					default = 200,
 					vtol = 25,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

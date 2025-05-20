@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-aa",
 				firestarter = 72,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
 				name = "Advanced g2a Salvo Missile Launcher",

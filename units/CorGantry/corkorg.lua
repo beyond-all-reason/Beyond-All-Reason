@@ -12,8 +12,8 @@ return {
 		energymake = 300,
 		energystorage = 5000,
 		explodeas = "korgExplosion",
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 6,
+		footprintz = 6,
 		health = 149000,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -23,10 +23,10 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 12,
 		metalcost = 29000,
-		movementclass = "VBOT5",
+		movementclass = "VBOT6",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
-		script = "Units/corkorg.cob",
+		script = "Units/corkorg_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
@@ -114,7 +114,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
-				impulseboost = 0.8,
 				impulsefactor = 0.8,
 				intensity = 5,
 				name = "GaussCannon",
@@ -153,7 +152,6 @@ return {
 				energypershot = 1200,
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.25,
 				name = "Experimental g2g Eradicator Heat Ray",
@@ -162,12 +160,11 @@ return {
 				range = 900,
 				reloadtime = 4,
 				rgbcolor = "1 0.55 0",
-				rgbcolor2 = "0.9 1.0 0.5",
+				rgbcolor2 = "0.95 1.0 0.7",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 6,
 				tolerance = 10000,
 				turret = true,
@@ -189,7 +186,6 @@ return {
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
-				impulseboost = 1,
 				impulsefactor = 1,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
@@ -221,6 +217,10 @@ return {
 				damage = {
 					default = 800,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
+				},
 			},
 			krogfootstep = {
 				areaofeffect = 172,
@@ -246,6 +246,7 @@ return {
 				customparams = {
 					nodecal = true,
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -263,7 +264,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:crusherkrog",
 				firestarter = 40,
-				impulseboost = 1.5,
 				impulsefactor = 1.5,
 				name = "KrogCrush",
 				noselfdamage = true,
@@ -280,8 +280,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					lups_noshockwave = true,
 					nofire = true,
+					noattackrangearc= 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 150,
@@ -297,6 +298,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -312,6 +314,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,

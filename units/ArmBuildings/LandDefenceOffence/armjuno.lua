@@ -115,7 +115,6 @@ return {
 				energypershot = 12000,
 				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 200,
 				model = "epulse.s3o",
@@ -142,8 +141,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					lups_noshockwave = 1,
 					nofire = true,
+					stockpilelimit = 20,
 				},
 				damage = {
 					default = 1,

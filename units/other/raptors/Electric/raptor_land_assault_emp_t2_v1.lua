@@ -95,7 +95,6 @@ return {
 				firestarter = 50,
 				firesubmersed = true,
 				impactonly = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 24,
 				laserFlareSize = 5,

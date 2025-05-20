@@ -112,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 3,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Torpedo",

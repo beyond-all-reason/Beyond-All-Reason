@@ -124,7 +124,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:blank",
 				firestarter = 70,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 1.0,
 				metalpershot = 0,

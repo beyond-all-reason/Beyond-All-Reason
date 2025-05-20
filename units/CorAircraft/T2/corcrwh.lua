@@ -28,7 +28,7 @@ return {
 		metalcost = 5100,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRWH.s3o",
-		script = "Units/CORCRWH.cob",
+		script = "Units/CORCRWH_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
@@ -97,7 +97,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 72,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
 				name = "Advanced d2a rapid missile launcher",
@@ -128,6 +127,9 @@ return {
 				damage = {
 					vtol = 76,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			dragonmawh = {
 				accuracy = 700,
@@ -149,7 +151,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flamegfxtime = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
 				name = "Dragon's Maw: heavy medium range AoE flamethrower",
@@ -171,6 +172,9 @@ return {
 				waterweapon = false,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 6,
 					subs = 3,
@@ -190,7 +194,6 @@ return {
 				energypershot = 50,
 				explosiongenerator = "custom:laserhit-large-green",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "High energy a2g laser",
@@ -202,12 +205,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 2.7,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -226,7 +231,6 @@ return {
 				energypershot = 30,
 				explosiongenerator = "custom:laserhit-small-green",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.05,
 				name = "HighEnergyLaser",
@@ -241,12 +245,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw1",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 90,
 				},

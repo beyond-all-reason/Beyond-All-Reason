@@ -1,7 +1,7 @@
 return {
 	corgol = {
 		buildpic = "CORGOL.DDS",
-		buildtime = 26100,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
@@ -127,8 +127,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
+				impulsefactor = 0.9,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,

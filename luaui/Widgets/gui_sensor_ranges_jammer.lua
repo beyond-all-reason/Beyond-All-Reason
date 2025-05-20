@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Sensor Ranges Jammer",
@@ -28,7 +30,7 @@ local circleSegments = 64
 	-- color
 -- TODO: draw ally ranges in diff color!
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -281,7 +283,7 @@ function removeUnit(unitID)
   end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	removeUnit(unitID)
 end
 
@@ -358,7 +360,7 @@ function widget:DrawWorld()
 	--if true then return end
 	glColorMask(false, false, false, false)
 	glStencilTest(true)
-	glDepthTest(GL.LEQUAL)
+	glDepthTest(false) --GL.LEQUAL
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()

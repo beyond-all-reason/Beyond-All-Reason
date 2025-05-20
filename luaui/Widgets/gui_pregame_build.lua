@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pregame Queue",
@@ -112,22 +114,20 @@ local legNames = {
 }
 
 -- convert unitname -> unitDefID
-local indexToCor = {}
-local indexToArm = {}
-local indexToLeg = {}
+local indexToDefs = {corcom = {}, armcom = {}, legcom = {}}
 for index, corUnitName in ipairs(corNames) do
 	if UnitDefNames[corUnitName] then
-		indexToCor[index] = UnitDefNames[corUnitName].id
+		indexToDefs['corcom'][index] = UnitDefNames[corUnitName].id
 	end
 end
 for index, armUnitName in ipairs(armNames) do
 	if UnitDefNames[armUnitName] then
-		indexToArm[index] = UnitDefNames[armUnitName].id
+		indexToDefs['armcom'][index] = UnitDefNames[armUnitName].id
 	end
 end
 for index, legUnitName in ipairs(legNames) do
 	if UnitDefNames[legUnitName] then
-		indexToLeg[index] = UnitDefNames[legUnitName].id
+		indexToDefs['legcom'][index] = UnitDefNames[legUnitName].id
 	end
 end
 
@@ -135,9 +135,13 @@ corNames = nil
 armNames = nil
 legNames = nil
 
-local corToIndex = table.invert(indexToCor)
-local armToIndex = table.invert(indexToArm)
-local legToIndex = table.invert(indexToLeg)
+local defsToIndex = {}
+for k, v in pairs(indexToDefs) do
+	defsToIndex[k] = table.invert(v)
+end
+
+indexToDefs['dummycom'] = indexToDefs['armcom']
+defsToIndex['dummycom'] = defsToIndex['armcom']
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -240,6 +244,23 @@ local function buildmenuPregameDeselectHandler()
 	setPreGamestartDefID()
 
 	return true
+end
+
+local function unitDefsToIndexes(oldDefID, newDefID)
+	local prevFaction = UnitDefs[prevStartDefID].name
+	local currentFaction = UnitDefs[startDefID].name
+	return defsToIndex[prevFaction], indexToDefs[currentFaction]
+end
+
+local function convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
+	for b = 1, #buildQueue do
+		local buildData = buildQueue[b]
+		local buildDataId = buildData[1]
+		if buildDataId > 0 then
+			buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
+			buildQueue[b] = buildData
+		end
+	end
 end
 
 ------------------------------------------
@@ -471,7 +492,7 @@ function widget:MousePress(mx, my, button)
 		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
 			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
-		
+
 			buildQueue[#buildQueue + 1] = buildData
 		end
 	elseif button == 3 and #buildQueue > 0 then -- remove units from buildqueue one by one
@@ -541,37 +562,13 @@ function widget:DrawWorld()
 
 	-- Check for faction change
 	if prevStartDefID ~= startDefID then
-		local prevFaction = UnitDefs[prevStartDefID].name
-		local prevFactionToIndex
-		if prevFaction == "armcom" then
-			prevFactionToIndex = armToIndex
-		elseif prevFaction == "corcom" then
-			prevFactionToIndex = corToIndex
-		elseif prevFaction == "legcom" then
-			prevFactionToIndex = legToIndex
-		end
-		local currentFaction = UnitDefs[startDefID].name
-		local indexToCurrentFaction
-		if currentFaction == "armcom" then
-			indexToCurrentFaction = indexToArm
-		elseif currentFaction == "corcom" then
-			indexToCurrentFaction = indexToCor
-		elseif currentFaction == "legcom" then
-			indexToCurrentFaction = indexToLeg
-		end
+		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
 
 		if prevFactionToIndex and indexToCurrentFaction then
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				local buildDataId = buildData[1]
-				if buildDataId > 0 then
-					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
-					buildQueue[b] = buildData
-				end
-			end
+			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
 
 			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
-			if selBuildQueueDefIDConverted ~= nil then
+			if selBuildData and selBuildQueueDefIDConverted ~= nil then
 				selBuildData[1] = selBuildQueueDefIDConverted
 				selBuildQueueDefID = selBuildQueueDefIDConverted
 			end
@@ -685,6 +682,18 @@ end
 
 function widget:GameStart()
 	preGamestartPlayer = false
+
+	startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+
+	if prevStartDefID ~= startDefID then
+		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
+
+		if prevFactionToIndex and indexToCurrentFaction then
+			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
+		end
+		prevStartDefID = startDefID
+	end
+
 
 	-- Deattach pregame action handlers
 	widgetHandler.actionHandler:RemoveAction(self, "stop")

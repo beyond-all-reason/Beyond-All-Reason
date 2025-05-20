@@ -115,7 +115,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 20,
 				flighttime = 2.3,
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "cormissile.s3o",
 				name = "Long-range rapid-fire g2a missile launcher",

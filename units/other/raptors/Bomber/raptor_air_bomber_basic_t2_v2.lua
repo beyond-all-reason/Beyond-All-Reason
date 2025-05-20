@@ -100,7 +100,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:blood_explode_xl",
-				impulseboost = 1,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/raptoregg_m_darkgreen.s3o",

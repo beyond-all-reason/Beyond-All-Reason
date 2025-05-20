@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Tooltip",
@@ -5,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -991000,
+		layer = -1000000,
 		enabled = true,
 	}
 end
@@ -54,7 +56,6 @@ local uiSec = 0
 
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
-	Spring.Echo(math.huge)
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
@@ -144,8 +145,11 @@ end
 
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
+
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(fontfile2, 1.5, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
 	yOffset = -math.floor(xOffset*0.5) - usedFontSize
@@ -153,6 +157,17 @@ function widget:ViewResize(x, y)
 	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
+
+	for name, tooltip in pairs(tooltips) do
+		if WG['guishader'] then
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+		end
+		if tooltip.dlist then
+			gl.DeleteList(tooltip.dlist)
+			tooltip.dlist = nil
+		end
+	end
 end
 
 local function drawTooltip(name, x, y)

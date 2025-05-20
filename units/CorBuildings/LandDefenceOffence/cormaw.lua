@@ -24,7 +24,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMAW.s3o",
 		radardistancejam = 8,
-		script = "Units/CORMAW.cob",
+		script = "Units/CORMAW_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "flamethrowerSelfd",
 		sightdistance = 422,
@@ -128,7 +128,6 @@ return {
 				explosiongenerator = "custom:burnblack",
 				firestarter = 100,
 				flamegfxtime = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.68,
 				name = "Pop-up anti-swarm AoE flamethrower",
@@ -158,6 +157,9 @@ return {
 					default = 22,
 					subs = 5.5,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 300,
-		workertime = 80,
+		workertime = 85,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",
@@ -83,7 +83,7 @@ return {
 			[40] = "corfrad",
 			[41] = "corfhlt",
 			[42] = "corfrt",
-			[43] = "corptl",
+			[43] = "cortl",
 			[44] = "coruwgeo",
 		},
 		customparams = {

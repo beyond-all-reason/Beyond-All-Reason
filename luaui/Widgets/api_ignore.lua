@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Ignore List API", --version 4.1
@@ -20,6 +22,7 @@ local pID_table = {}
 local ignoredPlayers = {}
 local myName, _ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
+local ColorString = Spring.Utilities.Color.ToString
 
 local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"
@@ -34,9 +37,63 @@ function CheckPIDs()
 	end
 end
 
+local function ignoreplayerCmd(_, _, params)
+	for i=1, #params do
+		IgnorePlayer(token[i])
+	end
+end
+
+local function unignoreplayerCmd(_, _, params)
+	if params[1] then
+		for i=1, #params do
+			UnignorePlayer(params[i])
+		end
+	else
+		UnignoreAll()
+	end
+end
+
+local function toggleignoreCmd(_, _, params)
+	for i=1, #params do
+		local playerName = params[i]
+		if ignoredPlayers[playerName] then
+			UnignorePlayer(playerName)
+		else
+			IgnorePlayer(playerName)
+		end
+	end
+end
+
+local function ignorelistCmd(_, _, params)
+	local luaSucks = 0
+	for _, iHateLua in pairs(ignoredPlayers) do
+		luaSucks = 1
+		break
+	end
+	if luaSucks > 0 then
+		Spring.Echo("Ignored players:")
+		for playerName, _ in pairs(ignoredPlayers) do
+			Spring.Echo(colourPlayer(playerName) .. playerName)
+		end
+	else
+		Spring.Echo("No ignored players")
+	end
+end
+
 function widget:Initialize()
 	CheckPIDs()
 	WG.ignoredPlayers = ignoredPlayers
+	widgetHandler.actionHandler:AddAction(self, "ignoreplayer", ignoreplayerCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "unignoreplayer", unignoreplayerCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "toggleignore", toggleignoreCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "ignorelist", ignorelistCmd, nil, 't')
+end
+
+function widget:Shutdown()
+	widgetHandler.actionHandler:RemoveAction(self, "ignoreplayer")
+	widgetHandler.actionHandler:RemoveAction(self, "unignoreplayer")
+	widgetHandler.actionHandler:RemoveAction(self, "toggleignore")
+	widgetHandler.actionHandler:RemoveAction(self, "ignorelist")
 end
 
 function widget:PlayerChanged()
@@ -58,80 +115,9 @@ function colourPlayer(playerName)
 	if (not isSpec) and anonymousMode ~= "disabled" then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-	local G255 = math.floor(nameColourG * 255)
-	local B255 = math.floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
---ignore--
-function widget:TextCommand(s)
-	local token = {}
-	local n = 0
-	--for w in string.gmatch(s, "%a+") do
-	for w in string.gmatch(s, "%S+") do
-		n = n + 1
-		token[n] = w
-	end
-
-	--for i = 1,n do Spring.Echo (token[i]) end
-
-	if token[1] == "ignoreplayer" or token[1] == "ignoreplayers" then
-		for i = 2, n do
-			IgnorePlayer(token[i])
-		end
-	end
-
-	if token[1] == "unignoreplayer" or token[1] == "unignoreplayers" then
-		if n == 1 then
-			UnignoreAll()
-		else
-			for i = 2, n do
-				UnignorePlayer(token[i])
-			end
-		end
-	end
-
-	if token[1] == "toggleignore" and n >= 2 then
-		for i = 2, n do
-			local playerName = token[i]
-			if ignoredPlayers[playerName] then
-				UnignorePlayer(playerName)
-			else
-				IgnorePlayer(playerName)
-			end
-		end
-	end
-
-	if token[1] == "ignorelist" then
-		ignoreList()
-	end
-end
-
-function ignoreList ()
-	local luaSucks = 0
-	for _, iHateLua in pairs(ignoredPlayers) do
-		luaSucks = 1
-		break
-	end
-	if luaSucks > 0 then
-		Spring.Echo("Ignored players:")
-		for playerName, _ in pairs(ignoredPlayers) do
-			Spring.Echo(colourPlayer(playerName) .. playerName)
-		end
-	else
-		Spring.Echo("No ignored players")
-	end
-end
 
 function IgnorePlayer (playerName)
 	if playerName == myName then

@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny",
 				firestarter = 70,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -168,7 +167,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny",
 				firestarter = 70,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -199,6 +197,10 @@ return {
 				weaponvelocity = 680,
 				damage = {
 					default = 47,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 748,
 				},
 			},
 		},

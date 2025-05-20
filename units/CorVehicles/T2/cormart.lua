@@ -124,7 +124,6 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "PlasmaCannon",
 				noselfdamage = true,

@@ -129,7 +129,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 72,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -162,6 +161,9 @@ return {
 					commanders = 1,
 					vtol = 150,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			flak = {
 				accuracy = 1000,
@@ -176,7 +178,6 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:genericshellexplosion-large-air",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Heavy g2a flak cannon",
 				noselfdamage = true,
@@ -200,6 +201,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					noattackrangearc = 1,
+				},
 			},
 			heavyplasma = {
 				accuracy = 600,
@@ -214,7 +218,6 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Primary rapid-fire heavy long-range plasma cannon",
 				noselfdamage = true,
@@ -231,6 +234,9 @@ return {
 					default = 437,
 					vtol = 200,
 				},
+				customparams = {
+					noattackrangearc = 1,
+				},
 			},
 			mediumplasma = {
 				accuracy = 350,
@@ -242,7 +248,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Secondary rapid-fire heavy plasma cannon",
 				noselfdamage = true,
@@ -258,6 +263,9 @@ return {
 				damage = {
 					default = 270,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc = 1,
 				},
 			},
 		},

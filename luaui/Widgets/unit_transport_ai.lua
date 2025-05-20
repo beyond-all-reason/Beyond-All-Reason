@@ -1,5 +1,7 @@
 include("keysym.h.lua")
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Transport AI",
@@ -20,7 +22,7 @@ local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport lan
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
 local CONST_BENEFIT_LIMIT = 5  -- what is the lowest benefit treshold to use transport (in sec difference with transport against without it)
 local CONST_TRANSPORT_STOPDISTANCE = 150 -- how close by has transport be to stop the unit
-local CONST_UNLOAD_RADIUS = 200 -- how big is the radious for unload command for factory transports
+local CONST_UNLOAD_RADIUS = 400 -- how big is the radious for unload command for factory transports
 
 local idleTransports = {} -- list of idle transports key = id, value = {defid}
 local waitingUnits = {} -- list of units waiting for traqnsport - key = unitID, {unit state, unitDef, factory}
@@ -41,9 +43,8 @@ local myTeamID
 
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
-local Echo = Spring.Echo
 local GetPlayerInfo = Spring.GetPlayerInfo
-local GetCommandQueue = Spring.GetCommandQueue
+local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
@@ -89,7 +90,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 end
 
 function IsEmbarkCommand(unitID)
-	local queue = GetCommandQueue(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20);
 	if queue ~= nil and #queue >= 1 and IsEmbark(queue[1]) then
 		return true
 	end
@@ -111,7 +112,7 @@ function IsDisembark(cmd)
 end
 
 function IsWaitCommand(unitID)
-	local queue = GetCommandQueue(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20);
 	if queue ~= nil and queue[1].id == CMD.WAIT and not queue[1].options.alt then
 		return true
 	end
@@ -119,7 +120,7 @@ function IsWaitCommand(unitID)
 end
 
 --function IsIdle(unitID)
---  local queue = GetCommandQueue(unitID,20)
+--  local queue = GetUnitCommands(unitID,20)
 --  if (queue == nil or #queue==0) then
 --    return true
 --  else
@@ -221,7 +222,6 @@ end]]--
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if teamID == myTeamID then
-		--     Echo("unit destroyed " ..unitID)
 		idleTransports[unitID] = nil
 		priorityUnits[unitID] = nil
 		local tuid = GetToPickUnit(unitID)
@@ -258,7 +258,6 @@ function AddTransport(unitID, unitDefID)
 	if isTransport[unitDefID] then
 		-- and IsIdle(unitID)
 		idleTransports[unitID] = unitDefID
-		--Echo ("transport added " .. unitID)
 		return true
 	end
 	return false
@@ -284,12 +283,10 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 			local marked = GetToPickTransport(unitID)
 			if waitingUnits[unitID] ~= nil then
 				-- unit was waiting for transport and now its suddenly idle (stopped) - delete it
-				--        Echo("waiting unit idle "..unitID)
 				waitingUnits[unitID] = nil
 			end
 
 			if marked ~= 0 then
-				--        Echo("to pick unit idle "..unitID)
 				DeleteToPickTran(marked)
 				GiveOrderToUnit(marked, CMD.STOP, {}, 0)  -- and stop it (when it becomes idle it will be assigned)
 			end
@@ -306,8 +303,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 			return
 		end
 		if isTransportable[unitDefID] and not userOrders then
-			--      Echo ("new unit from factory "..unitID)
-			local commands = GetCommandQueue(unitID, 20)
+			local commands = GetUnitCommands(unitID, 20)
 			for i = 1, #commands do
 				local v = commands[i]
 				if IsEmbark(v) then
@@ -355,9 +351,7 @@ function widget:Update(deltaTime)
 	local todel = {}
 	local todelCount = 0
 	for i, d in pairs(priorityUnits) do
-		--    Echo ("checking prio " ..i)
 		if IsEmbarkCommand(i) then
-			--      Echo ("prio called " ..i)
 			waitingUnits[i] = { ST_PRIORITY, d }
 			AssignTransports(0, i)
 			todelCount = todelCount + 1
@@ -388,7 +382,6 @@ function StopCloseUnits()
 						local ud = GetUnitDefDimensions(ud)
 						if fd ~= nil and ud ~= nil then
 							if GetUnitSeparation(unitID, val[3], true) < fd.radius + ud.radius then
-								--                Echo ("Cant stop - too close to factory")
 								canStop = false
 							end
 						end
@@ -410,12 +403,11 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 		return
 	end
 
-	local queue = GetCommandQueue(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20);
 	if queue == nil then
 		return
 	end
 
-	--  Echo("unit loaded " .. transportID .. " " ..unitID)
 	local torev = {}
 	local torevCount = 0
 	local vl = nil
@@ -488,7 +480,7 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		GiveOrderToUnit(unitID, x[1], x[2], x[3])
 	end
 	storedQueue[unitID] = nil
-	local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetCommandQueue(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
+	local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetUnitCommands(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
 	if cmdID and cmdID == CMD.WAIT then
 		GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)  -- workaround: clears wait order if STOP fails to do so
 	end
@@ -503,13 +495,11 @@ function CanTransport(transportID, unitID)
 	end
 	if unitXsize[udef] > unitTransportSize[tdef] * 2 then
 		-- unit size check
-		--    Echo ("size failed")
 		return false
 	end
 
 	local trans = GetUnitIsTransporting(transportID) -- capacity check
 	if unitTransportCapacity[tdef] <= #trans then
-		--    Echo ("count failed")
 		return false
 	end
 
@@ -518,7 +508,6 @@ function CanTransport(transportID, unitID)
 		mass = mass + unitMass[GetUnitDefID(a)]
 	end
 	if mass > unitTransportMass[tdef] then
-		--    Echo ("mass failed")
 		return false
 	end
 	return true
@@ -527,7 +516,6 @@ end
 function AssignTransports(transportID, unitID)
 	local best = {}
 	local bestCount = 0
-	--  Echo ("assigning " .. transportID .. " " ..unitID)
 	if transportID ~= 0 then
 		local transpeed = unitSpeed[GetUnitDefID(transportID)]
 		for id, val in pairs(waitingUnits) do
@@ -541,7 +529,6 @@ function AssignTransports(transportID, unitID)
 				if val[1] == ST_PRIORITY then
 					benefit = benefit + CONST_PRIORITY_BENEFIT
 				end
-				--       Echo ("   "..transportID .. " " .. id .. "  " .. benefit)
 
 				if benefit > CONST_BENEFIT_LIMIT then
 					bestCount = bestCount + 1
@@ -564,7 +551,6 @@ function AssignTransports(transportID, unitID)
 					benefit = benefit + CONST_PRIORITY_BENEFIT
 				end
 
-				--         Echo ("   "..id.. " " .. unitID .. "  " .. benefit)
 
 				if benefit > CONST_BENEFIT_LIMIT then
 					bestCount = bestCount + 1
@@ -586,7 +572,6 @@ function AssignTransports(transportID, unitID)
 		if (used[tid] == nil and used[uid] == nil) then
 			used[tid] = 1
 			used[uid] = 1
-			--      Echo ("ordering " .. tid .. " " .. uid )
 
 			if (waitingUnits[uid][1] == ST_PRIORITY) then
 				AddToPick(tid, uid, ST_PRIORITY)
@@ -621,7 +606,7 @@ function GetPathLength(unitID)
 	end
 
 	local d = 0
-	local queue = GetCommandQueue(unitID, 20);
+	local queue = GetUnitCommands(unitID, 20);
 	if queue == nil then
 		return 0
 	end

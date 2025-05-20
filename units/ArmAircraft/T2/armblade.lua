@@ -87,7 +87,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				impulseboost = 1,
 				impulsefactor = 0.123,
 				model = "cormissile2.s3o",
 				name = "Heavy a2g armor-piercing sabot missile launcher",

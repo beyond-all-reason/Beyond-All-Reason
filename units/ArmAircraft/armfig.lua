@@ -90,7 +90,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				flighttime = 1.2,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",

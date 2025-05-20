@@ -93,7 +93,6 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.3,
 				impulsefactor = 0.3,
 				model = "airbomb.s3o",
 				name = "Medium a2g incinerating warheads",

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Prevent Cloaked Unit Reclaim",
@@ -30,13 +32,14 @@ if gadgetHandler:IsSyncedCode() then
     local GetUnitIsCloaked = Spring.GetUnitIsCloaked
 
     function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
-        if (cmdID == CMD.RECLAIM) and (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) and not IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
+        if (#cmdParams == 1) and GetUnitIsCloaked(cmdParams[1]) and (GetUnitAllyTeam(unitID) ~= GetUnitAllyTeam(cmdParams[1])) and not IsUnitInRadar(cmdParams[1], GetUnitAllyTeam(unitID)) then
             return false
         end
         return true
     end
 
     function gadget:AllowUnitCloak(unitID) -- cancel reclaim commands
+        -- accepts: CMD.RECLAIM
         if (cloakedUnits[unitID]) and (not checkedUnits[unitID]) then  -- only needs to be checked when the unit barely is cloaked
             checkedUnits[unitID] = true
             local x, y, z = GetUnitPosition(unitID)
@@ -71,6 +74,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.RECLAIM)
         for unitDefID, unitDef in pairs(UnitDefs) do
             if unitDef.canReclaim then
                 canReclaim[unitDefID] = unitDef.buildDistance or 0

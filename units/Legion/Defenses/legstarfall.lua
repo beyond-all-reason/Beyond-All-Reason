@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "120 165 120",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		hightrajectory = 1,
 		firestate = 0,
 		footprintx = 8,
@@ -30,9 +30,9 @@ return {
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corbhmth_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecaltype = "decals/legstarfall_aoplane.dds",
+			buildinggrounddecalsizey = 10,
+			buildinggrounddecalsizex = 10,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Hornet",
@@ -122,7 +122,6 @@ return {
 
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				name = "Starfire Barrage Launcher",
 				noselfdamage = true,
@@ -137,6 +136,9 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
+				--customparams = {
+				--	stockpilelimit = 1,
+				--},
 				damage = {
 					default = 600,
 					shields = 375,

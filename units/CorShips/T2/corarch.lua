@@ -113,7 +113,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Missiles",
@@ -152,7 +151,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 72,
 				flighttime = 1.75,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -184,6 +182,10 @@ return {
 				damage = {
 					default = 125,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1001,
+				},
 			},
 			mobileflak = {
 				accuracy = 1000,
@@ -199,7 +201,6 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flak",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "FlakCannon",
 				noselfdamage = true,
@@ -215,6 +216,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					vtol = 200,
 				},

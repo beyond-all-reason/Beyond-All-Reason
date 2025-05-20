@@ -79,7 +79,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-yellow",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 5,
 				name = "HeatRay",
@@ -137,6 +136,9 @@ return {
 				damage = {
 					default = 12,
 					vtol = 4,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

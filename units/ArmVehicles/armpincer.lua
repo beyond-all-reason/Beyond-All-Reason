@@ -27,7 +27,7 @@ return {
 		script = "Units/ARMPINCER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 305,
+		sightdistance = 500,
 		sonardistance = 180,
 		speed = 63,
 		trackoffset = 3,
@@ -48,8 +48,8 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 64,
-			weapon1turrety = 75,
+			weapon1turretx = 130,
+			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -122,7 +122,6 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Light close-quarters plasma cannon",
 				noselfdamage = true,

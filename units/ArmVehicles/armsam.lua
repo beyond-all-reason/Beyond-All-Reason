@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -159,7 +158,6 @@ return {
 			armtruck_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
-				burnblow = true,
 				castshadow = true,
 				cegtag = "missiletrailtiny",
 				craterareaofeffect = 0,
@@ -169,7 +167,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny",
 				firestarter = 70,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -200,6 +197,10 @@ return {
 				weaponvelocity = 350,
 				damage = {
 					default = 86,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 633,
 				},
 			},
 		},

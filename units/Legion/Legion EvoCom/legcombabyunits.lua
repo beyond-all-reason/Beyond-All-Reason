@@ -30,4 +30,22 @@ unitsTable['babylegshot'].movestate = 2
 unitsTable['babylegshot'].power = 735
 unitsTable['babylegshot'].customparams.i18nfromunit = 'legshot'
 
+--Legion Heavy Drone, for Legion Commander Botcannon
+unitsTable['babylegheavydrone'] = VFS.Include('units/Legion/Air/T2 Air/legheavydrone.lua').legheavydrone --if this filepath is changed, the unit will no longer work!
+unitsTable['babylegheavydrone'].corpse = ""
+unitsTable['babylegheavydrone'].selfdestructas = ""
+unitsTable['babylegheavydrone'].metalcost = 0
+unitsTable['babylegheavydrone'].movestate = 2
+unitsTable['babylegheavydrone'].power = 1000
+unitsTable['babylegheavydrone'].customparams.i18nfromunit = 'legheavydrone'
+
+--Legion Drone, for Legion Commander Botcannon
+unitsTable['babylegdrone'] = VFS.Include('units/Legion/Air/legdrone.lua').legdrone --if this filepath is changed, the unit will no longer work!
+unitsTable['babylegdrone'].corpse = ""
+unitsTable['babylegdrone'].selfdestructas = ""
+unitsTable['babylegdrone'].metalcost = 0
+unitsTable['babylegdrone'].movestate = 2
+unitsTable['babylegdrone'].power = 500
+unitsTable['babylegdrone'].customparams.i18nfromunit = 'legdrone'
+
 return unitsTable

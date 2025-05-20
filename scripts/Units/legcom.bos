@@ -1,426 +1,435 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-//INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
+//INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 26
+		
+piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
+		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
 
-piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
-		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare;  
-
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount, isCloaked;
 
 // Signal definitions
-#define SIG_AIM 2
-#define SIG_WALK 4
-#define SIG_AIM_2 8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 512
+#define SIGNAL_AIM2 1024
+#define SIGNAL_BUILD 2048
 
-// Generated for D:\spring\animation\armcom_anim_walk_v4.blend
-// Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var maxSpeed, animFramesPerKeyframe, bMoving;
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
-	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
-			if (leftArm) turn biggun to x-axis <-48.215180> speed <113.735764> / animSpeed; //delta=-3.79
-			turn head to x-axis <-2.620635> speed <39.654598> / animSpeed; //delta=1.32
-			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
-			turn lfoot to x-axis <-33.266887> speed <1084.110406> / animSpeed; //delta=36.14
-			turn lleg to x-axis <55.932201> speed <1005.195679> / animSpeed; //delta=-33.51
-			turn lthigh to x-axis <-55.237751> speed <1023.679605> / animSpeed; //delta=34.12
-			turn lthigh to z-axis <10.085981> speed <605.673206> / animSpeed; //delta=-20.19
-			turn lthigh to y-axis <15.046731> speed <118.088344> / animSpeed; //delta=3.94
-			if (leftArm) turn luparm to x-axis <9.919362> speed <279.367450> / animSpeed; //delta=9.31
-			if (leftArm) turn luparm to z-axis <-12.399998> speed <114.000041> / animSpeed; //delta=-3.80
-			if (leftArm) turn luparm to y-axis <0.965138> speed <187.380006> / animSpeed; //delta=-6.25
-			turn pelvis to z-axis <-1.666667> speed <49.999997> / animSpeed; //delta=1.67
-			turn pelvis to y-axis <-2.296296> speed <68.888891> / animSpeed; //delta=-2.30
-			turn rfoot to x-axis <-24.788553> speed <756.115081> / animSpeed; //delta=25.20
-			turn rleg to x-axis <21.945633> speed <114.672797> / animSpeed; //delta=3.82
-			if (rightArm) turn rloarm to x-axis <-56.129627> speed <87.888962> / animSpeed; //delta=2.93
-			turn rthigh to x-axis <3.073465> speed <750.722777> / animSpeed; //delta=-25.02
-			turn rthigh to z-axis <1.955836> speed <223.218383> / animSpeed; //delta=7.44
-			turn rthigh to y-axis <-0.370374> speed <346.061345> / animSpeed; //delta=11.54
-			if (rightArm) turn ruparm to x-axis <21.424041> speed <98.073542> / animSpeed; //delta=3.27
-			if (rightArm) turn ruparm to y-axis <1.762963> speed <52.888889> / animSpeed; //delta=1.76
-			turn aimy1 to x-axis <-4.288164> speed <60.727696> / animSpeed; //delta=2.02
-			turn aimy1 to z-axis <1.713372> speed <51.401158> / animSpeed; //delta=-1.71
-			turn aimy1 to y-axis <7.879434> speed <236.383029> / animSpeed; //delta=7.88
+Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
+			turn head to x-axis <-2.854240> speed <52.156895> / animSpeed; 
+			turn head to y-axis <-4.861931> speed <25.598456> / animSpeed; 
+			turn lfoot to x-axis <-2.982684> speed <633.919869> / animSpeed; 
+			turn lleg to x-axis <-6.222979> speed <858.769597> / animSpeed; 
+			turn lthigh to x-axis <-4.900900> speed <155.170688> / animSpeed; 
+			turn lthigh to z-axis <-0.714529> speed <37.355276> / animSpeed; 
+			turn ltoes to x-axis <16.515266> speed <368.479161> / animSpeed; 
+			turn ltoes to y-axis <4.834730> speed <17.251444> / animSpeed; 
+			move pelvis to z-axis [0.258101] speed [6.305444] / animSpeed; 
+			move pelvis to y-axis [0.320454] speed [21.130886] / animSpeed; 
+			turn pelvis to x-axis <-1.374276> speed <16.965097> / animSpeed; 
+			turn pelvis to y-axis <-4.861933> speed <25.598495> / animSpeed; 
+			turn rfoot to x-axis <13.326826> speed <326.073111> / animSpeed; 
+			turn rleg to x-axis <32.535825> speed <1069.876652> / animSpeed; 
+			turn rthigh to x-axis <18.894911> speed <453.194133> / animSpeed; 
+			turn rthigh to z-axis <1.355524> speed <59.515702> / animSpeed; 
+			turn rthigh to y-axis <-0.131184> speed <36.725724> / animSpeed; 
+			turn rtoes to x-axis <-1.367115> speed <130.737988> / animSpeed; 
+			turn rtoes to y-axis <4.216282> speed <6.098620> / animSpeed; 
+			turn torso to y-axis <9.723882> speed <51.196784> / animSpeed; 
+			
+			// Prevent animation if arm is in use, holy mother of tedium
+			if (leftArm == 1)
+			{
+				turn larm to x-axis <31.774556> speed <76.795573> / animSpeed; 
+				turn lhand to x-axis <45.808187> speed <80.895941> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rarm to x-axis <2.602912> speed <76.795317> / animSpeed; 
+				turn rhand to x-axis <11.487578> speed <80.895864> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
-			if (leftArm) turn biggun to x-axis <-46.675856> speed <46.179694> / animSpeed; //delta=-1.54
-			turn head to x-axis <-1.563179> speed <31.723679> / animSpeed; //delta=-1.06
-			turn head to y-axis <-6.127755> speed <68.937274> / animSpeed; //delta=-2.30
-			turn lfoot to x-axis <3.301643> speed <1097.055898> / animSpeed; //delta=-36.57
-			turn lleg to x-axis <21.188054> speed <1042.324382> / animSpeed; //delta=34.74
-			turn lthigh to x-axis <-49.309980> speed <177.833127> / animSpeed; //delta=-5.93
-			turn lthigh to z-axis <12.410994> speed <69.750404> / animSpeed; //delta=-2.33
-			turn lthigh to y-axis <17.664281> speed <78.526514> / animSpeed; //delta=2.62
-			if (leftArm) turn luparm to x-axis <17.175860> speed <217.694940> / animSpeed; //delta=-7.26
-			if (leftArm) turn luparm to y-axis <2.994882> speed <60.892341> / animSpeed; //delta=2.03
-			move pelvis to y-axis [-1.370370] speed [8.888887] / animSpeed; //delta=-0.30
-			turn pelvis to z-axis <-4.074074> speed <72.222229> / animSpeed; //delta=2.41
-			turn pelvis to y-axis <-5.185185> speed <86.666661> / animSpeed; //delta=-2.89
-			turn rfoot to x-axis <-24.385273> speed <12.098399> / animSpeed; //delta=-0.40
-			turn rleg to x-axis <2.775391> speed <575.107266> / animSpeed; //delta=19.17
-			if (rightArm) turn rloarm to x-axis <-61.570378> speed <163.222533> / animSpeed; //delta=5.44
-			turn rthigh to x-axis <24.923063> speed <655.487959> / animSpeed; //delta=-21.85
-			turn rthigh to z-axis <7.511525> speed <166.670667> / animSpeed; //delta=-5.56
-			turn rthigh to y-axis <-5.809679> speed <163.179149> / animSpeed; //delta=-5.44
-			if (rightArm) turn ruparm to x-axis <16.696394> speed <141.829407> / animSpeed; //delta=4.73
-			if (rightArm) turn ruparm to y-axis <5.908277> speed <124.359412> / animSpeed; //delta=4.15
-			turn aimy1 to x-axis <-3.674753> speed <18.402335> / animSpeed; //delta=-0.61
-			turn aimy1 to z-axis <4.188244> speed <74.246156> / animSpeed; //delta=-2.47
-			turn aimy1 to y-axis <13.926961> speed <181.425790> / animSpeed; //delta=6.05
+	while(isMoving) {
+		if (isMoving) { //Frame:8
+			turn head to x-axis <-0.648400> speed <66.175208> / animSpeed; 
+			turn head to y-axis <-2.151554> speed <81.311298> / animSpeed; 
+			turn lfoot to x-axis <-5.972777> speed <89.702793> / animSpeed; 
+			turn lleg to x-axis <9.719577> speed <478.276688> / animSpeed; 
+			turn lthigh to x-axis <0.947283> speed <175.445493> / animSpeed; 
+			turn lthigh to z-axis <0.043561> speed <22.742703> / animSpeed; 
+			turn ltoes to x-axis <-3.876787> speed <611.761594> / animSpeed; 
+			turn ltoes to y-axis <2.145557> speed <80.675174> / animSpeed; 
+			move pelvis to z-axis [0.105336] speed [4.582951] / animSpeed; 
+			move pelvis to y-axis [-0.824427] speed [34.346409] / animSpeed; 
+			turn pelvis to x-axis <-0.040562> speed <40.011400> / animSpeed; 
+			turn pelvis to y-axis <-2.151555> speed <81.311336> / animSpeed; 
+			turn rfoot to x-axis <-11.391075> speed <741.537041> / animSpeed; 
+			turn rleg to x-axis <43.889150> speed <340.599746> / animSpeed; 
+			turn rthigh to x-axis <3.306879> speed <467.640944> / animSpeed; 
+			turn rthigh to z-axis <0.182158> speed <35.200977> / animSpeed; 
+			turn rthigh to y-axis <0.025044> speed <4.686833> / animSpeed; 
+			turn rtoes to x-axis <0.290635> speed <49.732488> / animSpeed; 
+			turn rtoes to y-axis <2.108872> speed <63.222308> / animSpeed; 
+			turn torso to y-axis <4.303132> speed <162.622505> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-3.578015> speed <81.311274> / animSpeed; 
+				turn larm to x-axis <23.643426> speed <243.933905> / animSpeed; 
+				turn lhand to x-axis <41.950028> speed <115.744761> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <7.881140> speed <81.311362> / animSpeed; 
+				turn rarm to x-axis <10.734039> speed <243.933822> / animSpeed; 
+				turn rhand to x-axis <15.345736> speed <115.744736> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
-			if (leftArm) turn biggun to x-axis <-46.110552> speed <16.959121> / animSpeed; //delta=-0.57
-			turn head to x-axis <0.023005> speed <47.585527> / animSpeed; //delta=-1.59
-			turn head to y-axis <-7.659692> speed <45.958102> / animSpeed; //delta=-1.53
-			turn lfoot to x-axis <11.411680> speed <243.301125> / animSpeed; //delta=-8.11
-			turn lleg to x-axis <-6.333642> speed <825.650884> / animSpeed; //delta=27.52
-			turn lthigh to x-axis <-28.939382> speed <611.117960> / animSpeed; //delta=-20.37
-			turn lthigh to z-axis <10.100023> speed <69.329144> / animSpeed; //delta=2.31
-			turn lthigh to y-axis <14.540810> speed <93.704134> / animSpeed; //delta=-3.12
-			if (leftArm) turn luparm to x-axis <20.474264> speed <98.952127> / animSpeed; //delta=-3.30
-			if (leftArm) turn luparm to y-axis <5.388938> speed <71.821661> / animSpeed; //delta=2.39
-			move pelvis to y-axis [-2.000000] speed [18.888888] / animSpeed; //delta=-0.63
-			turn pelvis to z-axis <-5.000000> speed <27.777769> / animSpeed; //delta=0.93
-			turn pelvis to y-axis <-6.000000> speed <24.444453> / animSpeed; //delta=-0.81
-			turn rfoot to x-axis <-34.556331> speed <305.131751> / animSpeed; //delta=10.17
-			turn rleg to x-axis <32.187523> speed <882.363941> / animSpeed; //delta=-29.41
-			if (rightArm) turn rloarm to x-axis <-64.499997> speed <87.888552> / animSpeed; //delta=2.93
-			turn rthigh to x-axis <18.715526> speed <186.226115> / animSpeed; //delta=6.21
-			turn rthigh to z-axis <9.760341> speed <67.464476> / animSpeed; //delta=-2.25
-			turn rthigh to y-axis <-5.182428> speed <18.817525> / animSpeed; //delta=0.63
-			if (rightArm) turn ruparm to x-axis <12.622570> speed <122.214735> / animSpeed; //delta=4.07
-			if (rightArm) turn ruparm to y-axis <6.799999> speed <26.751678> / animSpeed; //delta=0.89
-			turn aimy1 to x-axis <-2.141225> speed <46.005832> / animSpeed; //delta=-1.53
-			turn aimy1 to z-axis <5.140116> speed <28.556180> / animSpeed; //delta=-0.95
-			turn aimy1 to y-axis <15.758869> speed <54.957239> / animSpeed; //delta=1.83
+		if (isMoving) { //Frame:12
+			turn head to x-axis <2.453510> speed <93.057312> / animSpeed; 
+			turn head to y-axis <1.380645> speed <105.965993> / animSpeed; 
+			turn lfoot to x-axis <6.052839> speed <360.768483> / animSpeed; 
+			turn lleg to x-axis <1.299182> speed <252.611850> / animSpeed; 
+			turn lthigh to x-axis <14.936485> speed <419.676044> / animSpeed; 
+			turn lthigh to z-axis <-0.270752> speed <9.429386> / animSpeed; 
+			turn ltoes to x-axis <-22.424416> speed <556.428865> / animSpeed; 
+			turn ltoes to y-axis <-1.304736> speed <103.508790> / animSpeed; 
+			move pelvis to z-axis [-0.198654] speed [9.119689] / animSpeed; 
+			turn pelvis to x-axis <1.349207> speed <41.693073> / animSpeed; 
+			turn pelvis to y-axis <1.380646> speed <105.966045> / animSpeed; 
+			turn rfoot to x-axis <-26.052906> speed <439.854928> / animSpeed; 
+			turn rleg to x-axis <36.927513> speed <208.849085> / animSpeed; 
+			turn rthigh to x-axis <-18.222494> speed <645.881193> / animSpeed; 
+			turn rtoes to x-axis <11.473334> speed <335.480976> / animSpeed; 
+			turn rtoes to y-axis <-1.351601> speed <103.814173> / animSpeed; 
+			turn torso to y-axis <-2.761264> speed <211.931884> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-7.110212> speed <105.965933> / animSpeed; 
+				turn larm to x-axis <13.046828> speed <317.897913> / animSpeed; 
+				turn lhand to x-axis <33.010909> speed <268.173581> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <4.348943> speed <105.965907> / animSpeed; 
+				turn rarm to x-axis <21.330636> speed <317.897913> / animSpeed; 
+				turn rhand to x-axis <24.284849> speed <268.173376> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
-			if (leftArm) turn biggun to x-axis <-47.068049> speed <28.724907> / animSpeed; //delta=0.96
-			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
-			turn head to y-axis <-6.127755> speed <45.958102> / animSpeed; //delta=1.53
-			turn lfoot to x-axis <2.879686> speed <255.959826> / animSpeed; //delta=8.53
-			turn lleg to x-axis <40.292208> speed <1398.775490> / animSpeed; //delta=-46.63
-			turn lthigh to x-axis <-49.313423> speed <611.221232> / animSpeed; //delta=20.37
-			turn lthigh to z-axis <11.258773> speed <34.762504> / animSpeed; //delta=-1.16
-			turn lthigh to y-axis <17.221502> speed <80.420765> / animSpeed; //delta=2.68
-			if (leftArm) turn luparm to x-axis <19.047441> speed <42.804693> / animSpeed; //delta=1.43
-			move pelvis to y-axis [-2.833333] speed [25.000005] / animSpeed; //delta=-0.83
-			turn pelvis to z-axis <-3.962963> speed <31.111110> / animSpeed; //delta=-1.04
-			turn pelvis to y-axis <-5.026455> speed <29.206358> / animSpeed; //delta=0.97
-			turn rfoot to x-axis <-27.196287> speed <220.801335> / animSpeed; //delta=-7.36
-			turn rleg to x-axis <78.322421> speed <1384.046960> / animSpeed; //delta=-46.13
-			turn rleg to z-axis <-0.165893> speed <4.758378> / animSpeed; //delta=0.16
-			turn rleg to y-axis <0.140044> speed <4.092714> / animSpeed; //delta=0.14
-			if (rightArm) turn rloarm to x-axis <-62.031478> speed <74.055575> / animSpeed; //delta=-2.47
-			turn rthigh to x-axis <-2.425270> speed <634.223885> / animSpeed; //delta=21.14
-			turn rthigh to z-axis <5.889018> speed <116.139691> / animSpeed; //delta=3.87
-			turn rthigh to y-axis <2.215249> speed <221.930321> / animSpeed; //delta=7.40
-			if (rightArm) turn ruparm to x-axis <12.782766> speed <4.805883> / animSpeed; //delta=-0.16
-			if (rightArm) turn ruparm to y-axis <6.141609> speed <19.751703> / animSpeed; //delta=-0.66
-			turn aimy1 to x-axis <-3.061342> speed <27.603503> / animSpeed; //delta=0.92
-			turn aimy1 to z-axis <4.074019> speed <31.982933> / animSpeed; //delta=1.07
-			turn aimy1 to y-axis <13.926961> speed <54.957239> / animSpeed; //delta=-1.83
+		if (isMoving) { //Frame:16
+			turn head to x-axis <2.164739> speed <8.663137> / animSpeed; 
+			turn head to y-axis <4.385491> speed <90.145373> / animSpeed; 
+			turn lfoot to x-axis <17.744195> speed <350.740668> / animSpeed; 
+			turn lleg to x-axis <-12.586166> speed <416.560447> / animSpeed; 
+			turn lthigh to x-axis <31.142592> speed <486.183230> / animSpeed; 
+			turn lthigh to z-axis <-1.913042> speed <49.268684> / animSpeed; 
+			turn lthigh to y-axis <0.718329> speed <20.199968> / animSpeed; 
+			turn ltoes to x-axis <-20.891687> speed <45.981858> / animSpeed; 
+			turn ltoes to y-axis <-3.846990> speed <76.267631> / animSpeed; 
+			move pelvis to y-axis [0.302633] speed [34.486599] / animSpeed; 
+			turn pelvis to x-axis <0.874422> speed <14.243551> / animSpeed; 
+			turn pelvis to y-axis <4.385494> speed <90.145438> / animSpeed; 
+			turn rfoot to x-axis <-25.356642> speed <20.887931> / animSpeed; 
+			turn rleg to x-axis <18.421312> speed <555.186036> / animSpeed; 
+			turn rthigh to x-axis <-21.524897> speed <99.072099> / animSpeed; 
+			turn rthigh to z-axis <1.134251> speed <31.158690> / animSpeed; 
+			turn rthigh to y-axis <0.361106> speed <9.683663> / animSpeed; 
+			turn rtoes to x-axis <30.494121> speed <570.623604> / animSpeed; 
+			turn rtoes to y-axis <-3.997366> speed <79.372967> / animSpeed; 
+			turn torso to y-axis <-8.770952> speed <180.290657> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-10.115054> speed <90.145255> / animSpeed;
+				turn larm to x-axis <4.032289> speed <270.436175> / animSpeed;  
+				turn lhand to x-axis <22.405266> speed <318.169285> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <1.344099> speed <90.145319> / animSpeed; 
+				turn rarm to x-axis <30.345171> speed <270.436047> / animSpeed; 
+				turn rhand to x-axis <34.890485> speed <318.169080> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
-			if (leftArm) turn biggun to x-axis <-49.335727> speed <68.030323> / animSpeed; //delta=2.27
-			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
-			turn head to y-axis <-3.829846> speed <68.937274> / animSpeed; //delta=2.30
-			turn lfoot to x-axis <-11.362748> speed <427.273021> / animSpeed; //delta=14.24
-			turn lleg to x-axis <55.773467> speed <464.437769> / animSpeed; //delta=-15.48
-			turn lthigh to x-axis <-43.832869> speed <164.416621> / animSpeed; //delta=-5.48
-			turn lthigh to z-axis <4.706604> speed <196.565054> / animSpeed; //delta=6.55
-			turn lthigh to y-axis <8.321622> speed <266.996423> / animSpeed; //delta=-8.90
-			if (leftArm) turn luparm to x-axis <15.615877> speed <102.946916> / animSpeed; //delta=3.43
-			if (leftArm) turn luparm to y-axis <5.076670> speed <9.368019> / animSpeed; //delta=-0.31
-			turn pelvis to z-axis <-2.000000> speed <58.888879> / animSpeed; //delta=-1.96
-			turn pelvis to y-axis <-2.772487> speed <67.619039> / animSpeed; //delta=2.25
-			turn rfoot to x-axis <-39.119034> speed <357.682424> / animSpeed; //delta=11.92
-			turn rleg to x-axis <104.636879> speed <789.433742> / animSpeed; //delta=-26.31
-			turn rleg to z-axis <0.031377> speed <5.918091> / animSpeed; //delta=-0.20
-			turn rleg to y-axis <-0.045903> speed <5.578386> / animSpeed; //delta=-0.19
-			if (rightArm) turn rloarm to x-axis <-56.185181> speed <175.388910> / animSpeed; //delta=-5.85
-			turn rthigh to x-axis <-29.245227> speed <804.598715> / animSpeed; //delta=26.82
-			turn rthigh to z-axis <3.330593> speed <76.752755> / animSpeed; //delta=2.56
-			turn rthigh to y-axis <-1.498384> speed <111.408996> / animSpeed; //delta=-3.71
-			if (rightArm) turn ruparm to x-axis <13.904138> speed <33.641183> / animSpeed; //delta=-1.12
-			if (rightArm) turn ruparm to y-axis <2.429630> speed <111.359389> / animSpeed; //delta=-3.71
-			turn aimy1 to x-axis <-3.981459> speed <27.603503> / animSpeed; //delta=0.92
-			turn aimy1 to z-axis <2.056047> speed <60.539158> / animSpeed; //delta=2.02
-			turn aimy1 to y-axis <7.879434> speed <181.425790> / animSpeed; //delta=-6.05
+		if (isMoving) { //Frame:20
+			turn head to x-axis <-1.115640> speed <98.411364> / animSpeed; 
+			turn head to y-axis <5.715235> speed <39.892305> / animSpeed; 
+			turn lfoot to x-axis <24.195911> speed <193.551493> / animSpeed; 
+			turn lleg to x-axis <-3.126706> speed <283.783807> / animSpeed; 
+			turn lthigh to x-axis <34.001358> speed <85.762963> / animSpeed; 
+			turn lthigh to z-axis <-3.339389> speed <42.790414> / animSpeed; 
+			turn lthigh to y-axis <1.355379> speed <19.111519> / animSpeed; 
+			turn ltoes to x-axis <2.990845> speed <716.475963> / animSpeed; 
+			turn ltoes to y-axis <-4.419598> speed <17.178229> / animSpeed; 
+			move pelvis to z-axis [0.047921] speed [8.520151] / animSpeed; 
+			move pelvis to y-axis [1.024817] speed [21.665497] / animSpeed; 
+			turn pelvis to x-axis <-0.808782> speed <50.496111> / animSpeed; 
+			turn pelvis to y-axis <5.715238> speed <39.892305> / animSpeed; 
+			turn rfoot to x-axis <18.147951> speed <1305.137784> / animSpeed; 
+			turn rleg to x-axis <-34.848612> speed <1598.097729> / animSpeed; 
+			turn rthigh to x-axis <-10.073248> speed <343.549465> / animSpeed; 
+			turn rthigh to z-axis <1.959704> speed <24.763597> / animSpeed; 
+			turn rthigh to y-axis <-0.082452> speed <13.306748> / animSpeed; 
+			turn rtoes to x-axis <28.797922> speed <50.885968> / animSpeed; 
+			turn rtoes to y-axis <-5.409800> speed <42.373008> / animSpeed; 
+			turn torso to y-axis <-11.430444> speed <79.784737> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-11.444799> speed <39.892343> / animSpeed; 
+				turn larm to x-axis <0.043059> speed <119.676906> / animSpeed; 
+				turn lhand to x-axis <14.184080> speed <246.635587> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <0.014358> speed <39.892242> / animSpeed; 
+				turn rarm to x-axis <34.334401> speed <119.676901> / animSpeed; 
+				turn rhand to x-axis <43.111673> speed <246.635638> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
-			if (leftArm) turn biggun to x-axis <-52.006372> speed <80.119348> / animSpeed; //delta=2.67
-			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
-			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=3.83
-			turn lfoot to x-axis <-23.280778> speed <357.540911> / animSpeed; //delta=11.92
-			turn lleg to x-axis <46.510843> speed <277.878733> / animSpeed; //delta=9.26
-			turn lthigh to x-axis <-23.415420> speed <612.523459> / animSpeed; //delta=-20.42
-			turn lthigh to z-axis <0.280779> speed <132.774760> / animSpeed; //delta=4.43
-			turn lthigh to y-axis <1.272165> speed <211.483711> / animSpeed; //delta=-7.05
-			if (leftArm) turn luparm to x-axis <11.452920> speed <124.888703> / animSpeed; //delta=4.16
-			if (leftArm) turn luparm to y-axis <3.308728> speed <53.038265> / animSpeed; //delta=-1.77
-			move pelvis to y-axis [-2.000000] speed [25.555551] / animSpeed; //delta=0.85
-			turn pelvis to z-axis <-0.000000> speed <60.000006> / animSpeed; //delta=-2.00
-			turn pelvis to y-axis <0.000000> speed <83.174607> / animSpeed; //delta=2.77
-			turn rfoot to x-axis <-45.278120> speed <184.772566> / animSpeed; //delta=6.16
-			turn rleg to x-axis <90.786697> speed <415.505474> / animSpeed; //delta=13.85
-			turn rleg to z-axis <0.843235> speed <24.355743> / animSpeed; //delta=-0.81
-			turn rleg to y-axis <-0.860075> speed <24.425185> / animSpeed; //delta=-0.81
-			if (rightArm) turn rloarm to x-axis <-49.299998> speed <206.555473> / animSpeed; //delta=-6.89
-			turn rthigh to x-axis <-43.951970> speed <441.202285> / animSpeed; //delta=14.71
-			turn rthigh to z-axis <-2.997201> speed <189.833832> / animSpeed; //delta=6.33
-			turn rthigh to y-axis <-9.866792> speed <251.052245> / animSpeed; //delta=-8.37
-			if (rightArm) turn ruparm to x-axis <16.947865> speed <91.311783> / animSpeed; //delta=-3.04
-			if (rightArm) turn ruparm to y-axis <0.900000> speed <45.888888> / animSpeed; //delta=-1.53
-			turn aimy1 to x-axis <-4.594870> speed <18.402335> / animSpeed; //delta=0.61
-			turn aimy1 to z-axis <-0.000000> speed <61.681404> / animSpeed; //delta=2.06
-			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=-7.88
+		if (isMoving) { //Frame:24
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from rtoes;
+			}
+			turn head to x-axis <-2.854236> speed <52.157898> / animSpeed; 
+			turn head to y-axis <4.861961> speed <25.598213> / animSpeed; 
+			turn lfoot to x-axis <13.326829> speed <326.072471> / animSpeed; 
+			turn lleg to x-axis <32.535787> speed <1069.874795> / animSpeed; 
+			turn lthigh to x-axis <18.894916> speed <453.193263> / animSpeed; 
+			turn lthigh to z-axis <-1.355531> speed <59.515737> / animSpeed; 
+			turn lthigh to y-axis <0.131186> speed <36.725794> / animSpeed; 
+			turn ltoes to x-axis <-1.367081> speed <130.737761> / animSpeed; 
+			turn ltoes to y-axis <-4.216315> speed <6.098492> / animSpeed; 
+			move pelvis to z-axis [0.258101] speed [6.305394] / animSpeed; 
+			move pelvis to y-axis [0.320461] speed [21.130657] / animSpeed; 
+			turn pelvis to x-axis <-1.374279> speed <16.964911> / animSpeed; 
+			turn pelvis to y-axis <4.861963> speed <25.598251> / animSpeed; 
+			turn rfoot to x-axis <-3.694296> speed <655.267423> / animSpeed; 
+			turn rleg to x-axis <-5.511393> speed <880.116567> / animSpeed; 
+			turn rthigh to x-axis <-5.359641> speed <141.408211> / animSpeed; 
+			turn rthigh to z-axis <0.714534> speed <37.355092> / animSpeed; 
+			turn rtoes to x-axis <17.252750> speed <346.355136> / animSpeed; 
+			turn rtoes to y-axis <-4.834759> speed <17.251226> / animSpeed; 
+			turn torso to y-axis <-9.723900> speed <51.196298> / animSpeed;
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-10.591526> speed <25.598200> / animSpeed;
+				turn larm to x-axis <2.602881> speed <76.794650> / animSpeed;  
+				turn lhand to x-axis <11.487568> speed <80.895352> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <0.867630> speed <25.598176> / animSpeed; 
+				turn rarm to x-axis <31.774580> speed <76.794651> / animSpeed; 
+				turn rhand to x-axis <45.808180> speed <80.895224> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
-			if (leftArm) turn biggun to x-axis <-53.142724> speed <34.090567> / animSpeed; //delta=1.14
-			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
-			turn head to y-axis <3.829846> speed <114.895376> / animSpeed; //delta=3.83
-			turn lfoot to x-axis <-28.343677> speed <151.886946> / animSpeed; //delta=5.06
-			turn lleg to x-axis <27.564644> speed <568.385957> / animSpeed; //delta=18.95
-			turn lthigh to x-axis <1.812986> speed <756.852171> / animSpeed; //delta=-25.23
-			turn lthigh to z-axis <-2.460308> speed <82.232611> / animSpeed; //delta=2.74
-			turn lthigh to y-axis <0.746525> speed <15.769200> / animSpeed; //delta=-0.53
-			if (leftArm) turn luparm to x-axis <8.807109> speed <79.374337> / animSpeed; //delta=2.65
-			if (leftArm) turn luparm to y-axis <-0.396598> speed <111.159777> / animSpeed; //delta=-3.71
-			move pelvis to y-axis [-1.129630] speed [26.111112] / animSpeed; //delta=0.87
-			turn pelvis to z-axis <1.997872> speed <59.936146> / animSpeed; //delta=-2.00
-			turn pelvis to y-axis <2.771879> speed <83.156358> / animSpeed; //delta=2.77
-			turn rfoot to x-axis <-33.707871> speed <347.107447> / animSpeed; //delta=-11.57
-			turn rleg to x-axis <56.067203> speed <1041.584826> / animSpeed; //delta=34.72
-			turn rleg to z-axis <-0.026719> speed <26.098608> / animSpeed; //delta=0.87
-			turn rleg to y-axis <0.009522> speed <26.087929> / animSpeed; //delta=0.87
-			if (rightArm) turn rloarm to x-axis <-43.425926> speed <176.222159> / animSpeed; //delta=-5.87
-			turn rthigh to x-axis <-55.080896> speed <333.867775> / animSpeed; //delta=11.13
-			turn rthigh to z-axis <-10.747290> speed <232.502653> / animSpeed; //delta=7.75
-			turn rthigh to y-axis <-16.084974> speed <186.545461> / animSpeed; //delta=-6.22
-			if (rightArm) turn ruparm to x-axis <22.234335> speed <158.594124> / animSpeed; //delta=-5.29
-			if (rightArm) turn ruparm to y-axis <-0.812436> speed <51.373077> / animSpeed; //delta=-1.71
-			turn aimy1 to x-axis <-4.288164> speed <9.201174> / animSpeed; //delta=-0.31
-			turn aimy1 to z-axis <-2.053859> speed <61.615764> / animSpeed; //delta=2.05
-			turn aimy1 to y-axis <-7.879434> speed <236.383029> / animSpeed; //delta=-7.88
+		if (isMoving) { //Frame:28
+			turn head to x-axis <-0.648360> speed <66.176298> / animSpeed; 
+			turn head to y-axis <2.151588> speed <81.311182> / animSpeed; 
+			turn lfoot to x-axis <-11.391081> speed <741.537297> / animSpeed; 
+			turn lleg to x-axis <43.889156> speed <340.601077> / animSpeed; 
+			turn lthigh to x-axis <3.306880> speed <467.641066> / animSpeed; 
+			turn lthigh to z-axis <-0.182155> speed <35.201290> / animSpeed; 
+			turn lthigh to y-axis <-0.025044> speed <4.686905> / animSpeed; 
+			turn ltoes to x-axis <0.290650> speed <49.731918> / animSpeed; 
+			turn ltoes to y-axis <-2.108907> speed <63.222231> / animSpeed; 
+			move pelvis to z-axis [0.105337] speed [4.582894] / animSpeed; 
+			move pelvis to y-axis [-0.824419] speed [34.346409] / animSpeed; 
+			turn pelvis to x-axis <-0.040574> speed <40.011148> / animSpeed; 
+			turn pelvis to y-axis <2.151589> speed <81.311214> / animSpeed; 
+			turn rfoot to x-axis <-5.508790> speed <54.434793> / animSpeed; 
+			turn rleg to x-axis <9.255592> speed <443.009553> / animSpeed; 
+			turn rthigh to x-axis <1.120828> speed <194.414088> / animSpeed; 
+			turn rthigh to z-axis <-0.043562> speed <22.742889> / animSpeed; 
+			turn rtoes to x-axis <-4.407886> speed <649.819084> / animSpeed; 
+			turn rtoes to y-axis <-2.145590> speed <80.675059> / animSpeed; 
+			turn torso to y-axis <-4.303159> speed <162.622249> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-7.881155> speed <81.311131> / animSpeed; 
+				turn larm to x-axis <10.733997> speed <243.933502> / animSpeed; 
+				turn lhand to x-axis <15.345702> speed <115.744019> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <3.578001> speed <81.311131> / animSpeed; 
+				turn rarm to x-axis <23.643467> speed <243.933393> / animSpeed; 
+				turn rhand to x-axis <41.950049> speed <115.743942> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
-			if (leftArm) turn biggun to x-axis <-55.253092> speed <63.311038> / animSpeed; //delta=2.11
-			turn head to x-axis <-1.563179> speed <31.723670> / animSpeed; //delta=-1.06
-			turn head to y-axis <6.127755> speed <68.937274> / animSpeed; //delta=2.30
-			turn lfoot to x-axis <-21.408024> speed <208.069572> / animSpeed; //delta=-6.94
-			turn lleg to x-axis <3.737072> speed <714.827163> / animSpeed; //delta=23.83
-			turn lthigh to x-axis <24.379452> speed <676.993988> / animSpeed; //delta=-22.57
-			turn lthigh to z-axis <-7.321217> speed <145.827258> / animSpeed; //delta=4.86
-			turn lthigh to y-axis <5.849079> speed <153.076646> / animSpeed; //delta=5.10
-			if (leftArm) turn luparm to x-axis <2.317686> speed <194.682700> / animSpeed; //delta=6.49
-			if (leftArm) turn luparm to y-axis <-5.045461> speed <139.465893> / animSpeed; //delta=-4.65
-			turn pelvis to z-axis <3.963673> speed <58.974037> / animSpeed; //delta=-1.97
-			turn pelvis to y-axis <5.026658> speed <67.643372> / animSpeed; //delta=2.25
-			turn rfoot to x-axis <-0.546122> speed <994.852480> / animSpeed; //delta=-33.16
-			turn rleg to x-axis <21.731893> speed <1030.059292> / animSpeed; //delta=34.34
-			if (rightArm) turn rloarm to x-axis <-39.457405> speed <119.055627> / animSpeed; //delta=-3.97
-			turn rthigh to x-axis <-48.555555> speed <195.760223> / animSpeed; //delta=-6.53
-			turn rthigh to z-axis <-12.921380> speed <65.222706> / animSpeed; //delta=2.17
-			turn rthigh to y-axis <-18.341445> speed <67.694124> / animSpeed; //delta=-2.26
-			if (rightArm) turn ruparm to x-axis <27.520808> speed <158.594175> / animSpeed; //delta=-5.29
-			if (rightArm) turn ruparm to y-axis <-1.893975> speed <32.446164> / animSpeed; //delta=-1.08
-			turn aimy1 to x-axis <-3.674753> speed <18.402335> / animSpeed; //delta=-0.61
-			turn aimy1 to z-axis <-4.074748> speed <60.626684> / animSpeed; //delta=2.02
-			turn aimy1 to y-axis <-13.926961> speed <181.425790> / animSpeed; //delta=-6.05
+		if (isMoving) { //Frame:32
+			turn head to x-axis <2.453531> speed <93.056702> / animSpeed; 
+			turn head to y-axis <-1.380611> speed <105.965965> / animSpeed; 
+			turn lfoot to x-axis <-26.052894> speed <439.854390> / animSpeed; 
+			turn lleg to x-axis <36.927520> speed <208.849085> / animSpeed; 
+			turn lthigh to x-axis <-18.222489> speed <645.881072> / animSpeed; 
+			turn ltoes to x-axis <11.473325> speed <335.480262> / animSpeed; 
+			turn ltoes to y-axis <1.351565> speed <103.814160> / animSpeed; 
+			move pelvis to z-axis [-0.198653] speed [9.119700] / animSpeed; 
+			turn pelvis to x-axis <1.349203> speed <41.693303> / animSpeed; 
+			turn pelvis to y-axis <-1.380611> speed <105.966006> / animSpeed; 
+			turn rfoot to x-axis <6.662834> speed <365.148701> / animSpeed; 
+			turn rleg to x-axis <0.689214> speed <256.991323> / animSpeed; 
+			turn rthigh to x-axis <15.046888> speed <417.781790> / animSpeed; 
+			turn rthigh to z-axis <0.270744> speed <9.429183> / animSpeed; 
+			turn rtoes to x-axis <-22.245631> speed <535.132353> / animSpeed; 
+			turn rtoes to y-axis <1.304701> speed <103.508742> / animSpeed; 
+			turn torso to y-axis <2.761236> speed <211.931833> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-4.348958> speed <105.965907> / animSpeed; 
+				turn larm to x-axis <21.330599> speed <317.898041> / animSpeed; 
+				turn lhand to x-axis <24.284806> speed <268.173120> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <7.110197> speed <105.965869> / animSpeed; 
+				turn rarm to x-axis <13.046872> speed <317.897836> / animSpeed; 
+				turn rhand to x-axis <33.010946> speed <268.173069> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
-			if (leftArm) turn biggun to x-axis <-56.389444> speed <34.090567> / animSpeed; //delta=1.14
-			turn head to x-axis <0.023005> speed <47.585536> / animSpeed; //delta=-1.59
-			turn head to y-axis <7.659692> speed <45.958102> / animSpeed; //delta=1.53
-			turn lfoot to x-axis <-33.511695> speed <363.110120> / animSpeed; //delta=12.10
-			turn lleg to x-axis <32.254462> speed <855.521701> / animSpeed; //delta=-28.52
-			turn lthigh to x-axis <18.565433> speed <174.420577> / animSpeed; //delta=5.81
-			turn lthigh to z-axis <-9.818104> speed <74.906625> / animSpeed; //delta=2.50
-			turn lthigh to y-axis <5.332458> speed <15.498655> / animSpeed; //delta=-0.52
-			if (leftArm) turn luparm to x-axis <-3.274263> speed <167.758466> / animSpeed; //delta=5.59
-			if (leftArm) turn luparm to y-axis <-6.556594> speed <45.333998> / animSpeed; //delta=-1.51
-			move pelvis to y-axis [-2.000000] speed [25.555555] / animSpeed; //delta=-0.85
-			turn pelvis to z-axis <5.000000> speed <31.089813> / animSpeed; //delta=-1.04
-			turn pelvis to y-axis <6.000000> speed <29.200275> / animSpeed; //delta=0.97
-			turn rfoot to x-axis <4.673420> speed <156.586261> / animSpeed; //delta=-5.22
-			turn rleg to x-axis <17.968366> speed <112.905793> / animSpeed; //delta=3.76
-			if (rightArm) turn rloarm to x-axis <-38.000000> speed <43.722158> / animSpeed; //delta=-1.46
-			turn rthigh to x-axis <-40.972853> speed <227.481055> / animSpeed; //delta=-7.58
-			turn rthigh to z-axis <-12.483621> speed <13.132763> / animSpeed; //delta=-0.44
-			turn rthigh to y-axis <-18.495587> speed <4.624260> / animSpeed; //delta=-0.15
-			if (rightArm) turn ruparm to x-axis <29.923749> speed <72.088224> / animSpeed; //delta=-2.40
-			if (rightArm) turn ruparm to y-axis <-2.615000> speed <21.630765> / animSpeed; //delta=-0.72
-			turn aimy1 to x-axis <-2.141225> speed <46.005832> / animSpeed; //delta=-1.53
-			turn aimy1 to z-axis <-5.140116> speed <31.961046> / animSpeed; //delta=1.07
-			turn aimy1 to y-axis <-15.758869> speed <54.957239> / animSpeed; //delta=-1.83
+		if (isMoving) { //Frame:36
+			turn head to x-axis <2.164714> speed <8.664507> / animSpeed; 
+			turn head to y-axis <-4.385461> speed <90.145505> / animSpeed; 
+			turn lfoot to x-axis <-25.356647> speed <20.887419> / animSpeed; 
+			turn lleg to x-axis <18.421316> speed <555.186138> / animSpeed; 
+			turn lthigh to x-axis <-21.524892> speed <99.072099> / animSpeed; 
+			turn lthigh to z-axis <-1.134242> speed <31.158732> / animSpeed; 
+			turn lthigh to y-axis <-0.361106> speed <9.683677> / animSpeed; 
+			turn ltoes to x-axis <30.494097> speed <570.623143> / animSpeed; 
+			turn ltoes to y-axis <3.997334> speed <79.373056> / animSpeed; 
+			move pelvis to y-axis [0.302628] speed [34.486542] / animSpeed; 
+			turn pelvis to x-axis <0.874431> speed <14.243157> / animSpeed; 
+			turn pelvis to y-axis <-4.385463> speed <90.145534> / animSpeed; 
+			turn rfoot to x-axis <17.744213> speed <332.441388> / animSpeed; 
+			turn rleg to x-axis <-12.586199> speed <398.262397> / animSpeed; 
+			turn rthigh to x-axis <31.761531> speed <501.439277> / animSpeed; 
+			turn rthigh to z-axis <1.913025> speed <49.268434> / animSpeed; 
+			turn rthigh to y-axis <-0.718322> speed <20.199816> / animSpeed; 
+			turn rtoes to x-axis <-20.891710> speed <40.617632> / animSpeed; 
+			turn rtoes to y-axis <3.846955> speed <76.267602> / animSpeed; 
+			turn torso to y-axis <8.770934> speed <180.290965> / animSpeed;
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-1.344110> speed <90.145428> / animSpeed; 
+				turn larm to x-axis <30.345144> speed <270.436354> / animSpeed; 
+				turn lhand to x-axis <34.890444> speed <318.169131> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <10.115046> speed <90.145460> / animSpeed; 
+				turn rarm to x-axis <4.032324> speed <270.436444> / animSpeed; 
+				turn rhand to x-axis <22.405309> speed <318.169131> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
-			if (leftArm) turn biggun to x-axis <-55.431951> speed <28.724805> / animSpeed; //delta=-0.96
-			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
-			turn head to y-axis <6.127755> speed <45.958102> / animSpeed; //delta=-1.53
-			turn lfoot to x-axis <-26.332418> speed <215.378302> / animSpeed; //delta=-7.18
-			turn lleg to x-axis <78.044494> speed <1373.700965> / animSpeed; //delta=-45.79
-			turn lleg to z-axis <0.174770> speed <5.001042> / animSpeed; //delta=-0.17
-			turn lleg to y-axis <-0.146625> speed <4.279269> / animSpeed; //delta=-0.14
-			turn lthigh to x-axis <-2.370128> speed <628.066816> / animSpeed; //delta=20.94
-			turn lthigh to z-axis <-5.835163> speed <119.488247> / animSpeed; //delta=-3.98
-			turn lthigh to y-axis <-2.219125> speed <226.547492> / animSpeed; //delta=-7.55
-			if (leftArm) turn luparm to x-axis <-3.054371> speed <6.596772> / animSpeed; //delta=-0.22
-			if (leftArm) turn luparm to y-axis <-6.061839> speed <14.842650> / animSpeed; //delta=0.49
-			move pelvis to y-axis [-2.851852] speed [25.555558] / animSpeed; //delta=-0.85
-			turn pelvis to z-axis <3.933333> speed <31.999991> / animSpeed; //delta=1.07
-			turn pelvis to y-axis <4.992593> speed <30.222230> / animSpeed; //delta=-1.01
-			turn rfoot to x-axis <5.697123> speed <30.711083> / animSpeed; //delta=-1.02
-			turn rleg to x-axis <37.499340> speed <585.929212> / animSpeed; //delta=-19.53
-			if (rightArm) turn rloarm to x-axis <-40.468516> speed <74.055472> / animSpeed; //delta=2.47
-			turn rthigh to x-axis <-47.862042> speed <206.675650> / animSpeed; //delta=6.89
-			turn rthigh to z-axis <-11.534632> speed <28.469671> / animSpeed; //delta=-0.95
-			turn rthigh to y-axis <-17.767171> speed <21.852473> / animSpeed; //delta=0.73
-			if (rightArm) turn ruparm to x-axis <28.884286> speed <31.183878> / animSpeed; //delta=1.04
-			if (rightArm) turn ruparm to y-axis <-1.954060> speed <19.828204> / animSpeed; //delta=0.66
-			turn aimy1 to x-axis <-3.061342> speed <27.603503> / animSpeed; //delta=0.92
-			turn aimy1 to z-axis <-4.043559> speed <32.896722> / animSpeed; //delta=-1.10
-			turn aimy1 to y-axis <-13.926961> speed <54.957239> / animSpeed; //delta=1.83
+		if (isMoving) { //Frame:40
+			turn head to x-axis <-1.115677> speed <98.411717> / animSpeed; 
+			turn head to y-axis <-5.715213> speed <39.892561> / animSpeed; 
+			turn lfoot to x-axis <18.147978> speed <1305.138757> / animSpeed; 
+			turn lleg to x-axis <-34.848633> speed <1598.098446> / animSpeed; 
+			turn lthigh to x-axis <-10.073256> speed <343.549081> / animSpeed; 
+			turn lthigh to z-axis <-1.959705> speed <24.763907> / animSpeed; 
+			turn lthigh to y-axis <0.082452> speed <13.306734> / animSpeed; 
+			turn ltoes to x-axis <33.468603> speed <89.235192> / animSpeed; 
+			turn ltoes to y-axis <5.409778> speed <42.373328> / animSpeed; 
+			move pelvis to z-axis [0.047919] speed [8.520130] / animSpeed; 
+			move pelvis to y-axis [1.024817] speed [21.665668] / animSpeed; 
+			turn pelvis to x-axis <-0.808772> speed <50.496098> / animSpeed; 
+			turn pelvis to y-axis <-5.715216> speed <39.892612> / animSpeed; 
+			turn rfoot to x-axis <24.195930> speed <193.551493> / animSpeed; 
+			turn rleg to x-axis <-3.126730> speed <283.784051> / animSpeed; 
+			turn rthigh to x-axis <34.001382> speed <67.195538> / animSpeed; 
+			turn rthigh to z-axis <3.339380> speed <42.790651> / animSpeed; 
+			turn rthigh to y-axis <-1.355374> speed <19.111573> / animSpeed; 
+			turn rtoes to x-axis <2.990818> speed <716.475828> / animSpeed; 
+			turn rtoes to y-axis <4.419570> speed <17.178447> / animSpeed; 
+			turn torso to y-axis <11.430442> speed <79.785224> / animSpeed;  
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-0.014359> speed <39.892532> / animSpeed; 
+				turn larm to x-axis <34.334408> speed <119.677926> / animSpeed; 
+				turn lhand to x-axis <43.111655> speed <246.636355> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <11.444795> speed <39.892471> / animSpeed; 
+				turn rarm to x-axis <0.043068> speed <119.677676> / animSpeed; 
+				turn rhand to x-axis <14.184107> speed <246.636048> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:44
-			if (leftArm) turn biggun to x-axis <-53.164273> speed <68.030323> / animSpeed; //delta=-2.27
-			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
-			turn head to y-axis <3.829846> speed <68.937274> / animSpeed; //delta=-2.30
-			turn lfoot to x-axis <-38.582946> speed <367.515848> / animSpeed; //delta=12.25
-			turn lleg to x-axis <104.269176> speed <786.740462> / animSpeed; //delta=-26.22
-			turn lleg to z-axis <-0.034635> speed <6.282160> / animSpeed; //delta=0.21
-			turn lleg to y-axis <0.050427> speed <5.911553> / animSpeed; //delta=0.20
-			turn lthigh to x-axis <-29.086507> speed <801.491385> / animSpeed; //delta=26.72
-			turn lthigh to z-axis <-3.433171> speed <72.059742> / animSpeed; //delta=-2.40
-			turn lthigh to y-axis <1.068465> speed <98.627710> / animSpeed; //delta=3.29
-			if (leftArm) turn luparm to x-axis <-1.515114> speed <46.177713> / animSpeed; //delta=-1.54
-			if (leftArm) turn luparm to y-axis <-4.161596> speed <57.007282> / animSpeed; //delta=1.90
-			turn pelvis to z-axis <2.088889> speed <55.333337> / animSpeed; //delta=1.84
-			turn pelvis to y-axis <2.874074> speed <63.555555> / animSpeed; //delta=-2.12
-			turn rfoot to x-axis <-11.381223> speed <512.350363> / animSpeed; //delta=17.08
-			turn rleg to x-axis <55.770656> speed <548.139483> / animSpeed; //delta=-18.27
-			if (rightArm) turn rloarm to x-axis <-46.314813> speed <175.388910> / animSpeed; //delta=5.85
-			turn rthigh to x-axis <-43.758461> speed <123.107432> / animSpeed; //delta=-4.10
-			turn rthigh to z-axis <-5.082535> speed <193.562904> / animSpeed; //delta=-6.45
-			turn rthigh to y-axis <-9.017982> speed <262.475666> / animSpeed; //delta=8.75
-			if (rightArm) turn ruparm to x-axis <26.384334> speed <74.998551> / animSpeed; //delta=2.50
-			if (rightArm) turn ruparm to y-axis <-0.722308> speed <36.952569> / animSpeed; //delta=1.23
-			turn aimy1 to x-axis <-3.981459> speed <27.603503> / animSpeed; //delta=0.92
-			turn aimy1 to z-axis <-2.147426> speed <56.883980> / animSpeed; //delta=-1.90
-			turn aimy1 to y-axis <-7.879434> speed <181.425790> / animSpeed; //delta=6.05
-		sleep ((33*animSpeed) -1);
-		}
-		if (bMoving) { //Frame:48
-			if (leftArm) turn biggun to x-axis <-50.493628> speed <80.119348> / animSpeed; //delta=-2.67
-			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
-			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=-3.83
-			turn lfoot to x-axis <-44.880435> speed <188.924672> / animSpeed; //delta=6.30
-			turn lleg to x-axis <90.690391> speed <407.363547> / animSpeed; //delta=13.58
-			turn lleg to z-axis <-1.028354> speed <29.811568> / animSpeed; //delta=0.99
-			turn lleg to y-axis <1.046484> speed <29.881704> / animSpeed; //delta=1.00
-			turn lthigh to x-axis <-43.881824> speed <443.859502> / animSpeed; //delta=14.80
-			turn lthigh to z-axis <2.753780> speed <185.608529> / animSpeed; //delta=-6.19
-			turn lthigh to y-axis <9.180887> speed <243.372656> / animSpeed; //delta=8.11
-			if (leftArm) turn luparm to x-axis <2.662867> speed <125.339441> / animSpeed; //delta=-4.18
-			if (leftArm) turn luparm to y-axis <-1.793232> speed <71.050921> / animSpeed; //delta=2.37
-			move pelvis to y-axis [-2.000000] speed [25.555551] / animSpeed; //delta=0.85
-			turn pelvis to z-axis <-0.000000> speed <62.666668> / animSpeed; //delta=2.09
-			turn pelvis to y-axis <0.000000> speed <86.222221> / animSpeed; //delta=-2.87
-			turn rfoot to x-axis <-23.519080> speed <364.135724> / animSpeed; //delta=12.14
-			turn rleg to x-axis <46.484300> speed <278.590678> / animSpeed; //delta=9.29
-			if (rightArm) turn rloarm to x-axis <-53.199999> speed <206.555576> / animSpeed; //delta=6.89
-			turn rthigh to x-axis <-23.439316> speed <609.574354> / animSpeed; //delta=-20.32
-			turn rthigh to z-axis <-0.344027> speed <142.155249> / animSpeed; //delta=-4.74
-			turn rthigh to y-axis <-1.531381> speed <224.598052> / animSpeed; //delta=7.49
-			if (rightArm) turn ruparm to x-axis <23.351554> speed <90.983396> / animSpeed; //delta=3.03
-			if (rightArm) turn ruparm to y-axis <0.479402> speed <36.051284> / animSpeed; //delta=1.20
-			turn aimy1 to x-axis <-4.594870> speed <18.402335> / animSpeed; //delta=0.61
-			turn aimy1 to z-axis <-0.000000> speed <64.422792> / animSpeed; //delta=-2.15
-			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=7.88
-		sleep ((33*animSpeed) -1);
-		}
-		if (bMoving) { //Frame:52
-			if (leftArm) turn biggun to x-axis <-48.215180> speed <68.353460> / animSpeed; //delta=-2.28
-			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
-			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
-			turn lfoot to x-axis <-33.266887> speed <348.406447> / animSpeed; //delta=-11.61
-			turn lleg to x-axis <55.932201> speed <1042.745719> / animSpeed; //delta=34.76
-			turn lleg to z-axis <0.028179> speed <31.695983> / animSpeed; //delta=-1.06
-			turn lleg to y-axis <-0.009821> speed <31.689154> / animSpeed; //delta=-1.06
-			turn lthigh to x-axis <-55.237751> speed <340.677815> / animSpeed; //delta=11.36
-			turn lthigh to z-axis <10.085981> speed <219.966025> / animSpeed; //delta=-7.33
-			turn lthigh to y-axis <15.046731> speed <175.975325> / animSpeed; //delta=5.87
-			if (leftArm) turn luparm to x-axis <9.919362> speed <217.694824> / animSpeed; //delta=-7.26
-			if (leftArm) turn luparm to y-axis <0.965138> speed <82.751096> / animSpeed; //delta=2.76
-			move pelvis to y-axis [-1.074074] speed [27.777776] / animSpeed; //delta=0.93
-			turn pelvis to z-axis <-1.666667> speed <49.999997> / animSpeed; //delta=1.67
-			turn pelvis to y-axis <-2.296296> speed <68.888891> / animSpeed; //delta=-2.30
-			turn rfoot to x-axis <-24.788553> speed <38.084179> / animSpeed; //delta=1.27
-			turn rleg to x-axis <21.945633> speed <736.160009> / animSpeed; //delta=24.54
-			if (rightArm) turn rloarm to x-axis <-56.129627> speed <87.888859> / animSpeed; //delta=2.93
-			turn rthigh to x-axis <3.073465> speed <795.383403> / animSpeed; //delta=-26.51
-			turn rthigh to z-axis <1.955836> speed <68.995906> / animSpeed; //delta=-2.30
-			turn rthigh to y-axis <-0.370374> speed <34.830198> / animSpeed; //delta=1.16
-			if (rightArm) turn ruparm to x-axis <21.424041> speed <57.825406> / animSpeed; //delta=1.93
-			if (rightArm) turn ruparm to y-axis <1.762963> speed <38.506840> / animSpeed; //delta=1.28
-			turn aimy1 to x-axis <-4.288164> speed <9.201174> / animSpeed; //delta=-0.31
-			turn aimy1 to z-axis <1.713372> speed <51.401158> / animSpeed; //delta=-1.71
-			turn aimy1 to y-axis <7.879434> speed <236.383029> / animSpeed; //delta=7.88
+		if (isMoving) { //Frame:44
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from ltoes;
+			}
+			turn head to x-axis <-2.854240> speed <52.156895> / animSpeed; 
+			turn head to y-axis <-4.861931> speed <25.598456> / animSpeed; 
+			turn lfoot to x-axis <-2.982684> speed <633.919869> / animSpeed; 
+			turn lleg to x-axis <-6.222979> speed <858.769597> / animSpeed; 
+			turn lthigh to x-axis <-4.900900> speed <155.170688> / animSpeed; 
+			turn lthigh to z-axis <-0.714529> speed <37.355276> / animSpeed; 
+			turn ltoes to x-axis <16.515266> speed <368.479161> / animSpeed; 
+			turn ltoes to y-axis <4.834730> speed <17.251444> / animSpeed; 
+			move pelvis to z-axis [0.258101] speed [6.305444] / animSpeed; 
+			move pelvis to y-axis [0.320454] speed [21.130886] / animSpeed; 
+			turn pelvis to x-axis <-1.374276> speed <16.965097> / animSpeed; 
+			turn pelvis to y-axis <-4.861933> speed <25.598495> / animSpeed; 
+			turn rfoot to x-axis <13.326826> speed <326.073111> / animSpeed; 
+			turn rleg to x-axis <32.535825> speed <1069.876652> / animSpeed; 
+			turn rthigh to x-axis <18.894911> speed <453.194133> / animSpeed; 
+			turn rthigh to z-axis <1.355524> speed <59.515702> / animSpeed; 
+			turn rthigh to y-axis <-0.131184> speed <36.725724> / animSpeed; 
+			turn rtoes to x-axis <-1.367115> speed <130.737988> / animSpeed; 
+			turn rtoes to y-axis <4.216282> speed <6.098620> / animSpeed; 
+			turn torso to y-axis <9.723882> speed <51.196784> / animSpeed; 
+			
+			// Prevent animation if arm is in use
+			if (leftArm == 1)
+			{
+				turn lshoulder to y-axis <-0.867639> speed <25.598393> / animSpeed; 
+				turn larm to x-axis <31.774556> speed <76.795573> / animSpeed; 
+				turn lhand to x-axis <45.808187> speed <80.895941> / animSpeed; 
+			}
+			if (rightArm == 1)
+			{
+				turn rshoulder to y-axis <10.591519> speed <25.598277> / animSpeed; 
+				turn rarm to x-axis <2.602912> speed <76.795317> / animSpeed; 
+				turn rhand to x-axis <11.487578> speed <80.895864> / animSpeed; 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from MotionControl()!
-StopWalking() {
-	move pelvis to y-axis [-1.000000] speed [6.944444];
-	if (leftArm) turn biggun to x-axis <-52.006372> speed <28.433941>;
-	turn head to x-axis <-1.298815> speed <11.896390>;
-	turn head to y-axis <0.000000> speed <28.723844>;
-	turn lfoot to x-axis <2.870126> speed <274.263975>;
-	turn lleg to x-axis <22.425678> speed <349.693872>;
-	turn lleg to y-axis <0.000000> speed <7.922289>;
-	turn lleg to z-axis <0.000000> speed <7.923996>;
-	turn lthigh to x-axis <-21.115098> speed <255.919901>;
-	turn lthigh to y-axis <11.110453> speed <66.749106>;
-	turn lthigh to z-axis <-10.103126> speed <151.418301>;
-	if (leftArm) turn luparm to x-axis <19.231610> speed <69.841862>;
-	if (leftArm) turn luparm to y-axis <7.211138> speed <46.845002>;
-	if (leftArm) turn luparm to z-axis <-16.200000> speed <28.500010>;
-	turn pelvis to y-axis <0.000000> speed <21.666665>;
-	turn pelvis to z-axis <0.000000> speed <18.055557>;
-	turn rfoot to x-axis <0.415283> speed <248.713120>;
-	turn rleg to x-axis <25.768060> speed <346.011740>;
-	turn rleg to y-axis <0.000000> speed <6.521982>;
-	turn rleg to z-axis <0.000000> speed <6.524652>;
-	if (rightArm) turn rloarm to x-axis <-53.199995> speed <51.638894>;
-	turn rthigh to x-axis <-21.950628> speed <255.149679>;
-	turn rthigh to y-axis <-11.905752> speed <66.515336>;
-	turn rthigh to z-axis <9.396449> speed <151.125663>;
-	if (rightArm) turn ruparm to x-axis <24.693159> speed <39.648544>;
-	if (rightArm) turn ruparm to y-axis <0.000000> speed <31.089853>;
-	if (rightArm) turn ruparm to z-axis <12.399998> speed <-7.153845>;
-	turn aimy1 to x-axis <-2.263907> speed <15.181924>;
-	turn aimy1 to y-axis <0.000000> speed <59.095757>;
-	turn aimy1 to z-axis <0.000000> speed <18.561539>;
-}
+
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -429,64 +438,80 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed;
+		animSpeed = (maxSpeed * 6) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
+		if ((isMoving == FALSE) && (isAiming == FALSE) && (isBuilding == FALSE))
+		{
+			idleTime = idleTime + 200;
+		}
+		else
+		{
+			idleTime = 0;
+			isDancing = FALSE;
+		}
+		//get PRINT (idleTime);
+		if (idleTime > 600000) 
+		{
+			if (isDancing == FALSE)
+			{
+				start-script Dance();
+			}
+			isDancing = TRUE;
+  	
+			idleTime = 0;
+		}
 	}
 }
-StartMoving(){
-  signal SIG_WALK;
-  set-signal-mask SIG_WALK;
-	bMoving=TRUE;
-	start-script Walk();
-	start-script UnitSpeed();
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
+	
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn lthigh to y-axis <0> speed <600>; 
+	turn rthigh to y-axis <0> speed <600>; 
+	
+	if (isDancing)
+	{
+		call-script StopDance();
+	}
+	start-script walk();
 }
+
 StopMoving(){
-	signal SIG_WALK;
-	bMoving = FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
-
-
-AmIBored() {
-	//--[[Spring.Echo("isAiming: " , isAiming, "isBuilding: " , isBuilding, "isAiming == false and isBuilding == false", isAiming == false and isBuilding == false)]]--
-	//return isAiming == false and isBuilding == false and isMoving == false
-	if (isAiming == 0){
-		if (isBuilding == 0 ){
-			if (bMoving == 0){
-				return (1);
-			}
-		}
-	}
-	return (0);
-}
-
-
-
 //--------------------------------------------------------
-//--start ups :)
+//Create
 //--------------------------------------------------------
 
 Create(){
 
 	hide nano;
-	hide laserflare;
-	hide aimx2;
-	hide lflare;
-	hide aimx1;
+	hide aimxr;
+	hide flaredgun;
+	hide aimxl;
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
-	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
-	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
-	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
-	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
-	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
+	
+	spin aaturret around y-axis speed <33>; 
+	spin packdecor around y-axis speed <-100>;
+	turn tankpivot to x-axis <-5> now;
+	
 	animSpeed = 4;
-	bMoving = 0;
+	isMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
 	isAimingDgun = 0;
@@ -494,7 +519,15 @@ Create(){
 	buildPitch = 0;
 	leftArm = 1;
 	rightArm = 1;
+	torsoRot = 0;
+	isDancing = FALSE;
+	idleTime = 0;
+	shotcount = 0;
+	
+	start-script UnitSpeed();
 	call-script StopWalking();
+	call-script StopDance();
+	call-script RestoreAfterDelay();
 }
 
 QueryNanoPiece(piecenum)
@@ -503,39 +536,104 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep 2000;
+	if (!isBuilding)
+	{
+		start-script ExecuteRestoreAfterDelay();
+	}
+}
 
-RestoreAfterDelay(){
-	set-signal-mask SIG_AIM;
-	sleep 1000;
-	turn torso to  y-axis <0> speed <105.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
-	
-	turn biggun to  x-axis <-38> speed <95.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <95.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <-38> speed <95.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <95.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
 	
 	isAiming = 0;
 	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
+	torsoRot = 0;
+	
+	turn aimy1 to  y-axis <0> speed <100.0>; 
+	spin aaturret around y-axis speed <33>; 
+	turn aabarrel to  x-axis <-30> speed <100.0>;
+	
+	turn larm to x-axis <15> speed <95.0000>; 
+	turn rarm to x-axis <15> speed <95.0000>; 
+	turn lhand to x-axis <30> speed <95.0000>; 
+	turn rhand to x-axis <30> speed <95.0000>; 
+	
+	turn lshoulder to y-axis <10> speed <95.0000>; 
+	turn rshoulder to y-axis <-10> speed <95.0000>; 
 }
 
-
-ResumeBuilding()
-{
-	sleep 800;
-	if( isBuilding AND ( !isAiming ) )
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	
+	turn lthigh to x-axis <0> speed <1000.0> / animSpeed;
+	turn rthigh to x-axis <0> speed <1000.0> / animSpeed;
+	turn rthigh to y-axis <-15> speed <1000.0> / animSpeed;
+	turn lthigh to y-axis <15> speed <1000.0> / animSpeed;
+	turn rthigh to z-axis <5> speed <500.0> / animSpeed;
+	turn lthigh to z-axis <-5> speed <500.0> / animSpeed;
+	
+	turn lleg to x-axis <0> speed <2000.0> / animSpeed;
+	turn rleg to x-axis <0> speed <2000.0> / animSpeed;
+	
+	turn lfoot to x-axis <0> speed <1000.0> / animSpeed;
+	turn rfoot to x-axis <0> speed <1000.0> / animSpeed;
+	
+	turn ltoes to x-axis <0> speed <2000.0> / animSpeed;
+	turn rtoes to x-axis <0> speed <2000.0> / animSpeed;
+	turn ltoes to y-axis <0> speed <1000.0> / animSpeed;
+	turn rtoes to y-axis <0> speed <1000.0> / animSpeed;
+	turn ltoes to z-axis <5> speed <200.0> / animSpeed;
+	turn rtoes to z-axis <-5> speed <200.0> / animSpeed;
+	
+	turn pelvis to x-axis <0> speed <1000.0> / animSpeed;
+	turn pelvis to y-axis <0> speed <1000.0> / animSpeed;
+	move pelvis to y-axis [0] speed [100.0] / animSpeed;
+	move pelvis to z-axis [0] speed [100.0] / animSpeed;
+	
+	turn torso to y-axis <0> speed <1000.0> / animSpeed;
+	
+	turn head to x-axis <0> speed <200.0> / animSpeed;
+	turn head to y-axis <0> speed <200.0> / animSpeed;
+	
+	// Prevent animation if arm is in use
+	if (leftArm == 1)
 	{
-		turn torso to y-axis buildHeading speed <150.000000>;
-		turn luparm to x-axis <-55.000000> - buildPitch speed <45.000000>;
+		turn lshoulder to y-axis <10> speed <1000.0> / animSpeed;
+		turn lshoulder to z-axis <-5> speed <1000.0> / animSpeed;
+		turn larm to x-axis <15> speed <803.0> / animSpeed;
+		turn lhand to x-axis <30> speed <802.0> / animSpeed;
 	}
-	return (0);
+	if (rightArm == 1)
+	{
+		turn rshoulder to y-axis <-10> speed <1000.0> / animSpeed;
+		turn rshoulder to z-axis <5> speed <1000.0> / animSpeed;
+		turn rarm to x-axis <15> speed <803.0> / animSpeed;
+		turn rhand to x-axis <30> speed <802.0> / animSpeed;
+	}
 }
 
 
 //-----------------------------------------------------------------------
-//--gun functions;
+//--gun functions
 //-----------------------------------------------------------------------
 
 SweetSpot(piecenum)
@@ -543,142 +641,141 @@ SweetSpot(piecenum)
 	piecenum = torso;
 	return (0);
 }
-/////////// pew pew laser
-QueryPrimary(piecenum) //pew laser
+
+/////////// PRIMARY WEAPON
+QueryWeapon1(piecenum)
 {
-	piecenum = laserflare;
+	piecenum = flare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
-	piecenum = ruparm;
+	piecenum = lhand;
 	return (0);
 }
 
-AimPrimary(heading, pitch) //pew pew
+AimWeapon1(heading, pitch) //pew pew
 {
 	if (isAimingDgun){
 		return (0);
 	}
-	rightarm = 0;
-	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
-	wait-for-turn torso around y-axis;
-	//wait-for-turn rloarm around x-axis;
-	//wait-for-turn ruparm around x-axis;
-	isAiming = 1;
-	if( isBuilding == 1 )
+	leftarm = 0;
+	
+	if (isDancing)
 	{
-		start-script ResumeBuilding();
+		call-script StopDance();
 	}
+	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	
+	torsoRot = heading;
+	
+	turn aimy1 to y-axis heading speed <300.0000>;
+	
+	turn lshoulder to y-axis <0.0> speed <300.0>;
+	turn larm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn lhand to x-axis 0-(pitch/2) speed <390.0000>;
+	
+	isAiming = 1;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+FireWeapon1()
 {
 	sleep 100;
+	
+	++shotcount;
+	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
 	return (0);
 }
 
-/////////// uw weapon
-
-QuerySecondary(piecenum) //uw weapon
+/////////// Underwater Torpedo
+QueryWeapon2(piecenum)
 {
-	piecenum = laserflare;
+	piecenum = misflare;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(piecenum)
 {
-	piecenum = laserflare;
+	piecenum = aabarrel;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	if( get PIECE_Y(head) > 0 )
-	{
-		return (0);
-	}
-	if( isAimingDgun == 1 )
-	{
-		return (0);
-	}
-	if (isAimingDgun){
-		return (0);
-	}
-	rightarm = 0;
-	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
-	wait-for-turn torso around y-axis;
-	//wait-for-turn rloarm around x-axis;
-	//wait-for-turn ruparm around x-axis;
-	isAiming = 1;
-	if( isBuilding == 1 )
-	{
-		start-script ResumeBuilding();
-	}
-	start-script RestoreAfterDelay();
+	//get PRINT(get GROUND_WATER_HEIGHT(get UNIT_XZ));
+	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000 )
+    {
+     return (0);
+    }	
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn aaturret to y-axis heading - torsoRot speed <250.0>;
+	turn aabarrel to x-axis <0> - pitch speed <200.0>;
+	wait-for-turn aaturret around y-axis;
+	wait-for-turn aabarrel around x-axis;
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
-	sleep 100;
 	return (0);
 }
 
-QueryTertiary(piecenum) //dgun
+/////////// D-Gun
+QueryWeapon3(piecenum)
 {
-	piecenum = lflare;
+	piecenum = flaredgun;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(piecenum)
 {
-	piecenum = biggun;
+	piecenum = rhand;
 	return (0);
 }
 
-FireTertiary()
+FireWeapon3()
 {
-	//emit-sfx 1024 + 0 from lflare;
+	emit-sfx 1024 + 1 from flaredgun;
 	isAimingDgun = 0;
-	turn luparm to x-axis <20> now;
-	turn biggun to x-axis <-100> now;
-	move barrel to y-axis [-1.5] now;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
-	turn luparm to x-axis <5> speed <100>;
-	turn biggun to x-axis <-85> speed <100>;
-	move barrel to y-axis [0] speed [5];
+	move barreldgun to z-axis [-5] now;
 	
-	//call-script bigfire();
+	move barreldgun to z-axis [0] speed [10];
+	
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAimingDgun = 1;
 	isAiming = 1;
-	leftArm = 0;
-	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn biggun to  x-axis <-85> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
-	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
-	wait-for-turn torso around y-axis;
-	//wait-for-turn biggun around x-axis;
+	rightArm = 0;
+	
+	turn aimy1 to y-axis heading speed <360.0000> ;
+	torsoRot = heading;
+	turn rshoulder to y-axis <0.0> speed <300.0>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	
+	wait-for-turn aimy1 around y-axis;
+	
 	return (1);
 }
 
@@ -690,67 +787,47 @@ QueryWeapon4(piecenum) //ferret
 
 AimFromWeapon4(piecenum)
 {
-	piecenum = turretmis;
+	piecenum = aabarrel;
 	return (0);
 }
 
 FireWeapon4()
 {
-	emit-sfx 1024 + 2 from misflare;
 	return (0);
 }
 
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn turretmis to y-axis heading speed <250.000000>;
-	turn misbox to x-axis <0> - pitch speed <200.000000>;
-	wait-for-turn turretmis around y-axis;
-	wait-for-turn misbox around x-axis;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn aaturret to y-axis heading - torsoRot speed <250.0>;
+	turn aabarrel to x-axis <0> - pitch speed <200.0>;
+	wait-for-turn aaturret around y-axis;
+	wait-for-turn aabarrel around x-axis;
 	return (1);
-}
-
-SprayNano(heading, pitch){
-	set-signal-mask SIG_AIM;
-	sleep 1000;
-	while (1){
-	
-		turn torso to y-axis <10> + buildHeading speed <10>;
-		sleep 2000;
-		turn torso to y-axis <-10> + buildHeading speed <10>;		
-		sleep 2000;
-	}
-
 }
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
-	isBuilding		= 1;
+	signal SIGNAL_BUILD;
+	isBuilding = 1;
+	show nano;
 	rightArm = 0;
-	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
-	//turn pelvis to  x-axis <0> speed <395.0000> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-40> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-55> -pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+	
+	turn aimy1 to y-axis heading + <10> speed <360.0000>;
+	torsoRot = heading;
+	turn rshoulder to y-axis <0.0> speed <300.0>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	wait-for-turn aimy1 around y-axis;
 
-	wait-for-turn ruparm around x-axis;
 	set INBUILDSTANCE to 1;
-	buildHeading = heading;
-	buildPitch = pitch;
-	start-script SprayNano(heading,pitch);
-	return (0);
 }
-
-
-
 
 TargetCleared(Func_Var_1)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }
@@ -760,11 +837,401 @@ StopBuilding()
 {
 	rightArm = 1;
 	isBuilding = 0;
+	hide nano;
 	set INBUILDSTANCE to 0;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	call-script RestoreAfterDelay();
 	return (0);
+}
+
+Dance() {
+	isDancing = TRUE;
+	while(isDancing)
+	{
+		if (isDancing) { //Frame:3
+			turn head to y-axis <-7.960510> speed <100.702535> ; 
+			turn larm to x-axis <10.271692> speed <65.232584> ; 
+			turn larm to y-axis <-11.818007> speed <50.324748> ; 
+			turn lfoot to x-axis <-2.080821> speed <38.163059> ; 
+			turn lhand to x-axis <-6.097879> speed <54.360485> ; 
+			turn lleg to x-axis <-6.855908> speed <26.448405> ; 
+			turn lshoulder to z-axis <12.272818> speed <66.977445> ; 
+			turn lshoulder to y-axis <-4.704508> speed <135.358811> ; 
+			turn lthigh to x-axis <-13.994852> speed <22.391486> ; 
+			turn lthigh to z-axis <-10.042659> speed <5.756791> ; 
+			turn lthigh to y-axis <-0.337761> speed <3.366566> ; 
+			turn ltoes to x-axis <23.330881> speed <32.420193> ; 
+			turn ltoes to z-axis <7.408542> speed <13.595048> ; 
+			turn ltoes to y-axis <4.627256> speed <15.116201> ; 
+			move pelvis to x-axis [-1.156984] speed [5.893421] ; 
+			move pelvis to z-axis [-1.324358] speed [8.716393] ; 
+			move pelvis to y-axis [-1.245653] speed [6.568012] ; 
+			turn pelvis to x-axis <0.530085> speed <2.322898> ; 
+			turn pelvis to y-axis <-6.552694> speed <10.872099> ; 
+			turn rarm to x-axis <10.271687> speed <65.232601> ; 
+			turn rarm to y-axis <12.223719> speed <50.324706> ; 
+			turn rfoot to x-axis <-0.712568> speed <46.195442> ; 
+			turn rhand to x-axis <-6.097875> speed <54.360481> ; 
+			turn rleg to x-axis <5.661143> speed <38.964034> ; 
+			turn rshoulder to y-axis <27.043519> speed <110.103332> ; 
+			turn rthigh to x-axis <1.396329> speed <33.352749> ; 
+			turn rthigh to z-axis <15.578900> speed <16.114073> ; 
+			turn rthigh to y-axis <-0.407883> speed <3.703099> ; 
+			turn rtoes to x-axis <-8.595418> speed <35.016365> ; 
+			turn rtoes to z-axis <-14.988468> speed <16.834914> ; 
+			turn rtoes to y-axis <6.343097> speed <13.472343> ; 
+			turn torso to y-axis <13.248833> speed <100.466179> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:6
+			turn head to y-axis <-15.180285> speed <72.197746> ; 
+			turn larm to x-axis <-6.806092> speed <170.777841> ; 
+			turn larm to y-axis <-7.382540> speed <44.354668> ; 
+			turn lfoot to x-axis <3.220865> speed <53.016859> ; 
+			turn lhand to x-axis <8.133604> speed <142.314829> ; 
+			turn lleg to x-axis <-16.633850> speed <97.779417> ; 
+			turn lshoulder to z-axis <18.697957> speed <64.251393> ; 
+			turn lshoulder to y-axis <7.792649> speed <124.971570> ; 
+			turn lthigh to x-axis <-9.374817> speed <46.200347> ; 
+			turn lthigh to y-axis <-0.064745> speed <2.730160> ; 
+			turn ltoes to x-axis <22.986073> speed <3.448084> ; 
+			turn ltoes to z-axis <6.584646> speed <8.238963> ; 
+			turn ltoes to y-axis <8.525027> speed <38.977712> ; 
+			move pelvis to z-axis [-1.563801] speed [2.394428] ; 
+			move pelvis to y-axis [0.065969] speed [13.116226] ; 
+			turn pelvis to x-axis <1.138215> speed <6.081295> ; 
+			turn pelvis to y-axis <-9.398991> speed <28.462965> ; 
+			turn rarm to x-axis <-6.806095> speed <170.777820> ; 
+			turn rarm to y-axis <7.788260> speed <44.354591> ; 
+			turn rfoot to x-axis <2.967427> speed <36.799947> ; 
+			turn rhand to x-axis <8.133608> speed <142.314825> ; 
+			turn rleg to x-axis <-5.811955> speed <114.730986> ; 
+			turn rshoulder to y-axis <31.374286> speed <43.307668> ; 
+			turn rthigh to x-axis <4.548722> speed <31.523927> ; 
+			turn rthigh to z-axis <15.420294> speed <1.586055> ; 
+			turn rthigh to y-axis <0.198095> speed <6.059780> ; 
+			turn rtoes to x-axis <-5.007481> speed <35.879376> ; 
+			turn rtoes to z-axis <-14.705399> speed <2.830687> ; 
+			turn rtoes to y-axis <7.468759> speed <11.256617> ; 
+			turn torso to y-axis <22.886540> speed <96.377068> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:9
+			turn head to y-axis <-16.493780> speed <13.134949> ; 
+			turn larm to x-axis <-27.876662> speed <210.705701> ; 
+			turn larm to y-axis <-10.791010> speed <34.084702> ; 
+			turn lfoot to x-axis <13.557890> speed <103.370245> ; 
+			turn lhand to x-axis <25.692416> speed <175.588121> ; 
+			turn lleg to x-axis <-29.376302> speed <127.424521> ; 
+			turn lshoulder to z-axis <22.218267> speed <35.203102> ; 
+			turn lshoulder to y-axis <14.111708> speed <63.190588> ; 
+			turn lthigh to x-axis <-2.276284> speed <70.985330> ; 
+			turn lthigh to z-axis <-11.371053> speed <13.032086> ; 
+			turn lthigh to y-axis <0.343262> speed <4.080067> ; 
+			turn ltoes to x-axis <18.396583> speed <45.894893> ; 
+			turn ltoes to z-axis <7.262503> speed <6.778566> ; 
+			turn ltoes to y-axis <12.887098> speed <43.620704> ; 
+			move pelvis to x-axis [-0.778173] speed [4.674797] ; 
+			move pelvis to z-axis [-1.048986] speed [5.148144] ; 
+			move pelvis to y-axis [1.567640] speed [15.016708] ; 
+			turn pelvis to x-axis <1.888524> speed <7.503099> ; 
+			turn pelvis to y-axis <-12.910750> speed <35.117588> ; 
+			turn rarm to x-axis <-27.876667> speed <210.705722> ; 
+			turn rarm to y-axis <11.196726> speed <34.084659> ; 
+			turn rfoot to x-axis <9.642473> speed <66.750455> ; 
+			turn rhand to x-axis <25.692416> speed <175.588078> ; 
+			turn rleg to x-axis <-19.683963> speed <138.720079> ; 
+			turn rshoulder to y-axis <27.000966> speed <43.733206> ; 
+			turn rthigh to x-axis <9.412273> speed <48.635515> ; 
+			turn rthigh to z-axis <14.326160> speed <10.941348> ; 
+			turn rthigh to y-axis <0.568005> speed <3.699093> ; 
+			turn rtoes to x-axis <-3.959044> speed <10.484362> ; 
+			turn rtoes to z-axis <-13.428866> speed <12.765333> ; 
+			turn rtoes to y-axis <9.125345> speed <16.565864> ; 
+			turn torso to y-axis <28.167002> speed <52.804619> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:12
+			turn head to y-axis <-11.396685> speed <50.970953> ; 
+			turn larm to x-axis <-44.850082> speed <169.734197> ; 
+			turn larm to y-axis <-16.410899> speed <56.198890> ; 
+			turn lfoot to x-axis <8.443712> speed <51.141776> ; 
+			turn lhand to x-axis <39.836921> speed <141.445056> ; 
+			turn lleg to x-axis <-24.328145> speed <50.481570> ; 
+			turn lshoulder to z-axis <21.482149> speed <7.361185> ; 
+			turn lshoulder to y-axis <11.826502> speed <22.852063> ; 
+			turn lthigh to x-axis <-0.543895> speed <17.323886> ; 
+			turn lthigh to z-axis <-13.211386> speed <18.403339> ; 
+			turn lthigh to y-axis <-0.035076> speed <3.783379> ; 
+			turn ltoes to x-axis <16.958187> speed <14.383969> ; 
+			turn ltoes to z-axis <8.736862> speed <14.743595> ; 
+			turn ltoes to y-axis <16.517754> speed <36.306562> ; 
+			move pelvis to x-axis [0.065969] speed [8.441429] ; 
+			move pelvis to z-axis [0.022423] speed [10.714092] ; 
+			move pelvis to y-axis [1.174494] speed [3.931465] ; 
+			turn pelvis to x-axis <2.492938> speed <6.044135> ; 
+			turn pelvis to y-axis <-15.739652> speed <28.289021> ; 
+			turn rarm to x-axis <-44.850085> speed <169.734179> ; 
+			turn rarm to y-axis <16.816614> speed <56.198882> ; 
+			turn rfoot to x-axis <5.172748> speed <44.697249> ; 
+			turn rhand to x-axis <39.836921> speed <141.445056> ; 
+			turn rleg to x-axis <-16.468974> speed <32.149888> ; 
+			turn rshoulder to y-axis <15.602684> speed <113.982812> ; 
+			turn rthigh to x-axis <9.685509> speed <2.732357> ; 
+			turn rthigh to z-axis <13.490486> speed <8.356736> ; 
+			turn rthigh to y-axis <0.455339> speed <1.126652> ; 
+			turn rtoes to z-axis <-12.537995> speed <8.908710> ; 
+			turn rtoes to y-axis <11.852276> speed <27.269308> ; 
+			turn torso to y-axis <27.062820> speed <11.041820> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:15
+			turn head to y-axis <-1.846004> speed <95.506802> ; 
+			turn larm to x-axis <-51.209480> speed <63.593979> ; 
+			turn larm to y-axis <-21.868647> speed <54.577480> ; 
+			turn lfoot to x-axis <-3.957946> speed <124.016577> ; 
+			turn lhand to x-axis <45.136438> speed <52.995165> ; 
+			turn lleg to x-axis <-9.545796> speed <147.823488> ; 
+			turn lshoulder to z-axis <16.772223> speed <47.099260> ; 
+			turn lshoulder to y-axis <1.814419> speed <100.120827> ; 
+			turn lthigh to x-axis <-2.085581> speed <15.416853> ; 
+			turn lthigh to z-axis <-15.427782> speed <22.163955> ; 
+			turn lthigh to y-axis <-1.019777> speed <9.847012> ; 
+			turn ltoes to z-axis <10.703978> speed <19.671158> ; 
+			turn ltoes to y-axis <18.118923> speed <16.011688> ; 
+			move pelvis to x-axis [0.962666] speed [8.966961] ; 
+			move pelvis to z-axis [1.239065] speed [12.166424] ; 
+			move pelvis to y-axis [-0.567642] speed [17.421360] ; 
+			turn pelvis to x-axis <2.719393> speed <2.264549> ; 
+			turn pelvis to y-axis <-16.799550> speed <10.598985> ; 
+			turn rarm to x-axis <-51.209494> speed <63.594081> ; 
+			turn rarm to y-axis <22.274360> speed <54.577463> ; 
+			turn rfoot to x-axis <-5.195356> speed <103.681042> ; 
+			turn rhand to x-axis <45.136438> speed <52.995165> ; 
+			turn rleg to x-axis <-2.347631> speed <141.213429> ; 
+			turn rshoulder to y-axis <1.555754> speed <140.469307> ; 
+			turn rthigh to x-axis <7.876204> speed <18.093052> ; 
+			turn rthigh to z-axis <13.307170> speed <1.833163> ; 
+			turn rthigh to y-axis <1.245348> speed <7.900085> ; 
+			turn rtoes to x-axis <-6.159905> speed <21.424190> ; 
+			turn rtoes to z-axis <-11.862345> speed <6.756500> ; 
+			turn rtoes to y-axis <12.692415> speed <8.401389> ; 
+			turn torso to y-axis <19.997932> speed <70.648881> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:18
+			turn head to y-axis <8.491327> speed <103.373314> ; 
+			turn larm to x-axis <-44.513214> speed <66.962662> ; 
+			turn larm to y-axis <-22.732596> speed <8.639489> ; 
+			turn lfoot to x-axis <-7.407681> speed <34.497352> ; 
+			turn lhand to x-axis <39.556204> speed <55.802338> ; 
+			turn lleg to x-axis <-3.184978> speed <63.608184> ; 
+			turn lshoulder to z-axis <9.896841> speed <68.753820> ; 
+			turn lshoulder to y-axis <-12.080454> speed <138.948728> ; 
+			turn lthigh to x-axis <-3.026459> speed <9.408786> ; 
+			turn lthigh to z-axis <-16.132290> speed <7.045084> ; 
+			turn lthigh to y-axis <-1.174602> speed <1.548251> ; 
+			turn ltoes to x-axis <15.337970> speed <15.244333> ; 
+			turn ltoes to z-axis <12.458929> speed <17.549514> ; 
+			turn ltoes to y-axis <16.787987> speed <13.309358> ; 
+			move pelvis to x-axis [1.567640] speed [6.049747] ; 
+			move pelvis to z-axis [2.133820] speed [8.947544] ; 
+			move pelvis to y-axis [-1.240044] speed [6.724014] ; 
+			turn pelvis to x-axis <2.480942> speed <2.384511> ; 
+			turn pelvis to y-axis <-15.683508> speed <11.160427> ; 
+			turn rarm to x-axis <-44.513227> speed <66.962662> ; 
+			turn rarm to y-axis <23.138307> speed <8.639472> ; 
+			turn rfoot to x-axis <-6.535489> speed <13.401322> ; 
+			turn rhand to x-axis <39.556204> speed <55.802338> ; 
+			turn rleg to x-axis <3.246935> speed <55.945668> ; 
+			turn rshoulder to y-axis <-9.746586> speed <113.023397> ; 
+			turn rthigh to x-axis <8.400660> speed <5.244561> ; 
+			turn rthigh to z-axis <12.619965> speed <6.872050> ; 
+			turn rthigh to y-axis <0.926149> speed <3.191986> ; 
+			turn rtoes to x-axis <-10.244501> speed <40.845961> ; 
+			turn rtoes to z-axis <-10.281526> speed <15.808191> ; 
+			turn rtoes to y-axis <12.192034> speed <5.003814> ; 
+			turn torso to y-axis <9.684869> speed <103.130623> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:21
+			turn head to y-axis <15.646340> speed <71.550125> ; 
+			turn larm to x-axis <-27.332281> speed <171.809328> ; 
+			turn larm to y-axis <-22.226020> speed <5.065763> ; 
+			turn lfoot to x-axis <2.104057> speed <95.117381> ; 
+			turn lhand to x-axis <25.238768> speed <143.174357> ; 
+			turn lleg to x-axis <-12.795301> speed <96.103227> ; 
+			turn lshoulder to z-axis <3.495783> speed <64.010580> ; 
+			turn lshoulder to y-axis <-24.523232> speed <124.427784> ; 
+			turn lthigh to x-axis <-0.970500> speed <20.559592> ; 
+			turn lthigh to z-axis <-15.173108> speed <9.591822> ; 
+			turn lthigh to y-axis <-0.037598> speed <11.370048> ; 
+			turn ltoes to x-axis <12.948589> speed <23.893812> ; 
+			turn ltoes to y-axis <13.009597> speed <37.783898> ; 
+			move pelvis to z-axis [2.363148] speed [2.293282] ; 
+			move pelvis to y-axis [0.090830] speed [13.308735] ; 
+			turn pelvis to x-axis <1.869140> speed <6.118020> ; 
+			turn pelvis to y-axis <-12.820018> speed <28.634894> ; 
+			turn rarm to x-axis <-27.332284> speed <171.809430> ; 
+			turn rarm to y-axis <22.631733> speed <5.065746> ; 
+			turn rfoot to x-axis <3.012212> speed <95.477005> ; 
+			turn rhand to x-axis <25.238763> speed <143.174408> ; 
+			turn rleg to x-axis <-5.878031> speed <91.249662> ; 
+			turn rshoulder to y-axis <-13.964853> speed <42.182668> ; 
+			turn rthigh to x-axis <11.916293> speed <35.156333> ; 
+			turn rthigh to z-axis <11.352402> speed <12.675627> ; 
+			turn rthigh to y-axis <0.550568> speed <3.755817> ; 
+			turn rtoes to x-axis <-12.723933> speed <24.794321> ; 
+			turn rtoes to z-axis <-8.729234> speed <15.522920> ; 
+			turn rtoes to y-axis <9.467794> speed <27.242397> ; 
+			turn torso to y-axis <0.083281> speed <96.015887> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:24
+			turn head to y-axis <16.871904> speed <12.255647> ; 
+			turn larm to x-axis <-6.263196> speed <210.690850> ; 
+			turn larm to y-axis <-18.039457> speed <41.865627> ; 
+			turn lfoot to x-axis <13.963967> speed <118.599093> ; 
+			turn lhand to x-axis <7.681191> speed <175.575776> ; 
+			turn lleg to x-axis <-25.357330> speed <125.620293> ; 
+			turn lshoulder to z-axis <0.026688> speed <34.690952> ; 
+			turn lshoulder to y-axis <-30.736599> speed <62.133667> ; 
+			turn lthigh to x-axis <0.656597> speed <16.270969> ; 
+			turn lthigh to z-axis <-13.462021> speed <17.110870> ; 
+			turn lthigh to y-axis <1.008965> speed <10.465622> ; 
+			turn ltoes to x-axis <11.584396> speed <13.641928> ; 
+			turn ltoes to z-axis <11.539888> speed <9.439339> ; 
+			turn ltoes to y-axis <8.702237> speed <43.073598> ; 
+			move pelvis to x-axis [1.174494] speed [4.741192] ; 
+			move pelvis to z-axis [1.838999] speed [5.241489] ; 
+			move pelvis to y-axis [1.577236] speed [14.864063] ; 
+			turn pelvis to x-axis <1.118882> speed <7.502575> ; 
+			turn pelvis to y-axis <-9.308506> speed <35.115121> ; 
+			turn rarm to x-axis <-6.263200> speed <210.690845> ; 
+			turn rarm to y-axis <18.445173> speed <41.865593> ; 
+			turn rfoot to x-axis <13.502418> speed <104.902064> ; 
+			turn rhand to x-axis <7.681192> speed <175.575707> ; 
+			turn rleg to x-axis <-16.968374> speed <110.903429> ; 
+			turn rshoulder to y-axis <-9.479462> speed <44.853912> ; 
+			turn rthigh to x-axis <14.688252> speed <27.719589> ; 
+			turn rthigh to z-axis <10.986959> speed <3.654433> ; 
+			turn rthigh to y-axis <-2.234875> speed <27.854422> ; 
+			turn rtoes to x-axis <-14.061555> speed <13.376225> ; 
+			turn rtoes to y-axis <8.562549> speed <9.052451> ; 
+			turn torso to y-axis <-5.120358> speed <52.036382> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:27
+			turn head to y-axis <11.697478> speed <51.744267> ; 
+			turn larm to x-axis <10.604648> speed <168.678441> ; 
+			turn larm to y-axis <-19.639657> speed <16.002006> ; 
+			turn lfoot to x-axis <12.155563> speed <18.084036> ; 
+			turn lhand to x-axis <-6.375342> speed <140.565327> ; 
+			turn lleg to x-axis <-22.290970> speed <30.663605> ; 
+			turn lshoulder to z-axis <0.821508> speed <7.948208> ; 
+			turn lshoulder to y-axis <-28.334951> speed <24.016482> ; 
+			turn lthigh to x-axis <-3.862588> speed <45.191844> ; 
+			turn lthigh to z-axis <-11.556661> speed <19.053598> ; 
+			turn lthigh to y-axis <0.784121> speed <2.248440> ; 
+			turn ltoes to x-axis <14.396254> speed <28.118583> ; 
+			turn ltoes to z-axis <10.182756> speed <13.571321> ; 
+			turn ltoes to y-axis <5.181797> speed <35.204404> ; 
+			move pelvis to x-axis [0.327320] speed [8.471737] ; 
+			move pelvis to z-axis [0.762621] speed [10.763779] ; 
+			move pelvis to y-axis [1.155502] speed [4.217339] ; 
+			turn pelvis to x-axis <0.518229> speed <6.006532> ; 
+			turn pelvis to y-axis <-6.497202> speed <28.113042> ; 
+			turn rarm to x-axis <10.604646> speed <168.678463> ; 
+			turn rarm to y-axis <20.045374> speed <16.002006> ; 
+			turn rfoot to x-axis <12.483316> speed <10.191018> ; 
+			turn rhand to x-axis <-6.375340> speed <140.565319> ; 
+			turn rleg to x-axis <-12.245091> speed <47.232833> ; 
+			turn rshoulder to y-axis <1.987431> speed <114.668921> ; 
+			turn rthigh to x-axis <11.686445> speed <30.018067> ; 
+			turn rthigh to z-axis <11.716739> speed <7.297801> ; 
+			turn rthigh to y-axis <-1.552456> speed <6.824187> ; 
+			turn rtoes to x-axis <-13.722978> speed <3.385776> ; 
+			turn rtoes to z-axis <-10.582349> speed <18.690019> ; 
+			turn rtoes to y-axis <5.419404> speed <31.431451> ; 
+			turn torso to y-axis <-3.928129> speed <11.922283> ; 
+		sleep 98;
+		}
+		if (isDancing) { //Frame:30
+			turn head to y-axis <2.109743> speed <95.877344> ; 
+			turn larm to x-axis <16.794950> speed <61.903020> ; 
+			turn larm to y-axis <-16.850481> speed <27.891760> ; 
+			turn lfoot to x-axis <1.735485> speed <104.200779> ; 
+			turn lhand to x-axis <-11.533928> speed <51.585857> ; 
+			turn lleg to x-axis <-9.500749> speed <127.902208> ; 
+			turn lshoulder to z-axis <5.575073> speed <47.535648> ; 
+			turn lshoulder to y-axis <-18.240389> speed <100.945620> ; 
+			turn lthigh to x-axis <-11.755703> speed <78.931156> ; 
+			turn lthigh to z-axis <-10.618338> speed <9.383229> ; 
+			turn lthigh to y-axis <-0.001104> speed <7.852249> ; 
+			turn ltoes to x-axis <20.088862> speed <56.926075> ; 
+			turn ltoes to z-axis <8.768047> speed <14.147089> ; 
+			turn ltoes to y-axis <3.115636> speed <20.661610> ; 
+			move pelvis to x-axis [-0.567642] speed [8.949623] ; 
+			move pelvis to z-axis [-0.452719] speed [12.153397] ; 
+			move pelvis to y-axis [-0.588852] speed [17.443542] ; 
+			turn pelvis to x-axis <0.297795> speed <2.204337> ; 
+			turn pelvis to y-axis <-5.465485> speed <10.317176> ; 
+			turn rarm to x-axis <16.794947> speed <61.903003> ; 
+			turn rarm to y-axis <17.256189> speed <27.891846> ; 
+			turn rfoot to x-axis <3.906977> speed <85.763398> ; 
+			turn rhand to x-axis <-11.533923> speed <51.585832> ; 
+			turn rleg to x-axis <1.764740> speed <140.098306> ; 
+			turn rshoulder to y-axis <16.033186> speed <140.457555> ; 
+			turn rthigh to x-axis <4.731604> speed <69.548414> ; 
+			turn rthigh to z-axis <13.967493> speed <22.507539> ; 
+			turn rthigh to y-axis <-0.778193> speed <7.742634> ; 
+			turn rtoes to x-axis <-12.097055> speed <16.259231> ; 
+			turn rtoes to z-axis <-13.304976> speed <27.226270> ; 
+			turn rtoes to y-axis <4.995863> speed <4.235409> ; 
+			turn torso to y-axis <3.202215> speed <71.303444> ; 
+		sleep 98;
+		}
+	}
+}
+
+// Call this when doing literally anything
+StopDance() {
+	move pelvis to x-axis [0] speed [90.651491] / animSpeed;
+	move pelvis to y-axis [0] speed [176.344872] / animSpeed;
+	move pelvis to z-axis [0] speed [122.996175] / animSpeed;
+	turn head to y-axis <0> speed <1045.049188> / animSpeed;
+	turn larm to y-axis <0> speed <568.140855> / animSpeed;
+	turn larm to z-axis <0> speed <568.140855> / animSpeed;
+	turn lfoot to x-axis <0> speed <1216.114499> / animSpeed;
+	turn lleg to x-axis <0> speed <1456.790045> / animSpeed;
+	turn lshoulder to x-axis <0> speed <1404.697505> / animSpeed;
+	turn lshoulder to y-axis <0> speed <1404.697505> / animSpeed;
+	turn lshoulder to z-axis <-5> speed <695.064553> / animSpeed;
+	turn lthigh to x-axis <0> speed <712.169887> / animSpeed;
+	turn lthigh to y-axis <15> speed <1000.0> / animSpeed;
+	turn lthigh to z-axis <-5> speed <500.0> / animSpeed;
+	turn ltoes to x-axis <0> speed <525.788816> / animSpeed;
+	turn ltoes to y-axis <0> speed <435.451325> / animSpeed;
+	turn ltoes to z-axis <5> speed <200.0> / animSpeed;
+	turn pelvis to x-axis <0> speed <710.040394> / animSpeed;
+	turn pelvis to y-axis <0> speed <355.020170> / animSpeed;
+	turn rarm to y-axis <0> speed <568.140599> / animSpeed;
+	turn rarm to z-axis <0> speed <568.140599> / animSpeed;
+	turn rfoot to x-axis <0> speed <1001.940508> / animSpeed;
+	turn rleg to x-axis <0> speed <1517.077820> / animSpeed;
+	turn rshoulder to x-axis <0> speed <1420.069817> / animSpeed;
+	turn rshoulder to y-axis <0> speed <1420.069817> / animSpeed;
+	turn rshoulder to z-axis <5> speed <695.064553> / animSpeed;
+	turn rthigh to x-axis <0> speed <930.073946> / animSpeed;
+	turn rthigh to y-axis <-15> speed <1000.0> / animSpeed;
+	turn rthigh to z-axis <5> speed <500.0> / animSpeed;
+	turn rtoes to x-axis <0> speed <363.227368> / animSpeed;
+	turn rtoes to y-axis <0> speed <415.989342> / animSpeed;
+	turn rtoes to z-axis <-5> speed <200.0> / animSpeed;
+	turn torso to y-axis <0> speed <1042.595763> / animSpeed;
+	isDancing=FALSE;
+	sleep 33;
 }
 
 //-----------------------------------------------------------------------

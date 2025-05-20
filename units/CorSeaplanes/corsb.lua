@@ -98,7 +98,6 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
 				model = "airbombsea.s3o",

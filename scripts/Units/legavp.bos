@@ -1,0 +1,419 @@
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
+
+piece 	base,
+		buildlightLBase, buildlightL, buildlightRBase, buildlightR, buildlightLPoint, buildlightRPoint,
+		cannisterLight, cannisterLight2, cannisterLight3, pipeLight1, pipeLight2, smokePoint,
+		doorA, platformA1, paltformA2,
+		doorB, platformB1, platformB2,
+		doorC, platformC1, platformC2,
+		doorD,
+		gateL1, nanoarmL1, nanoL1,
+		gateL2, nanoarmL2, nanoL2,
+		gateL3, nanoarmL3, nanoL3,
+		gateR1, nanoarmR1, nanoR1,
+		gateR2, nanoarmR2, nanoR2,
+		gateR3, nanoarmR3, nanoR3,
+		sprayL1A, sprayL2A, sprayL3A, sprayR1A, sprayR2A, sprayR3A,
+		sprayL1B, sprayL2B, sprayL3B, sprayR1B, sprayR2B, sprayR3B,
+		pad;
+
+static-var  spray, issmoking;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+SmokeItUp()
+{	while (TRUE) {
+		emit-sfx 258 from smokePoint;
+		sleep 45;
+		emit-sfx 258 from smokePoint;
+		sleep 500;
+	}
+}
+
+Create()
+{
+	hide buildlightLPoint;
+	hide buildlightRPoint;
+	hide cannisterLight;
+	hide cannisterLight2;
+	hide cannisterLight3;
+	hide pipeLight1;
+	hide pipeLight2;
+	hide smokePoint;
+
+	hide sprayL1A;
+	hide sprayL1B;
+	hide sprayL2A;
+	hide sprayL2B;
+	hide sprayL3A;
+	hide sprayL3B;
+	hide sprayR1A;
+	hide sprayR1B;
+	hide sprayR2A;
+	hide sprayR2B;
+	hide sprayR3A;
+	hide sprayR3B;
+
+	issmoking = 0;
+	spray = 0;
+
+	move buildLightL to y-axis [-2] now;
+	move buildLightR to y-axis [-2] now;
+	
+	move gateL1 to y-axis [5] now;
+	move gateL2 to y-axis [5] now;
+	move gateL3 to y-axis [5] now;
+
+	move gateR1 to y-axis [5] now;
+	move gateR2 to y-axis [5] now;
+	move gateR3 to y-axis [5] now;
+
+	move doorA to y-axis [-10] now;
+	move doorB to y-axis [-10] now;
+	move doorC to y-axis [-10] now;
+	move doorD to y-axis [-10] now;
+
+	SLEEP_UNTIL_UNITFINISHED;
+
+	move gateR1 to y-axis [0] speed [2.5];
+	move gateL1 to y-axis [0] speed [2.5];
+	move doorA to y-axis [0] speed [5];
+	sleep 100;
+	move gateR2 to y-axis [0] speed [2.5];
+	move gateL2 to y-axis [0] speed [2.5];
+	move doorB to y-axis [0] speed [5];
+	sleep 100;
+	move gateR3 to y-axis [0] speed [2.5];
+	move gateL3 to y-axis [0] speed [2.5];
+	move doorC to y-axis [0] speed [5];
+	sleep 100;
+	move doorD to y-axis [0] speed [5];
+
+
+
+
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = (spray + 1) % 12;
+	pieceIndex = sprayL1A + spray;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	move gateL1 to y-axis [15] speed [75];
+	move gateL2 to y-axis [15] speed [75];
+	move gateL3 to y-axis [15] speed [75];
+
+	move gateR1 to y-axis [15] speed [75];
+	move gateR2 to y-axis [15] speed [75];
+	move gateR3 to y-axis [15] speed [75];
+
+	wait-for-move gateR3 along y-axis;
+
+	turn gateR1 to z-axis <-70> speed <200>;
+	turn gateL1 to z-axis <70> speed <200>;
+	sleep 50;
+	turn gateR2 to z-axis <-70> speed <200>;
+	turn gateL2 to z-axis <70> speed <200>;
+	sleep 50;
+	turn gateR3 to z-axis <-70> speed <200>;
+	turn gateL3 to z-axis <70> speed <200>;
+
+	sleep 50;
+
+	move doorA to y-axis [-31] speed [130];
+	sleep 50;
+	move doorB to y-axis [-31] speed [130];
+	sleep 50;
+	move doorC to y-axis [-31] speed [130];
+	sleep 50;
+	move doorD to y-axis [-31] speed [130];
+	
+	wait-for-move doorD along y-axis;
+
+	move platformA1 to z-axis [-6] speed [65];
+	move paltformA2 to z-axis [-6] speed [65];
+	sleep 50;
+	move platformB1 to z-axis [-6] speed [65];
+	move platformB2 to z-axis [-6] speed [65];
+	sleep 50;
+	move platformC1 to z-axis [-6] speed [65];
+	move platformC2 to z-axis [-6] speed [65];
+
+	wait-for-turn gateL3 around z-axis;
+
+	move buildLightL to y-axis [0] speed [1];
+	move buildLightR to y-axis [0] speed [1];
+	
+	turn nanoarmR1 to z-axis <60> speed <65>;
+	turn nanoarmL1 to z-axis <-60> speed <65>;
+	sleep 10;
+	turn nanoarmR2 to z-axis <60> speed <65>;
+	turn nanoarmL2 to z-axis <-60> speed <65>;
+	sleep 10;
+	turn nanoarmR3 to z-axis <60> speed <65>;
+	turn nanoarmL3 to z-axis <-60> speed <65>;
+	sleep 50;
+
+	FACTORY_OPEN_BUILD;
+	spin buildLightL around y-axis speed <200> accelerate <2>;
+	spin buildLightR around y-axis speed <200> accelerate <2>;
+
+	show buildlightLPoint;
+	show buildlightRPoint;
+	show cannisterLight;
+	show cannisterLight2;
+	show cannisterLight3;
+	show pipeLight1;
+	show pipeLight2;
+	show sprayL1A;
+	show sprayL2A;
+	show sprayL3A;
+	show sprayR1A;
+	show sprayR2A;
+	show sprayR3A;	
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	sleep 5000;
+	
+	turn nanoarmR3 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL3 to z-axis <0> speed <45>;
+	sleep 25;	
+	turn nanoarmR2 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL2 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmR1 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL1 to z-axis <0> speed <45>;
+	sleep 25;
+	wait-for-turn nanoarmL1 around z-axis;
+
+	move platformC1 to z-axis [0] speed [25];
+	sleep 25;
+	move platformC2 to z-axis [0] speed [25];
+	sleep 25;
+	move platformB1 to z-axis [0] speed [25];
+	sleep 25;
+	move platformB2 to z-axis [0] speed [25];
+	sleep 25;
+	move platformA1 to z-axis [0] speed [25];
+	sleep 25;
+	move paltformA2 to z-axis [0] speed [25];
+	sleep 25;
+	wait-for-move paltformA2 along z-axis;
+
+	move doorD to y-axis [0] speed [40];
+	sleep 50;
+	move doorC to y-axis [0] speed [40];
+	sleep 50;
+	move doorB to y-axis [0] speed [40];
+	sleep 50;
+	move doorA to y-axis [0] speed [40];
+	//wait-for-move doorA along y-axis;
+
+	turn gateR1 to z-axis <0> speed <90>;
+	turn gateL1 to z-axis <0> speed <90>;
+	sleep 25;
+	turn gateR2 to z-axis <0> speed <90>;
+	turn gateL2 to z-axis <0> speed <90>;
+	sleep 25;
+	turn gateR3 to z-axis <0> speed <90>;
+	turn gateL3 to z-axis <0> speed <90>;
+	wait-for-turn gateL3 around z-axis;
+
+	move buildLightL to y-axis [-2] speed [2];
+	move buildLightR to y-axis [-2] speed [2];
+
+	move gateL1 to y-axis [0] speed [15];
+	move gateR1 to y-axis [0] speed [15];
+	sleep 25;
+	move gateL2 to y-axis [0] speed [15];
+	move gateR2 to y-axis [0] speed [15];
+	sleep 25;
+	move gateL3 to y-axis [0] speed [15];
+	move gateR3 to y-axis [0] speed [15];
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		spin buildLightL around y-axis speed <200> accelerate <2>;
+		spin buildLightR around y-axis speed <200> accelerate <2>;
+		turn nanoarmR1 to z-axis <15> speed <20>;
+		sleep 200;
+		turn nanoarmL1 to z-axis <-15> speed <20>;
+		sleep 200;
+		turn nanoarmR2 to z-axis <15> speed <20>;
+		sleep 200;
+		turn nanoarmL2 to z-axis <-15> speed <20>;
+		sleep 200;
+		turn nanoarmR3 to z-axis <15> speed <20>;
+		sleep 200;
+		turn nanoarmL3 to z-axis <-15> speed <20>;
+		wait-for-turn nanoarmR1 around z-axis;
+		turn nanoarmR1 to z-axis <60> speed <20>;
+		sleep 200;
+		turn nanoarmL1 to z-axis <-60> speed <20>;
+		sleep 200;
+		turn nanoarmR2 to z-axis <60> speed <20>;
+		sleep 200;
+		turn nanoarmL2 to z-axis <-60> speed <20>;
+		sleep 200;
+		turn nanoarmR3 to z-axis <60> speed <20>;
+		sleep 200;
+		turn nanoarmL3 to z-axis <-60> speed <20>;
+		wait-for-turn nanoarmR1 around z-axis;
+	}
+}
+
+
+StartBuilding()
+{
+	show buildlightLPoint;
+	show buildlightRPoint;
+	show cannisterLight;
+	show cannisterLight2;
+	show cannisterLight3;
+	show pipeLight1;
+	show pipeLight2;
+	show sprayL1A;
+	show sprayL2A;
+	show sprayL3A;
+	show sprayR1A;
+	show sprayR2A;
+	show sprayR3A;	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	wait-for-turn nanoarmR1 around z-axis;
+	sleep 250;
+	start-script MoveCranes();
+	start-script SmokeItUp();
+}
+
+StopBuilding()
+{
+
+	hide buildlightLPoint;
+	hide buildlightRPoint;
+	hide cannisterLight;
+	hide cannisterLight2;
+	hide cannisterLight3;
+	hide pipeLight1;
+	hide pipeLight2;
+	hide sprayL1A;
+	hide sprayL2A;
+	hide sprayL3A;
+	hide sprayR1A;
+	hide sprayR2A;
+	hide sprayR3A;
+
+	stop-spin buildLightL around y-axis decelerate <2>;
+	stop-spin buildLightR around y-axis decelerate <2>;
+
+	signal SIGNAL_BUILD;
+	
+	/*
+	set BUGGER_OFF to 1; // tell units to get out of here
+	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
+	sleep 500;   // then we wait for 0.5 sec
+	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
+	set BUGGER_OFF to 0; // ok now we dont mind if they are here
+	*/
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorl type FIRE | SMOKE | FALL | BITMAPONLY | NOHEATCLOUD;
+		// explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano3 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		// explode doorr type BITMAPONLY | NOHEATCLOUD;
+		// explode nano5 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano6 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano7 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano8 type BITMAPONLY | NOHEATCLOUD;
+		// explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode nano1 type FALL | NOHEATCLOUD;
+		// explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano7 type FALL | NOHEATCLOUD;
+		// explode nano8 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorl type BITMAPONLY | NOHEATCLOUD;
+		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode doorr type BITMAPONLY | NOHEATCLOUD;
+		// explode nano5 type SMOKE | FALL | NOHEATCLOUD;
+		// explode nano6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano8 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode nano3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode nano4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano8 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

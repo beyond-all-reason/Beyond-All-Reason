@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "EnemySpotter", -- GL4
@@ -19,14 +21,13 @@ local sizeMultiplier = 1.25
 ---- GL4 Backend Stuff----
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 -- Localize for speedups:
 local glDepthTest           = gl.DepthTest
 local glTexture             = gl.Texture
 local GL_POINTS				= GL.POINTS
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local myAllyTeamID = Spring.GetMyAllyTeamID()

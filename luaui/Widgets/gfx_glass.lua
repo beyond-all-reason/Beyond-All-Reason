@@ -2,6 +2,8 @@ if gl.CreateShader == nil or Spring.GetSpectatingState() then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	  = "Stained Glass",
@@ -29,7 +31,7 @@ local glBlending	 = gl.Blending
 -- File path Constants
 -----------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Shader Sources

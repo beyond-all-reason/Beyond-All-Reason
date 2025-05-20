@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Energy Conversion',
@@ -11,16 +13,9 @@ function gadget:GetInfo()
 	}
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-
-----------------------------------------------------------------
--- Config
-----------------------------------------------------------------
 
 -- gather all metalmaker units
 local convertCapacities = {}
@@ -34,7 +29,6 @@ local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
 local mmLevelParamName = 'mmLevel'
 local mmCapacityParamName = 'mmCapacity'
 local mmUseParamName = 'mmUse'
-local mmAvgEfficiencyParamName = 'mmAvgEfficiency'
 local mmAvgEffiParamName = 'mmAvgEffi'
 local function SetMMRulesParams()
 	-- make convertCapacities accessible to all
@@ -54,39 +48,27 @@ local resourceUpdatesPerGameSec = frameRate / resourceRefreshRate
 
 local currentFrameStamp = 0
 
-----------------------------------------------------------------
--- Vars
-----------------------------------------------------------------
 local teamList = {}
 local teamCapacities = {}
-local teamUsages = {}
 local teamMMList = {}
 local teamEfficiencies = {}
 local eSteps = {}
 local teamActiveMM = {}
-local lastPost = {}
 local splitMMPointer = 1
-local splitMMUpdate = -1
-----------------------------------------------------------------
--- Constant
-----------------------------------------------------------------
 
 local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop rate per slowupdate
 
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
+
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
 local spGetTeamResources = Spring.GetTeamResources
-local spUseTeamResource = Spring.UseTeamResource
-local spAddTeamResource = Spring.AddTeamResource
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
-local spAddUnitResource = Spring.AddUnitResource
-local spUseUnitResource = Spring.UseUnitResource
 local spSetUnitResourcing = Spring.SetUnitResourcing
 
 ----------------------------------------------------------------
@@ -118,8 +100,6 @@ local function updateUnitConversion(unitID, amount, e)
 end
 
 local function UpdateMetalMakers(teamID, energyUse)
-	local totalTeamEnergyUse = 0
-
 	for j = 1, #eSteps do
 		for unitID, defs in pairs(teamMMList[teamID][eSteps[j]]) do
 			if defs.built then
@@ -180,14 +160,12 @@ end
 -- EmpedVector Methods
 ----------------------------------------------------------------
 local EmpedVector = { unitBuffer = {} }
---local tableInsert = table.insert
 
 function EmpedVector:push(uID, frameID)
 	if self.unitBuffer[uID] then
 		self.unitBuffer[uID] = frameID
 	else
 		self.unitBuffer[uID] = frameID
-		--tableInsert(self.unitBuffer, uID, frameID)
 		UnitParalysed(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
 	end
 end
@@ -196,7 +174,6 @@ function EmpedVector:process(currentFrame)
 	for uID, frameID in pairs(self.unitBuffer) do
 		if currentFrame >= frameID then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
-
 			self.unitBuffer[uID] = nil
 		end
 	end
@@ -242,7 +219,6 @@ end
 function gadget:Initialize()
 	SetMMRulesParams()
 	BuildeSteps()
-	local i = 1
 	teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local tID = teamList[i]
@@ -251,20 +227,16 @@ function gadget:Initialize()
 		teamEfficiencies[tID]:init(tID)
 		teamMMList[tID] = {}
 		teamActiveMM[tID] = 0
-		lastPost[tID] = 0
 		for j = 1, #eSteps do
 			teamCapacities[tID][eSteps[j]] = 0
 			teamMMList[tID][eSteps[j]] = {}
 		end
-		teamUsages[tID] = 0
 		spSetTeamRulesParam(tID, mmLevelParamName, 0.75)
 		spSetTeamRulesParam(tID, mmCapacityParamName, 0)
 		spSetTeamRulesParam(tID, mmUseParamName, 0)
 		spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
 
 	end
-
-	splitMMUpdate = math.floor(math.max((frameRate / #teamList), 1))
 end
 
 function BuildeSteps()
@@ -306,7 +278,7 @@ function gadget:GameFrame(n)
 
 				local eCur, eStor = spGetTeamResources(tID, 'energy')
 				local convertAmount = eCur - eStor * spGetTeamRulesParam(tID, mmLevelParamName)
-				local eConvert, mConvert, eConverted, mConverted, teamUsages = 0, 0, 0, 0, 0
+				local _, _, eConverted, mConverted, teamUsages = 0, 0, 0, 0, 0
 
 				for j = 1, #eSteps do
 					if teamCapacities[tID][eSteps[j]] > 1 then

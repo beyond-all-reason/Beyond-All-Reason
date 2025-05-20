@@ -114,7 +114,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
 				flighttime = 4,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "catapultmissile.s3o",	--catapultmissile.s3o
 				movingaccuracy = 450,
@@ -142,6 +141,10 @@ return {
 				damage = {
 					default = 500,
 					subs = 200,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1150,
 				},
 			},
 		},

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Capture Only Enemy",
@@ -17,8 +19,13 @@ end
 local CMD_CAPTURE = CMD.CAPTURE
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_CAPTURE and Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not select(4, Spring.GetTeamInfo(Spring.GetUnitTeam(cmdParams[1]))) and not Spring.GetTeamLuaAI(Spring.GetUnitTeam(cmdParams[1])) then
+	-- accepts: CMD.CAPTURE
+	if Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not select(4, Spring.GetTeamInfo(Spring.GetUnitTeam(cmdParams[1]))) and not Spring.GetTeamLuaAI(Spring.GetUnitTeam(cmdParams[1])) then
 		return false
 	end
 	return true
+end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_CAPTURE)
 end

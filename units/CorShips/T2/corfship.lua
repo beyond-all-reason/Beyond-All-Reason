@@ -1,7 +1,6 @@
 return {
 	corfship = {
 		activatewhenbuilt = true,
-		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",
@@ -28,7 +27,7 @@ return {
 		objectname = "Units/CORFSHIP.s3o",
 		radardistance = 750,
 		radaremitheight = 52,
-		script = "Units/CORFSHIP.cob",
+		script = "Units/CORFSHIP_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		sightdistance = 500,
@@ -124,7 +123,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -172,7 +170,6 @@ return {
 				explosiongenerator = "custom:burnblackxl",
 				firestarter = 100,
 				flamegfxtime = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
 				name = "Heavy long range AoE flamethrower",

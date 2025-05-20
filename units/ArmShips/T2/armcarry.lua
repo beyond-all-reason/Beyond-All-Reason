@@ -139,7 +139,6 @@ return {
 				explosiongenerator = "custom:antinuke",
 				firestarter = 100,
 				flighttime = 20,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
@@ -169,6 +168,9 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 1500,
 				},

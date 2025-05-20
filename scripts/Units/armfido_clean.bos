@@ -284,7 +284,7 @@ UnitSpeed(){
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
-	\if (animSpeed<1) animSpeed=1;
+	if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
@@ -1464,48 +1464,10 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
-	// if current weapon is the secondary plasma, return 0, False
-	if( weaponState == 1 )
-	{
-		return(0);
-	}
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	// values in <> are degrees per second
-	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
-	// In general, 6 cau per frame ~= 1 degree per second
-	turn aimy1 to y-axis heading speed <150.0>;
-	turn aimx1 to x-axis <0.0> - pitch speed <50.0>;
-	if ( (get ABS(last_primary_heading - heading)>900) OR (get ABS(last_primary_pitch - pitch)>300) )
-	{
-		// seems to take 3 frames for wait-for-turn to process
-        wait-for-turn aimy1 around y-axis;
-        wait-for-turn aimx1 around x-axis;
-	}
-	last_primary_heading = heading;
-	last_primary_pitch = pitch;
-	start-script RestoreAfterDelay();
-	// Prevent "bonus shots" while alternative weapon is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
-	if( reloading )
-	{
-		return(0);
-	}
-	return (1);
-}
-
-AimWeapon2(heading, pitch)
-{
-	// if current weapon is the primary gauss, return 0, False
-	if( weaponState == 0 )
-	{
-		return(0);
-	}
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn aimy1 to y-axis heading speed <150.0>;
-	turn aimx1 to x-axis <0.0> - pitch speed <50.0>;
+	turn aimy1 to y-axis heading speed <150.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
 	if ( (get ABS(last_primary_heading - heading)>900) OR (get ABS(last_primary_pitch - pitch)>300) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
@@ -1515,13 +1477,6 @@ AimWeapon2(heading, pitch)
 	start-script RestoreAfterDelay();
 	last_primary_heading = heading;
 	last_primary_pitch = pitch;
-	// Prevent "bonus shots" while alternative weapon is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-	if( reloading )
-	{
-		return(0);
-	}
 	return (1);
 }
 
@@ -1530,33 +1485,17 @@ AimFromWeapon1(pieceIndex)
 	pieceIndex = loturret;
 }
 
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = loturret;
-}
 
 FireWeapon1()
-{
-	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-3.0] now;
-	sleep 150;
-	move barrel to z-axis [0.0] speed [3.0];
-}
-
-FireWeapon2()
 {
 	emit-sfx 1024 + 1 from flare;
 	move barrel to z-axis [-3.0] now;
 	sleep 150;
-	move barrel to z-axis [0.0] speed [3.0];
+	move barrel to z-axis [0.000000] speed [3.00000];
 }
+
 
 QueryWeapon1(pieceIndex)
-{
-	pieceIndex = flare;
-}
-
-QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
 }

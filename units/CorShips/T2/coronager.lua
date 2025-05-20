@@ -128,7 +128,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 4,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "banishermissile.s3o",

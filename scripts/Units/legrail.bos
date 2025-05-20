@@ -1,13 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-// Signal definitions
-#define SIGNAL_MOVE 1
-#define SIGNAL_AIM 	2
-
 piece  base, tracks, armor, aimy1, turret, aimx1, sleeve, barrel, flare;
 
-static-var  restore_delay, bAiming, wpn1_lasthead, shotcount;
+static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming;
 
 #define TB_BASE base 
 #define TB_TURNRATE <15.0> 
@@ -16,7 +12,11 @@ static-var  restore_delay, bAiming, wpn1_lasthead, shotcount;
 #include "../tilt_bank_mobileunit.h"
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1	2
+#define SIGNAL_AIM2	2
+#define SIGNAL_IDLE 8 
+#define SIGNAL_SHOOT1 16
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -37,11 +37,35 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide flare;
 	restore_delay = 3000;
-	bAiming = 0;
 	shotcount = 0;
+	fired1 = 0;
+	fired2 = 0;
+	aiming = 0;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
+}
+
+ResetFire()
+{
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
+	fired1 = 1;
+	fired2 = 1;
+	sleep 3000;
+	fired2 = 0;
+	sleep 3000;
+	fired1 = 0;
+}
+
+ResetAiming()
+{
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
+	aiming = 1;
+	sleep 500;
+	aiming = 0;
 }
 
 StartMoving(reversing)
@@ -69,10 +93,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	fired1 = 0;
+	fired2 = 0;
 	turn aimy1 to y-axis <0> speed <50>;
 	turn aimx1 to x-axis <0> speed <50>;
 	wpn1_lasthead = 1000000;
-	bAiming = 0;
 }
 SetStunned(State)
 {
@@ -83,19 +108,45 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
-	bAiming = TRUE;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	
-	turn aimy1 to y-axis heading speed <90>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <90>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	start-script ResetAiming();
+	if (heading < <105> AND heading > <-105>){
+		turn aimy1 to y-axis heading speed <120>;
+		turn aimx1 to x-axis <0.000000> - pitch speed <120>;
+		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+		{
+			wpn1_lasthead = 1000000;
+			wait-for-turn aimy1 around y-axis;
+			wait-for-turn aimx1 around x-axis;
+		}
+		wpn1_lasthead = heading;
+		start-script RestoreAfterDelay();
+	}
+	if(fired1 == 1)
+	{
+		return (0);
+	}
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	if(aiming == 1)
+	{
+		return (0);
+	}
+	turn aimy1 to y-axis heading speed <120>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <120>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
@@ -104,11 +155,16 @@ AimPrimary(heading, pitch)
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
+	if(fired2 == 1)
+	{
+		return (0);
+	}
 	return (1);
 }
 
 FirePrimary()
 {
+	start-script ResetFire();
 	++shotcount;
  	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -122,9 +178,10 @@ FirePrimary()
 
 FireSecondary()
 {
+	start-script ResetFire();
 	++shotcount;
  	emit-sfx 1024 + 0 from flare;
-	call-script lua_UnitScriptLight(2, shotcount);
+	call-script lua_UnitScriptLight(1, shotcount);
 	
  	move barrel to z-axis [-6] now;
 	turn sleeve to x-axis <-10> now;
@@ -143,7 +200,17 @@ AimFromPrimary(piecenum)
 	piecenum = aimx1;
 }
 
+AimFromSecondary(piecenum)
+{
+	piecenum = aimx1;
+}
+
 QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+QuerySecondary(piecenum)
 {
 	piecenum = flare;
 }

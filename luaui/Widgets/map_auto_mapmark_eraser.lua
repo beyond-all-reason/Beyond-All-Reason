@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Auto mapmark eraser",
@@ -25,10 +27,6 @@ function widget:Initialize()
 	end
 	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
-	end
-	WG['autoeraser'].clearedMapmarks = function()	-- so mapmarks fx widget can call this and wont activate on auto erasing
-		pointsToErase = {}
-		recentlyErased = {}
 	end
 end
 
@@ -81,4 +79,9 @@ function widget:SetConfigData(data)
 	if data.pointsToErase ~= nil and Spring.GetGameFrame() > 0 then
 		pointsToErase = data.pointsToErase
 	end
+end
+
+function widget:ClearMapMarks()
+	pointsToErase = {}
+	recentlyErased = {}
 end

@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/cordemon.s3o",
-		script = "Units/cordemon.COB",
+		script = "Units/cordemon_clean.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 500,
@@ -76,6 +76,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
+				[2] = "custom:pilotlightxl",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -122,7 +123,6 @@ return {
 				explosiongenerator = "custom:burnblackxl",
 				firestarter = 100,
 				flamegfxtime = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
 				name = "Heavy long range AoE flamethrower",
@@ -146,9 +146,6 @@ return {
 				weapontimer = 1,
 				weapontype = "notFlame",
 				weaponvelocity = 600,
-				customparams = {
-					single_hit_multi = "true",
-				},
 				damage = {
 					default = 48,
 					subs = 16,
@@ -169,7 +166,6 @@ return {
 				firestarter = 72,
 				fixedlauncher = true,
 				flighttime = 1.75,
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "cormissile.s3o",
 				name = "ShoulderRockets",
@@ -223,7 +219,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				flamegfxtime = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.85,
 				name = "Demon's Maw; Heavy long range AoE flamethrower",

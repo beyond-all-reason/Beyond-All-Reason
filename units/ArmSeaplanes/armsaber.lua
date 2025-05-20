@@ -87,7 +87,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 15,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,
 				name = "Light a2g discharge blaster",

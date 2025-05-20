@@ -33,6 +33,7 @@ return {
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
@@ -82,7 +83,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.6,
 				name = "Light EMP laser",
@@ -102,6 +102,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 600,
 				},
@@ -112,7 +115,7 @@ return {
 				def = "BLADEWING_LYZER",
 				maindir = "0 0 1",
 				maxangledif = 90,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

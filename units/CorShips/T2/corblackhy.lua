@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
 				name = "RapidSamMissile",
@@ -162,7 +161,6 @@ return {
 				firestarter = 72,
 				firetolerance = 10920,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -194,6 +192,10 @@ return {
 				damage = {
 					vtol = 150,
 				},
+        
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavylaser = {
 				areaofeffect = 8,
@@ -208,7 +210,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 12.1,
 				name = "HighEnergyLaser",
@@ -220,7 +221,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,
@@ -243,7 +243,6 @@ return {
 				edgeeffectiveness = 0.45,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1.1,
 				name = "BattleshipCannon",

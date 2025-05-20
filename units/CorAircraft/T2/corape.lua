@@ -87,7 +87,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile2fast.s3o",
 				name = "Heavy a2g shrapnel rockets",

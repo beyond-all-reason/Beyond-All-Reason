@@ -81,7 +81,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
@@ -113,6 +112,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 400,
+				customparams = {
+					stockpilelimit = 8,
+				},
 				damage = {
 					default = 44,
 				},

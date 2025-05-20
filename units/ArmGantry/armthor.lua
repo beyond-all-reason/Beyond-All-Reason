@@ -130,7 +130,6 @@ return {
 				explosiongenerator = "custom:laserhit-emp",
 				firetolerance = 1820,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Long Range EMP laser",
@@ -144,7 +143,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 1.2,
 				tolerance = 1820,
 				turret = true,
@@ -152,6 +150,9 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 300,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 			empmissile = {
@@ -170,7 +171,6 @@ return {
 				firestarter = 0,
 				fixedlauncher = true,
 				flighttime = 12,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 100,
 				model = "corshiprocket.s3o",
@@ -196,6 +196,9 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
+				customparams = {
+					stockpilelimit = 2,
+				},
 				damage = {
 					default = 80000,
 				},
@@ -217,7 +220,6 @@ return {
 				firestarter = 50,
 				hardstop = false,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 28,
 				name = "Heavy Lighting Cannon",
@@ -229,7 +231,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				targetmoveerror = 0,
 				thickness = 1.8,
 				turret = true,
 				weapontype = "LightningCannon",
@@ -239,6 +240,7 @@ return {
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",
 					spark_range = "125",
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 300,
@@ -260,13 +262,13 @@ return {
 				def = "EMP",
 				maindir = "-1 0 0",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
 				maindir = "1 0 0",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

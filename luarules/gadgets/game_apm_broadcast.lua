@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "APM Broadcast",
@@ -37,6 +39,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		GG['apm'] = {}
 		GG['apm'].addSkipOrder = addSkipOrder
+
+		gadgetHandler:RegisterAllowCommand(CMD.ANY)
 	end
 
 	function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)

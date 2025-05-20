@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name		= "Clearmapmarks button",
@@ -134,8 +136,8 @@ function widget:MouseRelease(mx, my, mb)
 	if mb == 1 and math_isInRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
-		if WG['autoeraser'] and WG['autoeraser'].clearedMapmarks then
-			WG['autoeraser'].clearedMapmarks()
+		if Script.LuaUI('ClearMapMarks') then
+			Script.LuaUI.ClearMapMarks()
 		end
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if ctrl then

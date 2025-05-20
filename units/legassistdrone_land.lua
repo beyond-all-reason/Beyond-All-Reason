@@ -60,13 +60,13 @@ return {
 			"coruwes",
 			"corfmkr",
 			"corsy",
-			"corfdrag",
+			"legfdrag",
 			"cortl",
 			"corfrt",
 			"corfrad",
 			-- Experimental:
-			"corhp",
-			"corfhp",
+			"leghp",
+			"legfhp",
 		},
 		customparams = {
 			unitgroup = 'builder',

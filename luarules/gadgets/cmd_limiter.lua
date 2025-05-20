@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "CMD limiter",
@@ -25,8 +27,14 @@ local history = {}
 local totalCmdCount = 0
 local totalOffence = 0
 local offenceFrames = {}
+
+local spec = Spring.GetSpectatingState()
+function gadget:PlayerChanged(playerID)
+	spec = Spring.GetSpectatingState()
+end
+
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if cmdID < 0 then	-- is build order
+	if cmdID < 0 and not spec then	-- is build order
 		if cmdOpts.shift then
 			local gf = Spring.GetGameFrame()
 			if offenceFrames[gf] then

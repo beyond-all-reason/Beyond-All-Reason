@@ -105,7 +105,6 @@ return {
 				firestarter = 0,
 				flighttime = 6,
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,

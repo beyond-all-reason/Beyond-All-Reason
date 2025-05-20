@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Cloak",	-- gadget copy from: Decloak when damaged
@@ -36,8 +38,6 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
 local spSetUnitCloak = Spring.SetUnitCloak
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -118,7 +118,6 @@ function gadget:GameFrame(n)
 			end
 		end
 
-		local i = 1
 	end
 end
 
@@ -206,10 +205,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			SetWantedCloaked(unitID, cmdParams[1])
 		end
 		return true
-	elseif cmdID == CMD_CLOAK then
+	else -- cmdID == CMD_CLOAK
 		return false
 	end
-	return true
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
@@ -228,6 +226,8 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_CLOAK)
+	gadgetHandler:RegisterAllowCommand(CMD_WANT_CLOAK)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end

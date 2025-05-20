@@ -107,7 +107,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Nuclear Launch",
@@ -142,8 +141,7 @@ return {
 				explosiongenerator = "custom:newnuke",
 				firestarter = 100,
 				flighttime = 400,
-				impulseboost = 0.5,
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				metalpershot = 1000,
 				model = "crblmssl.s3o",
 				name = "Intercontinental ballistic nuclear warhead",
@@ -174,6 +172,7 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

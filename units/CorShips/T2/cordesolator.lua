@@ -131,12 +131,12 @@ return {
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
+				commandfire = true,
 				edgeeffectiveness = 0.45,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
 				flighttime = 400,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				metalpershot = 1500,
 				model = "cortronmissile.s3o",
@@ -169,6 +169,8 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					scavforcecommandfire = true,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,
@@ -184,7 +186,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Nuclear Launch",
@@ -201,6 +202,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					scavforcecommandfire = true,
+				},
 			},
 			waterballon = {
 				areaofeffect = 16,
@@ -214,7 +218,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Torpedo launcher",

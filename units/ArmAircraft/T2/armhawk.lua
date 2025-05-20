@@ -94,7 +94,6 @@ return {
 				firestarter = 0,
 				flighttime = 1.5,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",

@@ -86,7 +86,6 @@ return {
 				firestarter = 0,
 				flighttime = 60,
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,
 				interceptor = 1,
@@ -120,6 +119,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 1500,
 				},

@@ -123,7 +123,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Close-quarters light EMP laser",
@@ -137,7 +136,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 1.2,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -151,7 +149,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "SPIDER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

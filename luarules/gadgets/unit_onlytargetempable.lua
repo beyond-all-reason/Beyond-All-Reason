@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "Only Target Emp-able units",
@@ -24,9 +26,13 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function gadget:Initialize()
+    gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if cmdID == CMD.ATTACK
-	and empUnits[unitDefID]
+	-- accepts: CMD.ATTACK
+	if empUnits[unitDefID]
 	and cmdParams[2] == nil
 	and type(cmdParams[1]) == 'number'
 	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then

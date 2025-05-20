@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name = "Highlight Commander Wrecks",
@@ -43,7 +45,7 @@ end
 
 -- GL4
 
-local includeDir = "LuaUI/Widgets/Include/"
+local includeDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
 VFS.Include(includeDir .. "instancevbotable.lua")
 

@@ -115,8 +115,7 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				metalpershot = 550,
 				model = "cortronmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",
@@ -142,6 +141,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					commanders = 750,
 					default = 4000,

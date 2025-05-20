@@ -1,4 +1,6 @@
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30560
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Replay buttons",

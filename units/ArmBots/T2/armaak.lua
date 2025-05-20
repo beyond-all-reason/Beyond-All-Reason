@@ -117,7 +117,6 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:genericshellexplosion-large-air",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Heavy g2a flak cannon",
 				noselfdamage = true,
@@ -143,6 +142,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					bogus = 1
+				},
 			},
 			armaabot_missile1 = {
 				areaofeffect = 64,
@@ -158,7 +160,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -206,7 +207,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",
@@ -251,7 +251,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Missiles",

@@ -1,5 +1,7 @@
 Music created by:
 
+-- Original Sountrack:
+
 Ryan Krause:
 https://www.ryankrausemusic.com/
 https://soundcloud.com/ryankrause94
@@ -18,8 +20,27 @@ https://www.youtube.com/@matteodellacquamusic
 Leon Devereux
 https://soundcloud.com/leon-d-3
 
+West Basinger
+No links provided
+
+-- Other contributions:
+
 Iza Laine / DOLLVOiD:
 https://www.youtube.com/@dollvoid13
 https://www.twitch.tv/dollvoid13
+
+PixalatedDoom:
+https://www.youtube.com/@pixalateddoom5061
+
+JaplinSeven:
+https://www.japlinseven.com/
+https://www.youtube.com/@japlinseven
+
+Hunter of Light
+https://soundcloud.com/jan-smith-6
+
+SerendyPetit
+No links provided
+
 
 Check license_music.txt in the root of this project for more information.

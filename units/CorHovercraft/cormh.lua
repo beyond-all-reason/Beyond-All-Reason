@@ -115,7 +115,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
@@ -144,6 +143,10 @@ return {
 				damage = {
 					default = 550,
 					subs = 250,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 805,
 				},
 			},
 		},

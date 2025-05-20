@@ -112,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "BattleshipCannon",
 				noselfdamage = true,
@@ -142,7 +141,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 12.1,
 				name = "HighEnergyLaser",
@@ -154,7 +152,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,
@@ -163,6 +160,9 @@ return {
 				damage = {
 					default = 300,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

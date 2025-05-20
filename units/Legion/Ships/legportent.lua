@@ -115,7 +115,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy s2g plasma cannon",
 				noselfdamage = true,
@@ -132,6 +131,9 @@ return {
 					default = 150,
 					vtol = 30,
 					sub = 30,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 
 			},

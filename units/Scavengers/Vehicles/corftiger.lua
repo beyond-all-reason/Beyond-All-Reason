@@ -127,7 +127,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-yellow",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "HeatRay",
 				noselfdamage = true,
@@ -139,7 +138,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray1",
 				soundtrigger = true,
-				targetmoveerror = 0,
 				turret = true,
 				weapontype = "BeamLaser",
 				damage = {
