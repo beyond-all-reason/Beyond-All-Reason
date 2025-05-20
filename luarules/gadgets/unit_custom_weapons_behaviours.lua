@@ -126,7 +126,7 @@ do
 		pos     = { 0, 0, 0 },
 		speed   = { 0, 0, 0 },
 		gravity = gravityPerFrame,
-		ttl = 3000,
+		ttl     = 3000,
 	}
 
 	getSpawnParams = function(params, projectileID)
@@ -168,17 +168,14 @@ weaponSpecialEffect.cruise = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 		local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+		local targetType, target = spGetProjectileTarget(projectileID)
 
 		local targetX, targetY, targetZ
-		do
-			local targetType, target = spGetProjectileTarget(projectileID)
-			if targetType == targetedUnit then
-				local _; -- sink for unused values
-				_, _, _, -- like so
-				targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
-			elseif targetType == targetedGround then
-				targetX, targetY, targetZ = target[1], target[2], target[3]
-			end
+		if targetType == targetedUnit then
+			local _; -- declare a local sink var for unused values
+			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
+		elseif targetType == targetedGround then
+			targetX, targetY, targetZ = target[1], target[2], target[3]
 		end
 
 		local distance = params.lockon_dist
