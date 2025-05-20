@@ -11,6 +11,7 @@
 			"armadvsol": [80, 120],
 			"armfus": [30, 40],
 			"armafus": [200, 300],
+
 			"corwin": [200, 300],
 			"corsolar": [80, 120],
 			"coradvsol": [80, 120],
@@ -23,6 +24,7 @@
 			"armsolar": [10],
 			"armadvsol": [120, 160],
 			"armuwfus": [100, 200],
+			
 			"cortide": [140, 250],
 			"corwin": [100, 200],
 			"corsolar": [10],
@@ -47,11 +49,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "armgeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "armmex"
 	},
 	"mex_up": 3,  // maximum number of simultaneous mex upgrades
 
@@ -98,7 +102,8 @@
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "armwin"
 	}
 }
 }

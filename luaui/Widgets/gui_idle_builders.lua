@@ -26,6 +26,7 @@ local soundVolume = 0.5
 local setHeight = 0.046
 local maxIcons = 9
 local showRez = true
+local doUpdateForce = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -294,8 +295,8 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
-		if not (queue and queue[1]) then
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
+		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
@@ -607,7 +608,7 @@ local sec = 0
 local sec2 = 0
 local timerStart = Spring.GetTimer()
 local function Update()
-	if Spring.GetGameFrame() <= initializeGameFrame then
+	if Spring.GetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
 		return
 	end
 	doCheckUnitGroupsPos = true

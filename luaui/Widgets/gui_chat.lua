@@ -85,6 +85,7 @@ local hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
 local lastMapmarkCoords
 local lastUnitShare
 local lastLineUnitShare
+local lastDrawUiUpdate = os.clock()
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local mySpec = Spring.GetSpectatingState()
@@ -596,6 +597,8 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	-- determine text typing start time
 	local startTime = clock()
 
+	local text_orig = text
+
 	-- metal/energy given
 	if lineType == LineTypes.Player and ssub(text, 5, 6) == '> ' then
 		text = ssub(text, 7)
@@ -620,6 +623,8 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 				end
 			end
 			text = Spring.I18N(params[1], t)
+			-- Fix a widget crash that could occur with message "> ."
+			if type(text) ~= "string" then text = text_orig end
 			if text:lower():find(I18N.energy, nil, true) then
 				local pos = text:lower():find(I18N.energy, nil, true)
 				local len = slen(I18N.energy)
@@ -1885,7 +1890,11 @@ function widget:DrawScreen()
 			})
 		end
 		if uiTex then
+			if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
+				updateDrawUi = true
+			end
 			if updateDrawUi ~= nil then
+				lastDrawUiUpdate = clock()
 				gl.RenderToTexture(uiTex, function()
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 					gl.PushMatrix()

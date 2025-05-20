@@ -898,85 +898,75 @@ if gadgetHandler:IsSyncedCode() then
 
 			if config.burrowSpawnType ~= "avoid" then
 				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriod) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
-					for _ = 1,1000 do
-						spawnPosX = mRandom(spread, MAPSIZEX - spread)
-						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-						end
-						if canSpawnBurrow then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							break
+					if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+						for _ = 1,1000 do
+							spawnPosX = mRandom(spread, MAPSIZEX - spread)
+							spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+							end
+							if canSpawnBurrow then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 				if (not canSpawnBurrow) then -- Attempt #3 Find some good position in Spawnbox (not Startbox)
-					for _ = 1,1000 do
-						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
-						end
-						if canSpawnBurrow then
-							break
+					if lsx1 + spread < lsx2 - spread and lsz1 + spread < lsz2 - spread then
+						for _ = 1,1000 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 				if (not canSpawnBurrow) then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
-					for _ = 1,100 do
-						spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
-						spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							break
+					if ScavStartboxXMin + spread < ScavStartboxXMax - spread and ScavStartboxZMin + spread < ScavStartboxZMax - spread then
+						for _ = 1,100 do
+							spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
+							spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
 
-				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
-					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-					end
-					if canSpawnBurrow then
-						break
-					end
-				end
-
-				if (not canSpawnBurrow) then -- Attempt #2 Don't avoid radars
-					for _ = 1,100 do
+				if lsx1 + spread < lsx2 - spread and lsz1 + spread < lsz2 - spread then
+					for _ = 1,100 do  -- Attempt #1 Avoid all sensors
 						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -985,28 +975,46 @@ if gadgetHandler:IsSyncedCode() then
 							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 						end
 						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, false)
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
 						end
 						if canSpawnBurrow then
 							break
 						end
 					end
-				end
 
-				if (not canSpawnBurrow) then -- Attempt #3 Only avoid LoS
-					for _ = 1,100 do
-						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					if (not canSpawnBurrow) then -- Attempt #2 Don't avoid radars
+						for _ = 1,100 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
-						end
-						if canSpawnBurrow then
-							break
+					end
+
+					if (not canSpawnBurrow) then -- Attempt #3 Only avoid LoS
+						for _ = 1,100 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
@@ -1463,22 +1471,24 @@ if gadgetHandler:IsSyncedCode() then
 		local spawnPosX, spawnPosY, spawnPosZ
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
-			for _ = 1,5 do
-				spawnPosX = mRandom(spread, MAPSIZEX - spread)
-				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				end
-				if canSpawnStructure then
-					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-				end
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-				end
-				if canSpawnStructure then
-					break
+			if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+				for _ = 1,5 do
+					spawnPosX = mRandom(spread, MAPSIZEX - spread)
+					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					if canSpawnStructure then
+						canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					end
+					if canSpawnStructure then
+						canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					end
+					if canSpawnStructure then
+						canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+					end
+					if canSpawnStructure then
+						break
+					end
 				end
 			end
 		else -- Otherwise use Scav LoS as creep with Players sensors being the safety zone
@@ -1591,7 +1601,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				GG.ScavengersSpawnEffectUnitID(unitID)
 				if UnitDefs[unitDefID].canCloak then
 					Spring.GiveOrderToUnit(unitID,37382,{1},0)
 				end
@@ -1687,10 +1697,10 @@ if gadgetHandler:IsSyncedCode() then
 				local angle = math.atan2(ux - x, uz - z)
 				local distance = mRandom(math.ceil(config.scavBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.scavBehaviours.SKIRMISH[attackerDefID].distance*1.25))
 				if config.scavBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.scavBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1706,10 +1716,10 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ax - x, az - z)
 					local distance = mRandom(math.ceil(config.scavBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.scavBehaviours.COWARD[unitDefID].distance*1.25))
 					if config.scavBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 						Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.scavBehaviours.COWARD[unitDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1723,12 +1733,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.scavBehaviours.BERSERK[unitDefID].distance or 10000) then
 				if config.scavBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 					ax = ax + mRandom(-256,256)
 					az = az + mRandom(-256,256)
 					Spring.SetUnitPosition(unitID, ax, ay, az)
 					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
 					unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.scavBehaviours.BERSERK[unitDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -1741,12 +1751,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.scavBehaviours.BERSERK[attackerDefID].distance or 10000) then
 				if config.scavBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					ax = ax + mRandom(-256,256)
 					az = az + mRandom(-256,256)
 					Spring.SetUnitPosition(attackerID, ax, ay, az)
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.scavBehaviours.BERSERK[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -2163,7 +2173,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = 0.95})
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
 								SendToUnsynced("unitCaptureFrame", unitID, 0.95)
-								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+								GG.ScavengersSpawnEffectUnitID(unitID)
 								Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
@@ -2173,7 +2183,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 								Spring.SpawnCEG("scaspawn-trail", ux, uy, uz, 0,0,0)
-								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+								GG.ScavengersSpawnEffectUnitID(unitID)
 								if math.random() <= 0.1 then
 									Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								end
@@ -2245,7 +2255,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				SGG.ScavengersSpawnEffectUnitID(unitID)
 				if UnitDefs[unitDefID].canCloak then
 					Spring.GiveOrderToUnit(unitID,37382,{1},0)
 				end
@@ -2285,6 +2295,12 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			unitSquadTable[unitID] = nil
+		end
+
+		for i = 1,#squadsTable do
+			if squadsTable[i].squadBurrow == unitID then
+				squadsTable[i].squadBurrow = nil
+			end
 		end
 
 		squadPotentialTarget[unitID] = nil
@@ -2355,12 +2371,6 @@ if gadgetHandler:IsSyncedCode() then
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
 					spawnQueue[i] = nil
-				end
-			end
-
-			for i = 1,#squadsTable do
-				if squadsTable[i].squadBurrow == unitID then
-					squadsTable[i].squadBurrow = nil
 				end
 			end
 
