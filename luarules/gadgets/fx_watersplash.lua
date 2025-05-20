@@ -28,14 +28,16 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local splashCEG1 = "splash-tiny"
-local splashCEG2 = "splash-small"
-local splashCEG3 = "splash-medium"
-local splashCEG4 = "splash-large"
-local splashCEG5 = "splash-huge"
-local splashCEG6 = "splash-gigantic"
-local splashCEG7 = "splash-nuke"
-local splashCEG8 = "splash-nukexl"
+local splashCEGs = {
+	"splash-tiny",
+	"splash-small",
+	"splash-medium",
+	"splash-large",
+	"splash-huge",
+	"splash-gigantic",
+	"splash-nuke",
+	"splash-nukexl",
+}
 
 local function getWeaponAOE(weaponDef, waterSplash)
 	local aoe = weaponDef.damageAreaOfEffect
@@ -60,27 +62,23 @@ local function getWeaponAOE(weaponDef, waterSplash)
 end
 
 local function getSplashSize(weaponDef, aoe)
-	local splashSize = weaponDef.customParams.water_splash_size
-	if splashSize then
-		splashSize = tonumber(splashSize)
-	else
-		if aoe >= 6 and aoe < 12 then
-			splashSize = 1
-		elseif  aoe >= 12 and aoe < 24 then
-			splashSize = 2
-		elseif aoe >= 24 and aoe < 48 then
-			splashSize = 3
-		elseif aoe >= 48 and aoe < 64 then
-			splashSize = 4
-		elseif aoe >= 64 and aoe < 200 then
-			splashSize = 5
-		elseif aoe >= 200 and aoe < 400 then
-			splashSize = 6
-		elseif aoe >= 400 and aoe < 600 then
-			splashSize = 7
-		elseif aoe >= 600 then
-			splashSize = 8
-		end
+	local splashSize
+	if aoe >= 6 and aoe < 12 then
+		splashSize = 1
+	elseif  aoe >= 12 and aoe < 24 then
+		splashSize = 2
+	elseif aoe >= 24 and aoe < 48 then
+		splashSize = 3
+	elseif aoe >= 48 and aoe < 64 then
+		splashSize = 4
+	elseif aoe >= 64 and aoe < 200 then
+		splashSize = 5
+	elseif aoe >= 200 and aoe < 400 then
+		splashSize = 6
+	elseif aoe >= 400 and aoe < 600 then
+		splashSize = 7
+	elseif aoe >= 600 then
+		splashSize = 8
 	end
 	return splashSize
 end
@@ -100,9 +98,15 @@ for weaponDefID, def in pairs(WeaponDefs) do
 	weaponAoe[weaponDefID] = getWeaponAOE(def, waterSplash)
 
 	if def.damages and waterSplash ~= 0 then
-		local splashSize = getSplashSize(def, weaponAoe[weaponDefID])
-		if splashSize then
-			weaponSplashCEG[weaponDefID] = splashCEGs[splashSize]
+		local splashCEG = def.customParams.water_splash_ceg
+		if not splashCEG then
+			local splashSize = getSplashSize(def, weaponAoe[weaponDefID])
+			if splashSize then
+				splashCEG = splashCEGs[splashSize]
+			end
+		end
+		if splashCEG then
+			weaponSplashCEG[weaponDefID] = splashCEG
 		end
 	end
 end
@@ -113,6 +117,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			local splashCEG = weaponSplashCEG[weaponID]
 			if splashCEG then
+				Spring.Echo(splashCEG)
 				Spring.SpawnCEG(splashCEG, px, 0, pz)
 			end
 			return true
