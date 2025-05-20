@@ -1,4 +1,3 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -17,6 +16,7 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_STOP = CMD.STOP
 local spGiveOrder = Spring.GiveOrder
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local gameStarted
 
 function maybeRemoveSelf()
@@ -43,5 +43,11 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_FIRE_STATE and cmdParams[1] == 0 then
 		spGiveOrder(CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
+	end
+end
+
+function widget:UnitCommandNotify(unitID, cmdID, cmdParams, cmdOpts)
+	if cmdID == CMD_FIRE_STATE and cmdParams[1] == 0 then
+		spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
 	end
 end

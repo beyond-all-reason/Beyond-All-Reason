@@ -11,7 +11,8 @@ function widget:GetInfo()
 		date      = "Feb 14, 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1,
-		enabled   = true
+		enabled   = true,
+		handler   = true,-- So it can notify other widgets
 	}
 end
 
@@ -57,21 +58,34 @@ end
 
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
 
+local function GiveNotifyingOrderToUnit(uID, cmdID, cmdParams, cmdOpts)
+	-- Other widgets interact with the fire state, so we need to notify them when issuing the order. This affects the holdfire fix and when cloak "kicks in".
+	for _, w in ipairs(widgetHandler.widgets) do
+		if w.UnitCommandNotify and w:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts) then
+			-- Per Spring, if Notify returns true, it deletes the command.
+			return
+		end
+	end
+
+	GiveOrderToUnit(uID, cmdID, cmdParams, cmdOpts.coded)
+	return
+end
+
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID ~= myTeam then return end
 
-	if cmdID == CMD_CLOAK and cmdParams[1] ~= nil then -- is cloak command
+	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
 		if exceptionArray[unitDefID] or string.find(UnitDefs[unitDefID].name, "_scav") then return end -- don't do anything for these units
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
 			if decloakFireState[unitID] ~= 0 then
-				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+				GiveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, {})
 			end
 		else -- decloak and restore previous fire state
 			if select(1, GetUnitStates(unitID, false)) == 0 then
 				local targetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found
-				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { targetState }, 0) --revert to last state
+				GiveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { targetState }, {}) --revert to last state
 			end
 			decloakFireState[unitID] = nil
 		end
