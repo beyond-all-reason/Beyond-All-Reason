@@ -235,7 +235,7 @@ end
 weaponCustomParamKeys.sector_fire = {
 	max_range_reduction = function(value)
 		value = tonumber(value)
-		return value and math.clamp(value, 0, 1)
+		return value and math.clamp(value, 0, 1) or nil
 	end,
 	spread_angle = function(value)
 		value = tonumber(value)
