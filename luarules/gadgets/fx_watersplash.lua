@@ -28,12 +28,17 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
-local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
-local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
-local COR_JUNO = WeaponDefNames['legjuno_juno_pulse'].id --juno can explode on water
-local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
-local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'] and WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
+local getWeaponDefID = function(name)
+	local weaponDef = WeaponDefNames[name]
+	return weaponDef and weaponDef.id
+end
+
+local COR_SEAADVBOMB = getWeaponDefID('corsb_cor_seaadvbomb') --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+local ARM_JUNO = getWeaponDefID('armjuno_juno_pulse') --juno can explode on water
+local COR_JUNO = getWeaponDefID('corjuno_juno_pulse') --juno can explode on water
+local COR_JUNO = getWeaponDefID('legjuno_juno_pulse') --juno can explode on water
+local COR_TRON = getWeaponDefID('cortron_cortron_weapon')
+local LEG_PHOENIX = getWeaponDefID('legphoenix_legphtarg') --targetting weapon aircraftbomb
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"
