@@ -120,6 +120,35 @@ local function isProjectileInWater(projectileID)
 	return positionY <= 0
 end
 
+local getSpawnParams
+do
+	local spawnCache = {
+		pos     = { 0, 0, 0 },
+		speed   = { 0, 0, 0 },
+		gravity = gravityPerFrame,
+		ttl = 3000,
+	}
+
+	getSpawnParams = function(params, projectileID)
+		local spawnDefID = params.speceffect_def
+
+		local cache = spawnCache
+
+		local pos = spawnCache.pos
+		pos[1], pos[2], pos[3] = spGetProjectilePosition(projectileID)
+
+		local vel = spawnCache.speed
+		local speed
+		vel[1], vel[2], vel[3], speed = spGetProjectileVelocity(projectileID)
+
+		cache.owner = Spring.GetProjectileOwnerID(projectileID)
+		cache.cegTag = params.cegtag
+		cache.model = params.model
+
+		return spawnDefID, cache, vel, speed
+	end
+end
+
 -- Cruise
 
 weaponCustomParamKeys.cruise = {
@@ -249,9 +278,9 @@ local function split(params, projectileID)
 	cache.gravity = gravityPerFrame
 
 	for _ = 1, params.number do
-		velocity[1] = velocityX + speed * (math_random(-100, 100) / 880)
-		velocity[2] = velocityY + speed * (math_random(-100, 100) / 440)
-		velocity[3] = velocityZ + speed * (math_random(-100, 100) / 880)
+		velocity[1] = velocity[1] + speed * (math_random(-100, 100) / 880)
+		velocity[2] = velocity[2] + speed * (math_random(-100, 100) / 440)
+		velocity[3] = velocity[3] + speed * (math_random(-100, 100) / 880)
 
 		Spring.SpawnProjectile(spawnDefID, cache)
 	end
