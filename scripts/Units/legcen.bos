@@ -4,7 +4,7 @@
 piece  	base, armor, aimy, turret, aimx, sleeve, barrel1, barrel2, flare1, flare2, 
 		flthigh, flleg, flfoot, frthigh, frleg, frfoot, blthigh, blleg, blfoot, brthigh, brleg, brfoot;
 
-static-var  restore_delay, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, gun_1;
+static-var  restore_delay, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, gun_1, last_primary_heading;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -300,6 +300,7 @@ ExecuteRestoreAfterDelay()
     }
 	// allow this to be signal killed by a AimWeapon call
 	set-signal-mask SIGNAL_AIM1; 
+	last_primary_heading = -1000000;
 	turn aimy to y-axis <0.0> speed <90.0>;
 	turn aimx to x-axis <0.0> speed <50.0>;
 }
@@ -318,7 +319,7 @@ Create()
 	hide aimy;
 	hide flare1;
 	hide flare2;
-	
+	last_primary_heading = -1000000;
 	restore_delay = 1000;
 	animspeed = 3;
 	gun_1 = 0;
@@ -352,10 +353,15 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	turn aimy to y-axis heading speed <200.0>;
+	turn aimy to y-axis heading speed <300.0>;
 	turn aimx to x-axis <0.0> - pitch speed <100.0>;
-
-    wait-for-turn aimy around y-axis;
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+        wait-for-turn aimy around y-axis;
+		wait-for-turn aimx around x-axis;
+	}
+	last_primary_heading = heading;
 
 	start-script RestoreAfterDelay();
 	return (1);
