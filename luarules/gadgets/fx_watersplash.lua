@@ -61,26 +61,28 @@ local function getWeaponAOE(weaponDef, waterSplash)
 	return aoe / 2
 end
 
-local function getSplashSize(weaponDef, aoe)
-	local splashSize
-	if aoe >= 6 and aoe < 12 then
-		splashSize = 1
-	elseif  aoe >= 12 and aoe < 24 then
-		splashSize = 2
-	elseif aoe >= 24 and aoe < 48 then
-		splashSize = 3
-	elseif aoe >= 48 and aoe < 64 then
-		splashSize = 4
-	elseif aoe >= 64 and aoe < 200 then
-		splashSize = 5
-	elseif aoe >= 200 and aoe < 400 then
-		splashSize = 6
-	elseif aoe >= 400 and aoe < 600 then
-		splashSize = 7
-	elseif aoe >= 600 then
-		splashSize = 8
+local function getSplashCEG(weaponDef, aoe)
+	local index
+	if aoe < 6 then
+		return nil
+	elseif aoe < 12 then
+		index = 1
+	elseif aoe < 24 then
+		index = 2
+	elseif aoe < 48 then
+		index = 3
+	elseif aoe < 64 then
+		index = 4
+	elseif aoe < 200 then
+		index = 5
+	elseif aoe < 400 then
+		index = 6
+	elseif aoe < 600 then
+		index = 7
+	else
+		index = 8
 	end
-	return splashSize
+	return splashCEGs[index]
 end
 
 local weaponNoSplash = {}
@@ -100,10 +102,7 @@ for weaponDefID, def in pairs(WeaponDefs) do
 	if def.damages and waterSplash ~= 0 then
 		local splashCEG = def.customParams.water_splash_ceg
 		if not splashCEG then
-			local splashSize = getSplashSize(def, weaponAoe[weaponDefID])
-			if splashSize then
-				splashCEG = splashCEGs[splashSize]
-			end
+			splashCEG = getSplashCEG(def, weaponAoe[weaponDefID])
 		end
 		if splashCEG then
 			weaponSplashCEG[weaponDefID] = splashCEG
