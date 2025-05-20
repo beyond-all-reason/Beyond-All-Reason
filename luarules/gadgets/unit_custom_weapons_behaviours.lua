@@ -230,36 +230,28 @@ weaponCustomParamKeys.split = {
 	model = tostring,
 }
 
-checkingFunctions.split = {}
-checkingFunctions.split["yvel<0"] = function(proID)
-	local _, velocityY, _ = Spring.GetProjectileVelocity(proID)
-	if velocityY < 0 then
-		return true
-	else
-		return false
+local function split(params, projectileID)
+	local spawnDefID, cache, velocity, speed = getSpawnParams(params, projectileID)
+
+	Spring.DeleteProjectile(projectileID)
+	Spring.SpawnCEG(params.splitexplosionceg, cache.pos[1], cache.pos[2], cache.pos[3])
+
+	cache.gravity = gravityPerFrame
+
+	for _ = 1, params.number do
+		velocity[1] = velocityX + speed * (math_random(-100, 100) / 880)
+		velocity[2] = velocityY + speed * (math_random(-100, 100) / 440)
+		velocity[3] = velocityZ + speed * (math_random(-100, 100) / 880)
+
+		Spring.SpawnProjectile(spawnDefID, cache)
 	end
 end
 
-applyingFunctions.split = function(proID)
-	local positionX, positionY, positionZ = Spring.GetProjectilePosition(proID)
-	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
-	local speed = math_sqrt(velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ)
-	local ownerID = spGetProjectileOwnerID(proID)
-	local params = projectiles[proID]
-	for i = 1, tonumber(params.number) do
-		local projectileParams = {
-			pos = { positionX, positionY, positionZ },
-			speed = { velocityX - speed * (math_random(-100, 100) / 880), velocityY - speed * (math_random(-100, 100) / 440), velocityZ - speed * (math_random(-100, 100) / 880) },
-			owner = ownerID,
-			ttl = 3000,
-			gravity = -Game.gravity / 900,
-			model = params.model,
-			cegTag = params.cegtag,
-		}
-		Spring.SpawnProjectile(weaponDefNamesID[params.def], projectileParams)
+weaponSpecialEffect.split = function(params, projectileID)
+	if isProjectileFalling(projectileID) then
+		split(params, projectileID)
+		return true
 	end
-	Spring.SpawnCEG(params.splitexplosionceg, positionX, positionY, positionZ, 0, 0, 0, 0, 0)
-	Spring.DeleteProjectile(proID)
 end
 
 -- Water penetration (cannon)
