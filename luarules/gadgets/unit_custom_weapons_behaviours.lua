@@ -49,7 +49,7 @@ local targetedUnit = string.byte('u')
 local weaponCustomParamKeys = {} -- [effect] = { key => conversion function }
 local weaponSpecialEffect = {}
 
-local weaponParams = {}
+local weaponEffect = {}
 
 local projectiles = {}
 local projectilesData = {}
@@ -381,13 +381,13 @@ function gadget:Initialize()
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then
-				weaponParams[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+				weaponEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
 			end
 		end
 	end
 
-	if next(weaponParams) then
-		for weaponDefID in pairs(weaponParams) do
+	if next(weaponEffect) then
+		for weaponDefID in pairs(weaponEffect) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
 	else
@@ -397,8 +397,8 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponParams[weaponDefID] then
-		projectiles[projectileID] = weaponParams[weaponDefID]
+	if weaponEffect[weaponDefID] then
+		projectiles[projectileID] = weaponEffect[weaponDefID]
 	end
 end
 
