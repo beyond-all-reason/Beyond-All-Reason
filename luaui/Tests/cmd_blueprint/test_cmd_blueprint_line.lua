@@ -34,9 +34,8 @@ function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
-	while #(widget.blueprints) > 0 do
-		widget.deleteBlueprint(1)
-	end
+	widget.blueprints = {}
+	widget.setSelectedBlueprintIndex(nil)
 
 	local blueprintUnitDefName = "armsolar"
 	local builderUnitDefName = "armck"
