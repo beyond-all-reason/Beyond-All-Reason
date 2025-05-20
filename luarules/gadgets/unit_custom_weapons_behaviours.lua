@@ -168,47 +168,27 @@ end
 
 -- Retarget
 
-checkingFunctions.retarget = {}
-checkingFunctions.retarget["always"] = function(proID)
-	-- Might be slightly more optimal to check the unit itself if it changes target,
-	-- then tell the in-flight missiles to change target if the unit changes target
-	-- instead of checking each in-flight missile
-	-- but not sure if there is an easy hook function or callin function
-	-- that only runs if a unit changes target
+weaponSpecialEffect.retarget = function(params, projectileID)
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local targetType, target = spGetProjectileTarget(projectileID)
 
-	-- refactor slightly, only do target change if the target the missile
-	-- is heading towards is dead
-	-- karganeth switches away from alive units a little too often, causing
-	-- missiles that would have hit to instead miss
-	if spGetProjectileTimeToLive(proID) <= 0 then
-		-- stop missile retargeting when it runs out of fuel
-		return true
-	end
-	local targetType, targetID = spGetProjectileTarget(proID)
-	-- if the missile is heading towards a unit
-	if targetType == string.byte('u') then
-		--check if the target unit is dead or dying
-		local dead_state = spGetUnitIsDead(targetID)
-		if dead_state == nil or dead_state == true then
-			--hardcoded to assume the retarget weapon is the primary weapon.
-			--TODO, make this more general
-			local targetTypeOwner, _, targetOwner = spGetUnitWeaponTarget(spGetProjectileOwnerID(proID), 1)
-			if targetTypeOwner == 1 then
-				--hardcoded to assume the retarget weapon does not target features or intercept projectiles, only targets units if not shooting ground.
-				--TODO, make this more general
-				spSetProjectileTarget(proID, targetOwner, string.byte('u'))
-			end
-			if targetTypeOwner == 2 then
-				spSetProjectileTarget(proID, targetOwner[1], targetOwner[2], targetOwner[3])
+		if targetType == targetedUnit and spGetUnitIsDead(target) ~= false then
+			local ownerID = Spring.GetProjectileOwnerID(projectileID)
+
+			if ownerID then
+				-- Hardcoded to retarget only from the primary weapon and only units or ground
+				local ownerTargetType, _, ownerTarget = Spring.GetUnitWeaponTarget(ownerID, 1)
+
+				if ownerTargetType == 1 then
+					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
+				elseif ownerTargetType == 2 then
+					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
+				end
+				return false
 			end
 		end
 	end
-
-	return false
-end
-
-applyingFunctions.retarget = function(proID)
-	return false
+	return true
 end
 
 -- Sector fire
