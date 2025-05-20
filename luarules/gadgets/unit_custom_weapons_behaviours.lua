@@ -314,23 +314,19 @@ end
 
 -- Water penetration with retargeting (torpedo)
 
---a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
-checkingFunctions.torpwaterpenretarget = {}
-checkingFunctions.torpwaterpenretarget["ypos<0"] = function(proID)
-	checkingFunctions.retarget["always"](proID) --subcontract that part
+do
+	local retarget = weaponSpecialEffect.retarget
+	local torpedoWaterPen = weaponSpecialEffect.torpwaterpen
 
-	local _, positionY, _ = Spring.GetProjectilePosition(proID)
-	if positionY <= 0 then
-		--and delegate that too
-		applyingFunctions.torpwaterpen(proID)
-	else
-		return false
+	weaponSpecialEffect.torpedowaterpenretarget = function(params, projectileID)
+		if not projectilesData[projectileID] and torpedoWaterPen(nil, projectileID) then
+			projectilesData[projectileID] = true
+		end
+		if retarget(nil, projectileID) then
+			projectilesData[projectileID] = nil
+			return true
+		end
 	end
-end
-
---fake function
-applyingFunctions.torpwaterpenretarget = function(proID)
-	return false
 end
 
 --------------------------------------------------------------------------------
