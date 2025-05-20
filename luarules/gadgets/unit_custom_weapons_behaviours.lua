@@ -117,60 +117,53 @@ weaponCustomParamKeys.cruise = {
 	lockon_dist = toPositiveNumber,
 }
 
-checkingFunctions.cruise = {}
-checkingFunctions.cruise["distance>0"] = function(proID)
-	--Spring.Echo()
-
-	if spGetProjectileTimeToLive(proID) <= 0 then
-		return true
-	end
-	local targetTypeInt, target = spGetProjectileTarget(proID)
-	local targetX, targetY, targetZ
-	local velocityX, velocityY, velocityZ
-	if targetTypeInt == string.byte('g') then
-		targetX = target[1]
-		targetY = target[2]
-		targetZ = target[3]
-	end
-	if targetTypeInt == string.byte('u') then
-		_, _, _, _, _, _, targetX, targetY, targetZ = Spring.GetUnitPosition(target, true, true)
-	end
-	local positionX, positionY, positionz = Spring.GetProjectilePosition(proID)
-	local velocityX, velocityY, velocityZ = Spring.GetProjectileVelocity(proID)
-	local speed = math_sqrt(velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ)
-	local params = projectiles[proID]
-	if math_sqrt((positionX - targetX) ^ 2 + (positionY - targetY) ^ 2 + (positionz - targetZ) ^ 2) > tonumber(params.lockon_dist) then
-		elevation = Spring.GetGroundHeight(positionX, positionz)
-		normalX, normalY, normalZ, slope = Spring.GetGroundNormal(positionX, positionz)
-		--Spring.Echo(Spring.GetGroundNormal(xp,zp))
-		--Spring.Echo(tonumber(infos.cruise_height)*slope)
-		if positionY < elevation + tonumber(params.cruise_min_height) then
-			projectileData[proID] = true
-			Spring.SetProjectilePosition(proID, positionX, elevation + tonumber(params.cruise_min_height), positionz)
-			local dotProduct = (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
-			velocityX = velocityX - dotProduct * normalX * 0
-			velocityY = velocityY - dotProduct * normalY
-			velocityZ = velocityZ - dotProduct * normalZ * 0
-			spSetProjectileVelocity(proID, velocityX, velocityY, velocityZ)
-		end
-		if positionY > elevation + tonumber(params.cruise_max_height) and projectileData[proID] and velocityY > -speed * .25 then
-			-- do not clamp to max height if
-			-- vertical velocity downward is more than 1/4 of current speed
-			-- probably just went off lip of steep cliff
-			Spring.SetProjectilePosition(proID, positionX, elevation + tonumber(params.cruise_max_height), positionz)
-			local norm = (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
-			velocityX = velocityX - norm * normalX * 0
-			velocityY = velocityY - norm * normalY
-			velocityZ = velocityZ - norm * normalZ * 0
-			spSetProjectileVelocity(proID, velocityX, velocityY, velocityZ)
-		end
-		return false
-	else
-		return true
-	end
+local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ)
+	local codirection = velocityX * normalX + velocityY * normalY + velocityZ * normalZ
+	velocityY = velocityY - normalY * codirection -- NB: can be a little strong on uneven terrain
+	spSetProjectilePosition(projectileID, positionX, positionY, positionZ)
+	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
 end
-applyingFunctions.cruise = function(proID)
-	return false
+
+weaponSpecialEffect.cruise = function(params, projectileID)
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+		local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+
+		local targetX, targetY, targetZ
+		do
+			local targetType, target = spGetProjectileTarget(projectileID)
+			if targetType == targetedUnit then
+				local _; -- sink for unused values
+				_, _, _, -- like so
+				targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
+			elseif targetType == targetedGround then
+				targetX, targetY, targetZ = target[1], target[2], target[3]
+			end
+		end
+
+		local distance = params.lockon_dist
+
+		if distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+			local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
+
+			if positionY < cruiseHeight then
+				projectilesData[projectileID] = true
+				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+			elseif projectilesData[projectileID]
+				and positionY > cruiseHeight
+				and velocityY > speed * -0.25 -- Avoid going into steep dives, e.g. after cliffs.
+			then
+				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+			end
+
+			return false
+		end
+	end
+
+	projectilesData[projectileID] = nil
+
+	return true
 end
 
 -- Retarget
