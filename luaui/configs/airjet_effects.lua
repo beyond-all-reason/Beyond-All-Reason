@@ -63,7 +63,9 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 25, piece = "rthrust", light = 1 },
 	},
 	["legwhisper"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 37, piece = "bigAirJet1", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 50, piece = "littleAirJet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 38, piece = "bigAirJet2", light = 1 },
 	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
