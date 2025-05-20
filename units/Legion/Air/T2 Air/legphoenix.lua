@@ -183,6 +183,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
+					no_water_splash = 1, -- targetting weapon aircraftbomb
 				},
 			},
 			legphsound = {

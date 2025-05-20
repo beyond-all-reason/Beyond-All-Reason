@@ -142,6 +142,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					no_water_splash = 1,
 					stockpilelimit = 10,
 				},
 				damage = {
