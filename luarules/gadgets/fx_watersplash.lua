@@ -42,7 +42,7 @@ local weaponAoe = {}
 local weaponNoSplash = {}
 for weaponDefID, def in pairs(WeaponDefs) do
 	weaponAoe[weaponDefID] = def.damageAreaOfEffect
-	if nonexplosiveWeapons[def.type] or def.customParams.no_water_splash then
+	if nonexplosiveWeapons[def.type] or def.customParams.water_splash == 0 then
 		weaponNoSplash[weaponDefID] = true
 	end
 	-- add damage bonus, since LRPC dont have a lot of AoE, but do pack a punch
