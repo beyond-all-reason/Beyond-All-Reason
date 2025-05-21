@@ -159,10 +159,12 @@ do
 end
 
 -- Cruise
+-- Missile guidance behavior that avoids crashing into terrain while heading toward the target.
+-- Intended to be used with non-homing weapons, since it updates the velocity independently.
 
 weaponCustomParamKeys.cruise = {
-	cruise_min_height = toPositiveNumber,
-	lockon_dist       = toPositiveNumber,
+	cruise_min_height = toPositiveNumber, -- Minimum ground clearance. Checked each frame, but no lookahead.
+	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
 local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
@@ -212,6 +214,9 @@ specialEffectFunction.cruise = function(params, projectileID)
 end
 
 -- Retarget
+-- Missile guidance behavior that changes the projectile's target when its intended target is destroyed.
+-- This could be made much more efficient by creating an explicit death dependence (in another gadget).
+-- The retargeting behavior relies on the owner unit's primary weapon, so ends when it is also destroyed.
 
 -- Uses no weapon customParams.
 
@@ -240,12 +245,16 @@ specialEffectFunction.retarget = function(projectileID)
 end
 
 -- Sector fire
+-- Changes the targeting error of a weapon to a section in an annulus between a min and max range.
+-- Use a weapon with no other sources of inaccuracy for the gui_attack_aoe indicator to be correct.
 
 weaponCustomParamKeys.sector_fire = {
+	-- Forms a ring from the weapon's (max range) * (reduction) to its max range.
 	max_range_reduction = function(value)
 		value = tonumber(value)
 		return value and math.clamp(value, 0, 1) or nil
 	end,
+	-- Forms a section in that ring between (spread_angle) * 0.5 to the left and right of centerline.
 	spread_angle = function(value)
 		value = tonumber(value)
 		return value and value * math_pi / 180 or nil
@@ -269,13 +278,15 @@ specialEffectFunction.sector_fire = function(params, projectileID)
 end
 
 -- Split
+-- Create a scatter of projectiles from the top of a trajectory to rain down on the targeted position.
+-- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def    = toWeaponDefID,
-	number            = tonumber,
-	splitexplosionceg = tostring,
-	cegtag            = tostring,
-	model             = tostring,
+	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	number            = tonumber, -- count of projectiles to spawn
+	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
+	cegtag            = tostring, -- as `projectileParams.cegTag`
+	model             = tostring, -- as `projectileParams.model`
 }
 
 local function split(params, projectileID)
@@ -305,12 +316,15 @@ specialEffectFunction.split = function(params, projectileID)
 end
 
 -- Water penetration (cannon)
+-- Allows for projectiles that change in behavior between above-water and below-water use.
+-- Intended for gravity-effected projectiles like Cannon weapons, which it also can spawn.
+-- Will prevent the explosion of weapons otherwise configured to explode on hitting water.
 
 weaponCustomParamKeys.cannonwaterpen = {
-	speceffect_def = toWeaponDefID,
-	waterpenceg    = tostring,
-	cegtag         = tostring,
-	model          = tostring,
+	speceffect_def = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	waterpenceg    = tostring, -- name of spawned CEG (use a small splash, there is no damage)
+	cegtag         = tostring, -- as `projectileParams.cegTag`
+	model          = tostring, -- as `projectileParams.model`
 }
 
 local function cannonWaterPen(params, projectileID)
@@ -337,6 +351,8 @@ specialEffectFunction.cannonwaterpen = function(params, projectileID)
 end
 
 -- Water penetration (torpedo)
+-- Torpedoes are tracking with very high turn rates which causes problems depending on initial conditions.
+-- This eliminates vertical velocity so torpedo bombers work in shallows and sets a lower initial speed.
 
 -- Uses no weapon customParams.
 
@@ -344,7 +360,7 @@ local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-	-- Underwater projectiles have lower visibility, so remaining on surface is preferable.
+	-- Underwater projectiles have low visibility, so remaining on surface is preferable.
 	-- Only dive below the water's surface if the target is likely an underwater unit.
 	local diveSpeed = 0
 
@@ -366,6 +382,12 @@ specialEffectFunction.torpwaterpen = function(projectileID)
 end
 
 -- Water penetration with retargeting (torpedo)
+-- This is a WIP solution for massed torpedo gunships to get value out of otherwise-wasted shots.
+-- Limited to use by tweakdefs/modders for now and the (unmaintained?) Hornet balance test packs.
+
+-- Torpedoes are semi-magical to prevent hitting allied units while skimming the water's surface,
+-- so remain active when overkilling targets. This simplifies micro and discourages the knowledge
+-- check of perfect torpedo bombing outside AA range since `retarget` needs continued proximity.
 
 -- Uses no weapon customParams.
 
