@@ -1,0 +1,181 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+#include "../recoil_common_includes.h"
+
+piece  
+    chassis,
+    cells,
+    leftGun,
+    leftBarrel,
+    leftFlare,
+    rightGun,
+    rightBarrel,
+    rightFlare,
+    thrusters,
+    leftAirjet,
+    rightAirjet,
+    mainAirjet,
+    topWing,
+    bottomWing;
+
+static-var gun_1;
+
+
+// activatescr()
+// {
+// 	sleep 15;
+// }
+
+// deactivatescr()
+// {
+// 	sleep 9;
+// }
+
+#define BASEPIECE chassis
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+static-var maxSpeed, currentSpeed;
+BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
+{
+	currentSpeed = (get CURRENT_SPEED);
+	maxSpeed = (get MAX_SPEED);
+	
+	while (TRUE){
+		sleep 2000;
+		currentSpeed = (get CURRENT_SPEED);
+		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
+		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
+		{
+			turn chassis to z-axis <240.054945> speed <120.027473>;
+			wait-for-turn chassis around z-axis;
+			turn chassis to z-axis <120.027473> speed <180.043956>;
+			wait-for-turn chassis around z-axis;
+			turn chassis to z-axis <0.000000> speed <120.027473>;
+		}
+	}
+}
+
+Create()
+{
+	gun_1 = 1;
+    hide leftAirjet;
+    hide rightAirjet;
+    hide mainAirjet;
+	start-script BarrelRoll();
+}
+
+Activate()
+{
+    show leftAirjet;
+    show rightAirjet;
+    show mainAirjet;
+}
+
+Deactivate()
+{
+    hide leftAirjet;
+    hide rightAirjet;
+    hide mainAirjet;
+}
+
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = rightFlare;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = leftFlare;
+	}
+}
+
+FirePrimary()
+{
+	if( gun_1 == 1 )
+	{
+	    gun_1 = 2;
+        spin leftBarrel around z-axis speed <900>;
+        stop-spin leftBarrel around z-axis decelerate <10>;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+	    gun_1 = 1;
+        spin rightBarrel around z-axis speed <-900>;
+        stop-spin rightBarrel around z-axis decelerate <10>;
+		return (0);
+	}
+}
+
+Shot1(zero) {
+	if( gun_1 == 1 )
+	{
+        emit-sfx 1024 + 0 from rightFlare;
+	}
+	if( gun_1 == 2 )
+	{
+        emit-sfx 1024 + 0 from leftFlare;
+	}
+}
+
+
+SweetSpot(piecenum)
+{
+	piecenum = chassis;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode topWing type BITMAPONLY | NOHEATCLOUD;
+		explode bottomWing type BITMAPONLY | NOHEATCLOUD;
+		explode thrusters type BITMAPONLY | NOHEATCLOUD;
+		explode leftGun type BITMAPONLY | NOHEATCLOUD;
+		explode rightGun type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode topWing type BITMAPONLY | NOHEATCLOUD;
+		explode bottomWing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusters type BITMAPONLY | NOHEATCLOUD;
+		explode leftGun type BITMAPONLY | NOHEATCLOUD;
+		explode rightGun type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode topWing type SMOKE | FALL | NOHEATCLOUD;
+		explode bottomWing type BITMAPONLY | NOHEATCLOUD;
+		explode thrusters type BITMAPONLY | NOHEATCLOUD;
+		explode leftGun type BITMAPONLY | NOHEATCLOUD;
+		explode rightGun type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode topWing type BITMAPONLY | NOHEATCLOUD;
+		explode bottomWing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrusters type BITMAPONLY | NOHEATCLOUD;
+		explode leftGun type BITMAPONLY | NOHEATCLOUD;
+		explode rightGun type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}
