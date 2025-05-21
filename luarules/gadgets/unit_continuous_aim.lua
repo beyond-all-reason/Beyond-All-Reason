@@ -124,6 +124,7 @@ local convertedUnitsNames = {
 	['legsco'] = 5,
 	['leegmech'] = 5,
 	['legionnaire'] = 5,
+	['legafigdef'] = 5,
 	['legvenator'] = 5,
     ['legmed'] = 5,
 	['legaskirmtank'] = 5,

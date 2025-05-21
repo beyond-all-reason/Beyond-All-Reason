@@ -100,7 +100,7 @@ local labGrids = {
 		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
-		"legaca", "legionnaire", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
+		"legaca", "legafigdef", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
 		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
 		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
 	},

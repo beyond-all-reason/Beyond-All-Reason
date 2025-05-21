@@ -589,6 +589,7 @@ local armorDefs = {
 		"corvamp",
 		"legfig",
 		"legionnaire",
+		"legafigdef",
 		"legvenator",
 		"legphoenix",
 		"legstronghold",

@@ -67,6 +67,11 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 50, piece = "littleAirJet", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 38, piece = "bigAirJet2", light = 1 },
 	},
+	["legafigdef"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 37, piece = "rightAirjet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 50, piece = "mainAirjet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 38, piece = "leftAirjet", light = 1 },
+	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},

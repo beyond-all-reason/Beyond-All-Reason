@@ -32380,6 +32380,35 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
+	['legafigdef']={
+		airjet1 = {
+			lightType = 'cone',
+			pieceName = 'leftAirjet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 35,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.3,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		airjet2 = {
+			lightType = 'cone',
+			pieceName = 'rightAirjet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 35,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.3,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		airjet3 = {
+			lightType = 'cone',
+			pieceName = 'mainAirjet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 50,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.6,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
 	['legrezbot']={
 		buildlight1 = { --top spinning light
 			lightType = 'cone',

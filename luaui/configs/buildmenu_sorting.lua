@@ -113,6 +113,7 @@ local unitOrderTable = {
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
 	['legionnaire']    = 004316,
+	['legafigdef']     = 004316,
 	['legvenator']     = 004317,
 	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
 	['corsfig2']       = 004317,
