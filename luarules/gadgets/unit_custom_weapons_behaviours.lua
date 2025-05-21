@@ -213,7 +213,9 @@ end
 
 -- Retarget
 
-specialEffectFunction.retarget = function(params, projectileID)
+-- Uses no weapon customParams.
+
+specialEffectFunction.retarget = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local targetType, target = spGetProjectileTarget(projectileID)
 
@@ -227,7 +229,7 @@ specialEffectFunction.retarget = function(params, projectileID)
 				if ownerTargetType == 1 then
 					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
 				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
+					spSetProjectileTarget(projectileID, unpack(ownerTarget))
 				end
 
 				return false
@@ -327,7 +329,7 @@ local function cannonWaterPen(params, projectileID)
 	spSpawnProjectile(spawnDefID, spawnParams)
 end
 
-specialEffectFunction.cannonwaterpen = function(projectileID)
+specialEffectFunction.cannonwaterpen = function(params, projectileID)
 	if isProjectileInWater(projectileID) then
 		cannonWaterPen(projectileID)
 		return true
@@ -335,6 +337,8 @@ specialEffectFunction.cannonwaterpen = function(projectileID)
 end
 
 -- Water penetration (torpedo)
+
+-- Uses no weapon customParams.
 
 local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
@@ -354,7 +358,7 @@ local function torpedoWaterPen(projectileID)
 	spSetProjectileVelocity(projectileID, velocityX / 1.3, diveSpeed, velocityZ / 1.3)
 end
 
-specialEffectFunction.torpwaterpen = function(params, projectileID)
+specialEffectFunction.torpwaterpen = function(projectileID)
 	if isProjectileInWater(projectileID) then
 		torpedoWaterPen(projectileID)
 		return true
@@ -363,16 +367,18 @@ end
 
 -- Water penetration with retargeting (torpedo)
 
+-- Uses no weapon customParams.
+
 do
 	local retarget = specialEffectFunction.retarget
 	local torpedoWaterPen = specialEffectFunction.torpwaterpen
 
-	specialEffectFunction.torpedowaterpenretarget = function(params, projectileID)
-		if not projectilesData[projectileID] and torpedoWaterPen(nil, projectileID) then
+	specialEffectFunction.torpedowaterpenretarget = function(projectileID)
+		if not projectilesData[projectileID] and torpedoWaterPen(projectileID) then
 			projectilesData[projectileID] = true
 		end
 
-		if retarget(nil, projectileID) then
+		if retarget(projectileID) then
 			projectilesData[projectileID] = nil
 			return true
 		end
@@ -395,7 +401,13 @@ function gadget:Initialize()
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then
-				weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+				if next(effectParams) then
+					-- When configured to a weapon's customParams, call the effect with its `params`:
+					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+				else
+					-- Otherwise, call the effect directly (skips the `params` arg):
+					weaponDefEffect[weaponDefID] = specialEffectFunction[effectName]
+				end
 			end
 		end
 	end
