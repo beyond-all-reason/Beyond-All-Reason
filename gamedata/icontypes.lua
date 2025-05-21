@@ -2611,6 +2611,10 @@ local icontypes = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
 	},
+	legafigdef = {
+		bitmap = "icons/air_t2.png",
+		size = 1.02899992
+	},
 	legkam = {
 		bitmap = "icons/air_kamikaze.png",
 		size = 1
