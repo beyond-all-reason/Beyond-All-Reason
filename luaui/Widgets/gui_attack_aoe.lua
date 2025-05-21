@@ -235,7 +235,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 						weaponInfo[unitDefID].type = "sector"
 						weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
 						weaponInfo[unitDefID].sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction)
-						weaponInfo[unitDefID].sector_range_max = tonumber(weaponDef.range)
+						weaponInfo[unitDefID].sector_range_max = weaponDef
 					end
 				end
 			end
