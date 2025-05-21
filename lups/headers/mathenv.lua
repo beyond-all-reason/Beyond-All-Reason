@@ -72,7 +72,7 @@ local pcall = pcall
 local meta  = {__index={}}
 
 function ProcessParamCode(func, locals)
-  --// set up safe enviroment
+  --// set up safe environment
   meta.__index = locals
   setmetatable( MathG, meta );
 

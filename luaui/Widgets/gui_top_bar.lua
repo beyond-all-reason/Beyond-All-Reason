@@ -438,10 +438,10 @@ end
 local function checkTidalRelevant()
 	local mapMinHeight = 0
 
-	-- account for invertmap to the best of our abiltiy
+    -- account for invertmap to the best of our ability
 	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
 		if string.find(Spring.GetModOptions().debugcommands,"wet") then
-			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+                    -- assume that they want water if keyword "wet" is involved, too volatile between initialization and subsequent post terraform checks
 			return true
 		--else
 		--	mapMinHeight = 0

@@ -262,7 +262,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end)
 		end,
-		-- flatten anything above/bellow these extremes
+		-- flatten anything above/below these extremes
 		flatten = function(value)
 			local height = tonumber(value[1])
 			if height == nil then return end
@@ -307,8 +307,8 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 	-- terrain deformer <br>
-	-- all deformers are performed independantly, rather than merged into a more efficent single caculation, to let the user stack them multiple times in whatever order
-	-- expected format, where each command must be seperated by a comma, space sensetive:
+       -- all deformers are performed independently, rather than merged into a more efficient single calculation, to let the user stack them multiple times in whatever order
+       -- expected format, where each command must be separated by a comma, space sensitive:
 	--		command <required> [optional], command [optional] [optional], command mode + <height>, etc
 	-- commands:
 	-- 		invertmap [height] or ["wet"]			inverts the height map around the specified point, or "wet" water level aka zero, if unspecified highest ends at zero
@@ -318,13 +318,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- 		extremeabove <height> [multiplier]		increases the height intensity above specified point
 	-- 		extremebelow <height> [multiplier]		increases the height intensity below specified point
 	-- 		flatten <height>						lowers anything above to it
-	-- 		floor <height>							raises anything bellow to it
+	-- 		floor <height>							raises anything below to it
 	-- 		zero [height (not mode compatible)]		sets water level to lowest point or specified height to the roughly best of its ability
 	--		waterlevel <height>							move everything up or down
 	-- extra:
-	--		triangular brackets reffer to required <>
-	--		square brackets reffer to optional []
-	--		[height]/<height> can be replaced with "mode [int] [+/- <number>]", otpional offset requires a space before and after the + or -
+	--		triangular brackets refer to required <>
+	--		square brackets refer to optional []
+	--		[height]/<height> can be replaced with "mode [int] [+/- <number>]", optional offset requires a space before and after the + or -
 	--		when entering single value there can not be a space after the minus, except for mode offset
 	--		e.g. maxheight mode, minheight mode 2, extremeabove mode 1 + 15 2, zero -20
 

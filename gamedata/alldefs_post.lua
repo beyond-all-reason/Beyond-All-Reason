@@ -1510,7 +1510,7 @@ local function ProcessSoundDefaults(wd)
 	local defaultDamage = wd.damage and wd.damage.default
 
 	if not defaultDamage or defaultDamage <= 50 then
-		-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
+               -- old filter that gave small weapons a base-minimum sound volume, now fixed with new math.min(math.max)
 		-- if not defaultDamage then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5

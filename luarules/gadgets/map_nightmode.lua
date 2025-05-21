@@ -362,7 +362,7 @@ if not gadgetHandler:IsSyncedCode() then
 		
 		local newNightLight = GetNightLight(nil, { nightR, nightG,nightB,shadowfactor}, azimuth, altitude)
 		Spring.Echo(newNightLight)
-		-- If this command is recieved, immediately stop any existing nightModeConfig
+               -- If this command is received, immediately stop any existing nightModeConfig
 		transitionenabled = false
 		SetLightingAndAtmosphere(newNightLight)
 	end

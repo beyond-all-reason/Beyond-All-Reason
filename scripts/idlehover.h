@@ -62,7 +62,7 @@ IdleHover()
 
 		if (isIdle){
 			IdleSpeed = Rand(IDLEHOVERSPEED,IDLEHOVERSPEED*3); 
-			if (IdleSpeed < 10) IdleSpeed = 10; //wierd div by zero error?
+                if (IdleSpeed < 10) IdleSpeed = 10; //weird div by zero error?
 			//get PRINT(newIdleX,newIdleY,newIdleZ,IdleSpeed);
 			
 			newIdle = Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);

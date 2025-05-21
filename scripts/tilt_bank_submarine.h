@@ -107,7 +107,7 @@ TiltBank(reversing)
 	#endif
 	while(1)
 	{
-		// Get unit hieght
+               // Get unit height
 		TB_currHeadingORHeight = get UNIT_Y;
 
 		// calc deltas

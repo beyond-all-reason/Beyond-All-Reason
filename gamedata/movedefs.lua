@@ -279,7 +279,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- this movedeff dies when seperation distance is a current feature in bar
+       -- this movedeff dies when separation distance is a current feature in bar
 	-- corhrk
 	BOT5 = {
 		crushstrength = 25,

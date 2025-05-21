@@ -300,7 +300,7 @@ else  -- UNSYCNED
 		SPECULAREXPONENT = lava.specularExp,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 		LOSDARKNESS = lava.losDarkness, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can recieve
+               SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can receive
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
 		SWIRLFREQUENCY = lava.swirlFreq, -- How fast the main lava texture swirls around default 0.025
 		SWIRLAMPLITUDE = lava.swirlAmp, -- How much the main lava texture is swirled around default 0.003

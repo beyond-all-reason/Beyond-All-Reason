@@ -46,7 +46,7 @@ end
 --	return true
 --end
 
--- get the first mex bellow that isn't itself, stacking more than one should be prevented by yardmaps
+-- get the first mex below that isn't itself, stacking more than one should be prevented by yardmaps
 local function hasMexBeneath(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)

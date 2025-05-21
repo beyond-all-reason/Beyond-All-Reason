@@ -398,7 +398,7 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
 
-	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
+       -- The game sends a lua message, which should be base64'd to prevent weird character bullshit:
 	-- Lua Message Format:
 		-- leetspeek luaspads:base64message
 		-- lu@$p@d$:ABCEDFGS==

@@ -1681,7 +1681,7 @@ end
 
 -- TODO:
 --	TexturedRectRound:
-		--texture UV calcs are wierd
+               --texture UV calcs are weird
 --	RectRoundCircle
 	--	Radius in one vertex param! (doable with tris)
 	--	 implement centerOffset!

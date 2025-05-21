@@ -535,7 +535,7 @@ function widget:ViewResize()
 			posY = 0
 		end
 	end
-	if doCheckUnitGroupsPos then  -- this is the worlds stupides workaround for not creating display lists in intialize or update with unitpics too early, especially seen in save games and scenarios.
+    if doCheckUnitGroupsPos then  -- this is the world's stupidest workaround for not creating display lists in initialize or update with unitpics too early, especially seen in save games and scenarios.
 		checkUnitGroupsPos(true)
 	end
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)

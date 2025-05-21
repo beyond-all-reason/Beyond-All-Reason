@@ -174,7 +174,7 @@ AimPrimary(heading, pitch)
 	//lots of if arguments to determine if it can skip rotation by pitching up to upright position and insta rotating to pitch back down in the correct direction
 	//first line is for when heading and trueaim are both not positive or negative and in the frontal arcs
 	//second line is for when heading < 0 and trueaim > 0 in the rear arc
-	//third line is for when heading > 0 and trueaim < 0 in the rear arc (yes they are seperate, didnt work otherwise)
+       //third line is for when heading > 0 and trueaim < 0 in the rear arc (yes they are separate, didn't work otherwise)
 	//forth line is for when both heading and trueaim are positive or negative
 	
 	if (((((trueaim < 0) AND (heading > 0)) OR ((trueaim > 0) AND (heading < 0))) AND ( get ABS(trueaim - heading) > 15000) AND ((get ABS(heading) + get ABS(trueaim)) < 32768) AND (upright == 0)) 

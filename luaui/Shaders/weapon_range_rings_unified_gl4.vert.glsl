@@ -240,7 +240,7 @@ void main() {
 		//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 		//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
 		
-		// rotate the circle into unit space, wierd that it has to be rotated on other direction
+               // rotate the circle into unit space, weird that it has to be rotated in the other direction
 		if (MAXANGLEDIF > 0.0) {
 			maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
 			mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 

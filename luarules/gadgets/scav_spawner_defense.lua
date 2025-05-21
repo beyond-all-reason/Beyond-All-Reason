@@ -428,7 +428,7 @@ if gadgetHandler:IsSyncedCode() then
 			}
 		}
 
-		-> refference table to quickly check which unit is in which squad, and if it has a squad at all.
+               -> reference table to quickly check which unit is in which squad, and if it has a squad at all.
 		unitSquadTable = {
 			[unitID] = [squadID]
 		}

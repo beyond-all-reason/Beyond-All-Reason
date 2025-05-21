@@ -257,7 +257,7 @@ else	-- UNSYNCED
 		if msg ~= PACKET_HEADER then
 			cameraState = PacketToCameraState(msg)
 			if not cameraState then
-				Spring.Echo("<LockCamera>: Bad packet recieved.")
+                       Spring.Echo("<LockCamera>: Bad packet received.")
 				return
 			end
 		end

@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 
 local featureDefs = {}
-local shared = {} -- shared amongst the lua featuredef enviroments
+local shared = {} -- shared amongst the lua featuredef environments
 
 local preProcFile  = 'gamedata/featuredefs_pre.lua'
 local postProcFile = 'gamedata/featuredefs_post.lua'

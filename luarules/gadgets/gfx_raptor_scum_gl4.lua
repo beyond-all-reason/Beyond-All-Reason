@@ -350,7 +350,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
+               SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can receive
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
 		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0),

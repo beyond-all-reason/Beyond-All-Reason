@@ -142,7 +142,7 @@ void main() {
 	//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 	//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
 	
-	// rotate the circle into unit space, wierd that it has to be rotated on other direction
+       // rotate the circle into unit space, weird that it has to be rotated in the other direction
 	float maxAngleDif = 1;
 	float mainDirDegrees = 0; 
 	if (MAXANGLEDIF > 0.0) {

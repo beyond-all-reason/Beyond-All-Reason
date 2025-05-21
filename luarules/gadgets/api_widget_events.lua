@@ -114,7 +114,7 @@ end
 local scriptFeatureDestroyed = Script.LuaUI.FeatureDestroyed
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	-- assume that features are always in LOS
-	-- feauture allyTeam is equal to my allyteam when its a gaia feature, that is wierd
+       -- feature allyTeam is equal to my allyteam when it's a gaia feature, that is weird
 	-- am i always allied with gaia?
 	local isAllyUnit = (allyTeam == myAllyTeamID)
 	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, Spring.GetMyTeamID())

@@ -713,7 +713,7 @@ local definitions = {
 
   -- CEGs for revision of unit_area_timed_damage -------------------------------
 
-  -- Effects trigger on a fixed interval after the first impact, so the inital
+  -- Effects trigger on a fixed interval after the first impact, so the initial
   -- explosion has to add fire fx to look different from a normal arty explo.
   ["fire-explosion-small"] = {
     usedefaultexplosions = false,

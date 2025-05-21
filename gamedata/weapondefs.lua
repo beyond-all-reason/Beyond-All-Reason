@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 
 local weaponDefs = {}
-local shared = {} -- shared amongst the lua weapondef enviroments
+local shared = {} -- shared amongst the lua weapondef environments
 
 local preProcFile  = 'gamedata/weapondefs_pre.lua'
 local postProcFile = 'gamedata/weapondefs_post.lua'

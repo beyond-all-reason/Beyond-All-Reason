@@ -25,7 +25,7 @@ end
 --1.2:
 --added: "Repeat"-State gets saved. Repeating queues show up as green preset number labels, non-repeated in gray as usual
 --added: Queues can be loaded by left-clicking on the preset box
---added: Queues get saved for each mod seperately
+--added: Queues get saved for each mod separately
 
 
 local vsx, vsy = Spring.GetViewGeometry()

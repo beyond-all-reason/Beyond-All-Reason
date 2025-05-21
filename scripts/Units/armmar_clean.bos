@@ -16,7 +16,7 @@ static-var walkCount;
 #define SIGNAL_MOVE 1
 
 LOLEMPTYFUNCTION(){
-	// Ok let me tell you what wierd error this script has, which is probably an error of scriptor.
+    // Ok let me tell you what weird error this script has, which is probably an error of scriptor.
 	// The script will when shooting and walking at the same time, call the first function that is defined
 	// I was able to debug with with the calledFrom param of Walk, because it was called with 0, which I never
 	// call it with. So anyhow, this is the hacky fix, an empty, silly function. It is what is is.

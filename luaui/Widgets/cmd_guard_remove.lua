@@ -27,7 +27,7 @@ local removableCommand = {
 }
 
 -- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
--- extreme performance issues by parsing all of those commands. So we track units that have recieved
+-- extreme performance issues by parsing all of those commands. So we track units that have received
 -- commands in the last 5 frames and skip any that are touched
 local recentUnits = {}
 local updateTime = 0
