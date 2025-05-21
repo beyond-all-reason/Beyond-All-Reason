@@ -2255,7 +2255,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-				SGG.ScavengersSpawnEffectUnitID(unitID)
+				GG.ScavengersSpawnEffectUnitID(unitID)
 				if UnitDefs[unitDefID].canCloak then
 					Spring.GiveOrderToUnit(unitID,37382,{1},0)
 				end
