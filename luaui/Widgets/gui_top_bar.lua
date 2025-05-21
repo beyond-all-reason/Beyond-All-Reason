@@ -296,11 +296,11 @@ local function updateButtons()
 
 	if not gameIsOver and chobbyLoaded then
 		addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
-		if not spec and gameStarted and not isSinglePlayer then
-			addButton('resign', Spring.I18N('ui.topbar.button.resign'))
-		end
 	else
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+	end
+	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
+		addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 	end
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
