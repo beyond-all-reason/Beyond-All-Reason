@@ -89,7 +89,8 @@ for udid, ud in pairs(UnitDefs) do
         end
     end
     if name:find("armgremlin") or name:find("armamb") or name:find("armpb") or name:find("armferret")
-       or name:find("armckfus") or name:find("armsnipe") or name:find("eyes") or name:find("mine")
+       or name:find("armckfus") or name:find("armsnipe") or name:find("armshockwave")
+       or name:find("eyes") or name:find("mine")
        or name:find("armcom") or name:find("corcom") or name:find("legcom") then
         isGremlin[udid] = decloakDist
     end
@@ -102,8 +103,6 @@ end
 
 local function addGremlin(unitID, unitDefID)
     units[unitID] = { isGremlin[unitDefID], 0 }
-    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, 0)
-    spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
 end
 
 --------------------------------------------------------------------------------
