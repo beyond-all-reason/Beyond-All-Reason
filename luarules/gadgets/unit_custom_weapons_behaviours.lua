@@ -158,6 +158,17 @@ do
 	end
 end
 
+---A condensed `unpack` for tables in a standard float3/xyz layout.
+---Useful for performance-sensitive contexts with frequent vectors.
+---@see unpack
+---@param vector float3
+---@return number x
+---@return number y
+---@return number z
+local function unpack3(vector)
+	return vector[1], vector[2], vector[3]
+end
+
 -- Cruise
 -- Missile guidance behavior that avoids crashing into terrain while heading toward the target.
 -- Intended to be used with non-homing weapons, since it updates the velocity independently.
@@ -186,7 +197,7 @@ specialEffectFunction.cruise = function(params, projectileID)
 			local _; -- declare a local sink var for unused values
 			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
 		elseif targetType == targetedGround then
-			targetX, targetY, targetZ = target[1], target[2], target[3]
+			targetX, targetY, targetZ = unpack3(target)
 		end
 
 		local distance = params.lockon_dist
@@ -234,7 +245,7 @@ specialEffectFunction.retarget = function(projectileID)
 				if ownerTargetType == 1 then
 					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
 				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, unpack(ownerTarget))
+					spSetProjectileTarget(projectileID, unpack3(ownerTarget))
 				end
 
 				return false
@@ -293,11 +304,11 @@ local function split(params, projectileID)
 	local spawnDefID, spawnParams, speed = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
-	spSpawnCEG(params.splitexplosionceg, unpack(spawnParams.pos))
+	spSpawnCEG(params.splitexplosionceg, unpack3(spawnParams.pos))
 
 	spawnParams.gravity = gravityPerFrame
 
-	local velocityX, velocityY, velocityZ = unpack(spawnParams.speed)
+	local velocityX, velocityY, velocityZ = unpack3(spawnParams.speed)
 
 	for _ = 1, params.number do
 		velocity[1] = velocityX + speed * (math_random(-100, 100) / 880)
@@ -331,7 +342,7 @@ local function cannonWaterPen(params, projectileID)
 	local spawnDefID, spawnParams = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
-	spSpawnCEG(params.waterpenceg, unpack(spawnParams.pos))
+	spSpawnCEG(params.waterpenceg, unpack3(spawnParams.pos))
 
 	spawnParams.gravity = gravityPerFrame * 0.5
 
