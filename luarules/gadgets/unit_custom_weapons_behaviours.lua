@@ -224,10 +224,10 @@ specialEffectFunction.retarget = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local targetType, target = spGetProjectileTarget(projectileID)
 
-		if targetType == targetedUnit and spGetUnitIsDead(target) ~= false then
-			local ownerID = spGetProjectileOwnerID(projectileID)
+		if targetType == targetedUnit then
+			if spGetUnitIsDead(target) ~= false then
+				local ownerID = spGetProjectileOwnerID(projectileID)
 
-			if ownerID then
 				-- Hardcoded to retarget only from the primary weapon and only units or ground
 				local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
 
@@ -236,12 +236,12 @@ specialEffectFunction.retarget = function(projectileID)
 				elseif ownerTargetType == 2 then
 					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
 				end
-
-				return false
 			end
+			return false
 		end
+	else
+		return true
 	end
-	return true
 end
 
 -- Sector fire
