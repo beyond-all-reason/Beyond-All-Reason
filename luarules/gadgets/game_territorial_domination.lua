@@ -16,6 +16,7 @@ end
 -- red text doesn't blink when spectating.
 -- when an allyteam dies, perspective changes to one of the remaining allyteams but the score doesn't refresh until a different one is selected and then the original auto-chosen allyteam is re-selected
 -- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
+-- check if defeatTime is interacting with freezeTime correctly
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -179,7 +180,15 @@ if SYNCED then
 		else
 			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
 			wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
-			thresholdSecondsDelay = clamp(MIN_THRESHOLD_DELAY, (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold, MAX_THRESHOLD_DELAY)
+			
+			-- Fix the division by zero and ensure parameters are in correct order:
+			-- min, value, max instead of min, max, value
+			if wantedDefeatThreshold > 0 then
+				local delayValue = (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold
+				thresholdSecondsDelay = clamp(delayValue, MIN_THRESHOLD_DELAY, MAX_THRESHOLD_DELAY)
+			else
+				thresholdSecondsDelay = MAX_THRESHOLD_DELAY
+			end
 		end
 		thresholdDelayTimestamp = min(seconds + thresholdSecondsDelay, thresholdDelayTimestamp)
 	end

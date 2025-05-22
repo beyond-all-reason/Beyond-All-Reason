@@ -56,24 +56,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetAllUnits = Spring.GetAllUnits
 
-local BLINK_FREQUENCY = 0.5
 local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
 local WARNING_SECONDS = 15
 local PADDING_MULTIPLIER = 0.36
-local TEXT_HEIGHT_MULTIPLIER = 0.33
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
 local RANK_RULES_KEY = "territorialDominationRank"
 local UPDATE_FREQUENCY = 0.1
-local BLINK_VOLUME_WARNING_RESET_SECONDS = 10
-local MIN_BLINK_VOLUME = 0.15
-local MAX_BLINK_VOLUME = 0.4
 local TEXT_OUTLINE_OFFSET = 0.7
 local TEXT_OUTLINE_ALPHA = 0.35
-local BLINK_FRAMES = 10
 local BLINK_INTERVAL = 1
 local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local WINDUP_SOUND_DURATION = 2
@@ -89,32 +83,24 @@ local COLOR_BACKGROUND = {0, 0, 0, 0.5}
 local COLOR_BORDER = {0.2, 0.2, 0.2, 0.2}
 local COLOR_GREEN = {0, 0.8, 0, 0.8}
 local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
-local RED_BLINK_COLOR = {0.9, 0, 0, 1}
-local FROZEN_TEXT_COLOR = {0.6, 0.6, 0.6, 1.0}
-local COLOR_ICE_BLUE = {0.5, 0.8, 1.0, 0.8}
 local COLOR_GREY_LINE = {0.7, 0.7, 0.7, 0.7}
 local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
 -- Add constants for timer warning
 local TIMER_WARNING_DISPLAY_TIME = 5  -- Display warning for 5 seconds
 local TIMER_COOLDOWN = 120 -- in seconds
-local TIMER_WARNING_FONT_MULTIPLIER = 1.5
 local MINIMAP_GAP = 3
 local BORDER_WIDTH = 2  -- Moving this up to the constants section
+local ICON_SIZE = 25    -- Add icon size as a constant
 
 local myCommanders = {}
 local soundQueue = {}
 
-local lastWarningBlinkTime = 0
-local isWarningVisible = true
-local isFreezeWarningVisible = true
 local isSkullFaded = true
 
 -- Add variables for timer warning
 local lastTimerWarningTime = 0
-local timerWarningMessage = nil
 local timerWarningEndTime = 0
-local font = nil
 
 local amSpectating = false
 local myAllyID = -1
@@ -124,9 +110,6 @@ local lastUpdateTime = 0
 local lastScore = -1
 local displayList = nil
 local lastDifference = -1
-local lastTextColor = nil
-local lastBackgroundDimensions = nil
-local warningSoundFadeMultiplier = 0.5
 local healthbarWidth = 300
 local healthbarHeight = 20
 local lineWidth = 2
@@ -152,7 +135,6 @@ local lastThreshold = -1
 local lastMaxThreshold = -1
 local lastIsThresholdFrozen = false
 local lastFreezeExpirationTime = -1
-local lastIconSize = -1
 local lastHealthbarWidth = -1
 local lastHealthbarHeight = -1
 local lastMinimapDimensions = {-1, -1, -1}
@@ -181,9 +163,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	
 	local thresholdX = left + (threshold / maxThreshold) * barWidth
 	
-	local iconSize = 25
-	
-
 	local skullOffset = (1 / maxThreshold) * barWidth
 	local skullX = thresholdX - skullOffset
 	
@@ -340,10 +319,10 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	glColor(0, 0, 0, shadowAlpha)
 	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(
-		-iconSize/2 * shadowScale + shadowOffset, 
-		-iconSize/2 * shadowScale - shadowOffset, 
-		iconSize/2 * shadowScale + shadowOffset, 
-		iconSize/2 * shadowScale - shadowOffset
+		-ICON_SIZE/2 * shadowScale + shadowOffset, 
+		-ICON_SIZE/2 * shadowScale - shadowOffset, 
+		ICON_SIZE/2 * shadowScale + shadowOffset, 
+		ICON_SIZE/2 * shadowScale - shadowOffset
 	)
 	
 	-- SKULL ALPHA MANAGEMENT
@@ -376,7 +355,7 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	-- Draw skull
 	glColor(1, 1, 1, skullAlpha)
 	glTexture(':n:LuaUI/Images/skull.dds')
-	glTexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+	glTexRect(-ICON_SIZE/2, -ICON_SIZE/2, ICON_SIZE/2, ICON_SIZE/2)
 	
 	glTexture(false)
 	glPopMatrix()
@@ -607,16 +586,11 @@ local function createCountdownDisplayList(timeRemaining)
 		
 		-- Get minimap dimensions to position the countdown
 		local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-		local iconSize = 25
-		local iconHalfWidth = iconSize / 2
-		
-		-- Ensure we have MINIMAP_GAP defined
-		local miniMapGap = MINIMAP_GAP or 3
 		
 		-- Calculate skull position
-		local healthbarLeft = minimapPosX + iconHalfWidth
-		local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-		local healthbarTop = minimapPosY - miniMapGap
+		local healthbarLeft = minimapPosX + ICON_SIZE/2
+		local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+		local healthbarTop = minimapPosY - MINIMAP_GAP
 		local healthbarBottom = healthbarTop - healthbarHeight
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local barWidth = healthbarRight - healthbarLeft
@@ -635,7 +609,7 @@ local function createCountdownDisplayList(timeRemaining)
 		local countdownY
 		if amSpectating then
 			-- For spectator mode
-			local topY = minimapPosY - miniMapGap
+			local topY = minimapPosY - MINIMAP_GAP
 			local barHeight = healthbarHeight * 0.7
 			countdownY = topY - barHeight/2 - 10  -- Center on the bar and offset up by 10
 		else
@@ -664,13 +638,6 @@ function widget:Initialize()
 	
 	for _, unitID in ipairs(allUnits) do
 		widget:MetaUnitAdded(unitID,  spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil)
-	end
-	
-	-- Initialize font the same way as in gui_game_type_info
-	local vsx, vsy = Spring.GetViewGeometry()
-	local widgetScale = 0.80 + (vsx * vsy / 6000000)
-	if WG['fonts'] then
-		font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 	end
 end
 
@@ -761,133 +728,106 @@ function widget:Update(dt)
 	end
 end
 
-function updateScoreDisplayList()
+-- Helper function to check if display list needs updating
+local function needsDisplayListUpdate()
 	local currentGameTime = spGetGameSeconds()
 	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
-	
-	if scoreAllyID == gaiaAllyTeamID then 
-		if displayList then
-			glDeleteList(displayList)
-			displayList = nil
-		end
-		return 
-	end
-	
-	if not fontCache.initialized then
-		local _, viewportSizeY = spGetViewGeometry()
-		fontCache.fontSizeMultiplier = math.max(1.2, math.min(2.25, viewportSizeY / 1080))
-		fontCache.fontSize = floor(14 * fontCache.fontSizeMultiplier)
-		fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
-		fontCache.paddingY = fontCache.paddingX
-		fontCache.initialized = true
-	end
-
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local currentMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
-	
-	local iconSize = 25
-	local iconHalfWidth = iconSize / 2
-	
-	local oldHealthbarWidth = healthbarWidth
-	healthbarWidth = minimapSizeX - iconHalfWidth * 2
-	
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
 	
-	-- Check if we need to update the spectator mode display
-	local needsUpdate = false
+	if scoreAllyID == gaiaAllyTeamID then 
+		return false
+	end
+	
+	if not fontCache.initialized then
+		return true
+	end
+
 	if amSpectating then
 		if lastAmSpectating ~= amSpectating or lastSelectedAllyTeamID ~= selectedAllyTeamID then
-			needsUpdate = true
-		else
-			-- Get current scores for comparison
-			local aliveAllyTeams = {}
-			local allyTeamList = spGetAllyTeamList()
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if isAllyTeamAlive(allyTeamID) then
-					table.insert(aliveAllyTeams, allyTeamID)
-				end
-			end
-			
-			local currentAllyTeamScores = {}
-			local currentTeamRanks = {}
-			
-			for _, allyTeamID in ipairs(aliveAllyTeams) do
-				local score = 0
-				local rank = nil
-				local teamID = nil
-				
-				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
-					local _, _, isDead = spGetTeamInfo(tid)
-					if not isDead then
-						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
-						if teamScore then
-							score = teamScore
-							teamID = tid
-							
-							-- Get first team's color if we haven't already
-							if not firstTeamFound then
-								local r, g, b = spGetTeamColor(tid)
-								teamColor = {r, g, b, 0.8}
-								firstTeamFound = true
-							end
-							
-							-- Get team rank
-							rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
-							
-							break
-						end
-					end
-				end
-				
-				currentAllyTeamScores[allyTeamID] = score
-				
-				if teamID then
-					currentTeamRanks[teamID] = rank
-					if lastTeamRanks[teamID] ~= rank then
-						needsUpdate = true
-					end
-				end
-			end
-			
-			-- Compare with last scores
-			for allyTeamID, score in pairs(currentAllyTeamScores) do
-				if lastAllyTeamScores[allyTeamID] ~= score then
-					needsUpdate = true
-					break
-				end
-			end
-			
-			-- Check if any ally teams changed state (appeared/disappeared)
-			for allyTeamID, score in pairs(lastAllyTeamScores) do
-				if currentAllyTeamScores[allyTeamID] == nil then
-					needsUpdate = true
-					break
-				end
-			end
-			
-			-- Update reference to current scores and ranks
-			if needsUpdate then
-				lastAllyTeamScores = currentAllyTeamScores
-				lastTeamRanks = currentTeamRanks
+			return true
+		end
+		
+		-- Check spectator scores and ranks
+		local aliveAllyTeams = {}
+		local allyTeamList = spGetAllyTeamList()
+		for _, allyTeamID in ipairs(allyTeamList) do
+			if isAllyTeamAlive(allyTeamID) then
+				table.insert(aliveAllyTeams, allyTeamID)
 			end
 		end
+		
+		local currentAllyTeamScores = {}
+		local currentTeamRanks = {}
+		
+		for _, allyTeamID in ipairs(aliveAllyTeams) do
+			local score = 0
+			local rank = nil
+			local teamID = nil
+			
+			for _, tid in ipairs(spGetTeamList(allyTeamID)) do
+				local _, _, isDead = spGetTeamInfo(tid)
+				if not isDead then
+					local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
+					if teamScore then
+						score = teamScore
+						teamID = tid
+						rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
+						break
+					end
+				end
+			end
+			
+			currentAllyTeamScores[allyTeamID] = score
+			
+			if teamID then
+				currentTeamRanks[teamID] = rank
+				if lastTeamRanks[teamID] ~= rank then
+					return true
+				end
+			end
+		end
+		
+		-- Compare with last scores
+		for allyTeamID, score in pairs(currentAllyTeamScores) do
+			if lastAllyTeamScores[allyTeamID] ~= score then
+				lastAllyTeamScores = currentAllyTeamScores
+				lastTeamRanks = currentTeamRanks
+				return true
+			end
+		end
+		
+		-- Check if any ally teams changed state
+		for allyTeamID, _ in pairs(lastAllyTeamScores) do
+			if currentAllyTeamScores[allyTeamID] == nil then
+				lastAllyTeamScores = currentAllyTeamScores
+				lastTeamRanks = currentTeamRanks
+				return true
+			end
+		end
+		
+		lastAllyTeamScores = currentAllyTeamScores
+		lastTeamRanks = currentTeamRanks
 	else
-		-- Check if player's own score needs updating
+		-- Player mode update check
 		local score = 0
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 		local rank = nil
+		local teamID = nil
 		
-		for _, teamID in ipairs(spGetTeamList(myAllyID)) do
-			local _, _, isDead = spGetTeamInfo(teamID)
+		for _, tid in ipairs(spGetTeamList(myAllyID)) do
+			local _, _, isDead = spGetTeamInfo(tid)
 			if not isDead then
-				local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+				local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
 				if teamScore then
 					score = teamScore
-					rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
+					rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
+					teamID = tid
 					break
 				end
 			end
@@ -898,37 +838,354 @@ function updateScoreDisplayList()
 		if lastScore ~= score or lastDifference ~= difference or 
 		   lastThreshold ~= threshold or lastMaxThreshold ~= currentMaxThreshold or
 		   lastIsThresholdFrozen ~= isThresholdFrozen or lastFreezeExpirationTime ~= freezeExpirationTime or
-		   lastIconSize ~= iconSize or lastHealthbarWidth ~= healthbarWidth or 
+		   lastHealthbarWidth ~= healthbarWidth or 
 		   lastHealthbarHeight ~= healthbarHeight or
 		   lastMinimapDimensions[1] ~= currentMinimapDimensions[1] or
 		   lastMinimapDimensions[2] ~= currentMinimapDimensions[2] or
 		   lastMinimapDimensions[3] ~= currentMinimapDimensions[3] or
 		   lastAmSpectating ~= amSpectating or
 		   (teamID and lastTeamRanks[teamID] ~= rank) then
-			needsUpdate = true
+			
 			lastScore = score
 			lastDifference = difference
 			if teamID then
-				Spring.Echo("teamID: " .. teamID .. " rank: " .. rank)
 				lastTeamRanks[teamID] = rank
 			end
+			return true
 		end
 	end
 	
-	-- Update tracking variables regardless of whether we're recreating the display list
+	return false
+end
+
+-- Update tracking variables for next comparison
+local function updateTrackingVariables()
+	local currentGameTime = spGetGameSeconds()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+	local currentMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
+	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	
 	lastThreshold = threshold
 	lastMaxThreshold = currentMaxThreshold
 	lastIsThresholdFrozen = isThresholdFrozen
 	lastFreezeExpirationTime = freezeExpirationTime
-	lastIconSize = iconSize
 	lastHealthbarWidth = healthbarWidth
 	lastHealthbarHeight = healthbarHeight
 	lastMinimapDimensions = currentMinimapDimensions
 	lastAmSpectating = amSpectating
 	lastSelectedAllyTeamID = selectedAllyTeamID
 	maxThreshold = currentMaxThreshold
+end
+
+-- Initialize font cache if needed
+local function initializeFontCache()
+	if not fontCache.initialized then
+		local _, viewportSizeY = spGetViewGeometry()
+		fontCache.fontSizeMultiplier = math.max(1.2, math.min(2.25, viewportSizeY / 1080))
+		fontCache.fontSize = floor(14 * fontCache.fontSizeMultiplier)
+		fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
+		fontCache.paddingY = fontCache.paddingX
+		fontCache.initialized = true
+	end
+end
+
+-- Draw bars for spectator mode
+local function drawSpectatorModeScoreBars()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+	local barHeight = healthbarHeight * 0.7
+	local barSpacing = 12
 	
-	-- If no updates needed, return early
+	-- Get alive ally teams
+	local aliveAllyTeams = {}
+	local allyTeamList = spGetAllyTeamList()
+	for _, allyTeamID in ipairs(allyTeamList) do
+		if isAllyTeamAlive(allyTeamID) then
+			table.insert(aliveAllyTeams, allyTeamID)
+		end
+	end
+	
+	-- Get scores and sort by score
+	local allyTeamScores = {}
+	for _, allyTeamID in ipairs(aliveAllyTeams) do
+		local score = 0
+		local teamColor = {1, 1, 1, 0.8} -- Default color
+		local firstTeamFound = false
+		local rank = nil
+		local teamID = nil
+		
+		for _, tid in ipairs(spGetTeamList(allyTeamID)) do
+			local _, _, isDead = spGetTeamInfo(tid)
+			if not isDead then
+				local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
+				if teamScore then
+					score = teamScore
+					teamID = tid
+					
+					if not firstTeamFound then
+						local r, g, b = spGetTeamColor(tid)
+						teamColor = {r, g, b, 0.8}
+						firstTeamFound = true
+					end
+					
+					rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
+					break
+				end
+			end
+		end
+		
+		table.insert(allyTeamScores, {
+			allyTeamID = allyTeamID,
+			score = score,
+			teamColor = teamColor,
+			rank = rank,
+			teamID = teamID
+		})
+	end
+	
+	-- Sort by score (highest to lowest)
+	table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
+	
+	local startY = minimapPosY - MINIMAP_GAP
+	local currentY = startY
+	
+	-- Draw bars for sorted ally teams
+	for i, allyTeamData in ipairs(allyTeamScores) do
+		local allyTeamID = allyTeamData.allyTeamID
+		local score = allyTeamData.score
+		local teamColor = allyTeamData.teamColor
+		local rank = allyTeamData.rank
+		
+		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		local difference = score - threshold
+		local textColor = COLOR_WHITE
+		
+		local healthbarTop = currentY
+		local healthbarBottom = healthbarTop - barHeight
+		local healthbarLeft = minimapPosX + ICON_SIZE/2
+		local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+		
+		local currentGameTime = spGetGameSeconds()
+		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+		local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+		
+		-- Create tinted background based on team color
+		local bgTintStrength = 0.15
+		local tintedBackgroundColor = {
+			backgroundColor[1] + (teamColor[1] - backgroundColor[1]) * bgTintStrength,
+			backgroundColor[2] + (teamColor[2] - backgroundColor[2]) * bgTintStrength,
+			backgroundColor[3] + (teamColor[3] - backgroundColor[3]) * bgTintStrength,
+			backgroundColor[4]
+		}
+		
+		local borderTintStrength = 0.1
+		local tintedBorderColor = {
+			borderColor[1] + (teamColor[1] - borderColor[1]) * borderTintStrength,
+			borderColor[2] + (teamColor[2] - borderColor[2]) * borderTintStrength,
+			borderColor[3] + (teamColor[3] - borderColor[3]) * borderTintStrength,
+			borderColor[4]
+		}
+		
+		-- Draw background and border
+		glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
+		glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+			   healthbarRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
+			   
+		glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
+		glRect(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop)
+		
+		-- Draw the actual health bar
+		local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
+			healthbarLeft, healthbarRight, 
+			healthbarBottom, healthbarTop, 
+			score, threshold, teamColor, isThresholdFrozen
+		)
+		
+		-- Position difference text
+		local textX
+		local textPadding = 2
+		local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+		
+		textX = skullX + ICON_SIZE/2 + textPadding
+		
+		if textX > healthbarScoreRight then
+			textX = skullX - ICON_SIZE/2 - textPadding - estimatedTextWidth
+			
+			if textX < healthbarLeft then
+				textX = skullX + ICON_SIZE/2 + textPadding
+			end
+		end
+		
+		local verticalOffset = -3
+		local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+		
+		drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+		
+		-- Draw rank if available
+		if rank then
+			local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
+			
+			-- Draw rank box to the left of health bar
+			local rankBoxWidth = 80  -- Fixed width for rank box
+			local rankBoxHeight = barHeight -- Match the height of the scorebar
+			drawRankTextBox(
+				healthbarLeft, 
+				healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+				rankBoxWidth, 
+				rankBoxHeight, 
+				rank, 
+				fontCache.fontSize,
+				COLOR_WHITE
+			)
+		end
+		
+		currentY = healthbarBottom - barSpacing
+	end
+end
+
+-- Draw bar for player's own team 
+local function drawPlayerScoreBar()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+	
+	local score = 0
+	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local rank = nil
+	local teamID = nil
+	
+	for _, tid in ipairs(spGetTeamList(myAllyID)) do
+		local _, _, isDead = spGetTeamInfo(tid)
+		if not isDead then
+			local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
+			if teamScore then
+				score = teamScore
+				rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
+				teamID = tid
+				break
+			end
+		end
+	end
+	
+	local difference = score - threshold
+	local textColor = COLOR_WHITE
+	
+	-- Choose appropriate bar color based on difference
+	local barColor
+	if difference <= WARNING_THRESHOLD then
+		barColor = COLOR_RED
+	elseif difference <= ALERT_THRESHOLD then
+		barColor = COLOR_YELLOW
+	else
+		barColor = COLOR_GREEN
+	end
+	
+	-- Position and dimensions
+	local healthbarTop = minimapPosY - MINIMAP_GAP
+	local healthbarBottom = healthbarTop - healthbarHeight
+	local healthbarLeft = minimapPosX + ICON_SIZE/2
+	local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+	
+	-- Check frozen state
+	local currentGameTime = spGetGameSeconds()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	
+	-- Create tinted background based on bar color
+	local bgTintStrength = 0.15
+	local tintedBackgroundColor = {
+		backgroundColor[1] + (barColor[1] - backgroundColor[1]) * bgTintStrength,
+		backgroundColor[2] + (barColor[2] - backgroundColor[2]) * bgTintStrength,
+		backgroundColor[3] + (barColor[3] - backgroundColor[3]) * bgTintStrength,
+		backgroundColor[4]
+	}
+	
+	local borderTintStrength = 0.1
+	local tintedBorderColor = {
+		borderColor[1] + (barColor[1] - borderColor[1]) * borderTintStrength,
+		borderColor[2] + (barColor[2] - borderColor[2]) * borderTintStrength,
+		borderColor[3] + (barColor[3] - borderColor[3]) * borderTintStrength,
+		borderColor[4]
+	}
+	
+	glPushMatrix()
+	
+	-- Draw background and border
+	glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
+	glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
+		   healthbarRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
+		   
+	glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
+	glRect(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop)
+	
+	-- Draw health bar
+	local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
+		healthbarLeft, healthbarRight, 
+		healthbarBottom, healthbarTop, 
+		score, threshold, barColor, isThresholdFrozen
+	)
+	
+	-- Position difference text
+	local textX
+	local textPadding = 2
+	local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+	
+	textX = skullX + ICON_SIZE/2 + textPadding
+	
+	if textX > healthbarScoreRight then
+		textX = skullX - ICON_SIZE/2 - textPadding - estimatedTextWidth
+		
+		if textX < healthbarLeft then
+			textX = skullX + ICON_SIZE/2 + textPadding
+		end
+	end
+	
+	local verticalOffset = -3
+	local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
+	
+	drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+	
+	-- Draw rank if available
+	if rank then
+		-- Draw rank box to the left of health bar
+		local rankBoxWidth = 80
+		local rankBoxHeight = healthbarHeight * 0.7
+		drawRankTextBox(
+			healthbarLeft, 
+			healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
+			rankBoxWidth, 
+			rankBoxHeight, 
+			rank, 
+			fontCache.fontSize,
+			COLOR_WHITE
+		)
+	end
+	
+	glPopMatrix()
+end
+
+function updateScoreDisplayList()
+	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
+	
+	if scoreAllyID == gaiaAllyTeamID then 
+		if displayList then
+			glDeleteList(displayList)
+			displayList = nil
+		end
+		return 
+	end
+	
+	initializeFontCache()
+
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+	
+	healthbarWidth = minimapSizeX - ICON_SIZE
+	
+	local needsUpdate = needsDisplayListUpdate()
+	
+	updateTrackingVariables()
+	
 	if not needsUpdate and displayList then
 		return
 	end
@@ -937,334 +1194,11 @@ function updateScoreDisplayList()
 		glDeleteList(displayList)
 	end
 	
-	-- DISPLAY LIST CREATION
 	displayList = glCreateList(function()
-		-- Store ranks for drawing them at the end
-		local ranksToDraw = {}
-		
 		if amSpectating then
-			-- Show bars for all ally teams when spectating
-			local allyTeamList = spGetAllyTeamList()
-			local barHeight = healthbarHeight * 0.7
-			local barSpacing = 12
-			
-			-- Count alive ally teams for spacing calculations
-			local aliveAllyTeams = {}
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if isAllyTeamAlive(allyTeamID) then
-					table.insert(aliveAllyTeams, allyTeamID)
-				end
-			end
-			-- Get scores for ally teams and sort by score (highest to lowest)
-			local allyTeamScores = {}
-			for _, allyTeamID in ipairs(aliveAllyTeams) do
-				local score = 0
-				local teamColor = {1, 1, 1, 0.8} -- Default color
-				local firstTeamFound = false
-				local rank = nil
-				local teamID = nil
-				
-				-- Find the first team in this ally team to get its color and score
-				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
-					local _, _, isDead = spGetTeamInfo(tid)
-					if not isDead then
-						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
-						if teamScore then
-							score = teamScore
-							teamID = tid
-							
-							-- Get first team's color if we haven't already
-							if not firstTeamFound then
-								local r, g, b = spGetTeamColor(tid)
-								teamColor = {r, g, b, 0.8}
-								firstTeamFound = true
-							end
-							
-							-- Get team rank
-							rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
-							
-							break
-						end
-					end
-				end
-				
-				table.insert(allyTeamScores, {
-					allyTeamID = allyTeamID,
-					score = score,
-					teamColor = teamColor,
-					rank = rank,
-					teamID = teamID
-				})
-			end
-			
-			-- Sort by score (highest to lowest)
-			table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
-			
-			-- Calculate total height for positioning
-			local totalHeight = #aliveAllyTeams * (barHeight + barSpacing)
-			
-			local startY = minimapPosY - MINIMAP_GAP
-			local currentY = startY
-			
-			-- Draw bars for sorted ally teams
-			for i, allyTeamData in ipairs(allyTeamScores) do
-				local allyTeamID = allyTeamData.allyTeamID
-				local score = allyTeamData.score
-				local teamColor = allyTeamData.teamColor
-				local rank = allyTeamData.rank
-				
-				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-				maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-				
-				local difference = score - threshold
-				local textColor = COLOR_WHITE
-				
-				local healthbarTop = currentY
-				local healthbarBottom = healthbarTop - barHeight
-				local healthbarLeft = minimapPosX + iconHalfWidth
-				local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-				
-				local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-				local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-				
-				local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-				local actualRight = healthbarRight
-				local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
-				
-				if score > maxThreshold then
-					actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-				end
-				
-				local exceedsMaxThreshold = score > maxThreshold
-				-- Never extend background beyond the default width
-				local adjustedBackgroundRight = healthbarRight
-				
-				-- Create a tinted background based on team color (very subtle)
-				local bgTintStrength = 0.15  -- How strong the team color affects the background
-				local tintedBackgroundColor = {
-					backgroundColor[1] + (teamColor[1] - backgroundColor[1]) * bgTintStrength,
-					backgroundColor[2] + (teamColor[2] - backgroundColor[2]) * bgTintStrength,
-					backgroundColor[3] + (teamColor[3] - backgroundColor[3]) * bgTintStrength,
-					backgroundColor[4]
-				}
-				
-				-- Also tint the border slightly
-				local borderTintStrength = 0.1  -- Border tint is more subtle
-				local tintedBorderColor = {
-					borderColor[1] + (teamColor[1] - borderColor[1]) * borderTintStrength,
-					borderColor[2] + (teamColor[2] - borderColor[2]) * borderTintStrength,
-					borderColor[3] + (teamColor[3] - borderColor[3]) * borderTintStrength,
-					borderColor[4]
-				}
-				
-				glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
-				glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
-					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
-					   
-				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
-				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
-				
-				local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
-					healthbarLeft, healthbarRight, 
-					healthbarBottom, healthbarTop, 
-					score, threshold, teamColor, isThresholdFrozen
-				)
-				
-				local textX
-				local textPadding = 2
-				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
-				
-				textX = skullX + iconSize/2 + textPadding
-				
-				if textX > healthbarScoreRight then
-					textX = skullX - iconSize/2 - textPadding - estimatedTextWidth
-					
-					if textX < healthbarLeft then
-						textX = skullX + iconSize/2 + textPadding
-					end
-				end
-				
-				local verticalOffset = -3
-				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
-				
-				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
-				
-				-- Draw rank if available
-				if rank then
-					-- Position rank safely to the right of all elements
-					-- Include any potential overfill of the bar
-					local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
-					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
-					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
-					
-					-- Only store and draw ranks when not in spectator mode
-					if not amSpectating then
-						-- Store for drawing at the end
-						table.insert(ranksToDraw, {
-							x = rankX,
-							y = rankY,
-							rank = rank,
-							fontSize = fontCache.fontSize
-						})
-						
-						-- Draw rank box to the left of health bar
-						local rankBoxWidth = 80  -- Fixed width for rank box
-						local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
-						drawRankTextBox(
-							healthbarLeft, 
-							healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
-							rankBoxWidth, 
-							rankBoxHeight, 
-							rank, 
-							fontCache.fontSize,
-							COLOR_WHITE
-						)
-					end
-				end
-				
-				currentY = healthbarBottom - barSpacing
-			end
+			drawSpectatorModeScoreBars()
 		else
-			-- Single bar for the player's own team
-			local score = 0
-			local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-			maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-			local rank = nil
-			
-			for _, teamID in ipairs(spGetTeamList(myAllyID)) do
-				local _, _, isDead = spGetTeamInfo(teamID)
-				if not isDead then
-					local teamScore = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
-					if teamScore then
-						score = teamScore
-						rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
-						break
-					end
-				end
-			end
-			
-			local difference = score - threshold
-			local textColor = COLOR_WHITE
-			
-			local barColor
-			if difference <= WARNING_THRESHOLD then
-				barColor = COLOR_RED
-			elseif difference <= ALERT_THRESHOLD then
-				barColor = COLOR_YELLOW
-			else
-				barColor = COLOR_GREEN
-			end
-			
-			local healthbarTop = minimapPosY - MINIMAP_GAP
-			local healthbarBottom = healthbarTop - healthbarHeight
-			local healthbarLeft = minimapPosX + iconHalfWidth
-			local healthbarRight = minimapPosX + minimapSizeX - iconHalfWidth
-			
-			local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-			local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-			
-			local healthbarScoreRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-			local actualRight = healthbarRight
-			local thresholdX = healthbarLeft + (threshold / maxThreshold) * (healthbarRight - healthbarLeft)
-			
-			if score > maxThreshold then
-				actualRight = healthbarLeft + (score / maxThreshold) * (healthbarRight - healthbarLeft)
-			end
-			
-			local exceedsMaxThreshold = score > maxThreshold
-			-- Never extend background beyond the default width
-			local adjustedBackgroundRight = healthbarRight
-			
-			glPushMatrix()
-				-- Create a tinted background based on team color (very subtle)
-				local bgTintStrength = 0.15  -- How strong the team color affects the background
-				local tintedBackgroundColor = {
-					backgroundColor[1] + (barColor[1] - backgroundColor[1]) * bgTintStrength,
-					backgroundColor[2] + (barColor[2] - backgroundColor[2]) * bgTintStrength,
-					backgroundColor[3] + (barColor[3] - backgroundColor[3]) * bgTintStrength,
-					backgroundColor[4]
-				}
-				
-				-- Also tint the border slightly
-				local borderTintStrength = 0.1  -- Border tint is more subtle
-				local tintedBorderColor = {
-					borderColor[1] + (barColor[1] - borderColor[1]) * borderTintStrength,
-					borderColor[2] + (barColor[2] - borderColor[2]) * borderTintStrength,
-					borderColor[3] + (barColor[3] - borderColor[3]) * borderTintStrength,
-					borderColor[4]
-				}
-				
-				glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
-				glRect(healthbarLeft - BORDER_WIDTH, healthbarBottom - BORDER_WIDTH, 
-					   adjustedBackgroundRight + BORDER_WIDTH, healthbarTop + BORDER_WIDTH)
-					   
-				glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
-				glRect(healthbarLeft, healthbarBottom, adjustedBackgroundRight, healthbarTop)
-				
-				local healthbarScoreRight, actualRight, thresholdX, skullX = drawHealthBar(
-					healthbarLeft, healthbarRight, 
-					healthbarBottom, healthbarTop, 
-					score, threshold, barColor, isThresholdFrozen
-				)
-				
-				local textX
-				local textPadding = 2
-				local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
-				
-				textX = skullX + iconSize/2 + textPadding
-				
-				if textX > healthbarScoreRight then
-					textX = skullX - iconSize/2 - textPadding - estimatedTextWidth
-					
-					if textX < healthbarLeft then
-						textX = skullX + iconSize/2 + textPadding
-					end
-				end
-				
-				local verticalOffset = -3
-				local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
-				
-				drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
-				
-				-- Draw rank if available
-				if rank then
-					-- Position rank safely to the right of all elements
-					-- Include any potential overfill of the bar
-					local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
-					local rankX = safeRightEdge + 25  -- Increased from 14 to 25 for better spacing
-					local rankY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
-					
-					-- Only store and draw ranks when not in spectator mode
-					if not amSpectating then
-						-- Store for drawing at the end
-						table.insert(ranksToDraw, {
-							x = rankX,
-							y = rankY,
-							rank = rank,
-							fontSize = fontCache.fontSize
-						})
-						
-						-- Draw rank box to the left of health bar
-						local rankBoxWidth = 80  -- Fixed width for rank box
-						local rankBoxHeight = healthbarHeight * 0.7 -- Match the height of the scorebar
-						drawRankTextBox(
-							healthbarLeft, 
-							healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
-							rankBoxWidth, 
-							rankBoxHeight, 
-							rank, 
-							fontCache.fontSize,
-							COLOR_WHITE
-						)
-					end
-				end
-			glPopMatrix()
-		end
-		
-		-- Draw all ranks at the end to ensure they're on top of everything else
-		for _, rankData in ipairs(ranksToDraw) do
-			-- No longer needed since we draw directly in each bar's rendering
-			-- drawRankText(rankData.x, rankData.y, rankData.rank, rankData.fontSize, COLOR_WHITE)
+			drawPlayerScoreBar()
 		end
 	end)
 end
@@ -1272,7 +1206,6 @@ end
 function widget:DrawScreen()
 	local currentGameTime = spGetGameSeconds()
 	
-	-- Draw the main display list
 	if not displayList then
 		updateScoreDisplayList()
 	end
@@ -1281,7 +1214,6 @@ function widget:DrawScreen()
 		glCallList(displayList)
 	end
 	
-	-- Draw the countdown timer display list if active
 	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
 		if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValue or not countdownDisplayList) then
@@ -1293,18 +1225,10 @@ function widget:DrawScreen()
 		end
 	end
 	
-	-- Draw the timer warning display list if active
 	if currentGameTime < timerWarningEndTime then
-		-- Calculate alpha for fade out effect (if needed)
 		local alpha = 1.0
-		-- You could implement fade near the end:
-		-- local timeLeft = timerWarningEndTime - currentGameTime
-		-- if timeLeft < 1.0 then
-		--     alpha = timeLeft
-		-- end
 		
 		if timerWarningDisplayList then
-			-- Set global alpha only - the display list contains all the drawing commands
 			glColor(1, 1, 1, alpha)
 			glCallList(timerWarningDisplayList)
 		end
@@ -1369,7 +1293,6 @@ function widget:GameFrame(frame)
 			soundIndex = 1
 		end
 		
-		-- Check if rank has changed
 		local rankChanged = false
 		local currentRank = nil
 		
@@ -1403,7 +1326,6 @@ function widget:GameFrame(frame)
 			end
 		end
 		
-		-- If rank changed, force update of display list
 		if rankChanged then
 			if displayList then
 				glDeleteList(displayList)
@@ -1453,15 +1375,5 @@ function widget:GameFrame(frame)
 			end
 			soundIndex = soundIndex + 1
 		end
-	end
-end
-
-function widget:ViewResize()
-	-- Update font when view is resized, similar to gui_game_type_info
-	local vsx, vsy = Spring.GetViewGeometry()
-	local widgetScale = 0.80 + (vsx * vsy / 6000000)
-	
-	if WG['fonts'] then
-		font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 	end
 end
