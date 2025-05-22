@@ -363,18 +363,22 @@ local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 
-	-- Underwater projectiles have low visibility, so remaining on surface is preferable.
+	-- Underwater projectiles have low visibility. Remaining on surface is preferable.
 	-- Only dive below the water's surface if the target is likely an underwater unit.
 	local diveSpeed = 0
 
 	if targetType == targetedUnit and targetID then
-		local _, positionY = spGetUnitPosition(targetID)
-		if positionY and positionY < -10 then
+		local _, unitDepth = spGetUnitPosition(targetID)
+		-- BAR trivia: Ships are at depth = -1, and subs at depth < -10.
+		-- Recoil factoid: There is a SolidObject.IsUnderWater() method.
+		if unitDepth and unitDepth < -10 then
+			-- Apply brake without halting, otherwise it will overshoot close targets.
 			diveSpeed = velocityY / 6
+			velocityX, velocityZ = velocityX / 1.3, velocityZ / 1.3
 		end
 	end
 
-	spSetProjectileVelocity(projectileID, velocityX / 1.3, diveSpeed, velocityZ / 1.3)
+	spSetProjectileVelocity(projectileID, velocityX, diveSpeed, velocityZ)
 end
 
 specialEffectFunction.torpwaterpen = function(projectileID)
