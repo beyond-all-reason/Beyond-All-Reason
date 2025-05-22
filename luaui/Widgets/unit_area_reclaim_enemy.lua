@@ -58,7 +58,7 @@ end
 ---Finds the average position of passed in units
 ---@param units table selected units
 ---@return table { x, z }
-local function getAvgPositionOfSelectedReclaimUnits(units)
+local function getAvgPositionOfUnits(units)
 	local unitCount = 0
 	local tX, tZ = 0, 0
 	for i = 1, #units do
@@ -71,22 +71,6 @@ local function getAvgPositionOfSelectedReclaimUnits(units)
 	end
 	if unitCount == 0 then return end
 	return { x = tX / unitCount, z = tZ / unitCount }
-end
-
-local function getUnitsWithReclaim(units)
-	local reclaimUnits = {}
-	for i = 1, #units do
-		local id = units[i]
-		local availableCommandsForUnit = spGetUnitCmdDescs(id)
-		local hasReclaimAbility = false
-		for j = 1, #availableCommandsForUnit do
-			 if availableCommandsForUnit[j].action == "reclaim" then
-				table.insert(reclaimUnits, id)
-			 end
-		end
-	end
-
-	return reclaimUnits
 end
 
 
@@ -108,11 +92,12 @@ function widget:CommandNotify(id, params, options)
 
 			local cr = params[4]
 			-- x,y,radius of command
-			local unitsWithReclaim = getUnitsWithReclaim(spGetSelectedUnits())
+			local unitsWithReclaim = spGetSelectedUnits()
 			if #unitsWithReclaim == 0 then
 				return
 			end
-			local averagePosOfReclaimUnits = getAvgPositionOfSelectedReclaimUnits(unitsWithReclaim)
+			local averagePosUnits = getAvgPositionOfUnits(unitsWithReclaim)
+
 			local areaUnits = spGetUnitsInCylinder(cx, cz, cr)
 			local enemyUnits = {}
 			for i=1,#areaUnits do
@@ -133,17 +118,17 @@ function widget:CommandNotify(id, params, options)
 					local x1, _, z1 = spGetUnitPosition(unit1)
 					local x2, _, z2 = spGetUnitPosition(unit2)
 					--distance formula
-					return (((averagePosOfReclaimUnits.x-x1)^2)+((averagePosOfReclaimUnits.z-z1)^2))^.5 <
-					(((averagePosOfReclaimUnits.x-x2)^2)+((averagePosOfReclaimUnits.z-z2)^2))^.5
+					return (((averagePosUnits.x-x1)^2)+((averagePosUnits.z-z1)^2))^.5 <
+					(((averagePosUnits.x-x2)^2)+((averagePosUnits.z-z2)^2))^.5
 				end
 			)
 			
 			local count = 0
 			for i=1,#enemyUnits do
-				local unitID    = enemyUnits[i]
-				local cmdOpts = {}
+				local unitID = enemyUnits[i]
+				local cmdOpts = {"meta", "ctrl"}
 				if count ~= 0 or options.shift then
-					cmdOpts = {"shift"}
+					cmdOpts = {"shift", "meta", "ctrl"}
 				end
 				spGiveOrderToUnitArray( unitsWithReclaim, CMD_RECLAIM, {unitID}, cmdOpts)
 				count = count + 1
