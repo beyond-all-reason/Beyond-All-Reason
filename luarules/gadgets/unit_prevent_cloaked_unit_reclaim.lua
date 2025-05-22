@@ -44,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
         if (cloakedUnits[unitID]) and (not checkedUnits[unitID]) then  -- only needs to be checked when the unit barely is cloaked
             checkedUnits[unitID] = true
             local x, y, z = GetUnitPosition(unitID)
-            local units = GetUnitsInCylinder(x, z, maxBuildDist + unitRadius[GetUnitDefID(unitID)]) -- + 50 since reclaim also works if only the edge of the unit is in range
+            local units = GetUnitsInCylinder(x, z, maxBuildDist + unitRadius[GetUnitDefID(unitID)]) -- + unit radius since reclaim also works if only the edge of the unit is in range
             for _, bID in pairs(units) do
                 local unitDefID = GetUnitDefID(bID)
                 if canReclaim[unitDefID] then
