@@ -348,7 +348,7 @@ end
 
 specialEffectFunction.cannonwaterpen = function(params, projectileID)
 	if isProjectileInWater(projectileID) then
-		cannonWaterPen(projectileID)
+		cannonWaterPen(params, projectileID)
 		return true
 	end
 end
