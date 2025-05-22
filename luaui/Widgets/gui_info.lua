@@ -379,7 +379,7 @@ local function refreshUnitInfo()
 						calculateClusterDPS(weaponDef, weaponDef.damages[0])
 					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
 						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
+						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning

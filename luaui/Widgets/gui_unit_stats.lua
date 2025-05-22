@@ -594,7 +594,7 @@ local function drawStats(uDefID, uID)
 				defaultDamage = defaultDamage + spDamage * spCount
 			elseif uWep.customParams.speceffect == "split" then
 				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.def] or uWep
+				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
 				defaultDamage = uWep.damages[0]
 			elseif uWep.customParams.cluster then
 				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def

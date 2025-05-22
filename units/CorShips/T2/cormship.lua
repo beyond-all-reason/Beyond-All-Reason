@@ -188,12 +188,11 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
-					def = "cormship_rocket_split",
 					model = "airbomb",
 					number = "8",
 					speceffect = "split",
+					speceffect_def = "cormship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
-					when = "yvel<0",
 					noattackrangearc= 1,
 				},
 				damage = {
