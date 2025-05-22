@@ -31,7 +31,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecalsizey = 6,
-			buildinggrounddecaltype = "decals/cormmkr_aoplane.dds",
+			buildinggrounddecaltype = "decals/legadveconv_aoplane.dds",
 			energyconv_capacity = 600,
 			energyconv_efficiency = 0.01724,
 			flashlightmin = 0.8,

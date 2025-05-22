@@ -314,6 +314,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "bld-juno",
 	},
+	legjuno = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "bld-juno",
+	},
 
 	-- ARMADA T2 BUILDINGS
 
@@ -2645,6 +2650,11 @@ GUIUnitSoundEffects = {
         BaseSoundActivate = "arm-bld-mm-activate",
         BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
+	legfdrag = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall-water",
+	},
 
 	legtide = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
@@ -3208,6 +3218,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "radar",
 	},
 	legionnaire = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legafigdef = {
 		BaseSoundSelectType = "arm-air-medium-sel",
 		BaseSoundMovementType = "arm-air-medium-ok",
 		BaseSoundWeaponType = "aarocket-air",

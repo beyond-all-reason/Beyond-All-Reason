@@ -216,6 +216,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					vtol = 200,
 				},

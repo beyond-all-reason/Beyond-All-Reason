@@ -549,8 +549,11 @@ function widget:DrawWorld()
 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
-	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
-	local startChosen = (sx ~= -100)
+
+	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns 0, 0, 0 when none chosen (was -100, -100, -100 previously)
+	--should startposition not match 0,0,0 and no commander is placed, then there is a green circle on the map till one is placed
+	--TODO: be based on the map, if position is changed from default(?)
+	local startChosen = (sx ~= 0) or (sy ~=0) or (sz~=0)
 	if startChosen and startDefID then
 		-- Correction for start positions in the air
 		sy = Spring.GetGroundHeight(sx, sz)

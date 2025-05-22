@@ -30,7 +30,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.98,
-		turnrate = 1214.40002,
+		turnrate = 800,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',

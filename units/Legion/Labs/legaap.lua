@@ -39,7 +39,7 @@ return {
 			[3] = "legnap",
 			[4] = "legmineb",
 			[5] = "legatorpbomber",
-			[6] = "legionnaire",
+			[6] = "legafigdef",
 			[7] = "legwhisper",
 			[8] = "legfort",
 			[9] = "legphoenix",

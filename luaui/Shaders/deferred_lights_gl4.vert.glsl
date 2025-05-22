@@ -437,6 +437,7 @@ void main()
    
     //  vec4 windInfo; // windx, windy, windz, windStrength
     v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
+    v_noiseoffset.a = float(gl_InstanceID); // InstanceID is only avail in vertex shader, and we use this as a unique offset for noise sampling. 
     //v_noiseoffset = vec4(0.0);
     //v_noiseoffset.y = windX + windZ;
    

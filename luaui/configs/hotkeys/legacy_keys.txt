@@ -288,7 +288,9 @@ bind Ctrl+Shift+sc_o cameraflip // CameraFlip
 
 //if not WG[ Set target default ] then
 bind Alt+sc_y settarget
+bind Shift+Alt+sc_y settarget
 bind sc_y settargetnoground
+bind Shift+sc_y settargetnoground
 
 bind Ctrl+sc_` group unset
 
