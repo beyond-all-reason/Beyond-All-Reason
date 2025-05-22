@@ -24,7 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 	local tideContinueFrame = 0
 	local gameframe = 0
 	local tideRhythm = {}
-	local lavaUnits = {}
+	--local lavaUnits = {}
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
@@ -123,10 +123,10 @@ if gadgetHandler:IsSyncedCode() then
 				if y and y < lavaLevel then
 					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
+					--lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
 					--Spring.Echo(lavaUnits[unitID])
-				elseif lavaUnits[unitID] then
-					lavaUnits[unitID] = nil
+				--elseif lavaUnits[unitID] then
+					--lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -170,9 +170,9 @@ if gadgetHandler:IsSyncedCode() then
 			lavaObjectsCheck()
 		end
 
-		for unitID, speed in pairs(lavaUnits) do
-			spSetUnitVelocity(unitID, speed, speed, speed)
-		end
+		--for unitID, speed in pairs(lavaUnits) do
+			--spSetUnitVelocity(unitID, speed, speed, speed)
+		--end
 
 		updateLava()
 		lavaLevel = lavaLevel+lavaGrow
