@@ -158,17 +158,6 @@ do
 	end
 end
 
----A condensed `unpack` for tables in a standard float3/xyz layout.
----Useful for performance-sensitive contexts with frequent vectors.
----@see unpack
----@param vector float3
----@return number x
----@return number y
----@return number z
-local function unpack3(vector)
-	return vector[1], vector[2], vector[3]
-end
-
 -- Cruise
 -- Missile guidance behavior that avoids crashing into terrain while heading toward the target.
 -- Intended to be used with non-homing weapons, since it updates the velocity independently.
@@ -197,7 +186,7 @@ specialEffectFunction.cruise = function(params, projectileID)
 			local _; -- declare a local sink var for unused values
 			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
 		elseif targetType == targetedGround then
-			targetX, targetY, targetZ = unpack3(target)
+			targetX, targetY, targetZ = target[1], target[2], target[3]
 		end
 
 		local distance = params.lockon_dist
@@ -245,7 +234,7 @@ specialEffectFunction.retarget = function(projectileID)
 				if ownerTargetType == 1 then
 					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
 				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, unpack3(ownerTarget))
+					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
 				end
 
 				return false
@@ -301,21 +290,24 @@ weaponCustomParamKeys.split = {
 }
 
 local function split(params, projectileID)
-	local spawnDefID, spawnParams, speed = getProjectileArgs(params, projectileID)
+	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
-	spSpawnCEG(params.splitexplosionceg, unpack3(spawnParams.pos))
 
-	spawnParams.gravity = gravityPerFrame
+	local pos = projectileParams.pos
+	spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
 
-	local velocityX, velocityY, velocityZ = unpack3(spawnParams.speed)
+	projectileParams.gravity = gravityPerFrame
+
+	local speed = projectileParams.speed
+	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 
 	for _ = 1, params.number do
-		velocity[1] = velocityX + speed * (math_random(-100, 100) / 880)
-		velocity[2] = velocityY + speed * (math_random(-100, 100) / 440)
-		velocity[3] = velocityZ + speed * (math_random(-100, 100) / 880)
+		speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / 880)
+		speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / 440)
+		speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / 880)
 
-		spSpawnProjectile(spawnDefID, spawnParams)
+		spSpawnProjectile(weaponDefID, projectileParams)
 	end
 end
 
@@ -339,19 +331,19 @@ weaponCustomParamKeys.cannonwaterpen = {
 }
 
 local function cannonWaterPen(params, projectileID)
-	local spawnDefID, spawnParams = getProjectileArgs(params, projectileID)
+	local weaponDefID, projectileParams = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
-	spSpawnCEG(params.waterpenceg, unpack3(spawnParams.pos))
+	spSpawnCEG(params.waterpenceg, projectileParams.pos[1], projectileParams.pos[2], projectileParams.pos[3])
 
-	spawnParams.gravity = gravityPerFrame * 0.5
+	projectileParams.gravity = gravityPerFrame * 0.5
 
-	local velocity = spawnParams.speed
-	velocity[1] = velocity[1] * 0.5
-	velocity[2] = velocity[2] * 0.5
-	velocity[3] = velocity[3] * 0.5
+	local speed = projectileParams.speed
+	speed[1] = speed[1] * 0.5
+	speed[2] = speed[2] * 0.5
+	speed[3] = speed[3] * 0.5
 
-	spSpawnProjectile(spawnDefID, spawnParams)
+	spSpawnProjectile(weaponDefID, projectileParams)
 end
 
 specialEffectFunction.cannonwaterpen = function(params, projectileID)
