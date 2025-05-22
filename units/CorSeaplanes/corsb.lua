@@ -119,6 +119,9 @@ return {
 				damage = {
 					default = 50,
 				},
+				customParams = {
+					water_splash = 0, -- corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+				},
 			},
 		},
 		weapons = {
