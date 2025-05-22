@@ -370,7 +370,6 @@ local function torpedoWaterPen(projectileID)
 	if targetType == targetedUnit and targetID then
 		local _, unitDepth = spGetUnitPosition(targetID)
 		-- BAR trivia: Ships are at depth = -1, and subs at depth < -10.
-		-- Recoil factoid: There is a SolidObject.IsUnderWater() method.
 		if unitDepth and unitDepth < -10 then
 			-- Apply brake without halting, otherwise it will overshoot close targets.
 			diveSpeed = velocityY / 6
@@ -402,14 +401,12 @@ do
 	local retarget = specialEffectFunction.retarget
 	local torpedoWaterPen = specialEffectFunction.torpwaterpen
 
-	specialEffectFunction.torpedowaterpenretarget = function(projectileID)
-		if not projectilesData[projectileID] and torpedoWaterPen(projectileID) then
-			projectilesData[projectileID] = true
-		end
-
+	specialEffectFunction.torpwaterpenretarget = function(projectileID)
 		if retarget(projectileID) then
-			projectilesData[projectileID] = nil
-			return true
+			projectiles[projectileID] = torpedoWaterPen
+			return torpedoWaterPen(projectileID)
+		elseif torpedoWaterPen(projectileID) then
+			projectiles[projectileID] = retarget
 		end
 	end
 end
