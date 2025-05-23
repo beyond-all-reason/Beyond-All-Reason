@@ -5,6 +5,8 @@ if not LuaVBOTableNewLocationMessageShown then
 	LuaVBOTableNewLocationMessageShown = true
 end
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
 makeInstanceVBOTable   = InstanceVBOTable.makeInstanceVBOTable
 clearInstanceTable     = InstanceVBOTable.clearInstanceTable
 makeVAOandAttach       = InstanceVBOTable.makeVAOandAttach
