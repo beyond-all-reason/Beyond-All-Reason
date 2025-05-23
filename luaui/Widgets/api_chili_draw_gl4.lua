@@ -335,7 +335,6 @@ end
 --- An instance VBO is just a set of instances
 --- An instance VBO Table is a lua table that wraps an instance VBO to allow for easy and fast addition and removal of elements
 
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 local widgetInstanceVBOs = {} -- this will be a list of _named_ instance VBOs, so you can separate per-pass (or per widget or whatever)
 
 local function goodbye(reason)
