@@ -37,7 +37,7 @@ local commonFunctions = {
 		LuaUI     = true,
 	},
 
-	gfx = {
+	graphics = {
 		LuaRules  = true,
 		LuaUI     = true,
 	},
@@ -63,12 +63,8 @@ if commonFunctions.map[environment] then
 	Spring.Lava = VFS.Include("modules/lava.lua")
 end
 
-if commonFunctions.gfx[environment] then
-	if gl then
-		gl.InstanceVBOTable = VFS.Include("modules/graphics/instancevbotable.lua")
-		gl.InstanceVBOIdTable = VFS.Include("modules/graphics/instancevboidtable.lua")
-		gl.LuaShader = VFS.Include("LuaUI/Include/LuaShader.lua")
-	end
+if commonFunctions.graphics[environment] then
+	VFS.Include("modules/graphics/init.lua").Init(gl)
 end
 
 -- we don't want them to run these tests for end users
