@@ -31,7 +31,6 @@ local rectShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
