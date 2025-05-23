@@ -192,9 +192,11 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable = InstanceVBOTable.clearInstanceTable
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
@@ -392,10 +394,10 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 
-	local coneVBO, numConeVertices = makeConeVBO(32, 100, 25)
-	startConeVBOTable = makeInstanceVBOTable(
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(32, 100, 25)
+	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			-- Cause 0-1-2 contain primitive per-vertex data
 			{id = 3, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
@@ -413,7 +415,7 @@ local function InitStartPolygons()
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO = makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 
