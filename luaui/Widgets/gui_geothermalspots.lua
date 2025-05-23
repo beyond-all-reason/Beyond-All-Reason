@@ -90,7 +90,9 @@ local spotShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local pushElementInstance = InstanceVBOTable.pushElementInstance
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.pushElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 
 local vsSrc =

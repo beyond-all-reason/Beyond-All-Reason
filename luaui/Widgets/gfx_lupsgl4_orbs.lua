@@ -354,6 +354,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO = InstanceVBOTable.pushElementInstance
 
 local vsSrc =
 [[

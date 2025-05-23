@@ -99,8 +99,10 @@ local spotShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
-local pushElementInstance = InstanceVBOTable.pushElementInstance
+local uploadAllElements      = InstanceVBOTable.uploadAllElements
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.pushElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local shaderConfig = {}
 local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"

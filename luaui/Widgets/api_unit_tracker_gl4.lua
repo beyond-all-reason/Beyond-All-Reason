@@ -76,6 +76,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 --- GL4 STUFF ---
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
+
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
 local luaShaderDir = "LuaUI/Include/"
