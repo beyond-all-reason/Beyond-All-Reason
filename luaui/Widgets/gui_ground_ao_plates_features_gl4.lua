@@ -81,7 +81,14 @@ end
 ---- GL4 Backend Stuff----
 local groundPlateVBO = nil
 local groundPlateShader = nil
+
 local luaShaderDir = "LuaUI/Include/"
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -301,4 +308,4 @@ function widget:GameFrame()
 	end
 end
 
-	
+

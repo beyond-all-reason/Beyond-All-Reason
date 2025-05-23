@@ -19,6 +19,14 @@ local skipOwnTeam = true
 local sizeMultiplier = 1.25
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
 local luaShaderDir = "LuaUI/Include/"

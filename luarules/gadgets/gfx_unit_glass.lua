@@ -88,7 +88,7 @@ else -- Unsynced
 -- Includes
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 -----------------------------------------------------------------
 -- Acceleration
