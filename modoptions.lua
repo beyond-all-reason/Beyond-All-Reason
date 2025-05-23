@@ -228,7 +228,7 @@ local options = {
         step   	= 1,
     },
 
-	{
+    {
 		key		= "sub_header",
 		section	= "options_main",
 		type	= "separator",
@@ -244,22 +244,15 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
+        "Set to [0] to turn off. Set [1] to disable resource sharing completely. Recommend: [0.3]. (Ranges: 0 - 1)\n"..
+        "Recommended Settings: Enable [Disable Assist Ally Construction], Unit Sharing Mode to [No Economy and Lab Sharing] or higher, and [Enable T2 Con Buying]",
 		type	= "number",
 		def		= 0,
 		min		= 0,
-		max		= 0.99,
+		max		= 1,
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
-	},
-	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
 	},
 	{
 		key		= "disable_assist_ally_construction",
@@ -268,8 +261,30 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
 	},
+    {
+        key		= "unit_sharing_mode",
+        name	= "Unit Sharing",
+        desc	= "Restrictions on which units can be shared",
+        type	= "list",
+        def		= "enable_all",
+        section	= "options_main",
+        items	= {
+            { key= "enable_all", 	name= "Enable Unit Sharing", 				desc="Allow all units to be shared"},
+            { key= "disable_econ_and_lab_sharing", 		name= "No Economy and Lab Sharing", 	desc="Disable sharing of economy and labs (including mobile engineers)"},
+            { key= "disable_econ_lab_and_combat_units", 	name= "No Eco, Lab, or Combat Unit Sharing  ",			desc="Disable sharing of economy and labs, as well as combat units and tactical structures (e.g static defense, jammers, LRPC's). Can still share air scouts and transports"},
+            { key= "disable_all", 	name= "Disable Unit Sharing", 			desc="Disable all unit sharing"},
+        }
+    },
+    {
+		key		= "enable_t2con_buying",
+		name	= "Enable T2 Con Buying",
+		desc	= "Enables exclusive t2 con buying via Unit Market. To trade all units, enable [Unit Market] instead",
+		type	= "bool",
+		section	= "options_main",
+		def		=  false,
+	},
+
 	{
 		key		= "unit_market",
 		name	= "Unit Market",
