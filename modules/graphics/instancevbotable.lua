@@ -1370,3 +1370,28 @@ function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	myGL4TexRectVAO:AttachVertexBuffer(rectVBO)
 	return myGL4TexRectVAO
 end
+
+return {
+	makeInstanceVBOTable = makeInstanceVBOTable,
+	clearInstanceTable = clearInstanceTable,
+	makeVAOandAttach = makeVAOandAttach,
+	locateInvalidUnits = locateInvalidUnits,
+	pushElementInstance = pushElementInstance,
+	popElementInstance = popElementInstance,
+	getElementInstanceData = getElementInstanceData,
+	uploadAllElements = uploadAllElements,
+	uploadElementRange = uploadElementRange,
+	compactInstanceVBO = compactInstanceVBO,
+	drawInstanceVBO = drawInstanceVBO,
+	makeCircleVBO = makeCircleVBO,
+	makePlaneVBO = makePlaneVBO,
+	makePlaneIndexVBO = makePlaneIndexVBO,
+	makePointVBO = makePointVBO,
+	makeRectVBO = makeRectVBO,
+	makeRectIndexVBO = makeRectIndexVBO,
+	makeConeVBO = makeConeVBO,
+	makeCylinderVBO = makeCylinderVBO,
+	makeBoxVBO = makeBoxVBO,
+	makeSphereVBO = makeSphereVBO,
+	MakeTexRectVAO = MakeTexRectVAO,
+}
