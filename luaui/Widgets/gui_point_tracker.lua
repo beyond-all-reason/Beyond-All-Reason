@@ -67,7 +67,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
-local drawInstanceVBO     = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
 
 local function ClearPoints()

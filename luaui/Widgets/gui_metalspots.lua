@@ -101,7 +101,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements      = InstanceVBOTable.uploadAllElements
 local pushElementInstance    = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO        = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local shaderConfig = {}
