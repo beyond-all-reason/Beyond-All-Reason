@@ -16,6 +16,10 @@ end
 local texture = "luaui/images/backgroundtile.png"
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local selectionVBO = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
