@@ -65,8 +65,12 @@ local function makeAtlas()
 end
 
 ------------- SHADERS ----------------------------------------------
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local chiliShader = nil
 
 local autoupdate = false -- auto update shader, for debugging only!
@@ -352,11 +356,11 @@ local chiliInstanceVBOLayout = { -- see how this matches per instance attributes
 
 local function CreateInstanceVBOTable(tableName)
 	local defaultMaxElements
-	local newInstanceVBO = makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
+	local newInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
 	
 	newInstanceVBO.vertexVBO = rectVBO
 	newInstanceVBO.indexVBO  = rectIndexVBO
-	newInstanceVBO.VAO = makeVAOandAttach(
+	newInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		newInstanceVBO.vertexVBO,
 		newInstanceVBO.instanceVBO,
 		newInstanceVBO.indexVBO

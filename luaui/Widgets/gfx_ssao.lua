@@ -191,14 +191,13 @@ ActivatePreset(preset)
 -----------------------------------------------------------------
 
 local shadersDir = "LuaUI/Shaders/"
-local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local vsx, vsy, vpx, vpy
 local texPaddingX, texPaddingY = 0,0
@@ -529,10 +528,10 @@ local function InitGL()
 		shaderName = widgetName..": texrect",
 	})
 	
-	texrectFullVAO = MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
+	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-	texrectPaddedVAO = MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
+	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
 
 
 end

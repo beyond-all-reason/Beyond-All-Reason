@@ -41,9 +41,13 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 	-- X The only actual param needed per unit is its los range :D
 	-- X refactor the opacity
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -84,15 +88,15 @@ local function initgl4()
 	if not circleShader then
 		goodbye("Failed to compile losrange shader GL4 ")
 	end
-	local circleVBO, numVertices = makeCircleVBO(circleSegments)
+	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
 		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
 	}
-	circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
+	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts

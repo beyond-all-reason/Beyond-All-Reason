@@ -395,9 +395,13 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 local healthBarVBO = nil
 local healthBarShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+--local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
@@ -515,7 +519,7 @@ end
 
 local function initializeInstanceVBOTable(myName, usesFeatures)
 	local newVBOTable
-	newVBOTable = makeInstanceVBOTable(
+	newVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'height_timers', size = 4},
 			{id = 1, name = 'type_index_ssboloc', size = 4, type = GL.UNSIGNED_INT},
