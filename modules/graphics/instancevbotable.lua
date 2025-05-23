@@ -1,7 +1,7 @@
 local GL_BUFFER = 0x82E0
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 --Spring.Echo("gldebugannotations", gldebugannotations)
-function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
+local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
 	-- myName: optional name, useful for debugging
@@ -198,7 +198,7 @@ local function nextInstanceID(iT)
 	return iT.lastInstanceID
 end
 
-function clearInstanceTable(iT)
+local function clearInstanceTable(iT)
 	-- this wont resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
@@ -206,7 +206,7 @@ function clearInstanceTable(iT)
 	if iT.indextoUnitID then iT.indextoUnitID = {} end
 end
 
-function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
+local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
 	-- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance.
 	--iT.vertexVBO = vertexVBO
 	--iT.indexVBO = indexVBO
@@ -340,7 +340,7 @@ end
 
 ------------------------------END DEBUG HELPERS ---------------------------
 
-function resizeInstanceVBOTable(iT)
+local function resizeInstanceVBOTable(iT)
 	-- iT: the InstanceVBOTable to double in size 'dynamically' resize the VBO, to double its size
 	-- this is called automatically when the existing instanceVBO gets full
 	-- Also performs a busload of sanity checking
@@ -431,7 +431,7 @@ instVBO:Upload({
 Here is how you upload starting from 1st element and starting from 4th element in Lua array (-100) and finishing with 6th element (0), essentially it will upload (-100, 0, 0) into 7th attribute of 2nd instance.
 ]]--
 
-function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID)
+local function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID)
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
 	-- instanceID: an optional key given to the item, so it can be easily removed/updated by reference, defaults to the index of the instance in the buffer (1 based)
@@ -503,7 +503,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	return instanceID
 end
 
-function popElementInstance(iT, instanceID, noUpload)
+local function popElementInstance(iT, instanceID, noUpload)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
@@ -649,7 +649,7 @@ function popElementInstance(iT, instanceID, noUpload)
 	return oldElementIndex
 end
 
-function getElementInstanceData(iT, instanceID, cacheTable)
+local function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID]
@@ -667,7 +667,7 @@ function getElementInstanceData(iT, instanceID, cacheTable)
 	return iData
 end
 
-function uploadAllElements(iT)
+local function uploadAllElements(iT)
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
 
@@ -682,7 +682,7 @@ function uploadAllElements(iT)
 	end
 end
 
-function uploadElementRange(iT, startElementIndex, endElementIndex)
+local function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data
 		nil, -- the attribute index, nil for all attributes
 		startElementIndex, -- vboOffset optional, , what ELEMENT offset of the VBO to start uploading into, 0 based
@@ -707,7 +707,7 @@ end
 -- This function allows for order-preserving compacting of a list of instances based on these funcs.
 -- It is designed for Decals GL4, where draw order matters a lot!
 -- remove takes priority over keep
-function compactInstanceVBO(iT, removelist, keeplist)
+local function compactInstanceVBO(iT, removelist, keeplist)
 	local usedElements = iT.usedElements
 	if usedElements == 0 then return 0 end
 	local instanceStep = iT.instanceStep
@@ -742,7 +742,7 @@ function compactInstanceVBO(iT, removelist, keeplist)
 	return numremoved
 end
 
-function drawInstanceVBO(iT)
+local function drawInstanceVBO(iT)
 	if iT.usedElements > 0 then
 		if iT.indexVBO then
 			iT.VAO:DrawElements(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
@@ -752,7 +752,7 @@ function drawInstanceVBO(iT)
 	end
 end
 
-function countInvalidUnitIDs(iT)
+local function countInvalidUnitIDs(iT)
 	local invalids = {}
 	for i, objectID in ipairs(iT.indextoUnitID) do
 		local isValidID = false
@@ -773,7 +773,7 @@ end
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
-function makeCircleVBO(circleSegments, radius, startCenter, name)
+local function makeCircleVBO(circleSegments, radius, startCenter, name)
 	-- Makes circle of radius in xy space
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	-- Startcenter places a vertex in the center, this is nice for triangle fans,
@@ -814,7 +814,7 @@ function makeCircleVBO(circleSegments, radius, startCenter, name)
 	return circleVBO, #VBOData/4
 end
 
-function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
+local function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
 	if not xsize then xsize = 1 end
 	if not ysize then ysize = xsize end
 	if not xresolution then xresolution = 1 end
@@ -851,7 +851,7 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a p
 	return planeVBO, #VBOData/2
 end
 
-function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
+local function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	xresolution = math.floor(xresolution)
 	if not yresolution then yresolution = xresolution end
 	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
@@ -899,7 +899,7 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	return planeIndexVBO, IndexVBOData
 end
 
-function makePointVBO(numPoints, randomFactor, name)
+local function makePointVBO(numPoints, randomFactor, name)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	numPoints = numPoints or 1
@@ -932,7 +932,7 @@ function makePointVBO(numPoints, randomFactor, name)
 	return pointVBO, numPoints
 end
 
-function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
+local function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	if minX == nil then
 		minX, minY, maxX, maxY, minU, minV, maxU, maxV  = 0,0,1,1,0,0,1,1
 	end
@@ -967,7 +967,7 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	return rectVBO, 6
 end
 
-function makeRectIndexVBO(name)
+local function makeRectIndexVBO(name)
 	local rectIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
 	if rectIndexVBO == nil then return nil end
 
@@ -983,7 +983,7 @@ end
 
 
 
-function makeConeVBO(numSegments, height, radius, name)
+local function makeConeVBO(numSegments, height, radius, name)
 	-- make a cone that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	-- needs GL.TRIANGLES
@@ -1045,7 +1045,7 @@ end
 
 
 
-function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, name)
+local function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, name)
 	-- make a cylinder that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	-- needs GL.TRIANGLES
@@ -1154,7 +1154,7 @@ end
 
 
 
-function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ, name) -- make a box
+local function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ, name) -- make a box
 	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if boxVBO == nil then return nil end
@@ -1218,7 +1218,7 @@ end
 ---@param sectorCount number is the number of orange slices around the belly in XY
 ---@param stackCount number how many horizontal slices along Z, usually less than sectorcount
 ---@param radius number how many elmos in radius, default 1
-function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.songho.ca/opengl/gl_sphere.html
+local function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.songho.ca/opengl/gl_sphere.html
 
 
 	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -1338,7 +1338,7 @@ function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.song
 end
 
 
-function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
+local function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	-- Draw with myGL4TexRectVAO:DrawArrays(GL.TRIANGLES)
 	minX,minY,maxX,maxY,minU,minV,maxU,maxV  = minX or -1,minY or -1,maxX or 1, maxY or 1, minU or 0, minV or 0, maxU or 1, maxV or 1
 
