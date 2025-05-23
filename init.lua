@@ -66,6 +66,7 @@ end
 if commonFunctions.gfx[environment] then
 	if gl then
 		gl.InstanceVBOTable = VFS.Include("common/instancevbotable.lua")
+		gl.InstanceVBOIdTable = VFS.Include("common/instancevboidtable.lua")
 		gl.LuaShader = VFS.Include("LuaUI/Include/LuaShader.lua")
 	end
 end
