@@ -165,7 +165,7 @@ local function makeInstanceVBO(layout, vertexVBO, numVertices)
 end
 
 local function initGL4()
-    local cylinderVBO, cylinderVertices = InstanceVBOTable.makeCylinderVBO(CYLINDER_SECTIONS)
+    local cylinderVBO, cylinderVertices = makeCylinderVBO(CYLINDER_SECTIONS)
     instanceVBO = makeInstanceVBO(instanceVBOLayout, cylinderVBO, cylinderVertices)
 
     local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
