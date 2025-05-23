@@ -532,8 +532,9 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+
+local LuaShader = gl.LuaShader
+
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
 
