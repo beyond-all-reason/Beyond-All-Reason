@@ -33,9 +33,11 @@ local addRadius = 10
 -----------------------------------------------------------------
 -- GL4 Backend Stuff
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable = InstanceVBOTable.clearInstanceTable
 
 local vsSrc =  [[
 #version 420
@@ -235,7 +237,7 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 		return
 	end
 
-	unitStencilVBO = makeInstanceVBOTable(
+	unitStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'unitModelMinXYZ', size = 4},
 			{id = 1, name = 'unitModelMaxXYZ', size = 4},
@@ -249,7 +251,7 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	unitStencilVBO.VAO  = gl.GetVAO()
 	unitStencilVBO.VAO:AttachVertexBuffer(unitStencilVBO.instanceVBO)
 
-    featureStencilVBO = makeInstanceVBOTable(
+    featureStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'unitModelMinXYZ', size = 4},
 			{id = 1, name = 'unitModelMaxXYZ', size = 4},
