@@ -63,7 +63,7 @@ if commonFunctions.map[environment] then
 	Spring.Lava = VFS.Include("modules/lava.lua")
 end
 
-if commonFunctions.map[gfx] then
+if commonFunctions.gfx[environment] then
 	if gl then
 		gl.InstanceVBOTable = VFS.Include("common/instancevbotable.lua")
 		gl.LuaShader = VFS.Include("LuaUI/Include/LuaShader.lua")
