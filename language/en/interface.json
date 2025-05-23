@@ -627,8 +627,8 @@
 			},
 			"queensKilled": "Queens Killed: %{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "Queen is resistant to:",
-				"other" : "Queens are resistant to:"
+				"one"   : "Queen resistance:",
+				"other" : "Queen resistances:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -681,8 +681,8 @@
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "Boss is resistant to:",
-				"other" : "Bosses are resistant to:"
+				"one"   : "Boss resistance:",
+				"other" : "Boss resistances:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",

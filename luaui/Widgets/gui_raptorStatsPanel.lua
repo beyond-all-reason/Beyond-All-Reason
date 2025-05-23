@@ -17,10 +17,11 @@ function widget:GetInfo()
 end
 
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
+VFS.Include('luaui/Headers/keysym.h.lua')
 
 local customScale = 1
 local widgetScale = customScale
-local font, font2
+local font, font2, font3
 local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
@@ -53,14 +54,15 @@ local panelMarginX = 30
 local panelMarginY = 40
 local panelSpacingY = 5
 local waveSpacingY = 7
+local bossInfoMarginX = panelMarginX - 15
+local bossInfoSubLabelMarginX = bossInfoMarginX + 35
 local moving
 local capture
-local gameInfo
+local gameInfo = {}
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
 local bossToastTimer = Spring.GetTimer()
-local enabled
 local gotScore
 local scoreCount = 0
 local resistancesTable = {}
@@ -68,7 +70,7 @@ local currentlyResistantTo = {}
 local currentlyResistantToNames = {}
 
 local guiPanel --// a displayList
-local updatePanel
+local updatePanel = true
 local hasRaptorEvent = false
 
 local difficultyOption = Spring.GetModOptions().raptor_difficulty
@@ -81,74 +83,37 @@ local rules = {
 	"raptorTechAnger",
 	"raptorGracePeriod",
 	"raptorQueenHealth",
-	"lagging",
 	"raptorDifficulty",
-	"raptorCount",
-	"raptoraCount",
-	"raptorsCount",
-	"raptorfCount",
-	"raptorrCount",
-	"raptorwCount",
-	"raptorcCount",
-	"raptorpCount",
-	"raptorhCount",
-	"raptor_turretCount",
-	"raptor_dodoCount",
-	"raptor_hiveCount",
 	"raptorKills",
-	"raptoraKills",
-	"raptorsKills",
-	"raptorfKills",
-	"raptorrKills",
-	"raptorwKills",
-	"raptorcKills",
-	"raptorpKills",
-	"raptorhKills",
-	"raptor_turretKills",
-	"raptor_dodoKills",
-	"raptor_hiveKills",
 }
 
-local waveColor = "\255\255\0\0"
+
 local textColor = "\255\255\255\255"
 
+local isRaptors = Spring.Utilities.Gametype.IsRaptors()
+local isBossInfoExpanded = false
+local isAboveBossInfo = false
+local resistanceListLimit = 10
+local stageGrace = 0
+local stageMain = 1
+local stageBoss = 2
+local nPanelRows
+local bossInfo
 
-local raptorTypes = {
-	"raptor",
-	"raptora",
-	"raptorh",
-	"raptors",
-	"raptorw",
-	"raptor_dodo",
-	"raptorp",
-	"raptorf",
-	"raptorc",
-	"raptorr",
-	"raptor_turret",
-}
-
-local function commaValue(amount)
-	local formatted = amount
-	local k
-	while true do
-		formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-		if k == 0 then
-			break
+local function PveStage(currentTime)
+	local stage = stageGrace
+	if (currentTime and currentTime or Spring.GetGameSeconds()) > gameInfo.raptorGracePeriod then
+		if (isRaptors and (gameInfo.raptorQueenAnger < 100)) or (not isRaptors and (gameInfo.scavBossAnger < 100)) then
+			stage = stageMain
+		else
+			stage = stageBoss
 		end
 	end
-	return formatted
+	return stage
 end
 
-local function getRaptorCounts(type)
-	local total = 0
-	local subtotal
-
-	for _, raptorType in ipairs(raptorTypes) do
-		subtotal = gameInfo[raptorType .. type]
-		total = total + subtotal
-	end
-
-	return total
+local function printBossInfo(text, x, y)
+	font3:Print(text or '', x, y, panelFontSize, "o")
 end
 
 local function updatePos(x, y)
@@ -202,11 +167,22 @@ local function CreatePanelDisplayList()
 			if nBosses > 1 then
 				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
 			end
-			for i = 1,#currentlyResistantToNames do
-				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList', {count = nBosses}), panelMarginX, PanelRow(11), panelFontSize, "")
+
+			if bossInfo then
+				local nResistances = #bossInfo.resistances or 0
+				if nResistances > 0 then
+					nPanelRows = 11
+					printBossInfo(Spring.I18N('ui.raptors.queenResistantToList', {count = nResistances}) .. (nResistances > resistanceListLimit and ' (Ctrl+B Expands)' or ''), bossInfoMarginX, PanelRow(nPanelRows))
+					for i, resistance in ipairs(bossInfo.resistances) do
+						if not isBossInfoExpanded and i > resistanceListLimit then
+							break
+						end
+						nPanelRows = nPanelRows + 1
+						printBossInfo(resistance.name, bossInfoMarginX + 10, PanelRow(nPanelRows))
+						local resistanceString = isAboveBossInfo and resistance.stringAbsolute or resistance.stringPercent
+						printBossInfo(resistanceString,bossInfoSubLabelMarginX + bossInfo.labelMaxLength + 23 - font:GetTextWidth(resistanceString) * panelFontSize,PanelRow(nPanelRows))
+					end
 				end
-				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
 			end
 		end
 	else
@@ -267,11 +243,7 @@ local function getResistancesMessage()
 	return messages
 end
 
-local function Draw()
-	if not enabled or not gameInfo then
-		return
-	end
-
+function widget:DrawScreen()
 	if updatePanel then
 		if (guiPanel) then
 			gl.DeleteList(guiPanel);
@@ -319,8 +291,6 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
-	gameInfo.raptorCounts = getRaptorCounts('Count')
-	gameInfo.raptorKills = getRaptorCounts('Kills')
 
 	updatePanel = true
 end
@@ -394,6 +364,53 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("RaptorEvent")
 end
 
+local function sortRawDamageDescNameAsc(a, b)
+	if not a or not b then
+		return false
+	end
+	if a.raw == b.raw and a.damage and b.damage then
+		if a.damage == b.damage then
+			return a.name < b.name
+		end
+		return a.damage > b.damage
+	end
+	return a.raw > b.raw
+end
+
+local function UpdateBossInfo()
+	local bossInfoRaw = Spring.GetGameRulesParam('pveBossInfo')
+	if not bossInfoRaw then
+		return
+	end
+	bossInfoRaw = Json.decode(Spring.GetGameRulesParam('pveBossInfo'))
+	bossInfo = { resistances = {}, labelMaxLength = 0 }
+
+	local i = 0
+	for defID, resistance in pairs(bossInfoRaw.resistances) do
+		i = i + 1
+		if resistance.percent >= 0.1 then
+			local name = UnitDefs[tonumber(defID)].translatedHumanName
+			if font:GetTextWidth(name) * panelFontSize > bossInfo.labelMaxLength then
+				bossInfo.labelMaxLength = font:GetTextWidth(name) * panelFontSize
+			end
+			table.insert(
+				bossInfo.resistances,
+				{
+					name = name,
+					raw = resistance.percent,
+					damage = resistance.damage,
+					stringPercent = string.format('%.0f%%', resistance.percent * 100),
+					stringAbsolute = string.formatSI(resistance.damage),
+				}
+			)
+		end
+	end
+	table.sort(bossInfo.resistances, sortRawDamageDescNameAsc)
+
+	local screenOverflowX = x1 + bossInfo.labelMaxLength + bossInfoSubLabelMarginX + 36 - vsx
+	x1 = screenOverflowX > 0 and x1 - screenOverflowX or x1
+end
+
 function widget:GameFrame(n)
 	if not hasRaptorEvent and n > 1 then
 		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
@@ -401,9 +418,7 @@ function widget:GameFrame(n)
 	end
 	if n % 30 < 1 then
 		UpdateRules()
-		if not enabled and n > 1 then
-			enabled = true
-		end
+		UpdateBossInfo()
 	end
 	if gotScore then
 		local sDif = gotScore - scoreCount
@@ -418,21 +433,14 @@ function widget:GameFrame(n)
 	end
 end
 
-
-
-function widget:DrawScreen()
-	Draw()
-end
-
 function widget:MouseMove(x, y, dx, dy, button)
-	if enabled and moving then
+	if moving then
 		updatePos(x1 + dx, y1 + dy)
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if enabled and
-		x > x1 and x < x1 + (w * widgetScale) and
+	if x > x1 and x < x1 + (w * widgetScale) and
 		y > y1 and y < y1 + (h * widgetScale)
 	then
 		capture = true
@@ -442,9 +450,6 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if not enabled then
-		return
-	end
 	capture = nil
 	moving = nil
 	return capture
@@ -455,6 +460,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	font3 = WG['fonts'].getFont(nil, nil, 0.4, 1.76)
 
 	x1 = math.floor(x1 - viewSizeX)
 	y1 = math.floor(y1 - viewSizeY)
@@ -467,4 +473,28 @@ end
 function widget:LanguageChanged()
 	refreshMarqueeMessage = true
 	updatePanel = true
+end
+
+function widget:KeyPress(key, mods, isRepeat)
+	if isRepeat then
+		return
+	end
+	if key == KEYSYMS.B and mods.ctrl and not mods.shift and not mods.alt then
+		isBossInfoExpanded = not isBossInfoExpanded
+		updatePanel = true
+		return
+	end
+end
+
+function widget:IsAbove(x, y)
+	if not bossInfo or PveStage() ~= stageBoss or not nPanelRows then
+		return
+	end
+
+	local bottomY = y1 + PanelRow(nPanelRows + 1)
+	local wasAboveBossInfo = isAboveBossInfo
+	isAboveBossInfo = x > x1 and x < x1 + (w * widgetScale) and y < y1 and y > math.max(0, bottomY)
+	if isAboveBossInfo ~= wasAboveBossInfo then
+		updatePanel = true
+	end
 end
