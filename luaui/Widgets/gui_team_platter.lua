@@ -17,6 +17,14 @@ local opacity = 0.25
 local skipOwnTeam = false
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+
 local teamplatterVBO = nil
 local teamplatterShader = nil
 local luaShaderDir = "LuaUI/Include/"

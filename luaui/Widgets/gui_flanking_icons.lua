@@ -17,6 +17,14 @@ local texture = "luaui/images/flank_icon.tga"
 local fadespeed = 0.005
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+
 local flankingVBO = nil
 local flankingShader = nil
 local luaShaderDir = "LuaUI/Include/"
