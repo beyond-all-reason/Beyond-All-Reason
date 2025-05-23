@@ -45,9 +45,12 @@ end
 
 -- GL4
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 
 local vsSrc = [[
     #version 420
@@ -152,15 +155,15 @@ local function makeCylinderVBO(sections)
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
-    local vbo = makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
+    local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
     vbo.vertexVBO = vertexVBO
     vbo.numVertices = numVertices
-    vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+    vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
     return vbo
 end
 
 local function initGL4()
-    local cylinderVBO, cylinderVertices = makeCylinderVBO(CYLINDER_SECTIONS)
+    local cylinderVBO, cylinderVertices = InstanceVBOTable.makeCylinderVBO(CYLINDER_SECTIONS)
     instanceVBO = makeInstanceVBO(instanceVBOLayout, cylinderVBO, cylinderVertices)
 
     local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
