@@ -121,9 +121,14 @@ end
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+
 
 ---@language Glsl
 local vsSrc = [[
@@ -222,10 +227,10 @@ local function makeOutlineVBO()
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
-	local vbo = makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
 	return vbo
 end
 

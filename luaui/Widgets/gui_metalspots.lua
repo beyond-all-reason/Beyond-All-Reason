@@ -96,9 +96,11 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local shaderConfig = {}
 local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
@@ -200,10 +202,10 @@ local function initGL4()
 		{id = 2, name = 'visibility', size = 4},
 		{id = 3, name = 'uvcoords', size = 4},
 	}
-	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
+	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
 	spotInstanceVBO.vertexVBO = spotVBO
-	spotInstanceVBO.VAO = makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
+	spotInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
 	return true
 end

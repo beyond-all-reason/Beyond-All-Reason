@@ -13,8 +13,7 @@ function widget:GetInfo()
   }
 end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000

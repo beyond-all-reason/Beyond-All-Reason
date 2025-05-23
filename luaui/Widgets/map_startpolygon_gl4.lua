@@ -41,9 +41,8 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = Spring.GetGroundExtremes()
 
@@ -205,5 +204,5 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 end
