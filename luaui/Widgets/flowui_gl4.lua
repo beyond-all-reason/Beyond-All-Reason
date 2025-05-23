@@ -20,6 +20,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local debugmode = false
 

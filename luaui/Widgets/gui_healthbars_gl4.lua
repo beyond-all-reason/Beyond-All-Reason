@@ -402,6 +402,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?

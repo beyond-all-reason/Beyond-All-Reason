@@ -149,9 +149,11 @@ local jetShader = nil
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-local popElementInstance = InstanceVBOTable.popElementInstance
+
+local drawInstanceVBO     = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable = InstanceVBOTable.clearInstanceTable
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local vsSrc =
 [[#version 420

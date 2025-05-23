@@ -140,9 +140,11 @@ local GL_LEQUAL = GL.LEQUAL
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-local uploadAllElements = InstanceVBOTable.uploadAllElements
-local popElementInstance = InstanceVBOTable.popElementInstance
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
+local compactInstanceVBO  = InstanceVBOTable.compactInstanceVBO
 
 local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
