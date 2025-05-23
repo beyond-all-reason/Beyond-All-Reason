@@ -27,11 +27,6 @@ end
 local glTexture		 = gl.Texture
 local glBlending	 = gl.Blending
 
------------------------------------------------------------------
--- File path Constants
------------------------------------------------------------------
-
-local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -217,7 +212,7 @@ void main( )
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local screenCopyTex
 local glassShader
