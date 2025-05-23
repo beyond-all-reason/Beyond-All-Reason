@@ -91,7 +91,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance    = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO        = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 
