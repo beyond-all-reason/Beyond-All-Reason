@@ -55,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
-	local spSetUnitVelocity = Spring.SetUnitVelocity
+	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
@@ -63,11 +63,15 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitMoveDef = {}
 	local canFly = {}
+	local isHover = {}
 	local unitHeight = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		unitMoveDef[unitDefID] = unitDef.moveDef
+		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
+		end
+		if unitDef.category and string.find(unitDef.category, "HOVER") then --Actual check for hovercraft, currently unused
+			isHover[unitDefID] = true
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -120,14 +124,36 @@ if gadgetHandler:IsSyncedCode() then
 		for _, unitID in ipairs(all_units) do
 			local UnitDefID = spGetUnitDefID(unitID)
 			if not canFly[UnitDefID] then
-				x,y,z = spGetUnitBasePosition(unitID)
+				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
-					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					lavaUnits[unitID] = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , 0.9)
-					--Spring.Echo(lavaUnits[unitID])
-				elseif lavaUnits[unitID] then
-					lavaUnits[unitID] = nil
+					local us = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
+						local ms = UnitDefs[UnitDefID].speed
+						local tr = UnitDefs[UnitDefID].turnRate
+						local ar = UnitDefs[UnitDefID].maxAcc
+						lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+						-- Spring.Echo("Unit entering lava:", lavaUnits[unitID])
+					else -- Already in lava justupdate slow factor
+						lavaUnits[unitID].unitSlow = us
+					end
+					if lavaUnits[unitID].slowed and lavaUnits[unitID].slowed == true then
+						-- calculate the slowed movement parameters
+						local unitSlow = lavaUnits[unitID].unitSlow
+						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
+						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow
+						local slowedAccRate = lavaUnits[unitID].orgAccRate * unitSlow
+						-- set the new speed
+						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+						-- Spring.Echo("Lava slow updated: ", unitID, slowedMaxSpeed, slowedTurnRate, slowedAccRate)
+					end
+				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+				spSpawnCEG(lavaEffectDamage, x, y+5, z)
+				elseif lavaUnits[unitID] then -- unit is out of lava, reset speed if it was slowed and remove from lavaUnits table
+					if lavaUnits[unitID].slowed then
+						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
+						-- Spring.Echo("Lava debuf removed from unit: ", unitID, lavaUnits[unitID].orgSpeed, lavaUnits[unitID].orgTurnRate, lavaUnits[unitID].orgAccRate)
+					end
+				lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -169,10 +195,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if f % DAMAGE_RATE == 0 then
 			lavaObjectsCheck()
-		end
-
-		for unitID, speed in pairs(lavaUnits) do
-			spSetUnitVelocity(unitID, speed, speed, speed)
 		end
 
 		updateLava()
@@ -248,9 +270,9 @@ if gadgetHandler:IsSyncedCode() then
 			   return damage, 1.0
 		end
 		local moveDef = unitMoveDef[unitDefID]
-		if moveDef == nil or moveDef.family ~= "hover" then
-			  -- not a hovercraft, do not modify
-			  return damage, 1.0
+		if moveDef == nil or moveDef.family ~= "hover" then -- Out of date use of family to be removed post GDT discussion
+			-- not a hovercraft, do not modify
+			return damage, 1.0
 		end
 		return 0.0, 1.0
 	end
