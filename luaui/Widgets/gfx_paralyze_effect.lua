@@ -14,7 +14,12 @@ function widget:GetInfo()
 end
 
 local LuaShader = gl.LuaShader
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000
 
@@ -325,9 +330,9 @@ local function initGL4()
 
 	local maxElements = 32 -- start small for testing
 	local unitIDAttributeIndex = 8
-	paralyzedDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	paralyzedDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	paralyzedDrawUnitVBOTable.VAO = makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
+	paralyzedDrawUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
 
