@@ -123,9 +123,13 @@ function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 			end
 		end
 	end
-	self.enemyCenter.x = self.enemyCenter.x / self.cellCount
-	self.enemyCenter.z = self.enemyCenter.z / self.cellCount
-	self.enemyCenter.y = map:GetGroundHeight(self.enemyCenter.x,self.enemyCenter.z)
+	if self.cellCount > 0 then
+		
+		
+		self.enemyCenter.x = self.enemyCenter.x / self.cellCount
+		self.enemyCenter.z = self.enemyCenter.z / self.cellCount
+		self.enemyCenter.y = map:GetGroundHeight(self.enemyCenter.x,self.enemyCenter.z)
+	end
 	if self.enemybasecount > 0 then
 		self.enemyBasePosition.x = self.enemyBasePosition.x / self.enemybasecount
 		self.enemyBasePosition.z = self.enemyBasePosition.z / self.enemybasecount
