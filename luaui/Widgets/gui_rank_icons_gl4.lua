@@ -34,6 +34,13 @@ local unitHeights = {}
 local spec, fullview = Spring.GetSpectatingState()
 
 -- GL4 stuff:
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+
 local atlasID = nil
 local atlasSize = 2048
 --local atlassedImages = {}

@@ -28,6 +28,12 @@ local useHexagons = true
 
 ----------------------------------------------------------------------------
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+
 local selectionVBO = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"

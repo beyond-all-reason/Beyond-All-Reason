@@ -16,8 +16,13 @@ end
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
 
 local LuaShader = gl.LuaShader
---local vboTable = VFS.Include(luaShaderDir.."instancevboidtable.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
+
 
 local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
@@ -291,7 +296,7 @@ end
 
 function widget:GameFrame(n)
 	if (n%61) == 1 then
-		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+		InstanceVBOTable.validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
 	end
 end
 
@@ -341,9 +346,9 @@ function widget:Initialize()
 
 	local maxElements = 6 -- start small for testing
 	local unitIDAttributeIndex = 9
-	highlightUnitVBOTable = makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
+	highlightUnitVBOTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	highlightUnitVBOTable.VAO = makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
+	highlightUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
 	highlightUnitVBOTable.indexVBO = indxVBO
 	highlightUnitVBOTable.vertexVBO = vertVBO
 	highlightUnitVBOTable.debugZombies = false
@@ -385,7 +390,7 @@ end
 function widget:Shutdown()
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
 		if Spring.Utilities.IsDevMode() then
-			dumpAndCompareInstanceData(highlightUnitVBOTable)
+			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()
 	end
