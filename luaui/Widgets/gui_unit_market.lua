@@ -49,7 +49,6 @@ function widget:GetInfo() return {
 -- develop UI so that you can browse units that are for sale with a buy button maybe?
 
 --------------------------------
-VFS.Include("luarules/configs/customcmds.h.lua")
 
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState  = Spring.GetSpectatingState
