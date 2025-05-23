@@ -15,8 +15,8 @@ end
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+--local vboTable = VFS.Include(luaShaderDir.."instancevboidtable.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
 local highlightunitShader, unitShapeShader
