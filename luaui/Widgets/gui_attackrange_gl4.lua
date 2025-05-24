@@ -69,7 +69,7 @@ local buttonConfig = {
 
 local colorConfig = {
 	drawStencil = true,  -- whether to draw the outer, merged rings (quite expensive!)
-	cannon_separate_stencil = true, -- set to true to have cannon and ground be on different stencil mask
+	cannon_separate_stencil = false, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.75, -- alpha of outer rings
@@ -1106,7 +1106,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 				local atkRangeClass = allyState .. wt
 				local iT = attackRangeVAOs[atkRangeClass]
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
-				stencilMask = 2 --^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
+				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground" 
 				drawcounts[stencilMask] = iT.usedElements
 				if iT.usedElements > 0 then
 					if linethickness then
