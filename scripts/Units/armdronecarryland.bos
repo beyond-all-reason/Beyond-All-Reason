@@ -131,7 +131,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FirePrimary()
