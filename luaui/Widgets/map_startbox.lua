@@ -338,6 +338,12 @@ local function InitStartPolygons()
 		end
 	end
 
+	--Case we start with only one team(no enemies)
+	--The shader doesn't like that so we have to let it think there are more then one
+	if(#StartPolygons == 0) then
+		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
+	end
+
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
 	local minY, maxY = Spring.GetGroundExtremes()
