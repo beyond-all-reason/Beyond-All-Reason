@@ -13,7 +13,7 @@ static-var  Stunned;
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
-#define SIG_AIM_2			4
+#define SIG_AIM_2			8
 
 
 #define BASEPIECE base
@@ -168,7 +168,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FirePrimary()
