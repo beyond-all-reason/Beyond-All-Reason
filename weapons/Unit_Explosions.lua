@@ -831,6 +831,31 @@ local unitDeaths = {
 		}
 	},
 
+	newshockwave = {
+		name = "GroundShockwave Blast",
+		weaponType = "Cannon",
+		AreaOfEffect = 700,
+		cameraShake = 510,
+		explosionSpeed = 725,
+		impulsefactor = impulsefactor,
+		soundhitwet = "newboomuw",
+		soundhit = "newboom",
+		soundstart = "largegun",
+		soundstartvolume = 25,
+		soundhitvolume = 25,
+		soundhitwetvolume = 34,
+		explosiongenerator = "custom:shockwaveceg",
+		craterboost = 4,
+		cratermult = 2,
+		edgeeffectiveness = 0,
+		damage = {
+			default = 5000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 	scavcomexplosion = {
 		weaponType = "Cannon",
 		areaofeffect = 500,
@@ -892,6 +917,7 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+
 
 	--BUILDING DEATHS--
 
