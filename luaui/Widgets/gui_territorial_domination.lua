@@ -127,7 +127,6 @@ local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.6  -- Back to previous size
 
 local timerWarningDisplayList = nil
 local countdownDisplayList = nil
-local lastCountdownValue = -1
 local lastTimerWarningMessages = nil
 
 -- Add tracking variables for display list state
@@ -142,6 +141,10 @@ local lastAmSpectating = false
 local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
 local lastTeamRanks = {}
+
+local allyTeamDefeatTimes = {} -- Track defeatTime for each allyTeam
+local allyTeamCountdownDisplayLists = {} -- Store countdown display lists for each allyTeam
+local lastCountdownValues = {} -- Track last countdown values for each allyTeam
 
 -- Helper functions to reduce upvalues in main functions
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
@@ -567,61 +570,115 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 	return timerWarningDisplayList
 end
 
-local function createCountdownDisplayList(timeRemaining)
-	-- Only recreate if the time has changed
-	if countdownDisplayList and lastCountdownValue == timeRemaining then
-		return countdownDisplayList
+local function createCountdownDisplayList(timeRemaining, allyTeamID)
+	allyTeamID = allyTeamID or myAllyID
+	
+	-- Only recreate if the time has changed for this ally team
+	if allyTeamCountdownDisplayLists[allyTeamID] and lastCountdownValues[allyTeamID] == timeRemaining then
+		return allyTeamCountdownDisplayLists[allyTeamID]
 	end
 	
-	if countdownDisplayList then
-		glDeleteList(countdownDisplayList)
+	if allyTeamCountdownDisplayLists[allyTeamID] then
+		glDeleteList(allyTeamCountdownDisplayLists[allyTeamID])
 	end
 	
 	-- Store current countdown value for future comparison
-	lastCountdownValue = timeRemaining
+	lastCountdownValues[allyTeamID] = timeRemaining
 	
 	-- Create new display list
-	countdownDisplayList = glCreateList(function()
+	allyTeamCountdownDisplayLists[allyTeamID] = glCreateList(function()
 		local countdownColor = COUNTDOWN_COLOR
 		
 		-- Get minimap dimensions to position the countdown
 		local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 		
-		-- Calculate skull position
-		local healthbarLeft = minimapPosX + ICON_SIZE/2
-		local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
-		local healthbarTop = minimapPosY - MINIMAP_GAP
-		local healthbarBottom = healthbarTop - healthbarHeight
-		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local barWidth = healthbarRight - healthbarLeft
-		local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
-		local skullOffset = (1 / maxThreshold) * barWidth
-		local skullX = thresholdX - skullOffset
+		local countdownX, countdownY
 		
-		-- Use previous size
-		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
-		
-		-- Position at the skull's center
-		local countdownX = skullX
-		local text = format("%d", timeRemaining)
-		
-		-- Set position to be centered on the skull
-		local countdownY
 		if amSpectating then
-			-- For spectator mode
-			local topY = minimapPosY - MINIMAP_GAP
+			-- In spectator mode, position countdown for specific ally team
 			local barHeight = healthbarHeight * 0.7
-			countdownY = topY - barHeight/2 - 10  -- Center on the bar and offset up by 10
+			local barSpacing = 12
+			
+			-- Get alive ally teams and their order
+			local aliveAllyTeams = {}
+			local allyTeamList = spGetAllyTeamList()
+			for _, allyID in ipairs(allyTeamList) do
+				if isAllyTeamAlive(allyID) then
+					table.insert(aliveAllyTeams, allyID)
+				end
+			end
+			
+			-- Get scores for sorting (same logic as drawSpectatorModeScoreBars)
+			local allyTeamScores = {}
+			for _, allyTeamID in ipairs(aliveAllyTeams) do
+				local score = 0
+				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
+					local _, _, isDead = spGetTeamInfo(tid)
+					if not isDead then
+						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
+						if teamScore then
+							score = teamScore
+							break
+						end
+					end
+				end
+				table.insert(allyTeamScores, {allyTeamID = allyTeamID, score = score})
+			end
+			
+			-- Sort by score (highest to lowest) - same as drawSpectatorModeScoreBars
+			table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
+			
+			-- Find the position index of our allyTeamID
+			local barIndex = nil
+			for i, allyTeamData in ipairs(allyTeamScores) do
+				if allyTeamData.allyTeamID == allyTeamID then
+					barIndex = i
+					break
+				end
+			end
+			
+			if barIndex then
+				-- Calculate Y position for this ally team's bar
+				local startY = minimapPosY - MINIMAP_GAP
+				local barY = startY - (barIndex - 1) * (barHeight + barSpacing)
+				countdownY = barY - barHeight / 2 - 7  -- Center on the bar
+				
+				-- Calculate X position at the threshold/skull location
+				local healthbarLeft = minimapPosX + ICON_SIZE/2
+				local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+				local barWidth = healthbarRight - healthbarLeft
+				local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
+				local skullOffset = (1 / maxThreshold) * barWidth
+				countdownX = thresholdX - skullOffset
+			else
+				-- Fallback if ally team not found
+				countdownX = minimapPosX + minimapSizeX / 2
+				countdownY = minimapPosY - MINIMAP_GAP - 20
+			end
 		else
-			-- Regular player view
-			countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7  -- Center on the bar and offset up by 10
+			-- Regular player view (non-spectator)
+			local healthbarLeft = minimapPosX + ICON_SIZE/2
+			local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+			local healthbarTop = minimapPosY - MINIMAP_GAP
+			local healthbarBottom = healthbarTop - healthbarHeight
+			local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+			local barWidth = healthbarRight - healthbarLeft
+			local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
+			local skullOffset = (1 / maxThreshold) * barWidth
+			countdownX = thresholdX - skullOffset
+			countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7
 		end
+		
+		-- Use cached font size
+		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
+		local text = format("%d", timeRemaining)
 		
 		-- Center-align the text
 		drawCountdownText(countdownX, countdownY, text, countdownFontSize, countdownColor)
 	end)
 	
-	return countdownDisplayList
+	return allyTeamCountdownDisplayLists[allyTeamID]
 end
 
 function widget:Initialize()
@@ -687,14 +744,9 @@ function widget:Update(dt)
 		updateScoreDisplayList()
 	end
 	
-	-- Force update when countdown is active
-	if defeatTime > gameSeconds then
+	-- Check if we should show the timer warning (player mode only)
+	if not amSpectating and defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
-		if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValue or not countdownDisplayList) then
-			createCountdownDisplayList(timeRemaining)
-		end
-		
-		-- Check if we should show the timer warning
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local score = 0
 		
@@ -713,7 +765,7 @@ function widget:Update(dt)
 		local territoriesNeeded = abs(difference)  -- Need one more than the negative difference
 		
 		-- Only show warning if difference is negative and only once per cooldown period
-		if not amSpectating and difference < 0 and freezeExpirationTime < currentGameTime then
+		if difference < 0 and freezeExpirationTime < currentGameTime then
 			if currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
 				spPlaySoundFile("warning1", 1)
 				-- Create the warning message
@@ -726,6 +778,9 @@ function widget:Update(dt)
 			lastTimerWarningTime = currentGameTime
 		end
 	end
+	
+	-- Note: Countdown display is now handled in DrawScreen function
+	-- This ensures proper positioning for each ally team in spectator mode
 end
 
 -- Helper function to check if display list needs updating
@@ -1023,7 +1078,7 @@ local function drawSpectatorModeScoreBars()
 		
 		drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
 		
-		-- Draw rank if available
+		-- Calculate next bar position, accounting for rank box if present
 		if rank then
 			local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
 			
@@ -1039,9 +1094,13 @@ local function drawSpectatorModeScoreBars()
 				fontCache.fontSize,
 				COLOR_WHITE
 			)
+			
+			-- Account for rank box height in spacing calculation
+			currentY = healthbarBottom - rankBoxHeight - BORDER_WIDTH - barSpacing
+		else
+			-- Standard spacing when no rank box
+			currentY = healthbarBottom - barSpacing
 		end
-		
-		currentY = healthbarBottom - barSpacing
 	end
 end
 
@@ -1214,14 +1273,32 @@ function widget:DrawScreen()
 		glCallList(displayList)
 	end
 	
-	if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
-		local timeRemaining = ceil(defeatTime - gameSeconds)
-		if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValue or not countdownDisplayList) then
-			createCountdownDisplayList(timeRemaining)
+	-- Draw countdowns
+	if amSpectating then
+		-- In spectator mode, draw countdowns for all ally teams that have active defeat times
+		for allyTeamID, allyDefeatTime in pairs(allyTeamDefeatTimes) do
+			if allyDefeatTime and allyDefeatTime > 0 and gameSeconds and allyDefeatTime > gameSeconds then
+				local timeRemaining = ceil(allyDefeatTime - gameSeconds)
+				if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValues[allyTeamID] or not allyTeamCountdownDisplayLists[allyTeamID]) then
+					createCountdownDisplayList(timeRemaining, allyTeamID)
+				end
+				
+				if allyTeamCountdownDisplayLists[allyTeamID] then
+					glCallList(allyTeamCountdownDisplayLists[allyTeamID])
+				end
+			end
 		end
-		
-		if countdownDisplayList then
-			glCallList(countdownDisplayList)
+	else
+		-- Player mode - draw countdown for own team only
+		if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
+			local timeRemaining = ceil(defeatTime - gameSeconds)
+			if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValues[myAllyID] or not allyTeamCountdownDisplayLists[myAllyID]) then
+				createCountdownDisplayList(timeRemaining, myAllyID)
+			end
+			
+			if allyTeamCountdownDisplayLists[myAllyID] then
+				glCallList(allyTeamCountdownDisplayLists[myAllyID])
+			end
 		end
 	end
 	
@@ -1260,6 +1337,15 @@ function widget:Shutdown()
 		timerWarningDisplayList = nil
 	end
 	
+	-- Clean up all ally team countdown display lists
+	for allyTeamID, countdownDisplayList in pairs(allyTeamCountdownDisplayLists) do
+		if countdownDisplayList then
+			glDeleteList(countdownDisplayList)
+		end
+	end
+	allyTeamCountdownDisplayLists = {}
+	
+	-- Legacy cleanup for old single countdown display list (in case it still exists)
 	if countdownDisplayList then
 		glDeleteList(countdownDisplayList)
 		countdownDisplayList = nil
@@ -1277,20 +1363,40 @@ end
 
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
-		local myTeamID = Spring.GetMyTeamID()
-		local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
-		if newDefeatTime > 0 then
-			if newDefeatTime ~= defeatTime then
-				defeatTime = newDefeatTime
-				loopSoundEndTime = defeatTime - WINDUP_SOUND_DURATION
-				soundQueue = nil
-				queueTeleportSounds()
+		if amSpectating then
+			-- In spectator mode, track defeat times for all ally teams
+			local allyTeamList = spGetAllyTeamList()
+			for _, allyTeamID in ipairs(allyTeamList) do
+				if allyTeamID ~= gaiaAllyTeamID and isAllyTeamAlive(allyTeamID) then
+					-- Find first alive team in this ally team
+					local allyDefeatTime = 0
+					for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+						local _, _, isDead = spGetTeamInfo(teamID)
+						if not isDead then
+							allyDefeatTime = spGetTeamRulesParam(teamID, "defeatTime") or 0
+							break
+						end
+					end
+					allyTeamDefeatTimes[allyTeamID] = allyDefeatTime
+				end
 			end
 		else
-			defeatTime = 0
-			loopSoundEndTime = 0
-			soundQueue = nil
-			soundIndex = 1
+			-- For player mode, just track own team
+			local myTeamID = Spring.GetMyTeamID()
+			local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
+			if newDefeatTime > 0 then
+				if newDefeatTime ~= defeatTime then
+					defeatTime = newDefeatTime
+					loopSoundEndTime = defeatTime - WINDUP_SOUND_DURATION
+					soundQueue = nil
+					queueTeleportSounds()
+				end
+			else
+				defeatTime = 0
+				loopSoundEndTime = 0
+				soundQueue = nil
+				soundIndex = 1
+			end
 		end
 		
 		local rankChanged = false
