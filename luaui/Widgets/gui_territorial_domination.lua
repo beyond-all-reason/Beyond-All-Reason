@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
---in spectator mode, the countdown for each allyTeam isn't being displayed correctly. it only displays one. Need to rewrite such that it's drawn for each.
+--defeat countdowns aren't reset when the skull is frozen, leading to instant defeats
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -310,58 +310,60 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	end
 	
 	-- SKULL ICON RENDERING
-	glPushMatrix()
-	local skullY = bottom + (top - bottom)/2
-	glTranslate(skullX, skullY, 0)
-	
-	-- Shadow
-	local shadowOffset = 1.5
-	local shadowAlpha = 0.6
-	local shadowScale = 1.1
-	
-	glColor(0, 0, 0, shadowAlpha)
-	glTexture(':n:LuaUI/Images/skull.dds')
-	glTexRect(
-		-ICON_SIZE/2 * shadowScale + shadowOffset, 
-		-ICON_SIZE/2 * shadowScale - shadowOffset, 
-		ICON_SIZE/2 * shadowScale + shadowOffset, 
-		ICON_SIZE/2 * shadowScale - shadowOffset
-	)
-	
-	-- SKULL ALPHA MANAGEMENT
-	local skullAlpha = 1.0
-	if isThresholdFrozen then
-		local currentGameTime = spGetGameSeconds()
-		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-		local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+	if threshold >= 1 then
+		glPushMatrix()
+		local skullY = bottom + (top - bottom)/2
+		glTranslate(skullX, skullY, 0)
 		
-		if timeUntilUnfreeze <= WARNING_SECONDS then
-			-- Warning period blinking
-			currentTime = os.clock()
-			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
-			if blinkPhase < 0.33 then
-				skullAlpha = 1.0
-				isSkullFaded = false
+		-- Shadow
+		local shadowOffset = 1.5
+		local shadowAlpha = 0.6
+		local shadowScale = 1.1
+		
+		glColor(0, 0, 0, shadowAlpha)
+		glTexture(':n:LuaUI/Images/skull.dds')
+		glTexRect(
+			-ICON_SIZE/2 * shadowScale + shadowOffset, 
+			-ICON_SIZE/2 * shadowScale - shadowOffset, 
+			ICON_SIZE/2 * shadowScale + shadowOffset, 
+			ICON_SIZE/2 * shadowScale - shadowOffset
+		)
+		
+		-- SKULL ALPHA MANAGEMENT
+		local skullAlpha = 1.0
+		if isThresholdFrozen then
+			local currentGameTime = spGetGameSeconds()
+			local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+			local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+			
+			if timeUntilUnfreeze <= WARNING_SECONDS then
+				-- Warning period blinking
+				currentTime = os.clock()
+				local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
+				if blinkPhase < 0.33 then
+					skullAlpha = 1.0
+					isSkullFaded = false
+				else
+					skullAlpha = 0.5
+					isSkullFaded = true
+				end
 			else
+				-- Normal frozen state
 				skullAlpha = 0.5
 				isSkullFaded = true
 			end
 		else
-			-- Normal frozen state
-			skullAlpha = 0.5
-			isSkullFaded = true
+			isSkullFaded = false
 		end
-	else
-		isSkullFaded = false
+		
+		-- Draw skull
+		glColor(1, 1, 1, skullAlpha)
+		glTexture(':n:LuaUI/Images/skull.dds')
+		glTexRect(-ICON_SIZE/2, -ICON_SIZE/2, ICON_SIZE/2, ICON_SIZE/2)
+		
+		glTexture(false)
+		glPopMatrix()
 	end
-	
-	-- Draw skull
-	glColor(1, 1, 1, skullAlpha)
-	glTexture(':n:LuaUI/Images/skull.dds')
-	glTexRect(-ICON_SIZE/2, -ICON_SIZE/2, ICON_SIZE/2, ICON_SIZE/2)
-	
-	glTexture(false)
-	glPopMatrix()
 	
 	-- SCORE LINE RENDERING
 	local lineExtension = 3
@@ -595,9 +597,10 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 		local countdownX, countdownY
 		
 		if amSpectating then
-			-- In spectator mode, position countdown for specific ally team
-			local barHeight = healthbarHeight * 0.7
-			local barSpacing = 12
+			-- In spectator mode, position countdown for specific ally team using column layout
+			local maxDisplayHeight = 256
+			local minBarHeight = 12
+			local barSpacing = 3
 			
 			-- Get alive ally teams and their order
 			local aliveAllyTeams = {}
@@ -607,6 +610,35 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 					table.insert(aliveAllyTeams, allyID)
 				end
 			end
+			
+			local totalTeams = #aliveAllyTeams
+			if totalTeams == 0 then return end
+			
+			-- Calculate optimal number of columns to fit within height constraint (same as drawSpectatorModeScoreBars)
+			local optimalNumColumns = totalTeams  -- fallback: one bar per column
+			for numColumns = 1, totalTeams do
+				local barsPerColumn = math.ceil(totalTeams / numColumns)
+				local totalSpacingHeight = (barsPerColumn - 1) * barSpacing
+				local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+				local calculatedBarHeight = availableHeightForBars / barsPerColumn
+				
+				if calculatedBarHeight >= minBarHeight then
+					optimalNumColumns = numColumns
+					break
+				end
+			end
+			
+			-- Calculate final layout parameters (same as drawSpectatorModeScoreBars)
+			local numColumns = optimalNumColumns
+			local maxBarsPerColumn = math.ceil(totalTeams / numColumns)
+			local columnWidth = minimapSizeX / numColumns
+			
+			-- Calculate bar dimensions (same as drawSpectatorModeScoreBars)
+			local totalSpacingHeight = (maxBarsPerColumn - 1) * barSpacing
+			local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+			local barHeight = math.max(minBarHeight, availableHeightForBars / maxBarsPerColumn)
+			local columnPadding = 4
+			local barWidth = columnWidth - (columnPadding * 2)
 			
 			-- Get scores for sorting (same logic as drawSpectatorModeScoreBars)
 			local allyTeamScores = {}
@@ -638,18 +670,25 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 			end
 			
 			if barIndex then
-				-- Calculate Y position for this ally team's bar
+				-- Calculate column and position within column
+				local columnIndex = math.floor((barIndex - 1) / maxBarsPerColumn)
+				local positionInColumn = ((barIndex - 1) % maxBarsPerColumn)
+				
+				-- Calculate bar position (same as drawSpectatorModeScoreBars)
+				local columnStartX = minimapPosX + (columnIndex * columnWidth)
+				local healthbarLeft = columnStartX + columnPadding
+				local healthbarRight = healthbarLeft + barWidth
 				local startY = minimapPosY - MINIMAP_GAP
-				local barY = startY - (barIndex - 1) * (barHeight + barSpacing)
-				countdownY = barY - barHeight / 2 - 7  -- Center on the bar
+				local healthbarTop = startY - (positionInColumn * (barHeight + barSpacing))
+				local healthbarBottom = healthbarTop - barHeight
+				
+				countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7  -- Center on the bar
 				
 				-- Calculate X position at the threshold/skull location
-				local healthbarLeft = minimapPosX + ICON_SIZE/2
-				local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
 				local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-				local barWidth = healthbarRight - healthbarLeft
-				local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
-				local skullOffset = (1 / maxThreshold) * barWidth
+				local barWidthForCalc = healthbarRight - healthbarLeft
+				local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidthForCalc
+				local skullOffset = (1 / maxThreshold) * barWidthForCalc
 				countdownX = thresholdX - skullOffset
 			else
 				-- Fallback if ally team not found
@@ -670,8 +709,37 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 			countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7
 		end
 		
-		-- Use cached font size
+		-- Use cached font size (scale for spectator mode)
 		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
+		if amSpectating then
+			-- Scale countdown font for smaller bars in spectator mode
+			local maxDisplayHeight = 256
+			local minBarHeight = 12
+			local barSpacing = 3
+			local totalTeams = #spGetAllyTeamList()
+			
+			-- Calculate optimal layout (same as other functions)
+			local optimalNumColumns = totalTeams
+			for numColumns = 1, totalTeams do
+				local barsPerColumn = math.ceil(totalTeams / numColumns)
+				local totalSpacingHeight = (barsPerColumn - 1) * barSpacing
+				local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+				local calculatedBarHeight = availableHeightForBars / barsPerColumn
+				
+				if calculatedBarHeight >= minBarHeight then
+					optimalNumColumns = numColumns
+					break
+				end
+			end
+			
+			local maxBarsPerColumn = math.ceil(totalTeams / optimalNumColumns)
+			local totalSpacingHeight = (maxBarsPerColumn - 1) * barSpacing
+			local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+			local barHeight = math.max(minBarHeight, availableHeightForBars / maxBarsPerColumn)
+			local scaleFactor = barHeight / healthbarHeight
+			countdownFontSize = math.max(10, countdownFontSize * scaleFactor)
+		end
+		
 		local text = format("%d", timeRemaining)
 		
 		-- Center-align the text
@@ -950,8 +1018,9 @@ end
 -- Draw bars for spectator mode
 local function drawSpectatorModeScoreBars()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local barHeight = healthbarHeight * 0.7
-	local barSpacing = 12
+	local maxDisplayHeight = 256
+	local minBarHeight = 12
+	local barSpacing = 3
 	
 	-- Get alive ally teams
 	local aliveAllyTeams = {}
@@ -961,6 +1030,37 @@ local function drawSpectatorModeScoreBars()
 			table.insert(aliveAllyTeams, allyTeamID)
 		end
 	end
+	
+	local totalTeams = #aliveAllyTeams
+	if totalTeams == 0 then return end
+	
+	-- Calculate optimal number of columns to fit within height constraint
+	local optimalNumColumns = totalTeams  -- fallback: one bar per column
+	for numColumns = 1, totalTeams do
+		local barsPerColumn = math.ceil(totalTeams / numColumns)
+		local totalSpacingHeight = (barsPerColumn - 1) * barSpacing
+		local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+		local calculatedBarHeight = availableHeightForBars / barsPerColumn
+		
+		if calculatedBarHeight >= minBarHeight then
+			optimalNumColumns = numColumns
+			break
+		end
+	end
+	
+	-- Calculate final layout parameters
+	local numColumns = optimalNumColumns
+	local maxBarsPerColumn = math.ceil(totalTeams / numColumns)
+	local columnWidth = minimapSizeX / numColumns
+	
+	-- Calculate bar dimensions
+	local totalSpacingHeight = (maxBarsPerColumn - 1) * barSpacing
+	local availableHeightForBars = maxDisplayHeight - totalSpacingHeight
+	local barHeight = math.max(minBarHeight, availableHeightForBars / maxBarsPerColumn)
+	
+	-- Calculate bar width (leave some padding on sides)
+	local columnPadding = 4
+	local barWidth = columnWidth - (columnPadding * 2)
 	
 	-- Get scores and sort by score
 	local allyTeamScores = {}
@@ -1004,23 +1104,28 @@ local function drawSpectatorModeScoreBars()
 	table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
 	
 	local startY = minimapPosY - MINIMAP_GAP
-	local currentY = startY
 	
-	-- Draw bars for sorted ally teams
+	-- Draw bars for sorted ally teams in columns
 	for i, allyTeamData in ipairs(allyTeamScores) do
 		local allyTeamID = allyTeamData.allyTeamID
 		local score = allyTeamData.score
 		local teamColor = allyTeamData.teamColor
 		local rank = allyTeamData.rank
 		
+		-- Calculate column and position within column
+		local columnIndex = math.floor((i - 1) / maxBarsPerColumn)
+		local positionInColumn = ((i - 1) % maxBarsPerColumn)
+		
+		-- Calculate bar position
+		local columnStartX = minimapPosX + (columnIndex * columnWidth)
+		local healthbarLeft = columnStartX + columnPadding
+		local healthbarRight = healthbarLeft + barWidth
+		local healthbarTop = startY - (positionInColumn * (barHeight + barSpacing))
+		local healthbarBottom = healthbarTop - barHeight
+		
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local difference = score - threshold
 		local textColor = COLOR_WHITE
-		
-		local healthbarTop = currentY
-		local healthbarBottom = healthbarTop - barHeight
-		local healthbarLeft = minimapPosX + ICON_SIZE/2
-		local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
 		
 		local currentGameTime = spGetGameSeconds()
 		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
@@ -1058,49 +1163,34 @@ local function drawSpectatorModeScoreBars()
 			score, threshold, teamColor, isThresholdFrozen
 		)
 		
-		-- Position difference text
-		local textX
-		local textPadding = 2
-		local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+		-- Position difference text (scale font size for smaller bars)
+		local scaledFontSize = math.max(8, fontCache.fontSize * (barHeight / healthbarHeight))
+		local textPadding = 4
 		
-		textX = skullX + ICON_SIZE/2 + textPadding
-		
-		if textX > healthbarScoreRight then
-			textX = skullX - ICON_SIZE/2 - textPadding - estimatedTextWidth
-			
-			if textX < healthbarLeft then
-				textX = skullX + ICON_SIZE/2 + textPadding
-			end
-		end
-		
-		local verticalOffset = -3
+		-- Position text at far right side of the bar
+		local textX = healthbarRight - textPadding
+		local verticalOffset = -2
 		local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 		
-		drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
-		
-		-- Calculate next bar position, accounting for rank box if present
-		if rank then
-			local safeRightEdge = math.max(healthbarRight, actualRight) + BORDER_WIDTH
-			
-			-- Draw rank box to the left of health bar
-			local rankBoxWidth = 80  -- Fixed width for rank box
-			local rankBoxHeight = barHeight -- Match the height of the scorebar
-			drawRankTextBox(
-				healthbarLeft, 
-				healthbarBottom - rankBoxHeight - BORDER_WIDTH, 
-				rankBoxWidth, 
-				rankBoxHeight, 
-				rank, 
-				fontCache.fontSize,
-				COLOR_WHITE
-			)
-			
-			-- Account for rank box height in spacing calculation
-			currentY = healthbarBottom - rankBoxHeight - BORDER_WIDTH - barSpacing
-		else
-			-- Standard spacing when no rank box
-			currentY = healthbarBottom - barSpacing
+		-- Use right-aligned text to ensure it stays within the bar
+		-- Text outline
+		glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+		local formattedDifference = difference
+		if difference > 0 then
+			formattedDifference = "+" .. difference
 		end
+		glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY, scaledFontSize, "r")
+		glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY, scaledFontSize, "r")
+		glText(formattedDifference, textX, textY - TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		glText(formattedDifference, textX, textY + TEXT_OUTLINE_OFFSET, scaledFontSize, "r")
+		
+		-- Main text
+		glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+		glText(formattedDifference, textX, textY, scaledFontSize, "r")
 	end
 end
 
@@ -1186,24 +1276,32 @@ local function drawPlayerScoreBar()
 	)
 	
 	-- Position difference text
-	local textX
-	local textPadding = 2
-	local estimatedTextWidth = fontCache.fontSize * len(tostring(difference)) * 0.7
+	local textPadding = 4
 	
-	textX = skullX + ICON_SIZE/2 + textPadding
-	
-	if textX > healthbarScoreRight then
-		textX = skullX - ICON_SIZE/2 - textPadding - estimatedTextWidth
-		
-		if textX < healthbarLeft then
-			textX = skullX + ICON_SIZE/2 + textPadding
-		end
-	end
-	
+	-- Position text at far right side of the bar
+	local textX = healthbarRight - textPadding
 	local verticalOffset = -3
 	local textY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 + verticalOffset
 	
-	drawDifferenceText(textX, textY, difference, fontCache.fontSize, textColor)
+	-- Use right-aligned text to ensure it stays within the bar
+	-- Text outline
+	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
+	local formattedDifference = difference
+	if difference > 0 then
+		formattedDifference = "+" .. difference
+	end
+	glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	glText(formattedDifference, textX - TEXT_OUTLINE_OFFSET, textY, fontCache.fontSize, "r")
+	glText(formattedDifference, textX + TEXT_OUTLINE_OFFSET, textY, fontCache.fontSize, "r")
+	glText(formattedDifference, textX, textY - TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	glText(formattedDifference, textX, textY + TEXT_OUTLINE_OFFSET, fontCache.fontSize, "r")
+	
+	-- Main text
+	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
+	glText(formattedDifference, textX, textY, fontCache.fontSize, "r")
 	
 	-- Draw rank if available
 	if rank then
