@@ -204,34 +204,36 @@ if SYNCED then
 	end
 
 	local function updateLivingTeamsData()
-		teams = spGetTeamList()
-		allyTeamsWatch = {}
-		hordeModeAllies = {}
-		allyHordesCount = 0
-		allyTeamsCount = 0
+		local allyTeamCounts = {}
+		local allyTeamIDs = {}
+		local allyTeamsCount = 0
+		local allyHordesCount = 0
+		local teams = spGetTeamList()
+
+		for allyID in pairs(allyTeamsWatch) do
+			allyTeamsWatch[allyID] = nil
+		end
 
 		for _, teamID in ipairs(teams) do
-			if teamID ~= gaiaTeamID then
-				local _, _, isDead, _, _, allyTeam = spGetTeamInfo(teamID)
-				if not isDead and allyTeam then
-					if hordeModeTeams[teamID] then
+			local _, _, isDead = spGetTeamInfo(teamID)
+			if not isDead then
+				local allyID = select(6, spGetTeamInfo(teamID))
 
-						hordeModeAllies[allyTeam] = hordeModeAllies[allyTeam] or {}
-						hordeModeAllies[allyTeam][teamID] = true
+				if allyID and allyID ~= gaiaAllyTeamID then
+					if not hordeModeTeams[teamID] then
+						allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
+						allyTeamsWatch[allyID][teamID] = true
+						allyTeamCounts[allyID] = (allyTeamCounts[allyID] or 0) + 1
+						table.insert(allyTeamIDs, allyID)
 					else
-						allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
-						allyTeamsWatch[allyTeam][teamID] = true
-						
+						hordeModeAllies[allyID] = true
+						allyHordesCount = allyHordesCount + 1
 					end
-				else
-					Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 0)
 				end
 			end
 		end
-		for allyID in pairs(hordeModeAllies) do
-			allyHordesCount = allyHordesCount + 1
-		end
-		for allyID in pairs(allyTeamsWatch) do
+
+		for allyID, count in pairs(allyTeamCounts) do
 			allyTeamsCount = allyTeamsCount + 1
 		end
 		
@@ -239,8 +241,23 @@ if SYNCED then
 		allyCount = allyTeamsCount + allyHordesCount
 
 		if allyCount ~= oldAllyCount then
+			local oldFreezeTimer = freezeThresholdTimer
 			freezeThresholdTimer = max(spGetGameSeconds() + FREEZE_DELAY_SECONDS, freezeThresholdTimer)
 			Spring.SetGameRulesParam(FREEZE_DELAY_KEY, freezeThresholdTimer)
+			
+			-- Extend any existing defeat timers when freeze occurs to prevent instant defeats
+			if freezeThresholdTimer > oldFreezeTimer then
+				local freezeExtension = freezeThresholdTimer - spGetGameSeconds()
+				for allyID, defeatTime in pairs(allyDefeatTime) do
+					if defeatTime and defeatTime > 0 then
+						allyDefeatTime[allyID] = defeatTime + freezeExtension
+						-- Update the team rules param for UI display
+						for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+							Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
+						end
+					end
+				end
+			end
 		end
 	end
 
@@ -645,29 +662,45 @@ if SYNCED then
 	end
 
 	local function setAllyTeamRanks(allyTallies)
-		-- Create array of ally teams with their tallies
+		-- Create array of ally teams with their tallies and defeat times
 		local allyScores = {}
 		for allyID, tally in pairs(allyTallies) do
-			table.insert(allyScores, {allyID = allyID, tally = tally})
+			local defeatTimeRemaining = 0
+			-- Calculate remaining defeat time (higher is better)
+			if allyDefeatTime[allyID] and allyDefeatTime[allyID] > 0 then
+				defeatTimeRemaining = math.max(0, allyDefeatTime[allyID] - spGetGameSeconds())
+			else
+				-- No defeat timer means safe (highest ranking for timer)
+				defeatTimeRemaining = math.huge
+			end
+			table.insert(allyScores, {allyID = allyID, tally = tally, defeatTimeRemaining = defeatTimeRemaining})
 		end
 		
-		-- Sort by tallies in descending order
-		table.sort(allyScores, function(a, b) return a.tally > b.tally end)
+		-- Sort by tallies first (primary), then by defeat time remaining (secondary)
+		-- Higher tally ranks better, higher defeat time remaining ranks better when tallies are equal
+		table.sort(allyScores, function(a, b)
+			if a.tally == b.tally then
+				return a.defeatTimeRemaining > b.defeatTimeRemaining
+			end
+			return a.tally > b.tally
+		end)
 		
 		-- Assign ranks with ties sharing the same rank
 		local currentRank = 1
 		local previousScore = -1
+		local previousDefeatTime = -1
 		
 		for i, allyData in ipairs(allyScores) do
-			-- If score is the same as previous, keep the same rank
+			-- If both score and defeat time are the same as previous, keep the same rank
 			-- Otherwise, set rank to current position
-			if i > 1 and allyData.tally == previousScore then
+			if i > 1 and allyData.tally == previousScore and allyData.defeatTimeRemaining == previousDefeatTime then
 				-- keep the same rank as previous entry
 			else
 				currentRank = i
 			end
 			
 			previousScore = allyData.tally
+			previousDefeatTime = allyData.defeatTimeRemaining
 			
 			-- Set rank for each team in this ally team
 			for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
@@ -771,6 +804,16 @@ if SYNCED then
 						allyDefeatTime[allyData.allyID] = nil
 						for teamID in pairs(allyTeamsWatch[allyData.allyID]) do
 							Spring.SetTeamRulesParam( teamID, "defeatTime", RESET_DEFEAT_FRAME)
+						end
+					end
+				end
+			else
+				-- Clear all defeat timers when threshold is frozen
+				if freezeThresholdTimer >= currentSecond then
+					for allyID in pairs(allyDefeatTime) do
+						allyDefeatTime[allyID] = nil
+						for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+							Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 						end
 					end
 				end

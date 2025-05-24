@@ -10,7 +10,6 @@ function widget:GetInfo()
 	}
 end
 
---defeat countdowns aren't reset when the skull is frozen, leading to instant defeats
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -640,25 +639,62 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 			local columnPadding = 4
 			local barWidth = columnWidth - (columnPadding * 2)
 			
-			-- Get scores for sorting (same logic as drawSpectatorModeScoreBars)
+			-- Get scores and sort by score and defeat timer
 			local allyTeamScores = {}
 			for _, allyTeamID in ipairs(aliveAllyTeams) do
 				local score = 0
+				local teamColor = {1, 1, 1, 0.8} -- Default color
+				local firstTeamFound = false
+				local rank = nil
+				local teamID = nil
+				
 				for _, tid in ipairs(spGetTeamList(allyTeamID)) do
 					local _, _, isDead = spGetTeamInfo(tid)
 					if not isDead then
 						local teamScore = spGetTeamRulesParam(tid, SCORE_RULES_KEY)
 						if teamScore then
 							score = teamScore
+							teamID = tid
+							
+							if not firstTeamFound then
+								local r, g, b = spGetTeamColor(tid)
+								teamColor = {r, g, b, 0.8}
+								firstTeamFound = true
+							end
+							
+							rank = spGetTeamRulesParam(tid, RANK_RULES_KEY)
 							break
 						end
 					end
 				end
-				table.insert(allyTeamScores, {allyTeamID = allyTeamID, score = score})
+				
+				-- Calculate defeat time remaining for ranking
+				local defeatTimeRemaining = 0
+				if allyTeamDefeatTimes[allyTeamID] and allyTeamDefeatTimes[allyTeamID] > 0 then
+					defeatTimeRemaining = math.max(0, allyTeamDefeatTimes[allyTeamID] - gameSeconds)
+				else
+					-- No defeat timer means safe (highest ranking for timer)
+					defeatTimeRemaining = math.huge
+				end
+				
+				table.insert(allyTeamScores, {
+					allyTeamID = allyTeamID,
+					score = score,
+					teamColor = teamColor,
+					rank = rank,
+					teamID = teamID,
+					defeatTimeRemaining = defeatTimeRemaining
+				})
 			end
 			
-			-- Sort by score (highest to lowest) - same as drawSpectatorModeScoreBars
-			table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
+			-- Sort by score first (primary), then by defeat time remaining (secondary)
+			-- Higher score ranks better, higher defeat time remaining ranks better when scores are equal
+			table.sort(allyTeamScores, function(a, b)
+				if a.score == b.score then
+					return a.defeatTimeRemaining > b.defeatTimeRemaining
+				end
+				return a.score > b.score
+			end)
 			
 			-- Find the position index of our allyTeamID
 			local barIndex = nil
@@ -792,6 +828,31 @@ function widget:Update(dt)
 	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
 	gameSeconds = currentGameTime  -- Update game seconds every frame
+	
+	-- Force clear all defeat timers when threshold is frozen
+	if isThresholdFrozen then
+		if amSpectating then
+			-- Clear all ally team defeat times in spectator mode
+			for allyTeamID in pairs(allyTeamDefeatTimes) do
+				allyTeamDefeatTimes[allyTeamID] = 0
+			end
+		else
+			-- Clear player defeat time
+			defeatTime = 0
+			loopSoundEndTime = 0
+			soundQueue = nil
+			soundIndex = 1
+		end
+		
+		-- Clear countdown display lists for all ally teams
+		for allyTeamID, countdownDisplayList in pairs(allyTeamCountdownDisplayLists) do
+			if countdownDisplayList then
+				glDeleteList(countdownDisplayList)
+				allyTeamCountdownDisplayLists[allyTeamID] = nil
+			end
+		end
+		lastCountdownValues = {} -- Clear cached countdown values
+	end
 	
 	currentTime = os.clock()
 	
@@ -1062,7 +1123,7 @@ local function drawSpectatorModeScoreBars()
 	local columnPadding = 4
 	local barWidth = columnWidth - (columnPadding * 2)
 	
-	-- Get scores and sort by score
+	-- Get scores and sort by score and defeat timer
 	local allyTeamScores = {}
 	for _, allyTeamID in ipairs(aliveAllyTeams) do
 		local score = 0
@@ -1091,17 +1152,33 @@ local function drawSpectatorModeScoreBars()
 			end
 		end
 		
+		-- Calculate defeat time remaining for ranking
+		local defeatTimeRemaining = 0
+		if allyTeamDefeatTimes[allyTeamID] and allyTeamDefeatTimes[allyTeamID] > 0 then
+			defeatTimeRemaining = math.max(0, allyTeamDefeatTimes[allyTeamID] - gameSeconds)
+		else
+			-- No defeat timer means safe (highest ranking for timer)
+			defeatTimeRemaining = math.huge
+		end
+		
 		table.insert(allyTeamScores, {
 			allyTeamID = allyTeamID,
 			score = score,
 			teamColor = teamColor,
 			rank = rank,
-			teamID = teamID
+			teamID = teamID,
+			defeatTimeRemaining = defeatTimeRemaining
 		})
 	end
 	
-	-- Sort by score (highest to lowest)
-	table.sort(allyTeamScores, function(a, b) return a.score > b.score end)
+	-- Sort by score first (primary), then by defeat time remaining (secondary)
+	-- Higher score ranks better, higher defeat time remaining ranks better when scores are equal
+	table.sort(allyTeamScores, function(a, b)
+		if a.score == b.score then
+			return a.defeatTimeRemaining > b.defeatTimeRemaining
+		end
+		return a.score > b.score
+	end)
 	
 	local startY = minimapPosY - MINIMAP_GAP
 	
