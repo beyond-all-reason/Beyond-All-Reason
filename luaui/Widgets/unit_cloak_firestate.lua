@@ -58,7 +58,7 @@ end
 
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
 
-local function GiveNotifyingOrderToUnit(uID, cmdID, cmdParams, cmdOpts)
+local function giveNotifyingOrderToUnit(uID, cmdID, cmdParams, cmdOpts)
 	-- Other widgets interact with the fire state, so we need to notify them when issuing the order. This affects the holdfire fix and when cloak "kicks in".
 	for _, w in ipairs(widgetHandler.widgets) do
 		if w.UnitCommandNotify and w:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts) then
