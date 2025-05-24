@@ -605,9 +605,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					if weaponDef.range < 700 then 
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
-					elseif weaponDef.range > 2600 then 
+					-- if weaponDef.range < 700 then 
+					-- 	entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					if weaponDef.range > 2600 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
@@ -1106,7 +1106,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 				local atkRangeClass = allyState .. wt
 				local iT = attackRangeVAOs[atkRangeClass]
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
-				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
+				stencilMask = 2 --^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
 				drawcounts[stencilMask] = iT.usedElements
 				if iT.usedElements > 0 then
 					if linethickness then
