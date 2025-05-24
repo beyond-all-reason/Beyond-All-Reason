@@ -13,7 +13,6 @@ end
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
 
--- Spring API functions
 local floor = math.floor
 local ceil = math.ceil
 local format = string.format
@@ -42,7 +41,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetAllUnits = Spring.GetAllUnits
 
--- OpenGL functions
 local glColor = gl.Color
 local glRect = gl.Rect
 local glText = gl.Text
@@ -57,7 +55,6 @@ local glTexRect = gl.TexRect
 local glTranslate = gl.Translate
 local glScale = gl.Scale
 
--- Game constants
 local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
 local WARNING_SECONDS = 15
@@ -67,19 +64,16 @@ local BLINK_INTERVAL = 1
 local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
 
--- Rules parameter keys
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
 local RANK_RULES_KEY = "territorialDominationRank"
 
--- Sound timing constants
 local WINDUP_SOUND_DURATION = 2
 local ACTIVATE_SOUND_DURATION = 0
 local CHARGE_SOUND_LOOP_DURATION = 4.7
 
--- UI layout constants
 local TIMER_WARNING_DISPLAY_TIME = 5
 local TIMER_COOLDOWN = 120
 local MINIMAP_GAP = 3
@@ -92,7 +86,6 @@ local SPECTATOR_MAX_DISPLAY_HEIGHT = 256
 local SPECTATOR_BAR_SPACING = 3
 local SPECTATOR_COLUMN_PADDING = 4
 
--- Color definitions
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
 local COUNTDOWN_COLOR = {1, 0.2, 0.2, 1}
@@ -104,7 +97,6 @@ local COLOR_TEXT_OUTLINE = {0, 0, 0, TEXT_OUTLINE_ALPHA}
 local COLOR_GREY_LINE = {0.7, 0.7, 0.7, 0.7}
 local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
--- Widget state variables
 local myCommanders = {}
 local soundQueue = {}
 local isSkullFaded = true
@@ -118,8 +110,8 @@ local lastUpdateTime = 0
 local lastScore = -1
 local displayList = nil
 local lastDifference = -1
-local healthbarWidth = 300
-local healthbarHeight = 16
+local scorebarWidth = 300
+local scorebarHeight = 16
 local lineWidth = 2
 local maxThreshold = 256
 local currentTime = os.clock()
@@ -129,29 +121,25 @@ local lastLoop = 0
 local loopSoundEndTime = 0
 local soundIndex = 1
 
--- Display list caching variables
 local timerWarningDisplayList = nil
 local lastTimerWarningMessages = nil
 
--- Tracking variables for display list updates
 local lastThreshold = -1
 local lastMaxThreshold = -1
 local lastIsThresholdFrozen = false
 local lastFreezeExpirationTime = -1
-local lastHealthbarWidth = -1
-local lastHealthbarHeight = -1
+local lastScorebarWidth = -1
+local lastScorebarHeight = -1
 local lastMinimapDimensions = {-1, -1, -1}
 local lastAmSpectating = false
 local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
 local lastTeamRanks = {}
 
--- Ally team tracking for spectator mode
 local allyTeamDefeatTimes = {}
 local allyTeamCountdownDisplayLists = {}
 local lastCountdownValues = {}
 
--- Font cache for performance
 local fontCache = {
 	initialized = false,
 	fontSizeMultiplier = 1,
@@ -160,16 +148,13 @@ local fontCache = {
 	paddingY = 0
 }
 
--- Cached color values (simplified - direct references since never modified)
 local backgroundColor = COLOR_BACKGROUND
 local borderColor = COLOR_BORDER
 
--- Helper function to draw text with outline (reduces code duplication)
-local function drawTextWithOutline(text, x, y, fontSize, alignment, textColor)
+local function drawTextWithOutline(text, xPosition, yPosition, fontSize, alignment, textColor)
 	alignment = alignment or "l"
 	textColor = textColor or COLOR_WHITE
 	
-	-- Draw outline
 	glColor(COLOR_TEXT_OUTLINE[1], COLOR_TEXT_OUTLINE[2], COLOR_TEXT_OUTLINE[3], COLOR_TEXT_OUTLINE[4])
 	local outlineOffsets = {
 		{-TEXT_OUTLINE_OFFSET, -TEXT_OUTLINE_OFFSET},
@@ -183,22 +168,18 @@ local function drawTextWithOutline(text, x, y, fontSize, alignment, textColor)
 	}
 	
 	for _, offset in ipairs(outlineOffsets) do
-		glText(text, x + offset[1], y + offset[2], fontSize, alignment)
+		glText(text, xPosition + offset[1], yPosition + offset[2], fontSize, alignment)
 	end
 	
-	-- Draw main text
 	glColor(textColor[1], textColor[2], textColor[3], textColor[4])
-	glText(text, x, y, fontSize, alignment)
+	glText(text, xPosition, yPosition, fontSize, alignment)
 end
 
--- Helper function to calculate spectator layout parameters
-local function calculateSpectatorLayout(totalTeams, minimapSizeX)
-	-- Use fixed bar height of 16 pixels
+local function calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
 	local fixedBarHeight = 16
 	local totalBarHeight = fixedBarHeight + SPECTATOR_BAR_SPACING
 	local maxBarsPerColumn = floor(SPECTATOR_MAX_DISPLAY_HEIGHT / totalBarHeight)
 	
-	-- Calculate number of columns needed
 	local numColumns = ceil(totalTeams / maxBarsPerColumn)
 	local columnWidth = minimapSizeX / numColumns
 	local barWidth = columnWidth - (SPECTATOR_COLUMN_PADDING * 2)
@@ -212,7 +193,6 @@ local function calculateSpectatorLayout(totalTeams, minimapSizeX)
 	}
 end
 
--- Helper function to check if an ally team is still alive
 local function isAllyTeamAlive(allyTeamID)
 	if allyTeamID == gaiaAllyTeamID then
 		return false
@@ -229,7 +209,6 @@ local function isAllyTeamAlive(allyTeamID)
 	return false
 end
 
--- Helper function to get alive ally teams
 local function getAliveAllyTeams()
 	local aliveAllyTeams = {}
 	local allyTeamList = spGetAllyTeamList()
@@ -243,7 +222,6 @@ local function getAliveAllyTeams()
 	return aliveAllyTeams
 end
 
--- Helper function to create tinted colors
 local function createTintedColor(baseColor, tintColor, strength)
 	return {
 		baseColor[1] + (tintColor[1] - baseColor[1]) * strength,
@@ -253,25 +231,21 @@ local function createTintedColor(baseColor, tintColor, strength)
 	}
 end
 
--- Helper function to draw background and border with tinting
 local function drawBackgroundAndBorder(left, bottom, right, top, teamColor)
-	local bgTintStrength = 0.15
+	local backgroundTintStrength = 0.15
 	local borderTintStrength = 0.1
 	
-	local tintedBackgroundColor = createTintedColor(backgroundColor, teamColor, bgTintStrength)
+	local tintedBackgroundColor = createTintedColor(backgroundColor, teamColor, backgroundTintStrength)
 	local tintedBorderColor = createTintedColor(borderColor, teamColor, borderTintStrength)
 	
-	-- Draw border
 	glColor(tintedBorderColor[1], tintedBorderColor[2], tintedBorderColor[3], tintedBorderColor[4])
 	glRect(left - BORDER_WIDTH, bottom - BORDER_WIDTH, right + BORDER_WIDTH, top + BORDER_WIDTH)
 	
-	-- Draw background
 	glColor(tintedBackgroundColor[1], tintedBackgroundColor[2], tintedBackgroundColor[3], tintedBackgroundColor[4])
 	glRect(left, bottom, right, top)
 end
 
--- Helper function to calculate bar color based on difference
-local function getBarColor(difference)
+local function getBarColorBasedOnDifference(difference)
 	if difference <= WARNING_THRESHOLD then
 		return COLOR_RED
 	elseif difference <= ALERT_THRESHOLD then
@@ -281,8 +255,7 @@ local function getBarColor(difference)
 	end
 end
 
--- Helper function to get first alive team data from ally team (reduces code duplication)
-local function getFirstAliveTeamData(allyTeamID)
+local function getFirstAliveTeamDataFromAllyTeam(allyTeamID)
 	for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
 		local _, _, isDead = spGetTeamInfo(teamID)
 		if not isDead then
@@ -296,8 +269,7 @@ local function getFirstAliveTeamData(allyTeamID)
 	return nil, 0, nil
 end
 
--- Helper function to get freeze status (consolidates repeated calculations)
-local function getFreezeStatus()
+local function getFreezeStatusInformation()
 	local currentGameTime = spGetGameSeconds()
 	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
 	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
@@ -306,20 +278,16 @@ local function getFreezeStatus()
 	return currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze
 end
 
--- Helper function to draw health bar
 local function drawHealthBar(left, right, bottom, top, score, threshold, barColor, isThresholdFrozen)
-	-- POSITION CALCULATIONS
-	local fullHealthbarLeft = left
-	local fullHealthbarRight = right
+	local fullScorebarLeft = left
+	local fullScorebarRight = right
 	local barWidth = right - left
 	
 	local originalRight = right
 	local exceedsMaxThreshold = score > maxThreshold
 	
-	-- Calculate the actual score position without exceeding the bar width
-	local healthbarScoreRight = left + math.min(score / maxThreshold, 1) * barWidth
+	local scorebarScoreRight = left + math.min(score / maxThreshold, 1) * barWidth
 	
-	-- If score exceeds max, we won't extend the bar beyond its normal width
 	if exceedsMaxThreshold then
 		right = originalRight
 	end
@@ -330,65 +298,49 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	local skullX = thresholdX - skullOffset
 	
 	local borderSize = 3
-	local fillPaddingLeft = fullHealthbarLeft + borderSize
-	local fillPaddingRight = healthbarScoreRight - borderSize
+	local fillPaddingLeft = fullScorebarLeft + borderSize
+	local fillPaddingRight = scorebarScoreRight - borderSize
 	local fillPaddingTop = top
 	local fillPaddingBottom = bottom + borderSize
 	
-	-- Calculate line position
-	local linePos = healthbarScoreRight
+	local linePos = scorebarScoreRight
 	if exceedsMaxThreshold then
-		-- Calculate how much the bar exceeds the max threshold
 		local overfillRatio = (score - maxThreshold) / maxThreshold
-		-- Cap at 1.0 (100% backfilled)
 		overfillRatio = math.min(overfillRatio, 1)
 		
-		-- Calculate where the line should be when backfilling
 		local maxWidth = originalRight - borderSize - fillPaddingLeft
 		local backfillWidth = maxWidth * overfillRatio
 		linePos = originalRight - borderSize - backfillWidth
 		
-		-- Make sure the line position doesn't go outside the bar
 		linePos = math.max(fillPaddingLeft, linePos)
 	end
 	
-	-- COLOR SETUP - don't change bar color when frozen
 	local baseColor = barColor
 	local topColor = {baseColor[1], baseColor[2], baseColor[3], baseColor[4]}
 	local bottomColor = {baseColor[1]*0.7, baseColor[2]*0.7, baseColor[3]*0.7, baseColor[4]}
 	
-	-- GRADIENT RENDERING
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	if fillPaddingLeft < fillPaddingRight then
 		if exceedsMaxThreshold then
-			-- Calculate how much the bar exceeds the max threshold
 			local overfillRatio = (score - maxThreshold) / maxThreshold
-			-- Cap at 1.0 (100% backfilled)
 			overfillRatio = math.min(overfillRatio, 1)
 			
 			local maxBarWidth = originalRight - borderSize - fillPaddingLeft
 			local overfillWidth = maxBarWidth * overfillRatio
 			
-			-- The point where the bright color starts (from right side)
 			local brightColorStart = originalRight - borderSize - overfillWidth
 			
-			-- NORMAL COLORED SECTION (left part)
 			if brightColorStart > fillPaddingLeft then
 				local vertices = {
-					-- Bottom left
 					{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-					-- Bottom right
 					{v = {brightColorStart, fillPaddingBottom}, c = bottomColor},
-					-- Top right
 					{v = {brightColorStart, fillPaddingTop}, c = topColor},
-					-- Top left
 					{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
 				}
 				gl.Shape(GL.QUADS, vertices)
 			end
 			
-			-- BRIGHT COLORED SECTION (right part - backfill)
 			local excessTopColor = {
 				topColor[1] + (1 - topColor[1]) * 0.5,
 				topColor[2] + (1 - topColor[2]) * 0.5,
@@ -403,65 +355,44 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			}
 			
 			local vertices = {
-				-- Bottom left
 				{v = {brightColorStart, fillPaddingBottom}, c = excessBottomColor},
-				-- Bottom right
 				{v = {originalRight - borderSize, fillPaddingBottom}, c = excessBottomColor},
-				-- Top right
 				{v = {originalRight - borderSize, fillPaddingTop}, c = excessTopColor},
-				-- Top left
 				{v = {brightColorStart, fillPaddingTop}, c = excessTopColor}
 			}
 			gl.Shape(GL.QUADS, vertices)
 		else
-			-- STANDARD SECTION
 			local vertices = {
-				-- Bottom left
 				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-				-- Bottom right
 				{v = {fillPaddingRight, fillPaddingBottom}, c = bottomColor},
-				-- Top right
 				{v = {fillPaddingRight, fillPaddingTop}, c = topColor},
-				-- Top left
 				{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
 			}
 			gl.Shape(GL.QUADS, vertices)
 		end
 		
-		-- HIGHLIGHTS
 		local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		
-		-- Adjust highlight end position for overfilled bars
 		local highlightRight = fillPaddingRight
 		if exceedsMaxThreshold then
 			highlightRight = originalRight - borderSize
 		end
 		
-		-- Top highlight
 		local topGlossBottom = fillPaddingTop - glossHeight
 		local vertices = {
-			-- Bottom left
 			{v = {fillPaddingLeft, topGlossBottom}, c = {1, 1, 1, 0}},
-			-- Bottom right
 			{v = {highlightRight, topGlossBottom}, c = {1, 1, 1, 0}},
-			-- Top right
 			{v = {highlightRight, fillPaddingTop}, c = {1, 1, 1, 0.04}},
-			-- Top left
 			{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}
 		}
 		gl.Shape(GL.QUADS, vertices)
 		
-		-- Bottom highlight
 		local bottomGlossHeight = (fillPaddingTop - fillPaddingBottom) * 0.2
 		vertices = {
-			-- Bottom left
 			{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
-			-- Bottom right
 			{v = {highlightRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
-			-- Top right
 			{v = {highlightRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
-			-- Top left
 			{v = {fillPaddingLeft, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}}
 		}
 		gl.Shape(GL.QUADS, vertices)
@@ -469,13 +400,11 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 	
-	-- SKULL ICON RENDERING
 	if threshold >= 1 then
 		glPushMatrix()
 		local skullY = bottom + (top - bottom)/2
 		glTranslate(skullX, skullY, 0)
 		
-		-- Shadow
 		local shadowOffset = 1.5
 		local shadowAlpha = 0.6
 		local shadowScale = 1.1
@@ -489,7 +418,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			ICON_SIZE/2 * shadowScale - shadowOffset
 		)
 		
-		-- SKULL ALPHA MANAGEMENT
 		local skullAlpha = 1.0
 		if isThresholdFrozen then
 			local currentGameTime = spGetGameSeconds()
@@ -497,7 +425,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
 			
 			if timeUntilUnfreeze <= WARNING_SECONDS then
-				-- Warning period blinking
 				currentTime = os.clock()
 				local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 				if blinkPhase < 0.33 then
@@ -508,7 +435,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 					isSkullFaded = true
 				end
 			else
-				-- Normal frozen state
 				skullAlpha = 0.5
 				isSkullFaded = true
 			end
@@ -516,7 +442,6 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 			isSkullFaded = false
 		end
 		
-		-- Draw skull
 		glColor(1, 1, 1, skullAlpha)
 		glTexture(':n:LuaUI/Images/skull.dds')
 		glTexRect(-ICON_SIZE/2, -ICON_SIZE/2, ICON_SIZE/2, ICON_SIZE/2)
@@ -525,18 +450,14 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 		glPopMatrix()
 	end
 	
-	-- SCORE LINE RENDERING
 	local lineExtension = 3
 	
-	-- Determine line color based on whether the bar is overfilled
 	local lineColor = exceedsMaxThreshold and COLOR_WHITE_LINE or COLOR_GREY_LINE
 	
-	-- Draw shadow/border for the line
 	glColor(0, 0, 0, 0.8)
 	glRect(linePos - lineWidth - 1, bottom - lineExtension, 
 		   linePos + lineWidth + 1, top + lineExtension)
 	
-	-- Draw the actual line with the determined color
 	glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
 	glRect(linePos - lineWidth/2, bottom - lineExtension, 
 		   linePos + lineWidth/2, top + lineExtension)
@@ -544,51 +465,42 @@ local function drawHealthBar(left, right, bottom, top, score, threshold, barColo
 	return linePos, originalRight, thresholdX, skullX
 end
 
--- Helper function to format difference text (reduces code duplication)
-local function formatDifference(difference)
+local function formatDifferenceValue(difference)
 	return difference > 0 and ("+" .. difference) or difference
 end
 
--- Helper function to draw difference text (consolidates multiple similar functions)
-local function drawDifferenceText(x, y, difference, fontSize, alignment, textColor, verticalOffset)
+local function drawDifferenceText(xPosition, yPosition, difference, fontSize, alignment, textColor, verticalOffset)
 	alignment = alignment or "l"
 	textColor = textColor or COLOR_WHITE
 	verticalOffset = verticalOffset or 0
 	
-	local formattedDifference = formatDifference(difference)
-	drawTextWithOutline(formattedDifference, x, y + verticalOffset, fontSize, alignment, textColor)
+	local formattedDifference = formatDifferenceValue(difference)
+	drawTextWithOutline(formattedDifference, xPosition, yPosition + verticalOffset, fontSize, alignment, textColor)
 end
 
--- Function to draw countdown text with outline
-local function drawCountdownText(x, y, secondsRemaining, fontSize, textColor)
+local function drawCountdownText(xPosition, yPosition, secondsRemaining, fontSize, textColor)
 	local text = type(secondsRemaining) == "string" and secondsRemaining or format("%d", secondsRemaining)
-	drawTextWithOutline(text, x, y, fontSize, "c", textColor)
+	drawTextWithOutline(text, xPosition, yPosition, fontSize, "c", textColor)
 end
 
--- Function to draw rank text with outline using i18n
-local function drawRankTextBox(x, y, width, height, rank, fontSize, textColor)
-	-- Get i18n formatted rank text
+local function drawRankTextBox(xPosition, yPosition, width, height, rank, fontSize, textColor)
 	local rankText = spI18N('ui.territorialDomination.rank', {rank = rank})
 	
-	-- Calculate dynamic width based on text
 	local textWidth = glGetTextWidth(rankText) * fontSize * 1.2
 	local extraPadding = 5
 	local finalWidth = max(textWidth, width) + extraPadding
 	local finalHeight = height + extraPadding
 	
-	-- Move the box down by 2 pixels
 	local yOffset = -3
-	local adjustedY = y + yOffset
+	local adjustedY = yPosition + yOffset
 	
-	-- Draw background and border
 	glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
-	glRect(x - BORDER_WIDTH, adjustedY - BORDER_WIDTH, x + finalWidth + BORDER_WIDTH, adjustedY + finalHeight + BORDER_WIDTH)
+	glRect(xPosition - BORDER_WIDTH, adjustedY - BORDER_WIDTH, xPosition + finalWidth + BORDER_WIDTH, adjustedY + finalHeight + BORDER_WIDTH)
 	
 	glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
-	glRect(x, adjustedY, x + finalWidth, adjustedY + finalHeight)
+	glRect(xPosition, adjustedY, xPosition + finalWidth, adjustedY + finalHeight)
 	
-	-- Position text at bottom of box with padding
-	local centerX = x + finalWidth / 2
+	local centerX = xPosition + finalWidth / 2
 	local bottomPadding = 4
 	local textY = adjustedY + bottomPadding
 	
@@ -602,7 +514,6 @@ local function createTimerWarningMessage(secondsRemaining, territoriesNeeded)
 end
 
 local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
-	-- Check if the messages are the same as last time
 	if lastTimerWarningMessages and 
 	   lastTimerWarningMessages[1] == dominatedMessage and 
 	   lastTimerWarningMessages[2] == conquerMessage and
@@ -614,47 +525,35 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 		glDeleteList(timerWarningDisplayList)
 	end
 
-	-- Store current messages for future comparison
 	lastTimerWarningMessages = {dominatedMessage, conquerMessage}
 
-	-- Create new display list
 	timerWarningDisplayList = glCreateList(function()
 		local vsx, vsy = Spring.GetViewGeometry()
 		local widgetScale = 0.80 + (vsx * vsy / 6000000)
 		local fontSize = 22 * widgetScale
 		
-		-- Position exactly like gui_game_type_info
-		local y = 0.19  -- 19% up from the bottom
-		local x = vsx * 0.5
+		local yPosition = 0.19
+		local xPosition = vsx * 0.5
 		
-		-- Apply font size scaling like gui_game_type_info
 		glPushMatrix()
-		glTranslate(x, vsy * y, 0)
+		glTranslate(xPosition, vsy * yPosition, 0)
 		glScale(1.5, 1.5, 1)
 		
-		-- Calculate positions for the two lines with proper spacing
-		local line1Y = 442  -- Center of first line
+		local line1Y = 442
 		local lineSpacing = line1Y * 0.06
 		local line2Y = line1Y - lineSpacing
 		
-		-- Alpha is always 1.0 when creating the list - we'll use gl.Color when drawing to fade
 		local alpha = 1.0
 		
-		-- Draw first line (dominated message)
-		-- Text outline (shadow effect)
 		glColor(0, 0, 0, alpha * 0.5)
 		glText(dominatedMessage, 0 - 1, line1Y - 1, fontSize / 1.5, "c")
 		
-		-- Main text - WHITE
 		glColor(1, 1, 1, alpha)
 		glText(dominatedMessage, 0, line1Y, fontSize / 1.5, "c")
 		
-		-- Draw second line (conquer message)
-		-- Text outline (shadow effect)
 		glColor(0, 0, 0, alpha * 0.5)
 		glText(conquerMessage, 0 - 1, line2Y - 1, fontSize / 1.5, "c")
 		
-		-- Main text - WHITE
 		glColor(1, 1, 1, alpha)
 		glText(conquerMessage, 0, line2Y, fontSize / 1.5, "c")
 		
@@ -664,18 +563,16 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 	return timerWarningDisplayList
 end
 
--- Helper function to calculate countdown position for spectator mode
 local function calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, minimapPosY, minimapSizeX)
 	local aliveAllyTeams = getAliveAllyTeams()
 	local totalTeams = #aliveAllyTeams
 	if totalTeams == 0 then return nil, nil end
 	
-	local layout = calculateSpectatorLayout(totalTeams, minimapSizeX)
+	local layout = calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
 	
-	-- Get scores and sort them the same way as in drawSpectatorModeScoreBars
 	local allyTeamScores = {}
 	for _, currentAllyTeamID in ipairs(aliveAllyTeams) do
-		local _, score = getFirstAliveTeamData(currentAllyTeamID)
+		local _, score = getFirstAliveTeamDataFromAllyTeam(currentAllyTeamID)
 		local defeatTimeRemaining = 0
 		
 		if allyTeamDefeatTimes[currentAllyTeamID] and allyTeamDefeatTimes[currentAllyTeamID] > 0 then
@@ -691,17 +588,13 @@ local function calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, mini
 		})
 	end
 	
-	-- Sort by score first (highest = 1st place), then by defeat time remaining (lowest timer = last place)
 	table.sort(allyTeamScores, function(a, b)
 		if a.score == b.score then
-			-- When scores are tied, more time remaining = better rank (lower timer = worse rank)
 			return a.defeatTimeRemaining > b.defeatTimeRemaining
 		end
-		-- Higher score = better rank (1st place)
 		return a.score > b.score
 	end)
 	
-	-- Find the position index of our allyTeamID
 	local barIndex = nil
 	for i, allyTeamData in ipairs(allyTeamScores) do
 		if allyTeamData.allyTeamID == allyTeamID then
@@ -711,38 +604,33 @@ local function calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, mini
 	end
 	
 	if barIndex then
-		-- Calculate column and position within column
 		local columnIndex = floor((barIndex - 1) / layout.maxBarsPerColumn)
 		local positionInColumn = ((barIndex - 1) % layout.maxBarsPerColumn)
 		
-		-- Calculate bar position
 		local columnStartX = minimapPosX + (columnIndex * layout.columnWidth)
-		local healthbarLeft = columnStartX + SPECTATOR_COLUMN_PADDING
-		local healthbarRight = healthbarLeft + layout.barWidth
+		local scorebarLeft = columnStartX + SPECTATOR_COLUMN_PADDING
+		local scorebarRight = scorebarLeft + layout.barWidth
 		local startY = minimapPosY - MINIMAP_GAP
-		local healthbarTop = startY - (positionInColumn * (layout.barHeight + SPECTATOR_BAR_SPACING))
-		local healthbarBottom = healthbarTop - layout.barHeight
+		local scorebarTop = startY - (positionInColumn * (layout.barHeight + SPECTATOR_BAR_SPACING))
+		local scorebarBottom = scorebarTop - layout.barHeight
 		
-		local countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7
+		local countdownY = scorebarBottom + (scorebarTop - scorebarBottom) / 2 - 7
 		
-		-- Calculate X position at the threshold/skull location
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local barWidthForCalc = healthbarRight - healthbarLeft
-		local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidthForCalc
+		local barWidthForCalc = scorebarRight - scorebarLeft
+		local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidthForCalc
 		local skullOffset = (1 / maxThreshold) * barWidthForCalc
 		local countdownX = thresholdX - skullOffset
 		
 		return countdownX, countdownY
 	end
 	
-	-- Fallback if ally team not found
 	return minimapPosX + minimapSizeX / 2, minimapPosY - MINIMAP_GAP - 20
 end
 
 local function createCountdownDisplayList(timeRemaining, allyTeamID)
 	allyTeamID = allyTeamID or myAllyID
 	
-	-- Only recreate if the time has changed for this ally team
 	if allyTeamCountdownDisplayLists[allyTeamID] and lastCountdownValues[allyTeamID] == timeRemaining then
 		return allyTeamCountdownDisplayLists[allyTeamID]
 	end
@@ -751,10 +639,8 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 		glDeleteList(allyTeamCountdownDisplayLists[allyTeamID])
 	end
 	
-	-- Store current countdown value for future comparison
 	lastCountdownValues[allyTeamID] = timeRemaining
 	
-	-- Create new display list
 	allyTeamCountdownDisplayLists[allyTeamID] = glCreateList(function()
 		local countdownColor = COUNTDOWN_COLOR
 		local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
@@ -764,26 +650,24 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 			countdownX, countdownY = calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, minimapPosY, minimapSizeX)
 			if not countdownX then return end
 		else
-			-- Regular player view (non-spectator)
-			local healthbarLeft = minimapPosX + ICON_SIZE/2
-			local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
-			local healthbarTop = minimapPosY - MINIMAP_GAP
-			local healthbarBottom = healthbarTop - healthbarHeight
+			local scorebarLeft = minimapPosX + ICON_SIZE/2
+			local scorebarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+			local scorebarTop = minimapPosY - MINIMAP_GAP
+			local scorebarBottom = scorebarTop - scorebarHeight
 			local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-			local barWidth = healthbarRight - healthbarLeft
-			local thresholdX = healthbarLeft + (threshold / maxThreshold) * barWidth
+			local barWidth = scorebarRight - scorebarLeft
+			local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
 			local skullOffset = (1 / maxThreshold) * barWidth
 			countdownX = thresholdX - skullOffset
-			countdownY = healthbarBottom + (healthbarTop - healthbarBottom) / 2 - 7
+			countdownY = scorebarBottom + (scorebarTop - scorebarBottom) / 2 - 7
 		end
 		
-		-- Use cached font size (scale for spectator mode)
 		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
 		if amSpectating then
 			local aliveAllyTeams = getAliveAllyTeams()
 			local totalTeams = #aliveAllyTeams
-			local layout = calculateSpectatorLayout(totalTeams, minimapSizeX)
-			local scaleFactor = layout.barHeight / healthbarHeight
+			local layout = calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
+			local scaleFactor = layout.barHeight / scorebarHeight
 			countdownFontSize = max(10, countdownFontSize * scaleFactor)
 		end
 		
@@ -827,45 +711,39 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:Update(dt)
+function widget:Update(deltaTime)
 	amSpectating = spGetSpectatingState()
 	myAllyID = spGetMyAllyTeamID()
 	
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze = getFreezeStatus()
+	local currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze = getFreezeStatusInformation()
 	
-	gameSeconds = currentGameTime  -- Update game seconds every frame
+	gameSeconds = currentGameTime
 	
-	-- Force clear all defeat timers when threshold is frozen
 	if isThresholdFrozen then
 		if amSpectating then
-			-- Clear all ally team defeat times in spectator mode
 			for allyTeamID in pairs(allyTeamDefeatTimes) do
 				allyTeamDefeatTimes[allyTeamID] = 0
 			end
 		else
-			-- Clear player defeat time
 			defeatTime = 0
 			loopSoundEndTime = 0
 			soundQueue = nil
 			soundIndex = 1
 		end
 		
-		-- Clear countdown display lists for all ally teams
 		for allyTeamID, countdownDisplayList in pairs(allyTeamCountdownDisplayLists) do
 			if countdownDisplayList then
 				glDeleteList(countdownDisplayList)
 				allyTeamCountdownDisplayLists[allyTeamID] = nil
 			end
 		end
-		lastCountdownValues = {} -- Clear cached countdown values
+		lastCountdownValues = {}
 	end
 	
 	currentTime = os.clock()
 	
-	-- Check if forced update is needed for warning blinking
 	local needsUpdate = false
 	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
-		-- Skull is blinking - check if we're in a new blink phase
 		local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 		local currentBlinkState = blinkPhase < 0.33
 		if isSkullFaded ~= currentBlinkState then
@@ -873,46 +751,37 @@ function widget:Update(dt)
 		end
 	end
 	
-	-- Regular update check on interval
 	if needsUpdate or currentTime - lastUpdateTime > UPDATE_FREQUENCY then
 		lastUpdateTime = currentTime
 		updateScoreDisplayList()
 	end
 	
-	-- Check if we should show the timer warning (player mode only)
 	if not amSpectating and defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local _, score = getFirstAliveTeamData(myAllyID)
+		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
 		
 		local difference = score - threshold
-		local territoriesNeeded = abs(difference)  -- Need one more than the negative difference
+		local territoriesNeeded = abs(difference)
 		
-		-- Only show warning if difference is negative and only once per cooldown period
 		if difference < 0 and freezeExpirationTime < currentGameTime then
 			if currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
 				spPlaySoundFile("warning1", 1)
-				-- Create the warning message
-				local domMsg, conqMsg = createTimerWarningMessage(timeRemaining, territoriesNeeded)
+				local dominatedMessage, conquerMessage = createTimerWarningMessage(timeRemaining, territoriesNeeded)
 				timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
 				
-				-- Create the display list for the warning
-				createTimerWarningDisplayList(domMsg, conqMsg)
+				createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 			end
 			lastTimerWarningTime = currentGameTime
 		end
 	end
-	
-	-- Note: Countdown display is now handled in DrawScreen function
-	-- This ensures proper positioning for each ally team in spectator mode
 end
 
--- Helper function to get player team data
 local function getPlayerTeamData()
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	local teamID, score, rank = getFirstAliveTeamData(myAllyID)
+	local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(myAllyID)
 	local difference = score - threshold
-	local barColor = getBarColor(difference)
+	local barColor = getBarColorBasedOnDifference(difference)
 	
 	return {
 		score = score,
@@ -924,24 +793,20 @@ local function getPlayerTeamData()
 	}
 end
 
--- Helper function to get spectator ally team data
 local function getSpectatorAllyTeamData()
 	local aliveAllyTeams = getAliveAllyTeams()
 	local allyTeamScores = {}
 	
-	-- Gather all ally team data
 	for _, allyTeamID in ipairs(aliveAllyTeams) do
-		local teamID, score, rank = getFirstAliveTeamData(allyTeamID)
+		local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
 		local teamColor = {1, 1, 1, 1}
 		local defeatTimeRemaining = 0
 		
-		-- Get team color if we found a team
 		if teamID then
-			local r, g, b = spGetTeamColor(teamID)
-			teamColor = {r, g, b, 1}
+			local redComponent, greenComponent, blueComponent = spGetTeamColor(teamID)
+			teamColor = {redComponent, greenComponent, blueComponent, 1}
 		end
 		
-		-- Calculate defeat time remaining
 		if allyTeamDefeatTimes[allyTeamID] and allyTeamDefeatTimes[allyTeamID] > 0 then
 			defeatTimeRemaining = max(0, allyTeamDefeatTimes[allyTeamID] - gameSeconds)
 		else
@@ -957,60 +822,47 @@ local function getSpectatorAllyTeamData()
 		})
 	end
 	
-	-- Sort by score first (highest = 1st place), then by defeat time remaining (lowest timer = last place)
 	table.sort(allyTeamScores, function(a, b)
 		if a.score == b.score then
-			-- When scores are tied, more time remaining = better rank (lower timer = worse rank)
 			return a.defeatTimeRemaining > b.defeatTimeRemaining
 		end
-		-- Higher score = better rank (1st place)
 		return a.score > b.score
 	end)
 	
 	return allyTeamScores
 end
 
--- Helper function to calculate spectator bar position
 local function calculateSpectatorBarPosition(index, layout, minimapPosX, minimapPosY)
 	local columnIndex = floor((index - 1) / layout.maxBarsPerColumn)
 	local positionInColumn = ((index - 1) % layout.maxBarsPerColumn)
 	
 	local columnStartX = minimapPosX + (columnIndex * layout.columnWidth)
-	local healthbarLeft = columnStartX + SPECTATOR_COLUMN_PADDING
-	local healthbarRight = healthbarLeft + layout.barWidth
+	local scorebarLeft = columnStartX + SPECTATOR_COLUMN_PADDING
+	local scorebarRight = scorebarLeft + layout.barWidth
 	local startY = minimapPosY - MINIMAP_GAP
-	local healthbarTop = startY - (positionInColumn * (layout.barHeight + SPECTATOR_BAR_SPACING))
-	local healthbarBottom = healthbarTop - layout.barHeight
+	local scorebarTop = startY - (positionInColumn * (layout.barHeight + SPECTATOR_BAR_SPACING))
+	local scorebarBottom = scorebarTop - layout.barHeight
 	
-	return healthbarLeft, healthbarBottom, healthbarRight, healthbarTop
+	return scorebarLeft, scorebarBottom, scorebarRight, scorebarTop
 end
 
--- Helper function to draw spectator bar text
-local function drawSpectatorBarText(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, allyTeamData, threshold, fontSize)
+local function drawSpectatorBarText(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, allyTeamData, threshold, fontSize)
 	local paddingX = fontCache.paddingX
 	
-	-- Scale font size to height of the score bar + 20%
-	local barHeight = healthbarTop - healthbarBottom
-	local scaledFontSize = barHeight * 1.1  -- Use 120% of bar height for the font
+	local barHeight = scorebarTop - scorebarBottom
+	local scaledFontSize = barHeight * 1.1
 	
-	-- Display difference - positioned inside the bar, aligned to the right
 	local difference = allyTeamData.score - threshold
 	
-	-- Account for border width to position text inside the bar bounds
 	local borderSize = 3
-	local innerRight = healthbarRight - borderSize - paddingX
+	local innerRight = scorebarRight - borderSize - paddingX
 	local differenceVerticalOffset = 3
 
-	-- Center vertically in the bar
-	local differenceTextY = healthbarBottom + (barHeight - scaledFontSize) / 2
+	local differenceTextY = scorebarBottom + (barHeight - scaledFontSize) / 2
 	
-	-- Draw text with right alignment inside the bar
 	drawDifferenceText(innerRight, differenceTextY, difference, scaledFontSize, "r", COLOR_WHITE, differenceVerticalOffset)
-	
-	-- Rank display is hidden in spectator mode
 end
 
--- Function to draw spectator mode score bars
 local function drawSpectatorModeScoreBars()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local allyTeamScores = getSpectatorAllyTeamData()
@@ -1018,102 +870,83 @@ local function drawSpectatorModeScoreBars()
 	
 	if totalTeams == 0 then return end
 	
-	local layout = calculateSpectatorLayout(totalTeams, minimapSizeX)
+	local layout = calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatus()
+	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
 	local fontSize = fontCache.fontSize
 	
-	-- Scale font size based on bar height
-	local scaleFactor = layout.barHeight / healthbarHeight
+	local scaleFactor = layout.barHeight / scorebarHeight
 	fontSize = max(10, fontSize * scaleFactor)
 	
-	-- Draw bars for each ally team
 	for i, allyTeamData in ipairs(allyTeamScores) do
-		local healthbarLeft, healthbarBottom, healthbarRight, healthbarTop = 
+		local scorebarLeft, scorebarBottom, scorebarRight, scorebarTop = 
 			calculateSpectatorBarPosition(i, layout, minimapPosX, minimapPosY)
 		
-		-- Draw background and border with team color tinting
-		drawBackgroundAndBorder(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, allyTeamData.teamColor)
+		drawBackgroundAndBorder(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, allyTeamData.teamColor)
 		
-		-- Use ally team color for bar in spectator mode instead of red/green/yellow
 		local barColor = allyTeamData.teamColor
 		
-		-- Draw health bar
-		drawHealthBar(healthbarLeft, healthbarRight, healthbarBottom, healthbarTop, 
+		drawHealthBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, 
 					  allyTeamData.score, threshold, barColor, isThresholdFrozen)
 		
-		-- Draw text
-		drawSpectatorBarText(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, allyTeamData, threshold, fontSize)
+		drawSpectatorBarText(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, allyTeamData, threshold, fontSize)
 	end
 end
 
--- Helper function to calculate player bar position
 local function calculatePlayerBarPosition(minimapPosX, minimapPosY, minimapSizeX)
-	local healthbarLeft = minimapPosX + ICON_SIZE/2
-	local healthbarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
-	local healthbarTop = minimapPosY - MINIMAP_GAP
-	local healthbarBottom = healthbarTop - healthbarHeight
+	local scorebarLeft = minimapPosX + ICON_SIZE/2
+	local scorebarRight = minimapPosX + minimapSizeX - ICON_SIZE/2
+	local scorebarTop = minimapPosY - MINIMAP_GAP
+	local scorebarBottom = scorebarTop - scorebarHeight
 	
-	return healthbarLeft, healthbarBottom, healthbarRight, healthbarTop
+	return scorebarLeft, scorebarBottom, scorebarRight, scorebarTop
 end
 
--- Helper function to draw player bar text
-local function drawPlayerBarText(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, teamData, fontSize)
+local function drawPlayerBarText(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, teamData, fontSize)
 	local paddingX = fontCache.paddingX
 	
-	-- Scale font size to height of the score bar + 20%
-	local barHeight = healthbarTop - healthbarBottom
-	local scaledFontSize = barHeight * 1.20  -- Use 120% of bar height for the font
+	local barHeight = scorebarTop - scorebarBottom
+	local scaledFontSize = barHeight * 1.20
 	
-	-- Account for border width to position text inside the bar bounds
 	local borderSize = 3
-	local innerRight = healthbarRight - borderSize - paddingX
+	local innerRight = scorebarRight - borderSize - paddingX
 	
-	-- Center vertically in the bar
-	local differenceTextY = healthbarBottom + (barHeight - scaledFontSize) / 2
+	local differenceTextY = scorebarBottom + (barHeight - scaledFontSize) / 2
 	
-	-- Draw text with right alignment inside the bar
 	drawDifferenceText(innerRight, differenceTextY, teamData.difference, scaledFontSize, "r", COLOR_WHITE, 1)
 end
 
--- Function to draw player score bar
 local function drawPlayerScoreBar()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local teamData = getPlayerTeamData()
 	
 	if not teamData.teamID then return end
 	
-	local healthbarLeft, healthbarBottom, healthbarRight, healthbarTop = 
+	local scorebarLeft, scorebarBottom, scorebarRight, scorebarTop = 
 		calculatePlayerBarPosition(minimapPosX, minimapPosY, minimapSizeX)
 	
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatus()
+	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
 	local fontSize = fontCache.fontSize
 	
-	-- Get team color for background tinting
-	local r, g, b = spGetTeamColor(teamData.teamID)
-	local teamColor = {r, g, b, 1}
+	local redComponent, greenComponent, blueComponent = spGetTeamColor(teamData.teamID)
+	local teamColor = {redComponent, greenComponent, blueComponent, 1}
 	
-	-- Draw background and border with team color tinting
-	drawBackgroundAndBorder(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, teamColor)
+	drawBackgroundAndBorder(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, teamColor)
 	
-	-- Draw health bar
-	drawHealthBar(healthbarLeft, healthbarRight, healthbarBottom, healthbarTop, 
+	drawHealthBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, 
 				  teamData.score, teamData.threshold, teamData.barColor, isThresholdFrozen)
 	
-	-- Draw text
-	drawPlayerBarText(healthbarLeft, healthbarBottom, healthbarRight, healthbarTop, teamData, fontSize)
+	drawPlayerBarText(scorebarLeft, scorebarBottom, scorebarRight, scorebarTop, teamData, fontSize)
 	
-	-- Draw rank if available - positioned below the score bar, aligned to left
 	if teamData.rank then
 		local rankBoxWidth = 40
 		local rankBoxHeight = fontSize + 4
-		local rankX = healthbarLeft
-		local rankY = healthbarBottom - rankBoxHeight - 5
+		local rankX = scorebarLeft
+		local rankY = scorebarBottom - rankBoxHeight - 5
 		drawRankTextBox(rankX, rankY, rankBoxWidth, rankBoxHeight, teamData.rank, fontSize, COLOR_WHITE)
 	end
 end
 
--- Initialize font cache if needed
 local function initializeFontCache()
 	if not fontCache.initialized then
 		local _, viewportSizeY = spGetViewGeometry()
@@ -1125,7 +958,6 @@ local function initializeFontCache()
 	end
 end
 
--- Update tracking variables for next comparison
 local function updateTrackingVariables()
 	local currentGameTime = spGetGameSeconds()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
@@ -1139,17 +971,16 @@ local function updateTrackingVariables()
 	lastMaxThreshold = currentMaxThreshold
 	lastIsThresholdFrozen = isThresholdFrozen
 	lastFreezeExpirationTime = freezeExpirationTime
-	lastHealthbarWidth = healthbarWidth
-	lastHealthbarHeight = healthbarHeight
+	lastScorebarWidth = scorebarWidth
+	lastScorebarHeight = scorebarHeight
 	lastMinimapDimensions = currentMinimapDimensions
 	lastAmSpectating = amSpectating
 	lastSelectedAllyTeamID = selectedAllyTeamID
 	maxThreshold = currentMaxThreshold
 end
 
--- Helper function to check if display list needs updating
 local function needsDisplayListUpdate()
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatus()
+	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
 	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local currentMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
@@ -1169,7 +1000,6 @@ local function needsDisplayListUpdate()
 			return true
 		end
 		
-		-- Check spectator scores and ranks
 		local aliveAllyTeams = getAliveAllyTeams()
 		local currentAllyTeamScores = {}
 		local currentTeamRanks = {}
@@ -1202,7 +1032,6 @@ local function needsDisplayListUpdate()
 			end
 		end
 		
-		-- Compare with last scores
 		for allyTeamID, score in pairs(currentAllyTeamScores) do
 			if lastAllyTeamScores[allyTeamID] ~= score then
 				lastAllyTeamScores = currentAllyTeamScores
@@ -1211,7 +1040,6 @@ local function needsDisplayListUpdate()
 			end
 		end
 		
-		-- Check if any ally teams changed state
 		for allyTeamID, _ in pairs(lastAllyTeamScores) do
 			if currentAllyTeamScores[allyTeamID] == nil then
 				lastAllyTeamScores = currentAllyTeamScores
@@ -1223,14 +1051,13 @@ local function needsDisplayListUpdate()
 		lastAllyTeamScores = currentAllyTeamScores
 		lastTeamRanks = currentTeamRanks
 	else
-		-- Player mode update check
 		local teamData = getPlayerTeamData()
 		
 		if lastScore ~= teamData.score or lastDifference ~= teamData.difference or 
 		   lastThreshold ~= threshold or lastMaxThreshold ~= currentMaxThreshold or
 		   lastIsThresholdFrozen ~= isThresholdFrozen or lastFreezeExpirationTime ~= freezeExpirationTime or
-		   lastHealthbarWidth ~= healthbarWidth or 
-		   lastHealthbarHeight ~= healthbarHeight or
+		   lastScorebarWidth ~= scorebarWidth or 
+		   lastScorebarHeight ~= scorebarHeight or
 		   lastMinimapDimensions[1] ~= currentMinimapDimensions[1] or
 		   lastMinimapDimensions[2] ~= currentMinimapDimensions[2] or
 		   lastMinimapDimensions[3] ~= currentMinimapDimensions[3] or
@@ -1263,7 +1090,7 @@ function updateScoreDisplayList()
 	initializeFontCache()
 
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	healthbarWidth = minimapSizeX - ICON_SIZE
+	scorebarWidth = minimapSizeX - ICON_SIZE
 	
 	local needsUpdate = needsDisplayListUpdate()
 	updateTrackingVariables()
@@ -1285,7 +1112,6 @@ function updateScoreDisplayList()
 	end)
 end
 
--- Helper function to clean up display lists
 local function cleanupDisplayLists()
 	if displayList then
 		glDeleteList(displayList)
@@ -1297,7 +1123,6 @@ local function cleanupDisplayLists()
 		timerWarningDisplayList = nil
 	end
 	
-	-- Clean up all ally team countdown display lists
 	for allyTeamID, countdownDisplayList in pairs(allyTeamCountdownDisplayLists) do
 		if countdownDisplayList then
 			glDeleteList(countdownDisplayList)
@@ -1306,7 +1131,6 @@ local function cleanupDisplayLists()
 	allyTeamCountdownDisplayLists = {}
 end
 
--- Helper function to queue teleport sounds
 local function queueTeleportSounds()
 	soundQueue = {}
 	if defeatTime and defeatTime > 0 then
@@ -1326,9 +1150,7 @@ function widget:DrawScreen()
 		glCallList(displayList)
 	end
 	
-	-- Draw countdowns
 	if amSpectating then
-		-- In spectator mode, draw countdowns for all ally teams that have active defeat times
 		for allyTeamID, allyDefeatTime in pairs(allyTeamDefeatTimes) do
 			if allyDefeatTime and allyDefeatTime > 0 and gameSeconds and allyDefeatTime > gameSeconds then
 				local timeRemaining = ceil(allyDefeatTime - gameSeconds)
@@ -1342,7 +1164,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-		-- Player mode - draw countdown for own team only
 		if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 			local timeRemaining = ceil(defeatTime - gameSeconds)
 			if timeRemaining >= 0 and (timeRemaining ~= lastCountdownValues[myAllyID] or not allyTeamCountdownDisplayLists[myAllyID]) then
@@ -1386,11 +1207,9 @@ end
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
 		if amSpectating then
-			-- In spectator mode, track defeat times for all ally teams
 			local allyTeamList = spGetAllyTeamList()
 			for _, allyTeamID in ipairs(allyTeamList) do
 				if allyTeamID ~= gaiaAllyTeamID and isAllyTeamAlive(allyTeamID) then
-					-- Find first alive team in this ally team
 					local allyDefeatTime = 0
 					for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
 						local _, _, isDead = spGetTeamInfo(teamID)
@@ -1403,7 +1222,6 @@ function widget:GameFrame(frame)
 				end
 			end
 		else
-			-- For player mode, just track own team
 			local myTeamID = Spring.GetMyTeamID()
 			local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
 			if newDefeatTime > 0 then
@@ -1425,7 +1243,6 @@ function widget:GameFrame(frame)
 		local currentRank = nil
 		
 		if amSpectating then
-			-- For spectator mode, check all ranks
 			local allyTeamList = spGetAllyTeamList()
 			for _, allyTeamID in ipairs(allyTeamList) do
 				for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
@@ -1441,7 +1258,6 @@ function widget:GameFrame(frame)
 				if rankChanged then break end
 			end
 		else
-			-- For player mode, just check own team
 			for _, teamID in ipairs(spGetTeamList(myAllyID)) do
 				local _, _, isDead = spGetTeamInfo(teamID)
 				if not isDead then
@@ -1459,7 +1275,6 @@ function widget:GameFrame(frame)
 				glDeleteList(displayList)
 				displayList = nil
 			end
-			-- Force update by setting lastUpdateTime to old value
 			lastUpdateTime = 0
 		end
 	end
@@ -1470,7 +1285,6 @@ function widget:GameFrame(frame)
 		if lastLoop <= currentTime then
 			lastLoop = currentTime
 			
-			-- Calculate volume based on time until defeat
 			local timeRange = loopSoundEndTime - (defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
 			local timeLeft = loopSoundEndTime - gameSeconds
 			local minVolume = 0.05
@@ -1482,9 +1296,9 @@ function widget:GameFrame(frame)
 			local currentVolume = minVolume + (volumeFactor * volumeRange)
 			
 			for unitID in pairs(myCommanders) do
-				local x, y, z = spGetUnitPosition(unitID)
-				if x then
-					spPlaySoundFile("teleport-charge-loop", currentVolume, x, y, z, 0, 0, 0, "sfx")
+				local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
+				if xPosition then
+					spPlaySoundFile("teleport-charge-loop", currentVolume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
 				else
 					myCommanders[unitID] = nil
 				end
@@ -1494,9 +1308,9 @@ function widget:GameFrame(frame)
 		local sound = soundQueue and soundQueue[soundIndex]
 		if sound and gameSeconds and sound.when < gameSeconds then
 			for unitID in pairs(myCommanders) do
-				local x, y, z = spGetUnitPosition(unitID)
-				if x then
-					spPlaySoundFile(sound.sound, sound.volume, x, y, z, 0, 0, 0, "sfx")
+				local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
+				if xPosition then
+					spPlaySoundFile(sound.sound, sound.volume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
 				else
 					myCommanders[unitID] = nil
 				end

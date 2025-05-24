@@ -17,6 +17,7 @@ end
 -- when an allyteam dies, perspective changes to one of the remaining allyteams but the score doesn't refresh until a different one is selected and then the original auto-chosen allyteam is re-selected
 -- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
 -- check if defeatTime is interacting with freezeTime correctly
+-- when globbal los is enabled, it appears that with high player counts enemy territories don't show up without los
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
