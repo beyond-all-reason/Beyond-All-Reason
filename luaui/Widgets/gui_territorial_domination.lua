@@ -598,7 +598,7 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 		if amSpectating then
 			-- In spectator mode, position countdown for specific ally team using column layout
 			local maxDisplayHeight = 256
-			local minBarHeight = 12
+			local minBarHeight = 16
 			local barSpacing = 3
 			
 			-- Get alive ally teams and their order
@@ -750,7 +750,7 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 		if amSpectating then
 			-- Scale countdown font for smaller bars in spectator mode
 			local maxDisplayHeight = 256
-			local minBarHeight = 12
+			local minBarHeight = 16
 			local barSpacing = 3
 			local totalTeams = #spGetAllyTeamList()
 			
@@ -1080,7 +1080,7 @@ end
 local function drawSpectatorModeScoreBars()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local maxDisplayHeight = 256
-	local minBarHeight = 12
+	local minBarHeight = 16
 	local barSpacing = 3
 	
 	-- Get alive ally teams
