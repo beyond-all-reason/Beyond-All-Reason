@@ -14,7 +14,6 @@ end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = useRenderToTexture
-local rttSizeMult
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -77,10 +76,9 @@ function widget:ViewResize()
 	height = setHeight * uiScale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	rttSizeMult = vsy<1400 and 2 or 1
-	local rttAdjust = useRenderToTexture and rttSizeMult > 1
-	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
-	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+
+	font2 = WG['fonts'].getFont(nil, 1.2 * 1.8, 0.45 * 1.25*outlineMult, 1.3+(outlineMult*0.25))
+	font = WG['fonts'].getFont(fontFile, 1.1 * 1.8, 0.45 * 1.25*outlineMult, 1.3+(outlineMult*0.25))
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -476,7 +474,7 @@ local function updateList()
 		end
 		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*rttSizeMult, math.floor(backgroundRect[4]-backgroundRect[2])*rttSizeMult, {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
