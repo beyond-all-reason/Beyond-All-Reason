@@ -13,44 +13,6 @@ function widget:GetInfo()
 end
 local factions = {}
 
-if UnitDefNames.dummycom then
-	factions[#factions+1] = { startUnit = UnitDefNames.dummycom.id, faction = 'random' }
-end
-
-local allyTeamBitmask = 0
-do
-	local factionlimiter = tonumber(Spring.GetModOptions().factionlimiter)
-	if factionlimiter and factionlimiter > 0 then
-		local allyTeamID = Spring.GetMyAllyTeamID()
-		factionlimiter = math.floor(factionlimiter/2^(allyTeamID*3))
-		allyTeamBitmask = math.bit_and(factionlimiter, 7)
-	end
-end
-if allyTeamBitmask == 0 then
-	allyTeamBitmask = 7
-end
-
-local function addOptions(bitmask)
-	if UnitDefNames.corcom and math.bit_and(bitmask, 2) == 2 then
-		factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
-	end
-	if UnitDefNames.armcom and math.bit_and(bitmask, 1) == 1 then
-		factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
-	end
-	if UnitDefNames.legcom and math.bit_and(bitmask, 4) == 4 then
-		factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
-	end
-end
-
-addOptions(allyTeamBitmask)
--- if we failed to get a commander pass in a full bitmask
-if #factions == (UnitDefNames.dummycom and 1 or 0) then
-	addOptions(7)
-end
-if #factions == 2 and UnitDefNames.dummycom then
-	factions[1] = factions[2]
-	factions[2] = nil
-end
 
 local doUpdate
 local playSounds = true
@@ -65,6 +27,23 @@ local myTeamID = Spring.GetMyTeamID()
 local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+do
+	local validStartUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	for i, unitID_string in ipairs(validStartUnits) do
+		-- TODO: figure out a better approach to this as sidedata faction names and language file keys do not match
+		local unitID = tonumber(unitID_string)
+		factions[i] = {
+			startUnit = unitID,
+			faction = string.sub(UnitDefs[unitID].name, 1, 3) }
+		if factions[i].faction == "dum" then
+			factions[i].faction = "random"
+		end
+	end
+end
+if factions == {} then
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
+	return false
+end
 
 local factionRect = {}
 for i, faction in pairs(factions) do
