@@ -56,7 +56,7 @@ local autoReload = false
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
 local cursor_unit_range = true -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 90	-- turns off when selection is above this number
+local selectionDisableThreshold = 512	-- turns off when selection is above this number
 local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
