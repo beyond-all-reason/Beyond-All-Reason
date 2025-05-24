@@ -54,6 +54,8 @@ yoff = math.floor(yoff)
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+
 function widget:Initialize()
   widget:ViewResize(widgetHandler:GetViewSizes())
 end
@@ -64,7 +66,13 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local xp = math.floor(viewSizeX * xmax) - xoff - 2
   local yp = math.floor(viewSizeY * ymax) - yoff - 2
   local limitAspect = (xp / yp)
-  local mapAspect = (Game.mapSizeX / Game.mapSizeZ)
+  local currRot = getCurrentMiniMapRotationOption()
+  local mapAspect
+  if currRot == 1 or currRot == 3 then
+    mapAspect = (Game.mapSizeZ / Game.mapSizeX)
+  else
+    mapAspect = (Game.mapSizeX / Game.mapSizeZ)
+  end
 
   local sx, sy
   if (mapAspect > limitAspect) then
