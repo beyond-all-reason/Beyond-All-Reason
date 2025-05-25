@@ -1386,7 +1386,7 @@ function SortList()
         end
     end
     local deadTeamSize = 0.66
-    playerScale = math.min(1, 38 / (aliveTeams+(deadTeams*deadTeamSize)))
+    playerScale = math.min(1, 37 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
@@ -2717,12 +2717,8 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(useRenderToTexture and 0.95 or 0.8, 0.75 * widgetScale))
+        font2:SetOutlineColor(0.75, 0.75, 0.75, 1)
     else
-        font2:SetTextColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
-        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
     end
     if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -2734,7 +2730,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
-    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, dark and "o" or "n")
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
 
     --desynced = playerID == 1
 	if desynced then
@@ -3840,9 +3836,9 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.3, 0.5 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.2)
-    font2 = WG['fonts'].getFont(fontfile2, 1.8, 0.7 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.2))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font = WG['fonts'].getFont(nil, 1, 0.22 * outlineMult, 1.7+(outlineMult*0.25))
+    font2 = WG['fonts'].getFont(fontfile2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

@@ -50,7 +50,7 @@ local function drawContent()
 
 	local fps = Spring.GetFPS()
 	local titleColor = '\255\210\210\210'
-	local valueColor = '\255\255\255\255'
+	local valueColor = '\255\245\245\245'
 	local prevGameframe = gameframe
 	gameframe = Spring.GetGameFrame()
 	local minutes = math.floor((gameframe / 30 / 60))
@@ -228,8 +228,8 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 0.95, 0.37 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.15)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font = WG['fonts'].getFont(nil, 1.1, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
 
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
