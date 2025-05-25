@@ -227,6 +227,8 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
 		table.append(bossFightTracks, bossFightTracksCustom)
+		table.append(raptorTracks, bossFightTracksCustom)
+		table.append(scavTracks, bossFightTracksCustom)
 		table.append(menuTracks, menuTracksCustom)
 		table.append(loadingTracks, loadingTracksCustom)
 		table.append(interludeTracks, interludeTracksCustom)
@@ -1420,23 +1422,7 @@ function widget:GameFrame(n)
 		fadeDirection = -5
 	end
 
-	if Spring.Utilities.Gametype.IsRaptors() then
-		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
-			warMeter = warLowLevel+1
-		else
-			warMeter = 0
-		end
-	elseif Spring.Utilities.Gametype.IsScavengers() then
-		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
-			warMeter = warLowLevel+1
-		else
-			warMeter = 0
-		end
-	elseif warMeter > 0 then
+	if warMeter > 0 then
 		if n%30 == 15 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
@@ -1446,6 +1432,20 @@ function widget:GameFrame(n)
 			if warMeterResetTimer > warMeterResetTime then
 				warMeter = 0
 			end
+		end
+	end
+
+	if Spring.Utilities.Gametype.IsRaptors() then
+		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+			warMeter = warLowLevel+1
+		end
+	elseif Spring.Utilities.Gametype.IsScavengers() then
+		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+			warMeter = warLowLevel+1
 		end
 	end
 
