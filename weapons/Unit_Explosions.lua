@@ -868,7 +868,7 @@ local unitDeaths = {
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
 
-	commanderexplosion = {
+	oldcommanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
 		AreaOfEffect = 700,
@@ -893,7 +893,7 @@ local unitDeaths = {
 		}
 	},
 
-	newcommanderexplo = {
+	commanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
 		AreaOfEffect = 700,
