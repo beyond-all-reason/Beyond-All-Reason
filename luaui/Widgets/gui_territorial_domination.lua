@@ -10,6 +10,9 @@ function widget:GetInfo()
 	}
 end
 
+
+-- text outline needs to be re-added, especially important for the countdown timer.
+
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
 
@@ -87,6 +90,9 @@ local SPECTATOR_MAX_DISPLAY_HEIGHT = 256
 local SPECTATOR_BAR_SPACING = 3
 local SPECTATOR_COLUMN_PADDING = 4
 
+local HALO_EXTENSION = 4
+local HALO_MAX_ALPHA = 0.4
+
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
 local COUNTDOWN_COLOR = {1, 0.2, 0.2, 1}
@@ -155,6 +161,7 @@ local staticDisplayList = nil
 local dynamicDisplayList = nil
 local backgroundDisplayList = nil
 local countdownStaticDisplayList = nil
+local haloDisplayList = nil
 
 -- Enhanced caching structures
 local layoutCache = {
@@ -185,34 +192,14 @@ local drawStateCache = {
 	lastColor = {-1, -1, -1, -1}
 }
 
--- Gradient color definitions similar to healthbars GL4
-local function createBarGradientColors(baseColor)
-	-- Create darker and lighter versions of the base color for gradient effect
-	local darkenFactor = 0.6  -- Make bottom darker
-	local lightenFactor = 1.2  -- Make top brighter
-	
-	local minColor = {
-		baseColor[1] * darkenFactor,
-		baseColor[2] * darkenFactor, 
-		baseColor[3] * darkenFactor,
-		baseColor[4]
-	}
-	
-	local maxColor = {
-		math.min(1.0, baseColor[1] * lightenFactor),
-		math.min(1.0, baseColor[2] * lightenFactor),
-		math.min(1.0, baseColor[3] * lightenFactor),
-		baseColor[4]
-	}
-	
-	return minColor, maxColor
-end
+
 
 -- Optimization flags (replace bitwise operations with boolean flags for Lua 5.1 compatibility)
 local needsBackgroundUpdate = false
 local needsStaticUpdate = false
 local needsDynamicUpdate = false
 local needsCountdownUpdate = false
+local needsHaloUpdate = false
 
 local LAYOUT_UPDATE_THRESHOLD = 2.0  -- Reduce layout update frequency from 0.5s to 2s
 local DYNAMIC_UPDATE_THRESHOLD = 0.2   -- Reduce dynamic updates from 30 FPS to 5 FPS
@@ -306,36 +293,6 @@ local function getCachedTintedColor(baseColor, tintColor, strength, cacheKey)
 		colorCache.tintedColors[key] = createTintedColor(baseColor, tintColor, strength)
 	end
 	return colorCache.tintedColors[key]
-end
-
-local function interpolateColor(minColor, maxColor, factor)
-	-- Clamp factor between 0 and 1
-	factor = max(0, min(1, factor))
-	
-	return {
-		minColor[1] + (maxColor[1] - minColor[1]) * factor,
-		minColor[2] + (maxColor[2] - minColor[2]) * factor,
-		minColor[3] + (maxColor[3] - minColor[3]) * factor,
-		minColor[4] + (maxColor[4] - minColor[4]) * factor
-	}
-end
-
-local function getCachedGradientColors(baseColor)
-	-- Create cache key based on base color
-	local colorKey = string.format("%.2f_%.2f_%.2f", baseColor[1], baseColor[2], baseColor[3])
-	
-	if not colorCache.gradientColors[colorKey] then
-		local minColor, maxColor = createBarGradientColors(baseColor)
-		colorCache.gradientColors[colorKey] = {minColor, maxColor}
-	end
-	
-	return colorCache.gradientColors[colorKey][1], colorCache.gradientColors[colorKey][2]
-end
-
-local function getBarGradientType(difference)
-	-- This function is no longer needed with the new approach
-	-- Keeping it for compatibility but it's not used
-	return "unused"
 end
 
 local function drawTextWithOutline(text, x, y, fontSize, alignment, color, outlineOffset, outlineAlpha)
@@ -1107,9 +1064,9 @@ local function cleanupCountdownsForAllyTeam(allyTeamID)
 			glDeleteList(displayList)
 			allyTeamCountdownDisplayLists[key] = nil
 			cleanedUp = true
-		end
 	end
-	
+end
+
 	-- Clear cached countdown values for this ally team
 	lastCountdownValues[allyTeamID] = nil
 	
@@ -1193,6 +1150,84 @@ end
 
 -- ===== END COUNTDOWN MANAGEMENT FUNCTIONS =====
 
+local function createOptimizedHaloDisplayList()
+	if haloDisplayList then
+		glDeleteList(haloDisplayList)
+	end
+	
+	haloDisplayList = glCreateList(function()
+		-- Only draw halo in spectator mode and if we have a valid selected ally team
+		if not amSpectating or selectedAllyTeamID == gaiaAllyTeamID or selectedAllyTeamID == -1 then
+			return
+		end
+		
+		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		
+		-- Find the position of the selected ally team's scorebar
+		local allyTeamScores = getSpectatorAllyTeamData()
+		local targetBarIndex = nil
+		
+		for i, allyTeamData in ipairs(allyTeamScores) do
+			if allyTeamData.allyTeamID == selectedAllyTeamID then
+				targetBarIndex = i
+				break
+			end
+		end
+		
+		if targetBarIndex then
+			local pos = getSpectatorBarPositionsCached(targetBarIndex)
+			
+			-- Calculate halo bounds - extend 4 pixels beyond each side
+			local haloLeft = pos.scorebarLeft - HALO_EXTENSION
+			local haloRight = pos.scorebarRight + HALO_EXTENSION
+			local haloTop = pos.scorebarTop + HALO_EXTENSION
+			local haloBottom = pos.scorebarBottom - HALO_EXTENSION
+			
+			-- Create a subtle gradient halo effect using multiple rectangles with decreasing alpha
+			local fadeSteps = 4
+			local alphaStep = HALO_MAX_ALPHA / fadeSteps
+			
+			for i = fadeSteps, 1, -1 do
+				local currentAlpha = alphaStep * (fadeSteps - i + 1)
+				local offset = (i - 1) * (HALO_EXTENSION / fadeSteps)
+				
+				local currentLeft = pos.scorebarLeft - offset
+				local currentRight = pos.scorebarRight + offset
+				local currentTop = pos.scorebarTop + offset
+				local currentBottom = pos.scorebarBottom - offset
+				
+				-- Ensure we don't go beyond the maximum halo bounds
+				currentLeft = max(haloLeft, currentLeft)
+				currentRight = min(haloRight, currentRight)
+				currentTop = min(haloTop, currentTop)
+				currentBottom = max(haloBottom, currentBottom)
+				
+				setOptimizedColor(1, 1, 1, currentAlpha)
+				
+				-- Draw top edge
+				if currentTop > pos.scorebarTop then
+					glRect(currentLeft, pos.scorebarTop, currentRight, currentTop)
+				end
+				
+				-- Draw bottom edge
+				if currentBottom < pos.scorebarBottom then
+					glRect(currentLeft, currentBottom, currentRight, pos.scorebarBottom)
+				end
+				
+				-- Draw left edge
+				if currentLeft < pos.scorebarLeft then
+					glRect(currentLeft, currentBottom, pos.scorebarLeft, currentTop)
+				end
+				
+				-- Draw right edge
+				if currentRight > pos.scorebarRight then
+					glRect(pos.scorebarRight, currentBottom, currentRight, currentTop)
+				end
+			end
+		end
+	end)
+end
+
 local function createOptimizedBackgroundDisplayList()
 	if backgroundDisplayList then
 		glDeleteList(backgroundDisplayList)
@@ -1225,23 +1260,35 @@ local function createOptimizedBackgroundDisplayList()
 		else
 			-- Player mode - always draw background (even if teamID is nil)
 			local teamData = getPlayerTeamData()
+			
+			-- Always try to get position data
+			local pos
 			if teamData.teamID then
-				local pos = getPlayerBarPositionsCached()
-				
-				-- Use cached tinted colors for player mode (fallback to default green if no bar color)
-				local barColor = (teamData and teamData.barColor) or COLOR_GREEN
-				local tintedBg = getCachedTintedColor(backgroundColor, barColor, 0.15, "bg_player")
-				local tintedBorder = getCachedTintedColor(borderColor, barColor, 0.1, "border_player")
-				
-				-- Draw border
-				setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
-				glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
-					   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
-				
-				-- Draw background
-				setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
-				glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
+				pos = getPlayerBarPositionsCached()
+			else
+				-- Fallback position calculation when team data not available
+				local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+				pos = {
+					scorebarLeft = minimapPosX + ICON_SIZE/2,
+					scorebarRight = minimapPosX + minimapSizeX - ICON_SIZE/2,
+					scorebarTop = minimapPosY - MINIMAP_GAP,
+					scorebarBottom = minimapPosY - MINIMAP_GAP - BAR_HEIGHT
+				}
 			end
+			
+			-- Use cached tinted colors for player mode (fallback to default green if no bar color)
+			local barColor = (teamData and teamData.barColor) or COLOR_GREEN
+			local tintedBg = getCachedTintedColor(backgroundColor, barColor, 0.15, "bg_player")
+			local tintedBorder = getCachedTintedColor(borderColor, barColor, 0.1, "border_player")
+			
+			-- Draw border
+			setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
+			glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
+				   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
+			
+			-- Draw background
+			setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
+			glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
 		end
 	end)
 end
@@ -1283,7 +1330,7 @@ local function createOptimizedDynamicDisplayList()
 		local threshold = getCachedRuleParam(THRESHOLD_RULES_KEY)
 		local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
 
-		if amSpectating then
+	if amSpectating then
 			local allyTeamScores = getSpectatorAllyTeamData()
 			for i, allyTeamData in ipairs(allyTeamScores) do
 				local pos = getSpectatorBarPositionsCached(i)
@@ -1299,8 +1346,10 @@ local function createOptimizedDynamicDisplayList()
 			end
 		else
 			local teamData = getPlayerTeamData()
+			-- Always try to render something, even if team data is incomplete
+			local pos
 			if teamData.teamID then
-				local pos = getPlayerBarPositionsCached()
+				pos = getPlayerBarPositionsCached()
 				
 				drawOptimizedHealthBar(pos.scorebarLeft, pos.scorebarRight, pos.scorebarBottom, pos.scorebarTop, 
 									   teamData.score, teamData.threshold, teamData.barColor, isThresholdFrozen)
@@ -1320,8 +1369,27 @@ local function createOptimizedDynamicDisplayList()
 					
 					drawTextWithOutline(rankText, centerX, textY, fontCache.fontSize, "c", COLOR_WHITE)
 				end
+			else
+				-- Fallback rendering when team data not available - show basic bar structure
+				local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+				pos = {
+					scorebarLeft = minimapPosX + ICON_SIZE/2,
+					scorebarRight = minimapPosX + minimapSizeX - ICON_SIZE/2,
+					scorebarTop = minimapPosY - MINIMAP_GAP,
+					scorebarBottom = minimapPosY - MINIMAP_GAP - BAR_HEIGHT,
+					textY = minimapPosY - MINIMAP_GAP - BAR_HEIGHT/2,
+					innerRight = minimapPosX + minimapSizeX - ICON_SIZE/2 - 10
+				}
+				
+				-- Draw basic health bar with default values
+				local threshold = getCachedRuleParam(THRESHOLD_RULES_KEY)
+				drawOptimizedHealthBar(pos.scorebarLeft, pos.scorebarRight, pos.scorebarBottom, pos.scorebarTop, 
+									   0, threshold, COLOR_GREEN, isThresholdFrozen)
+				
+				-- Draw placeholder text
+				drawDifferenceText(pos.innerRight, pos.textY, 0, fontCache.fontSize * 1.20, "r", COLOR_WHITE, 1)
+				end
 			end
-		end
 	end)
 end
 
@@ -1346,9 +1414,9 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 			if keyTime and (bucketedTime - keyTime > 3 or keyTime - bucketedTime > 1) then
 				table.insert(keysToDelete, key)
 			end
+			end
 		end
-	end
-	
+		
 	for _, key in ipairs(keysToDelete) do
 		glDeleteList(allyTeamCountdownDisplayLists[key])
 		allyTeamCountdownDisplayLists[key] = nil
@@ -1435,6 +1503,10 @@ function updateScoreDisplayList()
 	needsBackgroundUpdate = needsBackgroundUpdate or 
 							not backgroundDisplayList or layoutChanged
 	
+	needsHaloUpdate = needsHaloUpdate or 
+					  not haloDisplayList or layoutChanged or
+					  (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
+	
 	needsStaticUpdate = needsStaticUpdate or 
 						not staticDisplayList or layoutChanged
 	
@@ -1445,8 +1517,14 @@ function updateScoreDisplayList()
 	
 	-- Update only what's necessary
 	if needsBackgroundUpdate then
+		createOptimizedHaloDisplayList()
 		createOptimizedBackgroundDisplayList()
 		needsBackgroundUpdate = false
+	end
+	
+	if needsHaloUpdate then
+		createOptimizedHaloDisplayList()
+		needsHaloUpdate = false
 	end
 	
 	if needsStaticUpdate then
@@ -1463,25 +1541,29 @@ function updateScoreDisplayList()
 	
 	-- Main display list just calls the sub-lists
 	if layoutChanged or not displayList then
-		if displayList then
-			glDeleteList(displayList)
-		end
-		
-		displayList = glCreateList(function()
-			if backgroundDisplayList then
-				glCallList(backgroundDisplayList)
-			end
-			if staticDisplayList then
-				glCallList(staticDisplayList)
-			end
-			if dynamicDisplayList then
-				glCallList(dynamicDisplayList)
-			end
-		end)
+	if displayList then
+		glDeleteList(displayList)
 	end
 	
+	displayList = glCreateList(function()
+		if haloDisplayList then
+			glCallList(haloDisplayList)
+		end
+		if backgroundDisplayList then
+			glCallList(backgroundDisplayList)
+		end
+		if staticDisplayList then
+			glCallList(staticDisplayList)
+		end
+		if dynamicDisplayList then
+			glCallList(dynamicDisplayList)
+		end
+	end)
+end
+
 	-- Clear update flags
 	needsBackgroundUpdate = false
+	needsHaloUpdate = false
 	needsStaticUpdate = false
 	needsDynamicUpdate = false
 	needsCountdownUpdate = false
@@ -1506,6 +1588,11 @@ local function cleanupOptimizedDisplayLists()
 	if backgroundDisplayList then
 		glDeleteList(backgroundDisplayList)
 		backgroundDisplayList = nil
+	end
+	
+	if haloDisplayList then
+		glDeleteList(haloDisplayList)
+		haloDisplayList = nil
 	end
 	
 	if timerWarningDisplayList then
@@ -1616,6 +1703,7 @@ function widget:PlayerChanged(playerID)
 				if newSelectedAllyTeamID ~= selectedAllyTeamID then
 					selectedAllyTeamID = newSelectedAllyTeamID
 					-- Force update since ally team selection changed
+					needsHaloUpdate = true
 					needsBackgroundUpdate = true
 					needsStaticUpdate = true
 					needsDynamicUpdate = true
@@ -1626,6 +1714,7 @@ function widget:PlayerChanged(playerID)
 		end
 		if selectedAllyTeamID ~= myAllyID then
 		selectedAllyTeamID = myAllyID
+			needsHaloUpdate = true
 			needsBackgroundUpdate = true
 			needsStaticUpdate = true
 			needsDynamicUpdate = true
@@ -1815,6 +1904,58 @@ function widget:Initialize()
 	gameSeconds = spGetGameSeconds() or 0
 	defeatTime = 0
 	
+	-- Initialize font cache immediately
+	initializeFontCache()
+	
+	-- Force layout cache initialization with current geometry
+	updateLayoutCache()
+	
+	-- Initialize rule parameter cache
+	updateRuleParamCache()
+	
+	-- Pre-populate tracking variables with current values
+	updateTrackingVariables()
+	
+	-- For player mode, ensure we have team data and force initial cache population
+	if not amSpectating then
+		local teamData = getPlayerTeamData()
+		if teamData.teamID then
+			-- Pre-populate position cache
+			getPlayerBarPositionsCached()
+			
+			-- Pre-populate color cache for team
+			getCachedTeamColor(teamData.teamID)
+			
+			-- Cache tinted colors for background
+			local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, teamData.barColor, 0.15, "bg_player")
+			local tintedBorder = getCachedTintedColor(COLOR_BORDER, teamData.barColor, 0.1, "border_player")
+			
+			-- Store initial values to ensure background gets created
+			lastScore = teamData.score
+			lastDifference = teamData.difference
+			if teamData.teamID then
+				lastTeamRanks[teamData.teamID] = teamData.rank
+			end
+		else
+			-- Safety fallback - initialize with default values to ensure something appears
+			lastScore = 0
+			lastDifference = 0
+			
+			-- Cache default tinted colors for background
+			local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, COLOR_GREEN, 0.15, "bg_player")
+			local tintedBorder = getCachedTintedColor(COLOR_BORDER, COLOR_GREEN, 0.1, "border_player")
+		end
+	end
+	
+	-- Force all display list flags to trigger immediate creation
+	needsHaloUpdate = true
+	needsBackgroundUpdate = true
+	needsStaticUpdate = true
+	needsDynamicUpdate = true
+	
+	-- Force immediate display list creation
+	updateScoreDisplayList()
+	
 	local allUnits = spGetAllUnits()
 	local myTeamID = spGetMyTeamID()
 	
@@ -1843,11 +1984,21 @@ function widget:Update(deltaTime)
 	local newAmSpectating = spGetSpectatingState()
 	local newMyAllyID = spGetMyAllyTeamID()
 	
+	-- Early initialization - force updates in first few seconds to ensure everything appears
+	local gameStartTime = spGetGameSeconds()
+	if gameStartTime < 5 and not displayList then
+		needsBackgroundUpdate = true
+		needsStaticUpdate = true
+		needsDynamicUpdate = true
+		updateScoreDisplayList()
+	end
+	
 	-- Check for mode changes that require background updates
 	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID then
 		amSpectating = newAmSpectating
 		myAllyID = newMyAllyID
 		-- Force complete regeneration when mode changes
+		needsHaloUpdate = true
 		needsBackgroundUpdate = true
 		needsStaticUpdate = true
 		needsDynamicUpdate = true
