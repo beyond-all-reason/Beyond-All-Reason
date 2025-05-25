@@ -443,15 +443,11 @@ if gadgetHandler:IsSyncedCode() then
 
 			if squadsTable[i].squadLife <= 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
-				if SetCount(squadsTable[i].squadUnits) > 0 then
+				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedQueens == 0 then
 						if Spring.GetUnitTeam(squadsTable[i].squadBurrow) == raptorTeamID then
 							Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
 						elseif Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
-							local x,y,z = Spring.GetUnitPosition(squadsTable[i].squadBurrow)
-							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Raptor Spawner")
-							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Raptor Spawner.")
-							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
 							squadsTable[i].squadBurrow = nil
 						end
 					end
@@ -468,11 +464,6 @@ if gadgetHandler:IsSyncedCode() then
 						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
 						if Spring.GetUnitTeam(destroyQueue[j]) == raptorTeamID then
 							Spring.DestroyUnit(destroyQueue[j], true, false)
-						elseif not Spring.GetUnitIsDead(destroyQueue[j]) == false then
-							local x,y,z = Spring.GetUnitPosition(destroyQueue[j])
-							Spring.MarkerAddPoint(x, y, z, "Trying To Self-D Raptor Unit")
-							Spring.MarkerAddPoint(x, y, z+100, "But It's Not Actually A Raptor Unit.")
-							Spring.MarkerAddPoint(x, y, z+200, "Blame Damgam.")
 						end
 					end
 					destroyQueue = nil
@@ -2042,9 +2033,9 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		for i = 1,#squadsTable do
-			if squadsTable[i].squadBurrow == unitID then
-				squadsTable[i].squadBurrow = nil
+		for index, _ in ipairs(squadsTable) do
+			if squadsTable[index].squadBurrow == unitID then
+				squadsTable[index].squadBurrow = nil
 			end
 		end
 
