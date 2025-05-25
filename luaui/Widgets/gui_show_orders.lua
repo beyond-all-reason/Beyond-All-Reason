@@ -62,7 +62,7 @@ local glRect			= gl.Rect
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(1, 1.6)
+	font = WG['fonts'].getFont(1, 1.5)
 end
 
 local function GetAlliedTeams()
