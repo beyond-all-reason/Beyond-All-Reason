@@ -21,8 +21,6 @@ local t = UPDATE_RATE_S
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local stripesTexture = "LuaUI/Images/stripes.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
@@ -30,7 +28,7 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local rejoinArea = {}
 local gameStarted = (Spring.GetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
-local bgpadding, RectRound, TexturedRectRound, UiElement, font, font2
+local RectRound, TexturedRectRound, UiElement, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
 local posY = 0.22
 local width, height
@@ -190,14 +188,11 @@ function widget:ViewResize()
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
 
-	bgpadding = WG.FlowUI.elementPadding
-
 	RectRound = WG.FlowUI.Draw.RectRound
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 
 	rejoinArea = { math.floor(0.5*vsx)-math.floor(width*0.5), math.floor(posY*vsy)-math.floor(height*0.5), math.floor(0.5*vsx) + math.floor(width*0.5), math.floor(posY*vsy)+math.floor(height*0.5) }
 

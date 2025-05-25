@@ -78,7 +78,6 @@ local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font, font2
 
 local AdvPlayersListAtlas
@@ -3836,9 +3835,10 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1, 0.22 * outlineMult, 1.7+(outlineMult*0.25))
-    font2 = WG['fonts'].getFont(fontfile2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+    font2 = WG['fonts'].getFont(2)
+	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+    --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then
