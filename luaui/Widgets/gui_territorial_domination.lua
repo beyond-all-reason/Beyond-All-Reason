@@ -927,7 +927,26 @@ end
 
 local function getPlayerBarPositionsCached()
 	if not positionCache.playerBar then
+		-- Ensure font cache is initialized first
+		initializeFontCache()
+		
+		-- Ensure layout cache is initialized
+		if not layoutCache.playerBarBounds then
+			updateLayoutCache()
+		end
+		
 		local bounds = layoutCache.playerBarBounds
+		if not bounds then
+			-- Fallback if layout cache still not initialized
+			local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
+			bounds = {
+				left = minimapPosX + ICON_SIZE/2,
+				right = minimapPosX + minimapSizeX - ICON_SIZE/2,
+				top = minimapPosY - MINIMAP_GAP,
+				bottom = minimapPosY - MINIMAP_GAP - BAR_HEIGHT
+			}
+		end
+		
 		positionCache.playerBar = {
 			scorebarLeft = bounds.left,
 			scorebarRight = bounds.right,
@@ -956,8 +975,23 @@ end
 
 local function getSpectatorBarPositionsCached(index)
 	if not positionCache.spectatorBars[index] then
+		-- Ensure font cache is initialized first
+		initializeFontCache()
+		
+		-- Ensure layout cache is initialized
+		if not layoutCache.minimapDimensions or not layoutCache.spectatorLayout then
+			updateLayoutCache()
+		end
+		
 		local minimapPosX, minimapPosY = layoutCache.minimapDimensions[1], layoutCache.minimapDimensions[2]
 		local layout = layoutCache.spectatorLayout
+		
+		if not minimapPosX or not layout then
+			-- Fallback calculation if cache is not ready
+			minimapPosX, minimapPosY = spGetMiniMapGeometry()
+			local aliveAllyTeams = getAliveAllyTeams()
+			layout = calculateSpectatorLayoutParameters(#aliveAllyTeams, select(3, spGetMiniMapGeometry()))
+		end
 		
 		local scorebarLeft, scorebarBottom, scorebarRight, scorebarTop = 
 			calculateSpectatorBarPosition(index, layout, minimapPosX, minimapPosY)
@@ -1029,13 +1063,17 @@ local function calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, mini
 		local scorebarTop = startY - (positionInColumn * (layout.barHeight + SPECTATOR_BAR_SPACING))
 		local scorebarBottom = scorebarTop - layout.barHeight
 		
-		local countdownY = scorebarBottom + (scorebarTop - scorebarBottom) / 2 - 7
-		
+		local countdownY = scorebarBottom + (scorebarTop - scorebarBottom) / 2  -- Center on the bar
+
+		-- Calculate X position at the threshold/skull location
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local barWidthForCalc = scorebarRight - scorebarLeft
 		local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidthForCalc
 		local skullOffset = (1 / maxThreshold) * barWidthForCalc
+		-- Position countdown directly over the skull icon (not offset)
 		local countdownX = thresholdX - skullOffset
+		-- Return skull center Y position (text baseline adjustment handled in countdown creation)
+		local countdownY = scorebarBottom + (scorebarTop - scorebarBottom) / 2
 		
 		return countdownX, countdownY
 	end
@@ -1055,30 +1093,34 @@ local function createOptimizedBackgroundDisplayList()
 		
 		if amSpectating then
 			local allyTeamScores = getSpectatorAllyTeamData()
+			-- Only draw backgrounds for teams that actually exist
 			for i, allyTeamData in ipairs(allyTeamScores) do
-				local pos = getSpectatorBarPositionsCached(i)
-				
-				-- Use cached tinted colors for spectator mode
-				local tintedBg = getCachedTintedColor(backgroundColor, allyTeamData.teamColor, 0.15, "bg_" .. allyTeamData.allyTeamID)
-				local tintedBorder = getCachedTintedColor(borderColor, allyTeamData.teamColor, 0.1, "border_" .. allyTeamData.allyTeamID)
-				
-				-- Draw border
-				setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
-				glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
-					   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
-				
-				-- Draw background
-				setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
-				glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
+				if allyTeamData and allyTeamData.allyTeamID then
+					local pos = getSpectatorBarPositionsCached(i)
+					
+					-- Use cached tinted colors for spectator mode
+					local tintedBg = getCachedTintedColor(backgroundColor, allyTeamData.teamColor, 0.15, "bg_" .. allyTeamData.allyTeamID)
+					local tintedBorder = getCachedTintedColor(borderColor, allyTeamData.teamColor, 0.1, "border_" .. allyTeamData.allyTeamID)
+					
+					-- Draw border
+					setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
+					glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
+						   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
+					
+					-- Draw background
+					setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
+					glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
+				end
 			end
 		else
-			-- Player mode - use cached tinted colors based on bar color (green/red/yellow)
+			-- Player mode - always draw background (even if teamID is nil)
 			local teamData = getPlayerTeamData()
 			local pos = getPlayerBarPositionsCached()
 			
-			-- Use cached tinted colors for player mode
-			local tintedBg = getCachedTintedColor(backgroundColor, teamData.barColor, 0.15, "bg_player")
-			local tintedBorder = getCachedTintedColor(borderColor, teamData.barColor, 0.1, "border_player")
+			-- Use cached tinted colors for player mode (fallback to default green if no bar color)
+			local barColor = (teamData and teamData.barColor) or COLOR_GREEN
+			local tintedBg = getCachedTintedColor(backgroundColor, barColor, 0.15, "bg_player")
+			local tintedBorder = getCachedTintedColor(borderColor, barColor, 0.1, "border_player")
 			
 			-- Draw border
 			setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
@@ -1205,8 +1247,10 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 			local barWidth = pos.scorebarRight - pos.scorebarLeft
 			local thresholdX = pos.scorebarLeft + (threshold / maxThreshold) * barWidth
 			local skullOffset = (1 / maxThreshold) * barWidth
+			-- Position countdown directly over the skull icon (not offset)
 			countdownX = thresholdX - skullOffset
-			countdownY = pos.scorebarBottom + (pos.scorebarTop - pos.scorebarBottom) / 2 - 7
+			-- Return skull center Y position (text baseline adjustment handled in countdown creation)
+			countdownY = pos.scorebarBottom + (pos.scorebarTop - pos.scorebarBottom) / 2
 		end
 		
 		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
@@ -1217,7 +1261,11 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 		
 		-- Use actual time for display but cache based on buckets
 		local text = format("%d", timeRemaining)
-		drawCountdownText(countdownX, countdownY, text, countdownFontSize, countdownColor)
+		
+		-- Adjust Y position to properly center text on skull (account for text baseline)
+		local adjustedCountdownY = countdownY - (countdownFontSize * 0.25)  -- Offset down by 25% of font size
+		
+		drawCountdownText(countdownX, adjustedCountdownY, text, countdownFontSize, countdownColor)
 	end)
 	
 	return allyTeamCountdownDisplayLists[cacheKey]
@@ -1335,7 +1383,8 @@ local function cleanupOptimizedDisplayLists()
 	
 	-- Clear all caches
 	layoutCache.initialized = false
-	positionCache = {playerBar = nil, spectatorBars = {}, countdownPositions = {}, textPositions = {}}
+	positionCache.playerBar = nil
+	positionCache.spectatorBars = {}
 	colorCache = {teamColors = {}, barColors = {}, tintedColors = {}, gradientColors = {}}
 	drawStateCache = {lastBlendMode = nil, lastTexture = nil, lastColor = {-1, -1, -1, -1}}
 end
@@ -1446,26 +1495,46 @@ end
 function widget:GameFrame(frame)
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
 		local dataChanged = false
+		local teamStatusChanged = false
 		
 		if amSpectating then
+			-- In spectator mode, track defeat times for all ally teams
 			local allyTeamList = spGetAllyTeamList()
 			for _, allyTeamID in ipairs(allyTeamList) do
-				if allyTeamID ~= gaiaAllyTeamID and isAllyTeamAlive(allyTeamID) then
-					local allyDefeatTime = 0
-					for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-						local _, _, isDead = spGetTeamInfo(teamID)
-						if not isDead then
-							allyDefeatTime = spGetTeamRulesParam(teamID, "defeatTime") or 0
-							break
-						end
+				if allyTeamID ~= gaiaAllyTeamID then
+					local isCurrentlyAlive = isAllyTeamAlive(allyTeamID)
+					local wasAlive = lastAllyTeamScores[allyTeamID] ~= nil
+					
+					-- Check if team death status changed
+					if isCurrentlyAlive ~= wasAlive then
+						teamStatusChanged = true
 					end
-					if allyTeamDefeatTimes[allyTeamID] ~= allyDefeatTime then
-					allyTeamDefeatTimes[allyTeamID] = allyDefeatTime
-						dataChanged = true
+					
+					if isCurrentlyAlive then
+						-- Find first alive team in this ally team
+						local allyDefeatTime = 0
+						for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+							local _, _, isDead = spGetTeamInfo(teamID)
+							if not isDead then
+								allyDefeatTime = spGetTeamRulesParam(teamID, "defeatTime") or 0
+								break
+							end
+						end
+						if allyTeamDefeatTimes[allyTeamID] ~= allyDefeatTime then
+							allyTeamDefeatTimes[allyTeamID] = allyDefeatTime
+							dataChanged = true
+						end
+					else
+						-- Team is dead, remove its defeat time
+						if allyTeamDefeatTimes[allyTeamID] then
+							allyTeamDefeatTimes[allyTeamID] = nil
+							dataChanged = true
+						end
 					end
 				end
 			end
 		else
+			-- For player mode, just track own team
 			local myTeamID = Spring.GetMyTeamID()
 			local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
 			if newDefeatTime > 0 then
@@ -1478,15 +1547,15 @@ function widget:GameFrame(frame)
 				end
 			else
 				if defeatTime ~= 0 then
-				defeatTime = 0
-				loopSoundEndTime = 0
-				soundQueue = nil
-				soundIndex = 1
+					defeatTime = 0
+					loopSoundEndTime = 0
+					soundQueue = nil
+					soundIndex = 1
 					dataChanged = true
 				end
 			end
 		end
-		
+
 		-- Check for rank changes (optimized)
 		local rankChanged = false
 		
@@ -1518,13 +1587,20 @@ function widget:GameFrame(frame)
 			end
 		end
 		
+		-- Trigger updates when team status changes (death/revival)
+		if teamStatusChanged then
+			needsBackgroundUpdate = true
+			needsStaticUpdate = true
+			needsDynamicUpdate = true
+		end
+		
 		-- Trigger updates only if needed
 		if rankChanged then
 			needsStaticUpdate = true
 			needsDynamicUpdate = true
-			end
+		end
 		
-		if dataChanged or rankChanged then
+		if dataChanged or rankChanged or teamStatusChanged then
 			lastUpdateTime = 0  -- Force update on next frame
 		end
 	end
@@ -1612,13 +1688,16 @@ function widget:Update(deltaTime)
 	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID then
 		amSpectating = newAmSpectating
 		myAllyID = newMyAllyID
+		-- Force complete regeneration when mode changes
 		needsBackgroundUpdate = true
 		needsStaticUpdate = true
 		needsDynamicUpdate = true
-		-- Clear position cache as layout might be different
+		-- Clear all caches as layout and content might be completely different
 		positionCache.playerBar = nil
 		positionCache.spectatorBars = {}
 		layoutCache.initialized = false
+		-- Force immediate update
+		updateScoreDisplayList()
 	end
 	
 	local currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze = getFreezeStatusInformation()
