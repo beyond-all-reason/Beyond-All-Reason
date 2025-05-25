@@ -218,6 +218,42 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local _unitTolorances = {}
+	local function _getUnitTolorance(unitDefID)
+		if not unitDefID then
+			return {1, 0, 0}
+		end
+
+		local tolorance = _unitTolorances[unitDefID]
+		if tolorance then
+			return tolorance
+		end
+
+		local unitDef = UnitDefs[unitDefID]
+		if unitDef.canFly then
+			tolorance = {1, 0, 0}
+		elseif unitDef.moveDef then
+			tolorance = {unitDef.moveDef.maxSlope, unitDef.moveDef.xsize, unitDef.moveDef.zsize}
+		else
+			tolorance = {unitDef.maxHeightDif, unitDef.footprintx, unitDef.footprintz}
+		end
+		tolorance = tolorance or {1, 0, 0}
+		_unitTolorances[unitDefID] = tolorance
+
+		return tolorance
+	end
+	local function isSteep(x, z, teamID)
+		local unitTolarance = _getUnitTolorance(tonumber(spGetTeamRulesParam(teamID, startUnitParamName)))
+		-- TODO: might be a bit excessive, as anything less that 8x8 would only really need to check the 4 corners
+		for i = x, x + unitTolarance[2] do
+			for j = z, z + unitTolarance[3] do
+				if select(4, Spring.GetGroundNormal(i, j, false)) > unitTolarance[1] then
+					return true
+				end
+			end
+		end
+	end
+
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
@@ -270,6 +306,10 @@ if gadgetHandler:IsSyncedCode() then
 			if isOutsideStartbox then
 				return false
 			end
+		end
+
+		if isSteep(x,z, teamID) then
+			return false
 		end
 
 		-- don't allow player to place if locked
