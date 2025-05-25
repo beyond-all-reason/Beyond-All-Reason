@@ -1444,8 +1444,8 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.7, 0.33 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.25, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)

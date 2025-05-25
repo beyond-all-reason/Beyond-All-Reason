@@ -245,8 +245,8 @@ function widget:ViewResize()
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
-	font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), 1.4+(outlineMult*0.2))
+	font = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.4+(outlineMult*0.3))
+	font2 = WG['fonts'].getFont(fontfile2, 1.2, 0.22 * outlineMult, 1.4+(outlineMult*0.3))
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])

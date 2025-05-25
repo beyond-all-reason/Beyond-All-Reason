@@ -58,7 +58,7 @@ local function drawContent()
 	local textXPadding = 10*widgetScale
 
 	local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
-	local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
+	local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\245\245\245', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
 
 	if displayFeatureCount then
 		local features = Spring.GetAllFeatures()
@@ -205,8 +205,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 0.95, 0.37 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.15)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font = WG['fonts'].getFont(nil, 1.1, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
 
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
