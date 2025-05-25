@@ -103,7 +103,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 -- Graphics
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -244,9 +243,8 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.4+(outlineMult*0.3))
-	font2 = WG['fonts'].getFont(fontfile2, 1.2, 0.22 * outlineMult, 1.4+(outlineMult*0.3))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])

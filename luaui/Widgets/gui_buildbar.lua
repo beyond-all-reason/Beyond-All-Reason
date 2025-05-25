@@ -14,7 +14,6 @@ end
 
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -162,7 +161,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(2)
 
 	iconSizeY = math.floor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY

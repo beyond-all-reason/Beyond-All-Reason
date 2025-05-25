@@ -76,8 +76,6 @@ local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ordermenuLeft = math.floor(vsx / 5)
@@ -318,7 +316,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(fontFile, 1.25, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(2)
 
 	if WG['minimap'] then
 		minimapHeight = WG['minimap'].getHeight()

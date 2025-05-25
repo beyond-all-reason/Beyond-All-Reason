@@ -99,6 +99,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -340,9 +341,10 @@ function widget:ViewResize()
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.4, 0.2, 1.3)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
+	font3 = WG['fonts'].getFont(2, 1.6)
+
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale

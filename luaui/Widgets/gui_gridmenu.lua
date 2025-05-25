@@ -99,7 +99,6 @@ local CONFIG = {
 	activeAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
 	sound_queue_add = "LuaUI/Sounds/buildbar_add.wav",
 	sound_queue_rem = "LuaUI/Sounds/buildbar_rem.wav",
-	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 
 	categoryIcons = {
 		groups.energy,
@@ -1444,8 +1443,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.25, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
