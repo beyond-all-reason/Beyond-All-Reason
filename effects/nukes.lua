@@ -1525,6 +1525,11 @@ definitions['newnukehuge'].centerflare.properties.heat = math.floor(definitions[
 definitions['newnukehuge'].centerflare.properties.maxheat = math.floor(definitions['newnukehuge'].centerflare.properties.maxheat * size * 0.7)
 definitions['newnukehuge'].groundflash_large.properties.size = math.floor(definitions['newnukehuge'].groundflash_large.properties.size * size)
 definitions['newnukehuge'].groundflash_white.properties.size = math.floor(definitions['newnukehuge'].groundflash_white.properties.size * size)
+definitions['newnukehuge'].groundflash_anim.properties.size = math.floor(definitions['newnukehuge'].groundflash_anim.properties.size * size * 0.8)
+definitions['newnukehuge'].groundflash_anim.properties.ttl = math.floor(definitions['newnukehuge'].groundflash_anim.properties.ttl * size * 0.7)
+definitions['newnukehuge'].groundflash_anim.properties.animParams = [[8,12,170]]
+definitions['newnukehuge'].groundflash_anim.properties.sizegrowth = math.floor(definitions['newnukehuge'].groundflash_anim.properties.sizegrowth * size * 0.3)
+definitions['newnukehuge'].airflash_anim.properties.size = math.floor(definitions['newnukehuge'].airflash_anim.properties.size * size)
 
 local size = 0.48
 
