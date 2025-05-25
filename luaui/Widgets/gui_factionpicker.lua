@@ -110,7 +110,7 @@ local function drawFactionpicker()
 			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
 			local tooltip = ''
 			local maxWidth = WG['tooltip'].getFontsize() * 80
-			local textLines, numLines = font:WrapText(text, maxWidth)
+			local textLines, numLines = font2:WrapText(text, maxWidth)
 			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
 			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
 		end
@@ -156,8 +156,8 @@ function widget:ViewResize()
 		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font2 = WG['fonts'].getFont(fontfile2, 1.2, 0.2 * outlineMult, 1.7+(outlineMult*0.25))
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding

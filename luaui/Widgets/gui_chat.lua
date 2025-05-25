@@ -2322,9 +2322,9 @@ function widget:ViewResize()
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
 	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-	font3 = WG['fonts'].getFont(fontfile3, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont(nil, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
+    font2 = WG['fonts'].getFont(fontfile2, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
+	font3 = WG['fonts'].getFont(fontfile3, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
