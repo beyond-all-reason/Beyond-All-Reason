@@ -2570,6 +2570,27 @@ local definitions = {
         castShadow         = true,
       },
     },
+    groundflash_anim = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 0,
+            air                = false,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                colormap           = [[0.62 0.65 0.65 0.9   1 1 1 1  0.85 0.85 0.85 1  045 0.45 0.45 1  0.35 0.35 0.35 0.5     0 0 0 0.01]],
+                --colormap           = [[1 0.93 0.75 0.62    0.3 0.2 0.15 0.3   0 0 0 0.01]],
+                size               = [[35 r45]],
+                sizegrowth         = 1.9,
+                --sizemod            = 0.95,
+                ttl                = 30,
+                --sizegrowth         = 10,
+                pos                = [[0, 15, 0]],
+                rotParams          = [[-4 r8, -4 r8, -180 r360]],
+                texture            = [[barshockwave]],
+                animParams         = [[8,12,30 r10]],
+            },
+        },
     --kickedupwater = {
     --  class              = [[CSimpleParticleSystem]],
     --  count              = 1,
@@ -4657,6 +4678,9 @@ end
 definitions[root.."-large-bomb"].bigsmoketrails.properties.length = [[52 r24]]
 definitions[root.."-large-bomb"].bigsmoketrails.properties.dir = [[-0.55 r1.1, 0.5 r0.40, 0 r-0.55]]
 definitions[root.."-large-bomb"].sparks.properties.numparticles = 3
+definitions[root.."-large-bomb"].groundflash_anim.count = 1
+
+
 
 -- adjust ceg used for flak
 definitions[root.."-large-aa"].explosion.properties.particlesize = definitions[root.."-large-aa"].explosion.properties.particlesize * 0.5
