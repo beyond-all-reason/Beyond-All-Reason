@@ -984,13 +984,6 @@ GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 -- 										color2r = 0.75, color2g = 0.3, color2b = 0.9,
 -- 										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
 
---cortron
-explosionLightsNames["cortron_cortron_weapon"] =
-GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
-										  sustain = 4, lifetime = 120,
-										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
-
 --legbart
 explosionLightsNames["legbart_clusternapalm"] =
 GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
@@ -1320,6 +1313,20 @@ GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
+--cortron
+explosionLightsNames["cortron_cortron_weapon"] =
+GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
+										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
+										  sustain = 4, lifetime = 120,
+										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+projectileDefLightsNames["cortron_cortron_weapon"] =
+GetLightClass("MissileProjectile", "Red", "SmallMedium", {
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
+
+
 --armjuno
 projectileDefLightsNames["armjuno_juno_pulse"] =
 GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
@@ -1363,6 +1370,23 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											sustain = 10, lifetime = 400,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
+--legjuno
+projectileDefLightsNames["legjuno_juno_pulse"] =
+GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
+											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
+explosionLightsNames["legjuno_juno_pulse"] =
+GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+											posx = 0, posy = 100, posz = 0,
+											r = 0.9, g = 1.1, b = 0.45,
+	 										color2r = 0.32, color2g = 0.5, color2b = 0.12, colortime = 100,
+											sustain = 15, lifetime = 500,
+    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+
+
+--armpw machinegun
 muzzleFlashLightsNames["armpw_emg"] =
 GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, radius = 50,
 											r = 1.2, g = 1.1, b = 1.0, a = 0.5,
