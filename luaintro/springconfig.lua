@@ -22,7 +22,7 @@ Spring.SetConfigFloat("modelGamma", 1.0)
 
 
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
-local maxTextureAtlasSize = 16384
+local maxTextureAtlasSize = 8192
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
 Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
