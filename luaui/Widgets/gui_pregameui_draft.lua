@@ -116,16 +116,11 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
 local imageDirectory = ":lc:" .. imgDir
+local rankAmount = 8
 local pics = {
     readyTexture = imageDirectory .. "indicator.dds",
-    rank0 = imageDirectory .. "ranks/1.png",
-    rank1 = imageDirectory .. "ranks/2.png",
-    rank2 = imageDirectory .. "ranks/3.png",
-    rank3 = imageDirectory .. "ranks/4.png",
-    rank4 = imageDirectory .. "ranks/5.png",
-    rank5 = imageDirectory .. "ranks/6.png",
-    rank6 = imageDirectory .. "ranks/7.png",
-    rank7 = imageDirectory .. "ranks/8.png",
+    rank = imageDirectory .. "ranks/",
+	rankFiletype = ".png",
 	hourglass = imageDirectory .. "hourglass.png"
 }
 local playerReadyState = {}
@@ -195,25 +190,9 @@ local function DrawRankImage(rankImage, posX, posY)
 end
 
 local function DrawRank(rank, posX, posY)
-    if rank == 0 then
-        DrawRankImage(pics["rank0"],  posX, posY)
-    elseif rank == 1 then
-        DrawRankImage(pics["rank1"],  posX, posY)
-    elseif rank == 2 then
-        DrawRankImage(pics["rank2"],  posX, posY)
-    elseif rank == 3 then
-        DrawRankImage(pics["rank3"],  posX, posY)
-    elseif rank == 4 then
-        DrawRankImage(pics["rank4"],  posX, posY)
-    elseif rank == 5 then
-        DrawRankImage(pics["rank5"],  posX, posY)
-    elseif rank == 6 then
-        DrawRankImage(pics["rank6"],  posX, posY)
-    elseif rank == 7 then
-        DrawRankImage(pics["rank7"],  posX, posY)
-    else
-
-    end
+	if(rank >= 0 and rank < rankAmount) then
+		DrawRankImage(pics["rank"] .. (rank+1) .. pics["rankFiletype"],  posX, posY)
+	end
 end
 
 local function DrawSkill(skill, posX, posY)

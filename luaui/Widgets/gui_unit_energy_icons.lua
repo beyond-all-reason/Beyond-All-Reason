@@ -22,7 +22,6 @@ local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 
-local spec, fullview = Spring.GetSpectatingState()
 local lastGameFrame = 0
 
 local chobbyInterface
@@ -128,7 +127,7 @@ local function UpdateTeamEnergy()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spec, fullview = Spring.GetSpectatingState()
+	local spec, fullview = Spring.GetSpectatingState()
 	if spec then
 		fullview = select(2,Spring.GetSpectatingState())
 	end
@@ -161,10 +160,13 @@ function widget:Initialize()
 end
 
 local function updateStalling()
+	UpdateTeamEnergy()
 	local gf = Spring.GetGameFrame()
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
-		if teamEnergy[teamID] and teamEnergy[teamID] < maxStall then
+		if teamEnergy[teamID] then
+			--ToDO: Here can be a bit more performance increased by checking if energy production is bigger than upkeep and then just show symbol on all that have upkeep or shot per energy and are empty
+			--if(teamEnergy[teamID] < maxStall) then
 			for unitID, unitDefID in pairs(units) do
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
@@ -194,13 +196,6 @@ local function updateStalling()
 	end
 	if energyIconVBO.dirty then
 		uploadAllElements(energyIconVBO)
-	end
-end
-
-function widget:Update(dt)
-	if Spring.GetGameFrame() ~= lastGameFrame then
-		lastGameFrame = Spring.GetGameFrame()
-		UpdateTeamEnergy()
 	end
 end
 
