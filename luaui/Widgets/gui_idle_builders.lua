@@ -31,7 +31,6 @@ local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local spec = Spring.GetSpectatingState()
 
@@ -492,8 +491,8 @@ function widget:ViewResize()
 	height = setHeight * uiScale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(nil, 1.1, 0.22*outlineMult, 1.7+(outlineMult*0.25))
-	font = WG['fonts'].getFont(fontFile, 1.1, 0.22*outlineMult, 1.7+(outlineMult*0.25))
+	font2 = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding

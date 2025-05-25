@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 
 local changelogFile = VFS.LoadFile("changelog.txt")
@@ -74,7 +73,7 @@ function widget:ViewResize()
 	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
 

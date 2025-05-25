@@ -100,8 +100,6 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 local useSelection = true
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-
 local customFontSize = 14
 local fontSize = customFontSize
 
@@ -320,7 +318,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(fontfile)
+	font = WG['fonts'].getFont()
 
 	init()
 end

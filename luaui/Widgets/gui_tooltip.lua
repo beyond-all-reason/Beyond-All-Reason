@@ -33,9 +33,6 @@ local cfgFontSize = 14
 local xOffset = 12
 local yOffset = -xOffset
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = 1
 local usedFontSize = cfgFontSize
@@ -146,9 +143,8 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font, loadedFontSize = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
-	font2 = WG['fonts'].getFont(fontfile2, 1.5, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2, 1.6)
 
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale

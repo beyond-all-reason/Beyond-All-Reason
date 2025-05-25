@@ -46,7 +46,6 @@ for i, faction in pairs(factions) do
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -157,7 +156,7 @@ function widget:ViewResize()
 	end
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(fontfile2, 1.2, 0.2 * outlineMult, 1.7+(outlineMult*0.25))
+	font2 = WG['fonts'].getFont(2)
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding

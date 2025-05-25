@@ -92,8 +92,6 @@ local mySpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font2, font3, chobbyInterface, hovering
 
 local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
@@ -2323,8 +2321,8 @@ function widget:ViewResize()
 
 	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
 	font = WG['fonts'].getFont(nil, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
-    font2 = WG['fonts'].getFont(fontfile2, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
-	font3 = WG['fonts'].getFont(fontfile3, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
+    font2 = WG['fonts'].getFont(2, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
+	font3 = WG['fonts'].getFont(3, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
