@@ -64,10 +64,10 @@ return {
 			"legavroc",
 			"leginf",
 			"legvflak",
-			"cormabm",
 			"legavjam",
 			"legavrad",
-			"legafcv"
+			"legafcv",
+			"legmabm"
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
