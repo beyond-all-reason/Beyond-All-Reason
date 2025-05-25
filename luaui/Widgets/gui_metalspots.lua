@@ -442,6 +442,7 @@ function widget:Shutdown()
 	WG.metalspots = nil
 	mySpots = {}
 	valueList = {}
+	gl.DeleteFont(font)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

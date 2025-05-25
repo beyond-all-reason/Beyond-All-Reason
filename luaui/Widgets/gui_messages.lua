@@ -70,8 +70,9 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
+	font = WG['fonts'].getFont()
+	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
+	--font = WG['fonts'].getFont(nil, 1.3, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()

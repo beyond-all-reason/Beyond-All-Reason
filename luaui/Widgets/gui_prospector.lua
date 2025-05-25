@@ -242,5 +242,5 @@ function widget:DrawScreen()
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.6)
+	font = WG['fonts'].getFont(1, 1.5)
 end

@@ -18,10 +18,10 @@ local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regu
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
-local defaultSize = 33
+local defaultSize = 34
 
 local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-local defaultOutlineSize = 0.22 * outlineMult
+local defaultOutlineSize = 0.2 * outlineMult
 local defaultOutlineStrength = 1.7 + (outlineMult*0.25)
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
@@ -115,13 +115,8 @@ function widget:ViewResize(vsx, vsy, init)
 			gl.DeleteFont(font)
 		end
 		fonts = {}
-		--for id, font in pairs(fonts) do
-		--	local params = string.split(id, '_')
-		--	createFont(params[1], tonumber(params[2]), tonumber(params[3]), tonumber(params[4]))
-		--end
 	end
 end
-
 
 function widget:GetConfigData()
 	return {
@@ -129,7 +124,6 @@ function widget:GetConfigData()
 		fontScale = fontScale
 	}
 end
-
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then

@@ -23,14 +23,6 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 4.5
-local fontfileOutlineStrength = 9
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 -- {unitID -> unitDefID, ... }
 -- presence of a unitID key indicates that the unit has an active (counting down) SELFD command
 local activeSelfD = {}
@@ -56,15 +48,6 @@ local spGetUnitTransporter		= Spring.GetUnitTransporter
 local spec = Spring.GetSpectatingState()
 
 
-function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
-end
 
 local function DrawIcon(text)
 	local iconSize = 0.9
@@ -123,6 +106,12 @@ local function updateUnit(unitID)
 end
 
 local function init()
+	for k,_ in pairs(drawLists) do
+		gl.DeleteList(drawLists[k])
+	end
+	drawLists = {}
+	font = WG['fonts'].getFont(2, 1.5)
+
 	spec = Spring.GetSpectatingState()
 
 	activeSelfD = {}
@@ -136,6 +125,9 @@ end
 function widget:PlayerChanged(playerID)
 	init()
 end
+function widget:ViewResize(vsx,vsy)
+	init()
+end
 
 function widget:Initialize()
 	init()
@@ -146,7 +138,6 @@ function widget:Shutdown()
 	for k,_ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end
-	gl.DeleteFont(font)
 end
 
 

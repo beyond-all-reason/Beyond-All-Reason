@@ -659,6 +659,8 @@ end
 
 function widget:Shutdown()
 	drawAllStartLocationsCircles.invalidate()
+	gl.DeleteFont(font)
+	gl.DeleteFont(fontTutorial)
 end
 
 local function checkTooltips()
