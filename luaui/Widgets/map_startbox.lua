@@ -462,6 +462,7 @@ end
 function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
