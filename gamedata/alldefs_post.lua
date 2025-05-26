@@ -294,10 +294,27 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_noantinuke then
 			if uDef.weapondefs then
-				for _, weapon in pairs(uDef.weapondefs) do
+				local numWeapons = 0
+				local newWdefs = {}
+				local hasAnti = false
+				for i, weapon in pairs(uDef.weapondefs) do
 					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.weapondefs[i] = nil
+						hasAnti = true
+					else
+						numWeapons = numWeapons + 1
+						newWdefs[numWeapons] = weapon
+					end
+				end
+				if hasAnti then
+					uDef.weapondefs = newWdefs
+					if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
 						uDef.maxthisunit = 0
-						break
+					else
+						if uDef.metalcost then
+							uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
+							uDef.energycost = math.floor(uDef.energycost * 0.6)
+						end
 					end
 				end
 			end
@@ -513,7 +530,7 @@ function UnitDef_Post(name, uDef)
 		if name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 		end
-	
+
 		-- Cortex T1 Sea Constructors
 		if name == "corcs" or name == "corcsa" then
 			local numBuildoptions = #uDef.buildoptions
@@ -521,7 +538,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "corfrock" -- Janitor - Anti Air Missile Battery
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 		end
@@ -542,7 +559,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "cornanotc2plat" -- Floating T2 Constructor Turret
 		end
 
-		-- Cortex T2 Bots Factory 
+		-- Cortex T2 Bots Factory
 		if name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
@@ -666,7 +683,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos

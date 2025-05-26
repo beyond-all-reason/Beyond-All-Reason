@@ -92,8 +92,6 @@ local mySpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font2, font3, chobbyInterface, hovering
 
 local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
@@ -1167,6 +1165,7 @@ local function drawChatLine(i)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
@@ -1176,6 +1175,7 @@ local function drawChatLine(i)
 			font3:End()
 		else
 			font2:Begin()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
@@ -1913,10 +1913,12 @@ function widget:DrawScreen()
 				end
 			end
 
+			--gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 			gl.Color(1, 1, 1, 1)
 			gl.Texture(uiTex)
 			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
 			gl.Texture(false)
+			--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 	else
 		drawUi()
@@ -2321,10 +2323,13 @@ function widget:ViewResize()
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
-	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-	font3 = WG['fonts'].getFont(fontfile3, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+    font2 = WG['fonts'].getFont(2)
+	font3 = WG['fonts'].getFont(3)
+
+	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
+	--font = WG['fonts'].getFont(1, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
+    --font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'

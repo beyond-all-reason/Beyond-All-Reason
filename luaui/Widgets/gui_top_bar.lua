@@ -103,7 +103,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 -- Graphics
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -244,9 +243,8 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
-	font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), 1.4+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
@@ -296,11 +294,11 @@ local function updateButtons()
 
 	if not gameIsOver and chobbyLoaded then
 		addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
-		if not spec and gameStarted and not isSinglePlayer then
-			addButton('resign', Spring.I18N('ui.topbar.button.resign'))
-		end
 	else
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+	end
+	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
+		addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 	end
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
