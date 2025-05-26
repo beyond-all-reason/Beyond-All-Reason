@@ -26,8 +26,8 @@ local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/
 -- list and interface vars
 local facs = {}
 local unfinished_facs = {}
-local openedMenu = -1
-local hoveredFac = -1
+local openedMenu = -1 --Last non -1 hoveredFac value
+local hoveredFac = -1 --Number of factory icon with mouse over it(starts at 0)
 local hoveredBOpt = -1
 local pressedFac = -1
 local pressedBOpt = -1
@@ -60,7 +60,6 @@ for udid, unitDef in pairs(UnitDefs) do
 end
 orgIconTypes = nil
 
-local blurred = false
 local repeatPic = ":l:LuaUI/Images/repeat.png"
 
 local iconSizeY = 65		-- reset in ViewResize
@@ -623,11 +622,17 @@ function widget:Update(dt)
 	-- set hover unitdef id for buildmenu so info widget can show it
 	if WG['info'] then
 		if hoveredFac >= 0 then
-			setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-			WG['info'].displayUnitID(setInfoDisplayUnitID)
+			if(not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID))then
+				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
+				WG['info'].displayUnitID(setInfoDisplayUnitID)
+			end	
 		elseif hoveredBOpt >= 0 then
-			setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-			WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
+			if(setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1])then
+				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
+				WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
+			end			
 		else
 			if setInfoDisplayUnitID then
 				setInfoDisplayUnitID = nil
@@ -639,29 +644,12 @@ function widget:Update(dt)
 			end
 		end
 	end
-
+	
 	if hoveredFac >= 0 then
 		--factory icon
 		if not moffscreen then
 			openedMenu = hoveredFac
 		end
-		if not blurred then
-			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blurred = true
-		end
-	elseif openedMenu >= 0 and isInRect(mx, my, boptRect) then
-		--buildoption icon
-		if not blurred then
-			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blurred = true
-		end
-	else
-		openedMenu = -1
-	end
-
-	if blurred then
-		Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-		blurred = false
 	end
 
 	sec = sec + dt
@@ -730,7 +718,7 @@ function widget:Update(dt)
 				options.hovered = true
 			end
 			-- border
-			options.selected = (i == openedMenu + 1)
+			options.selected = (i == hoveredFac + 1)
 
 			dlistsCount = dlistsCount + 1
 			dlists[dlistsCount] = gl.CreateList(drawButton, fac_rec, unitDefID, options, true)
@@ -747,7 +735,7 @@ function widget:Update(dt)
 		if factoriesArea then
 			dlists[1] = gl.CreateList(drawBackground)
 			if WG['guishader'] then
-				if openedMenu >= 0 then
+				if hoveredFac >= 0 then
 					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
 
 					if dlistGuishader2 then
