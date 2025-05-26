@@ -235,18 +235,20 @@ if gadgetHandler:IsSyncedCode() then
 		elseif unitDef.moveDef then
 			tolorance = {unitDef.moveDef.maxSlope, unitDef.moveDef.xsize, unitDef.moveDef.zsize}
 		else
-			tolorance = {unitDef.maxHeightDif, unitDef.footprintx, unitDef.footprintz}
+			-- TODO: sea units and buildings
+			tolorance = {1, 0, 0}
 		end
-		tolorance = tolorance or {1, 0, 0}
 		_unitTolorances[unitDefID] = tolorance
 
 		return tolorance
 	end
-	local function isSteep(x, z, teamID)
-		local unitTolarance = _getUnitTolorance(tonumber(spGetTeamRulesParam(teamID, startUnitParamName)))
-		-- TODO: might be a bit excessive, as anything less that 8x8 would only really need to check the 4 corners
-		for i = x, x + unitTolarance[2] do
-			for j = z, z + unitTolarance[3] do
+	local function isValidForUnit(x, z, unitDefID)
+		local unitTolarance = _getUnitTolorance(unitDefID)
+		local minX, maxX = math.floor(x / 8) * 8, math.ceil((x + unitTolarance[2]) / 8) * 8
+		local minZ, maxZ = math.floor(z / 8) * 8, math.ceil((z + unitTolarance[3]) / 8) * 8
+
+		for i = minX, maxX, Game.squareSize do
+			for j = minZ, maxZ, Game.squareSize do
 				if select(4, Spring.GetGroundNormal(i, j, false)) > unitTolarance[1] then
 					return true
 				end
@@ -308,7 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if isSteep(x,z, teamID) then
+		if isValidForUnit(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
 			return false
 		end
 
