@@ -434,7 +434,6 @@ end
 function widget:Shutdown()
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
-	gl.DeleteFont(font)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('pregameui')
 	end
