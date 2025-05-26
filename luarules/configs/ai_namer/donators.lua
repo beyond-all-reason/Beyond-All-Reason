@@ -41,6 +41,7 @@ local DonatorAINames = {
     "SkyFire",
     "Sovgut",
     "Spanker",
+    "Spooler", --$40
     "SuperMadmax",
     "TIMBO",
     "Titan",
