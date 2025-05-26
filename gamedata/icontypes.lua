@@ -1107,6 +1107,10 @@ local icontypes = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
 	},
+	legadvaabot = {
+		bitmap = "icons/bot_amph_t2_aa.png",
+		size = 1.41999996
+	},
 	coraap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425

@@ -43,7 +43,7 @@ return {
 			[8] = "legbart",
 			[9] = "leginfestor",
 			[10] = "leghrk",
-			[11] = "coraak",
+			[11] = "legadvaabot",
 			[12] = "legsnapper",
 			[13] = "corsktl",
 			[14] = "corvoyr",
