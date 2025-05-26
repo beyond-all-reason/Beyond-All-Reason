@@ -58,6 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 			local ARM_MASK = 2^0
 			local COR_MASK = 2^1
 			local LEG_MASK = 2^2
+			local FULL_BITMASK = math.bit_and(ARM_MASK, COR_MASK, LEG_MASK)
 
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
@@ -65,16 +66,16 @@ if gadgetHandler:IsSyncedCode() then
 				local allyStartUnits = {}
 				local unitsCount = 1
 
-				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), 7)
-				allyTeamBitmask = allyTeamBitmask == 0 and 7 or allyTeamBitmask
+				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
+				allyTeamBitmask = allyTeamBitmask == 0 and FULL_BITMASK or allyTeamBitmask
 
 				if legcomDefID then
 					if math.bit_and(allyTeamBitmask, LEG_MASK) ~= 0 then
 						allyStartUnits[unitsCount] = legcomDefID
 						unitsCount = unitsCount + 1
 					end
-				elseif allyTeamBitmask == 4 then
-					allyTeamBitmask = 7
+				elseif allyTeamBitmask == LEG_MASK then
+					allyTeamBitmask = FULL_BITMASK
 				end
 
 				if armcomDefID and math.bit_and(allyTeamBitmask, ARM_MASK) ~= 0 then
