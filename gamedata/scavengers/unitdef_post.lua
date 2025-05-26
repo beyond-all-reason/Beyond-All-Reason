@@ -326,7 +326,7 @@ local function scavUnitDef_Post(name, uDef)
 		-- Cortex T2 Bots Factory 
 		if name == "coralab_scav" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
+			uDef.buildoptions[numBuildoptions+1] = "cordeadeye_scav"
 		end
 
 		-- Cortex T2 Vehicle Factory
