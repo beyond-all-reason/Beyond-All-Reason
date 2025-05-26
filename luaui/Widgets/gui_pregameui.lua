@@ -14,13 +14,7 @@ end
 
 local draftMode = Spring.GetModOptions().draft_mode
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx * vsy / 6200000))
-local fontfileSize = 50
-local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
@@ -62,7 +56,7 @@ local buttonDrawn = false
 local lockText = ''
 local locked = false
 
-local RectRound, UiElement, UiButton, elementPadding, uiPadding
+local UiElement, UiButton, elementPadding, uiPadding
 
 local enableSubbing = false
 local eligibleAsSub = false
@@ -129,6 +123,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	end
 
 	vsx, vsy = Spring.GetViewGeometry()
+
+	font = WG['fonts'].getFont(2)
+
 	uiScale = (0.75 + (vsx * vsy / 6000000))
 	buttonX = math.floor(vsx * buttonPosX)
 	buttonY = math.floor(vsy * buttonPosY)
@@ -136,16 +133,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
 	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 
-	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	end
-
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
 
