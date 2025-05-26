@@ -823,9 +823,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 2.5, 0.22*outlineMult, 1.7+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(2, 2)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
