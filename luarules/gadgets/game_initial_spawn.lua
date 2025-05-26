@@ -219,41 +219,53 @@ if gadgetHandler:IsSyncedCode() then
 	-- Startpoints
 	----------------------------------------------------------------
 	local _unitTolorances = {}
+	--- @return number maxSlope
+	--- @return number footprintSize Half of the biggest footprint out of the x/z
 	local function _getUnitTolorance(unitDefID)
 		if not unitDefID then
-			return {1, 0, 0}
+			return 1, 0
 		end
 
 		local tolorance = _unitTolorances[unitDefID]
 		if tolorance then
-			return tolorance
+			return tolorance[1], tolorance[2]
 		end
 
 		local unitDef = UnitDefs[unitDefID]
+		-- TODO: this currently suffices for current commanders only
+		-- 1. figure out how to detect if a unit sinks (and how deep can it go) or floats (and how shallow of water it needs)
+		-- 2. building slope and footprint
 		if unitDef.canFly then
-			tolorance = {1, 0, 0}
+			-- assume seaplane
+			tolorance = {1, 0}
 		elseif unitDef.moveDef then
-			tolorance = {unitDef.moveDef.maxSlope, unitDef.moveDef.xsize, unitDef.moveDef.zsize}
+			tolorance = {
+				unitDef.moveDef.maxSlope,
+				math.max(unitDef.moveDef.xsize, unitDef.moveDef.zsize) / 2,
+			}
 		else
-			-- TODO: sea units and buildings
-			tolorance = {1, 0, 0}
+			tolorance = {1, 0}
 		end
+
 		_unitTolorances[unitDefID] = tolorance
-
-		return tolorance
+		return tolorance[1], tolorance[2]
 	end
-	local function isValidForUnit(x, z, unitDefID)
-		local unitTolarance = _getUnitTolorance(unitDefID)
-		local minX, maxX = math.floor(x / 8) * 8, math.ceil((x + unitTolarance[2]) / 8) * 8
-		local minZ, maxZ = math.floor(z / 8) * 8, math.ceil((z + unitTolarance[3]) / 8) * 8
 
-		for i = minX, maxX, Game.squareSize do
-			for j = minZ, maxZ, Game.squareSize do
-				if select(4, Spring.GetGroundNormal(i, j, false)) > unitTolarance[1] then
+	--- @return boolean traversable if the unit can not traverse the passed in x/z position
+	-- TODO: add water debth test based on if the unit needs water or can't go into water, see: _getUnitTolorance
+	local function canUnitNotNavigate(x, z, unitDefID)
+		local maxSlope, footprintSize = _getUnitTolorance(unitDefID)
+		local minX, maxX = math.floor((x - footprintSize) / 8) * 8, math.floor((x + footprintSize) / 8) * 8
+		local minZ, maxZ = math.floor((z - footprintSize) / 8) * 8, math.floor((z + footprintSize) / 8) * 8
+		for _z = minZ, maxZ, Game.squareSize do
+			for _x = minX, maxX, Game.squareSize do
+				if select(4, Spring.GetGroundNormal(_x, _z, false)) > maxSlope then
 					return true
 				end
 			end
 		end
+
+		return false
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
@@ -310,7 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if isValidForUnit(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+		if canUnitNotNavigate(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
 			return false
 		end
 
