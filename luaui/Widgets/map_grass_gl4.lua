@@ -97,7 +97,7 @@ local grassConfig = {
 
 local nightFactor = {1,1,1,1}
 
-local distanceMult = 0.4
+local distanceMult = 0.4 
 
 --------------------------------------------------------------------------------
 -- map custom config
