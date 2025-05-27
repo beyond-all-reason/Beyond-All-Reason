@@ -481,7 +481,6 @@ local circleInstanceVBOLayout = {
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements      = InstanceVBOTable.uploadAllElements
 local pushElementInstance    = InstanceVBOTable.pushElementInstance
 local popElementInstance     = InstanceVBOTable.popElementInstance
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
@@ -684,7 +683,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		uploadAllElements(instanceTable) -- clear all instances
+		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
 	end
 end
 

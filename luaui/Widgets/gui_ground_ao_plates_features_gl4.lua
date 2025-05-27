@@ -85,7 +85,6 @@ local groundPlateShader = nil
 local luaShaderDir = "LuaUI/Include/"
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
@@ -131,7 +130,7 @@ local function ProcessAllFeatures()
 	for _, featureID in ipairs(features) do
 		AddPrimitiveAtUnit(featureID, nil, true)
 	end
-	uploadAllElements(groundPlateVBO)
+	InstanceVBOTable.uploadAllElements(groundPlateVBO)
 end
 local firstRun = true
 function widget:DrawWorldPreUnit()

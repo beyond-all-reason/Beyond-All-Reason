@@ -352,7 +352,6 @@ local orbShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
@@ -897,7 +896,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID, nil, true)
 	end
-	uploadAllElements(orbVBO)
+	InstanceVBOTable.uploadAllElements(orbVBO)
 end
 
 function widget:VisibleUnitRemoved(unitID)

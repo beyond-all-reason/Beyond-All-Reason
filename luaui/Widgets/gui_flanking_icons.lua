@@ -22,7 +22,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 local flankingVBO = nil
 local flankingShader = nil
@@ -119,7 +118,7 @@ local function init()
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
 	end
-	uploadAllElements(flankingVBO)
+	InstanceVBOTable.uploadAllElements(flankingVBO)
 end
 
 function widget:Initialize()

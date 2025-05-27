@@ -36,7 +36,6 @@ local spec, fullview = Spring.GetSpectatingState()
 -- GL4 stuff:
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
@@ -248,7 +247,7 @@ local function ProcessAllUnits()
 			updateUnitRank(unitID, unitDefID, true)
 		end
 	end
-	uploadAllElements(rankVBO)
+	InstanceVBOTable.uploadAllElements(rankVBO)
 end
 
 function widget:PlayerChanged(playerID)
@@ -346,7 +345,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		updateUnitRank(unitID, unitDefID, true)
 	end
-	uploadAllElements(rankVBO)
+	InstanceVBOTable.uploadAllElements(rankVBO)
 	doRefresh = false
 end
 

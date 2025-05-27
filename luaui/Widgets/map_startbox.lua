@@ -194,7 +194,7 @@ local StartPolygons = {} -- list of points in clockwise order
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-local uploadAllElements = InstanceVBOTable.uploadAllElements
+
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
@@ -510,7 +510,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	uploadAllElements(startConeVBOTable)
+	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
 end

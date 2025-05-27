@@ -44,7 +44,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
@@ -148,7 +147,7 @@ local function InitializeUnits()
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
 	end
-	uploadAllElements(circleInstanceVBO)
+	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
 end
 
 

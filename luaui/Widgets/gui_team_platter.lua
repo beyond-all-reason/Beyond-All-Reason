@@ -22,7 +22,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 local teamplatterVBO = nil
 local teamplatterShader = nil
@@ -171,7 +170,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddPrimitiveAtUnit(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
-	uploadAllElements(teamplatterVBO) -- upload them all
+	InstanceVBOTable.uploadAllElements(teamplatterVBO) -- upload them all
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists

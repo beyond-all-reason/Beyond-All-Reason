@@ -18,7 +18,6 @@ end
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOIdTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
@@ -276,7 +275,7 @@ local function StopHighlightUnitGL4(uniqueID, noUpload)
 end
 
 local function RefreshHighlightUnitGL4()
-	uploadAllElements(highlightUnitVBOTable)
+	InstanceVBOTable.uploadAllElements(highlightUnitVBOTable)
 end
 
 

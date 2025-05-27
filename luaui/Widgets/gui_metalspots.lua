@@ -99,7 +99,6 @@ local spotShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements      = InstanceVBOTable.uploadAllElements
 local pushElementInstance    = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
@@ -353,7 +352,7 @@ local function InitializeSpots(mSpots)
 			end
 		end
 	end
-	uploadAllElements(spotInstanceVBO)
+	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
 local function UpdateSpotValues() -- This will only get called on playerchanged
@@ -379,7 +378,7 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			end
 		end
 	end
-	uploadAllElements(spotInstanceVBO)
+	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
 
