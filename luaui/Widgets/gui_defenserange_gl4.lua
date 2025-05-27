@@ -478,9 +478,13 @@ local circleInstanceVBOLayout = {
 		  {id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT }, -- Currently unused within defense ranges, as they are forced-static
 		}
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local popElementInstance     = InstanceVBOTable.popElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 local defenseRangeShader = nil
 
 local shaderSourceCache = {
@@ -525,10 +529,10 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
-		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
+		defenseRangeVAOs[defRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
 		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
@@ -536,7 +540,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO = smallCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
+		local newVAO = InstanceVBOTable.makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
 		defenseRangeVAOs[defRangeClass].VAO = newVAO
 	end
 	return makeShaders()
@@ -673,13 +677,13 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	defensePosHash = {}
 	mobileAntiUnits = {}
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		clearInstanceTable(instanceTable) -- clear all instances
+		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		uploadAllElements(instanceTable) -- clear all instances
+		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
 	end
 end
 
@@ -817,7 +821,7 @@ function widget:Update(dt)
      -- clear out all the old rings
      defenses, enemydefenses, defensePosHash, mobileAntiUnits = {}, {}, {}, {}
      for _, ivt in pairs(defenseRangeVAOs) do
-       clearInstanceTable(ivt)
+       InstanceVBOTable.clearInstanceTable(ivt)
      end
      -- rebuild from whatever visibleUnits API you have
      local extVisibleUnits = (WG.unittrackerapi and WG.unittrackerapi.visibleUnits)

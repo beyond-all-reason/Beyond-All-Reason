@@ -34,9 +34,8 @@ local shaderConfig = {
 	PREUNIT = 1, -- 1 for preunit, 0 for postunit
 }
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local currentAllyTeam = 0
 local ScreenCopyTexture = nil
@@ -90,7 +89,7 @@ function widget:Initialize()
 
     widget:ViewResize()
     losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache)
-    fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+    fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
     losViewShader:Initialize()
     if not losViewShader then Spring.Echo("Failed to compile losViewShader GL4") end
 end

@@ -121,9 +121,12 @@ end
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 ---@language Glsl
 local vsSrc = [[
@@ -222,10 +225,10 @@ local function makeOutlineVBO()
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
-	local vbo = makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
 	return vbo
 end
 
@@ -532,7 +535,7 @@ local instanceIDs = {}
 local function clearInstances()
 	if isHeadless then return end
 	if outlineInstanceVBO then
-		clearInstanceTable(outlineInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(outlineInstanceVBO)
 	end
 
 	if WG.StopDrawUnitShapeGL4 then
@@ -650,7 +653,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 		end
 	end
 
-	uploadAllElements(outlineInstanceVBO)
+	InstanceVBOTable.uploadAllElements(outlineInstanceVBO)
 end
 
 local function drawOutlines()

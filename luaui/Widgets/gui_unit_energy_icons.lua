@@ -89,7 +89,14 @@ end
 -- GL4 Backend stuff:
 local energyIconVBO = nil
 local energyIconShader = nil
+
 local luaShaderDir = "LuaUI/Include/"
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -139,7 +146,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	end
 
 	UpdateTeamEnergy()
-	clearInstanceTable(energyIconVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(energyIconVBO) -- clear all instances
 	teamUnits = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))

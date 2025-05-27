@@ -31,9 +31,12 @@ local circleSegments = 64
 -- TODO: draw ally ranges in diff color!
 -- Dont even do anything if the map does not natively have water.
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -153,16 +156,16 @@ local function initgl4()
   )
   shaderCompiled = circleShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile sonarrange shader GL4 ") end
-  local circleVBO,numVertices = makeCircleVBO(circleSegments)
+  local circleVBO,numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
   local circleInstanceVBOLayout = {
 		  {id = 1, name = 'startposrad', size = 4}, -- the start pos + radius
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "sonarrangeVBO")
+  circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,32, "sonarrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
-  circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+  circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts

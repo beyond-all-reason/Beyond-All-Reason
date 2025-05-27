@@ -147,9 +147,12 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 local jetInstanceVBO = nil
 local jetShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local vsSrc =
 [[#version 420
@@ -370,7 +373,7 @@ local function initGL4()
   )
   local shaderCompiled = jetShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
-  local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+  local quadVBO,numVertices = InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
   local jetInstanceVBOLayout = {
 		  {id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
 		  {id = 2, name = 'emitdir', size = 3}, --  emit dir
@@ -378,12 +381,12 @@ local function initGL4()
 		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
 		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
 		}
-  jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+  jetInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
   jetInstanceVBO.numVertices = numVertices
   jetInstanceVBO.vertexVBO = quadVBO
-  jetInstanceVBO.VAO = makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
+  jetInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
   jetInstanceVBO.primitiveType = GL.TRIANGLES
-  jetInstanceVBO.indexVBO = makeRectIndexVBO()
+  jetInstanceVBO.indexVBO = InstanceVBOTable.makeRectIndexVBO()
   jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
 end
 
@@ -672,7 +675,7 @@ local function reInitialize()
 	activePlanes = {}
 	inactivePlanes = {}
 	lights = {}
-	clearInstanceTable(jetInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)

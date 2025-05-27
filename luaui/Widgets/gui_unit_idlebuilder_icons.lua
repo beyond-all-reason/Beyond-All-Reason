@@ -45,6 +45,13 @@ end
 --------------------------------------------------------------------------------
 
 -- GL4 Backend stuff:
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -81,7 +88,7 @@ end
 
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(iconVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(iconVBO) -- clear all instances
 	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))

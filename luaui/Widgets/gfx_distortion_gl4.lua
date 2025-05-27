@@ -185,9 +185,12 @@ local trackedProjectileTypes = {} -- we have to track the types [point, distorti
 local lastGameFrame = -2
 
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local deferredDistortionShader = nil
 
@@ -252,12 +255,12 @@ local function goodbye(reason)
 end
 
 local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetDistortionVBO = makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
+	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetDistortionVBO == nil then goodbye("Failed to make "..VBOname) end
 	targetDistortionVBO.vertexVBO = vertexVBO
 	targetDistortionVBO.numVertices = numVertices
 	targetDistortionVBO.indexVBO = indexVBO
-	targetDistortionVBO.VAO = makeVAOandAttach(targetDistortionVBO.vertexVBO, targetDistortionVBO.instanceVBO, targetDistortionVBO.indexVBO)
+	targetDistortionVBO.VAO = InstanceVBOTable.makeVAOandAttach(targetDistortionVBO.vertexVBO, targetDistortionVBO.instanceVBO, targetDistortionVBO.indexVBO)
 	return targetDistortionVBO
 end
 
@@ -306,7 +309,7 @@ local function initGL4()
 		return false
 	end
 	
-	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 	-- init the VBO
 	local vboLayout = {
 			{id = 3, name = 'worldposrad', 			size = 4},
@@ -325,18 +328,18 @@ local function initGL4()
 			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, numVerts, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1) -- could use an icosahedron (v12/i60/f20) maybe?
+	local pointVBO, numVerts, pointIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(8, 4, 1) -- could use an icosahedron (v12/i60/f20) maybe?
 	--Spring.Echo('numVerts', numVerts, numIndices) -- (v45, i144, f45) for a sphere
 	pointDistortionVBO 			= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Distortion VBO")
 	unitPointDistortionVBO 		= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Distortion VBO", 10)
 	projectilePointDistortionVBO = createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Distortion VBO")
 
-	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
 	coneDistortionVBO 			= createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Distortion VBO")
 	unitConeDistortionVBO 		= createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Distortion VBO", 10)
 	projectileConeDistortionVBO  = createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Distortion VBO")
 
-	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
+	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamDistortionVBO 			= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Distortion VBO")
 	unitBeamDistortionVBO 		= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Distortion VBO", 10)
 	projectileBeamDistortionVBO 	= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Distortion VBO")
@@ -721,9 +724,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitPointDistortionVBO) -- clear all instances
-	clearInstanceTable(unitBeamDistortionVBO) -- clear all instances
-	clearInstanceTable(unitConeDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitPointDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitBeamDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitConeDistortionVBO) -- clear all instances
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do

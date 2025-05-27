@@ -61,13 +61,17 @@ end
 local mapMarkInstanceVBO = nil
 local mapMarkShader= nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
+
 
 local function ClearPoints()
 	mapPoints = {}
-  clearInstanceTable(mapMarkInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(mapMarkInstanceVBO)
 end
 
 local shaderParams = {
@@ -208,10 +212,10 @@ local function initGL4()
 		  {id = 1, name = 'posradius', size = 4}, -- posradius
 		  {id = 2, name = 'colorlife', size = 4}, --  color + startgameframe
 		}
-  mapMarkInstanceVBO = makeInstanceVBOTable(mapMarkInstanceVBOLayout,32, "mapMarkInstanceVBO")
+  mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
   mapMarkInstanceVBO.numVertices = numVertices
   mapMarkInstanceVBO.vertexVBO = markerVBO
-  mapMarkInstanceVBO.VAO = makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+  mapMarkInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
   mapMarkInstanceVBO.primitiveType = GL.LINES
 
   if false then -- testing

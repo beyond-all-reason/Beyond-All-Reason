@@ -308,10 +308,12 @@ local trackedProjectiles = {} -- used for finding out which projectiles can be c
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
 
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local deferredLightShader = nil
 
@@ -369,12 +371,12 @@ local function goodbye(reason)
 end
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetLightVBO = makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
+	local targetLightVBO = InstanceVBOTable.makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end
 	targetLightVBO.vertexVBO = vertexVBO
 	targetLightVBO.numVertices = numVertices
 	targetLightVBO.indexVBO = indexVBO
-	targetLightVBO.VAO = makeVAOandAttach(targetLightVBO.vertexVBO, targetLightVBO.instanceVBO, targetLightVBO.indexVBO)
+	targetLightVBO.VAO = InstanceVBOTable.makeVAOandAttach(targetLightVBO.vertexVBO, targetLightVBO.instanceVBO, targetLightVBO.indexVBO)
 	return targetLightVBO
 end
 
@@ -404,18 +406,18 @@ local function initGL4()
 			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, _, pointIndexVBO, _ = makeSphereVBO(8, 4, 1)
+	local pointVBO, _, pointIndexVBO, _ = InstanceVBOTable.makeSphereVBO(8, 4, 1)
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
-	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
 	coneLightVBO 			= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
 	unitConeLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
 	projectileConeLightVBO  = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Light VBO")
 
-	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
+	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamLightVBO 			= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
 	unitBeamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
 	projectileBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
@@ -1074,9 +1076,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitPointLightVBO) -- clear all instances
-	clearInstanceTable(unitBeamLightVBO) -- clear all instances
-	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitPointLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitBeamLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitConeLightVBO) -- clear all instances
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -1468,7 +1470,7 @@ function widget:Update(dt)
 				cursorLightAlpha = WG['allycursors'].getLightStrength()
 				cursorLightRadius = WG['allycursors'].getLightRadius()
 				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
-				clearInstanceTable(cursorPointLightVBO)
+				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
 		end
@@ -1494,7 +1496,7 @@ function widget:Update(dt)
 		uploadAllElements(cursorPointLightVBO)
 	else
 		if cursorLights then
-			clearInstanceTable(cursorPointLightVBO)
+			InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 			cursorLights = nil
 		end
 	end

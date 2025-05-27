@@ -13,9 +13,12 @@ function widget:GetInfo()
   }
 end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000
 
@@ -326,9 +329,9 @@ local function initGL4()
 
 	local maxElements = 32 -- start small for testing
 	local unitIDAttributeIndex = 8
-	paralyzedDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	paralyzedDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	paralyzedDrawUnitVBOTable.VAO = makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
+	paralyzedDrawUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
 
@@ -402,7 +405,7 @@ local myTeamID
 local spec, fullview
 
 local function init()
-	clearInstanceTable(paralyzedDrawUnitVBOTable)
+	InstanceVBOTable.clearInstanceTable(paralyzedDrawUnitVBOTable)
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
 		local unitID = allUnits[i]

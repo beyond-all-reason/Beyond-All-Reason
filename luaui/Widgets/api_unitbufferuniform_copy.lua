@@ -11,8 +11,8 @@ function widget:GetInfo()
   }
 end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+
 local cmpShader
 
 -- The compute shader is reponsible for updating the position, velocity, and color of each particle 

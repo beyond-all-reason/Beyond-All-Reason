@@ -1,4 +1,4 @@
-function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, objecttype)
+local function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, objecttype)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
 	-- myName: optional name, useful for debugging
@@ -65,7 +65,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, o
 	return instanceTable
 end
 
-function clearInstanceTable(iT)
+local function clearInstanceTable(iT)
 	-- this wont resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
@@ -75,7 +75,7 @@ function clearInstanceTable(iT)
 	if iT.VAO then iT.VAO:ClearSubmission() end
 end
 
-function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
+local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
 	-- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance.
 	--iT.vertexVBO = vertexVBO
 	--iT.indexVBO = indexVBO
@@ -133,7 +133,7 @@ local function counttable(t)
 	return count
 end
 
-function resizeInstanceVBOTable(iT)
+local function resizeInstanceVBOTable(iT)
 	--[[
 		Spring.Echo("Resizing", iT.myName, "from size",iT.maxElements, "currently", iT.usedElements)
 		for i = 0, iT.usedElements - 1  do
@@ -197,7 +197,7 @@ instVBO:Upload({
 Here is how you upload starting from 1st element and starting from 4th element in Lua array (-100) and finishing with 6th element (0), essentially it will upload (-100, 0, 0) into 7th attribute of 2nd instance.
 ]]--
 
-function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID, objecttype, teamID)
+local function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID, objecttype, teamID)
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
 	-- instanceID: an optional key given to the item, so it can be easily removed/updated by reference, defaults to the index of the instance in the buffer (1 based)
@@ -282,7 +282,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	return instanceID
 end
 
-function popElementInstance(iT, instanceID, noUpload)
+local function popElementInstance(iT, instanceID, noUpload)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
@@ -451,7 +451,7 @@ function popElementInstance(iT, instanceID, noUpload)
 	return oldElementIndex
 end
 
-function getElementInstanceData(iT, instanceID)
+local function getElementInstanceData(iT, instanceID)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID]
@@ -465,33 +465,7 @@ function getElementInstanceData(iT, instanceID)
 	return iData
 end
 
-function pullInstanceDataGPU(iT)
-	-- this function synchronizes all the data held in iT.instanceData with the per-unit attributes sent to the gpu via InstanceDataFromUnitIDs, so the _other_ instance parameters can be updated
-	--local attrib7Table = vbo:Download(7, <optional element offset>, <optional count of elements>)
-	-- we are gonna live with an assumption here:
-	-- 1. its always the last 4 numbers of an instance that is the instanceData,
-	local downloadvbo = iT.instanceVBO:Download(iT.objectTypeAttribID)
-
-	local iTStep = iT.instanceStep
-	for i = 1, iT.usedElements do
-		for j = 0, 3 do
-			iT.instanceData[i * iTStep - j] = downloadvbo[i * 4 - j]
-		end
-	end
-
-	downloadvbo = nil
-	--dbgt(iT.instanceData, "instanceData")
-	--dbgt(downloadvbo, "downloadvbo")
-end
-
-function pushInstanceDataGPU(iT)
-	-- this function should be called after direct modification of the instance attributes in iT.instanceData
-	if iT.usedElements == 0 then return end
-	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
-	iT.dirty = false
-end
-
-function dumpAndCompareInstanceData(iT)
+local function dumpAndCompareInstanceData(iT)
 	local gpuContents = iT.instanceVBO:Download(nil,nil,nil,true)
 	for i = 1, iT.usedElements do
 		Spring.Echo(string.format("%s, instanceID =%s, element %d of %d", iT.myName, tostring(iT.indextoInstanceID[i]), i, iT.usedElements))
@@ -517,7 +491,7 @@ end
 
 
 
-function uploadAllElements(iT)
+local function uploadAllElements(iT)
 	-- DANGER: stuff should be removed first!
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
@@ -554,7 +528,7 @@ function uploadAllElements(iT)
 end
 
 
-function validateInstanceVBOIDTable(iT, calledfrom)
+local function validateInstanceVBOIDTable(iT, calledfrom)
 	-- Check each instance, and see if it has a valid unitID associated with it
 	-- Report with this key: "Error: validateInstanceVBOIDTable: error(2) = [string "LuaUI/Widgets
 	local errorKey = 'Error: validateInstanceVBOIDTable [string "LuaUI/' ..calledfrom  or " " .. ' ]'
@@ -625,3 +599,17 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
 	end
 end
 ]]--
+
+return {
+	makeInstanceVBOTable = makeInstanceVBOTable,
+	clearInstanceTable = clearInstanceTable,
+	makeVAOandAttach = makeVAOandAttach,
+	resizeInstanceVBOTable = resizeInstanceVBOTable,
+	pushElementInstance = pushElementInstance,
+	popElementInstance = popElementInstance,
+	getElementInstanceData = getElementInstanceData,
+	dumpAndCompareInstanceData = dumpAndCompareInstanceData,
+	uploadAllElements = uploadAllElements,
+	validateInstanceVBOIDTable = validateInstanceVBOIDTable,
+	uploadElementRange = uploadElementRange,
+}
