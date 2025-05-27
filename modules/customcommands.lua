@@ -60,6 +60,9 @@ local injectIntoCMD = function()
 		if CMD[cmdID] then
 			Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
 		end
+		if CMD[code] then
+			Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+		end
 		CMD[code] = cmdID
 		CMD[cmdID] = code
 	end
