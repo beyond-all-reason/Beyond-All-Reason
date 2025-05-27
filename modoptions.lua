@@ -1544,6 +1544,15 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
+    {
+        key     = "fixtransportermultiload",
+        name    = "Fix T2 Transporter Multi-Load",
+        desc    = "Enable improved multi-unit loading for Abductor and Skyhook transports",
+        type    = "bool",
+        hidden  = true,
+        section = "options_experimental",
+        def     = false,
+    },
 
     {
         key   	= "releasecandidates",
