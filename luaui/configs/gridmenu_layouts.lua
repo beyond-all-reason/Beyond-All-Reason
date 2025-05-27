@@ -13,9 +13,9 @@ local labGrids = {
 	},
 
 	leglab = {
-		"legck", "cornecro", "leggob", "", "", "",                -- T1 con, rez bot, goblin
+		"legck", "legrezbot", "leggob", "", "", "",               -- T1 con, rez bot, goblin
 		"legbal", "leglob", "legkark", "legcen", "", "",          -- ballista, lobber, karkinos, centaur
-		"", "", "corcrash",                                       -- aa bot
+		"", "", "legaabot",                                       -- aa bot
 	},
 	-- T2 bot
 	armalab = {
