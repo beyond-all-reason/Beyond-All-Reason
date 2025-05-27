@@ -40,7 +40,7 @@ do
 		end
 	end
 end
-if factions == {} then
+if #factions == 0 then
 	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
 	return false
 end
