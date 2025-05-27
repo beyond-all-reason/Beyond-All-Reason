@@ -289,8 +289,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
 
         if area.endFrame <= gameFrame then
-            timedAreas[index] = timedAreas[length]
-            timedAreas[length] = nil
+            table.remove(timedAreas, index)
             length = length - 1
         end
     end
