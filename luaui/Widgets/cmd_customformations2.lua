@@ -52,8 +52,8 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
-local CMD_SETTARGET = 34923
-local CMD_MANUAL_LAUNCH = 32102
+local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
+local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
 
 local formationCmds = {
     [CMD.MOVE] = true,

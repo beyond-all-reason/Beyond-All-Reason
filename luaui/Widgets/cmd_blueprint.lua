@@ -11,8 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
-
 -- types
 -- =====
 
@@ -182,6 +180,9 @@ local BLUEPRINT_UNIT_LIMIT = 100
 
 ---maximum total number of orders in a given blueprint placement command
 local BLUEPRINT_ORDER_LIMIT = 400
+
+local CMD_BLUEPRINT_PLACE = GameCMD.BLUEPRINT_PLACE
+local CMD_BLUEPRINT_CREATE = GameCMD.BLUEPRINT_CREATE
 
 local CMD_BLUEPRINT_PLACE_DESCRIPTION = {
 	id = CMD_BLUEPRINT_PLACE,
