@@ -68,6 +68,15 @@ local injectIntoCMD = function()
 	end
 end
 
+for code, cmdID in pairs(gameCommands) do
+	if CMD[cmdID] then
+		Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+	end
+	if CMD[code] then
+		Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+	end
+end
+
 local getCommandCode = function(cmdID)
 	return CMD[cmdID] or gameCommands[cmdID]
 end
