@@ -33,7 +33,6 @@ local spGetUnitNearestEnemy	= Spring.GetUnitNearestEnemy
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_REMOVE = CMD.REMOVE
-local CMD_RESTORE = CMD.RESTORE
 local CMD_MOVE   = CMD.MOVE
 local CMD_FIGHT  = CMD.FIGHT
 local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
