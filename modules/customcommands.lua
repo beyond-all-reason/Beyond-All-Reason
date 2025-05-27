@@ -68,8 +68,13 @@ local injectIntoCMD = function()
 	end
 end
 
+local getCommandCode = function(cmdID)
+	return CMD[cmdID] or gameCommands[cmdID]
+end
+
 return {
 	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
 	InjectIntoCMD = injectIntoCMD,
+	GetCommandCode = getCommandCode,
  }
