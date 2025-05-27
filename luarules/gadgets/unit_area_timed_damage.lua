@@ -163,7 +163,7 @@ local function bisectDamage(array, damage, low, high)
                 else
                     low = indexMiddle + 1
                 end
-				return bisectDamage(array, damage, low, high)
+                return bisectDamage(array, damage, low, high)
             end
         end
     end
