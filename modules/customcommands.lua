@@ -50,7 +50,9 @@ local importCommandsToObject = function(object)
 		globalCmdDeprecatedShown = true
 	end
 	for code, cmdID in pairs(gameCommands) do
-		object['CMD_' .. code] = cmdID
+		if type(code) == 'string' then
+			object['CMD_' .. code] = cmdID
+		end
 	end
 
 end
