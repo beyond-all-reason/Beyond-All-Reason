@@ -4605,6 +4605,18 @@ function init()
 		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
+		{ id = "factoryquotapriority", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryquotapriority'), type = "bool", value = (WG.Quotas and WG.Quotas.getQuotaPriority and WG.Quotas.getQuotaPriority()), description = Spring.I18N('ui.settings.option.factoryquotapriority_descr'),
+			onload = function(i)
+				loadWidgetData("Factory Quotas", "Quotas", { 'quotaPriority' })
+			end,
+			onchange = function(i, value)
+				if widgetHandler.configData["Factory Quotas"] == nil then
+					widgetHandler.configData["Factory Quotas"] = {}
+				end
+				widgetHandler.configData["Factory Quotas"].quotaPriority = value
+				saveOptionValue('Factory Quotas', 'Quotas', 'setQuotaPriority', { 'quotaPriority' }, value)
+			end,
+	 	},
 
 		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 

@@ -23,6 +23,8 @@ local quotas = {} -- {[factoryID] = {[unitDefID] = amount, ...}, ...}
 local builtUnits = {} -- {[factoryID] = {[unitDefID] = {[unitID] = true, ...}, ...}, ...}
 local unitToFactoryID = {} -- {[unitID] = factoryID, ...}
 
+local quotaPriority = false -- quotaPriority = false means non-repeat queue has priority
+
 local possibleFactories = {}
 local factoryDefIDs = {}
 local metalcosts = {}
@@ -45,6 +47,7 @@ local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGetUnitStates = Spring.GetUnitStates
 
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
@@ -88,10 +91,14 @@ end
 
 local function isFactoryUsable(factoryID)
     local commandQueue = spGetFactoryCommands(factoryID, 2)
-    if not commandQueue then
+    if not commandQueue or #commandQueue == 0 then
         return true
     end
-    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT)))
+    if not quotaPriority and not spGetUnitStates(factoryID)["repeat"] then
+        return false
+    end
+
+    return not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT))
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
@@ -191,8 +198,27 @@ function widget:Initialize()
     WG.Quotas.isOnQuotaMode = function(unitID)
         return isOnQuotaBuildMode(unitID)
     end
+    WG.Quotas.setQuotaPriority = function(priority)
+        quotaPriority = priority
+    end
+    WG.Quotas.getQuotaPriority = function()
+        return quotaPriority
+    end
 end
 
 function widget:Shutdown()
     WG.Quotas = nil
+end
+
+function widget:GetConfigData()
+    local data = {}
+    data.quotaPriority = quotaPriority
+
+    return data
+end
+
+function widget:SetConfigData(data)
+    if data and type(data) == "table" then
+        quotaPriority = data.quotaPriority
+    end
 end
