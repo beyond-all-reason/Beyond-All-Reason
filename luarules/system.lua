@@ -31,7 +31,7 @@ if (System == nil) then
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
-		CustomCMD = Game.CustomCommands.CustomCMD,
+		GameCMD = Game.CustomCommands.GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,

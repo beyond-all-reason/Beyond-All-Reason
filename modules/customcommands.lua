@@ -69,7 +69,7 @@ local injectIntoCMD = function()
 end
 
 return {
-	CustomCMD = gameCommands,
+	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
 	InjectIntoCMD = injectIntoCMD,
  }
