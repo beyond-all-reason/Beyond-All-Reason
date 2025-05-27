@@ -33,6 +33,7 @@ local circleSegments = 64
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
+
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
