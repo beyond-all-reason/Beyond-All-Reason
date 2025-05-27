@@ -12,7 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
+local CMD_UNIT_CANCEL_TARGET = CMD.UNIT_CANCEL_TARGET
+local CMD_UNIT_SET_TARGET = CMD.UNIT_SET_TARGET
 
 local excludedUnitsDefID = {}
 

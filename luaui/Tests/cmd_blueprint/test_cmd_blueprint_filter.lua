@@ -26,8 +26,6 @@ end
 
 local delay = 5
 function test()
-	VFS.Include("luarules/configs/customcmds.h.lua")
-
 	assert(widget)
 
 	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
