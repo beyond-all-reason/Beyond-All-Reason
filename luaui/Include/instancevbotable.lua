@@ -1,3 +1,6 @@
+local dest = widget or gadget
+
+local LuaVBOTableNewLocationMessageShown
 
 if not LuaVBOTableNewLocationMessageShown then
 	local msg = "A user widget is including LuaUI/Include/instancevbotable.lua directly, please change it to use gl.InstanceVBOTable instead."
@@ -7,26 +10,26 @@ end
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-makeInstanceVBOTable   = InstanceVBOTable.makeInstanceVBOTable
-clearInstanceTable     = InstanceVBOTable.clearInstanceTable
-makeVAOandAttach       = InstanceVBOTable.makeVAOandAttach
-locateInvalidUnits     = InstanceVBOTable.locateInvalidUnits
-pushElementInstance    = InstanceVBOTable.pushElementInstance
-popElementInstance     = InstanceVBOTable.popElementInstance
-getElementInstanceData = InstanceVBOTable.getElementInstanceData
-uploadAllElements      = InstanceVBOTable.uploadAllElements
-uploadElementRange     = InstanceVBOTable.uploadElementRange
-compactInstanceVBO     = InstanceVBOTable.compactInstanceVBO
-drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
-makeCircleVBO          = InstanceVBOTable.makeCircleVBO
-makePlaneVBO           = InstanceVBOTable.makePlaneVBO
-makePlaneIndexVBO      = InstanceVBOTable.makePlaneIndexVBO
-makePointVBO           = InstanceVBOTable.makePointVBO
-makeRectVBO            = InstanceVBOTable.makeRectVBO
-makeRectIndexVBO       = InstanceVBOTable.makeRectIndexVBO
-makeConeVBO            = InstanceVBOTable.makeConeVBO
-makeCylinderVBO        = InstanceVBOTable.makeCylinderVBO
-makeBoxVBO             = InstanceVBOTable.makeBoxVBO
-makeSphereVBO          = InstanceVBOTable.makeSphereVBO
-MakeTexRectVAO         = InstanceVBOTable.MakeTexRectVAO
+dest.makeInstanceVBOTable   = InstanceVBOTable.makeInstanceVBOTable
+dest.clearInstanceTable     = InstanceVBOTable.clearInstanceTable
+dest.makeVAOandAttach       = InstanceVBOTable.makeVAOandAttach
+dest.locateInvalidUnits     = InstanceVBOTable.locateInvalidUnits
+dest.pushElementInstance    = InstanceVBOTable.pushElementInstance
+dest.popElementInstance     = InstanceVBOTable.popElementInstance
+dest.getElementInstanceData = InstanceVBOTable.getElementInstanceData
+dest.uploadAllElements      = InstanceVBOTable.uploadAllElements
+dest.uploadElementRange     = InstanceVBOTable.uploadElementRange
+dest.compactInstanceVBO     = InstanceVBOTable.compactInstanceVBO
+dest.drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
+dest.makeCircleVBO          = InstanceVBOTable.makeCircleVBO
+dest.makePlaneVBO           = InstanceVBOTable.makePlaneVBO
+dest.makePlaneIndexVBO      = InstanceVBOTable.makePlaneIndexVBO
+dest.makePointVBO           = InstanceVBOTable.makePointVBO
+dest.makeRectVBO            = InstanceVBOTable.makeRectVBO
+dest.makeRectIndexVBO       = InstanceVBOTable.makeRectIndexVBO
+dest.makeConeVBO            = InstanceVBOTable.makeConeVBO
+dest.makeCylinderVBO        = InstanceVBOTable.makeCylinderVBO
+dest.makeBoxVBO             = InstanceVBOTable.makeBoxVBO
+dest.makeSphereVBO          = InstanceVBOTable.makeSphereVBO
+dest.MakeTexRectVAO         = InstanceVBOTable.MakeTexRectVAO
 
