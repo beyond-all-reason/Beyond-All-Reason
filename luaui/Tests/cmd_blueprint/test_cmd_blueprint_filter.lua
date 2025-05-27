@@ -61,7 +61,7 @@ function test()
 	Test.waitFrames(delay)
 
 	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(CMD_BLUEPRINT_PLACE),
+		Spring.GetCmdDescIndex(CMD.BLUEPRINT_PLACE),
 		1,
 		true,
 		false,
