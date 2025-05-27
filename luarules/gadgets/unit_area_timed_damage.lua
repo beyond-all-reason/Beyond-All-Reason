@@ -81,6 +81,7 @@ local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
+local featDamageImmunity = {}
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -229,22 +230,24 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
-            local damageTaken = featDamageTaken[featureID]
-            if not damageTaken then
-                damageTaken = 0
-                resetNewFeat[#resetNewFeat + 1] = featureID
-            end
-			local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-            if showDamageCeg then
-                local fx, fy, fz = spGetFeaturePosition(featureID)
-                spSpawnCEG(area.damageCeg, fx, fy, fz)
-            end
-            local health = spGetFeatureHealth(featureID) - damage
-            if health > 1 then
-                spSetFeatureHealth(featureID, health)
-                featDamageTaken[featureID] = damageTaken + damage
-            else
-                Spring.DestroyFeature(featureID)
+            if not featDamageImmunity[featureID] then
+                local damageTaken = featDamageTaken[featureID]
+                if not damageTaken then
+                    damageTaken = 0
+                    resetNewFeat[#resetNewFeat + 1] = featureID
+                end
+                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                if showDamageCeg then
+                    local fx, fy, fz = spGetFeaturePosition(featureID)
+                    spSpawnCEG(area.damageCeg, fx, fy, fz)
+                end
+                local health = spGetFeatureHealth(featureID) - damage
+                if health > 1 then
+                    spSetFeatureHealth(featureID, health)
+                    featDamageTaken[featureID] = damageTaken + damage
+                else
+                    Spring.DestroyFeature(featureID)
+                end
             end
         end
 
@@ -350,6 +353,15 @@ function gadget:Initialize()
             end
         end
         unitDamageImmunity[unitDefID] = unitImmunity
+    end
+
+    featDamageImmunity = {}
+    for _, featureID in ipairs(Spring.GetAllFeatures()) do
+        local featureDefID = Spring.GetFeatureDefID(featureID)
+        local featureDef = FeatureDefs[featureDefID]
+        if featureDef.indestructible or featureDef.geoThermal then
+            featDamageImmunity[featureID] = true
+        end
     end
 
     if next(timedDamageWeapons) then
