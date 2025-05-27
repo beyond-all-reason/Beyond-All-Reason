@@ -627,7 +627,7 @@ local function SetAllowUnitCoast(unitID, allowed)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(70)
+	gadgetHandler:RegisterAllowCommand(GameCMD.SET_WANTED_MAX_SPEED)
 	GG.UpdateUnitAttributes = UpdateUnitAttributes
 	GG.SetAllowUnitCoast = SetAllowUnitCoast
 
@@ -655,7 +655,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:AllowCommand_GetWantedCommand()
-	return true --{[CMD.ONOFF] = true, [70] = true}
+	return true --{[CMD.ONOFF] = true, [GameCMD.SET_WANTED_MAX_SPEED] = true}
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -663,7 +663,7 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	-- accepts: 70 (SET_WANTED_MAX_SPEED, but not registered anywhere)
+	-- accepts: SET_WANTED_MAX_SPEED
 	if unitSlowed[unitID] then
 		return false
 	else
