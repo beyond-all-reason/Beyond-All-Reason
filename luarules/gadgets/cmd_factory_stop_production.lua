@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
-	local CMD_STOP_PRODUCTION = CMD.STOP_PRODUCTION
+	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 	local CMD_WAIT = CMD.WAIT
 	local EMPTY = {}
 	local DEQUEUE_OPTS = CMD.OPT_RIGHT -- right: dequeue, ctrl+shift: 100

@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_FACTORY_GUARD = CMD.FACTORY_GUARD
+local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 
 local isFactory = {}
 for unitDefID, unitDef in pairs(UnitDefs) do

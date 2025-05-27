@@ -56,7 +56,7 @@ local resources = { "metal", "energy" } -- ipairs-able
 resources["metal"] = 1 -- reverse-able
 resources["energy"] = 2
 
-local CMD_PRIORITY = CMD.PRIORITY
+local CMD_PRIORITY = GameCMD.PRIORITY
 local cmdPassiveDesc = {
       id      = CMD_PRIORITY,
       name    = 'priority',

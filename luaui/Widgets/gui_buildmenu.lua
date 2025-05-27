@@ -17,7 +17,7 @@ include("keysym.h.lua")
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local CMD_STOP_PRODUCTION = CMD.STOP_PRODUCTION
+local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 

@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
 
-local CMD_SELL_UNIT = CMD.SELL_UNIT
+local CMD_SELL_UNIT = GameCMD.SELL_UNIT
 
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo

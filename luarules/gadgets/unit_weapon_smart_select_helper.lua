@@ -54,7 +54,7 @@ local backupSwitchThreshold = backupAutoAggro * 1.2 * -1 --the aggro at which ba
 local priorityCooldownFrames = Game.gameSpeed * 1.5 -- so that no matter how the aggro weights are set, the mode switches will happen no sooner than this.
 local backupCooldownFrames = Game.gameSpeed * 4
 
-local CMD_SMART_TOGGLE = CMD.SMART_TOGGLE
+local CMD_SMART_TOGGLE = GameCMD.SMART_TOGGLE
 
 local PRIORITY_AIMINGSTATE = 0
 local BACKUP_AIMINGSTATE = 1

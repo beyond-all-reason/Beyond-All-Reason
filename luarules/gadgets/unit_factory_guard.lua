@@ -27,7 +27,7 @@ local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
 
-local CMD_FACTORY_GUARD = CMD.FACTORY_GUARD
+local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
 

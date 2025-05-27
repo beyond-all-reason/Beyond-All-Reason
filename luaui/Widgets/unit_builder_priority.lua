@@ -14,7 +14,7 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_PRIORITY = CMD.PRIORITY
+local CMD_PRIORITY = GameCMD.PRIORITY
 
 -- symbol localization optimization for engine calls
 local spGetUnitDefID = Spring.GetUnitDefID

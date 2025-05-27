@@ -16,7 +16,7 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_QUOTA_BUILD_TOGGLE = CMD.QUOTA_BUILD_TOGGLE
+local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 
 local isFactory = {}
 for unitDefID, unitDef in pairs(UnitDefs) do

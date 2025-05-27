@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_AREA_MEX = CMD.AREA_MEX
+local CMD_AREA_MEX = GameCMD.AREA_MEX
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode

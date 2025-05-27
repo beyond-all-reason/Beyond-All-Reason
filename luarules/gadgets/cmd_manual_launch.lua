@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local CMD_MANUAL_LAUNCH = CMD.MANUAL_LAUNCH
+local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
 
 local manualLaunchUnits = {}
 for unitDefId, unitDef in pairs(UnitDefs) do
