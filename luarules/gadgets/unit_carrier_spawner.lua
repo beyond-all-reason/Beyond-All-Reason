@@ -65,7 +65,7 @@ local strSplit = string.split
 local PI = math.pi
 local GAME_SPEED = Game.gameSpeed
 local PRIVATE = { private = true }
-local CMD_CARRIER_SPAWNING = GameCMD.CARRIER_SPAWNING
+local CMD_CARRIER_SPAWN_ONOFF = GameCMD.CARRIER_SPAWN_ONOFF
 
 local noCreate = false
 
@@ -76,7 +76,7 @@ local wantedList = {}
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}
 local spawnCount = 0
 local spawnCmd = {
-	id = CMD_CARRIER_SPAWNING,
+	id = CMD_CARRIER_SPAWN_ONOFF,
 	name = "csSpawning",
 	action = "csSpawning",
 	type = CMDTYPE.ICON_MODE,
@@ -773,10 +773,10 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	-- accepts: CMD_CARRIER_SPAWNING
+	-- accepts: CMD_CARRIER_SPAWN_ONOFF
 	if carrierMetaList[unitID] then
 		if carrierMetaList[unitID].stockpilelimit == 0 then
-			local cmdDescID = FindUnitCmdDesc(unitID, CMD_CARRIER_SPAWNING)
+			local cmdDescID = FindUnitCmdDesc(unitID, CMD_CARRIER_SPAWN_ONOFF)
 			spawnCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
 			carrierMetaList[unitID].activeSpawning = cmdParams[1]
@@ -1559,7 +1559,7 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWNING)
+	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]

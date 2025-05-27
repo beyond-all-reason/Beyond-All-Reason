@@ -28,7 +28,7 @@ local gameCommands = {
 	SELL_UNIT = 30101,
 	SET_WANTED_MAX_SPEED = 70, -- TODO remove, was backwards compatibility
 
-	CARRIER_SPAWNING = 31200,
+	CARRIER_SPAWN_ONOFF = 31200,
 	MORPH = 31210,
 	MANUAL_LAUNCH = 32102,
 	UNIT_SET_TARGET_NO_GROUND = 34922, -- unit_target_on_the_move
