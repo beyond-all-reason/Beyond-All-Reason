@@ -401,7 +401,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 --local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
@@ -1115,8 +1114,8 @@ end
 function widget:GameFrame(n)
 
 	if debugmode then
-		locateInvalidUnits(healthBarVBO)
-		locateInvalidUnits(featureHealthVBO)
+		InstanceVBOTable.locateInvalidUnits(healthBarVBO)
+		InstanceVBOTable.locateInvalidUnits(featureHealthVBO)
 	end
 	-- Units:
 	-- check shields

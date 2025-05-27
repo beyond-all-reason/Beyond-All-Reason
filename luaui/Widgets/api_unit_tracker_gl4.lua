@@ -82,7 +82,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
 
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
@@ -507,7 +506,7 @@ function widget:GameFrame()
 		end
 
 		if drawdebugvisible then
-			locateInvalidUnits(unitTrackerVBO)
+			InstanceVBOTable.locateInvalidUnits(unitTrackerVBO)
 		end
 
 		local cntalliedunits = 0
