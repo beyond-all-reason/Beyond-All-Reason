@@ -51,7 +51,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 local iconVBO = nil
