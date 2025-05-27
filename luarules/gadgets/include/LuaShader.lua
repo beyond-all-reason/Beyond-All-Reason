@@ -5,7 +5,5 @@ if not LuaShaderNewLocationMessageShown then
 	LuaShaderNewLocationMessageShown = true
 end
 
-local dest = widget or gadget
-
-dest.LuaShader = gl.LuaShader
+return gl.LuaShader
 
