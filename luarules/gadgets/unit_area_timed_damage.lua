@@ -205,7 +205,6 @@ end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
     resetNewUnit = {}
-    resetNewFeat = {}
 
     for index, area in pairs(timedAreas) do
         local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
@@ -226,7 +225,18 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                 unitDamageTaken[unitID] = damageTaken + damage
             end
         end
+	end
 
+	for _, unitID in ipairs(unitDamageReset[gameFrame]) do
+        unitDamageTaken[unitID] = nil
+    end
+
+	unitDamageReset[gameFrame] = nil
+	unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
+
+	resetNewFeat = {}
+
+	for index, area in pairs(timedAreas) do
         local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
@@ -256,18 +266,12 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-    unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
-    featDamageReset[gameFrame + gameSpeed] = resetNewFeat
-
-    for _, unitID in ipairs(unitDamageReset[gameFrame]) do
-        unitDamageTaken[unitID] = nil
+    for _, featureID in ipairs(featDamageReset[gameFrame]) do
+        featDamageTaken[featureID] = nil
     end
-    unitDamageReset[gameFrame] = nil
 
-    for _, featID in ipairs(featDamageReset[gameFrame]) do
-        featDamageTaken[featID] = nil
-    end
     featDamageReset[gameFrame] = nil
+	featDamageReset[gameFrame + gameSpeed] = resetNewFeat
 end
 
 local function removeFromArrays(arrays, value)
