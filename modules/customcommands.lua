@@ -14,7 +14,7 @@
 
 local gameCommands = {
 	FACTORY_GUARD = 13921,
-	AREA_GUARD = 13922,
+	AREA_GUARD = 13922, -- unused
 	STOP_PRODUCTION = 13923,
 
 	-- blueprint
@@ -34,12 +34,10 @@ local gameCommands = {
 	UNIT_SET_TARGET_RECTANGLE = 34925,
 	PRIORITY = 34571,
 	WANT_CLOAK = 37382,
-	HOUND_WEAPON_TOGGLE = 37383,
+	HOUND_WEAPON_TOGGLE = 37383, -- unused
 	SMART_TOGGLE = 37384,
 
 	-- terraform
-	RESTORE = 39739,
-
 	RAW_MOVE = 39812,
 }
 
