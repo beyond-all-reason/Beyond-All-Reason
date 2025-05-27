@@ -1,21 +1,35 @@
 #!/bin/bash
 set -euo pipefail
+# ------------------------------------------------------------
+#  start.sh — thin wrapper to launch spring-headless for tests
+#
+#  Usage:
+#     ./start.sh [WORKDIR] [SCRIPT]
+#  If no args are given it will:
+#     • write   to /tmp/bar-headless-$(id -u)/
+#     • run     ./tests/test_t2_transporter_capacity.lua
+# ------------------------------------------------------------
 
-WORKDIR="$1"
-TEST_SCRIPT="$2"
+# ---------- 1. parameter handling ----------
+WORKDIR="${1:-/tmp/bar-headless-$(id -u)}"
+SCRIPT="${2:-$PWD/tests/test_t2_transporter_capacity.lua}"
 
-# clean out any leftover UI cache
-rm -rf "$WORKDIR/LuaUI/Config"
+mkdir -p   "$WORKDIR"
+rm  -rf    "$WORKDIR/LuaUI/Config"          # keep UI cache from polluting results
 
-# locate spring-headless
-if ! SPRING_BIN=$(command -v spring-headless); then
-  SPRING_BIN="$ENGINE_DESTINATION/spring-headless"
+# ---------- 2. locate the engine ----------
+if SPRING_BIN="$(command -v spring-headless 2>/dev/null)"; then
+    :  # found on PATH
+elif [[ -n "${ENGINE_DESTINATION:-}" && -x "$ENGINE_DESTINATION/spring-headless" ]]; then
+    SPRING_BIN="$ENGINE_DESTINATION/spring-headless"
+elif [[ -x "./spring-headless" ]]; then
+    SPRING_BIN="./spring-headless"
+else
+    echo "❌  spring-headless binary not found." >&2
+    echo "    Checked \$PATH, \$ENGINE_DESTINATION, and the cwd." >&2
+    exit 1
 fi
 
-if [[ ! -x "$SPRING_BIN" ]]; then
-  echo "!!! ERROR: spring-headless not found or not executable at '$SPRING_BIN'" >&2
-  exit 1
-fi
-
-# run the test script
-"$SPRING_BIN" --isolation --write-dir "$WORKDIR" "$TEST_SCRIPT"
+# ---------- 3. run the test ----------
+echo "▶  Running $SCRIPT via $SPRING_BIN …"
+"$SPRING_BIN" --isolation --write-dir "$WORKDIR" "$SCRIPT"
