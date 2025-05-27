@@ -16,12 +16,12 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_QUOTA_BUILD_TOGGLE = CMD.QUOTA_BUILD_TOGGLE
+
 local isFactory = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     isFactory[unitDefID] = unitDef.isFactory
 end
-
-include("luarules/configs/customcmds.h.lua")
 
 local factoryQuotaCmdDesc = {
 	id = CMD_QUOTA_BUILD_TOGGLE,
