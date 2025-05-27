@@ -1,7 +1,9 @@
 local dest = widget or gadget
 
 if not LuaVBOTableNewLocationMessageShown then
-	local msg = "A user widget is including LuaUI/Include/instancevbotable.lua directly, please change it to use gl.InstanceVBOTable instead."
+	local info = dest.GetInfo()
+	local name = info and info.name or 'unknown'
+	local msg = "A user widget (" .. name .. ") is including LuaUI/Include/instancevbotable.lua directly, please change it to use gl.InstanceVBOTable instead."
 	Spring.Log('UserWidget', LOG.DEPRECATED, msg)
 	LuaVBOTableNewLocationMessageShown = true
 end
