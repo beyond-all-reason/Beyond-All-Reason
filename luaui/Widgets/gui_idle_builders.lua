@@ -395,9 +395,12 @@ local function updateList(force)
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if uiBgTex and backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
-			gl.DeleteTextureFBO(uiBgTex)
-			uiBgTex = nil
+		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			if uiBgTex then
+				gl.DeleteTextureFBO(uiBgTex)
+				uiBgTex = nil
+			end
+			checkGuishader(true)
 		end
 
 		if useRenderToTextureBg then
@@ -443,8 +446,6 @@ local function updateList(force)
 				drawContent()
 			end)
 		end
-
-		checkGuishader(true)
 	end
 end
 
@@ -686,33 +687,35 @@ local function Update()
 end
 
 function widget:DrawScreen()
-	Update()
-	if doUpdate or doUpdateForce then
-		updateList(doUpdateForce)
-		doUpdate = false
-		doUpdateForce = nil
-	end
-	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
-		if useRenderToTextureBg then
-			if uiBgTex then
-				-- background element
-				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-				gl.Texture(uiBgTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-				gl.Texture(false)
-				gl.Color(1,1,1,1)
-			end
+	if not spec or showWhenSpec then
+		Update()
+		if doUpdate or doUpdateForce then
+			updateList(doUpdateForce)
+			doUpdate = false
+			doUpdateForce = nil
 		end
-		if useRenderToTexture then
-			if uiTex then
-				--content
-				gl.Color(1,1,1,1)
-				gl.Texture(uiTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-				gl.Texture(false)
+		if dlist or uiTex or uiBgTex then
+			if useRenderToTextureBg then
+				if uiBgTex then
+					-- background element
+					gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+					gl.Texture(uiBgTex)
+					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+					gl.Texture(false)
+					gl.Color(1,1,1,1)
+				end
 			end
-		else
-			gl.CallList(dlist)
+			if useRenderToTexture then
+				if uiTex then
+					--content
+					gl.Color(1,1,1,1)
+					gl.Texture(uiTex)
+					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
+					gl.Texture(false)
+				end
+			else
+				gl.CallList(dlist)
+			end
 		end
 	end
 end
