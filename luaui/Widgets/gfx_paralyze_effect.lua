@@ -18,7 +18,6 @@ local InstanceVBOTable = gl.InstanceVBOIdTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000
@@ -406,7 +405,7 @@ local myTeamID
 local spec, fullview
 
 local function init()
-	clearInstanceTable(paralyzedDrawUnitVBOTable)
+	InstanceVBOTable.clearInstanceTable(paralyzedDrawUnitVBOTable)
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
 		local unitID = allUnits[i]

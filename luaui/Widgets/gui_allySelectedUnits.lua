@@ -32,7 +32,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local selectionVBO = nil
 local selectShader = nil
@@ -278,7 +277,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(selectionVBO)
+	InstanceVBOTable.clearInstanceTable(selectionVBO)
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end

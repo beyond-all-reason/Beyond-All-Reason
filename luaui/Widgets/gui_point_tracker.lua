@@ -66,13 +66,12 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
 
 local function ClearPoints()
 	mapPoints = {}
-  clearInstanceTable(mapMarkInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(mapMarkInstanceVBO)
 end
 
 local shaderParams = {

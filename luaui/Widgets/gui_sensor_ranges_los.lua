@@ -47,7 +47,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -81,7 +80,7 @@ local function initgl4()
 		circleShader:Finalize()
 	end
 	if circleInstanceVBO then
-		clearInstanceTable(circleInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	end
 	circleShader = LuaShader.CheckShaderUpdates(shaderSourceCache,0)
 
@@ -142,7 +141,7 @@ local instanceCache = {0,0,0,0,0,0,0,0}
 
 local function InitializeUnits()
 	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
-	clearInstanceTable(circleInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do

@@ -484,7 +484,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements      = InstanceVBOTable.uploadAllElements
 local pushElementInstance    = InstanceVBOTable.pushElementInstance
 local popElementInstance     = InstanceVBOTable.popElementInstance
-local clearInstanceTable     = InstanceVBOTable.clearInstanceTable
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local defenseRangeShader = nil
@@ -679,7 +678,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	defensePosHash = {}
 	mobileAntiUnits = {}
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		clearInstanceTable(instanceTable) -- clear all instances
+		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
@@ -823,7 +822,7 @@ function widget:Update(dt)
      -- clear out all the old rings
      defenses, enemydefenses, defensePosHash, mobileAntiUnits = {}, {}, {}, {}
      for _, ivt in pairs(defenseRangeVAOs) do
-       clearInstanceTable(ivt)
+       InstanceVBOTable.clearInstanceTable(ivt)
      end
      -- rebuild from whatever visibleUnits API you have
      local extVisibleUnits = (WG.unittrackerapi and WG.unittrackerapi.visibleUnits)

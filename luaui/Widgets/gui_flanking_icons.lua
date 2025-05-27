@@ -22,7 +22,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 local flankingVBO = nil
@@ -113,7 +112,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 local function init()
-	clearInstanceTable(flankingVBO)
+	InstanceVBOTable.clearInstanceTable(flankingVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
@@ -152,7 +151,7 @@ function widget:PlayerChanged()
 	spec, fullview = Spring.GetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
-		clearInstanceTable(flankingVBO)
+		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()
 	end
 end

@@ -21,8 +21,6 @@ local InstanceVBOTable = gl.InstanceVBOIdTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
-
 
 local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
@@ -309,7 +307,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}
-	clearInstanceTable(highlightUnitVBOTable)
+	InstanceVBOTable.clearInstanceTable(highlightUnitVBOTable)
 
 	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 		-- i am no longer nice to consumers

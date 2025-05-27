@@ -88,7 +88,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -126,7 +125,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 end
 
 local function ProcessAllFeatures()
-	clearInstanceTable(groundPlateVBO)
+	InstanceVBOTable.clearInstanceTable(groundPlateVBO)
 	local features = Spring.GetAllFeatures()
 	--Spring.Echo("Refreshing Ground Plates", #features)
 	for _, featureID in ipairs(features) do

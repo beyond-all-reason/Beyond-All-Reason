@@ -23,7 +23,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -63,7 +62,7 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	Spring.Echo("widget:VisibleUnitsChanged",extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitTrackerVBO)
+	InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end

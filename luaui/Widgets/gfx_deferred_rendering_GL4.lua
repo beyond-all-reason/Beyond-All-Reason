@@ -310,10 +310,10 @@ local lastGameFrame = -2
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
+
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable = InstanceVBOTable.clearInstanceTable
 
 local deferredLightShader = nil
 
@@ -1076,9 +1076,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitPointLightVBO) -- clear all instances
-	clearInstanceTable(unitBeamLightVBO) -- clear all instances
-	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitPointLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitBeamLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitConeLightVBO) -- clear all instances
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -1470,7 +1470,7 @@ function widget:Update(dt)
 				cursorLightAlpha = WG['allycursors'].getLightStrength()
 				cursorLightRadius = WG['allycursors'].getLightRadius()
 				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
-				clearInstanceTable(cursorPointLightVBO)
+				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
 		end
@@ -1496,7 +1496,7 @@ function widget:Update(dt)
 		uploadAllElements(cursorPointLightVBO)
 	else
 		if cursorLights then
-			clearInstanceTable(cursorPointLightVBO)
+			InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 			cursorLights = nil
 		end
 	end

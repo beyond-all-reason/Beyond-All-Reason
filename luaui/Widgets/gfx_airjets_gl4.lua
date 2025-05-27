@@ -153,7 +153,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local vsSrc =
 [[#version 420
@@ -676,7 +675,7 @@ local function reInitialize()
 	activePlanes = {}
 	inactivePlanes = {}
 	lights = {}
-	clearInstanceTable(jetInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)

@@ -196,7 +196,6 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable = InstanceVBOTable.clearInstanceTable
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
@@ -486,7 +485,7 @@ function widget:DrawWorld()
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
-	clearInstanceTable(startConeVBOTable)
+	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))

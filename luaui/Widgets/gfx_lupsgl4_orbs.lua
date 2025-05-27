@@ -355,7 +355,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
 local vsSrc =
@@ -893,7 +892,7 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	if orbVBO.usedElements > 0 then 
-		clearInstanceTable(orbVBO) 
+		InstanceVBOTable.clearInstanceTable(orbVBO) 
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID, nil, true)

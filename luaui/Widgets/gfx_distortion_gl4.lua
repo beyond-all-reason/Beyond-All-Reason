@@ -191,7 +191,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local deferredDistortionShader = nil
 
@@ -725,9 +724,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitPointDistortionVBO) -- clear all instances
-	clearInstanceTable(unitBeamDistortionVBO) -- clear all instances
-	clearInstanceTable(unitConeDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitPointDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitBeamDistortionVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitConeDistortionVBO) -- clear all instances
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do

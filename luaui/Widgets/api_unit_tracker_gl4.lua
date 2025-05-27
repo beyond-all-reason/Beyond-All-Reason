@@ -82,7 +82,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
 
 local unitTrackerVBO = nil
@@ -575,7 +574,7 @@ local function initializeAllUnits()
 	end
 
 	if debugdrawvisible then
-		clearInstanceTable(unitTrackerVBO)
+		InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	end
 
 	local allunits = Spring.GetAllUnits()
@@ -598,7 +597,7 @@ function widget:TextCommand(command)
 		if param and param == 'draw' then
 			Spring.Echo("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
 			if debugdrawvisible then
-				clearInstanceTable(unitTrackerVBO)
+				InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 				debugdrawvisible = false
 			else
 				debugdrawvisible = true

@@ -39,7 +39,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 local atlasID = nil
 local atlasSize = 2048
@@ -240,7 +239,7 @@ local function updateUnitRank(unitID, unitDefID, noUpload)
 end
 
 local function ProcessAllUnits()
-	clearInstanceTable(rankVBO)
+	InstanceVBOTable.clearInstanceTable(rankVBO)
 	local units = Spring.GetAllUnits()
 	--Spring.Echo("Refreshing Ground Plates", #units)
 	for _, unitID in ipairs(units) do
@@ -342,7 +341,7 @@ function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(rankVBO)
+	InstanceVBOTable.clearInstanceTable(rankVBO)
 	doRefresh = true
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		updateUnitRank(unitID, unitDefID, true)

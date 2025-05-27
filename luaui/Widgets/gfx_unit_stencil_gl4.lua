@@ -37,7 +37,6 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable = InstanceVBOTable.clearInstanceTable
 
 local vsSrc =  [[
 #version 420
@@ -295,7 +294,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
 	)
 end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitStencilVBO)
+	InstanceVBOTable.clearInstanceTable(unitStencilVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID)
 	end

@@ -127,7 +127,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 
 
 ---@language Glsl
@@ -537,7 +536,7 @@ local instanceIDs = {}
 local function clearInstances()
 	if isHeadless then return end
 	if outlineInstanceVBO then
-		clearInstanceTable(outlineInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(outlineInstanceVBO)
 	end
 
 	if WG.StopDrawUnitShapeGL4 then

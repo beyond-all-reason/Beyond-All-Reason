@@ -401,7 +401,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 --local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local locateInvalidUnits  = InstanceVBOTable.locateInvalidUnits
 
 -------------------- configurables -----------------------
@@ -819,7 +818,7 @@ end
 
 
 local function init()
-	clearInstanceTable(healthBarVBO)
+	InstanceVBOTable.clearInstanceTable(healthBarVBO)
 	unitEmpWatch = {}
 	--unitBeingBuiltWatch = {}
 	unitCaptureWatch = {}
@@ -848,9 +847,9 @@ local function init()
 end
 
 local function initfeaturebars()
-	clearInstanceTable(featureHealthVBO)
-	clearInstanceTable(featureResurrectVBO)
-	clearInstanceTable(featureReclaimVBO)
+	InstanceVBOTable.clearInstanceTable(featureHealthVBO)
+	InstanceVBOTable.clearInstanceTable(featureResurrectVBO)
+	InstanceVBOTable.clearInstanceTable(featureReclaimVBO)
 	for i, featureID in ipairs(Spring.GetAllFeatures()) do
 		local featureDefID = Spring.GetFeatureDefID(featureID)
 		--local resurrectname = Spring.GetFeatureResurrect(featureID)
@@ -1074,7 +1073,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	myPlayerID = Spring.GetMyPlayerID()
 
 
-	clearInstanceTable(healthBarVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		addBarsForUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
 	end

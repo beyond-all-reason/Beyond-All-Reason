@@ -24,7 +24,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 local enemyspotterVBO = nil
@@ -126,7 +125,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(enemyspotterVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(enemyspotterVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end

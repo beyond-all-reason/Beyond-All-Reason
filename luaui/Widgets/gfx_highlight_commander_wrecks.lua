@@ -51,8 +51,6 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local uploadAllElements   = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
-local clearInstanceTable  = InstanceVBOTable.clearInstanceTable
-
 
 local vsSrc = [[
     #version 420
@@ -239,7 +237,7 @@ local function checkAllFeatures()
         return
     end
 
-    clearInstanceTable(instanceVBO)
+    InstanceVBOTable.clearInstanceTable(instanceVBO)
 
     for _, featureID in ipairs(SpringGetAllFeatures()) do
         checkAddHighlight(featureID, true)
