@@ -1105,7 +1105,7 @@ function widget:Update(dt)
 
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
 		nextGuishaderCheck = now + guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI Shader"] ~= 0 then
+		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
 		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
@@ -1662,7 +1662,6 @@ function widget:DrawScreen()
 				drawUiBackground()
 				gl.Color(1, 1, 1, 1)	-- withouth this no guishader effects for other elements
 			end)
-
 			if WG['guishader'] then
 				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
 			end
@@ -2217,7 +2216,7 @@ function widget:Shutdown()
 	end
 
 	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('topbar_background')
+		WG['guishader'].DeleteDlist('topbar_background')
 	end
 
 	if WG['tooltip'] then
