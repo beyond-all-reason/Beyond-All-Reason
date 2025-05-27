@@ -62,6 +62,7 @@ for code, cmdID in pairs(gameCommands) do
 	if CMD[code] then
 		Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
 	end
+	gameCommands[cmdID] = code
 end
 
 local getCommandCode = function(cmdID)
