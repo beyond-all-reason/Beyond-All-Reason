@@ -16,7 +16,7 @@ end
 --                  handle set target
 --					quickfade on cmd cancel
 
-local CMD_RAW_MOVE = 39812
+local CMD_RAW_MOVE = GameCMD.RAW_MOVE
 local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
 local CMD_FIGHT = CMD.FIGHT -- icon map
@@ -31,7 +31,7 @@ local CMD_RECLAIM = CMD.RECLAIM --icon unit feature or area
 local CMD_REPAIR = CMD.REPAIR -- icon unit or area
 local CMD_RESTORE = CMD.RESTORE -- icon area
 local CMD_RESURRECT = CMD.RESURRECT -- icon unit feature or area
--- local CMD_SET_TARGET = 34923 -- custom command, doesn't go through UnitCommand
+-- local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET -- custom command, doesn't go through UnitCommand
 local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT -- icon map
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS -- icon  unit or area
 local BUILD = -1
