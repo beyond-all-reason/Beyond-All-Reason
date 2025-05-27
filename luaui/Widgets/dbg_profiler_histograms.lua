@@ -29,10 +29,7 @@ local boundingbox = {vsx/4, vsy/4, 3*vsx/4, 3*vsy/4}
 
 local histShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-
+local LuaShader = gl.LuaShader
 
 local vsSrc = [[
 #version 420

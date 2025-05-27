@@ -17,6 +17,12 @@ local opacity = 0.25
 local skipOwnTeam = false
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local teamplatterVBO = nil
 local teamplatterShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -160,11 +166,11 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(teamplatterVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(teamplatterVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddPrimitiveAtUnit(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
-	uploadAllElements(teamplatterVBO) -- upload them all
+	InstanceVBOTable.uploadAllElements(teamplatterVBO) -- upload them all
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists

@@ -521,9 +521,11 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local attackRangeShader = nil
 
 local shaderSourceCache = {
@@ -779,11 +781,11 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
 		attackRangeVAOs
-		[atkRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
+		[atkRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
 		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
 			attackRangeVAOs
 			[atkRangeClass].vertexVBO = largeCircleVBO
@@ -795,7 +797,7 @@ local function initGL4()
 			attackRangeVAOs
 			[atkRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(attackRangeVAOs
+		local newVAO = InstanceVBOTable.makeVAOandAttach(attackRangeVAOs
 			[atkRangeClass].vertexVBO, attackRangeVAOs
 			[atkRangeClass].instanceVBO)
 		attackRangeVAOs

@@ -36,6 +36,11 @@ local commonFunctions = {
 		LuaRules  = true,
 		LuaUI     = true,
 	},
+
+	graphics = {
+		LuaRules  = true,
+		LuaUI     = true,
+	},
 }
 
 if commonFunctions.spring[environment] then
@@ -56,6 +61,10 @@ end
 
 if commonFunctions.map[environment] then
 	Spring.Lava = VFS.Include("modules/lava.lua")
+end
+
+if commonFunctions.graphics[environment] then
+	VFS.Include("modules/graphics/init.lua").Init(gl)
 end
 
 -- we don't want them to run these tests for end users

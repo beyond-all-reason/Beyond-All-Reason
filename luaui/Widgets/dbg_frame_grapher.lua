@@ -28,9 +28,12 @@ local timerstart = nil
 
 local rectShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
+
 local maxframes = 500
 
 local rectInstanceTable = nil
@@ -109,9 +112,9 @@ void main() {
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-  local rectvbo, numVertices = makeRectVBO(0,0,1,1,0,0,1,1)
-  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+100, "framegraphervbotable")
-  rectInstanceTable.VAO = makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
+  local rectvbo, numVertices = InstanceVBOTable.makeRectVBO(0,0,1,1,0,0,1,1)
+  rectInstanceTable = InstanceVBOTable.makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+100, "framegraphervbotable")
+  rectInstanceTable.VAO = InstanceVBOTable.makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
   rectInstanceTable.numVertices = numVertices
 
   local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
