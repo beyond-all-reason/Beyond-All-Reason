@@ -52,7 +52,6 @@ end
 
 if commonFunctions.cmd[environment] then
 	Game.CustomCommands = VFS.Include("modules/customcommands.lua")
-	Game.CustomCommands.InjectIntoCMD()
 end
 
 if commonFunctions.map[environment] then

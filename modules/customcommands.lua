@@ -55,19 +55,6 @@ local importCommandsToObject = function(object)
 
 end
 
-local injectIntoCMD = function()
-	for code, cmdID in pairs(gameCommands) do
-		if CMD[cmdID] then
-			Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
-		end
-		if CMD[code] then
-			Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
-		end
-		CMD[code] = cmdID
-		CMD[cmdID] = code
-	end
-end
-
 for code, cmdID in pairs(gameCommands) do
 	if CMD[cmdID] then
 		Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
@@ -84,6 +71,5 @@ end
 return {
 	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
-	InjectIntoCMD = injectIntoCMD,
 	GetCommandCode = getCommandCode,
  }
