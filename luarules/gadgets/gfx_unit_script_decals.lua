@@ -34,8 +34,7 @@ else	-- UNSYNCED
 	local myTeamID = Spring.GetMyTeamID()
 	local myPlayerID = Spring.GetMyPlayerID()
 	local mySpec, fullview = Spring.GetSpectatingState()
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local spIsPosInLos = Spring.IsPosInLos
+	local spIsUnitInLos = Spring.IsUnitInLos
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
@@ -47,7 +46,7 @@ else	-- UNSYNCED
 	local scriptUnitScriptDecal = Script.LuaUI.UnitScriptDecal
 	
 	local function UnitScriptDecal(_, unitID, unitDefID, lightIndex, posx,posz, heading)
-		if not fullview and not CallAsTeam(myTeamID, spIsPosInLos, spGetUnitPosition(unitID)) then
+		if not fullview and not CallAsTeam(myTeamID, spIsUnitInLos, unitID) then
 			return
 		end
 		--Spring.Echo("Unsynced UnitScriptDecal", unitID, unitDefID, lightIndex, posx,posz, heading)
