@@ -20,9 +20,9 @@ local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", 
 
 local defaultSize = 34
 
---local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-local defaultOutlineSize = 0.2-- * (outlineMult*0.3)
-local defaultOutlineStrength = 1.7-- + (outlineMult*0.25)
+local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+defaultOutlineSize = 0.22*(outlineMult*0.9)
+defaultOutlineStrength = 1.7+(outlineMult*0.25)
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
@@ -105,7 +105,7 @@ function widget:ViewResize(vsx, vsy, init)
 	local newFontScale = ((vsx+vsy / 2) / 2500) * ui_scale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	defaultOutlineSize = 0.22*outlineMult
+	defaultOutlineSize = 0.22*(outlineMult*0.9)
 	defaultOutlineStrength = 1.7+(outlineMult*0.25)
 
 	if fontScale ~= newFontScale then
