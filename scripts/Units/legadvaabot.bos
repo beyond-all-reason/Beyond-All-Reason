@@ -394,7 +394,7 @@ RestoreAfterDelay()
 	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2;
 	sleep 5000;
 	set-signal-mask 0;
-	turn torsoFlare to y-axis <0.000000> speed <90>;
+	turn torso to y-axis <0.000000> speed <90>;
 
 	turn gunBase to x-axis <-35> speed <50>;
     turn railarmbase to x-axis <0> speed <225>;
@@ -405,7 +405,7 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch){
     signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-    turn torsoFlare to y-axis heading speed <225>;
+    turn torso to y-axis heading speed <225>;
 	turn gunBase to x-axis <0> - pitch speed <225>;
 
     turn railarmbase to x-axis <45> speed <225>;
