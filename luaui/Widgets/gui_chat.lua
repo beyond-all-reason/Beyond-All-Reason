@@ -1133,12 +1133,14 @@ local function drawGameTime(gameFrame)
 		offset = (usedFontSize*0.2*widgetScale)
 	end
 	font3:Begin()
+	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 local function drawConsoleLine(i)
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
 end
@@ -1183,6 +1185,7 @@ local function drawChatLine(i)
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		font3:Begin()
+		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else

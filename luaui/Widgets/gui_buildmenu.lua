@@ -458,10 +458,19 @@ function widget:Update(dt)
 		prevSelBuilderDefs = selBuilderDefs
 	end
 
+	local prevBuildmenuShows = buildmenuShows
 	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
+	end
+
+	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+		if buildmenuShows then
+			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+		else
+			WG['guishader'].RemoveDlist('buildmenu')
+		end
 	end
 
 	sec = sec + dt
@@ -771,9 +780,6 @@ function widget:DrawScreen()
 	end
 
 	if not buildmenuShows then
-		if WG['guishader'] and dlistGuishader then
-			WG['guishader'].RemoveDlist('buildmenu')
-		end
 		return
 	end
 
@@ -804,11 +810,6 @@ function widget:DrawScreen()
 		RefreshCommands()
 		doUpdate = nil
 		refreshBuildmenu = true
-	end
-
-	-- create buildmenu drawlists
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
 	end
 
 	-- create buildmenu
