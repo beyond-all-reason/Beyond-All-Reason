@@ -148,12 +148,12 @@ local icontypes = {
 		size = 1.36499989
 	},
 	armhvytrans = {
-		bitmap = "icons/air_trans.png",
-		size = 1.5
+		bitmap = "icons/air_trans_heavy.png",
+		size = 1.57
 	},
 	corhvytrans = {
-		bitmap = "icons/air_trans.png",
-		size = 1.5
+		bitmap = "icons/air_trans_heavy.png",
+		size = 1.57
 	},
 	armavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
@@ -2340,7 +2340,7 @@ local icontypes = {
 		size = 1.36499989
 	},
 	legaheattank = {
-		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
+		bitmap = "icons/legaheattank.png",
 		size = 1.73749986
 	},
 	legassistdrone = {
@@ -2352,8 +2352,8 @@ local icontypes = {
 		size = 0.85000002
 	},
 	legatrans = {
-		bitmap = "icons/air_trans.png",
-		size = 1.5
+		bitmap = "icons/air_trans_heavy.png",
+		size = 1.57
 	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
@@ -2372,7 +2372,7 @@ local icontypes = {
 		size = 1.60000002
 	},
 	legbastion = {
-		bitmap = "icons/def_t2_tachyon.png",
+		bitmap = "icons/legbastion.png",
 		size = 2.0474999
 	},
 	legbombard = {
@@ -2564,7 +2564,7 @@ local icontypes = {
 		size = 0.75
 	},
 	leghelios = {
-		bitmap = "icons/vehicle_t1_tank.png",
+		bitmap = "icons/leghelios.png",
 		size = 0.94999999
 	},
 	leghastatus = {
@@ -2580,7 +2580,7 @@ local icontypes = {
 		size = 1.25999999
 	},
 	legamph = {
-		bitmap = "icons/amph_torp.png",
+		bitmap = "icons/legamph.png",
 		size = 1.65999997
 	},
 	legamphtank = {
@@ -2596,7 +2596,7 @@ local icontypes = {
 		size = 0.94499993
 	},
 	leginc = {
-		bitmap = "icons/corsumo.png",
+		bitmap = "icons/leginc.png",
 		size = 1.85000002
 	},
 	leginf = {
@@ -2632,8 +2632,8 @@ local icontypes = {
 		size = 2
 	},
 	leglht = {
-		bitmap = "icons/defence_0_laser.png",
-		size = 0.80000001
+		bitmap = "icons/defence_1_heat.png",
+		size = 0.83999997
 	},
 	leglab = {
 		bitmap = "icons/factory_bot.png",
@@ -2752,7 +2752,7 @@ local icontypes = {
 		size = 1.88999987
 	},
 	legphoenix = {
-		bitmap = "icons/air_t2_laser.png",
+		bitmap = "icons/legphoenix.png",
 		size = 1.74299991
 	},
 	legpontus = {
@@ -2824,7 +2824,7 @@ local icontypes = {
 		size = 1.29999995
 	},
 	legstronghold = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/legtrans.png",
 		size = 1.83749986
 	},
 	legjim = {
