@@ -6,7 +6,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 40 20",
-		collisionvolumetype = "Box",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 6650,
 		explodeas = "smallexplosiongeneric-phib",
