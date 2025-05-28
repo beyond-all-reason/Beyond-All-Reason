@@ -183,6 +183,7 @@ local armorDefs = {
 		"armconsul",
 		"legafcv",
 		"coraak",
+		"legadvaabot",
 		"corack",
 		"coracv",
 		"coradvsol",
