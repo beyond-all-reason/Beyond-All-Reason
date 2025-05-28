@@ -266,6 +266,204 @@ vec4 waterBlend(float fragmentheight){
 
     return eubs .. waterUniforms
 end
+local function GetQuaternionDefs()
+	-- For replacing //__QUATERNIONDEFS__ with the quaternion definitions
+	return	[[
+// Quaternion math functions
+struct Transform {
+	vec4 quat;
+	vec4 trSc;
+};
+
+layout(std140, binding = 0) readonly buffer TransformBuffer {
+	Transform transforms[];
+};
+
+uint GetUnpackedValue(uint packedValue, uint byteNum) {
+	return (packedValue >> (8u * byteNum)) & 0xFFu;
+}
+
+vec4 MultiplyQuat(vec4 a, vec4 b)
+{
+    return vec4(a.w * b.w - dot(a.w, b.w), a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz));
+}
+
+vec3 RotateByQuaternion(vec4 q, vec3 v) {
+	return 2.0 * dot(q.xyz, v) * q.xyz + (q.w * q.w - dot(q.xyz, q.xyz)) * v + 2.0 * q.w * cross(q.xyz, v);
+}
+
+vec4 RotateByQuaternion(vec4 q, vec4 v) {
+	return vec4(RotateByQuaternion(q, v.xyz), v.w);
+}
+
+vec4 InvertNormalizedQuaternion(vec4 q) {
+	return vec4(-q.x, -q.y, -q.z, q.w);
+}
+
+vec3 ApplyTransform(Transform tra, vec3 v) {
+	return RotateByQuaternion(tra.quat, v * tra.trSc.w) + tra.trSc.xyz;
+}
+
+vec4 ApplyTransform(Transform tra, vec4 v) {
+	return vec4(ApplyTransform(tra, v.xyz), v.w);
+}
+
+Transform ApplyTransform(Transform parentTra, Transform childTra) {
+	return Transform(
+		MultiplyQuat(parentTra.quat, childTra.quat),
+		vec4(
+			parentTra.trSc.xyz + RotateByQuaternion(parentTra.quat, parentTra.trSc.w * childTra.trSc.xyz),
+			parentTra.trSc.w * childTra.trSc.w
+		)
+	);
+}
+
+Transform InvertTransformAffine(Transform tra) {
+	vec4 invR = InvertNormalizedQuaternion(tra.quat);
+	float invS = 1.0 / tra.trSc.w;
+	return Transform(
+		invR,
+		vec4(
+			RotateByQuaternion(invR, -tra.trSc.xyz * invS),
+			invS
+		)
+	);
+}
+
+vec4 SLerp(vec4 qa, vec4 qb, float t) {
+	// Calculate angle between them.
+	float cosHalfTheta = dot(qa, qb);
+
+	// Every rotation can be represented by two quaternions: (++++) or (----)
+	// avoid taking the longer way: choose one representation
+	float s = sign(cosHalfTheta);
+	qb *= s;
+	cosHalfTheta *= s;
+	// now cosHalfTheta is >= 0.0
+
+	// if qa and qb (or -qb originally) represent ~ the same rotation
+	if (cosHalfTheta >= (1.0 - 0.005))
+		return normalize(mix(qa, qb, t));
+
+	// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
+	// does not require special handling, however this usually represents
+	// "physically impossible" 180 degree turns with infinite speed so perhaps
+	// it can be handled in the following (cuurently disabled) special way
+	#if 0
+	if (cosHalfTheta <= 0.005)
+		return mix(qa, qb, step(0.5, t));
+	#endif
+
+	float halfTheta = acos(cosHalfTheta);
+
+	// both should be divided by sinHalfTheta (calculation skipped),
+	// but it makes no sense to do it due to follow up normalization
+	float ratioA = sin((1.0 - t) * halfTheta);
+	float ratioB = sin((      t) * halfTheta);
+
+	return qa * ratioA + qb * ratioB; // already normalized
+}
+
+Transform Lerp(Transform t0, Transform t1, float a) {
+	// generally good idea, otherwise extrapolation artifacts
+	// will be nasty in some cases (e.g. fast rotation)
+	a = clamp(a, 0.0, 1.0);
+	return Transform(
+		SLerp(t0.quat, t1.quat, a),
+		mix(t0.trSc, t1.trSc, a)
+	);
+}
+
+mat4 TransformToMat4(Transform t) {
+    // Normalize the quaternion to ensure a proper rotation matrix.
+    vec4 q = normalize(t.quat);
+    // Uniform scale factor stored in t.trSc.w.
+    float s = t.trSc.w;
+
+    // Pre-calculate products for matrix elements.
+    float xx = q.x * q.x;
+    float yy = q.y * q.y;
+    float zz = q.z * q.z;
+    float xy = q.x * q.y;
+    float xz = q.x * q.z;
+    float yz = q.y * q.z;
+    float wx = q.w * q.x;
+    float wy = q.w * q.y;
+    float wz = q.w * q.z;
+
+    // Construct the rotation matrix (3x3) from the quaternion.
+    mat3 rot;
+    rot[0][0] = 1.0 - 2.0 * (yy + zz);
+    rot[0][1] = 2.0 * (xy - wz);
+    rot[0][2] = 2.0 * (xz + wy);
+    
+    rot[1][0] = 2.0 * (xy + wz);
+    rot[1][1] = 1.0 - 2.0 * (xx + zz);
+    rot[1][2] = 2.0 * (yz - wx);
+    
+    rot[2][0] = 2.0 * (xz - wy);
+    rot[2][1] = 2.0 * (yz + wx);
+    rot[2][2] = 1.0 - 2.0 * (xx + yy);
+
+    // Apply the uniform scale to the rotation matrix.
+    rot *= s;
+
+    // Create a 4x4 transformation matrix.
+    // The upper-left 3x3 is the scaled rotation,
+    // the rightmost column is the translation stored in t.trSc.xyz,
+    // and the bottom row is (0,0,0,1).
+    return mat4(
+        vec4(rot[0], 0.0),
+        vec4(rot[1], 0.0),
+        vec4(rot[2], 0.0),
+        vec4(t.trSc.xyz, 1.0)
+    );
+}
+
+
+// This helper function gets the transform that gets you the piece-space to world-space transform
+Transform GetPieceWorldTransform(uint baseIndex, uint pieceID)
+{
+	Transform pieceToMModelTX =  Lerp(
+		transforms[baseIndex + 2u * (1u + pieceID) + 0u],
+		transforms[baseIndex + 2u * (1u + pieceID) + 1u],
+		timeInfo.w
+	);
+
+	Transform modelToWorldTX = Lerp(
+		transforms[baseIndex + 0u],
+		transforms[baseIndex + 1u],
+		timeInfo.w
+	);
+	return ApplyTransform(modelToWorldTX, pieceToMModelTX);
+}
+
+// This helper function gets the transform that gets you the model-space to world-space transform
+Transform GetModelWorldTransform(uint baseIndex, uint pieceID)
+{
+	return Lerp(
+		transforms[baseIndex + 0u],
+		transforms[baseIndex + 1u],
+		timeInfo.w
+	);
+}
+
+// This helper function gets the transform that gets you the piece-space to model-space transform
+Transform GetPieceModelTransform(uint baseIndex, uint pieceID)
+{
+	return Lerp(
+		transforms[baseIndex + 2u * (1u + pieceID) + 0u],
+		transforms[baseIndex + 2u * (1u + pieceID) + 1u],
+		timeInfo.w
+	);
+}
+Transform GetStaticPieceModelTransform(uint baseIndex, uint pieceID)
+{
+	return transforms[baseIndex + 1u * (pieceID) + 0u];
+}
+	
+]]
+end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
   local defines = {}
@@ -286,6 +484,7 @@ LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
+LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
 
 local function CheckShaderUpdates(shadersourcecache, delaytime)
@@ -311,6 +510,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+			local quaternionDefines = LuaShader.GetQuaternionDefs()
 
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
@@ -402,18 +602,21 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				vsSrcNew = vsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
 
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				gsSrcNew = gsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
 
 			if fsSrcNew then 
 				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
 			end
 				local reinitshader =  LuaShader(
