@@ -7,8 +7,8 @@ return {
 		buildpic = "legapopupdef.dds",
 		buildtime = 17500,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "35 14 35",
+		collisionvolumeoffsets = "0 -14 0",
+		collisionvolumescales = "35 16 35",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -34,7 +34,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			model_author = "ZephyrSkies",
+			model_author = "ZephyrSkies (Model), Johnathan Crimson (Proposal)",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "Legion/Defenses",
@@ -83,7 +83,8 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-medium-impulse",
+				[1] = "custom:barrelshot-large-impulse",
+				[2] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

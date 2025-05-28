@@ -184,6 +184,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
     move riotCannon to z-axis [-10] speed [100];
+    emit-sfx 1024 from riotCannonFlare;
     sleep 100;
     move riotcannon to z-axis [0] speed [10];
 }
@@ -203,6 +204,13 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2(){
     spin minigunR around z-axis speed <600>;
+    //emit-sfx 1024 + 1 from minigunFlareR;
+}
+
+Shot2(zero)
+{
+	emit-sfx 1024 + 1 from minigunFlareR;
+	return(1);
 }
 
 QueryWeapon2(pieceIndex){
@@ -228,6 +236,13 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3(){
     spin minigunL around z-axis speed <-600>;
+    emit-sfx 1024 + 1 from minigunFlareL;
+}
+
+Shot3(zero)
+{
+	emit-sfx 1024 + 1 from minigunFlareL;
+	return(1);
 }
 
 QueryWeapon3(pieceIndex){
