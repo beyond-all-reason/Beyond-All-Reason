@@ -99,7 +99,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec3 rndVec3; //new every draw frame.
 	uint renderCaps; //various render booleans
 
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
+	vec4 timeInfo; //gameFrame, drawSeconds, interpolated(unsynced)GameSeconds(synced), frameTimeOffset
 	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
 	vec4 mapHeight; //height minCur, maxCur, minInit, maxInit
@@ -285,7 +285,7 @@ uint GetUnpackedValue(uint packedValue, uint byteNum) {
 
 vec4 MultiplyQuat(vec4 a, vec4 b)
 {
-    return vec4(a.w * b.w - dot(a.w, b.w), a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz));
+    return vec4(a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz), a.w * b.w - dot(a.xyz, b.xyz));
 }
 
 vec3 RotateByQuaternion(vec4 q, vec3 v) {
@@ -305,7 +305,7 @@ vec3 ApplyTransform(Transform tra, vec3 v) {
 }
 
 vec4 ApplyTransform(Transform tra, vec4 v) {
-	return vec4(ApplyTransform(tra, v.xyz), v.w);
+	return vec4(RotateByQuaternion(tra.quat, v.xyz * tra.trSc.w) + tra.trSc.xyz * v.w, v.w);
 }
 
 Transform ApplyTransform(Transform parentTra, Transform childTra) {
@@ -330,6 +330,32 @@ Transform InvertTransformAffine(Transform tra) {
 	);
 }
 
+mat4 TransformToMatrix(Transform tra) {
+	float qxx = tra.quat.x * tra.quat.x;
+	float qyy = tra.quat.y * tra.quat.y;
+	float qzz = tra.quat.z * tra.quat.z;
+	float qxz = tra.quat.x * tra.quat.z;
+	float qxy = tra.quat.x * tra.quat.y;
+	float qyz = tra.quat.y * tra.quat.z;
+	float qrx = tra.quat.w * tra.quat.x;
+	float qry = tra.quat.w * tra.quat.y;
+	float qrz = tra.quat.w * tra.quat.z;
+
+	mat3 rot = mat3(
+		vec3(1.0 - 2.0 * (qyy + qzz), 2.0 * (qxy + qrz)      , 2.0 * (qxz - qry)      ),
+		vec3(2.0 * (qxy - qrz)      , 1.0 - 2.0 * (qxx + qzz), 2.0 * (qyz + qrx)      ),
+		vec3(2.0 * (qxz + qry)      , 2.0 * (qyz - qrx)      , 1.0 - 2.0 * (qxx + qyy))
+	);
+
+	rot *= tra.trSc.w;
+
+	return mat4(
+		vec4(rot[0]      , 0.0),
+		vec4(rot[1]      , 0.0),
+		vec4(rot[2]      , 0.0),
+		vec4(tra.trSc.xyz, 1.0)
+	);
+}
 vec4 SLerp(vec4 qa, vec4 qb, float t) {
 	// Calculate angle between them.
 	float cosHalfTheta = dot(qa, qb);
@@ -373,6 +399,8 @@ Transform Lerp(Transform t0, Transform t1, float a) {
 		mix(t0.trSc, t1.trSc, a)
 	);
 }
+
+
 
 mat4 TransformToMat4(Transform t) {
     // Normalize the quaternion to ensure a proper rotation matrix.
