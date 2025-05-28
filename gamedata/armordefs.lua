@@ -419,6 +419,7 @@ local armorDefs = {
 		"legcluster",
 		"legbastion",
 		"legbombard",
+		"legapopupdef",
 		"legperdition",
 		"legstarfall",
 		"legflak",
