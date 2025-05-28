@@ -364,7 +364,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 4;
+    animSpeed = 3;
 	start-script Walk();
 }
 StopMoving(){
@@ -376,7 +376,7 @@ StopMoving(){
 
 Create()
 {
-	animSpeed = 5;
+	animSpeed = 3;
 	isMoving = FALSE;
     turn radarFlare to x-axis <17> now;
     turn railgun to x-axis <-70> now;
@@ -447,6 +447,12 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 
+	turn torso to y-axis heading speed <225>;
+	turn gunBase to x-axis <0> - pitch speed <225>;
+
+    turn railarmbase to x-axis <45> speed <225>;
+    turn railarm to x-axis <-45> speed <225>;
+	turn railgun to x-axis (<0> - pitch) speed <225>;
 	//wait-for-turn torsoFlare around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
