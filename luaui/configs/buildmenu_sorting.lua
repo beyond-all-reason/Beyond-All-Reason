@@ -657,6 +657,7 @@ local unitOrderTable = {
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['legbombard']     = 107250,
+   ['legapopupdef']   = 107251,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
    ['legacluster']	  = 107450,

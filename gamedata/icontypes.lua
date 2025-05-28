@@ -2383,6 +2383,10 @@ local icontypes = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
 	},
+	legapopupdef = {
+		bitmap = "icons/def_t2_impulse.png",
+		size = 1.46999991
+	},
 	legca = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
