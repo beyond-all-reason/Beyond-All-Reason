@@ -491,6 +491,7 @@ function updateInputDlist()
 
 		-- button text
 		usedFont:Begin()
+		usedFont:SetOutlineColor(0,0,0,0.4)
 		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
 		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
@@ -650,6 +651,7 @@ function DrawWindow()
 	end
 
 	font:Begin()
+	font:SetOutlineColor(0,0,0,0.4)
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -771,9 +773,11 @@ function DrawWindow()
 						if option.type == nil then
 							font:End()
 							font3:Begin()
+							font3:SetOutlineColor(0,0,0,0.4)
 							font3:Print('\255\255\200\130' .. option.name, xPos + (oPadding * 0.5), yPos - (oHeight * 1.8) - oPadding, oHeight * 1.5, "no")
 							font3:End()
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:SetTextColor(1, 1, 1, 1)
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
@@ -859,10 +863,12 @@ function DrawWindow()
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
+									font2:SetOutlineColor(0,0,0,0.4)
 									font2:SetTextColor(1, 1, 1, 1)
 									font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
 									font2:End()
 									font:Begin()
+									font:SetOutlineColor(0,0,0,0.4)
 								else
 									font:SetTextColor(1, 1, 1, 1)
 									font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
@@ -1281,6 +1287,7 @@ function widget:DrawScreen()
 									end
 									consoleCmdDlist = glCreateList(function()
 										font:Begin()
+										font:SetOutlineColor(0,0,0,0.4)
 										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
 										font:End()
@@ -1365,10 +1372,12 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
 							fontOption[i]:Begin()
+							fontOption[i]:SetOutlineColor(0,0,0,0.4)
 							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end

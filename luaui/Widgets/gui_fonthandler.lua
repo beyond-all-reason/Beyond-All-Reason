@@ -20,9 +20,9 @@ local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", 
 
 local defaultSize = 34
 
-local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-local defaultOutlineSize = 0.2 * outlineMult
-local defaultOutlineStrength = 1.7 + (outlineMult*0.25)
+--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+local defaultOutlineSize = 0.2-- * (outlineMult*0.3)
+local defaultOutlineStrength = 1.7-- + (outlineMult*0.25)
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 

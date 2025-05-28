@@ -207,6 +207,7 @@ local function drawTooltip(name, x, y)
 			if tooltips[name].title and tooltips[name].title ~= '' then
 				maxHeight = math_ceil(maxHeight - (titleFontSize * 0.1))
 				font2:Begin()
+				font2:SetOutlineColor(0,0,0,0.6)
 				font2:Print('\255\205\255\205'..tooltips[name].title, addX, maxHeight+addY, titleFontSize, "o")
 				font2:End()
 				maxHeight = math_ceil(maxHeight - (titleFontSize * 1.12))
@@ -214,6 +215,7 @@ local function drawTooltip(name, x, y)
 
 			if tooltips[name].value and tooltips[name].value ~= '' then
 				font:Begin()
+				font:SetOutlineColor(0,0,0,0.4)
 				for i, line in ipairs(lines) do
 					font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
 					maxHeight = maxHeight - lineHeight
