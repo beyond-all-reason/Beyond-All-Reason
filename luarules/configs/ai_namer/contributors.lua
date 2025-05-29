@@ -36,6 +36,7 @@ local ContributorAINames = {
     "Itanthias",
     "Jazcash",
     "Johannes",
+	"JonathanCrimson",
     "Krogoth",
     "Lexon",
     "Lonewolfdesign",
