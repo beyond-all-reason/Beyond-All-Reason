@@ -324,6 +324,7 @@ local function GetSpotsMetal()
 	end
 
 	-- Final processing
+	-- armmex used as representative unit for placement checking, since all metal extractors are the same size
 	local uDefID = UnitDefNames["armmex"].id
 	local spots = {}
 	for _, g in ipairs(uniqueGroups) do
