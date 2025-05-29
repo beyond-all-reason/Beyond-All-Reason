@@ -1,0 +1,10 @@
+name: Lua Tests
+on:
+  pull_request:
+jobs:
+  lua:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Lua tests
+        run: ./tools/run-lua-tests.sh tests/test_edge_resurrection.lua
