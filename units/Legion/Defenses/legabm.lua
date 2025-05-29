@@ -32,8 +32,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legabm_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'antinuke',
 			model_author = "Tharsis",

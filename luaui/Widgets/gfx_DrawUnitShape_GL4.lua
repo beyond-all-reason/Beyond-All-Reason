@@ -49,9 +49,13 @@ end
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 local unitShader, unitShapeShader
 
@@ -469,13 +473,13 @@ function widget:Initialize()
 
 	local maxElements = 6 -- start small for testing
 	local unitIDAttributeIndex = 9
-	corDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
-	armDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	corDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	armDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 
 	VBOTables = {corDrawUnitVBOTable, armDrawUnitVBOTable}
 
 	for i,VBOTable in ipairs(VBOTables) do -- attach everything together
-		VBOTable.VAO = makeVAOandAttach(vertexVBO, VBOTable.instanceVBO, indexVBO)
+		VBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertexVBO, VBOTable.instanceVBO, indexVBO)
 		VBOTable.indexVBO = indexVBO
 		VBOTable.vertexVBO = vertexVBO
 	end
@@ -489,8 +493,8 @@ function widget:Initialize()
 	
 	for tex1, _ in pairs(tex1ToVBO) do 
 		local vboname = 'DrawUnitShapeVBOTable:' .. tex1
-		local vboTable = makeInstanceVBOTable(VBOLayout, maxElements, vboname, unitIDAttributeIndex, "unitDefID")
-		vboTable.VAO = makeVAOandAttach(vertexVBO, vboTable.instanceVBO, indexVBO)
+		local vboTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, vboname, unitIDAttributeIndex, "unitDefID")
+		vboTable.VAO = InstanceVBOTable.makeVAOandAttach(vertexVBO, vboTable.instanceVBO, indexVBO)
 		vboTable.indexVBO = indexVBO
 		vboTable.vertexVBO = vertexVBO
 		tex1ToVBO[tex1] = vboTable
@@ -565,7 +569,7 @@ function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
 		if VBOTable.VAO then
 			if Spring.Utilities.IsDevMode() then
-				dumpAndCompareInstanceData(VBOTable)
+				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
 		end
@@ -574,7 +578,7 @@ function widget:Shutdown()
 	for tex1,VBOTable in ipairs(tex1ToVBO) do
 		if VBOTable.VAO then
 			if Spring.Utilities.IsDevMode() then
-				dumpAndCompareInstanceData(VBOTable)
+				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
 		end
