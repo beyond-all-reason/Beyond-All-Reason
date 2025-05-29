@@ -142,6 +142,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					water_splash_ceg = "splash-gigantic", -- 1 bigger than it would get
 					stockpilelimit = 10,
 				},
 				damage = {
