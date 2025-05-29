@@ -136,7 +136,7 @@ return {
 				noselfdamage = true,
 				range = 915,
 				reloadtime = 1.7,
-				rgbcolor = "0.7 0.7 1.0",
+				--rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy2",
