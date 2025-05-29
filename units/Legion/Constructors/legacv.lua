@@ -78,6 +78,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Constructors",
 			techlevel = 2,
+			t2con_shareable_under_no_econ_sharing = 1,
 		},
 		featuredefs = {
 			dead = {
