@@ -128,7 +128,7 @@ for i = 1,#scavConfig.unprocessedScavTurrets do
 			if not UnitDefNames[unitName] then
 				Spring.Echo("We got a fucked unit name here: " .. unitName)
 			end
-			if defs.type ~= "nuke" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories in ruins
+			if defs.type ~= "nuke" and defs.type ~= "explo" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories or mines in ruins
 				if defs.surface == "land" then
 					for _ = 1,defs.maxExisting*((7-i)^2) do
 						landDefences[#landDefences+1] = unitName
