@@ -102,7 +102,7 @@ local labGrids = {
 	legaap = {
 		"legaca", "legafigdef", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
 		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
-		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
+		"legfort", "", "legmineb", ""			--flying fort, empty, minebomber
 	},
 	-- seaplanes
 	armplat = {
