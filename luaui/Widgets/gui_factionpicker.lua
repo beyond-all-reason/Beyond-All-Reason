@@ -13,18 +13,6 @@ function widget:GetInfo()
 end
 local factions = {}
 
-if UnitDefNames.dummycom then
-	factions[#factions+1] = { startUnit = UnitDefNames.dummycom.id, faction = 'random' }
-end
-if UnitDefNames.corcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
-end
-if UnitDefNames.armcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
-end
-if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom then
-	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
-end
 
 local doUpdate
 local playSounds = true
@@ -39,6 +27,23 @@ local myTeamID = Spring.GetMyTeamID()
 local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+do
+	local validStartUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	for i, unitID_string in ipairs(validStartUnits) do
+		-- TODO: figure out a better approach to this as sidedata faction names and language file keys do not match
+		local unitID = tonumber(unitID_string)
+		factions[i] = {
+			startUnit = unitID,
+			faction = string.sub(UnitDefs[unitID].name, 1, 3) }
+		if factions[i].faction == "dum" then
+			factions[i].faction = "random"
+		end
+	end
+end
+if #factions == 0 then
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
+	return false
+end
 
 local factionRect = {}
 for i, faction in pairs(factions) do
