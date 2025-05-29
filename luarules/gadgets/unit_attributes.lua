@@ -414,12 +414,10 @@ local currentMovement = {}
 local currentTurn = {}
 local currentAcc = {}
 
-local unitSlowed = {}
 local unitAbilityDisabled = {}
 local unitShieldDisabled = {}
 
 local function removeUnit(unitID)
-	unitSlowed[unitID] = nil
 	unitAbilityDisabled[unitID] = nil
 	unitShieldDisabled[unitID] = nil
 	unitReloadPaused[unitID] = nil
@@ -545,7 +543,6 @@ function UpdateUnitAttributes(unitID, frame)
 		GG.att_ReloadChange[unitID] = reloadMult
 		GG.att_MoveChange[unitID] = moveMult
 
-		unitSlowed[unitID] = moveMult < 1
 		if weaponMods or reloadMult ~= currentReload[unitID] then
 			UpdateReloadSpeed(unitID, unitDefID, weaponMods, reloadMult, frame)
 			currentReload[unitID] = reloadMult
@@ -570,8 +567,6 @@ function UpdateUnitAttributes(unitID, frame)
 		if econMult ~= 1 or moveMult ~= 1 or reloadMult ~= 1 or turnMult ~= 1 or maxAccMult ~= 1 then
 			changedAtt = true
 		end
-	else
-		unitSlowed[unitID] = nil
 	end
 
 	local forcedOff = spGetUnitRulesParam(unitID, "forcedOff")
@@ -627,7 +622,6 @@ local function SetAllowUnitCoast(unitID, allowed)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(GameCMD.SET_WANTED_MAX_SPEED)
 	GG.UpdateUnitAttributes = UpdateUnitAttributes
 	GG.SetAllowUnitCoast = SetAllowUnitCoast
 
@@ -641,13 +635,6 @@ function gadget:GameFrame(f)
 			UpdatePausedReload(unitID, unitDefID, f)
 		end
 	end
-
-
-
-	if false and f % 50 == 1 then
-		Spring.Echo(unitSlowed)
-	end
-
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -662,11 +649,3 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 	return true
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	-- accepts: SET_WANTED_MAX_SPEED
-	if unitSlowed[unitID] then
-		return false
-	else
-		return true
-	end
-end
