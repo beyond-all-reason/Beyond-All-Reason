@@ -232,9 +232,9 @@ local function SetupUnitDef(unitDefID, unitDef)
 							weaponInfo[unitDefID] = { type = "sector"}
 						end
 						weaponInfo[unitDefID].type = "sector"
-						weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
-						weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
-
+						weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
+						weaponInfo[unitDefID].sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction)
+						weaponInfo[unitDefID].sector_range_max = weaponDef.range
 					end
 				end
 			end
@@ -594,31 +594,45 @@ end
 --------------------------------------------------------------------------------
 --sector
 --------------------------------------------------------------------------------
-local function DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz, active)
+
+local function DrawSectorScatter(angle, shortfall, rangeMax, fx, fy, fz, tx, ty, tz)
 	--x2=cosβx1−sinβy1
 	--y2=sinβx1+cosβy1
 	local bars = {}
 	local vx = tx - fx
 	local vz = tz - fz
-
+	local px = fx
+	local pz = fz
+	local vw = vx * vx + vz * vz
+	if vw > 1 and vw > rangeMax * rangeMax then
+		vw = math.sqrt(vw)
+		local scale = rangeMax / vw
+		local angleAim = math.atan2(vx, vz)
+		px = px + (vw - rangeMax) * math.sin(angleAim)
+		pz = pz + (vw - rangeMax) * math.cos(angleAim)
+		vx = vx * scale
+		vz = vz * scale
+	end
 	local vx2 = 0
 	local vz2 = 0
+	local segments = math.max(3, angle / 30)
+	local toRadians = math.pi / 180
 	local count = 1
-	for ii = -3, 3 do
-		vx2 = vx*math.cos(0.5*angle*ii/3*math.pi/180) - vz*math.sin(0.5*angle*ii/3*math.pi/180)
-		vz2 = vx*math.sin(0.5*angle*ii/3*math.pi/180) + vz*math.cos(0.5*angle*ii/3*math.pi/180)
-		bars[count] = {fx+vx2, ty, fz+vz2}
+	for ii = -segments, segments do
+		vx2 = vx * math.cos(0.5 * angle * ii / 3 * toRadians) - vz * math.sin(0.5 * angle * ii / 3 * toRadians)
+		vz2 = vx * math.sin(0.5 * angle * ii / 3 * toRadians) + vz * math.cos(0.5 * angle * ii / 3 * toRadians)
+		bars[count] = { px + vx2, ty, pz + vz2 }
 		count = count + 1
 	end
-	bars[count] = {fx+(1-shortfall)*vx2, ty, fz+(1-shortfall)*vz2}
+	bars[count] = { px + (1 - shortfall) * vx2, ty, pz + (1 - shortfall) * vz2 }
 	count = count + 1
-	for ii = 3, -3, -1 do
-		vx2 = vx*math.cos(0.5*angle*ii/3*math.pi/180) - vz*math.sin(0.5*angle*ii/3*math.pi/180)
-		vz2 = vx*math.sin(0.5*angle*ii/3*math.pi/180) + vz*math.cos(0.5*angle*ii/3*math.pi/180)
-		bars[count] = {fx+(1-shortfall)*vx2, ty, fz+(1-shortfall)*vz2}
+	for ii = segments, -segments, -1 do
+		vx2 = vx * math.cos(0.5 * angle * ii / 3 * toRadians) - vz * math.sin(0.5 * angle * ii / 3 * toRadians)
+		vz2 = vx * math.sin(0.5 * angle * ii / 3 * toRadians) + vz * math.cos(0.5 * angle * ii / 3 * toRadians)
+		bars[count] = { px + (1 - shortfall) * vx2, ty, pz + (1 - shortfall) * vz2 }
 		count = count + 1
 	end
-	bars[count] = {fx+vx2, ty, fz+vz2}
+	bars[count] = { px + vx2, ty, pz + vz2 }
 	count = count + 1
 	glLineWidth(scatterLineWidthMult / mouseDistance)
 	glPointSize(pointSizeMult / mouseDistance)
@@ -823,14 +837,14 @@ function widget:DrawWorldPreUnit()
 
 	-- tremor customdef weapon
 	if (weaponType == "sector") then
+		local angle = info.sector_angle
+		local shortfall = info.sector_shortfall
+		local rangeMax = info.sector_range_max
 
-		local angle = info.sector_angle_active
-		local shortfall = info.sector_shortfall_active
+		DrawSectorScatter(angle, shortfall, rangeMax, fx, fy, fz, tx, ty, tz)
 
-		DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz)
 		return
 	end
-
 
 	if (weaponType == "ballistic") then
 		local trajectory = select(7, GetUnitStates(aimingUnitID, false, true))
