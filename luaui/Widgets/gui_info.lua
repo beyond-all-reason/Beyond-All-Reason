@@ -929,9 +929,11 @@ local function drawSelection()
 	local height = 0
 	local heightStep = (fontSize * 1.36)
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..Spring.I18N('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
 	font2:End()
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	height = height + (fontSize * 0.85)
 
 	-- loop all unitdefs/cells (but not individual unitID's)
@@ -1093,6 +1095,7 @@ local function drawUnitInfo()
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
 
 		font2:Begin()
+		font2:SetOutlineColor(0,0,0,1)
 		font2:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
 		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
 		font2:End()
@@ -1129,6 +1132,7 @@ local function drawUnitInfo()
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
 			font2:Begin()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
@@ -1156,6 +1160,7 @@ local function drawUnitInfo()
 
 	-- unit tooltip
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
 
@@ -1170,6 +1175,7 @@ local function drawUnitInfo()
 		humanName = humanName..'...'
 	end
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
 
@@ -1623,6 +1629,7 @@ local function drawEngineTooltip()
 					end
 					if groundType2 and groundType2 ~= '' then
 						font2:Begin()
+						font2:SetOutlineColor(0,0,0,1)
 						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
 						font2:End()
 						height = height + (fontSize * 0.25)
@@ -1650,6 +1657,7 @@ local function drawEngineTooltip()
 				end
 				if text and text ~= '' then
 					font2:Begin()
+					font2:SetOutlineColor(0,0,0,1)
 					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
 					font2:End()
 					height = height + (fontSize * 0.5)

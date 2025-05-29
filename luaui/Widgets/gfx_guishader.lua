@@ -169,7 +169,7 @@ local function CreateShaders()
 			quadVector = quadVector * odd_start_mirror;
 			return sign(quadVector);
 		}
-		
+
 		void main(void)
 		{
 			vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
@@ -191,7 +191,7 @@ local function CreateShaders()
 						}
 					}
 					gl_FragColor.rgba = sum/9.0;
-				#else 
+				#else
 					//amazingly useless pixel quad message passing for less hammering of membus? 4 lookups instead of 9
 					vec2 quadVector = quadGetQuadVector(gl_FragCoord.xy);
 					vec2 subpixel = vec2(ivsx, ivsy) ;
@@ -392,21 +392,18 @@ function widget:Initialize()
 		end
 	end
 	WG['guishader'].RemoveDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
-		end
-		guishaderDlists[name] = nil
+		local found = guishaderDlists[name] ~= nil
 		if found then
+			guishaderDlists[name] = nil
 			updateStencilTexture = true
 		end
 		return found
 	end
 	WG['guishader'].DeleteDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
+		local found = guishaderDlists[name] ~= nil
+		if found then
 			deleteDlistQueue[name] = guishaderDlists[name]
+			updateStencilTexture = true
 		end
 		return found
 	end
@@ -415,12 +412,9 @@ function widget:Initialize()
 		updateStencilTexture = true
 	end
 	WG['guishader'].RemoveRect = function(name)
-		local found = false
-		if guishaderRects[name] ~= nil then
-			found = true
-		end
-		guishaderRects[name] = nil
+		local found = guishaderRects[name] ~= nil
 		if found then
+			guishaderRects[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -430,12 +424,11 @@ function widget:Initialize()
 		updateStencilTextureScreen = true
 	end
 	WG['guishader'].RemoveScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
+		local found = guishaderScreenDlists[name] ~= nil
+		if found then
+			guishaderScreenDlists[name] = nil
+			updateStencilTextureScreen = true
 		end
-		guishaderScreenDlists[name] = nil
-		updateStencilTextureScreen = true
 		return found
 	end
 	WG['guishader'].DeleteScreenDlist = function(name)
@@ -451,12 +444,11 @@ function widget:Initialize()
 		updateStencilTextureScreen = true
 	end
 	WG['guishader'].RemoveScreenRect = function(name)
-		local found = false
-		if guishaderScreenRects[name] ~= nil then
-			found = true
+		local found = guishaderScreenRects[name] ~= nil
+		if found then
+			guishaderScreenRects[name] = nil
+			updateStencilTextureScreen = true
 		end
-		guishaderScreenRects[name] = nil
-		updateStencilTextureScreen = true
 		return found
 	end
 	WG['guishader'].getBlurDefault = function()

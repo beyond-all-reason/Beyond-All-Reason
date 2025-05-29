@@ -273,7 +273,9 @@ else
 				local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						if not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
 						else
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderDied", tostring(player), true)
@@ -283,7 +285,9 @@ else
 				local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						if not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+
+						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
 						else
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderDied", tostring(player), true)
