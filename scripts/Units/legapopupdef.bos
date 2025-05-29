@@ -1,0 +1,324 @@
+
+#include "../recoil_common_includes.h"
+#include "../opencloseanim.h"
+
+piece
+	doorA,
+	doorC,
+	doorB,
+	base,
+	minigunHousingR,
+	minigunR,
+	minigunHousingL,
+	minigunL,
+	riotcannonHousing,
+	riotCannon,
+	turretPivotPitch,
+	turretPivotBottom,
+	backStruts,
+	turretBaseHeading,
+	platform,
+    minigunFlareR,
+    minigunFlareL,
+    riotCannonFlare,
+    aimFlare,
+    doorFlare1,
+    doorFlare2;
+
+static-var  restore_delay, is_open, last_primary_heading, last_primary_pitch;
+static-var  Stunned;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_TURNON 4
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 0
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Close()
+{
+	// set-signal-mask SIGNAL_AIM1;
+	is_open = 0;
+
+    move backStruts to y-axis [0] speed [7];
+    turn minigunHousingL to z-axis <45> speed <45>;
+    turn minigunHousingR to z-axis <-45> speed <45>;
+
+    sleep 500;
+    
+    turn turretPivotPitch to x-axis <-130> speed <150>;
+    turn turretPivotBottom to x-axis <40> speed <40>;
+
+    sleep 700;
+
+    move platform to y-axis [-48] speed [24];
+
+    sleep 900;
+
+	turn doorA to x-axis <120> speed <120>;
+    turn doorB to x-axis <120> speed <120>;
+    turn doorC to x-axis <120> speed <120>;
+
+	set ARMORED to 1;
+}
+
+Open()
+{
+	set ARMORED to 0;
+
+    /////////////
+
+    turn doorA to x-axis <0> speed <-240>;
+    turn doorB to x-axis <0> speed <-240>;
+    turn doorC to x-axis <0> speed <-240>;
+
+    sleep 250;
+
+    move platform to y-axis [0] speed [-75];
+
+    sleep 250;
+
+    turn turretPivotPitch to x-axis <0> speed <150>;
+    turn turretPivotBottom to x-axis <0> speed <40>;
+
+    sleep 250;
+
+    move backStruts to y-axis [7] speed [14];
+    turn minigunHousingL to z-axis <0> speed <45>;
+    turn minigunHousingR to z-axis <0> speed <45>;
+
+	is_open = 1;
+}
+
+Activate()
+{
+	start-script OpenCloseAnim(1);
+    signal SIGNAL_AIM1;
+    last_primary_heading = -1000000;
+    last_primary_pitch = -1000000;
+}
+
+Deactivate()
+{
+	start-script OpenCloseAnim(0);
+    signal SIGNAL_AIM1;
+    last_primary_heading = -1000000;
+    last_primary_pitch = -1000000;
+}
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    stop-spin minigunR around z-axis decelerate <10>;
+    stop-spin minigunL around z-axis decelerate <10>;
+    turn turretBaseHeading to y-axis <0> speed <100>;
+	set-signal-mask 0;
+    start-script OpenCloseAnim(0);
+    last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+    set-signal-mask SIGNAL_AIM1;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+Create()
+{
+	// hide flare;
+    turn minigunHousingL to z-axis <0> now;
+    turn minigunHousingR to z-axis <0> now;
+	restore_delay = 3000;
+	is_open = 0;
+
+    turn doorFlare1 to y-axis <-120> now;
+    turn doorFlare2 to y-axis <120> now;
+
+    last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+
+
+	SLEEP_UNTIL_UNITFINISHED;
+	// close and armor once construction is done
+	// only if no target in range when done
+	sleep 1000;
+    // is_open = 0;
+	if ( is_open == 0 )
+	{
+		start-script Close();
+	}
+}
+
+AimWeapon1(heading, pitch)
+{
+    start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	while( is_open == 0 )
+	{
+		sleep 250;
+	}
+	turn turretBaseHeading to y-axis heading speed <180.0>;
+	turn turretPivotPitch to x-axis (-1*pitch) speed <180.0>;
+	wait-for-turn turretBaseHeading around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+    move riotCannon to z-axis [-10] speed [100];
+    emit-sfx 1024 from riotCannonFlare;
+    sleep 100;
+    move riotcannon to z-axis [0] speed [10];
+}
+
+AimWeapon2(heading, pitch)
+{
+	// signal SIGNAL_AIM1;
+	// set-signal-mask SIGNAL_AIM1;
+	while( is_open == 0 )
+	{
+		sleep 250;
+	}
+	wait-for-turn turretBaseHeading around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon2(){
+    spin minigunR around z-axis speed <600>;
+    //emit-sfx 1024 + 1 from minigunFlareR;
+}
+
+Shot2(zero)
+{
+	emit-sfx 1024 + 1 from minigunFlareR;
+	return(1);
+}
+
+QueryWeapon2(pieceIndex){
+    pieceIndex = minigunFlareR;
+}
+
+AimFromWeapon2(pieceIndex){
+    pieceIndex = riotCannon;
+}
+
+AimWeapon3(heading, pitch)
+{
+	// signal SIGNAL_AIM1;
+	// set-signal-mask SIGNAL_AIM1;
+	while( is_open == 0 )
+	{
+		sleep 250;
+	}
+	wait-for-turn turretBaseHeading around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon3(){
+    spin minigunL around z-axis speed <-600>;
+    emit-sfx 1024 + 1 from minigunFlareL;
+}
+
+Shot3(zero)
+{
+	emit-sfx 1024 + 1 from minigunFlareL;
+	return(1);
+}
+
+QueryWeapon3(pieceIndex){
+    pieceIndex = minigunFlareL;
+}
+
+AimFromWeapon3(pieceIndex){
+    pieceIndex = riotCannon;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	if (is_open == 0)
+	{
+		pieceIndex = aimFlare;
+	}
+	else
+	{
+		pieceIndex = riotCannonFlare;
+	}
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = riotCannon;
+	// if (is_open == 0)
+	// {
+	// 	pieceIndex = aimFlare;
+	// }
+	// else
+	// {
+	// 	pieceIndex = riotCannon;
+	// }
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretBaseHeading type BITMAPONLY | NOHEATCLOUD;
+		explode doorA type BITMAPONLY | NOHEATCLOUD;
+		explode doorB type BITMAPONLY | NOHEATCLOUD;
+		explode minigunL type BITMAPONLY | NOHEATCLOUD;
+		explode minigunHousingR type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretBaseHeading type FALL | NOHEATCLOUD;
+		explode doorA type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorB type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunL type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunHousingR type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretBaseHeading type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode doorA type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorB type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunL type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunHousingR type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretBaseHeading type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorB type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode minigunHousingR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

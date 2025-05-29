@@ -334,6 +334,7 @@ local unitOrderTable = {
 	['legaabot']       = 008011,
 	['armaak']         = 008020,
 	['coraak']         = 008030,
+	['legadvaabot']    = 008031,
 
 	['armyork']        = 008200,
 	['corsent']        = 008210,
@@ -656,6 +657,7 @@ local unitOrderTable = {
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['legbombard']     = 107250,
+   ['legapopupdef']   = 107251,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
    ['legacluster']	  = 107450,

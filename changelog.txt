@@ -1,4 +1,12 @@
 # May 2025
+• [Legion changes] 
+	- 2 new units added: Aquilon T2 aa bot, Chimera T2 pop-up turret
+	- Cluster plasma was rebalanced and is overall stronger than before
+	- Wildfire removed from T2 air lab, Skuttle removed from t2 bot lab, Behemoth removed from T3 gantry
+	- Script improvements to allow several units to reliably fire while turning: Alaris, Decurion, Quickshot, Phobos
+	- Mosquito stockpile count reduced 8->4, stockpile rate increased slightly
+	- Gladiator projectile speed increased 320->360 to improve accuracy
+	- Lance cost reduced 260->240m, speed increased slightly
 • [Tiger, Turtle, Sumo] Mass 750, to make them transportable by light transports.
 • [Spybot] Emp immune again. Max stuntime vs units 8 -> 10
 • [Banisher] Energycost 17000 -> 23000, Turnrate 300 -> 250, Acceleration 0.2269 -> 0.2

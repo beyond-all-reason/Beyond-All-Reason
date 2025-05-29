@@ -55,7 +55,7 @@ return {
 			"legsd",
 			"legdeflector",
 			"legacluster",
-			"legbombard",
+			"legapopupdef",
 			"legbastion",
 			"legflak",
 			"leglraa",
