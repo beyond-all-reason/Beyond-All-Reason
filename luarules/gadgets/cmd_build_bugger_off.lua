@@ -110,7 +110,7 @@ function gadget:GameFrame(frame)
 			slowUpdateBuilders[builderID]   = true
 			builderRadiusOffsets[builderID] = 0
 
-		elseif math.distance2d(targetX, targetZ, x, z) < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and isBuilding == false and select(5, Spring.GetUnitHealth(builderID)) == 1 then
+		elseif math.distance2d(targetX, targetZ, x, z) < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and isBuilding == false and Spring.GetUnitIsBeingBuilt(builderID) == false then
 			local builtUnitDefID	= -cmdID
 			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
 			local searchRadius		= cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
@@ -121,7 +121,7 @@ function gadget:GameFrame(frame)
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
 			for _, interferingUnitID in ipairs(interferingUnits) do
-				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil and select(5, Spring.GetUnitHealth(interferingUnitID)) == 1  then
+				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false  then
 					-- Only buggeroff from one build site at a time
 					visited[interferingUnitID] = true
 					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
