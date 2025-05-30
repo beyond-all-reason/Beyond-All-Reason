@@ -99,6 +99,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -340,9 +341,10 @@ function widget:ViewResize()
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.4, 0.2, 1.3)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
+	font3 = WG['fonts'].getFont(2, 1.6)
+
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
@@ -489,6 +491,7 @@ function updateInputDlist()
 
 		-- button text
 		usedFont:Begin()
+		usedFont:SetOutlineColor(0,0,0,0.4)
 		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
 		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
@@ -648,6 +651,7 @@ function DrawWindow()
 	end
 
 	font:Begin()
+	font:SetOutlineColor(0,0,0,0.4)
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -769,9 +773,11 @@ function DrawWindow()
 						if option.type == nil then
 							font:End()
 							font3:Begin()
+							font3:SetOutlineColor(0,0,0,0.4)
 							font3:Print('\255\255\200\130' .. option.name, xPos + (oPadding * 0.5), yPos - (oHeight * 1.8) - oPadding, oHeight * 1.5, "no")
 							font3:End()
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:SetTextColor(1, 1, 1, 1)
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
@@ -857,10 +863,12 @@ function DrawWindow()
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
+									font2:SetOutlineColor(0,0,0,0.4)
 									font2:SetTextColor(1, 1, 1, 1)
 									font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
 									font2:End()
 									font:Begin()
+									font:SetOutlineColor(0,0,0,0.4)
 								else
 									font:SetTextColor(1, 1, 1, 1)
 									font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
@@ -1279,6 +1287,7 @@ function widget:DrawScreen()
 									end
 									consoleCmdDlist = glCreateList(function()
 										font:Begin()
+										font:SetOutlineColor(0,0,0,0.4)
 										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
 										font:End()
@@ -1363,10 +1372,12 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
 							fontOption[i]:Begin()
+							fontOption[i]:SetOutlineColor(0,0,0,0.4)
 							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end
@@ -6252,7 +6263,6 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armjamt"].id] = true,
 		[UnitDefNames["armdecom"].id] = false,
 		[UnitDefNames["cordecom"].id] = false,
 		[UnitDefNames["armferret"].id] = false,

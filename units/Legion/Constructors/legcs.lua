@@ -57,7 +57,7 @@ return {
 			"corasy",
 			"legnanotcplat",
 			"corfhp",
-			"legamsub",
+			"legamphlab",
 			"corplat",
 			"legfrad",
 			"legfdrag",

@@ -10,6 +10,12 @@ return {
 	FriendlyCommanderSelfD = {
 		delay = 1,
 	},
+	SpectatorCommanderDied = {
+		delay = 1,
+	},
+	SpectatorCommanderSelfD = {
+		delay = 1,
+	},
 	ComHeavyDamage = {
 		delay = 12,
 	},

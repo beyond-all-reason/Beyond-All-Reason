@@ -116,6 +116,7 @@ return {
 				customparams = {
 					--isupgraded = isupgraded,
 					--damagetype = "ehbotkarganneth",
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 50,
@@ -146,6 +147,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 480,
 					subs = 50,

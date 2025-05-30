@@ -868,7 +868,7 @@ local unitDeaths = {
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
 
-	commanderexplosion = {
+	oldcommanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
 		AreaOfEffect = 700,
@@ -892,6 +892,32 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+
+	commanderexplosion = {
+		name = "Matter/AntimatterExplosion",
+		weaponType = "Cannon",
+		AreaOfEffect = 700,
+		cameraShake = 510,
+		explosionSpeed = 725,
+		impulsefactor = impulsefactor,
+		soundhitwet = "newboomuw",
+		soundhit = "newboom",
+		soundstart = "largegun",
+		soundstartvolume = 25,
+		soundhitvolume = 25,
+		soundhitwetvolume = 34,
+		explosiongenerator = "custom:shockwaveceg",
+		craterboost = 4,
+		cratermult = 2,
+		edgeeffectiveness = 0,
+		damage = {
+			default = 5000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 
 	--BUILDING DEATHS--
 

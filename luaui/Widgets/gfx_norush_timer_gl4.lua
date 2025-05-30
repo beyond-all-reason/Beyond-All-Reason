@@ -23,9 +23,8 @@ local StartBoxes = {} -- list of xXyY
 local noRushTime = Spring.GetModOptions().norushtimer*60*30
 if noRushTime == 0 then return end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = Spring.GetGroundExtremes()
 
@@ -128,5 +127,5 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 end

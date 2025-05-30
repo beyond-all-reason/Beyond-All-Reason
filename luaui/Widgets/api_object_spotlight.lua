@@ -61,9 +61,10 @@ local spotlightTypes = {
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 ---@language Glsl
 local vsSrc = [[
@@ -260,7 +261,7 @@ local function makeCylinderVBO(sections)
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
-	local vbo = makeInstanceVBOTable(
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(
 		layout,
 		nil,
 		name,
@@ -268,7 +269,7 @@ local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
 	)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
 	return vbo
 end
 
