@@ -5,7 +5,7 @@ if not math.isInRect then
 end
 
 if not math.cross_product then
-	function math.cross_product (px, pz, ax, az, bx, bz)
+		function math.cross_product (px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
 	end
 end
@@ -90,6 +90,22 @@ if not math.triangulate then
 
 		return triangles
 	end
+end
+
+if not math.closestPointOnCircle then
+	function math.closestPointOnCircle(centerX, centerZ, radius, targetX, targetZ)
+        local dx = targetX - centerX
+        local dz = targetZ - centerZ
+        local dist = math.diag(dx, dz)
+        if dist == 0 then
+            -- Target is exactly at center; choose arbitrary point on circle
+            return centerX + radius, centerZ
+        end
+        local scale = radius / dist
+        local closestX = centerX + dx * scale
+        local closestZ = centerZ + dz * scale
+        return closestX, closestZ
+    end
 end
 
 if not math.HSLtoRGB then

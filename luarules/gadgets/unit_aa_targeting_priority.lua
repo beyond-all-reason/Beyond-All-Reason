@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 					if weapon.onlyTargets then
 						for category, _ in pairs(weapon.onlyTargets) do
 							if category == 'vtol' then
-								Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+								Script.SetWatchAllowTarget(weapon.weaponDef, true) -- watch so AllowWeaponTarget works
 							end
 						end
 					end

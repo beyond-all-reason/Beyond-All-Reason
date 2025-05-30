@@ -97,7 +97,7 @@ local grassConfig = {
 
 local nightFactor = {1,1,1,1}
 
-local distanceMult = 0.4
+local distanceMult = 0.4 
 
 --------------------------------------------------------------------------------
 -- map custom config
@@ -217,8 +217,10 @@ local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
 local grassPatchCount = 0
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
 local grassRowInstance = {0} -- a table of row, instanceidx from top side of the view
 
 local windDirX = 0

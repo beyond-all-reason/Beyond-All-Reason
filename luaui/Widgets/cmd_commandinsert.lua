@@ -133,6 +133,7 @@ function widget:CommandNotify(id, params, options)
   if options.alt then opt = opt + CMD.OPT_ALT end
   if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
+  if options.meta then opt = opt + CMD.OPT_META end
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
 

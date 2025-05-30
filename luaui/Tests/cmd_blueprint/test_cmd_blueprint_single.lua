@@ -24,8 +24,6 @@ end
 
 local delay = 5
 function test()
-	VFS.Include("luarules/configs/customcmds.h.lua")
-
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -57,7 +55,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	widget:CommandNotify(CMD_BLUEPRINT_CREATE, {}, {})
+	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
 	assert(#(widget.blueprints) == 1)
 
@@ -79,7 +77,7 @@ function test()
 	Test.waitFrames(delay)
 
 	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(CMD_BLUEPRINT_PLACE),
+		Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE),
 		1,
 		true,
 		false,
@@ -98,7 +96,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	widget:CommandNotify(CMD_BLUEPRINT_PLACE, {}, {})
+	widget:CommandNotify(GameCMD.BLUEPRINT_PLACE, {}, {})
 
 	Test.waitFrames(delay)
 

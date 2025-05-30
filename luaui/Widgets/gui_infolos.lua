@@ -82,9 +82,8 @@ local infoTextures = {} -- A table of allyteam/texture mappings
 local currentAllyTeam = nil
 
 local texX, texY
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local fullScreenQuadVAO = nil
 
@@ -202,7 +201,7 @@ function widget:Initialize()
 	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
 
 
-	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
+	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
 
 	WG['infolosapi'] = {}
 	WG['infolosapi'].GetInfoLOSTexture = GetInfoLOSTexture
