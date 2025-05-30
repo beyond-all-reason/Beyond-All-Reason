@@ -311,6 +311,56 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local _unitTolorances = {}
+	--- @return number maxSlope
+	--- @return number footprintSize Half of the biggest footprint out of the x/z
+	local function _getUnitTolorance(unitDefID)
+		if not unitDefID then
+			return 1, 0
+		end
+
+		local tolorance = _unitTolorances[unitDefID]
+		if tolorance then
+			return tolorance[1], tolorance[2]
+		end
+
+		local unitDef = UnitDefs[unitDefID]
+		-- TODO: this currently suffices for current commanders only
+		-- 1. figure out how to detect if a unit sinks (and how deep can it go) or floats (and how shallow of water it needs)
+		-- 2. building slope and footprint
+		if unitDef.canFly then
+			-- assume seaplane
+			tolorance = {1, 0}
+		elseif unitDef.moveDef then
+			tolorance = {
+				unitDef.moveDef.maxSlope,
+				math.max(unitDef.moveDef.xsize, unitDef.moveDef.zsize) / 2,
+			}
+		else
+			tolorance = {1, 0}
+		end
+
+		_unitTolorances[unitDefID] = tolorance
+		return tolorance[1], tolorance[2]
+	end
+
+	--- @return boolean traversable if the unit can not traverse the passed in x/z position
+	-- TODO: add water debth test based on if the unit needs water or can't go into water, see: _getUnitTolorance
+	local function canUnitNotNavigate(x, z, unitDefID)
+		local maxSlope, footprintSize = _getUnitTolorance(unitDefID)
+		local minX, maxX = math.floor((x - footprintSize) / 8) * 8, math.floor((x + footprintSize) / 8) * 8
+		local minZ, maxZ = math.floor((z - footprintSize) / 8) * 8, math.floor((z + footprintSize) / 8) * 8
+		for _z = minZ, maxZ, Game.squareSize do
+			for _x = minX, maxX, Game.squareSize do
+				if select(4, Spring.GetGroundNormal(_x, _z, false)) > maxSlope then
+					return true
+				end
+			end
+		end
+
+		return false
+	end
+
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
@@ -363,6 +413,10 @@ if gadgetHandler:IsSyncedCode() then
 			if isOutsideStartbox then
 				return false
 			end
+		end
+
+		if canUnitNotNavigate(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+			return false
 		end
 
 		-- don't allow player to place if locked
