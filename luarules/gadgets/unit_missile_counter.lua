@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Missile counter",
-		desc = "Checks how many missiles are needed to kill a target (used on Legion Medusa)",
+		name = "Burst overkill prevention",
+		desc = "Limits a volley to only the shots needed to kill a target",
 		author = "EnderRobo",
 		date = "May 7, 2025",
 		license = "GNU GPL, v2 or later",
