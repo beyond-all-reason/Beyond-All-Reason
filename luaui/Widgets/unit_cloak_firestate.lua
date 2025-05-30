@@ -80,12 +80,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
 			if decloakFireState[unitID] ~= 0 then
-				GiveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, {})
+				giveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, {})
 			end
 		else -- decloak and restore previous fire state
 			if select(1, GetUnitStates(unitID, false)) == 0 then
 				local targetState = decloakFireState[unitID] or 0 -- default to hold fire if no cached state is found
-				GiveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { targetState }, {}) --revert to last state
+				giveNotifyingOrderToUnit(unitID, CMD.FIRE_STATE, { targetState }, {}) --revert to last state
 			end
 			decloakFireState[unitID] = nil
 		end
