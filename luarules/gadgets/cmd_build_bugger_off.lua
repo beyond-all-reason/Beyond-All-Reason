@@ -90,13 +90,20 @@ function gadget:GameFrame(frame)
 		return
 	end
 
+	local builderTeams = {}
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, options, tag, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
 		local isBuilding  	= false
 		local x, y, z		= Spring.GetUnitPosition(builderID)
 		local targetID		= Spring.GetUnitIsBuilding(builderID)
+		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
+		-- Make sure at least one builder per player is never told to move
+		if (builderTeams[builderTeam] ~= nil) then
+			visited[builderID] = true
+		end
+		builderTeams[builderTeam] = true
 		
 		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
 			watchedBuilders[builderID]	  	= nil
