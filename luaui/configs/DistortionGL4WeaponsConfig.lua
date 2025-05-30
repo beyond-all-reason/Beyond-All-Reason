@@ -623,7 +623,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 1.0,
 			lifeTime = 15,  refractiveIndex = 1.05,
-			--windAffected = 0.5,  riseRate = 1,
+			--
 			effectStrength = 1.0, --needed for irshockwaves
 			effectType = 'airShockwave', },
 
@@ -651,7 +651,7 @@ local BaseClasses = {
 	},
 	FlameProjectileXL = {
 		distortionType = 'point', -- or cone or beam
-		fraction = 3, -- only spawn every nth distortion
+		fraction = 8, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
 			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.6, onlyModelMap = 0,
@@ -1643,6 +1643,21 @@ projectileDefDistortionsNames["corsala_cor_heat_laser"] =
 
 projectileDefDistortionsNames["corkorg_corkorg_laser"] =
 	GetDistortionClass("HeatRayHeatXL", "KorgLaser")
+
+muzzleFlashDistortionsNames['corkorg_corkorg_fire'] = {
+	GetDistortionClass("MuzzleShockWaveXL", "Nano", {
+		decay = 5, rampUp = 0,
+		startRadius = 0.7,
+		windAffected = -1,  riseRate = -1,
+		lifeTime = 6, effectStrength = 2.0, shockWidth = -0.92,
+	})
+}
+
+muzzleFlashDistortionsNames['armguard_plasma'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano", {
+		lifeTime = 8, effectStrength = 1.2,
+	}),
+}
 
 projectileDefDistortionsNames["armspid_spider"] = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
