@@ -56,23 +56,23 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 --------------------------------------------------------------------------------
 -- Cached globals --------------------------------------------------------------
 
-local max                    = math.max
-local min                    = math.min
-local floor                  = math.floor
+local max                     = math.max
+local min                     = math.min
+local floor                   = math.floor
 
-local spAddUnitDamage        = Spring.AddUnitDamage
-local spGetFeatureHealth     = Spring.GetFeatureHealth
-local spGetFeaturePosition   = Spring.GetFeaturePosition
-local spGetFeaturesInSphere  = Spring.GetFeaturesInSphere
-local spGetGroundHeight      = Spring.GetGroundHeight
-local spGetGroundNormal      = Spring.GetGroundNormal
-local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitPosition      = Spring.GetUnitPosition
-local spGetUnitsInSphere     = Spring.GetUnitsInSphere
-local spSetFeatureHealth     = Spring.SetFeatureHealth
-local spSpawnCEG             = Spring.SpawnCEG
+local spAddUnitDamage         = Spring.AddUnitDamage
+local spGetFeatureHealth      = Spring.GetFeatureHealth
+local spGetFeaturePosition    = Spring.GetFeaturePosition
+local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetGroundHeight       = Spring.GetGroundHeight
+local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetUnitDefID          = Spring.GetUnitDefID
+local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
+local spSetFeatureHealth      = Spring.SetFeatureHealth
+local spSpawnCEG              = Spring.SpawnCEG
 
-local gameSpeed              = Game.gameSpeed
+local gameSpeed               = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
@@ -177,6 +177,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         local dx, dy, dz
         if elevation > 0 then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
+        else
+            dx, dy, dz = 0, 1, 0
         end
 		local area = {
             weapon     = weaponDefID,
@@ -230,23 +232,34 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
+        local unitsInRange = spGetUnitsInCylinder(area.x, area.z, area.range)
+        local positionYMin = area.y - area.range * (1 - area.dy * 0.5) -- e.g. don't reach underwater
+        local positionYMax = area.y + area.range
+
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
+
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
-                local damageTaken = unitDamageTaken[unitID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewUnit[count] = unitID
+                local bx, by, bz, mx, my, mz = spGetUnitPosition(unitID, true)
+
+                if (by >= positionYMin and by <= positionYMax) or (my >= positionYMin and my <= positionYMax) then
+                    local damageTaken = unitDamageTaken[unitID]
+
+                    if not damageTaken then
+                        damageTaken = 0
+                        count = count + 1
+                        resetNewUnit[count] = unitID
+                    end
+
+                    local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+
+                    if showDamageCeg then
+                        spSpawnCEG(area.damageCeg, mx, my, mz)
+                    end
+
+                    unitDamageTaken[unitID] = damageTaken + damage
+                    spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
                 end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local ux, uy, uz = spGetUnitPosition(unitID)
-                    spSpawnCEG(area.damageCeg, ux, uy, uz)
-                end
-                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
-                unitDamageTaken[unitID] = damageTaken + damage
             end
         end
     end
@@ -263,27 +276,39 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
+        local featuresInRange = spGetFeaturesInCylinder(area.x, area.z, area.range)
+        local positionYMin = area.y - area.range * (1 - area.dy * 0.5) -- e.g. don't reach underwater
+        local positionYMax = area.y + area.range
+
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
+
             if not featDamageImmunity[featureID] then
-                local damageTaken = featDamageTaken[featureID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewFeat[count] = featureID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local fx, fy, fz = spGetFeaturePosition(featureID)
-                    spSpawnCEG(area.damageCeg, fx, fy, fz)
-                end
-                local health = spGetFeatureHealth(featureID) - damage
-                if health > 1 then
-                    spSetFeatureHealth(featureID, health)
-                    featDamageTaken[featureID] = damageTaken + damage
-                else
-                    Spring.DestroyFeature(featureID)
+                local bx, by, bz, mx, my, mz = spGetFeaturePosition(featureID, true)
+
+                if (by >= positionYMin and by <= positionYMax) or (my >= positionYMin and my <= positionYMax) then
+                    local damageTaken = featDamageTaken[featureID]
+
+                    if not damageTaken then
+                        damageTaken = 0
+                        count = count + 1
+                        resetNewFeat[count] = featureID
+                    end
+
+                    local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+
+                    if showDamageCeg then
+                        spSpawnCEG(area.damageCeg, mx, my, mz)
+                    end
+
+                    local health = spGetFeatureHealth(featureID) - damage
+
+                    if health >= 1 then
+                        featDamageTaken[featureID] = damageTaken + damage
+                        spSetFeatureHealth(featureID, health)
+                    else
+                        Spring.DestroyFeature(featureID)
+                    end
                 end
             end
         end
