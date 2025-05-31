@@ -60,7 +60,7 @@ local decloakFireState = {} --stores the desired fire state when decloaked of ea
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID ~= myTeam then return end
 
-	if cmdID == CMD_CLOAK and cmdParams[1] ~= nil then -- is cloak command
+	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
 		if exceptionArray[unitDefID] or string.find(UnitDefs[unitDefID].name, "_scav") then return end -- don't do anything for these units
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
