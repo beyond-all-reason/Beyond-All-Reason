@@ -265,7 +265,7 @@ local function shotCounter(unitID, unitDefID, team, volleyCount, weaponNum)
 	else																													--fire full volley at ground
 		counter = volleyCount
 	end
-	Spring.CallCOBScript(unitID, "shotCounter", 7, 1, counter, targetID, burstRate, health, losState, damage, armored)
+	Spring.CallCOBScript(unitID, "shotCounter", 6, counter, targetID, burstRate, health, losState, damage, armored)
 	return 1
 end
 
