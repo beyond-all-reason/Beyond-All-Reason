@@ -90,20 +90,27 @@ function gadget:GameFrame(frame)
 		return
 	end
 
+	local builderTeams = {}
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, options, tag, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
 		local isBuilding  	= false
 		local x, y, z		= Spring.GetUnitPosition(builderID)
 		local targetID		= Spring.GetUnitIsBuilding(builderID)
+		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
+		-- Make sure at least one builder per player is never told to move
+		if (builderTeams[builderTeam] ~= nil) then
+			visited[builderID] = true
+		end
+		builderTeams[builderTeam] = true
 		
 		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
 			watchedBuilders[builderID]	  	= nil
 			slowUpdateBuilders[builderID]   = true
 			builderRadiusOffsets[builderID] = 0
 
-		elseif math.distance2d(targetX, targetZ, x, z) < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and isBuilding == false then
+		elseif math.distance2d(targetX, targetZ, x, z) < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and isBuilding == false and Spring.GetUnitIsBeingBuilt(builderID) == false then
 			local builtUnitDefID	= -cmdID
 			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
 			local searchRadius		= cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
@@ -114,7 +121,7 @@ function gadget:GameFrame(frame)
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
 			for _, interferingUnitID in ipairs(interferingUnits) do
-				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil then
+				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false  then
 					-- Only buggeroff from one build site at a time
 					visited[interferingUnitID] = true
 					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
