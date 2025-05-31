@@ -37,8 +37,8 @@ static-var  isMoving, restore_delay, maxSpeed, animFramesPerKeyframe, animSpeed,
 Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbaking.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
-			move body to z-axis [0.287877] speed [8.636310] / animSpeed; 
-			move body to y-axis [0.978963] speed [29.368887] / animSpeed; 
+			//move body to z-axis [0.287877] speed [8.636310] / animSpeed; 
+			//move body to y-axis [0.978963] speed [29.368887] / animSpeed; 
 			move headleft to z-axis [-0.258045] speed [7.741363] / animSpeed; 
 			move headright to z-axis [-0.258046] speed [7.741392] / animSpeed; 
 			turn legL1_1 to x-axis <0.696244> speed <20.887316> / animSpeed; 
@@ -96,7 +96,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 	}
 	while(isMoving) {
 		if (isMoving) { //Frame:8
-			move body to z-axis [-0.225051] speed [15.387851] / animSpeed; 
+			//move body to z-axis [-0.225051] speed [15.387851] / animSpeed; 
 			turn legL1_1 to x-axis <-13.466239> speed <424.874479> / animSpeed; 
 			turn legL1_1 to z-axis <-17.365889> speed <551.129035> / animSpeed; 
 			turn legL1_1 to y-axis <2.199095> speed <74.974032> / animSpeed; 
@@ -150,8 +150,8 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:10
-			move body to z-axis [-0.658220] speed [12.995063] / animSpeed; 
-			move body to y-axis [1.229358] speed [6.206188] / animSpeed; 
+			//move body to z-axis [-0.658220] speed [12.995063] / animSpeed; 
+			//move body to y-axis [1.229358] speed [6.206188] / animSpeed; 
 			turn legL1_1 to x-axis <-39.345878> speed <776.389191> / animSpeed; 
 			turn legL1_1 to z-axis <-30.411383> speed <391.364819> / animSpeed; 
 			turn legL1_1 to y-axis <-29.476672> speed <950.272999> / animSpeed; 
@@ -208,7 +208,7 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:12
-			move body to z-axis [-0.106477] speed [16.552296] / animSpeed; 
+			//move body to z-axis [-0.106477] speed [16.552296] / animSpeed; 
 			turn legL1_1 to x-axis <-27.238120> speed <363.232756> / animSpeed; 
 			turn legL1_1 to z-axis <-12.672123> speed <532.177818> / animSpeed; 
 			turn legL1_1 to y-axis <-16.948459> speed <375.846390> / animSpeed; 
@@ -260,8 +260,8 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:14
-			move body to z-axis [0.287877] speed [11.830618] / animSpeed; 
-			move body to y-axis [0.978963] speed [10.448227] / animSpeed; 
+			//move body to z-axis [0.287877] speed [11.830618] / animSpeed; 
+			//move body to y-axis [0.978963] speed [10.448227] / animSpeed; 
 			turn legL1_1 to x-axis <0.696244> speed <838.030914> / animSpeed; 
 			turn legL1_1 to z-axis <1.005079> speed <410.316036> / animSpeed; 
 			turn legL1_1 to y-axis <-0.300040> speed <499.452576> / animSpeed; 
@@ -485,8 +485,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn head to y-axis <0.000000> speed <55.000000>;
-	turn heatray to x-axis <0.000000> speed <55.000000>;
+	turn head to y-axis <0.000000> speed <90.000000>;
+	turn heatray to x-axis <0.000000> speed <90.000000>;
 	wait-for-turn heatray around y-axis;
 	wpn1_lasthead = 1000000;
 	//wpn2_lasthead = 1000000;
