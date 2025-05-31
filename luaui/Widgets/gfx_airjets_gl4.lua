@@ -30,6 +30,8 @@ end
 --------------------------------------------------------------------------------
 -- 'Speedups'
 --------------------------------------------------------------------------------
+---
+
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
@@ -53,6 +55,8 @@ local spValidUnitID = Spring.ValidUnitID
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
+---
+local autoUpdate = false
 
 local enableLights = true
 local lightMult = 1.4
@@ -148,11 +152,10 @@ local jetInstanceVBO = nil
 local jetShader = nil
 
 local LuaShader = gl.LuaShader
-local InstanceVBOTable = gl.InstanceVBOTable
 
-local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
-local popElementInstance  = InstanceVBOTable.popElementInstance
-local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = gl.InstanceVBOTable.drawInstanceVBO
+local popElementInstance  = gl.InstanceVBOTable.popElementInstance
+local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
 
 
 local vsSrc =
@@ -174,14 +177,19 @@ layout (location = 3) in vec3 color;
 layout (location = 4) in uint pieceIndex;
 layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
 
 out DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+	
+	#if (DEBUG == 1)
+		vec4 debug0;
+		vec4 debug1;
+	#endif
 };
 
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -243,7 +251,7 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
          any(greaterThan(clipspace.xyz, clipspace.www * tolerance));
 }
 
-#line 10468
+#line 10253
 void main()
 {
 
@@ -305,6 +313,10 @@ void main()
 	if (reflectionPass > 0) {  // when reflecting, dont reflect underwater jets
 		if (worldPos.y < -5.0) jetcolor = vec4(0.0);
 	}
+	#if (DEBUG == 1)
+		debug0 = vec4(worldPos.xyz, 1.0);
+		debug1 = vec4(worldCamPos.xyz, 1.0);
+	#endif
 	/*
 		// VISIBILITY CULLING
 		if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
@@ -324,6 +336,7 @@ local fsSrc =
 uniform sampler2D noiseMap;
 uniform sampler2D mask;
 
+//__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
 
@@ -333,6 +346,10 @@ uniform int reflectionPass = 0;
 in DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+	#if DEBUG == 1
+		vec4 debug0;
+		vec4 debug1;
+	#endif
 };
 
 out vec4 fragColor;
@@ -340,7 +357,6 @@ out vec4 fragColor;
 void main(void)
 {
 		vec2 displacement = texCoords.pq;
-
 		vec2 txCoord = texCoords.st;
 		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
 		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
@@ -354,6 +370,9 @@ void main(void)
 		fragColor.rgba *= jetcolor.a;
 		//fragColor.rgba = vec4(1.0);
 		if (reflectionPass > 0) fragColor.rgba *= 3.0;
+		#if (DEBUG == 1)
+			fragColor.rgba = max(fragColor.rgba, vec4(0.2));
+		#endif
 
 }
 ]]
@@ -378,6 +397,7 @@ local jetShaderSourceCache = {
       },
 	shaderConfig = {
 		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+		DEBUG = autoUpdate and "1" or "0",
 	},
 	forceupdate = true, -- otherwise file-less defines are not updated
 }
@@ -386,7 +406,7 @@ local function initGL4()
 	jetShader = LuaShader.CheckShaderUpdates(jetShaderSourceCache)
 	--Spring.Echo(jetShader.shaderParams.vertex)
 	if not jetShader then goodbye("Failed to compile jetShader GL4 ") end
-	local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	local jetInstanceVBOLayout = {
 			{id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
 			{id = 2, name = 'emitdir', size = 3}, --  emit dir
@@ -394,12 +414,12 @@ local function initGL4()
 			{id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
 			{id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
 			}
-	jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+	jetInstanceVBO = gl.InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
 	jetInstanceVBO.numVertices = numVertices
 	jetInstanceVBO.vertexVBO = quadVBO
-	jetInstanceVBO.VAO = makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
+	jetInstanceVBO.VAO = gl.InstanceVBOTable.makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
 	jetInstanceVBO.primitiveType = GL.TRIANGLES
-	jetInstanceVBO.indexVBO = makeRectIndexVBO()
+	jetInstanceVBO.indexVBO = gl.InstanceVBOTable.makeRectIndexVBO()
 	jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
 end
 
@@ -688,7 +708,7 @@ local function reInitialize()
 	activePlanes = {}
 	inactivePlanes = {}
 	lights = {}
-	InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
+	gl.InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -750,6 +770,12 @@ function widget:Initialize()
 	end
 end
 
+if autoUpdate then 
+	function widget:DrawScreen()
+		--Spring.Echo("drawprintf", jetShader.DrawPrintf, jetShader.printf)
+		if jetShader.DrawPrintf then jetShader.DrawPrintf() end
+	end
+end
 
 function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
