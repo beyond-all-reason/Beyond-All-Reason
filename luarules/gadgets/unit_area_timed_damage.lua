@@ -175,12 +175,26 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
     local elevation = max(spGetGroundHeight(px, pz), 0)
 
     if py <= elevation + explosion.range then
+        local dx, dy, dz
+        if elevation > 0 then
+            dx, dy, dz = spGetGroundNormal(px, pz, true)
+        else
+            dx, dy, dz = 0, 1, 0
+        end
+
+        local minY = elevation - area.range
+        if minY < 0 then
+            minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
+        end
+
         local area = {
             weapon     = weaponDefID,
             owner      = attackerID,
             x          = px,
             y          = elevation,
             z          = pz,
+            ymin       = minY,
+            ymax       = elevation + area.range,
             dx         = dx,
             dy         = dy,
             dz         = dz,
@@ -191,16 +205,6 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             damageCeg  = explosion.damageCeg,
             endFrame   = explosion.frames + frameNumber,
         }
-
-        if elevation > 0 then
-            area.dx, area.dy, area.dz = spGetGroundNormal(px, pz, true)
-            area.ymin = max(0, elevation - area.range * (1 - area.dy * 0.5))
-            area.ymax = elevation + area.range
-        else
-            area.dx, area.dy, area.dz = 0, 1, 0
-            area.ymin = 0
-            area.ymax = area.range
-        end
 
         local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
         table.insert(frameExplosions, index, area)
