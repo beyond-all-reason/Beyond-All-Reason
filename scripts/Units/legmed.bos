@@ -12,7 +12,7 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastHeading, lastPitch, justFired, opened, newTargetID, oldTargetID, burstDelay, timeout, 
+static-var  weapon, restore_delay, target, lastHeading, lastPitch, justFired, opened, newTargetID, oldTargetID, burstDelay, timeout, volleyCount, 
 canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, oldExtraMissile, newArmored, oldArmored;
 
 // Signal definitions
@@ -25,6 +25,7 @@ canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldH
 #define SIG_AIM_6			128
 #define SIG_AIM_7			256
 #define SIG_TIMER			512
+#define SIG_RESTORE			1024
 
 #define BASEPIECE chassis
 #define HITSPEED <55.0>
@@ -49,7 +50,7 @@ CloseTimer()
 {
 	signal SIG_OPEN;
 	start-script Close();
-	sleep restore_delay - 4500;
+	sleep restore_delay - 4000;
 	justFired = justFired - 1;
 }
 
@@ -171,8 +172,8 @@ Create()
 
 	stage = 4;
 	ready = 0;
-	weapon = 1;
-	canShoot = 1;
+	weapon = 0;
+	justFired = 0;
 	return (0);
 }
 
@@ -188,7 +189,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	//set-signal-mask 0;
+	turn trackingHeadingPivot to y-axis <0> speed <250.000000>;
+	weapon = 0;
 }
 SetStunned(State)
 {
@@ -199,6 +201,8 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -256,7 +260,7 @@ Close()
 
 Open()
 {
-	if(justFired == 6)												//Prevents opening if no launcher can shoot, so the hatches close for the reload
+	if(justFired == volleyCount)									//Prevents opening if no launcher can shoot, so the hatches close for the reload
 	{
 		return (0);
 	}
@@ -368,7 +372,6 @@ QueryWeapon1(piecenum)
 
 AimWeapon2(heading, pitch)
 {
-	var volleyCount;
 	var weaponNum;
 	volleyCount = 6;
 	weaponNum = 2;
@@ -385,7 +388,7 @@ AimWeapon2(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 1))						//Waits for its turn and terminates loops once no more shots are available
+	while(canShoot > 0 AND NOT (weapon == 0))						//Waits for its turn and terminates loops once no more shots are available
 	{
 		sleep 1;
 	}
@@ -413,9 +416,10 @@ FireWeapon2()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 2;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon2(piecenum)
@@ -437,7 +441,7 @@ AimWeapon3(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 2))						//Waits for its turn
+	while(canShoot > 0 AND NOT (weapon == 1))						//Waits for its turn
 	{
 		sleep 1;
 	}
@@ -465,9 +469,10 @@ FireWeapon3()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 3;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon3(piecenum)
@@ -489,7 +494,7 @@ AimWeapon4(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 3))						//Waits for its turn
+	while(canShoot > 0 AND NOT (weapon == 2))						//Waits for its turn
 	{
 		sleep 1;
 	}
@@ -517,9 +522,10 @@ FireWeapon4()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 4;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon4(piecenum)
@@ -541,7 +547,7 @@ AimWeapon5(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 4))						//Waits for its turn
+	while(canShoot > 0 AND NOT (weapon == 3))						//Waits for its turn
 	{
 		sleep 1;
 	}
@@ -569,9 +575,10 @@ FireWeapon5()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 5;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon5(piecenum)
@@ -593,7 +600,7 @@ AimWeapon6(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 5))						//Waits for its turn
+	while(canShoot > 0 AND NOT (weapon == 4))						//Waits for its turn
 	{
 		sleep 1;
 	}
@@ -621,9 +628,10 @@ FireWeapon6()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 6;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon6(piecenum)
@@ -645,7 +653,7 @@ AimWeapon7(heading, pitch)
 		start-script Open(0);
 	}
 	
-	while(canShoot > 0 AND NOT (weapon == 6))						//Waits for its turn
+	while(canShoot > 0 AND NOT (weapon == 5))						//Waits for its turn
 	{
 		sleep 1;
 	}
@@ -673,9 +681,10 @@ FireWeapon7()
 	canShoot = canShoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 1;
+	weapon = (weapon + 1) % volleyCount;
 }
 
 QueryWeapon7(piecenum)

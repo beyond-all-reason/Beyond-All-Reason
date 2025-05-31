@@ -23,7 +23,7 @@ end
 
 ----To use this you will need to modify your unit's animation script, as this is a Lua-Cob script. Here is what you need to do:
 ----Add the following stat-vars
-weapon, restore_delay, justFired, status, newTargetID, oldTargetID, burstDelay, timeout, canshoot, ready, opened, 
+weapon, restore_delay, justFired, status, newTargetID, oldTargetID, burstDelay, timeout, canshoot, ready, opened, volleyCount, 
 newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, oldExtraMissile, newArmored, oldArmored
 
 ----Paste the following scripts somewhere near the top of your animation script:
@@ -149,7 +149,7 @@ Close()
 
 Open()
 {
-	if(justFired == 6)					//Prevents opening if no launcher can shoot, so the hatches close for the reload. The number is the number of weapons
+	if(justFired == volleyCount)					//Prevents opening if no launcher can shoot, so the hatches close for the reload
 	{
 		return (0);
 	}
@@ -169,8 +169,7 @@ Open()
 
 AimWeapon2(heading, pitch)
 {
-	var volleyCount;												//Only one AimWeapon in the volley group should have this section. This calls the script that calls the Lua and passes the required values
-	var weaponNum;
+	var weaponNum;													//Only one AimWeapon in the volley group should have this section. This calls the script that calls the Lua and passes the required values
 	volleyCount = 6;												//Amount of weapons in the volley group (max burst size)
 	weaponNum = 2;													//Which weapon has the correct weapondef to pull data from. If you have multiple volley groups each one should pull from a different weapon so you can use it to seperate them in the shotCounter().
 	call-script lua_ShotCounter(volleyCount, weaponNum);
@@ -212,9 +211,10 @@ FireWeapon2()
 	canshoot = canshoot - 1;
 	start-script Timer();
 	start-script CloseTimer();
+	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = 2;
+	weapon = (weapon + 1) % volleyCount;							//Set weapon to 0 in ExecuteAfterDelay to reset it to first launcher. The delay should be as long as the reload
 }
 --]]
 
