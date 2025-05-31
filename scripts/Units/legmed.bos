@@ -12,7 +12,7 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastHeading, lastPitch, justFired, opened, newTargetID, oldTargetID, burstDelay, timeout, volleyCount, 
+static-var  weapon, restore_delay, target, lastHeading, lastPitch, justFired, opened, newTargetID, oldTargetID, burstDelay, timeout, 
 canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, oldExtraMissile, newArmored, oldArmored;
 
 // Signal definitions
@@ -32,6 +32,9 @@ canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldH
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
+
+#define VOLLEYCOUNT 6
+#define WEAPONNUM 2
 
 lua_ShotCounter()
 {
@@ -260,7 +263,7 @@ Close()
 
 Open()
 {
-	if(justFired == volleyCount)									//Prevents opening if no launcher can shoot, so the hatches close for the reload
+	if(justFired == VOLLEYCOUNT)									//Prevents opening if no launcher can shoot, so the hatches close for the reload
 	{
 		return (0);
 	}
@@ -372,10 +375,7 @@ QueryWeapon1(piecenum)
 
 AimWeapon2(heading, pitch)
 {
-	var weaponNum;
-	volleyCount = 6;
-	weaponNum = 2;
-	call-script lua_ShotCounter(volleyCount, weaponNum);
+	call-script lua_ShotCounter(VOLLEYCOUNT, WEAPONNUM);
 	
 	Signal SIG_AIM_2;
 	
@@ -419,7 +419,7 @@ FireWeapon2()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon2(piecenum)
@@ -472,7 +472,7 @@ FireWeapon3()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon3(piecenum)
@@ -525,7 +525,7 @@ FireWeapon4()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon4(piecenum)
@@ -578,7 +578,7 @@ FireWeapon5()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon5(piecenum)
@@ -631,7 +631,7 @@ FireWeapon6()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon6(piecenum)
@@ -684,7 +684,7 @@ FireWeapon7()
 	start-script RestoreAfterDelay();
 	missilesFired = missilesFired + 1;
 	sleep (burstDelay - 80);
-	weapon = (weapon + 1) % volleyCount;
+	weapon = (weapon + 1) % VOLLEYCOUNT;
 }
 
 QueryWeapon7(piecenum)

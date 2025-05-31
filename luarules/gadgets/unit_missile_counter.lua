@@ -29,6 +29,9 @@ newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, 
 ----Paste the following scripts somewhere near the top of your animation script:
 ----If you want multiple such volley weapons on your unit each group will need their own if check and variables in the shotCounter to make sure you update the correct ones each cycle.
 
+#define VOLLEYCOUNT 6				//Amount of weapons in the volley group (max burst size)
+#define WEAPONNUM 2					//Which weapon has the correct weapondef to pull data from. If you have multiple volley groups each one should pull from a different weapon so you can use it to seperate them in the shotCounter().
+
 lua_ShotCounter()					//Cob-Lua callin
 {
 	return(0);
@@ -133,7 +136,7 @@ CloseTimer()
 {
 	signal SIG_OPEN;
 	start-script Close();
-	sleep restore_delay - 4500;		//reload time - time to open back up with a bit of extra to ensure it opens back up soon enough
+	sleep restore_delay - 4000;		//reload time - time to open back up with a bit of extra to ensure it opens back up soon enough
 	justFired = justFired - 1;
 }
 
@@ -169,10 +172,7 @@ Open()
 
 AimWeapon2(heading, pitch)
 {
-	var weaponNum;													//Only one AimWeapon in the volley group should have this section. This calls the script that calls the Lua and passes the required values
-	volleyCount = 6;												//Amount of weapons in the volley group (max burst size)
-	weaponNum = 2;													//Which weapon has the correct weapondef to pull data from. If you have multiple volley groups each one should pull from a different weapon so you can use it to seperate them in the shotCounter().
-	call-script lua_ShotCounter(volleyCount, weaponNum);
+	call-script lua_ShotCounter(VOLLEYCOUNT, WEAPONNUM);			//Only one AimWeapon in the volley group should have this. This calls the script that calls the Lua and passes the required values
 	
 	Signal SIG_AIM_2;												//Seperate signal for each weapon
 	
