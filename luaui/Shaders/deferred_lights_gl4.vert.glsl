@@ -171,12 +171,12 @@ void main()
 				placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
 			} 
 		#else
-			tx = GetModelWorldTransform(instData.x);
+			tx = GetModelWorldTransform(instData.x,0);
 			if (pieceIndex > 0u){
 				Transform ty = GetPieceModelTransform(instData.x, pieceIndex);
 				tx = ApplyTransform(tx, ty);
 			}
-			placeInWorldMatrix = TransformToMat4(tx);
+			placeInWorldMatrix = TransformToMatrix(tx);
 		#endif
 		//uint drawFlags = (instData.z & 0x0000100u);// >> 8 ; // hopefully this works
 		//if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
@@ -294,43 +294,6 @@ void main()
 		v_position = vec4( lightVertexPosition, 1.0);
 		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesnt work
 	}
-	#line 12000
-	else if (pointbeamcone < 1.5){ // beam
-		// we will tranform along this vector, where Y shall be the upvector
-		// our null vector is +X
-		vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
-		float halfbeamlength = length(centertoend);
-		// Scale the box to correct size (along beam is Y dir)
-		//if (attachedtounitID > 0){
-			worldPos.xyz = position.xyz * vec3( lightRadius , step(position.y, 0) *halfbeamlength + lightRadius, lightRadius );
-			//}
-		//else{
-			worldPos.xyz = position.xyz * vec3( lightRadius ,  step(position.y, 0) * halfbeamlength + lightRadius, lightRadius );
-			//worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
-			//worldPos.xyz += vec3(50);
-			//}
-		
-		// TODO rotate this box
-		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
-		vec3 newfw = normalize(centertoend); // the new forward direction shall be the normal that we want
-		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
-		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
-		// TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
-		mat3 rotmat = mat3( // assemble the rotation matrix
-				newup,
-				newfw, 
-				newright 
-			);
-		worldPos.xyz = rotmat * worldPos.xyz;
-		
-		// so we now have our rotated box, we need to place it not at the center, but where the piece matrix tells us to
-		// or where the lightcenterpos tells us to
-		
-
-        v_worldPosRad.xyz = lightCenterPosition;
-        v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); //
-        v_position = vec4( lightVertexPosition, 1.0);
-    }
     #line 12000
     else if (pointbeamcone < 1.5){ // beam
         // we will tranform along this vector, where Y shall be the upvector
@@ -404,7 +367,7 @@ void main()
         v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
         v_position.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
     }
-    #line 12000
+    #line 13000
     else if (pointbeamcone > 1.5){ // cone
         // input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
         // make it so that cone tip is at 0 and the opening points to -y
@@ -479,7 +442,7 @@ void main()
        
         v_position =  worldPos;
     }
-    #line 13000
+    #line 14000
     // Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
    
     vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
