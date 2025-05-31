@@ -485,6 +485,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	move headleft to x-axis [0] speed <500>; 
+	move headright to x-axis [0] speed <500>; 
 	turn head to y-axis <0.000000> speed <90.000000>;
 	turn heatray to x-axis <0.000000> speed <90.000000>;
 	wait-for-turn heatray around y-axis;
@@ -508,6 +510,8 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
+	move headleft to x-axis [-0.5] speed <500>; 
+	move headright to x-axis [0.5] speed <500>; 
 	turn head to y-axis heading - last_nano_heading speed <180.000000>;
 	turn heatray to x-axis <0.000000> - pitch speed <110.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
