@@ -262,7 +262,7 @@ void main()
 		mat4 worldMat = modelMatrix * pieceMatrix;
 	#else
 		Transform pieceWorldTX = GetPieceWorldTransform(instData.x, pieceIndex);
-		mat4 worldMat = TransformToMat4(pieceWorldTX);
+		mat4 worldMat = TransformToMatrix(pieceWorldTX);
 
 		//worldMat = mat4(1.0); // TODO: remove this line when quaternions are working
 		//worldMat[3].xyz = uni[instData.y].drawPos.xyz;
