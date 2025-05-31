@@ -201,10 +201,14 @@ function PathfinderAStar:Find(iterations)
 	local distFunc = self.distFunc
 	local distCache = self.graph.distCache
 	local modifierFunc = self.modifierFunc
-	distanceStartToGoal = self.distanceStartToGoal
+	local distanceStartToGoal = self.distanceStartToGoal
 	local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
+		if not current then
+			self:Warn("PathfinderAStar:Find() - No current node found in open set")
+			return nil, #self.openset, self.maxInvalid
+		end
 		if current == goal then
 			local path = unwind_path({}, self.came_from, goal)
 			path[#path+1] = goal

@@ -167,6 +167,21 @@ local game = {}
 		return Shard:shardify_unit( unit_id )
 	end
 
+
+	function game:GiveOrder(message)
+		message = '[STGO]' .. message .. '[STGO]'
+		self:SendLuaRulesMessage(message)
+	end
+	
+	function game:SendLuaRulesMessage(message) -- sends a message to the engine to give an order
+		message = '@Shard' .. message .. 'Shard@'
+		Spring.SendLuaRulesMsg(message)
+	end
+
+	function game:Pause() -- pauses the game
+		Spring.SendCommands("pause")
+	end
+
 	function game:GetResources() -- returns a table of Resource objects, takes the name of the resource
 		return { self:GetResource(1), self:GetResource(2) }
 
