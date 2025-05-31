@@ -18,125 +18,13 @@ layout (location = 6) in uvec4 instData;
 #if USEQUATERNIONS == 0 
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
 		mat4 mat[];
-	};
+	}; 
+
+	uint GetUnpackedValue(uint packedValue, uint byteNum) {
+		return (packedValue >> (8u * byteNum)) & 0xFFu;
+	}
 #else
-	struct Transform {
-		vec4 quat;
-		vec4 trSc;
-	};
-
-	layout(std140, binding = 0) readonly buffer TransformBuffer {
-		Transform transforms[];
-	};
-
-	vec4 MultiplyQuat(vec4 a, vec4 b)
-	{
-		return vec4(a.w * b.w - dot(a.w, b.w), a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz));
-	}
-
-	vec3 RotateByQuaternion(vec4 q, vec3 v) {
-		return 2.0 * dot(q.xyz, v) * q.xyz + (q.w * q.w - dot(q.xyz, q.xyz)) * v + 2.0 * q.w * cross(q.xyz, v);
-	}
-
-	vec4 RotateByQuaternion(vec4 q, vec4 v) {
-		return vec4(RotateByQuaternion(q, v.xyz), v.w);
-	}
-
-	vec4 InvertNormalizedQuaternion(vec4 q) {
-		return vec4(-q.x, -q.y, -q.z, q.w);
-	}
-
-	vec3 ApplyTransform(Transform tra, vec3 v) {
-		return RotateByQuaternion(tra.quat, v * tra.trSc.w) + tra.trSc.xyz;
-	}
-
-	vec4 ApplyTransform(Transform tra, vec4 v) {
-		return vec4(ApplyTransform(tra, v.xyz), v.w);
-	}
-
-	Transform ApplyTransform(Transform parentTra, Transform childTra) {
-		return Transform(
-			MultiplyQuat(parentTra.quat, childTra.quat),
-			vec4(
-				parentTra.trSc.xyz + RotateByQuaternion(parentTra.quat, parentTra.trSc.w * childTra.trSc.xyz),
-				parentTra.trSc.w * childTra.trSc.w
-			)
-		);
-	}
-
-	Transform InvertTransformAffine(Transform tra) {
-		vec4 invR = InvertNormalizedQuaternion(tra.quat);
-		float invS = 1.0 / tra.trSc.w;
-		return Transform(
-			invR,
-			vec4(
-				RotateByQuaternion(invR, -tra.trSc.xyz * invS),
-				invS
-			)
-		);
-	}
-
-	vec4 Lerp(vec4 qa, vec4 qb, float t) {
-		// Ensure shortest path
-		if (dot(qa, qb) < 0.0)
-			qb = -qb;
-		return normalize(mix(qa, qb, t)); // GLSL's mix() = (1 - t) * qa + t * qb
-	}
-
-	vec4 SLerp(vec4 qa, vec4 qb, float t) {
-		// Calculate angle between them.
-		float cosHalfTheta = dot(qa, qb);
-
-		// Every rotation can be represented by two quaternions: (++++) or (----)
-		// avoid taking the longer way: choose one representation
-		float s = sign(cosHalfTheta);
-		qb *= s;
-		cosHalfTheta *= s;
-		// now cosHalfTheta is >= 0.0
-
-		// if qa and qb (or -qb originally) represent ~ the same rotation
-		if (cosHalfTheta >= (1.0 - 0.005))
-			return normalize(mix(qa, qb, t));
-
-		// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
-		// does not require special handling, however this usually represents
-		// "physically impossible" 180 degree turns with infinite speed so perhaps
-		// it can be handled in the following (cuurently disabled) special way
-		#if 0
-		if (cosHalfTheta <= 0.005)
-			return mix(qa, qb, step(0.5, t));
-		#endif
-
-		float halfTheta = acos(cosHalfTheta);
-
-		// both should be divided by sinHalfTheta (calculation skipped),
-		// but it makes no sense to do it due to follow up normalization
-		float ratioA = sin((1.0 - t) * halfTheta);
-		float ratioB = sin((      t) * halfTheta);
-
-		return qa * ratioA + qb * ratioB; // already normalized
-	}
-
-	Transform SLerp(Transform t0, Transform t1, float a) {
-		// generally good idea, otherwise extrapolation artifacts
-		// will be nasty in some cases (e.g. fast rotation)
-		a = clamp(a, 0.0, 1.0);
-		return Transform(
-			SLerp(t0.quat, t1.quat, a),
-			mix(t0.trSc, t1.trSc, a)
-		);
-	}
-
-	Transform Lerp(Transform t0, Transform t1, float a) {
-		// generally good idea, otherwise extrapolation artifacts
-		// will be nasty in some cases (e.g. fast rotation)
-		a = clamp(a, 0.0, 1.0);
-		return Transform(
-			Lerp(t0.quat, t1.quat, a),
-			mix(t0.trSc, t1.trSc, a)
-		);
-	}
-
+	//__QUATERNIONDEFS__
 #endif
 
 struct SUniformsBuffer {
@@ -389,9 +277,6 @@ void DoWindVertexMove(inout vec4 mVP) {
 
 
 
-uint GetUnpackedValue(uint packedValue, uint byteNum) {
-	return (packedValue >> (8u * byteNum)) & 0xFFu;
-}
 // See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
 // There are multiple switches:
 // Skinning or not (defined by USESKINNING)
