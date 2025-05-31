@@ -390,7 +390,14 @@ vec4 SLerp(vec4 qa, vec4 qb, float t) {
 	return qa * ratioA + qb * ratioB; // already normalized
 }
 
-Transform Lerp(Transform t0, Transform t1, float a) {
+vec4 Lerp(vec4 qa, vec4 qb, float t) {
+	// Ensure shortest path
+	if (dot(qa, qb) < 0.0)
+		qb = -qb;
+	return normalize(mix(qa, qb, t)); // GLSL's mix() = (1 - t) * qa + t * qb
+}
+
+Transform SLerp(Transform t0, Transform t1, float a) {
 	// generally good idea, otherwise extrapolation artifacts
 	// will be nasty in some cases (e.g. fast rotation)
 	a = clamp(a, 0.0, 1.0);
@@ -401,51 +408,14 @@ Transform Lerp(Transform t0, Transform t1, float a) {
 }
 
 
-
-mat4 TransformToMat4(Transform t) {
-    // Normalize the quaternion to ensure a proper rotation matrix.
-    vec4 q = normalize(t.quat);
-    // Uniform scale factor stored in t.trSc.w.
-    float s = t.trSc.w;
-
-    // Pre-calculate products for matrix elements.
-    float xx = q.x * q.x;
-    float yy = q.y * q.y;
-    float zz = q.z * q.z;
-    float xy = q.x * q.y;
-    float xz = q.x * q.z;
-    float yz = q.y * q.z;
-    float wx = q.w * q.x;
-    float wy = q.w * q.y;
-    float wz = q.w * q.z;
-
-    // Construct the rotation matrix (3x3) from the quaternion.
-    mat3 rot;
-    rot[0][0] = 1.0 - 2.0 * (yy + zz);
-    rot[0][1] = 2.0 * (xy - wz);
-    rot[0][2] = 2.0 * (xz + wy);
-    
-    rot[1][0] = 2.0 * (xy + wz);
-    rot[1][1] = 1.0 - 2.0 * (xx + zz);
-    rot[1][2] = 2.0 * (yz - wx);
-    
-    rot[2][0] = 2.0 * (xz - wy);
-    rot[2][1] = 2.0 * (yz + wx);
-    rot[2][2] = 1.0 - 2.0 * (xx + yy);
-
-    // Apply the uniform scale to the rotation matrix.
-    rot *= s;
-
-    // Create a 4x4 transformation matrix.
-    // The upper-left 3x3 is the scaled rotation,
-    // the rightmost column is the translation stored in t.trSc.xyz,
-    // and the bottom row is (0,0,0,1).
-    return mat4(
-        vec4(rot[0], 0.0),
-        vec4(rot[1], 0.0),
-        vec4(rot[2], 0.0),
-        vec4(t.trSc.xyz, 1.0)
-    );
+Transform Lerp(Transform t0, Transform t1, float a) {
+	// generally good idea, otherwise extrapolation artifacts
+	// will be nasty in some cases (e.g. fast rotation)
+	a = clamp(a, 0.0, 1.0);
+	return Transform(
+		Lerp(t0.quat, t1.quat, a),
+		mix(t0.trSc, t1.trSc, a)
+	);
 }
 
 
