@@ -213,6 +213,27 @@ local function spawnAreaCEGs(loopIndex)
     end
 end
 
+---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
+---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
+---@return number hitX
+---@return number hitY
+---@return number hitZ
+local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, baseY, baseZ, midX, midY, midZ)
+    if midY >= minY and midY <= maxY then
+        local dx, dy, dz = x - midX, y - midY, z - midZ
+        if dx * dx + dy * dy + dz * dz <= radius then
+            return midX, midY, midZ
+        end
+    end
+
+    if baseY >= minY and baseY <= maxY then
+        local dx, dy, dz = x - baseX, y - baseY, z - baseZ
+        if dx * dx + dy * dy + dz * dz <= radius then
+            return baseX, baseY + 16, baseZ
+        end
+    end
+end
+
 ---Applies a simple formula to keep damage under a limit when many areas of effect overlap.
 ---Stronger areas partially ignore the preset limit but not damage accumulation on the target.
 ---Damage may be reduced enough that the CEG effect for indicating damage should not be shown.
@@ -238,17 +259,17 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local unitsInRange = spGetUnitsInCylinder(area.x, area.z, area.range)
-        local positionYMin = area.y - area.range * (1 - area.dy * 0.5) -- e.g. don't reach underwater
-        local positionYMax = area.y + area.range
+        local x, y, z, minY, maxY, radius = area.x, area.y, area.z, area.ymin, area.ymax, area.range
+
+        local unitsInRange = spGetUnitsInCylinder(x, z, radius)
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
 
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
-                local bx, by, bz, mx, my, mz = spGetUnitPosition(unitID, true)
+                local hitX, hitY, hitZ = getReferencePointInSphere(x, y, z, minY, maxY, radius, spGetUnitPosition(unitID, true))
 
-                if (by >= positionYMin and by <= positionYMax) or (my >= positionYMin and my <= positionYMax) then
+                if hitX then
                     local damageTaken = unitDamageTaken[unitID]
 
                     if not damageTaken then
@@ -260,7 +281,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
 
                     if showDamageCeg then
-                        spSpawnCEG(area.damageCeg, mx, my, mz)
+                        spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 
                     unitDamageTaken[unitID] = damageTaken + damage
@@ -282,17 +303,17 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
+        local x, y, z, minY, maxY, radius = area.x, area.y, area.z, area.ymin, area.ymax, area.range
+
         local featuresInRange = spGetFeaturesInCylinder(area.x, area.z, area.range)
-        local positionYMin = area.y - area.range * (1 - area.dy * 0.5) -- e.g. don't reach underwater
-        local positionYMax = area.y + area.range
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
 
             if not featDamageImmunity[featureID] then
-                local bx, by, bz, mx, my, mz = spGetFeaturePosition(featureID, true)
+                local hitX, hitY, hitZ = getReferencePointInSphere(x, y, z, minY, maxY, radius, spGetFeaturePosition(featureID, true))
 
-                if (by >= positionYMin and by <= positionYMax) or (my >= positionYMin and my <= positionYMax) then
+                if hitX then
                     local damageTaken = featDamageTaken[featureID]
 
                     if not damageTaken then
@@ -304,7 +325,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
 
                     if showDamageCeg then
-                        spSpawnCEG(area.damageCeg, mx, my, mz)
+                        spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 
                     local health = spGetFeatureHealth(featureID) - damage
