@@ -1,21 +1,28 @@
 -- Do NOT use Spring.GetSideData() to display the faction names defined here on the UI,
 -- as these names do not support I18N translations. Use the appropriate I18N entry instead.
 
-return {
+local SIDES = VFS.Include("gamedata/sides_enum.lua")
+if not SIDES then
+    error("[Sidedata] Failed to load sides_enum.lua!")
+end
+
+local sideOptions = {
     {
         name = "Armada",
-        startunit = 'armcom',
+        startunit = SIDES.ARM .. 'com',
     },
     {
         name = "Cortex",
-        startunit = 'corcom',
+        startunit = SIDES.CORE .. 'com',
+    },
+    {
+        name = "Legion",
+        startunit = SIDES.LEGION .. 'com',
     },
     {
         name = "Random",
         startunit = 'dummycom',
     },
-    {
-        name = "Legion",
-        startunit = 'legcom',
-    },
 }
+
+return sideOptions
