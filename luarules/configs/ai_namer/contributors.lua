@@ -82,6 +82,7 @@ local ContributorAINames = {
     "TeeeeVeeeeOn",
     "Teifion",
     "Tharsy",
+	"Tim B",
     "Tom Fyuri",
     "Vache",
     "Volshok",
