@@ -230,7 +230,7 @@ local function shotCounter(unitID, unitDefID, team, volleyCount, weaponNum)
 	local targetType, isUserTarget, targetID = Spring.GetUnitWeaponTarget(unitID, 1) 
 	local burstRate = (Spring.GetUnitWeaponState(unitID, weaponNum, "burstRate") * 1000)
 	local targetDefID
-	if targetType == 1 then
+	if targetType == 1 then -- target is a unit
 		losState = Spring.GetUnitLosState(targetID, team, true)
 		targetDefID = Spring.GetUnitDefID(targetID)
 		
