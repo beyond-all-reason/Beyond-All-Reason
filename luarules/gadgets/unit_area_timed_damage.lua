@@ -221,14 +221,14 @@ end
 local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, baseY, baseZ, midX, midY, midZ)
     if midY >= minY and midY <= maxY then
         local dx, dy, dz = x - midX, y - midY, z - midZ
-        if dx * dx + dy * dy + dz * dz <= radius then
+        if dx * dx + dy * dy + dz * dz <= radius * radius then
             return midX, midY, midZ
         end
     end
 
     if baseY >= minY and baseY <= maxY then
         local dx, dy, dz = x - baseX, y - baseY, z - baseZ
-        if dx * dx + dy * dy + dz * dz <= radius then
+        if dx * dx + dy * dy + dz * dz <= radius * radius then
             return baseX, baseY + 16, baseZ
         end
     end
