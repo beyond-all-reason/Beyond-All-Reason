@@ -305,7 +305,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, y, z, minY, maxY, radius = area.x, area.y, area.z, area.ymin, area.ymax, area.range
 
-        local featuresInRange = spGetFeaturesInCylinder(area.x, area.z, area.range)
+        local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
