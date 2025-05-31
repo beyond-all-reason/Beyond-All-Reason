@@ -55,7 +55,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-mg",
+				[1] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -91,7 +91,7 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 6,
-				burstrate = 0.0675,
+				burstrate = 0.066,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -112,10 +112,13 @@ return {
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
-				soundstart = "minigun3",
+				soundstart = "mgun6heavy",
 				soundstartvolume = 4.5,
+				soundtrigger = true,
 				sprayangle = 968,
-				thickness = 0.91,
+				texture1 = "shot",
+				texture2 = "empty",
+				thickness = 3.0,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",

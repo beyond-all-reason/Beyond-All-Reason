@@ -1,7 +1,4 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
 #include "../recoil_common_includes.h"
 
 piece  
@@ -21,6 +18,8 @@ piece
     bottomWing;
 
 static-var gun_1;
+
+#define SIGNAL_FIRE1 			1
 
 
 // activatescr()
@@ -88,45 +87,54 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+	spin leftBarrel around z-axis speed <-1080.0>;
+	spin rightBarrel around z-axis speed <1080.0>;
+	sleep (500);
+	stop-spin leftBarrel around z-axis decelerate <12>;
+	stop-spin rightBarrel around z-axis decelerate <12>;
+	return(1);
+}
+
+Shot1(zero)
+{
+	signal SIGNAL_FIRE1;
+	set-signal-mask SIGNAL_FIRE1;
+	
+	if(gun_1 == 0)
+	{
+		emit-sfx 1024 + 0 from rightFlare;
+	}
+	if(gun_1 == 1)
+	{
+		emit-sfx 1024 + 0 from leftFlare;
+	}
+	sleep 32;
+	++gun_1;
+	if(gun_1>=2)
+	{
+		gun_1=0;
+	}
+	return(1);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = chassis;
+}
+
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 1 )
+	if(gun_1 == 0)
 	{
 		piecenum = rightFlare;
 	}
-	if( gun_1 == 2 )
+	if(gun_1 == 1)
 	{
 		piecenum = leftFlare;
 	}
-}
-
-FirePrimary()
-{
-	if( gun_1 == 1 )
-	{
-	    gun_1 = 2;
-        spin leftBarrel around z-axis speed <900>;
-        stop-spin leftBarrel around z-axis decelerate <10>;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-	    gun_1 = 1;
-        spin rightBarrel around z-axis speed <-900>;
-        stop-spin rightBarrel around z-axis decelerate <10>;
-		return (0);
-	}
-}
-
-Shot1(zero) {
-	if( gun_1 == 1 )
-	{
-        emit-sfx 1024 + 0 from rightFlare;
-	}
-	if( gun_1 == 2 )
-	{
-        emit-sfx 1024 + 0 from leftFlare;
-	}
+	return (0);
 }
 
 

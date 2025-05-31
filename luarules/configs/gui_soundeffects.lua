@@ -3046,6 +3046,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "leg-rail-small-ok",
 		BaseSoundWeaponType = "lance-weapon-type",
 	},
+	legerailtank = {
+		BaseSoundSelectType = "cor-tnk-huge-sel",
+		BaseSoundMovementType = "cor-tnk-huge-ok",
+		BaseSoundWeaponType = "lance-weapon-type",
+	},
 	leggat = {
 		BaseSoundSelectType = "leg-veh-small-sel",
 		BaseSoundMovementType = "leg-veh-small-ok",
@@ -3132,7 +3137,18 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = { "leg-t3u-mech-ok-1", "leg-t3u-mech-ok-2", },
 		BaseSoundWeaponType = "heatray4burn",
 	},
+	legeshotgunmech = {
 
+		BaseSoundSelectType = "arm-banth-sel",
+		BaseSoundMovementType = "arm-bot-t3-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
+	legelrpcmech = {
+
+		BaseSoundSelectType = "arm-banth-sel",
+		BaseSoundMovementType = "arm-bot-t3-ok",
+		BaseSoundWeaponType = "lrpc",
+	},
 
 
 
@@ -3166,6 +3182,16 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "fastemg-small",
+	},
+	legdrone = {
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
+		BaseSoundMovementType = "arm-air-gunship-alt-ok",
+		BaseSoundWeaponType = "fastemg-small",
+	},
+	legheavydrone = {
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
+		BaseSoundMovementType = "arm-air-gunship-alt-ok",
+		BaseSoundWeaponType = "helios-weapon-type",
 	},
 	legmost3 = {
 		BaseSoundSelectType = "cor-air-gunship-large-sel",
