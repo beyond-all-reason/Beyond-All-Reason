@@ -139,7 +139,7 @@ return {
 				stages = 0,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 2.5,
+				thickness = 3,
 				tolerance = 16000,
 				turret = true,
 				weapontimer = 1,
