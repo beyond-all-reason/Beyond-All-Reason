@@ -996,7 +996,7 @@ function LuaShader:Deactivate()
 			--Spring.Echo("creating DrawPrintf")
 			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
 			local fontSize = 16
-			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
+			local font3 = gl.LoadFont(fontfile3, 32, 0.5, 1)
 			
 			local function DrawPrintf(sometimesself, xoffset, yoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)
