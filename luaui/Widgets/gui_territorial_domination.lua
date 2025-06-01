@@ -286,6 +286,25 @@ local DYNAMIC_UPDATE_THRESHOLD = 0.5
 local lastLayoutUpdate = 0
 local lastDynamicUpdate = 0
 
+local cachedFreezeStatus = {
+	isThresholdFrozen = false,
+	freezeExpirationTime = 0,
+	timeUntilUnfreeze = 0,
+	lastUpdate = 0
+}
+
+local cachedGameState = {
+	threshold = 0,
+	maxThreshold = 256,
+	lastUpdate = 0
+}
+
+local frameBasedUpdates = {
+	teamScoreCheck = 0,
+	defeatTimeCheck = 0,
+	soundUpdate = 0
+}
+
 local function getCachedMinimapGeometry()
 	return cache:getOrCompute(CACHE_KEYS.MINIMAP_GEOMETRY, function()
 		local posX, posY, sizeX = spGetMiniMapGeometry()
@@ -691,15 +710,6 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 	end)
 end
 
-local function getFreezeStatusInformation()
-	local currentGameTime = spGetGameSeconds()
-	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
-	
-	return currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze
-end
-
 local function getFirstAliveTeamDataFromAllyTeam(allyTeamID)
 	for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
 		local _, _, isDead = spGetTeamInfo(teamID)
@@ -723,6 +733,7 @@ local function teamScoresChanged()
 				return true
 			end
 		end
+
 	end
 	
 	return false
@@ -807,7 +818,7 @@ local function needsDisplayListUpdate()
 		return true
 	end
 
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
+	local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
@@ -1116,7 +1127,7 @@ local function createOptimizedDynamicDisplayList(allyTeamData)
 	
 	dynamicDisplayList = glCreateList(function()
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
+		local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
 
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 			local barPosition = getBarPositionsCached(allyTeamIndex)
@@ -1200,8 +1211,6 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 end
 
 local function updateScoreDisplayList()
-	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
-	
 	initializeFontCache()
 
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
@@ -1265,6 +1274,24 @@ local function updateScoreDisplayList()
 	needsHaloUpdate = false
 	needsStaticUpdate = false
 	needsDynamicUpdate = false
+end
+
+local function updateCachedFreezeStatus(forceUpdate)
+	local currentGameTime = spGetGameSeconds()
+	if not forceUpdate and currentGameTime == cachedFreezeStatus.lastUpdate then
+		return
+	end
+	
+	cachedFreezeStatus.freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	cachedFreezeStatus.isThresholdFrozen = cachedFreezeStatus.freezeExpirationTime > currentGameTime
+	cachedFreezeStatus.timeUntilUnfreeze = max(0, cachedFreezeStatus.freezeExpirationTime - currentGameTime)
+	cachedFreezeStatus.lastUpdate = currentGameTime
+end
+
+local function updateCachedGameState()
+	cachedGameState.threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	cachedGameState.maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	cachedGameState.lastUpdate = gameSeconds
 end
 
 local function cleanupOptimizedDisplayLists()
@@ -1376,31 +1403,45 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameFrame(frame)
+	gameSeconds = spGetGameSeconds() or 0
+	
+	updateCachedGameState()
+	updateCachedFreezeStatus(false)
+	
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
 		updateAliveAllyTeams()
 		
 		local dataChanged = false
 		local teamStatusChanged = false
+		local rankChanged = false
 		
 		if amSpectating then
 			for _, allyTeamID in ipairs(aliveAllyTeams) do
 				if allyTeamID ~= gaiaAllyTeamID then
-					local isCurrentlyAlive = isAllyTeamAlive(allyTeamID)
+					local currentlyAlive = isAllyTeamAlive(allyTeamID)
 					local wasAlive = lastAllyTeamScores[allyTeamID] ~= nil
 					
-					if isCurrentlyAlive ~= wasAlive then
+					if currentlyAlive ~= wasAlive then
 						teamStatusChanged = true
 					end
 					
-					if isCurrentlyAlive then
+					if currentlyAlive then
+						local teamList = spGetTeamList(allyTeamID)
 						local allyDefeatTime = 0
-						for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+						
+						for _, teamID in ipairs(teamList) do
 							local _, _, isDead = spGetTeamInfo(teamID)
 							if not isDead then
 								allyDefeatTime = spGetTeamRulesParam(teamID, "defeatTime") or 0
+								
+								local newRank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
+								if newRank and lastTeamRanks[teamID] ~= newRank then
+									rankChanged = true
+								end
 								break
 							end
 						end
+						
 						if allyTeamDefeatTimes[allyTeamID] ~= allyDefeatTime then
 							allyTeamDefeatTimes[allyTeamID] = allyDefeatTime
 							dataChanged = true
@@ -1416,6 +1457,12 @@ function widget:GameFrame(frame)
 		else
 			local myTeamID = Spring.GetMyTeamID()
 			local newDefeatTime = spGetTeamRulesParam(myTeamID, "defeatTime") or 0
+			local newRank = spGetTeamRulesParam(myTeamID, RANK_RULES_KEY)
+			
+			if newRank and lastTeamRanks[myTeamID] ~= newRank then
+				rankChanged = true
+			end
+			
 			if newDefeatTime > 0 then
 				if newDefeatTime ~= defeatTime then
 					defeatTime = newDefeatTime
@@ -1424,32 +1471,13 @@ function widget:GameFrame(frame)
 					queueTeleportSounds()
 					dataChanged = true
 				end
-			else
-				if defeatTime ~= 0 then
-					defeatTime = 0
-					loopSoundEndTime = 0
-					soundQueue = nil
-					soundIndex = 1
-					dataChanged = true
-				end
+			elseif defeatTime ~= 0 then
+				defeatTime = 0
+				loopSoundEndTime = 0
+				soundQueue = nil
+				soundIndex = 1
+				dataChanged = true
 			end
-		end
-		
-		local rankChanged = false
-		
-		local allyTeamList = amSpectating and aliveAllyTeams or {myAllyID}
-		for _, allyTeamID in ipairs(allyTeamList) do
-			for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-				local _, _, isDead = spGetTeamInfo(teamID)
-				if not isDead then
-					local newRank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
-					if newRank and lastTeamRanks[teamID] ~= newRank then
-						rankChanged = true
-						break
-					end
-				end
-			end
-			if rankChanged then break end
 		end
 		
 		if teamStatusChanged then
@@ -1485,44 +1513,92 @@ function widget:GameFrame(frame)
 			lastUpdateTime = 0
 		end
 	end
-
-	gameSeconds = spGetGameSeconds() or 0
-
-	if loopSoundEndTime and loopSoundEndTime > gameSeconds then
-		if lastLoop <= currentTime then
-			lastLoop = currentTime
-			
-			local timeRange = loopSoundEndTime - (defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
-			local timeLeft = loopSoundEndTime - gameSeconds
-			local minVolume = 0.05
-			local maxVolume = 0.2
-			local volumeRange = maxVolume - minVolume
-			
-			local volumeFactor = 1 - (timeLeft / timeRange)
-			volumeFactor = math.clamp(volumeFactor, 0, 1)
-			local currentVolume = minVolume + (volumeFactor * volumeRange)
-			
-			for unitID in pairs(myCommanders) do
-				local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
-				if xPosition then
-					spPlaySoundFile("teleport-charge-loop", currentVolume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
-				else
-					myCommanders[unitID] = nil
+	
+	if cachedFreezeStatus.isThresholdFrozen then
+		if frame % 30 == 0 then
+			if amSpectating then
+				for allyTeamID in pairs(allyTeamDefeatTimes) do
+					allyTeamDefeatTimes[allyTeamID] = 0
 				end
+			else
+				defeatTime = 0
+				loopSoundEndTime = 0
+				soundQueue = nil
+				soundIndex = 1
+			end
+			
+			if next(allyTeamCountdownDisplayLists) then
+				cleanupCountdowns()
 			end
 		end
-	else
-		local sound = soundQueue and soundQueue[soundIndex]
-		if sound and gameSeconds and sound.when < gameSeconds then
-			for unitID in pairs(myCommanders) do
-				local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
-				if xPosition then
-					spPlaySoundFile(sound.sound, sound.volume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
-				else
-					myCommanders[unitID] = nil
+		return
+	end
+	
+	frameBasedUpdates.soundUpdate = frameBasedUpdates.soundUpdate + 1
+	if frameBasedUpdates.soundUpdate >= 3 then
+		frameBasedUpdates.soundUpdate = 0
+		currentTime = os.clock()
+		
+		if loopSoundEndTime and loopSoundEndTime > gameSeconds then
+			if lastLoop <= currentTime then
+				lastLoop = currentTime
+				
+				local timeRange = loopSoundEndTime - (defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
+				local timeLeft = loopSoundEndTime - gameSeconds
+				local minVolume = 0.05
+				local maxVolume = 0.2
+				local volumeRange = maxVolume - minVolume
+				
+				local volumeFactor = 1 - (timeLeft / timeRange)
+				volumeFactor = math.clamp(volumeFactor, 0, 1)
+				local currentVolume = minVolume + (volumeFactor * volumeRange)
+				
+				for unitID in pairs(myCommanders) do
+					local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
+					if xPosition then
+						spPlaySoundFile("teleport-charge-loop", currentVolume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
+					else
+						myCommanders[unitID] = nil
+					end
 				end
 			end
-			soundIndex = soundIndex + 1
+		else
+			local sound = soundQueue and soundQueue[soundIndex]
+			if sound and gameSeconds and sound.when < gameSeconds then
+				for unitID in pairs(myCommanders) do
+					local xPosition, yPosition, zPosition = spGetUnitPosition(unitID)
+					if xPosition then
+						spPlaySoundFile(sound.sound, sound.volume, xPosition, yPosition, zPosition, 0, 0, 0, "sfx")
+					else
+						myCommanders[unitID] = nil
+					end
+				end
+				soundIndex = soundIndex + 1
+			end
+		end
+	end
+	
+	frameBasedUpdates.teamScoreCheck = frameBasedUpdates.teamScoreCheck + 1
+	if frameBasedUpdates.teamScoreCheck >= 15 then
+		frameBasedUpdates.teamScoreCheck = 0
+		if teamScoresChanged() then
+			needsDynamicUpdate = true
+		end
+	end
+	
+	if not amSpectating and defeatTime > gameSeconds then
+		local timeRemaining = ceil(defeatTime - gameSeconds)
+		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
+		local difference = score - cachedGameState.threshold
+		
+		if difference < 0 and gameSeconds >= lastTimerWarningTime + TIMER_COOLDOWN then
+			local territoriesNeeded = abs(difference)
+			spPlaySoundFile("warning1", 1)
+			local dominatedMessage, conquerMessage = createTimerWarningMessage(timeRemaining, territoriesNeeded)
+			timerWarningEndTime = gameSeconds + TIMER_WARNING_DISPLAY_TIME
+			
+			createTimerWarningDisplayList(dominatedMessage, conquerMessage)
+			lastTimerWarningTime = gameSeconds
 		end
 	end
 end
@@ -1588,11 +1664,10 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
 
-local lastSlowUpdate = 0
+local layoutUpdateCounter = 0
 function widget:Update(deltaTime)
 	local newAmSpectating = spGetSpectatingState()
 	local newMyAllyID = spGetMyAllyTeamID()
-	local currentGameTime = spGetGameSeconds()
 	
 	if not displayList then
 		forceDisplayListUpdate()
@@ -1600,13 +1675,7 @@ function widget:Update(deltaTime)
 		return
 	end
 	
-	local checkScores = false
-	if lastSlowUpdate < currentGameTime then
-		checkScores = true
-		lastSlowUpdate = currentGameTime + 1
-	end
-
-	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID or (checkScores and teamScoresChanged()) then
+	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID then
 		amSpectating = newAmSpectating
 		myAllyID = newMyAllyID
 		positionCache.playerBar = nil
@@ -1623,46 +1692,28 @@ function widget:Update(deltaTime)
 		return
 	end
 	
-	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	local isThresholdFrozen = freezeExpirationTime > currentGameTime
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
-	
-	gameSeconds = currentGameTime
 	currentTime = os.clock()
 	
-	if isThresholdFrozen then
-		if amSpectating then
-			for allyTeamID in pairs(allyTeamDefeatTimes) do
-				allyTeamDefeatTimes[allyTeamID] = 0
-			end
-		else
-			defeatTime = 0
-			loopSoundEndTime = 0
-			soundQueue = nil
-			soundIndex = 1
-		end
-		
-		if next(allyTeamCountdownDisplayLists) then
-			cleanupCountdowns()
-		end
-		return
-	end
-
-	local needsUpdate = false
-	local forceUpdate = false
+	updateCachedFreezeStatus(false)
 	
-	if currentTime - lastLayoutUpdate > LAYOUT_UPDATE_THRESHOLD then
-		needsUpdate = updateLayoutCache() or needsUpdate
-	end
-	
-	if isThresholdFrozen and timeUntilUnfreeze <= WARNING_SECONDS then
+	if cachedFreezeStatus.isThresholdFrozen and cachedFreezeStatus.timeUntilUnfreeze <= WARNING_SECONDS then
 		local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 		local currentBlinkState = blinkPhase < 0.33
 		if isSkullFaded ~= currentBlinkState then
 			needsDynamicUpdate = true
-			needsUpdate = true
 		end
 	end
+	
+	layoutUpdateCounter = layoutUpdateCounter + 1
+	if layoutUpdateCounter >= 120 then
+		layoutUpdateCounter = 0
+		if updateLayoutCache() then
+			needsDynamicUpdate = true
+		end
+	end
+	
+	local needsUpdate = false
+	local forceUpdate = false
 	
 	if currentTime - lastDynamicUpdate > DYNAMIC_UPDATE_THRESHOLD then
 		if needsDisplayListUpdate() then
@@ -1678,28 +1729,12 @@ function widget:Update(deltaTime)
 		end
 	end
 	
-	manageCountdownUpdates()
+	if manageCountdownUpdates() then
+		needsUpdate = true
+	end
 	
 	if needsUpdate or forceUpdate then
 		updateScoreDisplayList()
-	end
-	
-	if not amSpectating and defeatTime > gameSeconds and freezeExpirationTime < currentGameTime then
-		local timeRemaining = ceil(defeatTime - gameSeconds)
-		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
-		
-		local difference = score - threshold
-		
-		if difference < 0 and currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
-			local territoriesNeeded = abs(difference)
-			spPlaySoundFile("warning1", 1)
-			local dominatedMessage, conquerMessage = createTimerWarningMessage(timeRemaining, territoriesNeeded)
-			timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
-			
-			createTimerWarningDisplayList(dominatedMessage, conquerMessage)
-			lastTimerWarningTime = currentGameTime
-		end
 	end
 end
 
