@@ -13,8 +13,6 @@ end
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
 
---optimize update() callin
-
 local floor = math.floor
 local ceil = math.ceil
 local format = string.format
@@ -121,8 +119,6 @@ local lastLoop = 0
 local loopSoundEndTime = 0
 local soundIndex = 1
 
-local scoreBarPositions = {}
-
 local lastThreshold = -1
 local lastMaxThreshold = -1
 local lastIsThresholdFrozen = false
@@ -137,6 +133,7 @@ local allyTeamDefeatTimes = {}
 local allyTeamCountdownDisplayLists = {}
 local lastCountdownValues = {}
 local aliveAllyTeams = {}
+local scoreBarPositions = {}
 
 local cache = {
 	data = {},
