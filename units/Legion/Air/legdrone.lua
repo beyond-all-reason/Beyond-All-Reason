@@ -103,7 +103,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 500,
+				weaponvelocity = 692,
 				damage = {
 					default = 12,
 					vtol = 6,
