@@ -59,7 +59,7 @@ local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
 local WARNING_SECONDS = 15
 local PADDING_MULTIPLIER = 0.36
-local UPDATE_FREQUENCY = 2.0
+local UPDATE_FREQUENCY = 4.0
 local BLINK_INTERVAL = 1
 local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
@@ -79,6 +79,7 @@ local TIMER_COOLDOWN = 120
 local MINIMAP_GAP = 3
 local BORDER_WIDTH = 2
 local ICON_SIZE = 25
+local HALVED_ICON_SIZE = ICON_SIZE / 2
 local BAR_HEIGHT = 16
 local TEXT_OUTLINE_OFFSET = 1.0
 local TEXT_OUTLINE_ALPHA = 0.6
@@ -109,7 +110,7 @@ local gaiaAllyTeamID = -1
 local lastUpdateTime = 0
 local displayList = nil
 local lastDifference = -1
-local healthbarWidth = 300
+local scorebarWidth = 300
 local lineWidth = 2
 local maxThreshold = 256
 local currentTime = os.clock()
@@ -124,7 +125,7 @@ local timerWarningDisplayList = nil
 local lastThreshold = -1
 local lastMaxThreshold = -1
 local lastIsThresholdFrozen = false
-local lastHealthbarWidth = -1
+local lastScorebarWidth = -1
 local lastMinimapDimensions = {-1, -1, -1}
 local lastAmSpectating = false
 local lastSelectedAllyTeamID = -1
@@ -134,27 +135,128 @@ local lastTeamRanks = {}
 local allyTeamDefeatTimes = {}
 local allyTeamCountdownDisplayLists = {}
 local lastCountdownValues = {}
+local aliveAllyTeams = {}
 
-local fontCache = {
-	initialized = false,
-	fontSizeMultiplier = 1,
-	fontSize = 11,
-	paddingX = 0,
-	paddingY = 0
+local cache = {
+	data = {},
+	dependencies = {},
+	ttl = {},
+	lastUpdate = {},
+	
+	set = function(self, cacheKey, value, timeToLive, dependencies)
+		self.data[cacheKey] = value
+		self.lastUpdate[cacheKey] = os.clock()
+		if timeToLive then
+			self.ttl[cacheKey] = timeToLive
+		end
+		if dependencies then
+			self.dependencies[cacheKey] = dependencies
+		end
+		return value
+	end,
+	
+	get = function(self, cacheKey, validator)
+		local currentTime = os.clock()
+		local entry = self.data[cacheKey]
+		
+		if not entry then
+			return nil
+		end
+		
+		if self.ttl[cacheKey] and (currentTime - self.lastUpdate[cacheKey]) > self.ttl[cacheKey] then
+			self:invalidate(cacheKey)
+			return nil
+		end
+		
+		if self.dependencies[cacheKey] and validator then
+			for _, dependency in ipairs(self.dependencies[cacheKey]) do
+				if not validator(dependency) then
+					self:invalidate(cacheKey)
+					return nil
+				end
+			end
+		end
+		
+		return entry
+	end,
+	
+	getOrCompute = function(self, cacheKey, computeFunc, timeToLive, dependencies, validator)
+		local value = self:get(cacheKey, validator)
+		if value ~= nil then
+			return value
+		end
+		
+		value = computeFunc()
+		return self:set(cacheKey, value, timeToLive, dependencies)
+	end,
+	
+	invalidate = function(self, keyPattern)
+		if type(keyPattern) == "string" and not keyPattern:find("*") then
+			self.data[keyPattern] = nil
+			self.lastUpdate[keyPattern] = nil
+			self.ttl[keyPattern] = nil
+			self.dependencies[keyPattern] = nil
+		else
+			local pattern = keyPattern:gsub("*", ".*")
+			for cacheKey in pairs(self.data) do
+				if cacheKey:match(pattern) then
+					self.data[cacheKey] = nil
+					self.lastUpdate[cacheKey] = nil
+					self.ttl[cacheKey] = nil
+					self.dependencies[cacheKey] = nil
+				end
+			end
+		end
+	end,
+	
+	clear = function(self)
+		self.data = {}
+		self.dependencies = {}
+		self.ttl = {}
+		self.lastUpdate = {}
+	end
 }
 
-local staticDisplayList = nil
-local dynamicDisplayList = nil
-local backgroundDisplayList = nil
-local haloDisplayList = nil
-
-local layoutCache = {
-	initialized = false,
-	minimapDimensions = {-1, -1, -1},
-	spectatorLayout = nil,
-	playerBarBounds = nil,
-	lastViewportSize = {-1, -1}
+local CACHE_KEYS = {
+	FONT_DATA = "font_data",
+	LAYOUT_DATA = "layout_data",
+	MINIMAP_GEOMETRY = "minimap_geometry",
+	TEAM_COLOR = "team_color_%d",
+	TINTED_COLOR = "tinted_color_%s",
+	PLAYER_BAR_POS = "player_bar_pos",
+	SPECTATOR_BAR_POS = "spectator_bar_pos_%d",
+	COUNTDOWN_POS = "countdown_pos_%d_%s",
+	TEAM_DATA = "team_data_%d"
 }
+
+local CACHE_TTL = {
+	FAST = 0.1,
+	NORMAL = 0.5,
+	SLOW = 2.0,
+	STATIC = nil -- Never expires
+}
+
+local fontCache = cache:getOrCompute(CACHE_KEYS.FONT_DATA, function()
+	local _, viewportSizeY = spGetViewGeometry()
+	local fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
+	return {
+		initialized = true,
+		fontSizeMultiplier = fontSizeMultiplier,
+		fontSize = floor(14 * fontSizeMultiplier),
+		paddingX = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER),
+		paddingY = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER)
+	}
+end, CACHE_TTL.SLOW)
+
+local layoutCache = cache:getOrCompute(CACHE_KEYS.LAYOUT_DATA, function()
+	return {
+		initialized = false,
+		minimapDimensions = {-1, -1, -1},
+		spectatorLayout = nil,
+		playerBarBounds = nil,
+		lastViewportSize = {-1, -1}
+	}
+end, CACHE_TTL.STATIC)
 
 local positionCache = {
 	playerBar = nil,
@@ -163,58 +265,32 @@ local positionCache = {
 	textPositions = {}
 }
 
-local colorCache = {
-	teamColors = {},
-	barColors = {},
-	tintedColors = {},
-	gradientColors = {}
-}
-
 local drawStateCache = {
 	lastBlendMode = nil,
 	lastTexture = nil,
 	lastColor = {-1, -1, -1, -1}
 }
 
+local staticDisplayList = nil
+local dynamicDisplayList = nil
+local backgroundDisplayList = nil
+local haloDisplayList = nil
+
 local needsBackgroundUpdate = false
 local needsStaticUpdate = false
 local needsDynamicUpdate = false
 local needsHaloUpdate = false
 
-local LAYOUT_UPDATE_THRESHOLD = 2.0
-local DYNAMIC_UPDATE_THRESHOLD = 0.2
+local LAYOUT_UPDATE_THRESHOLD = 4.0
+local DYNAMIC_UPDATE_THRESHOLD = 0.5
 local lastLayoutUpdate = 0
 local lastDynamicUpdate = 0
 
-local ruleParamCache = {
-	threshold = 0,
-	maxThreshold = 256,
-	freezeDelay = 0,
-	lastUpdate = 0,
-	updateInterval = 0.5
-}
-
-local outlineCache = {
-	defaultOffset = TEXT_OUTLINE_OFFSET,
-	defaultAlpha = TEXT_OUTLINE_ALPHA,
-	blackOutlineColor = {0, 0, 0, TEXT_OUTLINE_ALPHA}
-}
-
-local minimapGeometryCache = {
-	posX = -1,
-	posY = -1,
-	sizeX = -1,
-	lastUpdate = 0,
-	updateInterval = 0.1
-}
-
 local function getCachedMinimapGeometry()
-	local currentTime = os.clock()
-	if currentTime - minimapGeometryCache.lastUpdate > minimapGeometryCache.updateInterval then
-		minimapGeometryCache.posX, minimapGeometryCache.posY, minimapGeometryCache.sizeX = spGetMiniMapGeometry()
-		minimapGeometryCache.lastUpdate = currentTime
-	end
-	return minimapGeometryCache.posX, minimapGeometryCache.posY, minimapGeometryCache.sizeX
+	return cache:getOrCompute(CACHE_KEYS.MINIMAP_GEOMETRY, function()
+		local posX, posY, sizeX = spGetMiniMapGeometry()
+		return {posX, posY, sizeX}
+	end, CACHE_TTL.FAST)[1], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][2], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][3]
 end
 
 local function setOptimizedTexture(texture)
@@ -240,6 +316,9 @@ local function forceDisplayListUpdate()
 	needsStaticUpdate = true
 	needsDynamicUpdate = true
 	needsHaloUpdate = true
+	
+	cache:invalidate("*_pos*")
+	cache:invalidate(CACHE_KEYS.LAYOUT_DATA)
 end
 
 local function cleanupDisplayList(displayList)
@@ -253,18 +332,16 @@ end
 local function cleanupCountdowns(allyTeamIDFilter)
 	local cleanedUp = false
 	if allyTeamIDFilter then
-		-- Clean up specific ally team countdowns
-		for key, displayList in pairs(allyTeamCountdownDisplayLists) do
-			if key:sub(1, #tostring(allyTeamIDFilter) + 1) == allyTeamIDFilter .. "_" then
+		for cacheKey, displayList in pairs(allyTeamCountdownDisplayLists) do
+			if cacheKey:sub(1, #tostring(allyTeamIDFilter) + 1) == allyTeamIDFilter .. "_" then
 				glDeleteList(displayList)
-				allyTeamCountdownDisplayLists[key] = nil
+				allyTeamCountdownDisplayLists[cacheKey] = nil
 				cleanedUp = true
 			end
 		end
 		lastCountdownValues[allyTeamIDFilter] = nil
 	else
-		-- Clean up all countdowns
-		for key, displayList in pairs(allyTeamCountdownDisplayLists) do
+		for cacheKey, displayList in pairs(allyTeamCountdownDisplayLists) do
 			if displayList then
 				glDeleteList(displayList)
 				cleanedUp = true
@@ -274,347 +351,6 @@ local function cleanupCountdowns(allyTeamIDFilter)
 		lastCountdownValues = {}
 	end
 	return cleanedUp
-end
-
-local function calculateBarPosition(index, isSpectator)
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
-	
-	if not isSpectator then
-		return {
-			scorebarLeft = minimapPosX + ICON_SIZE/2,
-			scorebarRight = minimapPosX + minimapSizeX - ICON_SIZE/2,
-			scorebarTop = minimapPosY - MINIMAP_GAP,
-			scorebarBottom = minimapPosY - MINIMAP_GAP - BAR_HEIGHT
-		}
-	else
-		if not layoutCache.spectatorLayout then
-			local aliveAllyTeams = getAliveAllyTeams()
-			layoutCache.spectatorLayout = calculateSpectatorLayoutParameters(#aliveAllyTeams, minimapSizeX)
-		end
-		
-		local layout = layoutCache.spectatorLayout
-		local columnIndex = floor((index - 1) / layout.maxBarsPerColumn)
-		local positionInColumn = ((index - 1) % layout.maxBarsPerColumn)
-		
-		local scorebarLeft = minimapPosX + (columnIndex * layout.columnWidth) + 4
-		local scorebarRight = scorebarLeft + layout.barWidth
-		local scorebarTop = minimapPosY - MINIMAP_GAP - (positionInColumn * (layout.barHeight + 3))
-		local scorebarBottom = scorebarTop - layout.barHeight
-		
-		return {
-			scorebarLeft = scorebarLeft,
-			scorebarRight = scorebarRight,
-			scorebarTop = scorebarTop,
-			scorebarBottom = scorebarBottom
-		}
-	end
-end
-
-local function updateRuleParamCache()
-	local currentTime = os.clock()
-	if currentTime - ruleParamCache.lastUpdate < ruleParamCache.updateInterval then
-		return
-	end
-	
-	ruleParamCache.threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	ruleParamCache.maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-	ruleParamCache.freezeDelay = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	ruleParamCache.lastUpdate = currentTime
-	
-	maxThreshold = ruleParamCache.maxThreshold
-end
-
-local function getCachedRuleParam(key)
-	updateRuleParamCache()
-	if key == THRESHOLD_RULES_KEY then
-		return ruleParamCache.threshold
-	elseif key == MAX_THRESHOLD_RULES_KEY then
-		return ruleParamCache.maxThreshold
-	elseif key == FREEZE_DELAY_KEY then
-		return ruleParamCache.freezeDelay
-	else
-		return spGetGameRulesParam(key) or 0
-	end
-end
-
-local function setOptimizedColor(r, g, b, a)
-	local currentColor = drawStateCache.lastColor
-	if currentColor[1] ~= r or currentColor[2] ~= g or currentColor[3] ~= b or currentColor[4] ~= a then
-		glColor(r, g, b, a)
-		drawStateCache.lastColor = {r, g, b, a}
-	end
-end
-
-local function setOptimizedBlending(srcFactor, dstFactor)
-	local blendMode = srcFactor .. "_" .. dstFactor
-	if drawStateCache.lastBlendMode ~= blendMode then
-		gl.Blending(srcFactor, dstFactor)
-		drawStateCache.lastBlendMode = blendMode
-	end
-end
-
-local function getCachedTeamColor(teamID)
-	if not colorCache.teamColors[teamID] then
-		local redComponent, greenComponent, blueComponent = spGetTeamColor(teamID)
-		colorCache.teamColors[teamID] = {redComponent, greenComponent, blueComponent, 1}
-	end
-	return colorCache.teamColors[teamID]
-end
-
-local function getCachedTintedColor(baseColor, tintColor, strength, cacheKey)
-	local key = cacheKey or (baseColor[1] .. "_" .. tintColor[1] .. "_" .. strength)
-	if not colorCache.tintedColors[key] then
-		colorCache.tintedColors[key] = createTintedColor(baseColor, tintColor, strength)
-	end
-	return colorCache.tintedColors[key]
-end
-
-local function drawTextWithOutline(text, x, y, fontSize, alignment, color, outlineOffset, outlineAlpha)
-	local offset = outlineOffset or outlineCache.defaultOffset
-	local alpha = outlineAlpha or outlineCache.defaultAlpha
-	
-	if alpha == outlineCache.defaultAlpha then
-		setOptimizedColor(outlineCache.blackOutlineColor[1], outlineCache.blackOutlineColor[2], 
-						  outlineCache.blackOutlineColor[3], outlineCache.blackOutlineColor[4])
-	else
-		setOptimizedColor(0, 0, 0, alpha)
-	end
-	
-	glText(text, x - offset, y, fontSize, alignment)
-	glText(text, x + offset, y, fontSize, alignment)
-	glText(text, x, y - offset, fontSize, alignment)
-	glText(text, x, y + offset, fontSize, alignment)
-	
-	setOptimizedColor(color[1], color[2], color[3], color[4])
-	glText(text, x, y, fontSize, alignment)
-end
-
-local function drawDifferenceText(x, y, difference, fontSize, alignment, color, verticalOffset)
-	local text = ""
-	
-	if difference > 0 then
-		text = "+" .. difference
-	elseif difference < 0 then
-		text = tostring(difference)
-	else
-		text = "0"
-	end
-	
-	local adjustedY = y + (verticalOffset or 0)
-	drawTextWithOutline(text, x, adjustedY, fontSize, alignment, color)
-end
-
-local function drawCountdownText(x, y, text, fontSize, color)
-	drawTextWithOutline(text, x, y, fontSize, "c", color)
-end
-
-local function drawOptimizedHealthBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, threshold, barColor, isThresholdFrozen)
-	local fullHealthbarLeft = scorebarLeft
-	local fullHealthbarRight = scorebarRight
-	local barWidth = scorebarRight - scorebarLeft
-
-	local originalRight = scorebarRight
-	local exceedsMaxThreshold = score > maxThreshold
-	
-	local healthbarScoreRight = scorebarLeft + min(score / maxThreshold, 1) * barWidth
-	
-	if exceedsMaxThreshold then
-		scorebarRight = originalRight
-	end
-	
-	local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
-	local skullOffset = (1 / maxThreshold) * barWidth
-	local skullX = thresholdX - skullOffset
-	
-	local borderSize = 3
-	local fillPaddingLeft = scorebarLeft + borderSize
-	local fillPaddingRight = healthbarScoreRight - borderSize
-	local fillPaddingTop = scorebarTop
-	local fillPaddingBottom = scorebarBottom + borderSize
-
-	local linePos = healthbarScoreRight
-	if exceedsMaxThreshold then
-		local overfillRatio = (score - maxThreshold) / maxThreshold
-		overfillRatio = min(overfillRatio, 1)
-		
-		local maxWidth = scorebarRight - borderSize - fillPaddingLeft
-		local backfillWidth = maxWidth * overfillRatio
-		linePos = scorebarRight - borderSize - backfillWidth
-		
-		linePos = max(fillPaddingLeft, linePos)
-	end
-	
-	local topColor = {barColor[1], barColor[2], barColor[3], barColor[4]}
-	local bottomColor = {barColor[1]*0.7, barColor[2]*0.7, barColor[3]*0.7, barColor[4]}
-	
-	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	
-	if fillPaddingLeft < fillPaddingRight then
-		if exceedsMaxThreshold then
-			local overfillRatio = (score - maxThreshold) / maxThreshold
-			overfillRatio = min(overfillRatio, 1)
-			
-			local maxBarWidth = scorebarRight - borderSize - fillPaddingLeft
-			local overfillWidth = maxBarWidth * overfillRatio
-			
-			local brightColorStart = scorebarRight - borderSize - overfillWidth
-			
-			if brightColorStart > fillPaddingLeft then
-				local vertices = {
-					{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-					{v = {brightColorStart, fillPaddingBottom}, c = bottomColor},
-					{v = {brightColorStart, fillPaddingTop}, c = topColor},
-					{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
-				}
-				gl.Shape(GL.QUADS, vertices)
-			end
-			
-			local excessTopColor = {
-				topColor[1] + (1 - topColor[1]) * 0.5,
-				topColor[2] + (1 - topColor[2]) * 0.5,
-				topColor[3] + (1 - topColor[3]) * 0.5,
-				topColor[4]
-			}
-			local excessBottomColor = {
-				bottomColor[1] + (1 - bottomColor[1]) * 0.5,
-				bottomColor[2] + (1 - bottomColor[2]) * 0.5,
-				bottomColor[3] + (1 - bottomColor[3]) * 0.5,
-				bottomColor[4]
-			}
-			
-			local vertices = {
-				{v = {brightColorStart, fillPaddingBottom}, c = excessBottomColor},
-				{v = {scorebarRight - borderSize, fillPaddingBottom}, c = excessBottomColor},
-				{v = {scorebarRight - borderSize, fillPaddingTop}, c = excessTopColor},
-				{v = {brightColorStart, fillPaddingTop}, c = excessTopColor}
-			}
-			gl.Shape(GL.QUADS, vertices)
-		else
-			local vertices = {
-				{v = {fillPaddingLeft, fillPaddingBottom}, c = bottomColor},
-				{v = {fillPaddingRight, fillPaddingBottom}, c = bottomColor},
-				{v = {fillPaddingRight, fillPaddingTop}, c = topColor},
-				{v = {fillPaddingLeft, fillPaddingTop}, c = topColor}
-			}
-			gl.Shape(GL.QUADS, vertices)
-		end
-		
-		local glossHeight = (fillPaddingTop - fillPaddingBottom) * 0.4
-		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE)
-		
-		local highlightRight = fillPaddingRight
-		if exceedsMaxThreshold then
-			highlightRight = scorebarRight - borderSize
-		end
-		
-		local topGlossBottom = fillPaddingTop - glossHeight
-		local vertices = {
-			{v = {fillPaddingLeft, topGlossBottom}, c = {1, 1, 1, 0}},
-			{v = {highlightRight, topGlossBottom}, c = {1, 1, 1, 0}},
-			{v = {highlightRight, fillPaddingTop}, c = {1, 1, 1, 0.04}},
-			{v = {fillPaddingLeft, fillPaddingTop}, c = {1, 1, 1, 0.04}}
-		}
-		gl.Shape(GL.QUADS, vertices)
-		
-		local bottomGlossHeight = (fillPaddingTop - fillPaddingBottom) * 0.2
-		vertices = {
-			{v = {fillPaddingLeft, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
-			{v = {highlightRight, fillPaddingBottom}, c = {1, 1, 1, 0.02}},
-			{v = {highlightRight, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}},
-			{v = {fillPaddingLeft, fillPaddingBottom + bottomGlossHeight}, c = {1, 1, 1, 0}}
-		}
-		gl.Shape(GL.QUADS, vertices)
-		
-		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	end
-	
-	if threshold >= 1 then
-		glPushMatrix()
-		local skullY = scorebarBottom + (scorebarTop - scorebarBottom)/2
-		glTranslate(skullX, skullY, 0)
-		
-		local shadowOffset = 1.5
-		local shadowAlpha = 0.6
-		local shadowScale = 1.1
-		
-		setOptimizedColor(0, 0, 0, shadowAlpha)
-		setOptimizedTexture(':n:LuaUI/Images/skull.dds')
-		glTexRect(
-			-ICON_SIZE/2 * shadowScale + shadowOffset, 
-			-ICON_SIZE/2 * shadowScale - shadowOffset, 
-			ICON_SIZE/2 * shadowScale + shadowOffset, 
-			ICON_SIZE/2 * shadowScale - shadowOffset
-		)
-		
-		local skullAlpha = 1.0
-		if isThresholdFrozen then
-			local currentGameTime = spGetGameSeconds()
-			local freezeExpirationTime = getCachedRuleParam(FREEZE_DELAY_KEY)
-			local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
-			
-			if timeUntilUnfreeze <= WARNING_SECONDS then
-				currentTime = os.clock()
-				local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
-				if blinkPhase < 0.33 then
-					skullAlpha = 1.0
-					isSkullFaded = false
-				else
-					skullAlpha = 0.5
-					isSkullFaded = true
-				end
-			else
-				skullAlpha = 0.5
-				isSkullFaded = true
-			end
-		else
-			isSkullFaded = false
-		end
-		
-		setOptimizedColor(1, 1, 1, skullAlpha)
-		setOptimizedTexture(':n:LuaUI/Images/skull.dds')
-		glTexRect(-ICON_SIZE/2, -ICON_SIZE/2, ICON_SIZE/2, ICON_SIZE/2)
-		
-		setOptimizedTexture(false)
-		glPopMatrix()
-	end
-	
-	local lineExtension = 3
-	
-	local lineColor = exceedsMaxThreshold and COLOR_WHITE_LINE or COLOR_GREY_LINE
-	
-	setOptimizedColor(0, 0, 0, 0.8)
-	glRect(linePos - lineWidth - 1, scorebarBottom - lineExtension, 
-		   linePos + lineWidth + 1, scorebarTop + lineExtension)
-
-	setOptimizedColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
-	glRect(linePos - lineWidth/2, scorebarBottom - lineExtension, 
-		   linePos + lineWidth/2, scorebarTop + lineExtension)
-		   
-	return linePos, scorebarRight, thresholdX, skullX
-end
-
-local function createTimerWarningMessage(timeRemaining, territoriesNeeded)
-	local dominatedMessage = spI18N('ui.territorialDomination.beingDominated')
-	local conquerMessage = spI18N('ui.territorialDomination.conquerTerritories', {count = territoriesNeeded, time = timeRemaining})
-	return dominatedMessage, conquerMessage
-end
-
-local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
-	if timerWarningDisplayList then
-		glDeleteList(timerWarningDisplayList)
-	end
-
-	timerWarningDisplayList = glCreateList(function()
-		local vsx, vsy = spGetViewGeometry()
-		local centerX = vsx / 2
-		local centerY = vsy / 2 + 100
-		
-		local fontSize = 24
-		local spacing = 30
-		
-		drawTextWithOutline(dominatedMessage, centerX, centerY + spacing, fontSize, "c", COLOR_RED)
-		drawTextWithOutline(conquerMessage, centerX, centerY - spacing, fontSize, "c", COLOR_YELLOW)
-	end)
 end
 
 local function isAllyTeamAlive(allyTeamID)
@@ -633,8 +369,8 @@ local function isAllyTeamAlive(allyTeamID)
 	return false
 end
 
-local function getAliveAllyTeams()
-	local aliveAllyTeams = {}
+local function updateAliveAllyTeams()
+	aliveAllyTeams = {}
 	local allyTeamList = spGetAllyTeamList()
 	
 	for _, allyTeamID in ipairs(allyTeamList) do
@@ -642,44 +378,9 @@ local function getAliveAllyTeams()
 			table.insert(aliveAllyTeams, allyTeamID)
 		end
 	end
-	
-	return aliveAllyTeams
 end
 
-local function getFreezeStatusInformation()
-	local currentGameTime = spGetGameSeconds()
-	local freezeExpirationTime = getCachedRuleParam(FREEZE_DELAY_KEY)
-	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
-	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
-	
-	return currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze
-end
-
-local function getFirstAliveTeamDataFromAllyTeam(allyTeamID)
-	for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-		local _, _, isDead = spGetTeamInfo(teamID)
-		if not isDead then
-			local score = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
-			if score then
-				local rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
-				return teamID, score, rank
-			end
-		end
-	end
-	return nil, 0, nil
-end
-
-local function getBarColorBasedOnDifference(difference)
-	if difference <= WARNING_THRESHOLD then
-		return COLOR_RED
-	elseif difference <= ALERT_THRESHOLD then
-		return COLOR_YELLOW
-	else
-		return COLOR_GREEN
-	end
-end
-
-local function calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
+local function calculateLayoutParameters(totalTeams, minimapSizeX)
 	local maxDisplayHeight = 256
 	local barSpacing = 3
 	
@@ -710,31 +411,457 @@ local function calculateSpectatorLayoutParameters(totalTeams, minimapSizeX)
 	}
 end
 
-
-local function getPlayerTeamData()
-	local threshold = getCachedRuleParam(THRESHOLD_RULES_KEY)
-	local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(myAllyID)
-	local difference = score - threshold
-	local barColor = getBarColorBasedOnDifference(difference)
+local function calculateBarPosition(index)
+	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	
+	local layout = cache:getOrCompute("layout_params", function()
+		local displayTeams = amSpectating and aliveAllyTeams or {myAllyID}
+		return calculateLayoutParameters(#displayTeams, minimapSizeX)
+	end, CACHE_TTL.NORMAL)
+	
+	local columnIndex = floor((index - 1) / layout.maxBarsPerColumn)
+	local positionInColumn = ((index - 1) % layout.maxBarsPerColumn)
+	
+	local scorebarLeft = minimapPosX + (columnIndex * layout.columnWidth) + 4
+	local scorebarRight = scorebarLeft + layout.barWidth
+	local scorebarTop = minimapPosY - MINIMAP_GAP - (positionInColumn * (layout.barHeight + 3))
+	local scorebarBottom = scorebarTop - layout.barHeight
 	
 	return {
-		score = score,
-		threshold = threshold,
-		difference = difference,
-		rank = rank,
-		teamID = teamID,
-		barColor = barColor
+		scorebarLeft = scorebarLeft,
+		scorebarRight = scorebarRight,
+		scorebarTop = scorebarTop,
+		scorebarBottom = scorebarBottom
 	}
 end
 
-local function initializeFontCache()
+local function setOptimizedColor(r, g, b, a)
+	local currentColor = drawStateCache.lastColor
+	if currentColor[1] ~= r or currentColor[2] ~= g or currentColor[3] ~= b or currentColor[4] ~= a then
+		glColor(r, g, b, a)
+		drawStateCache.lastColor = {r, g, b, a}
+	end
+end
+
+local function setOptimizedBlending(sourceBlendFactor, destinationBlendFactor)
+	local blendMode = sourceBlendFactor .. "_" .. destinationBlendFactor
+	if drawStateCache.lastBlendMode ~= blendMode then
+		gl.Blending(sourceBlendFactor, destinationBlendFactor)
+		drawStateCache.lastBlendMode = blendMode
+	end
+end
+
+local function getCachedTeamColor(teamID)
+	local cacheKey = format(CACHE_KEYS.TEAM_COLOR, teamID)
+	return cache:getOrCompute(cacheKey, function()
+		local redComponent, greenComponent, blueComponent = spGetTeamColor(teamID)
+		return {redComponent, greenComponent, blueComponent, 1}
+	end, CACHE_TTL.STATIC)
+end
+
+local function getCachedTintedColor(baseColor, tintColor, strength, cacheKey)
+	local cacheKeyToUse = cacheKey or format(CACHE_KEYS.TINTED_COLOR, baseColor[1] .. "_" .. tintColor[1] .. "_" .. strength)
+	return cache:getOrCompute(cacheKeyToUse, function()
+		return createTintedColor(baseColor, tintColor, strength)
+	end, CACHE_TTL.STATIC)
+end
+
+local function drawTextWithOutline(text, textPositionX, textPositionY, fontSize, alignment, color, outlineOffset, outlineAlpha)
+	local offset = outlineOffset or TEXT_OUTLINE_OFFSET
+	local alpha = outlineAlpha or TEXT_OUTLINE_ALPHA
+	
+	if alpha == TEXT_OUTLINE_ALPHA then
+		setOptimizedColor(0, 0, 0, TEXT_OUTLINE_ALPHA)
+	else
+		setOptimizedColor(0, 0, 0, alpha)
+	end
+	
+	glText(text, textPositionX - offset, textPositionY, fontSize, alignment)
+	glText(text, textPositionX + offset, textPositionY, fontSize, alignment)
+	glText(text, textPositionX, textPositionY - offset, fontSize, alignment)
+	glText(text, textPositionX, textPositionY + offset, fontSize, alignment)
+	
+	setOptimizedColor(color[1], color[2], color[3], color[4])
+	glText(text, textPositionX, textPositionY, fontSize, alignment)
+end
+
+local function drawDifferenceText(textPositionX, textPositionY, difference, fontSize, alignment, color, verticalOffset)
+	local text = ""
+	
+	if difference > 0 then
+		text = "+" .. difference
+	elseif difference < 0 then
+		text = tostring(difference)
+	else
+		text = "0"
+	end
+	
+	local adjustedPositionY = textPositionY + (verticalOffset or 0)
+	drawTextWithOutline(text, textPositionX, adjustedPositionY, fontSize, alignment, color)
+end
+
+local function drawCountdownText(textPositionX, textPositionY, text, fontSize, color)
+	drawTextWithOutline(text, textPositionX, textPositionY, fontSize, "c", color)
+end
+
+local function createGradientVertices(left, right, bottom, top, topColor, bottomColor)
+	return {
+		{v = {left, bottom}, c = bottomColor},
+		{v = {right, bottom}, c = bottomColor},
+		{v = {right, top}, c = topColor},
+		{v = {left, top}, c = topColor}
+	}
+end
+
+local function drawBarFill(fillLeft, fillRight, fillBottom, fillTop, barColor, isOverfill)
+	local topColor = {barColor[1], barColor[2], barColor[3], barColor[4]}
+	local bottomColor = {barColor[1]*0.7, barColor[2]*0.7, barColor[3]*0.7, barColor[4]}
+	
+	if isOverfill then
+		local excessTopColor = {
+			topColor[1] + (1 - topColor[1]) * 0.5,
+			topColor[2] + (1 - topColor[2]) * 0.5,
+			topColor[3] + (1 - topColor[3]) * 0.5,
+			topColor[4]
+		}
+		local excessBottomColor = {
+			bottomColor[1] + (1 - bottomColor[1]) * 0.5,
+			bottomColor[2] + (1 - bottomColor[2]) * 0.5,
+			bottomColor[3] + (1 - bottomColor[3]) * 0.5,
+			bottomColor[4]
+		}
+		topColor = excessTopColor
+		bottomColor = excessBottomColor
+	end
+	
+	local vertices = createGradientVertices(fillLeft, fillRight, fillBottom, fillTop, topColor, bottomColor)
+	gl.Shape(GL.QUADS, vertices)
+end
+
+local function drawGlossEffects(fillLeft, fillRight, fillBottom, fillTop)
+	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE)
+	
+	local glossHeight = (fillTop - fillBottom) * 0.4
+	local topGlossBottom = fillTop - glossHeight
+	local vertices = createGradientVertices(fillLeft, fillRight, topGlossBottom, fillTop, {1, 1, 1, 0.04}, {1, 1, 1, 0})
+	gl.Shape(GL.QUADS, vertices)
+	
+	local bottomGlossHeight = (fillTop - fillBottom) * 0.2
+	vertices = createGradientVertices(fillLeft, fillRight, fillBottom, fillBottom + bottomGlossHeight, {1, 1, 1, 0.02}, {1, 1, 1, 0})
+	gl.Shape(GL.QUADS, vertices)
+	
+	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
+	glPushMatrix()
+	glTranslate(skullX, skullY, 0)
+	
+	local shadowOffset = 1.5
+	local shadowAlpha = 0.6
+	local shadowScale = 1.1
+	
+	setOptimizedColor(0, 0, 0, shadowAlpha)
+	setOptimizedTexture(':n:LuaUI/Images/skull.dds')
+	glTexRect(
+		-HALVED_ICON_SIZE * shadowScale + shadowOffset,
+		-HALVED_ICON_SIZE * shadowScale - shadowOffset,
+		HALVED_ICON_SIZE * shadowScale + shadowOffset,
+		HALVED_ICON_SIZE * shadowScale - shadowOffset
+	)
+	
+	local skullAlpha = 1.0
+	if isThresholdFrozen then
+		local currentGameTime = spGetGameSeconds()
+		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+		local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+		
+		if timeUntilUnfreeze <= WARNING_SECONDS then
+			currentTime = os.clock()
+			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
+			if blinkPhase < 0.33 then
+				skullAlpha = 1.0
+				isSkullFaded = false
+			else
+				skullAlpha = 0.5
+				isSkullFaded = true
+			end
+		else
+			skullAlpha = 0.5
+			isSkullFaded = true
+		end
+	else
+		isSkullFaded = false
+	end
+	
+	setOptimizedColor(1, 1, 1, skullAlpha)
+	glTexRect(-HALVED_ICON_SIZE, -HALVED_ICON_SIZE, HALVED_ICON_SIZE, HALVED_ICON_SIZE)
+	
+	setOptimizedTexture(false)
+	glPopMatrix()
+end
+
+local function drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exceedsMaxThreshold)
+	local lineExtension = 3
+	local lineColor = exceedsMaxThreshold and COLOR_WHITE_LINE or COLOR_GREY_LINE
+	
+	setOptimizedColor(0, 0, 0, 0.8)
+	glRect(linePos - lineWidth - 1, scorebarBottom - lineExtension, 
+		   linePos + lineWidth + 1, scorebarTop + lineExtension)
+
+	setOptimizedColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	glRect(linePos - lineWidth/2, scorebarBottom - lineExtension, 
+		   linePos + lineWidth/2, scorebarTop + lineExtension)
+end
+
+local function drawOptimizedScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, threshold, barColor, isThresholdFrozen)
+	local barWidth = scorebarRight - scorebarLeft
+	local exceedsMaxThreshold = score > maxThreshold
+	local borderSize = 3
+	
+	local fillPaddingLeft = scorebarLeft + borderSize
+	local fillPaddingTop = scorebarTop
+	local fillPaddingBottom = scorebarBottom + borderSize
+	
+	local linePos = scorebarLeft + min(score / maxThreshold, 1) * barWidth
+	
+	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	
+	if exceedsMaxThreshold then
+		local overfillRatio = min((score - maxThreshold) / maxThreshold, 1)
+		local maxBarWidth = scorebarRight - borderSize - fillPaddingLeft
+		local overfillWidth = maxBarWidth * overfillRatio
+		local brightColorStart = scorebarRight - borderSize - overfillWidth
+		
+		linePos = max(fillPaddingLeft, brightColorStart)
+		
+		if brightColorStart > fillPaddingLeft then
+			drawBarFill(fillPaddingLeft, brightColorStart, fillPaddingBottom, fillPaddingTop, barColor, false)
+		end
+		
+		drawBarFill(brightColorStart, scorebarRight - borderSize, fillPaddingBottom, fillPaddingTop, barColor, true)
+		drawGlossEffects(fillPaddingLeft, scorebarRight - borderSize, fillPaddingBottom, fillPaddingTop)
+	else
+		local fillPaddingRight = linePos - borderSize
+		if fillPaddingLeft < fillPaddingRight then
+			drawBarFill(fillPaddingLeft, fillPaddingRight, fillPaddingBottom, fillPaddingTop, barColor, false)
+			drawGlossEffects(fillPaddingLeft, fillPaddingRight, fillPaddingBottom, fillPaddingTop)
+		end
+	end
+	
+	if threshold >= 1 then
+		local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
+		local skullOffset = (1 / maxThreshold) * barWidth
+		local skullX = thresholdX - skullOffset
+		local skullY = scorebarBottom + (scorebarTop - scorebarBottom)/2
+		
+		drawSkullIcon(skullX, skullY, isThresholdFrozen)
+	end
+	
+	drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exceedsMaxThreshold)
+	
+	local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
+	local skullOffset = (1 / maxThreshold) * barWidth
+	local skullX = thresholdX - skullOffset
+	
+	return linePos, scorebarRight, thresholdX, skullX
+end
+
+local function createTimerWarningMessage(timeRemaining, territoriesNeeded)
+	local dominatedMessage = spI18N('ui.territorialDomination.beingDominated')
+	local conquerMessage = spI18N('ui.territorialDomination.conquerTerritories', {count = territoriesNeeded, time = timeRemaining})
+	return dominatedMessage, conquerMessage
+end
+
+local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
+	if timerWarningDisplayList then
+		glDeleteList(timerWarningDisplayList)
+	end
+
+	timerWarningDisplayList = glCreateList(function()
+		local vsx, vsy = spGetViewGeometry()
+		local centerX = vsx / 2
+		local centerY = vsy / 2 + 100
+		
+		local fontSize = 24
+		local spacing = 30
+		
+		drawTextWithOutline(dominatedMessage, centerX, centerY + spacing, fontSize, "c", COLOR_RED)
+		drawTextWithOutline(conquerMessage, centerX, centerY - spacing, fontSize, "c", COLOR_YELLOW)
+	end)
+end
+
+local function getFreezeStatusInformation()
+	local currentGameTime = spGetGameSeconds()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = (freezeExpirationTime > currentGameTime)
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
+	
+	return currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze
+end
+
+local function getFirstAliveTeamDataFromAllyTeam(allyTeamID)
+	for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
+		local _, _, isDead = spGetTeamInfo(teamID)
+		if not isDead then
+			local score = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
+			if score then
+				local rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
+				return teamID, score, rank
+			end
+		end
+	end
+	return nil, 0, nil
+end
+
+local function teamScoresChanged()
+	for _, allyTeamID in ipairs(aliveAllyTeams) do
+		local teamID, currentScore = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
+		if teamID then
+			local previousScore = lastAllyTeamScores[allyTeamID]
+			if previousScore ~= currentScore then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
+local function getBarColorBasedOnDifference(difference)
+	if difference <= WARNING_THRESHOLD then
+		return COLOR_RED
+	elseif difference <= ALERT_THRESHOLD then
+		return COLOR_YELLOW
+	else
+		return COLOR_GREEN
+	end
+end
+
+local function getAllyTeamDisplayData()
+	local cacheKey = amSpectating and "spectator_teams" or "player_team"
+	
+	return cache:getOrCompute(cacheKey, function()
+		local displayTeams = amSpectating and aliveAllyTeams or {myAllyID}
+		local allyTeamScores = {}
+		
+		for _, allyTeamID in ipairs(displayTeams) do
+			local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
+			local teamColor = {1, 1, 1, 1}
+			local defeatTimeRemaining = 0
+			
+			if teamID then
+				local redComponent, greenComponent, blueComponent = spGetTeamColor(teamID)
+				teamColor = {redComponent, greenComponent, blueComponent, 1}
+			end
+			
+			if not amSpectating then
+				local difference = score - (spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0)
+				teamColor = getBarColorBasedOnDifference(difference)
+			end
+			
+			if allyTeamDefeatTimes[allyTeamID] and allyTeamDefeatTimes[allyTeamID] > 0 then
+				defeatTimeRemaining = max(0, allyTeamDefeatTimes[allyTeamID] - gameSeconds)
+			else
+				defeatTimeRemaining = math.huge
+			end
+			
+			table.insert(allyTeamScores, {
+				allyTeamID = allyTeamID,
+				score = score,
+				teamColor = teamColor,
+				rank = rank,
+				teamID = teamID,
+				defeatTimeRemaining = defeatTimeRemaining
+			})
+		end
+		
+		if amSpectating then
+			table.sort(allyTeamScores, function(a, b)
+				if a.score == b.score then
+					return a.defeatTimeRemaining > b.defeatTimeRemaining
+				end
+				return a.score > b.score
+			end)
+		end
+		
+		return allyTeamScores
+	end, CACHE_TTL.NORMAL)
+end
+
+local function updateLastValues(score, difference, threshold, maxThreshold, isThresholdFrozen, scorebarWidth, minimapDimensions, amSpectating, selectedAllyTeamID, teamID, rank)
+	if score ~= nil then lastScore = score end
+	if difference ~= nil then lastDifference = difference end
+	if threshold ~= nil then lastThreshold = threshold end
+	if maxThreshold ~= nil then lastMaxThreshold = maxThreshold end
+	if isThresholdFrozen ~= nil then lastIsThresholdFrozen = isThresholdFrozen end
+	if scorebarWidth ~= nil then lastScorebarWidth = scorebarWidth end
+	if minimapDimensions ~= nil then lastMinimapDimensions = minimapDimensions end
+	if amSpectating ~= nil then lastAmSpectating = amSpectating end
+	if selectedAllyTeamID ~= nil then lastSelectedAllyTeamID = selectedAllyTeamID end
+	if teamID ~= nil and rank ~= nil then lastTeamRanks[teamID] = rank end
+end
+
+local function needsDisplayListUpdate()
 	if not fontCache.initialized then
+		return true
+	end
+
+	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
+	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	
+	local currentScore, currentDifference, currentTeamID, currentRank
+	
+	if not amSpectating then
+		currentTeamID, currentScore, currentRank = getFirstAliveTeamDataFromAllyTeam(myAllyID)
+		currentDifference = currentScore - threshold
+	else
+		local cachedData = cache.data["spectator_teams"]
+		if not cachedData or #cachedData == 0 then
+			return true
+		end
+		local firstTeam = cachedData[1]
+		currentScore = firstTeam.score
+		currentDifference = firstTeam.score - threshold
+		currentTeamID = firstTeam.teamID
+		currentRank = firstTeam.rank
+	end
+	
+	local hasChanged = lastScore ~= currentScore 
+		or lastDifference ~= currentDifference 
+		or lastThreshold ~= threshold 
+		or lastMaxThreshold ~= currentMaxThreshold 
+		or lastIsThresholdFrozen ~= isThresholdFrozen 
+		or lastScorebarWidth ~= scorebarWidth 
+		or lastMinimapDimensions[1] ~= minimapPosX 
+		or lastMinimapDimensions[2] ~= minimapPosY 
+		or lastMinimapDimensions[3] ~= minimapSizeX 
+		or lastAmSpectating ~= amSpectating 
+		or lastSelectedAllyTeamID ~= selectedAllyTeamID 
+		or (currentTeamID and lastTeamRanks[currentTeamID] ~= currentRank)
+	
+	if hasChanged then
+		updateLastValues(currentScore, currentDifference, threshold, currentMaxThreshold, isThresholdFrozen, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID, currentTeamID, currentRank)
+		return true
+	end
+	
+	return false
+end
+
+local function initializeFontCache()
+	fontCache = cache:get(CACHE_KEYS.FONT_DATA)
+	if not fontCache then
 		local _, viewportSizeY = spGetViewGeometry()
-		fontCache.fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
-		fontCache.fontSize = floor(14 * fontCache.fontSizeMultiplier)
-		fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
-		fontCache.paddingY = fontCache.paddingX
-		fontCache.initialized = true
+		local fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
+		fontCache = cache:set(CACHE_KEYS.FONT_DATA, {
+			initialized = true,
+			fontSizeMultiplier = fontSizeMultiplier,
+			fontSize = floor(14 * fontSizeMultiplier),
+			paddingX = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER),
+			paddingY = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER)
+		}, CACHE_TTL.SLOW)
 	end
 end
 
@@ -745,68 +872,8 @@ local function updateTrackingVariables()
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	local isThresholdFrozen = (spGetGameRulesParam(FREEZE_DELAY_KEY) or 0) > currentGameTime
 	
-	lastThreshold = threshold
-	lastMaxThreshold = currentMaxThreshold
-	lastIsThresholdFrozen = isThresholdFrozen
-	lastHealthbarWidth = healthbarWidth
-	lastMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
-	lastAmSpectating = amSpectating
-	lastSelectedAllyTeamID = selectedAllyTeamID
+	updateLastValues(nil, nil, threshold, currentMaxThreshold, isThresholdFrozen, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID)
 	maxThreshold = currentMaxThreshold
-end
-
-local function needsDisplayListUpdate()
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
-	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
-	local threshold = getCachedRuleParam(THRESHOLD_RULES_KEY)
-	local currentMaxThreshold = getCachedRuleParam(MAX_THRESHOLD_RULES_KEY)
-	
-	if scoreAllyID == gaiaAllyTeamID then 
-		return false
-	end
-	
-	if not fontCache.initialized then
-		return true
-	end
-
-	if not amSpectating then
-		local teamData = getPlayerTeamData()
-		
-		if lastScore ~= teamData.score or lastDifference ~= teamData.difference or 
-		   lastThreshold ~= threshold or lastMaxThreshold ~= currentMaxThreshold or
-		   lastIsThresholdFrozen ~= isThresholdFrozen or
-		   lastHealthbarWidth ~= healthbarWidth or 
-		   lastMinimapDimensions[1] ~= minimapPosX or
-		   lastMinimapDimensions[2] ~= minimapPosY or
-		   lastMinimapDimensions[3] ~= minimapSizeX or
-		   lastAmSpectating ~= amSpectating or
-		   (teamData.teamID and lastTeamRanks[teamData.teamID] ~= teamData.rank) then
-			
-			lastScore = teamData.score
-			lastDifference = teamData.difference
-			lastThreshold = threshold
-			lastMaxThreshold = currentMaxThreshold
-			lastIsThresholdFrozen = isThresholdFrozen
-			lastHealthbarWidth = healthbarWidth
-			lastMinimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
-			lastAmSpectating = amSpectating
-			if teamData.teamID then
-				lastTeamRanks[teamData.teamID] = teamData.rank
-			end
-			return true
-		end
-		return false
-	end
-
-	if lastAmSpectating ~= amSpectating or lastSelectedAllyTeamID ~= selectedAllyTeamID then
-		return true
-	end
-	return false
-end
-
-local function cleanupAllCountdowns()
-	return cleanupCountdowns()
 end
 
 local function updateLayoutCache()
@@ -818,31 +885,24 @@ local function updateLayoutCache()
 	local vsx, vsy = spGetViewGeometry()
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
 	
-	local needsUpdate = not layoutCache.initialized or
-		layoutCache.minimapDimensions[1] ~= minimapPosX or
-		layoutCache.minimapDimensions[2] ~= minimapPosY or
-		layoutCache.minimapDimensions[3] ~= minimapSizeX or
-		layoutCache.lastViewportSize[1] ~= vsx or
-		layoutCache.lastViewportSize[2] ~= vsy
+	local needsUpdate = not layoutCache.initialized or layoutCache.minimapDimensions[1] ~= minimapPosX or layoutCache.minimapDimensions[2] ~= minimapPosY or layoutCache.minimapDimensions[3] ~= minimapSizeX or layoutCache.lastViewportSize[1] ~= vsx or layoutCache.lastViewportSize[2] ~= vsy
 	
 	if needsUpdate then
 		layoutCache.minimapDimensions = {minimapPosX, minimapPosY, minimapSizeX}
 		layoutCache.lastViewportSize = {vsx, vsy}
 		
-		layoutCache.playerBarBounds = calculateBarPosition(1, false)
-		
-		if amSpectating then
-			local aliveAllyTeams = getAliveAllyTeams()
-			layoutCache.spectatorLayout = calculateSpectatorLayoutParameters(#aliveAllyTeams, minimapSizeX)
+		cache:invalidate("layout_params")
+		if currentTime - lastLayoutUpdate > 1.0 then
+			cache:invalidate("spectator_teams")
+			cache:invalidate("player_team")
 		end
 
-		-- Clear position cache
 		positionCache.playerBar = nil
 		positionCache.spectatorBars = {}
 		positionCache.countdownPositions = {}
 		positionCache.textPositions = {}
 
-		cleanupAllCountdowns()
+		cleanupCountdowns()
 		
 		layoutCache.initialized = true
 		lastLayoutUpdate = currentTime
@@ -853,68 +913,11 @@ local function updateLayoutCache()
 	return false
 end
 
-local function getSpectatorAllyTeamData()
-	local aliveAllyTeams = getAliveAllyTeams()
-	local allyTeamScores = {}
-	
-	for _, allyTeamID in ipairs(aliveAllyTeams) do
-		local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
-		local teamColor = {1, 1, 1, 1}
-		local defeatTimeRemaining = 0
-		
-		if teamID then
-			local redComponent, greenComponent, blueComponent = spGetTeamColor(teamID)
-			teamColor = {redComponent, greenComponent, blueComponent, 1}
-		end
-		
-		if allyTeamDefeatTimes[allyTeamID] and allyTeamDefeatTimes[allyTeamID] > 0 then
-			defeatTimeRemaining = max(0, allyTeamDefeatTimes[allyTeamID] - gameSeconds)
-		else
-			defeatTimeRemaining = math.huge
-		end
-		
-		table.insert(allyTeamScores, {
-			allyTeamID = allyTeamID,
-			score = score,
-			teamColor = teamColor,
-			rank = rank,
-			defeatTimeRemaining = defeatTimeRemaining
-		})
-	end
-	
-	table.sort(allyTeamScores, function(a, b)
-		if a.score == b.score then
-			return a.defeatTimeRemaining > b.defeatTimeRemaining
-		end
-		return a.score > b.score
-	end)
-	
-	return allyTeamScores
-end
-
-local function getPlayerBarPositionsCached()
-	if not positionCache.playerBar then
-		initializeFontCache()
-		
-		local bounds = layoutCache.playerBarBounds or calculateBarPosition(1, false)
-		
-		positionCache.playerBar = {
-			scorebarLeft = bounds.scorebarLeft,
-			scorebarRight = bounds.scorebarRight,
-			scorebarTop = bounds.scorebarTop,
-			scorebarBottom = bounds.scorebarBottom,
-			textY = bounds.scorebarBottom + (bounds.scorebarTop - bounds.scorebarBottom - fontCache.fontSize) / 2,
-			innerRight = bounds.scorebarRight - 3 - fontCache.paddingX
-		}
-	end
-	return positionCache.playerBar
-end
-
-local function getSpectatorBarPositionsCached(index)
+local function getBarPositionsCached(index)
 	if not positionCache.spectatorBars[index] then
 		initializeFontCache()
 		
-		local bounds = calculateBarPosition(index, true)
+		local bounds = calculateBarPosition(index)
 		local barHeight = bounds.scorebarTop - bounds.scorebarBottom
 		local scaledFontSize = barHeight * 1.1
 		
@@ -931,38 +934,26 @@ local function getSpectatorBarPositionsCached(index)
 	return positionCache.spectatorBars[index]
 end
 
-local function calculateCountdownPosition(allyTeamID, isSpectator, barIndex)
+local function calculateCountdownPosition(allyTeamID, barIndex)
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	
-	if isSpectator then
-		if not barIndex then
-			local aliveAllyTeams = getAliveAllyTeams()
-			local allyTeamScores = getSpectatorAllyTeamData()
-			
-			for i, allyTeamData in ipairs(allyTeamScores) do
-				if allyTeamData.allyTeamID == allyTeamID then
-					barIndex = i
-					break
-				end
+	if not barIndex then
+		local allyTeamScores = getAllyTeamDisplayData()
+		
+		for allyTeamIndex, allyTeamData in ipairs(allyTeamScores) do
+			if allyTeamData.allyTeamID == allyTeamID then
+				barIndex = allyTeamIndex
+				break
 			end
 		end
-		
-		if barIndex then
-			local bounds = calculateBarPosition(barIndex, true)
-			local barWidthForCalc = bounds.scorebarRight - bounds.scorebarLeft
-			local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidthForCalc
-			local skullOffset = (1 / maxThreshold) * barWidthForCalc
-			local countdownX = thresholdX - skullOffset
-			local countdownY = bounds.scorebarBottom + (bounds.scorebarTop - bounds.scorebarBottom) / 2
-			
-			return countdownX, countdownY
-		end
-	else
-		local bounds = layoutCache.playerBarBounds or calculateBarPosition(1, false)
-		local barWidth = bounds.scorebarRight - bounds.scorebarLeft
-		local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidth
-		local skullOffset = (1 / maxThreshold) * barWidth
+	end
+	
+	if barIndex then
+		local bounds = calculateBarPosition(barIndex)
+		local barWidthForCalc = bounds.scorebarRight - bounds.scorebarLeft
+		local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidthForCalc
+		local skullOffset = (1 / maxThreshold) * barWidthForCalc
 		local countdownX = thresholdX - skullOffset
 		local countdownY = bounds.scorebarBottom + (bounds.scorebarTop - bounds.scorebarBottom) / 2
 		
@@ -972,21 +963,12 @@ local function calculateCountdownPosition(allyTeamID, isSpectator, barIndex)
 	return minimapPosX + minimapSizeX / 2, minimapPosY - MINIMAP_GAP - 20
 end
 
-local function calculateSpectatorCountdownPosition(allyTeamID, minimapPosX, minimapPosY, minimapSizeX)
-	return calculateCountdownPosition(allyTeamID, true)
-end
-
-local function cleanupCountdownsForAllyTeam(allyTeamID)
-	return cleanupCountdowns(allyTeamID)
-end
-
 local function manageCountdownUpdates()
 	local currentGameTime = spGetGameSeconds()
 	local updatedCountdowns = false
+	local activeAllyTeams = {}
 	
 	if amSpectating then
-		local activeAllyTeams = {}
-		
 		for allyTeamID, allyDefeatTime in pairs(allyTeamDefeatTimes) do
 			if allyDefeatTime and allyDefeatTime > 0 and currentGameTime and allyDefeatTime > currentGameTime then
 				local timeRemaining = ceil(allyDefeatTime - currentGameTime)
@@ -995,45 +977,35 @@ local function manageCountdownUpdates()
 				end
 			end
 		end
-		
-		for allyTeamID in pairs(lastCountdownValues) do
-			if not activeAllyTeams[allyTeamID] then
-				if cleanupCountdownsForAllyTeam(allyTeamID) then
-					updatedCountdowns = true
-				end
-			end
-		end
-		
-		for allyTeamID, timeRemaining in pairs(activeAllyTeams) do
-			if lastCountdownValues[allyTeamID] ~= timeRemaining then
-				cleanupCountdownsForAllyTeam(allyTeamID)
-				lastCountdownValues[allyTeamID] = timeRemaining
-				updatedCountdowns = true
-			end
-		end
 	else
 		if defeatTime and defeatTime > 0 and currentGameTime and defeatTime > currentGameTime then
 			local timeRemaining = ceil(defeatTime - currentGameTime)
 			if timeRemaining >= 0 then
-				if lastCountdownValues[myAllyID] ~= timeRemaining then
-					cleanupCountdownsForAllyTeam(myAllyID)
-					lastCountdownValues[myAllyID] = timeRemaining
-					updatedCountdowns = true
-				end
+				activeAllyTeams[myAllyID] = timeRemaining
 			end
-		else
-			if lastCountdownValues[myAllyID] then
-				if cleanupCountdownsForAllyTeam(myAllyID) then
-					updatedCountdowns = true
-				end
+		end
+	end
+	
+	for allyTeamID in pairs(lastCountdownValues) do
+		if not activeAllyTeams[allyTeamID] then
+			if cleanupCountdowns(allyTeamID) then
+				updatedCountdowns = true
 			end
+		end
+	end
+	
+	for allyTeamID, timeRemaining in pairs(activeAllyTeams) do
+		if lastCountdownValues[allyTeamID] ~= timeRemaining then
+			cleanupCountdowns(allyTeamID)
+			lastCountdownValues[allyTeamID] = timeRemaining
+			updatedCountdowns = true
 		end
 	end
 	
 	return updatedCountdowns
 end
 
-local function createOptimizedHaloDisplayList()
+local function createOptimizedHaloDisplayList(allyTeamData)
 	if haloDisplayList then
 		glDeleteList(haloDisplayList)
 	end
@@ -1045,64 +1017,38 @@ local function createOptimizedHaloDisplayList()
 		
 		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
-		local allyTeamScores = getSpectatorAllyTeamData()
 		local targetBarIndex = nil
-		
-		for i, allyTeamData in ipairs(allyTeamScores) do
-			if allyTeamData.allyTeamID == selectedAllyTeamID then
-				targetBarIndex = i
+		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
+			if allyTeamDataEntry.allyTeamID == selectedAllyTeamID then
+				targetBarIndex = allyTeamIndex
 				break
 			end
 		end
 		
-		if targetBarIndex then
-			local pos = getSpectatorBarPositionsCached(targetBarIndex)
+		if not targetBarIndex then
+			return
+		end
+		
+		local barPosition = getBarPositionsCached(targetBarIndex)
+		local fadeSteps = 4
+		local stepSize = HALO_EXTENSION / fadeSteps
+		local alphaStep = HALO_MAX_ALPHA / fadeSteps
+		
+		for step = 1, fadeSteps do
+			local currentAlpha = alphaStep * step
+			local offset = (step - 1) * stepSize
 			
-			local haloLeft = pos.scorebarLeft - HALO_EXTENSION
-			local haloRight = pos.scorebarRight + HALO_EXTENSION
-			local haloTop = pos.scorebarTop + HALO_EXTENSION
-			local haloBottom = pos.scorebarBottom - HALO_EXTENSION
+			setOptimizedColor(1, 1, 1, currentAlpha)
 			
-			local fadeSteps = 4
-			local alphaStep = HALO_MAX_ALPHA / fadeSteps
-			
-			for i = fadeSteps, 1, -1 do
-				local currentAlpha = alphaStep * (fadeSteps - i + 1)
-				local offset = (i - 1) * (HALO_EXTENSION / fadeSteps)
-				
-				local currentLeft = pos.scorebarLeft - offset
-				local currentRight = pos.scorebarRight + offset
-				local currentTop = pos.scorebarTop + offset
-				local currentBottom = pos.scorebarBottom - offset
-				
-				currentLeft = max(haloLeft, currentLeft)
-				currentRight = min(haloRight, currentRight)
-				currentTop = min(haloTop, currentTop)
-				currentBottom = max(haloBottom, currentBottom)
-				
-				setOptimizedColor(1, 1, 1, currentAlpha)
-				
-				if currentTop > pos.scorebarTop then
-					glRect(currentLeft, pos.scorebarTop, currentRight, currentTop)
-				end
-				
-				if currentBottom < pos.scorebarBottom then
-					glRect(currentLeft, currentBottom, currentRight, pos.scorebarBottom)
-				end
-				
-				if currentLeft < pos.scorebarLeft then
-					glRect(currentLeft, currentBottom, pos.scorebarLeft, currentTop)
-				end
-				
-				if currentRight > pos.scorebarRight then
-					glRect(pos.scorebarRight, currentBottom, currentRight, currentTop)
-				end
-			end
+			glRect(barPosition.scorebarLeft - offset, barPosition.scorebarTop, barPosition.scorebarRight + offset, barPosition.scorebarTop + stepSize)
+			glRect(barPosition.scorebarLeft - offset, barPosition.scorebarBottom - stepSize, barPosition.scorebarRight + offset, barPosition.scorebarBottom)
+			glRect(barPosition.scorebarLeft - offset, barPosition.scorebarBottom - offset, barPosition.scorebarLeft, barPosition.scorebarTop + offset)
+			glRect(barPosition.scorebarRight, barPosition.scorebarBottom - offset, barPosition.scorebarRight + offset, barPosition.scorebarTop + offset)
 		end
 	end)
 end
 
-local function createOptimizedBackgroundDisplayList()
+local function createOptimizedBackgroundDisplayList(allyTeamData)
 	if backgroundDisplayList then
 		glDeleteList(backgroundDisplayList)
 	end
@@ -1110,139 +1056,95 @@ local function createOptimizedBackgroundDisplayList()
 	backgroundDisplayList = glCreateList(function()
 		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
-		if amSpectating then
-			local allyTeamScores = getSpectatorAllyTeamData()
-			for i, allyTeamData in ipairs(allyTeamScores) do
-				if allyTeamData and allyTeamData.allyTeamID then
-					local pos = getSpectatorBarPositionsCached(i)
-					
-					local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, allyTeamData.teamColor, 0.15, "bg_" .. allyTeamData.allyTeamID)
-					local tintedBorder = getCachedTintedColor(COLOR_BORDER, allyTeamData.teamColor, 0.1, "border_" .. allyTeamData.allyTeamID)
+		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
+			if allyTeamDataEntry and allyTeamDataEntry.allyTeamID then
+				local barPosition = getBarPositionsCached(allyTeamIndex)
+				
+				local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, allyTeamDataEntry.teamColor, 0.15, "bg_" .. allyTeamDataEntry.allyTeamID)
+				local tintedBorder = getCachedTintedColor(COLOR_BORDER, allyTeamDataEntry.teamColor, 0.1, "border_" .. allyTeamDataEntry.allyTeamID)
 
-					setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
-					glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
-						   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
-					
-					setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
-					glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
-				end
+				setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
+				glRect(barPosition.scorebarLeft - BORDER_WIDTH, barPosition.scorebarBottom - BORDER_WIDTH, 
+					   barPosition.scorebarRight + BORDER_WIDTH, barPosition.scorebarTop + BORDER_WIDTH)
+				
+				setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
+				glRect(barPosition.scorebarLeft, barPosition.scorebarBottom, barPosition.scorebarRight, barPosition.scorebarTop)
 			end
-		else
-			local teamData = getPlayerTeamData()
-			
-			local pos
-			if teamData.teamID then
-				pos = getPlayerBarPositionsCached()
-			else
-				pos = calculateBarPosition(1, false)
-			end
-			
-			local barColor = (teamData and teamData.barColor) or COLOR_GREEN
-			local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, barColor, 0.15, "bg_player")
-			local tintedBorder = getCachedTintedColor(COLOR_BORDER, barColor, 0.1, "border_player")
-			
-			setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
-			glRect(pos.scorebarLeft - BORDER_WIDTH, pos.scorebarBottom - BORDER_WIDTH, 
-				   pos.scorebarRight + BORDER_WIDTH, pos.scorebarTop + BORDER_WIDTH)
-			
-			setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
-			glRect(pos.scorebarLeft, pos.scorebarBottom, pos.scorebarRight, pos.scorebarTop)
 		end
 	end)
 end
 
-local function createOptimizedStaticDisplayList()
+local function createOptimizedStaticDisplayList(allyTeamData)
 	if staticDisplayList then
 		glDeleteList(staticDisplayList)
 	end
 	
 	staticDisplayList = glCreateList(function()
 		if not amSpectating then
-			local teamData = getPlayerTeamData()
-			if teamData.rank and teamData.teamID then
-				local pos = getPlayerBarPositionsCached()
-				
-				local rankText = spI18N('ui.territorialDomination.rank', {rank = teamData.rank})
-				local textWidth = glGetTextWidth(rankText) * fontCache.fontSize
-				local textHeight = fontCache.fontSize
-				
-				local paddingX = textWidth * 0.2
-				local paddingY = textHeight * 0.2
-				local rankBoxWidth = textWidth + (paddingX * 1)
-				local rankBoxHeight = textHeight + (paddingY * 1)
-				
-				local rankX = pos.scorebarLeft
-				local rankY = pos.scorebarBottom - rankBoxHeight
-				
-				setOptimizedColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
-				glRect(rankX - BORDER_WIDTH, rankY - BORDER_WIDTH, 
-					   rankX + rankBoxWidth + BORDER_WIDTH, rankY + rankBoxHeight + BORDER_WIDTH)
-				
-				setOptimizedColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
-				glRect(rankX, rankY, rankX + rankBoxWidth, rankY + rankBoxHeight)
-			end
-		end
-	end)
-end
-
-local function createOptimizedDynamicDisplayList()
-	if dynamicDisplayList then
-		glDeleteList(dynamicDisplayList)
-	end
-	
-	dynamicDisplayList = glCreateList(function()
-		local threshold = getCachedRuleParam(THRESHOLD_RULES_KEY)
-		local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
-
-		if amSpectating then
-			local allyTeamScores = getSpectatorAllyTeamData()
-			for i, allyTeamData in ipairs(allyTeamScores) do
-				local pos = getSpectatorBarPositionsCached(i)
-				
-				drawOptimizedHealthBar(pos.scorebarLeft, pos.scorebarRight, pos.scorebarBottom, pos.scorebarTop, 
-									   allyTeamData.score, threshold, allyTeamData.teamColor, isThresholdFrozen)
-				
-				local difference = allyTeamData.score - threshold
-				local differenceVerticalOffset = 3
-				drawDifferenceText(pos.innerRight, pos.textY, difference, pos.fontSize, "r", COLOR_WHITE, differenceVerticalOffset)
-			end
-		else
-			local teamData = getPlayerTeamData()
-			local pos
-			if teamData.teamID then
-				pos = getPlayerBarPositionsCached()
-				
-				drawOptimizedHealthBar(pos.scorebarLeft, pos.scorebarRight, pos.scorebarBottom, pos.scorebarTop, 
-									   teamData.score, teamData.threshold, teamData.barColor, isThresholdFrozen)
-				drawDifferenceText(pos.innerRight, pos.textY, teamData.difference, fontCache.fontSize * 1.20, "r", COLOR_WHITE, 1)
-				
-				if teamData.rank then
-					local rankText = spI18N('ui.territorialDomination.rank', {rank = teamData.rank})
+			for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
+				if allyTeamDataEntry.rank and allyTeamDataEntry.teamID then
+					local barPosition = getBarPositionsCached(allyTeamIndex)
+					
+					local rankText = spI18N('ui.territorialDomination.rank', {rank = allyTeamDataEntry.rank})
 					local textWidth = glGetTextWidth(rankText) * fontCache.fontSize
-					local textHeight = fontCache.fontSize + 2
+					local textHeight = fontCache.fontSize
 					
 					local paddingX = textWidth * 0.2
 					local paddingY = textHeight * 0.2
 					local rankBoxWidth = textWidth + (paddingX * 1)
 					local rankBoxHeight = textHeight + (paddingY * 1)
 					
-					local rankX = pos.scorebarLeft
-					local rankY = pos.scorebarBottom - rankBoxHeight - textHeight  * 0.2
+					local rankPositionX = barPosition.scorebarLeft
+					local rankPositionY = barPosition.scorebarBottom - rankBoxHeight
 					
-					local centerX = rankX + rankBoxWidth / 2
-					local centerY = rankY + rankBoxHeight / 2
+					setOptimizedColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
+					glRect(rankPositionX - BORDER_WIDTH, rankPositionY - BORDER_WIDTH, 
+						   rankPositionX + rankBoxWidth + BORDER_WIDTH, rankPositionY + rankBoxHeight + BORDER_WIDTH)
 					
-					drawTextWithOutline(rankText, centerX, centerY, fontCache.fontSize, "c", COLOR_WHITE)
+					setOptimizedColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
+					glRect(rankPositionX, rankPositionY, rankPositionX + rankBoxWidth, rankPositionY + rankBoxHeight)
 				end
-			else
-				pos = calculateBarPosition(1, false)
-				pos.textY = pos.scorebarBottom + (pos.scorebarTop - pos.scorebarBottom) / 2
-				pos.innerRight = pos.scorebarRight - 10
+			end
+		end
+	end)
+end
+
+local function createOptimizedDynamicDisplayList(allyTeamData)
+	if dynamicDisplayList then
+		glDeleteList(dynamicDisplayList)
+	end
+	
+	dynamicDisplayList = glCreateList(function()
+		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		local currentGameTime, freezeExpirationTime, isThresholdFrozen = getFreezeStatusInformation()
+
+		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
+			local barPosition = getBarPositionsCached(allyTeamIndex)
+			
+			drawOptimizedScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, threshold, allyTeamDataEntry.teamColor, isThresholdFrozen)
+			
+			local difference = allyTeamDataEntry.score - threshold
+			local differenceVerticalOffset = amSpectating and 3 or 1
+			local fontSize = amSpectating and barPosition.fontSize or (fontCache.fontSize * 1.20)
+			drawDifferenceText(barPosition.innerRight, barPosition.textY, difference, fontSize, "r", COLOR_WHITE, differenceVerticalOffset)
+			
+			if not amSpectating and allyTeamDataEntry.rank then
+				local rankText = spI18N('ui.territorialDomination.rank', {rank = allyTeamDataEntry.rank})
+				local textWidth = glGetTextWidth(rankText) * fontCache.fontSize
+				local textHeight = fontCache.fontSize + 2
 				
-				drawOptimizedHealthBar(pos.scorebarLeft, pos.scorebarRight, pos.scorebarBottom, pos.scorebarTop, 
-									   0, threshold, COLOR_GREEN, isThresholdFrozen)
+				local paddingX = textWidth * 0.2
+				local paddingY = textHeight * 0.2
+				local rankBoxWidth = textWidth + (paddingX * 1)
+				local rankBoxHeight = textHeight + (paddingY * 1)
 				
-				drawDifferenceText(pos.innerRight, pos.textY, 0, fontCache.fontSize * 1.20, "r", COLOR_WHITE, 1)
+				local rankPositionX = barPosition.scorebarLeft
+				local rankPositionY = barPosition.scorebarBottom - rankBoxHeight - textHeight * 0.2
+				
+				local centerX = rankPositionX + rankBoxWidth / 2
+				local centerY = rankPositionY + rankBoxHeight / 2
+				
+				drawTextWithOutline(rankText, centerX, centerY, fontCache.fontSize, "c", COLOR_WHITE)
 			end
 		end
 	end)
@@ -1259,38 +1161,39 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	end
 	
 	local keysToDelete = {}
-	for key, displayList in pairs(allyTeamCountdownDisplayLists) do
-		if key:sub(1, #tostring(allyTeamID) + 1) == allyTeamID .. "_" and key ~= cacheKey then
-			local keyTime = tonumber(key:sub(#tostring(allyTeamID) + 2))
+	for displayListKey, displayList in pairs(allyTeamCountdownDisplayLists) do
+		if displayListKey:sub(1, #tostring(allyTeamID) + 1) == allyTeamID .. "_" and displayListKey ~= cacheKey then
+			local keyTime = tonumber(displayListKey:sub(#tostring(allyTeamID) + 2))
 			if keyTime and (bucketedTime - keyTime > 3 or keyTime - bucketedTime > 1) then
-				table.insert(keysToDelete, key)
+				table.insert(keysToDelete, displayListKey)
 			end
 		end
 	end
 		
-	for _, key in ipairs(keysToDelete) do
-		glDeleteList(allyTeamCountdownDisplayLists[key])
-		allyTeamCountdownDisplayLists[key] = nil
+	for _, deleteKey in ipairs(keysToDelete) do
+		glDeleteList(allyTeamCountdownDisplayLists[deleteKey])
+		allyTeamCountdownDisplayLists[deleteKey] = nil
 	end
 	
 	allyTeamCountdownDisplayLists[cacheKey] = glCreateList(function()
 		local countdownColor = COUNTDOWN_COLOR
-		local countdownX, countdownY = calculateCountdownPosition(allyTeamID, amSpectating)
+		local countdownPositionX, countdownPositionY = calculateCountdownPosition(allyTeamID)
 		
-		if not countdownX then return end
+		if not countdownPositionX then return end
 		
 		initializeFontCache()
 		
 		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
-		if amSpectating and layoutCache.spectatorLayout then
-			local scaleFactor = layoutCache.spectatorLayout.barHeight / BAR_HEIGHT
+		local layout = cache.data["layout_params"]
+		if layout then
+			local scaleFactor = layout.barHeight / BAR_HEIGHT
 			countdownFontSize = max(10, countdownFontSize * scaleFactor)
 		end
 		
 		local text = format("%d", timeRemaining)
-		local adjustedCountdownY = countdownY - (countdownFontSize * 0.25)
+		local adjustedCountdownPositionY = countdownPositionY - (countdownFontSize * 0.25)
 		
-		drawCountdownText(countdownX, adjustedCountdownY, text, countdownFontSize, countdownColor)
+		drawCountdownText(countdownPositionX, adjustedCountdownPositionY, text, countdownFontSize, countdownColor)
 	end)
 	
 	return allyTeamCountdownDisplayLists[cacheKey]
@@ -1299,55 +1202,39 @@ end
 local function updateScoreDisplayList()
 	local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
 	
-	if scoreAllyID == gaiaAllyTeamID then 
-		if displayList then
-			glDeleteList(displayList)
-			displayList = nil
-		end
-		return 
-	end
-	
 	initializeFontCache()
 
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
-	healthbarWidth = minimapSizeX - ICON_SIZE
+	scorebarWidth = minimapSizeX - HALVED_ICON_SIZE
 
 	local currentTime = os.clock()
 	local layoutChanged = updateLayoutCache()
 	
-	needsBackgroundUpdate = needsBackgroundUpdate or 
-							not backgroundDisplayList or layoutChanged
+	local allyTeamData = getAllyTeamDisplayData()
 	
-	needsHaloUpdate = needsHaloUpdate or 
-					  not haloDisplayList or layoutChanged or
-					  (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
-	
-	needsStaticUpdate = needsStaticUpdate or 
-						not staticDisplayList or layoutChanged
-	
-	needsDynamicUpdate = needsDynamicUpdate or 
-						 not dynamicDisplayList or 
-						 (currentTime - lastDynamicUpdate > DYNAMIC_UPDATE_THRESHOLD) or
-						 needsDisplayListUpdate()
+	needsBackgroundUpdate = needsBackgroundUpdate or not backgroundDisplayList or layoutChanged
+	needsHaloUpdate = needsHaloUpdate or not haloDisplayList or layoutChanged or (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
+	needsStaticUpdate = needsStaticUpdate or not staticDisplayList or layoutChanged
+	needsDynamicUpdate = needsDynamicUpdate or not dynamicDisplayList or (currentTime - lastDynamicUpdate > DYNAMIC_UPDATE_THRESHOLD) or needsDisplayListUpdate()
 	
 	if needsBackgroundUpdate then
-		createOptimizedHaloDisplayList()
-		createOptimizedBackgroundDisplayList()
+		createOptimizedHaloDisplayList(allyTeamData)
+		createOptimizedBackgroundDisplayList(allyTeamData)
 		needsBackgroundUpdate = false
 	end
 	
 	if needsHaloUpdate then
-		createOptimizedHaloDisplayList()
+		createOptimizedHaloDisplayList(allyTeamData)
 		needsHaloUpdate = false
 	end
 	
 	if needsStaticUpdate then
-		createOptimizedStaticDisplayList()
+		createOptimizedStaticDisplayList(allyTeamData)
 		needsStaticUpdate = false
 	end
 	
 	if needsDynamicUpdate then
-		createOptimizedDynamicDisplayList()
+		createOptimizedDynamicDisplayList(allyTeamData)
 		needsDynamicUpdate = false
 		lastDynamicUpdate = currentTime
 		updateTrackingVariables()
@@ -1388,12 +1275,13 @@ local function cleanupOptimizedDisplayLists()
 	haloDisplayList = cleanupDisplayList(haloDisplayList)
 	timerWarningDisplayList = cleanupDisplayList(timerWarningDisplayList)
 	
-	cleanupAllCountdowns()
+	cleanupCountdowns()
+	
+	cache:clear()
 	
 	layoutCache.initialized = false
 	positionCache.playerBar = nil
 	positionCache.spectatorBars = {}
-	colorCache = {teamColors = {}, barColors = {}, tintedColors = {}, gradientColors = {}}
 	drawStateCache = {lastBlendMode = nil, lastTexture = nil, lastColor = {-1, -1, -1, -1}}
 end
 
@@ -1488,13 +1376,14 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameFrame(frame)
-	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO + 2 then
+	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
+		updateAliveAllyTeams()
+		
 		local dataChanged = false
 		local teamStatusChanged = false
 		
 		if amSpectating then
-			local allyTeamList = spGetAllyTeamList()
-			for _, allyTeamID in ipairs(allyTeamList) do
+			for _, allyTeamID in ipairs(aliveAllyTeams) do
 				if allyTeamID ~= gaiaAllyTeamID then
 					local isCurrentlyAlive = isAllyTeamAlive(allyTeamID)
 					local wasAlive = lastAllyTeamScores[allyTeamID] ~= nil
@@ -1548,7 +1437,7 @@ function widget:GameFrame(frame)
 		
 		local rankChanged = false
 		
-		local allyTeamList = amSpectating and spGetAllyTeamList() or {myAllyID}
+		local allyTeamList = amSpectating and aliveAllyTeams or {myAllyID}
 		for _, allyTeamID in ipairs(allyTeamList) do
 			for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
 				local _, _, isDead = spGetTeamInfo(teamID)
@@ -1565,30 +1454,35 @@ function widget:GameFrame(frame)
 		
 		if teamStatusChanged then
 			if amSpectating then
-				local allyTeamList = spGetAllyTeamList()
-				for _, allyTeamID in ipairs(allyTeamList) do
+				for _, allyTeamID in ipairs(aliveAllyTeams) do
 					if allyTeamID ~= gaiaAllyTeamID and not isAllyTeamAlive(allyTeamID) then
-						cleanupCountdownsForAllyTeam(allyTeamID)
+						cleanupCountdowns(allyTeamID)
 					end
 				end
 			else
 				local myTeamID = Spring.GetMyTeamID()
 				local _, _, isDead = spGetTeamInfo(myTeamID)
 				if isDead then
-					cleanupCountdownsForAllyTeam(myAllyID)
+					cleanupCountdowns(myAllyID)
 				end
 			end
 			
+			cache:invalidate("spectator_teams")
+			cache:invalidate("player_team")
 			forceDisplayListUpdate()
 		end
 		
-		if rankChanged then
+		if rankChanged or dataChanged then
+			if rankChanged then
+				cache:invalidate("spectator_teams")
+				cache:invalidate("player_team")
+			end
 			needsStaticUpdate = true
 			needsDynamicUpdate = true
 		end
 		
 		if dataChanged or rankChanged or teamStatusChanged then
-			lastUpdateTime = 0  -- Force update on next frame
+			lastUpdateTime = 0
 		end
 	end
 
@@ -1644,19 +1538,20 @@ function widget:Initialize()
 	
 	initializeFontCache()
 	updateLayoutCache()
-	updateRuleParamCache()
 	updateTrackingVariables()
 	
 	if not amSpectating then
-		local teamData = getPlayerTeamData()
-		if teamData.teamID then
-			getPlayerBarPositionsCached()
+		local teamData = getAllyTeamDisplayData()
+		if #teamData > 0 then
+			getBarPositionsCached(1)
 			
-			getCachedTeamColor(teamData.teamID)
+			if teamData[1].teamID then
+				getCachedTeamColor(teamData[1].teamID)
+			end
 			
-			lastDifference = teamData.difference
-			if teamData.teamID then
-				lastTeamRanks[teamData.teamID] = teamData.rank
+			lastDifference = teamData[1].score - (spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0)
+			if teamData[1].teamID then
+				lastTeamRanks[teamData[1].teamID] = teamData[1].rank
 			end
 		else
 			lastDifference = 0
@@ -1693,31 +1588,47 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
 
+local lastSlowUpdate = 0
 function widget:Update(deltaTime)
 	local newAmSpectating = spGetSpectatingState()
 	local newMyAllyID = spGetMyAllyTeamID()
+	local currentGameTime = spGetGameSeconds()
 	
-	local gameStartTime = spGetGameSeconds()
-	if gameStartTime < 5 and not displayList then
+	if not displayList then
 		forceDisplayListUpdate()
 		updateScoreDisplayList()
+		return
 	end
 	
-	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID then
+	local checkScores = false
+	if lastSlowUpdate < currentGameTime then
+		checkScores = true
+		lastSlowUpdate = currentGameTime + 1
+	end
+
+	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID or (checkScores and teamScoresChanged()) then
 		amSpectating = newAmSpectating
 		myAllyID = newMyAllyID
 		positionCache.playerBar = nil
 		positionCache.spectatorBars = {}
 		layoutCache.initialized = false
 		
-		cleanupAllCountdowns()
+		cache:invalidate("spectator_teams")
+		cache:invalidate("player_team")
+		cache:invalidate("layout_params")
+		
+		cleanupCountdowns()
 		forceDisplayListUpdate()
 		updateScoreDisplayList()
+		return
 	end
 	
-	local currentGameTime, freezeExpirationTime, isThresholdFrozen, timeUntilUnfreeze = getFreezeStatusInformation()
+	local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	local isThresholdFrozen = freezeExpirationTime > currentGameTime
+	local timeUntilUnfreeze = max(0, freezeExpirationTime - currentGameTime)
 	
 	gameSeconds = currentGameTime
+	currentTime = os.clock()
 	
 	if isThresholdFrozen then
 		if amSpectating then
@@ -1732,11 +1643,10 @@ function widget:Update(deltaTime)
 		end
 		
 		if next(allyTeamCountdownDisplayLists) then
-			cleanupAllCountdowns()
+			cleanupCountdowns()
 		end
+		return
 	end
-	
-	currentTime = os.clock()
 
 	local needsUpdate = false
 	local forceUpdate = false
@@ -1768,30 +1678,26 @@ function widget:Update(deltaTime)
 		end
 	end
 	
-	if not isThresholdFrozen then
-		manageCountdownUpdates()
-	end
+	manageCountdownUpdates()
 	
 	if needsUpdate or forceUpdate then
 		updateScoreDisplayList()
 	end
 	
-	if not amSpectating and defeatTime > gameSeconds then
+	if not amSpectating and defeatTime > gameSeconds and freezeExpirationTime < currentGameTime then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
 		
 		local difference = score - threshold
-		local territoriesNeeded = abs(difference)
 		
-		if difference < 0 and freezeExpirationTime < currentGameTime then
-			if currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
-				spPlaySoundFile("warning1", 1)
-				local dominatedMessage, conquerMessage = createTimerWarningMessage(timeRemaining, territoriesNeeded)
-				timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
-				
-				createTimerWarningDisplayList(dominatedMessage, conquerMessage)
-			end
+		if difference < 0 and currentGameTime >= lastTimerWarningTime + TIMER_COOLDOWN then
+			local territoriesNeeded = abs(difference)
+			spPlaySoundFile("warning1", 1)
+			local dominatedMessage, conquerMessage = createTimerWarningMessage(timeRemaining, territoriesNeeded)
+			timerWarningEndTime = currentGameTime + TIMER_WARNING_DISPLAY_TIME
+			
+			createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 			lastTimerWarningTime = currentGameTime
 		end
 	end
