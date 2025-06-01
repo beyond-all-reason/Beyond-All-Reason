@@ -49,12 +49,12 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
+local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
-VFS.Include('luarules/configs/customcmds.h.lua')
 -------------------------------------------------------------------------------
 --- STATIC VALUES
 -------------------------------------------------------------------------------
@@ -99,7 +99,6 @@ local CONFIG = {
 	activeAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
 	sound_queue_add = "LuaUI/Sounds/buildbar_add.wav",
 	sound_queue_rem = "LuaUI/Sounds/buildbar_rem.wav",
-	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 
 	categoryIcons = {
 		groups.energy,
@@ -425,7 +424,7 @@ local function updateHoverState()
 				setHoveredRectTooltip(
 					rect,
 					unitTranslatedTooltip[rect.opts.uDefID],
-					"\255\240\240\240" .. unitTranslatedHumanName[rect.opts.uDefID]
+					unitTranslatedHumanName[rect.opts.uDefID]
 				)
 
 				return
@@ -1444,8 +1443,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.7, 0.33 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1667,12 +1665,23 @@ function widget:Update(dt)
 		end
 	end
 
+	local prevBuildmenuShows = buildmenuShows
 	if not (isPregame or activeBuilder or alwaysShow) then
 		buildmenuShows = false
-
-		return
 	else
 		buildmenuShows = true
+	end
+
+	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+		if buildmenuShows then
+			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+		else
+			WG['guishader'].RemoveDlist('buildmenu')
+		end
+	end
+
+	if not buildmenuShows then
+		return
 	end
 
 	if activeBuilder then
@@ -2036,6 +2045,7 @@ local function drawCategories()
 
 		local fontHeight = rect.opts.nameHeight * categoryFontSize
 		local fontHeightOffset = fontHeight * 0.34
+
 		font2:Print(
 			rect.opts.name,
 			rect.x + (bgpadding * 7),
@@ -2255,7 +2265,8 @@ local function drawBuilders()
 		1,
 		1,
 		0,
-		1
+		1,
+		nil, nil, nil, nil, useRenderToTextureBg
 	)
 
 	-- draw builders
@@ -2288,6 +2299,7 @@ end
 
 local function drawBuildMenu()
 	font2:Begin()
+	font2:SetTextColor(1,1,1,1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
@@ -2548,6 +2560,7 @@ function widget:DrawScreen()
 			checkGuishaderBuilders()
 		end
 
+		local buildersRectYend = math_ceil((buildersRect.yEnd + bgpadding + (iconMargin * 2)))
 		if redraw then
 			redraw = nil
 			if useRenderToTextureBg then
@@ -2572,7 +2585,7 @@ function widget:DrawScreen()
 			end
 			if useRenderToTexture then
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(backgroundRect.yEnd-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2583,7 +2596,7 @@ function widget:DrawScreen()
 						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 						gl.PushMatrix()
 						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
 						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
 						drawBuildMenu()
 						gl.PopMatrix()
@@ -2614,7 +2627,7 @@ function widget:DrawScreen()
 				-- content
 				gl.Color(1,1,1,1)
 				gl.Texture(buildmenuTex)
-				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, false, true)
 				gl.Texture(false)
 			end
 		else
@@ -2842,6 +2855,7 @@ function widget:Shutdown()
 	if WG["guishader"] and dlistGuishader then
 		WG["guishader"].DeleteDlist("buildmenu")
 		WG["guishader"].DeleteDlist("buildmenubuilders")
+		WG["guishader"].DeleteDlist("buildmenubuildersnext")
 		dlistGuishader = nil
 	end
 	WG["buildmenu"] = nil

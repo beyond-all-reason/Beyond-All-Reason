@@ -227,6 +227,8 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
 		table.append(bossFightTracks, bossFightTracksCustom)
+		table.append(raptorTracks, bossFightTracksCustom)
+		table.append(scavTracks, bossFightTracksCustom)
 		table.append(menuTracks, menuTracksCustom)
 		table.append(loadingTracks, loadingTracksCustom)
 		table.append(interludeTracks, interludeTracksCustom)
@@ -565,7 +567,7 @@ local function drawContent()
 
 		font:Begin()
 		font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
-		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
+		font:Print("\255\225\225\225"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 		font:End()
 	else
 		glColor(0.88,0.88,0.88,0.9)
@@ -728,7 +730,7 @@ local function refreshUiDrawing()
 
 				font:Begin()
 				font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
-				font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
+				font:Print("\255\225\225\225"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 				font:End()
 			end)
 			drawlist[4] = glCreateList( function()
@@ -957,8 +959,7 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 0.95, 0.37 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.15)
+	font = WG['fonts'].getFont()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -1420,23 +1421,7 @@ function widget:GameFrame(n)
 		fadeDirection = -5
 	end
 
-	if Spring.Utilities.Gametype.IsRaptors() then
-		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
-			warMeter = warLowLevel+1
-		else
-			warMeter = 0
-		end
-	elseif Spring.Utilities.Gametype.IsScavengers() then
-		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
-			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
-			warMeter = warLowLevel+1
-		else
-			warMeter = 0
-		end
-	elseif warMeter > 0 then
+	if warMeter > 0 then
 		if n%30 == 15 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
@@ -1446,6 +1431,20 @@ function widget:GameFrame(n)
 			if warMeterResetTimer > warMeterResetTime then
 				warMeter = 0
 			end
+		end
+	end
+
+	if Spring.Utilities.Gametype.IsRaptors() then
+		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+			warMeter = warLowLevel+1
+		end
+	elseif Spring.Utilities.Gametype.IsScavengers() then
+		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+			warMeter = warHighLevel+1
+		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+			warMeter = warLowLevel+1
 		end
 	end
 

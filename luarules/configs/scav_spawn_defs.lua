@@ -991,6 +991,7 @@ local AirUnitsList = {
 			["legstronghold_scav"] = 2,
 			["legvenator_scav"] = 3,
 			["legionnaire_scav"] = 3,
+			["legafigdef_scav"] = 3,
 			["legnap_scav"] = 3,
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,

@@ -66,8 +66,6 @@ local disabledCommand = {}
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
@@ -303,8 +301,7 @@ function widget:ViewResize()
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(fontFile, 1.7, 0.4 * (useRenderToTexture and outlineMult or 1), 1.25+(outlineMult*0.2))
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -556,7 +553,7 @@ local function drawCell(cell, zoom)
 			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
 			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
-		
+
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, useRenderToTexture and 1.66)
 
 		-- icon

@@ -15,6 +15,13 @@ function widget:GetInfo()
 	}
 end
 
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 local debugmode = false
 
 local font, loadedFontSize
@@ -1239,9 +1246,6 @@ print ("end")
 -- GL4 STUFF
 ----------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 local rectRoundShader = nil
 local rectRoundVAO = nil
 local vsx,vsy = gl.GetViewSizes()
@@ -1594,7 +1598,7 @@ local function goodbye(reason)
 end
 
 local function makeRectRoundVBO(name)
-	local rectRoundVBO = makeInstanceVBOTable(
+	local rectRoundVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'screenpos', size = 4},
 			{id = 1, name = 'cornersizes', size = 4},

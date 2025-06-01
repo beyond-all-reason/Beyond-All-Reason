@@ -56,7 +56,7 @@ local autoReload = false
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
 local cursor_unit_range = true -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 90	-- turns off when selection is above this number
+local selectionDisableThreshold = 512	-- turns off when selection is above this number
 local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ local buttonConfig = {
 
 local colorConfig = {
 	drawStencil = true,  -- whether to draw the outer, merged rings (quite expensive!)
-	cannon_separate_stencil = true, -- set to true to have cannon and ground be on different stencil mask
+	cannon_separate_stencil = false, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.75, -- alpha of outer rings
@@ -177,6 +177,7 @@ local vtoldamagetag = Game.armorTypes['vtol']
 local defaultdamagetag = Game.armorTypes['default']
 
 -- globals
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 local selUnitCount = 0
 local selBuilderCount = 0 -- we need builder count separately
 local shifted = false
@@ -520,9 +521,11 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local attackRangeShader = nil
 
 local shaderSourceCache = {
@@ -604,9 +607,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					if weaponDef.range < 700 then 
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
-					elseif weaponDef.range > 2600 then 
+					-- if weaponDef.range < 700 then 
+					-- 	entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					if weaponDef.range > 2600 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
@@ -778,11 +781,11 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
 		attackRangeVAOs
-		[atkRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
+		[atkRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
 		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
 			attackRangeVAOs
 			[atkRangeClass].vertexVBO = largeCircleVBO
@@ -794,7 +797,7 @@ local function initGL4()
 			attackRangeVAOs
 			[atkRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(attackRangeVAOs
+		local newVAO = InstanceVBOTable.makeVAOandAttach(attackRangeVAOs
 			[atkRangeClass].vertexVBO, attackRangeVAOs
 			[atkRangeClass].instanceVBO)
 		attackRangeVAOs
@@ -1105,7 +1108,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 				local atkRangeClass = allyState .. wt
 				local iT = attackRangeVAOs[atkRangeClass]
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
-				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
+				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground" 
 				drawcounts[stencilMask] = iT.usedElements
 				if iT.usedElements > 0 then
 					if linethickness then
@@ -1152,6 +1155,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
 			attackRangeShader:SetUniform("drawMode", 0.0)
 			attackRangeShader:SetUniform("inMiniMap", inMiniMap and 1.0 or 0.0)
+			attackRangeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 

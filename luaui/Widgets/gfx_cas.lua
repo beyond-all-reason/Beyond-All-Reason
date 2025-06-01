@@ -148,7 +148,7 @@ void main() {
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vpx, vpy
 local screenCopyTex

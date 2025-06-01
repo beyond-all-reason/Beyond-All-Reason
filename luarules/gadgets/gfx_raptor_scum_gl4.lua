@@ -360,9 +360,13 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 	---- GL4 Backend Stuff----
 
-	local luaShaderDir = "LuaUI/Include/"
-	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-	VFS.Include(luaShaderDir.."instancevbotable.lua")
+	local LuaShader = gl.LuaShader
+	local InstanceVBOTable = gl.InstanceVBOTable
+
+	local uploadAllElements   = InstanceVBOTable.uploadAllElements
+	local popElementInstance  = InstanceVBOTable.popElementInstance
+	local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 
 	local vsSrc =  [[
 	#version 420
@@ -595,7 +599,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 			return
 		end
 
-		scumVBO = makeInstanceVBOTable(
+		scumVBO = InstanceVBOTable.makeInstanceVBOTable(
 			{
 				{id = 1, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
 				{id = 2, name = 'lifeparams', size = 4}, -- lifestart, lifeend, growthrate, unused
@@ -608,13 +612,13 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 			return
 		end
 
-		local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
-		local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
+		local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
+		local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution, true)
 
 		scumVBO.vertexVBO = planeVBO
 		scumVBO.indexVBO = planeIndexVBO
 
-		scumVBO.VAO = makeVAOandAttach(
+		scumVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 			scumVBO.vertexVBO,
 			scumVBO.instanceVBO,
 			scumVBO.indexVBO)
