@@ -32,7 +32,7 @@ local labGrids = {
 		-- page1
 		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, hoplite, spy
 		"corvoyr", "corspec", "legshot", "leghrk",             -- radar bot, jammer bot, phalanx, Thanatos
-		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
+		"legbart", "legsrail", "legadvaabot", "leginc",        -- belcher, railgun, AA bot, incinerator
 		-- page2
 		"legamph", "leginfestor", "legsnapper", "corsktl",     -- amphbious bot, infestor, snapper, skuttle
 		"legdecom",					                           -- decoycom
