@@ -12,7 +12,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 bigToroidLight, leftToroidLight, rightToroidLight;
 
 static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer1, timer2, oldhead1, oldhead2, oldhead3, oldhead4, oldsteerheading, torsoaim, 
-gun_4, gun_5, isturning, aimAdj, shotcount, issmoking, targetswap1, targetswap2; 			
+gun_4, gun_5, isturning, aimAdj, shotcount, issmoking, targetswap1, targetswap2, heatrayReady; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -907,7 +907,7 @@ StopMoving(){
 Open()
 {
 	InMotion = 1;
-	if( !aimingPose )
+	if( aimingPose == 0)
 	{
 		//emit-sfx 4096 + 6 from upperTorso;
 		aimingPose = 1;
@@ -944,6 +944,17 @@ Open()
 		wait-for-turn lArmLowerArm around z-axis;
 		wait-for-turn lArmGun around x-axis;
 		wait-for-turn rArmGun around x-axis;
+	}
+	if( heatrayReady == 0)
+	{
+		heatrayReady = 1;
+		move lArmShoulderPivot to y-axis [0] speed [25];
+		move rArmShoulderPivot to y-axis [0] speed [25];
+		//wait-for-move lArmShoulderPivot along y-axis;
+		turn lArmShoulderGun to x-axis <35> speed <100>;
+		turn rArmShoulderGun to x-axis <35> speed <100>;
+		turn lArmShoulderJoint to x-axis <-35> speed <50>;
+		turn rArmShoulderJoint to x-axis <-35> speed <50>;
 	}
 }
 
@@ -1016,15 +1027,7 @@ Close()
 		turn rLegUpperThigh to 	z-axis <0> speed <213.673445> / animSpeed;
 		turn legJointTorso to 	y-axis <0> speed <194.050073> / animSpeed;
 
-		turn lArmShoulderGun to x-axis <15> speed <100>;
-		turn rArmShoulderGun to x-axis <15> speed <100>;
-		turn lArmShoulderJoint to x-axis <0> speed <100>;
-		turn rArmShoulderJoint to x-axis <0> speed <100>;
-		move lArmShoulderPivot to y-axis [-21] speed [15];
-		move rArmShoulderPivot to y-axis [-21] speed [15];
-
-		turn lArmShoulderJoint to y-axis <0> speed <50>;
-		turn rArmShoulderJoint to y-axis <0> speed <50>;
+		
 
 		// move legJointTorso to y-axis [-5] now;
 
@@ -1247,7 +1250,16 @@ RestoreLRay()
 	targetswap1 = 0;
 	oldhead1 = -1000000;
 	turn lArmShoulderJoint to y-axis <0.0> speed <20.0>;
-	turn lArmShoulderGun to x-axis <0.0> speed <20.0>;
+	turn lArmShoulderGun to x-axis <35> speed <20.0>;
+	
+	wait-for-turn lArmShoulderJoint around y-axis;
+	wait-for-turn lArmShoulderGun around x-axis;
+	
+	heatrayReady = 0;
+	turn lArmShoulderGun to x-axis <15> speed <100>;
+	turn lArmShoulderJoint to x-axis <0> speed <100>;
+	move lArmShoulderPivot to y-axis [-21] speed [15];
+	turn lArmShoulderJoint to y-axis <0> speed <50>;
 }
 
 RestoreRRay()
@@ -1265,7 +1277,16 @@ RestoreRRay()
 	targetswap2 = 0;
 	oldhead2 = -1000000;
 	turn rArmShoulderJoint to y-axis <0.0> speed <20.0>;
-	turn rArmShoulderGun to x-axis <0.0> speed <20.0>;
+	turn rArmShoulderGun to x-axis <35> speed <20.0>;
+	
+	wait-for-turn rArmShoulderJoint around y-axis;
+	wait-for-turn rArmShoulderGun around x-axis;
+	
+	heatrayReady = 0;
+	turn rArmShoulderGun to x-axis <15> speed <100>;	
+	turn rArmShoulderJoint to x-axis <0> speed <100>;	
+	move rArmShoulderPivot to y-axis [-21] speed [15];	
+	turn rArmShoulderJoint to y-axis <0> speed <50>;
 }
 
 QueryWeapon1(piecenum) //Hull Rotation
@@ -1351,6 +1372,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
+	start-script Open();
+	signal SIG_AIM_2;
 	if (isturning == 1)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoaim) speed <70>;
@@ -1368,13 +1391,11 @@ AimWeapon2(heading, pitch)
 	if (get ABS(oldhead1 - heading) < 500)
 	{
 		oldhead1 = heading;
-		isfiring1 = 1;
 		return (1);
 	}
 	timer1 = 0;
 	wait-for-turn lArmShoulderJoint around y-axis;
 	wait-for-turn lArmShoulderGun around x-axis;
-	isfiring1 = 1;
 	oldhead1 = heading;
 	return (1);
 }
@@ -1388,6 +1409,7 @@ FireWeapon2()
 {
 	start-script RestoreLRay();
 	targetswap1 = 0;
+	isfiring1 = 1;
 	timer1 = 0;
 	return (0);
 }
@@ -1399,6 +1421,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
+	start-script Open();
+	signal SIG_AIM_3;
 	if (isturning == 1)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoaim) speed <70>;
@@ -1416,13 +1440,11 @@ AimWeapon3(heading, pitch)
 	if (get ABS(oldhead2 - heading) < 500)
 	{
 		oldhead2 = heading;
-		isfiring2 = 1;
 		return (1);
 	}
 	timer2 = 0;
 	wait-for-turn rArmShoulderJoint around y-axis;
 	wait-for-turn rArmShoulderGun around x-axis;
-	isfiring2 = 1;
 	oldhead2 = heading;
 	return (1);
 }
@@ -1436,6 +1458,7 @@ FireWeapon3()
 {
 	start-script RestoreRRay();
 	targetswap2 = 0;
+	isfiring2 = 1;
 	timer2 = 0;
 	return (0);
 }
