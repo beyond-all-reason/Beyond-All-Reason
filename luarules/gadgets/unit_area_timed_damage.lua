@@ -182,7 +182,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             dx, dy, dz = 0, 1, 0
         end
 
-        local minY = elevation - area.range
+        local minY = elevation - explosion.range
         if minY < 0 then
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
@@ -194,7 +194,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             y          = elevation,
             z          = pz,
             ymin       = minY,
-            ymax       = elevation + area.range,
+            ymax       = elevation + explosion.range,
             dx         = dx,
             dy         = dy,
             dz         = dz,
@@ -206,7 +206,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             endFrame   = explosion.frames + frameNumber,
         }
 
-        local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
+        local index = bisectDamage(frameExplosions, explosion.damage, 1, #frameExplosions)
         table.insert(frameExplosions, index, area)
     end
 end
