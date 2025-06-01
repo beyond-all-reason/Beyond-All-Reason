@@ -109,6 +109,7 @@ local selectedAllyTeamID = -1
 local gaiaAllyTeamID = -1
 local lastUpdateTime = 0
 local displayList = nil
+local lastScore = -1
 local lastDifference = -1
 local scorebarWidth = 300
 local lineWidth = 2
@@ -120,7 +121,7 @@ local lastLoop = 0
 local loopSoundEndTime = 0
 local soundIndex = 1
 
-local timerWarningDisplayList = nil
+local scoreBarPositions = {}
 
 local lastThreshold = -1
 local lastMaxThreshold = -1
@@ -145,7 +146,7 @@ local cache = {
 	
 	set = function(self, cacheKey, value, timeToLive, dependencies)
 		self.data[cacheKey] = value
-		self.lastUpdate[cacheKey] = os.clock()
+		self.lastUpdate[cacheKey] = currentTime
 		if timeToLive then
 			self.ttl[cacheKey] = timeToLive
 		end
@@ -156,7 +157,6 @@ local cache = {
 	end,
 	
 	get = function(self, cacheKey, validator)
-		local currentTime = os.clock()
 		local entry = self.data[cacheKey]
 		
 		if not entry then
@@ -223,10 +223,7 @@ local CACHE_KEYS = {
 	MINIMAP_GEOMETRY = "minimap_geometry",
 	TEAM_COLOR = "team_color_%d",
 	TINTED_COLOR = "tinted_color_%s",
-	PLAYER_BAR_POS = "player_bar_pos",
-	SPECTATOR_BAR_POS = "spectator_bar_pos_%d",
-	COUNTDOWN_POS = "countdown_pos_%d_%s",
-	TEAM_DATA = "team_data_%d"
+	SCORE_BAR_POS = "score_bar_pos_%d"
 }
 
 local CACHE_TTL = {
@@ -252,24 +249,9 @@ local layoutCache = cache:getOrCompute(CACHE_KEYS.LAYOUT_DATA, function()
 	return {
 		initialized = false,
 		minimapDimensions = {-1, -1, -1},
-		spectatorLayout = nil,
-		playerBarBounds = nil,
 		lastViewportSize = {-1, -1}
 	}
 end, CACHE_TTL.STATIC)
-
-local positionCache = {
-	playerBar = nil,
-	spectatorBars = {},
-	countdownPositions = {},
-	textPositions = {}
-}
-
-local drawStateCache = {
-	lastBlendMode = nil,
-	lastTexture = nil,
-	lastColor = {-1, -1, -1, -1}
-}
 
 local staticDisplayList = nil
 local dynamicDisplayList = nil
@@ -301,9 +283,10 @@ local cachedGameState = {
 
 local frameBasedUpdates = {
 	teamScoreCheck = 0,
-	defeatTimeCheck = 0,
 	soundUpdate = 0
 }
+
+local timerWarningDisplayList = nil
 
 local function getCachedMinimapGeometry()
 	return cache:getOrCompute(CACHE_KEYS.MINIMAP_GEOMETRY, function()
@@ -313,10 +296,7 @@ local function getCachedMinimapGeometry()
 end
 
 local function setOptimizedTexture(texture)
-	if drawStateCache.lastTexture ~= texture then
-		glTexture(texture)
-		drawStateCache.lastTexture = texture
-	end
+	glTexture(texture)
 end
 
 local function createTintedColor(baseColor, tintColor, strength)
@@ -403,19 +383,19 @@ local function calculateLayoutParameters(totalTeams, minimapSizeX)
 	local maxDisplayHeight = 256
 	local barSpacing = 3
 	
-	local optimalNumColumns = totalTeams
+	local maxPossibleColumns = totalTeams
 	for numColumns = 1, totalTeams do
 		local barsPerColumn = ceil(totalTeams / numColumns)
 		local totalSpacingHeight = (barsPerColumn - 1) * barSpacing
 		local requiredHeight = (barsPerColumn * BAR_HEIGHT) + totalSpacingHeight
 
 		if requiredHeight <= maxDisplayHeight then
-			optimalNumColumns = numColumns
+			maxPossibleColumns = numColumns
 			break
 		end
 	end
 	
-	local numColumns = optimalNumColumns
+	local numColumns = maxPossibleColumns
 	local maxBarsPerColumn = ceil(totalTeams / numColumns)
 	local columnWidth = minimapSizeX / numColumns
 	local columnPadding = 4
@@ -455,19 +435,11 @@ local function calculateBarPosition(index)
 end
 
 local function setOptimizedColor(r, g, b, a)
-	local currentColor = drawStateCache.lastColor
-	if currentColor[1] ~= r or currentColor[2] ~= g or currentColor[3] ~= b or currentColor[4] ~= a then
-		glColor(r, g, b, a)
-		drawStateCache.lastColor = {r, g, b, a}
-	end
+	glColor(r, g, b, a)
 end
 
 local function setOptimizedBlending(sourceBlendFactor, destinationBlendFactor)
-	local blendMode = sourceBlendFactor .. "_" .. destinationBlendFactor
-	if drawStateCache.lastBlendMode ~= blendMode then
-		gl.Blending(sourceBlendFactor, destinationBlendFactor)
-		drawStateCache.lastBlendMode = blendMode
-	end
+	gl.Blending(sourceBlendFactor, destinationBlendFactor)
 end
 
 local function getCachedTeamColor(teamID)
@@ -861,21 +833,6 @@ local function needsDisplayListUpdate()
 	return false
 end
 
-local function initializeFontCache()
-	fontCache = cache:get(CACHE_KEYS.FONT_DATA)
-	if not fontCache then
-		local _, viewportSizeY = spGetViewGeometry()
-		local fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
-		fontCache = cache:set(CACHE_KEYS.FONT_DATA, {
-			initialized = true,
-			fontSizeMultiplier = fontSizeMultiplier,
-			fontSize = floor(14 * fontSizeMultiplier),
-			paddingX = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER),
-			paddingY = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER)
-		}, CACHE_TTL.SLOW)
-	end
-end
-
 local function updateTrackingVariables()
 	local currentGameTime = spGetGameSeconds()
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
@@ -888,7 +845,6 @@ local function updateTrackingVariables()
 end
 
 local function updateLayoutCache()
-	local currentTime = os.clock()
 	if currentTime - lastLayoutUpdate < LAYOUT_UPDATE_THRESHOLD and layoutCache.initialized then
 		return false
 	end
@@ -908,10 +864,7 @@ local function updateLayoutCache()
 			cache:invalidate("player_team")
 		end
 
-		positionCache.playerBar = nil
-		positionCache.spectatorBars = {}
-		positionCache.countdownPositions = {}
-		positionCache.textPositions = {}
+		scoreBarPositions = {}
 
 		cleanupCountdowns()
 		
@@ -925,14 +878,12 @@ local function updateLayoutCache()
 end
 
 local function getBarPositionsCached(index)
-	if not positionCache.spectatorBars[index] then
-		initializeFontCache()
-		
+	if not scoreBarPositions[index] then
 		local bounds = calculateBarPosition(index)
 		local barHeight = bounds.scorebarTop - bounds.scorebarBottom
 		local scaledFontSize = barHeight * 1.1
 		
-		positionCache.spectatorBars[index] = {
+		scoreBarPositions[index] = {
 			scorebarLeft = bounds.scorebarLeft,
 			scorebarRight = bounds.scorebarRight,
 			scorebarTop = bounds.scorebarTop,
@@ -942,7 +893,7 @@ local function getBarPositionsCached(index)
 			fontSize = scaledFontSize
 		}
 	end
-	return positionCache.spectatorBars[index]
+	return scoreBarPositions[index]
 end
 
 local function calculateCountdownPosition(allyTeamID, barIndex)
@@ -962,9 +913,9 @@ local function calculateCountdownPosition(allyTeamID, barIndex)
 	
 	if barIndex then
 		local bounds = calculateBarPosition(barIndex)
-		local barWidthForCalc = bounds.scorebarRight - bounds.scorebarLeft
-		local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidthForCalc
-		local skullOffset = (1 / maxThreshold) * barWidthForCalc
+		local barWidth = bounds.scorebarRight - bounds.scorebarLeft
+		local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidth
+		local skullOffset = (1 / maxThreshold) * barWidth
 		local countdownX = thresholdX - skullOffset
 		local countdownY = bounds.scorebarBottom + (bounds.scorebarTop - bounds.scorebarBottom) / 2
 		
@@ -977,14 +928,14 @@ end
 local function manageCountdownUpdates()
 	local currentGameTime = spGetGameSeconds()
 	local updatedCountdowns = false
-	local activeAllyTeams = {}
+	local allyTeamsWithCountdowns = {}
 	
 	if amSpectating then
 		for allyTeamID, allyDefeatTime in pairs(allyTeamDefeatTimes) do
 			if allyDefeatTime and allyDefeatTime > 0 and currentGameTime and allyDefeatTime > currentGameTime then
 				local timeRemaining = ceil(allyDefeatTime - currentGameTime)
 				if timeRemaining >= 0 then
-					activeAllyTeams[allyTeamID] = timeRemaining
+					allyTeamsWithCountdowns[allyTeamID] = timeRemaining
 				end
 			end
 		end
@@ -992,20 +943,20 @@ local function manageCountdownUpdates()
 		if defeatTime and defeatTime > 0 and currentGameTime and defeatTime > currentGameTime then
 			local timeRemaining = ceil(defeatTime - currentGameTime)
 			if timeRemaining >= 0 then
-				activeAllyTeams[myAllyID] = timeRemaining
+				allyTeamsWithCountdowns[myAllyID] = timeRemaining
 			end
 		end
 	end
 	
 	for allyTeamID in pairs(lastCountdownValues) do
-		if not activeAllyTeams[allyTeamID] then
+		if not allyTeamsWithCountdowns[allyTeamID] then
 			if cleanupCountdowns(allyTeamID) then
 				updatedCountdowns = true
 			end
 		end
 	end
 	
-	for allyTeamID, timeRemaining in pairs(activeAllyTeams) do
+	for allyTeamID, timeRemaining in pairs(allyTeamsWithCountdowns) do
 		if lastCountdownValues[allyTeamID] ~= timeRemaining then
 			cleanupCountdowns(allyTeamID)
 			lastCountdownValues[allyTeamID] = timeRemaining
@@ -1164,8 +1115,8 @@ end
 local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	allyTeamID = allyTeamID or myAllyID
 	
-	local bucketedTime = ceil(timeRemaining)
-	local cacheKey = allyTeamID .. "_" .. bucketedTime
+	local roundedTimeForCaching = ceil(timeRemaining)
+	local cacheKey = allyTeamID .. "_" .. roundedTimeForCaching
 	
 	if allyTeamCountdownDisplayLists[cacheKey] then
 		return allyTeamCountdownDisplayLists[cacheKey]
@@ -1175,7 +1126,7 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	for displayListKey, displayList in pairs(allyTeamCountdownDisplayLists) do
 		if displayListKey:sub(1, #tostring(allyTeamID) + 1) == allyTeamID .. "_" and displayListKey ~= cacheKey then
 			local keyTime = tonumber(displayListKey:sub(#tostring(allyTeamID) + 2))
-			if keyTime and (bucketedTime - keyTime > 3 or keyTime - bucketedTime > 1) then
+			if keyTime and (roundedTimeForCaching - keyTime > 3 or keyTime - roundedTimeForCaching > 1) then
 				table.insert(keysToDelete, displayListKey)
 			end
 		end
@@ -1191,8 +1142,6 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 		local countdownPositionX, countdownPositionY = calculateCountdownPosition(allyTeamID)
 		
 		if not countdownPositionX then return end
-		
-		initializeFontCache()
 		
 		local countdownFontSize = fontCache.fontSize * COUNTDOWN_FONT_SIZE_MULTIPLIER
 		local layout = cache.data["layout_params"]
@@ -1211,12 +1160,9 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 end
 
 local function updateScoreDisplayList()
-	initializeFontCache()
-
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
 	scorebarWidth = minimapSizeX - HALVED_ICON_SIZE
 
-	local currentTime = os.clock()
 	local layoutChanged = updateLayoutCache()
 	
 	local allyTeamData = getAllyTeamDisplayData()
@@ -1307,9 +1253,7 @@ local function cleanupOptimizedDisplayLists()
 	cache:clear()
 	
 	layoutCache.initialized = false
-	positionCache.playerBar = nil
-	positionCache.spectatorBars = {}
-	drawStateCache = {lastBlendMode = nil, lastTexture = nil, lastColor = {-1, -1, -1, -1}}
+	scoreBarPositions = {}
 end
 
 local function queueTeleportSounds()
@@ -1338,8 +1282,8 @@ function widget:DrawScreen()
 			if allyDefeatTime and allyDefeatTime > 0 and gameSeconds and allyDefeatTime > gameSeconds then
 				local timeRemaining = ceil(allyDefeatTime - gameSeconds)
 				if timeRemaining >= 0 then
-					local bucketedTime = ceil(timeRemaining)
-					local cacheKey = allyTeamID .. "_" .. bucketedTime
+					local roundedTimeForCaching = ceil(timeRemaining)
+					local cacheKey = allyTeamID .. "_" .. roundedTimeForCaching
 					countdownsToRender[cacheKey] = {allyTeamID = allyTeamID, timeRemaining = timeRemaining}
 				end
 			end
@@ -1359,8 +1303,8 @@ function widget:DrawScreen()
 		if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 			local timeRemaining = ceil(defeatTime - gameSeconds)
 			if timeRemaining >= 0 then
-				local bucketedTime = ceil(timeRemaining)
-				local cacheKey = myAllyID .. "_" .. bucketedTime
+				local roundedTimeForCaching = ceil(timeRemaining)
+				local cacheKey = myAllyID .. "_" .. roundedTimeForCaching
 				
 				if not allyTeamCountdownDisplayLists[cacheKey] then
 					createOptimizedCountdownDisplayList(timeRemaining, myAllyID)
@@ -1537,7 +1481,6 @@ function widget:GameFrame(frame)
 	frameBasedUpdates.soundUpdate = frameBasedUpdates.soundUpdate + 1
 	if frameBasedUpdates.soundUpdate >= 3 then
 		frameBasedUpdates.soundUpdate = 0
-		currentTime = os.clock()
 		
 		if loopSoundEndTime and loopSoundEndTime > gameSeconds then
 			if lastLoop <= currentTime then
@@ -1612,7 +1555,6 @@ function widget:Initialize()
 	gameSeconds = spGetGameSeconds() or 0
 	defeatTime = 0
 	
-	initializeFontCache()
 	updateLayoutCache()
 	updateTrackingVariables()
 	
@@ -1666,6 +1608,8 @@ end
 
 local layoutUpdateCounter = 0
 function widget:Update(deltaTime)
+	currentTime = os.clock()
+	
 	local newAmSpectating = spGetSpectatingState()
 	local newMyAllyID = spGetMyAllyTeamID()
 	
@@ -1678,8 +1622,7 @@ function widget:Update(deltaTime)
 	if newAmSpectating ~= amSpectating or newMyAllyID ~= myAllyID then
 		amSpectating = newAmSpectating
 		myAllyID = newMyAllyID
-		positionCache.playerBar = nil
-		positionCache.spectatorBars = {}
+		scoreBarPositions = {}
 		layoutCache.initialized = false
 		
 		cache:invalidate("spectator_teams")
@@ -1691,8 +1634,6 @@ function widget:Update(deltaTime)
 		updateScoreDisplayList()
 		return
 	end
-	
-	currentTime = os.clock()
 	
 	updateCachedFreezeStatus(false)
 	
