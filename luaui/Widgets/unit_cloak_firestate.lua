@@ -17,12 +17,11 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-VFS.Include('luarules/configs/customcmds.h.lua')
 
 -- Speedups
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
-local CMD_CLOAK         = CMD_WANT_CLOAK
+local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

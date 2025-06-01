@@ -14,7 +14,6 @@ end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 local useRenderToTextureBg = useRenderToTexture
-local rttSizeMult
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -32,7 +31,6 @@ local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local spec = Spring.GetSpectatingState()
 
@@ -397,9 +395,12 @@ local function updateList(force)
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if uiBgTex and backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
-			gl.DeleteTextureFBO(uiBgTex)
-			uiBgTex = nil
+		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			if uiBgTex then
+				gl.DeleteTextureFBO(uiBgTex)
+				uiBgTex = nil
+			end
+			checkGuishader(true)
 		end
 
 		if useRenderToTextureBg then
@@ -422,7 +423,7 @@ local function updateList(force)
 		end
 		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*rttSizeMult, math.floor(backgroundRect[4]-backgroundRect[2])*rttSizeMult, {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -445,8 +446,6 @@ local function updateList(force)
 				drawContent()
 			end)
 		end
-
-		checkGuishader(true)
 	end
 end
 
@@ -492,11 +491,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	rttSizeMult = vsy<1400 and 2 or 1
-	local rttAdjust = useRenderToTexture and rttSizeMult > 1
-	font2 = WG['fonts'].getFont(nil, 1.2 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
-	font = WG['fonts'].getFont(fontFile, 1.1 * (rttAdjust and 1.8 or 1), 0.45 * (rttAdjust and 1.25*outlineMult or 1), rttAdjust and 1.3+(outlineMult*0.25) or 1.3)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font2 = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -690,33 +687,35 @@ local function Update()
 end
 
 function widget:DrawScreen()
-	Update()
-	if doUpdate or doUpdateForce then
-		updateList(doUpdateForce)
-		doUpdate = false
-		doUpdateForce = nil
-	end
-	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
-		if useRenderToTextureBg then
-			if uiBgTex then
-				-- background element
-				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-				gl.Texture(uiBgTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-				gl.Texture(false)
-				gl.Color(1,1,1,1)
-			end
+	if not spec or showWhenSpec then
+		Update()
+		if doUpdate or doUpdateForce then
+			updateList(doUpdateForce)
+			doUpdate = false
+			doUpdateForce = nil
 		end
-		if useRenderToTexture then
-			if uiTex then
-				--content
-				gl.Color(1,1,1,1)
-				gl.Texture(uiTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-				gl.Texture(false)
+		if dlist or uiTex or uiBgTex then
+			if useRenderToTextureBg then
+				if uiBgTex then
+					-- background element
+					gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+					gl.Texture(uiBgTex)
+					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+					gl.Texture(false)
+					gl.Color(1,1,1,1)
+				end
 			end
-		else
-			gl.CallList(dlist)
+			if useRenderToTexture then
+				if uiTex then
+					--content
+					gl.Color(1,1,1,1)
+					gl.Texture(uiTex)
+					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
+					gl.Texture(false)
+				end
+			else
+				gl.CallList(dlist)
+			end
 		end
 	end
 end

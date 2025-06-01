@@ -23,6 +23,8 @@ local GiveOrderToUnit = Spring.GiveOrderToUnit
 local SetUnitNeutral = Spring.SetUnitNeutral
 local CMD_AUTOREPAIRLEVEL = CMD.AUTOREPAIRLEVEL
 local CMD_IDLEMODE = CMD.IDLEMODE
+local CMD_LAND_AT = GameCMD.LAND_AT
+local CMD_AIR_REPAIR = GameCMD.AIR_REPAIR
 
 local isAirplantNames = {
 	corap = true,
@@ -55,7 +57,7 @@ local plantList = {}
 local buildingUnits = {}
 
 local landCmd = {
-	id = 34569,
+	id = CMD_LAND_AT,
 	name = "apLandAt",
 	action = "apLandAt",
 	type = CMDTYPE.ICON_MODE,
@@ -64,7 +66,7 @@ local landCmd = {
 }
 
 local airCmd = {
-	id = 34570,
+	id = CMD_AIR_REPAIR,
 	name = "apAirRepair",
 	action = "apAirRepair",
 	type = CMDTYPE.ICON_MODE,
@@ -97,20 +99,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(34569) -- LandAt
-	gadgetHandler:RegisterAllowCommand(34570) -- AirRepair
+	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
+	gadgetHandler:RegisterAllowCommand(CMD_AIR_REPAIR)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if isAirplant[unitDefID] and plantList[unitID] then
-		if cmdID == 34569 then -- LandAt
-			local cmdDescID = FindUnitCmdDesc(unitID, 34569)
+		if cmdID == CMD_LAND_AT then
+			local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
 			landCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, landCmd)
 			plantList[unitID].landAt = cmdParams[1]
 			landCmd.params[1] = 1
-		else -- cmdID == 34570  -- AirRepair
-			local cmdDescID = FindUnitCmdDesc(unitID, 34570)
+		else -- CMD_AIR_REPAIR
+			local cmdDescID = FindUnitCmdDesc(unitID, CMD_AIR_REPAIR)
 			airCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, airCmd)
 			plantList[unitID].repairAt = cmdParams[1]

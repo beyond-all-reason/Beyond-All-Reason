@@ -46,6 +46,13 @@ end
 --------------------------------------------------------------------------------
 
 -- GL4 Backend stuff:
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"
