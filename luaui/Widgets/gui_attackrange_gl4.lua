@@ -177,6 +177,7 @@ local vtoldamagetag = Game.armorTypes['vtol']
 local defaultdamagetag = Game.armorTypes['default']
 
 -- globals
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 local selUnitCount = 0
 local selBuilderCount = 0 -- we need builder count separately
 local shifted = false
@@ -1152,6 +1153,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
 			attackRangeShader:SetUniform("drawMode", 0.0)
 			attackRangeShader:SetUniform("inMiniMap", inMiniMap and 1.0 or 0.0)
+			attackRangeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 

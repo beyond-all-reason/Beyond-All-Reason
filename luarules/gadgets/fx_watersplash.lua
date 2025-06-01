@@ -28,13 +28,8 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
-local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
-local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
-local COR_JUNO = WeaponDefNames['legjuno_juno_pulse'].id --juno can explode on water
-local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
-local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'] and WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
--- maybe need addition of scav version or better solution
+local cortronWeaponDef = WeaponDefNames['cortron_cortron_weapon']
+local COR_TRON = cortronWeaponDef and cortronWeaponDef.id
 
 local splashCEG1 = "splash-tiny"
 local splashCEG2 = "splash-small"
@@ -46,11 +41,17 @@ local splashCEG7 = "splash-nuke"
 local splashCEG8 = "splash-nukexl"
 
 
-local weaponType = {}
 local weaponAoe = {}
+local weaponNoSplash = {}
 for weaponDefID, def in pairs(WeaponDefs) do
-	weaponType[weaponDefID] = def.type
 	weaponAoe[weaponDefID] = def.damageAreaOfEffect
+
+	local waterSplash = def.customParams.water_splash and tonumber(def.customParams.water_splash)
+	waterSplash = waterSplash or (nonexplosiveWeapons[def.type] and 0 or 1)
+
+	if waterSplash == 0 then
+		weaponNoSplash[weaponDefID] = true
+	end
 	-- add damage bonus, since LRPC dont have a lot of AoE, but do pack a punch
 	if def.type == 'DGun' then
 		weaponAoe[weaponDefID] = weaponAoe[weaponDefID] + 80
@@ -74,7 +75,7 @@ end
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px,pz) < 0 then
 		local aoe = weaponAoe[weaponID] / 2
-		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB and weaponID ~= ARM_JUNO and weaponID ~= COR_JUNO and weaponID ~= LEG_PHOENIX then
+		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			if aoe >= 6 and aoe < 12 then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif  aoe >= 12 and aoe < 24 then
@@ -107,8 +108,8 @@ end
 function gadget:Initialize()
 	local minHeight, maxHeight = Spring.GetGroundExtremes()
 	if minHeight < 100 then
-		for _,wDef in pairs(WeaponDefs) do
-			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
+		for wDefID, wDef in pairs(WeaponDefs) do
+			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and (not weaponNoSplash[wDefID]) then
 				Script.SetWatchExplosion(wDef.id, true)
 			end
 		end

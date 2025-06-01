@@ -137,7 +137,6 @@ return {
 					max_range_reduction = "0.30",
 					speceffect = "sector_fire",
 					spread_angle = "22",
-					when = "always",
 				},
 				damage = {
 					default = 200,
