@@ -173,7 +173,8 @@ void main()
 		#else
 			tx = GetModelWorldTransform(instData.x,0);
 			if (pieceIndex > 0u){
-				Transform ty = GetPieceModelTransform(instData.x, pieceIndex);
+                // Note the pieceIndex is Lua so, 1-based, so we need to subtract 1 to get the correct index
+				Transform ty = GetPieceModelTransform(instData.x, pieceIndex - 1);
 				tx = ApplyTransform(tx, ty);
 			}
 			placeInWorldMatrix = TransformToMatrix(tx);
