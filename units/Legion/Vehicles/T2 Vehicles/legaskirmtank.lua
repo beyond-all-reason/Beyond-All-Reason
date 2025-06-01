@@ -140,7 +140,7 @@ return {
 				soundstart = "corraid",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 320,
+				weaponvelocity = 360,
 				damage = {
 					default = 70,
 					vtol = 20,

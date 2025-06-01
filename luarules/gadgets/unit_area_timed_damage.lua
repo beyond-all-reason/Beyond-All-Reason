@@ -58,6 +58,7 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 
 local max                    = math.max
 local min                    = math.min
+local floor                  = math.floor
 
 local spAddUnitDamage        = Spring.AddUnitDamage
 local spGetFeatureHealth     = Spring.GetFeatureHealth
@@ -81,6 +82,7 @@ local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
+local featDamageImmunity = {}
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -143,6 +145,31 @@ local function getNearestCEG(params)
     end
 end
 
+---The ordering of areas, if left arbitrary, penalizes high-damage areas.
+---This gives a faster insert when ordering areas from low to high damage
+---without favoring newly created areas (effectively penalizing duration).
+local function bisectDamage(array, damage, low, high)
+    if low < high then
+        local indexMiddle = floor((low + high) * 0.5)
+        local areaMiddle = array[indexMiddle]
+        local damageMiddle = areaMiddle and areaMiddle.damage
+
+        if damageMiddle then
+            if damageMiddle == damage then
+                return indexMiddle
+            else
+                if damageMiddle > damage then
+                    high = indexMiddle - 1
+                else
+                    low = indexMiddle + 1
+                end
+                return bisectDamage(array, damage, low, high)
+            end
+        end
+    end
+    return low
+end
+
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
     local elevation = max(spGetGroundHeight(px, pz), 0)
@@ -167,15 +194,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             damageCeg  = explosion.damageCeg,
             endFrame   = explosion.frames + frameNumber,
         }
-		-- The ordering of areas on the same frame can penalize high-damage areas, also.
-		-- The maximal-damage ordering is to place the strongest areas of effect first:
-		for i = 1, #frameExplosions + 1 do
-			local area2 = frameExplosions[i]
-			if not area2 or area.damage >= area2.damage then
-				table.insert(frameExplosions, i, area)
-				return
-			end
-		end
+        local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
+        table.insert(frameExplosions, index, area)
     end
 end
 
@@ -203,10 +223,13 @@ local function getLimitedDamage(incoming, accumulated)
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
-    resetNewUnit = {}
-    resetNewFeat = {}
+    local length = #timedAreas
 
-    for index, area in pairs(timedAreas) do
+    local resetNewUnit = {}
+    local count = 0
+
+    for index = length, 1, -1 do
+        local area = timedAreas[index]
         local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
@@ -214,7 +237,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                 local damageTaken = unitDamageTaken[unitID]
                 if not damageTaken then
                     damageTaken = 0
-                    resetNewUnit[#resetNewUnit + 1] = unitID
+                    count = count + 1
+                    resetNewUnit[count] = unitID
                 end
                 local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
                 if showDamageCeg then
@@ -225,46 +249,56 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                 unitDamageTaken[unitID] = damageTaken + damage
             end
         end
-
-        local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
-        for j = 1, #featuresInRange do
-            local featureID = featuresInRange[j]
-            local damageTaken = featDamageTaken[featureID]
-            if not damageTaken then
-                damageTaken = 0
-                resetNewFeat[#resetNewFeat + 1] = featureID
-            end
-			local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-            if showDamageCeg then
-                local fx, fy, fz = spGetFeaturePosition(featureID)
-                spSpawnCEG(area.damageCeg, fx, fy, fz)
-            end
-            local health = spGetFeatureHealth(featureID) - damage
-            if health > 1 then
-                spSetFeatureHealth(featureID, health)
-                featDamageTaken[featureID] = damageTaken + damage
-            else
-                Spring.DestroyFeature(featureID)
-            end
-        end
-
-        if area.endFrame <= gameFrame then
-            timedAreas[index] = nil
-        end
     end
-
-    unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
-    featDamageReset[gameFrame + gameSpeed] = resetNewFeat
 
     for _, unitID in ipairs(unitDamageReset[gameFrame]) do
         unitDamageTaken[unitID] = nil
     end
+
     unitDamageReset[gameFrame] = nil
+    unitDamageReset[gameFrame + gameSpeed] = resetNewUnit
+
+    local resetNewFeat = {}
+    count = 0
+
+    for index = length, 1, -1 do
+        local area = timedAreas[index]
+        local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
+        for j = 1, #featuresInRange do
+            local featureID = featuresInRange[j]
+            if not featDamageImmunity[featureID] then
+                local damageTaken = featDamageTaken[featureID]
+                if not damageTaken then
+                    damageTaken = 0
+                    count = count + 1
+                    resetNewFeat[count] = featureID
+                end
+                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                if showDamageCeg then
+                    local fx, fy, fz = spGetFeaturePosition(featureID)
+                    spSpawnCEG(area.damageCeg, fx, fy, fz)
+                end
+                local health = spGetFeatureHealth(featureID) - damage
+                if health > 1 then
+                    spSetFeatureHealth(featureID, health)
+                    featDamageTaken[featureID] = damageTaken + damage
+                else
+                    Spring.DestroyFeature(featureID)
+                end
+            end
+        end
+
+        if area.endFrame <= gameFrame then
+            table.remove(timedAreas, index)
+        end
+    end
 
     for _, featID in ipairs(featDamageReset[gameFrame]) do
         featDamageTaken[featID] = nil
     end
+
     featDamageReset[gameFrame] = nil
+    featDamageReset[gameFrame + gameSpeed] = resetNewFeat
 end
 
 local function removeFromArrays(arrays, value)
@@ -350,6 +384,15 @@ function gadget:Initialize()
             end
         end
         unitDamageImmunity[unitDefID] = unitImmunity
+    end
+
+    featDamageImmunity = {}
+    for _, featureID in ipairs(Spring.GetAllFeatures()) do
+        local featureDefID = Spring.GetFeatureDefID(featureID)
+        local featureDef = FeatureDefs[featureDefID]
+        if featureDef.indestructible or featureDef.geoThermal then
+            featDamageImmunity[featureID] = true
+        end
     end
 
     if next(timedDamageWeapons) then

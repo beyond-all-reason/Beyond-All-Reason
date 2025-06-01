@@ -19,6 +19,12 @@ local skipOwnTeam = true
 local sizeMultiplier = 1.25
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -118,11 +124,11 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(enemyspotterVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(enemyspotterVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
-	uploadAllElements(enemyspotterVBO) -- upload them all
+	InstanceVBOTable.uploadAllElements(enemyspotterVBO) -- upload them all
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists

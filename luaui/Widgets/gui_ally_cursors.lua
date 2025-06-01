@@ -227,7 +227,7 @@ end
 
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 	deleteDlists()
 end
 
@@ -290,7 +290,7 @@ function widget:Initialize()
 	WG['allycursors'].getLightRadius = function()
 		return lightRadiusMult
 	end
-	
+
 	WG['allycursors'].getLightSelfShadowing = function()
 		return lightSelfShadowing
 	end
