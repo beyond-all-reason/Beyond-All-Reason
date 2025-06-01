@@ -90,6 +90,8 @@ RestoreAfterDelay()
 
 Create()
 {
+	move turret to y-axis [-32] now;
+	move turret to y-axis [0] speed [50.000000];
 	hide aimpoint;
 	hide flare;
 	hide flare;
