@@ -30,12 +30,12 @@ local labGrids = {
 	},
 	legalab = {
 		-- page1
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, strider, spy
-		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
-		"legbart", "legsrail", "legadvaabot", "leginc",             -- belcher, railgun, AA bot, incinerator
+		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, hoplite, spy
+		"corvoyr", "corspec", "legshot", "leghrk",             -- radar bot, jammer bot, phalanx, Thanatos
+		"legbart", "legsrail", "legadvaabot", "leginc",        -- belcher, railgun, AA bot, incinerator
 		-- page2
-		"legamph", "leghrk", "legsnapper", "corsktl",				-- amphbious bot, Thanatos, snapper, skuttle
-		"legdecom",					-- decoycom
+		"legamph", "leginfestor", "legsnapper", "corsktl",     -- amphbious bot, infestor, snapper, skuttle
+		"legdecom",					                           -- decoycom
 	},
 	-- T1 vehicle
 	armvp = {
