@@ -118,6 +118,7 @@ local gameSeconds = 0
 local lastLoop = 0
 local loopSoundEndTime = 0
 local soundIndex = 1
+local currentGameFrame = 0
 
 local lastThreshold = -1
 local lastMaxThreshold = -1
@@ -1083,7 +1084,7 @@ local function createOptimizedDynamicDisplayList(allyTeamData)
 			drawOptimizedScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, threshold, allyTeamDataEntry.teamColor, isThresholdFrozen)
 			
 			local difference = allyTeamDataEntry.score - threshold
-			local differenceVerticalOffset = amSpectating and 3 or 1
+			local differenceVerticalOffset = 4
 			local fontSize = amSpectating and barPosition.fontSize or (fontCache.fontSize * 1.20)
 			drawDifferenceText(barPosition.innerRight, barPosition.textY, difference, fontSize, "r", COLOR_WHITE, differenceVerticalOffset)
 			
@@ -1262,6 +1263,10 @@ local function queueTeleportSounds()
 end
 
 function widget:DrawScreen()
+	if currentGameFrame <= 1 then
+		return
+	end
+	
 	local currentGameTime = spGetGameSeconds()
 	
 	if not displayList then
@@ -1344,6 +1349,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameFrame(frame)
+	currentGameFrame = frame
 	gameSeconds = spGetGameSeconds() or 0
 	
 	updateCachedGameState()
