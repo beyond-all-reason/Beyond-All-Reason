@@ -26,7 +26,6 @@ local gameCommands = {
 
 	AREA_MEX = 30100,
 	SELL_UNIT = 30101,
-	SET_WANTED_MAX_SPEED = 70, -- TODO remove, was backwards compatibility
 
 	CARRIER_SPAWN_ONOFF = 31200,
 	MORPH = 31210,

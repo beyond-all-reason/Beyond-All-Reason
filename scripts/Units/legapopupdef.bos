@@ -176,7 +176,9 @@ AimWeapon1(heading, pitch)
 	}
 	turn turretBaseHeading to y-axis heading speed <180.0>;
 	turn turretPivotPitch to x-axis (-1*pitch) speed <180.0>;
+	
 	wait-for-turn turretBaseHeading around y-axis;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -197,7 +199,7 @@ AimWeapon2(heading, pitch)
 	{
 		sleep 250;
 	}
-	wait-for-turn turretBaseHeading around y-axis;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -229,7 +231,7 @@ AimWeapon3(heading, pitch)
 	{
 		sleep 250;
 	}
-	wait-for-turn turretBaseHeading around y-axis;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }

@@ -1558,6 +1558,30 @@ local options = {
         type    = "bool",
         def     =  false,
     },
+    {
+        key     = "dummyboolfeelfreetotouch",
+        name    = "dummy to hide the faction limiter",
+        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        section = "dev",
+        type    = "bool",
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+    },
+    {
+        key     = "factionlimiter",
+        name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
+        desc    = [[BITMASK to be used via custom ui, only visible when boss
+Set to [0] To disable.
+Otherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.
+Offset by 3 for each consecutive team.
+If a team's bitmask is 0, All are Enabled.
+Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
+        section = "dev",
+        type    = "number",
+        def     =  0,
+        min    	= 0,
+        max    	= 16777215,-- math hard, 24 bit limitish?
+        step   	= 1,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
