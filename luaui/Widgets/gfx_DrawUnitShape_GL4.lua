@@ -625,7 +625,7 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				gl.Culling(GL.BACK)
 				gl.DepthMask(true)
 				gl.DepthTest(GL.LEQUAL)
-				--gl.PolygonOffset ( 0.5,0.5 )
+				gl.PolygonOffset(1, 1) -- so as not to clash with engine ghosts
 				unitShapeShader:Activate()
 				unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 				active = true
