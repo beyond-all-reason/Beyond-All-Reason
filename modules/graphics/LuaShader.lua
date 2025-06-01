@@ -419,25 +419,9 @@ Transform Lerp(Transform t0, Transform t1, float a) {
 }
 
 
-// This helper function gets the transform that gets you the piece-space to world-space transform
-Transform GetPieceWorldTransform(uint baseIndex, uint pieceID)
-{
-	Transform pieceToMModelTX =  Lerp(
-		transforms[baseIndex + 2u * (1u + pieceID) + 0u],
-		transforms[baseIndex + 2u * (1u + pieceID) + 1u],
-		timeInfo.w
-	);
-
-	Transform modelToWorldTX = Lerp(
-		transforms[baseIndex + 0u],
-		transforms[baseIndex + 1u],
-		timeInfo.w
-	);
-	return ApplyTransform(modelToWorldTX, pieceToMModelTX);
-}
 
 // This helper function gets the transform that gets you the model-space to world-space transform
-Transform GetModelWorldTransform(uint baseIndex, uint pieceID)
+Transform GetModelWorldTransform(uint baseIndex)
 {
 	return Lerp(
 		transforms[baseIndex + 0u],
@@ -455,6 +439,17 @@ Transform GetPieceModelTransform(uint baseIndex, uint pieceID)
 		timeInfo.w
 	);
 }
+
+// This helper function gets the transform that gets you the piece-space to world-space transform
+Transform GetPieceWorldTransform(uint baseIndex, uint pieceID)
+{
+	Transform pieceToMModelTX =  GetPieceModelTransform(baseIndex, pieceID);
+
+	Transform modelToWorldTX = GetModelWorldTransform(baseIndex);
+
+	return ApplyTransform(modelToWorldTX, pieceToMModelTX);
+}
+
 Transform GetStaticPieceModelTransform(uint baseIndex, uint pieceID)
 {
 	return transforms[baseIndex + 1u * (pieceID) + 0u];
@@ -961,6 +956,12 @@ function LuaShader:Deactivate()
 		self.printf.SSBO:UnbindBufferRange(7)
 		self.printf.bufferData = self.printf.SSBO:Download(-1, 0, nil, true) -- last param is forceGPURead = true
 		--Spring.Echo(self.printf.bufferData[1],self.printf.bufferData[2],self.printf.bufferData[3],self.printf.bufferData[4])
+		-- Do NAN checks on bufferData array and replace with -666 if NAN:
+		for i = 1, #self.printf.bufferData do 
+			if type(self.printf.bufferData[i]) == 'number' and (self.printf.bufferData[i] ~= self.printf.bufferData[i]) then -- check for NAN
+				self.printf.bufferData[i] = -666
+			end
+		end
 
 		if not self.DrawPrintf then 
 			--Spring.Echo("creating DrawPrintf")
