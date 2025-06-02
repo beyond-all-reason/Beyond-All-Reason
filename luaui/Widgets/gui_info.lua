@@ -34,9 +34,6 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local hoverType, hoverData = '', ''
@@ -63,7 +60,7 @@ local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor
 local anonymousName = '?????'
 
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
-local loadedFontSize, font, font2, font3, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
+local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock
@@ -379,7 +376,7 @@ local function refreshUnitInfo()
 						calculateClusterDPS(weaponDef, weaponDef.damages[0])
 					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
 						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
+						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
@@ -598,10 +595,8 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.6)
-	font, loadedFontSize = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 2 or 1), 0.45 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.15+(outlineMult*0.25) or 1.25)
-	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
-	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.5 or 1), 0.28 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.25))
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
 end
 
 function GetColor(colormap, slider)
@@ -887,9 +882,9 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	-- unit count
 	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selUnitsCounts[uDefID])) * 0.066))
 	if selUnitsCounts[uDefID] > 1 then
-		--font3:Begin()
-		font3:Print('\255\233\233\233'..selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
-		--font3:End()
+		--font2:Begin()
+		font2:Print('\255\233\233\233'..selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
+		--font2:End()
 	end
 
 	-- kill count
@@ -906,9 +901,9 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		glTexture(":l:LuaUI/Images/skull.dds")
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
-		--font3:Begin()
-		font3:Print('\255\233\233\233'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
-		--font3:End()
+		--font2:Begin()
+		font2:Print('\255\233\233\233'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
+		--font2:End()
 	end
 end
 
@@ -934,9 +929,11 @@ local function drawSelection()
 	local height = 0
 	local heightStep = (fontSize * 1.36)
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..Spring.I18N('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
 	font2:End()
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	height = height + (fontSize * 0.85)
 
 	-- loop all unitdefs/cells (but not individual unitID's)
@@ -1097,10 +1094,11 @@ local function drawUnitInfo()
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
 
-		font3:Begin()
-		font3:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
-		font3:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
-		font3:End()
+		font2:Begin()
+		font2:SetOutlineColor(0,0,0,1)
+		font2:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
+		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
+		font2:End()
 	end
 	iconSize = iconSize + iconPadding
 
@@ -1134,6 +1132,7 @@ local function drawUnitInfo()
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
 			font2:Begin()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
@@ -1161,6 +1160,7 @@ local function drawUnitInfo()
 
 	-- unit tooltip
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
 
@@ -1175,6 +1175,7 @@ local function drawUnitInfo()
 		humanName = humanName..'...'
 	end
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
 
@@ -1628,6 +1629,7 @@ local function drawEngineTooltip()
 					end
 					if groundType2 and groundType2 ~= '' then
 						font2:Begin()
+						font2:SetOutlineColor(0,0,0,1)
 						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
 						font2:End()
 						height = height + (fontSize * 0.25)
@@ -1655,6 +1657,7 @@ local function drawEngineTooltip()
 				end
 				if text and text ~= '' then
 					font2:Begin()
+					font2:SetOutlineColor(0,0,0,1)
 					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
 					font2:End()
 					height = height + (fontSize * 0.5)
@@ -1952,7 +1955,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
+	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
 		if useRenderToTextureBg and infoBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)

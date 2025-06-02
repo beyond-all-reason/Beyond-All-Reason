@@ -15,9 +15,11 @@ end
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
@@ -273,7 +275,7 @@ local function StopHighlightUnitGL4(uniqueID, noUpload)
 end
 
 local function RefreshHighlightUnitGL4()
-	uploadAllElements(highlightUnitVBOTable)
+	InstanceVBOTable.uploadAllElements(highlightUnitVBOTable)
 end
 
 
@@ -291,7 +293,7 @@ end
 
 function widget:GameFrame(n)
 	if (n%61) == 1 then
-		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+		InstanceVBOTable.validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
 	end
 end
 
@@ -304,7 +306,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}
-	clearInstanceTable(highlightUnitVBOTable)
+	InstanceVBOTable.clearInstanceTable(highlightUnitVBOTable)
 
 	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 		-- i am no longer nice to consumers
@@ -341,9 +343,9 @@ function widget:Initialize()
 
 	local maxElements = 6 -- start small for testing
 	local unitIDAttributeIndex = 9
-	highlightUnitVBOTable = makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
+	highlightUnitVBOTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	highlightUnitVBOTable.VAO = makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
+	highlightUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
 	highlightUnitVBOTable.indexVBO = indxVBO
 	highlightUnitVBOTable.vertexVBO = vertVBO
 	highlightUnitVBOTable.debugZombies = false
@@ -385,7 +387,7 @@ end
 function widget:Shutdown()
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
 		if Spring.Utilities.IsDevMode() then
-			dumpAndCompareInstanceData(highlightUnitVBOTable)
+			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()
 	end

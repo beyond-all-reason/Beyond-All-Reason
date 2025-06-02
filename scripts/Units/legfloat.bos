@@ -1,12 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lankle, lwheel, rankle, rwheel, turret, gun, barrel, aimbit,
        flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater, lknee, rknee;
 
-static-var  restore_delay, oldheading, bAiming, Stunned, moving, Wobble_status, inwater;
+static-var  restore_delay, oldheading, bAiming, Stunned, moving, Wobble_status, inwater, tur_rot;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -186,7 +184,9 @@ Create()
 	hide fwater;
 	hide smoke;
 	hide aimbit;
-	moving= 0;
+	
+	moving = 0;
+	tur_rot = 0;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	start-script Wake();
@@ -232,11 +232,16 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <60.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <30.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn gun around x-axis;
+	tur_rot = heading;
+	
+	turn turret to y-axis heading speed <120.0>;
+	turn gun to x-axis <0.0> - pitch speed <90.0>;
+	
+    wait-for-turn turret around y-axis;
+    wait-for-turn gun around x-axis;
+	
 	bAiming = heading;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -265,59 +270,12 @@ Rock_Main_Cannon()
 
 AimSecondary(heading, pitch)
 { 
-    var turret_xz;
-    turret_xz = get PIECE_XZ(turret);                                //get packed turret coordinates
-    var turret_x;
-    turret_x = (turret_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of turret (credit for unpack code goes to Beherith)
-    var turret_z;
-    turret_z = (turret_xz & 0x0000ffff);                            //unpack z coordinates of turret
-    
-    var aimbit_xz;
-    aimbit_xz = get PIECE_XZ(aimbit);                        //get packed aimbit coordinates
-    var aimbit_x;
-    aimbit_x = (aimbit_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of aimbit
-    var aimbit_z;
-    aimbit_z = (aimbit_xz & 0x0000ffff);                    //unpack z coordinates of aimbit
-    
-    var aim_x;
-    var aim_z;
-    aim_x = turret_x - aimbit_x;                                //calculate relative coordinates of the turret to the aaturret (how far away it is in each direction)
-    aim_z = turret_z - aimbit_z;
-    
-    
-    var hull_xz;
-    hull_xz = get PIECE_XZ(base);                            //get packed base coordinates
-    var hull_x;
-    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of base
-    var hull_z;
-    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of base
-    
-    var smoke_xz;
-    smoke_xz = get PIECE_XZ(smoke);                            //get packed smoke coordinates
-    var smoke_x;
-    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
-    var smoke_z;
-    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
-    
-    var face_x;
-    var face_z;
-    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the base to the smoke (how far away it is in each direction)
-    face_z = hull_z - smoke_z;
-	
-	var cauaim;
-    var cauface;
-    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the aaturret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
-    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the base. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
-    
-    var trueaim;
-    trueaim = cauaim - cauface;                                //calculate angle of aaturret relative to the base
-    
     signal SIG_AIM_2;
     set-signal-mask SIG_AIM_2;
-    turn aaturret to y-axis heading + trueaim speed <300.000000>;    //add the result to the y axis heading
-    turn aagun to x-axis <0.000000> - pitch speed <65.000000>;        //the rest of the AimSecondary script
-    wait-for-turn aaturret around y-axis;
-    wait-for-turn aagun around x-axis;
+	
+    turn aaturret to y-axis heading - tur_rot speed <300.0>;
+    turn aagun to x-axis <0.0> - pitch speed <65.0>;
+	
     start-script RestoreAfterDelay();
     return (1);
 }
@@ -336,6 +294,12 @@ FireSecondary()
 {
 	spin aabarrel around z-axis speed <900.000000>;
 	return (1);
+}
+
+Shot2(zero)
+{
+	emit-sfx 1024 + 4 from aaflare;
+	return(1);
 }
 
 AimFromPrimary(piecenum)

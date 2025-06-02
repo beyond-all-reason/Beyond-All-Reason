@@ -1,0 +1,123 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, topStrut, rotatingStrut, junoSphere;
+
+static-var  gun_1, restore_delay, Stunned;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_TURNON 4
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
+}
+
+NanoEmit()
+{
+	while( TRUE )
+	{
+	
+		emit-sfx 1024 from junoSphere;
+		sleep 1200;
+	}
+}
+
+Create()
+{
+	hide junoSphere;
+	gun_1 = junoSphere;
+	restore_delay = 300;
+    SLEEP_UNTIL_UNITFINISHED;
+    call-script Activate();
+    call-script NanoEmit();
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+    show junoSphere;
+    spin rotatingStrut around y-axis speed <25> accelerate <0.5>;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+    hide junoSphere;
+    stop-spin rotatingStrut around y-axis decelerate <5>;
+
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = junoSphere;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode junoSphere type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode junoSphere type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode junoSphere type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode junoSphere type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

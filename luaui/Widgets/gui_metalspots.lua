@@ -96,9 +96,12 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
 local shaderConfig = {}
 local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
@@ -200,10 +203,10 @@ local function initGL4()
 		{id = 2, name = 'visibility', size = 4},
 		{id = 3, name = 'uvcoords', size = 4},
 	}
-	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
+	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
 	spotInstanceVBO.vertexVBO = spotVBO
-	spotInstanceVBO.VAO = makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
+	spotInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
 	return true
 end
@@ -335,19 +338,21 @@ local function InitializeSpots(mSpots)
 				local occupied = ally or enemy
 
 				local uvcoords = valueToUVs[value]
-				local gh = Spring.GetGroundHeight(spot.x, spot.z)
-				pushElementInstance(spotInstanceVBO, -- vbo
-						{spot.x, gh, spot.z, scale,
-						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-					instanceID, -- instanceID
-					true, -- updateExisting
-					true -- noUpload
-					)
+				if uvcoords then
+					local gh = Spring.GetGroundHeight(spot.x, spot.z)
+					pushElementInstance(spotInstanceVBO, -- vbo
+							{spot.x, gh, spot.z, scale,
+							(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+							uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+						instanceID, -- instanceID
+						true, -- updateExisting
+						true -- noUpload
+						)
+				end
 			end
 		end
 	end
-	uploadAllElements(spotInstanceVBO)
+	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
 local function UpdateSpotValues() -- This will only get called on playerchanged
@@ -361,18 +366,19 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			local ally, enemy, changed = IsSpotOccupied(spot)
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
-
-			pushElementInstance(spotInstanceVBO, -- vbo
-					{spot.x, spot.y, spot.z, spot.scale,
-					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
-					uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
-				spot.instanceID, -- instanceID
-				true, -- updateExisting
-				true -- noUpload
-			)
+			if uvcoords then
+				pushElementInstance(spotInstanceVBO, -- vbo
+						{spot.x, spot.y, spot.z, spot.scale,
+						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
+						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
+					spot.instanceID, -- instanceID
+					true, -- updateExisting
+					true -- noUpload
+				)
+			end
 		end
 	end
-	uploadAllElements(spotInstanceVBO)
+	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
 
@@ -439,6 +445,7 @@ function widget:Shutdown()
 	WG.metalspots = nil
 	mySpots = {}
 	valueList = {}
+	gl.DeleteFont(font)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

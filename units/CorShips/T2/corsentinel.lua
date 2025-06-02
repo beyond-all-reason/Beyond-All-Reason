@@ -132,12 +132,16 @@ return {
 				impulsefactor = 0.123,
 				name = "Depth Charge Drones",
 				noselfdamage = true,
+				metalpershot = 40,
+				energypershot = 1000,
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",--"xplomed2",
 				soundhitwet = "",--"splssml",
 				soundstart = "",--"cannhvy1",
+				stockpile = true,
+				stockpiletime = 6,
 				turret = true,
 				waterweapon = true,
 				weapontype = "Cannon",
@@ -166,6 +170,9 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "4 5 6 7 8 9 10",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 5,
+					stockpilemetal = 40,
+					stockpileenergy = 1000,
 				}
 			},
 			

@@ -780,7 +780,7 @@ local unitDeaths = {
 		}
 	},
 
-	advancedFusionExplosion = {
+	advancedFusionExplosion = { --this explosion does not generate a distortion effect for unknown reasons
 		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
@@ -796,6 +796,24 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+
+	customfusionexplo = {
+		weaponType = "Cannon",
+		AreaOfEffect = 1280,
+		cameraShake = 1280,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:afusexpl",
+		damage = {
+			commanders = 2800,
+			default = 10600,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 	advancedFusionExplosionSelfd = {
 		weaponType = "Cannon",
 		AreaOfEffect = 1920,
@@ -850,7 +868,7 @@ local unitDeaths = {
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
 
-	commanderexplosion = {
+	oldcommanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
 		AreaOfEffect = 700,
@@ -874,6 +892,32 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+
+	commanderexplosion = {
+		name = "Matter/AntimatterExplosion",
+		weaponType = "Cannon",
+		AreaOfEffect = 700,
+		cameraShake = 510,
+		explosionSpeed = 725,
+		impulsefactor = impulsefactor,
+		soundhitwet = "newboomuw",
+		soundhit = "newboom",
+		soundstart = "largegun",
+		soundstartvolume = 25,
+		soundhitvolume = 25,
+		soundhitwetvolume = 34,
+		explosiongenerator = "custom:shockwaveceg",
+		craterboost = 4,
+		cratermult = 2,
+		edgeeffectiveness = 0,
+		damage = {
+			default = 5000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 
 	--BUILDING DEATHS--
 

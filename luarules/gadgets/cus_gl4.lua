@@ -532,8 +532,9 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+
+local LuaShader = gl.LuaShader
+
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
 
@@ -1629,7 +1630,7 @@ local function ExecuteDrawPass(drawPass)
 			local shaderTable = shaders[drawPass][shaderName]
 
 			if unitscountforthisshader > 0 then
-				gl.UseShader(shaderTable.shaderObj)
+				shaderTable:Activate()
 				shaderswaps = shaderswaps + 1
 				for uniformBinID, uniformBin in pairs(data) do
 
@@ -1660,7 +1661,7 @@ local function ExecuteDrawPass(drawPass)
 					end
 				end
 
-				gl.UseShader(0)
+				shaderTable:Deactivate()
 			end
 		end
 	end

@@ -40,11 +40,11 @@ local math_sin = math.sin
 
 -- A fun unit test is: /luarules fightertest armclaw armclaw 200 10 1000
 
--- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink. 
-local projTablePoolSize = 0 
+-- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink.
+local projTablePoolSize = 0
 local projTablePool = {}
 local function GetProjTable()
-	if projTablePoolSize == 0 then 
+	if projTablePoolSize == 0 then
 		return {
 				weaponDefID = 0,
 				proOwnerID = 0,
@@ -59,8 +59,8 @@ local function GetProjTable()
 			}
 	else
 		local free = projTablePool[projTablePoolSize]
-		projTablePool[projTablePoolSize] = nil 
-		projTablePoolSize = projTablePoolSize -1 
+		projTablePool[projTablePoolSize] = nil
+		projTablePoolSize = projTablePoolSize -1
 		return free
 	end
 end
@@ -75,7 +75,7 @@ local sparkWeapons = {}
 for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
 		if wd.customParams.spark_forkdamage ~= nil then
-			Script.SetWatchWeapon(wd.id, true) -- watch weapon so ProjectileCreated works
+			Script.SetWatchProjectile(wd.id, true) -- watch so ProjectileCreated works
 			sparkWeapons[wd.id] = 	{
 				ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 				basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage
@@ -152,7 +152,7 @@ function gadget:ProjectileDestroyed(proID)
 						projectileCacheTable['end'][1] = ex
 						projectileCacheTable['end'][2] = ey
 						projectileCacheTable['end'][3] = ez
-						
+
 						--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
 						spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
 						count = count - 1 -- spark target count accounting
@@ -238,7 +238,7 @@ end
 -- when a unit is directly hit by a lighting attack, keep track of that so the lighting weapon does not chain to the same target it hit.
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	-- using UnitPreDamaged to try to catch a unit being hit by a lightning bolt as soon as possible. UnitDamaged should also work, if necessary
-	if sparkWeapons[weaponID] then
+	if attackerID and sparkWeapons[weaponID] then
 
 		-- engine does not provide a projectileID for hitscan weapons, bleh
 		-- as a workaround, if a unit is shot by a lightning unit, make it immune to that unit's chaining for 3 frames

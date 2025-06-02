@@ -41,9 +41,11 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 	-- X The only actual param needed per unit is its los range :D
 	-- X refactor the opacity
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -77,22 +79,22 @@ local function initgl4()
 		circleShader:Finalize()
 	end
 	if circleInstanceVBO then
-		clearInstanceTable(circleInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	end
 	circleShader = LuaShader.CheckShaderUpdates(shaderSourceCache,0)
 
 	if not circleShader then
 		goodbye("Failed to compile losrange shader GL4 ")
 	end
-	local circleVBO, numVertices = makeCircleVBO(circleSegments)
+	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
 		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
 	}
-	circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
+	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts
@@ -138,14 +140,14 @@ local instanceCache = {0,0,0,0,0,0,0,0}
 
 local function InitializeUnits()
 	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
-	clearInstanceTable(circleInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
 	end
-	uploadAllElements(circleInstanceVBO)
+	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
 end
 
 
@@ -272,7 +274,6 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-
 	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	if circleInstanceVBO.usedElements == 0 then return end
 	if opacity < 0.01 then return end
@@ -317,6 +318,7 @@ function widget:DrawWorld()
 	--glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
 	gl.Clear(GL.STENCIL_BUFFER_BIT)
+	
 
 end
 

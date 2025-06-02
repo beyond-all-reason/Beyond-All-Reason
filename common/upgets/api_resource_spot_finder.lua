@@ -324,6 +324,8 @@ local function GetSpotsMetal()
 	end
 
 	-- Final processing
+	-- armmex used as representative unit for placement checking, since all metal extractors are the same size
+	local uDefID = UnitDefNames["armmex"].id
 	local spots = {}
 	for _, g in ipairs(uniqueGroups) do
 		local gMinX, gMaxX = huge, -1
@@ -350,6 +352,12 @@ local function GetSpotsMetal()
 		if gMaxX - gMinX > maxStripLength or g.maxZ - g.minZ > maxStripLength then
 			return false, true
 		end
+
+		local positions = GetBuildingPositions(g, uDefID, 0, false)
+		local pos = positions[floor(#positions / 2 + 1)]
+		g.x = pos.x
+		g.y = pos.y
+		g.z = pos.z
 	end
 
 	--for i = 1, #spots do

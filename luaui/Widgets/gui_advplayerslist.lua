@@ -78,7 +78,6 @@ local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font, font2
 
 local AdvPlayersListAtlas
@@ -783,7 +782,7 @@ local function rankTeamPlayers()
                 end
             end
 
-            if scores[allyTeamID] then
+            if scores[allyTeamID] and (mySpecStatus or not hoverPlayerlist or allyTeamID ~= myAllyTeamID) then
                 table.sort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
                 end)
@@ -807,6 +806,23 @@ local function rankTeamPlayers()
         SortList()
         CreateLists()
     end
+end
+
+local function speclistCmd(_, _, params)
+	if params[1] then
+		if params[1] == '1' then
+			specListShow = true
+			alwaysHideSpecs = false
+		else
+			specListShow = false
+			alwaysHideSpecs = true
+		end
+	else
+		specListShow = not specListShow
+	end
+	SortList()
+	SetModulesPositionX() --why?
+	CreateLists()
 end
 
 function widget:Initialize()
@@ -891,6 +907,8 @@ function widget:Initialize()
 			end
 		end
 	end
+
+	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
 
 
@@ -967,6 +985,8 @@ function widget:Shutdown()
     if Background then
         gl_DeleteList(Background)
     end
+
+	widgetHandler:RemoveAction("speclist")
 end
 
 function SetSidePics()
@@ -1365,7 +1385,7 @@ function SortList()
         end
     end
     local deadTeamSize = 0.66
-    playerScale = math.min(1, 38 / (aliveTeams+(deadTeams*deadTeamSize)))
+    playerScale = math.min(1, 37 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
@@ -2696,12 +2716,8 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(useRenderToTexture and 0.95 or 0.8, 0.75 * widgetScale))
+        font2:SetOutlineColor(0.75, 0.75, 0.75, 1)
     else
-        font2:SetTextColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
-        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
     end
     if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -2713,7 +2729,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
-    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, dark and "o" or "n")
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
 
     --desynced = playerID == 1
 	if desynced then
@@ -3819,9 +3835,10 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.3, 0.5 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.2)
-    font2 = WG['fonts'].getFont(fontfile2, 1.8, 0.7 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+    font2 = WG['fonts'].getFont(2, 1.5)
+	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+    --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then
@@ -3852,29 +3869,5 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
         elseif cmdType == 'erase' then
             player[playerID].eraserTime = now + pencilDuration
         end
-    end
-end
-
-
-function widget:TextCommand(command)
-    if string.sub(command, 1, 8) == 'speclist' then
-        local words = {}
-        for w in command:gmatch("%S+") do
-            words[#words+1] = w
-        end
-        if string.sub(command, 10, 10) ~= '' then
-            if string.sub(command, 10, 10) == '0' then
-                specListShow = false
-				alwaysHideSpecs = true
-            elseif string.sub(command, 10, 10) == '1' then
-                specListShow = true
-				alwaysHideSpecs = false
-            end
-        else
-            specListShow = not specListShow
-        end
-        SortList()
-        SetModulesPositionX() --why?
-        CreateLists()
     end
 end
