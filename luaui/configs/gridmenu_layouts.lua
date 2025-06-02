@@ -31,10 +31,9 @@ local labGrids = {
 	},
 
 	legalab = {
-		"legack", "legaceb", "legstr", "corspy", "legdecom", "leginfestor",          -- T2 con, proteus, strider, spy, decoycom, infestor
-		"corvoyr", "corspec", "legshot", "corhrk", "corsktl", "",                    -- radar bot, jammer bot, phanlax, arbiter, skuttle
-		"legbart", "legsrail", "coraak", "leginc", "legamph", "legsnapper",          -- belcher, railgun, AA bot, incinerator, telchine, snapper
-    
+		"legack", "legaceb", "legstr", "corspy", "legdecom", "leginfestor",          -- T2 con, proteus, hoplite, spy, decoycom, infestor
+		"corvoyr", "corspec", "legshot", "leghrk", "", "",                           -- radar bot, jammer bot, phanlax, thanatos
+		"legbart", "legsrail", "legadvaabot", "leginc", "legamph", "legsnapper",     -- belcher, arquebus, AA bot, incinerator, telchine, snapper
 	},
 	-- T1 vehicle
 	armvp = {
@@ -70,7 +69,7 @@ local labGrids = {
 	legavp = {
 		"legacv", "legafcv", "legaskirmtank", "legamcluster", "legvcarry", "legmed",     -- T2 con, aceso, gladiator, cleaver, mantis, medusa
 		"legavrad", "legavjam", "legaheattank", "leginf", "cormabm", "",                 -- radar, jammer, prometheus, inferno, mobile AN
-		"legmrv", "legfloat", "legvflak", "legavroc", "", "",                             -- Quickshot, new triton, AA, boreas
+		"legmrv", "legfloat", "legvflak", "legavroc", "", "",                            -- Quickshot, new triton, AA vehicle, boreas
 	},
 	-- T1 air
 	armap = {
@@ -100,9 +99,9 @@ local labGrids = {
 	},
 
 	legaap = {
-		"legaca", "legionnaire", "legvenator", "legphoenix", "", "",     -- T2 con, defensive fig, interceptor, phoenix
+		"legaca", "legafigdef", "legvenator", "legphoenix", "", "",      -- T2 con, defensive fig, interceptor, phoenix
 		"legwhisper", "legstronghold", "legatorpbomber", "", "", "",     -- radar, transport(gunship), torpedo,
-		"legfort", "legnap", "legmineb", ""	                             -- flying fort, napalmbomber, minebomber
+		"legfort", "", "legmineb", ""	                                 -- flying fort, (blank), minebomber
 	},
 	-- seaplanes
 	armplat = {
@@ -151,10 +150,10 @@ local labGrids = {
 		"", "corcrash", "coraak",                              -- t1 AA bot, t2 AA bot
 	},
 
-	legamsub = {
+	legamphlab = {
 		"legotter", "legdecom", "legamphtank", "", "", "",	   -- amphibious con, decoy com, t1 amphibious tank
 		"","legfloat", "legamph", "",                          -- t2 floating tank, t2 amph bot
-		"", "corcrash", "coraak", "",                          -- t1 aa bot, t2 aa bot
+		"", "legaabot", "legadvaabot", "",                     -- t1 aa bot, t2 aa bot
 	},
 	-- hover labs
 	armhp = {
@@ -205,7 +204,7 @@ local labGrids = {
 
 	leggant = {
 		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", "", "",     -- astraeus, karganeth, javelin, sol invictus
-		"corjugg", "corsok", "legeshotgunmech", "legpede", "", "",          -- behemoth, hovertank, praetorian, mukade
+		"", "corsok", "legeshotgunmech", "", "", "",                        -- (blank), hovertank, praetorian
 		"legkeres","legerailtank", "",                                      -- keres, daedalus
 	},
 	-- T3 underwater labs
@@ -1511,24 +1510,24 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legafus", },                                -- moho, fusion, afus
+			{ "legadveconv", "legageo", "cormexp", },                           -- T2 converter, T2 geo, armed moho
+			{ "legadvestore", "legamstor", },                                   -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up turret, heavy defence, pop-up artillery, napalm missile
+			{ "legflak", "leglraa", "legabm", "legrampart", },                  -- flak, long-range AA, anti-nuke, rampart
+			{ "leglrpc", "legstarfall", "legsilo", },                           -- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "legdeflector", },                                     -- anti-nuke, shield
+			{ "legarad", "legtarg", "legforti", "legajam", },                   -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "corasp", },                                         -- intrusion counter, air repair pad, floating air repair pad
+			{ "legdeflector", },                                                -- shield
 		},
 		{
-			{ "leglab", },                                       -- T1 lab,
-			{ "leggant", "legalab", },                           -- T3 lab, T2 lab
-			{ },                                     -- seaplane lab (aircon only)
+			{ "legvp", },                                                       -- T1 lab,
+			{ "leggant", "legavp", },                                           -- T3 lab, T2 lab
+			{ },                                                                -- seaplane lab (aircon only)
 		}
 	},
 
@@ -1581,24 +1580,24 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legafus", },                                -- moho, fusion, afus
+			{ "legadveconv", "legageo", "cormexp", },                           -- T2 converter, T2 geo, armed moho
+			{ "legadvestore", "legamstor", },                                   -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up turret, heavy defence, pop-up artillery, napalm missile
+			{ "legflak", "leglraa", "legabm", "legrampart", },                  -- flak, long-range AA, anti-nuke, rampart
+			{ "leglrpc", "legstarfall", "legsilo", },                           -- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "legdeflector", },                                     -- anti-nuke, shield
+			{ "legarad", "legtarg", "legforti", "legajam", },                   -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "corasp", },                                         -- intrusion counter, air repair pad, floating air repair pad
+			{ "legdeflector", },                                                -- shield
 		},
 		{
-			{ "legvp", },                                       -- T1 lab,
-			{ "leggant", "legavp", },                           -- T3 lab, T2 lab
-			{ },                                     -- seaplane lab (aircon only)
+			{ "legvp", },                                                       -- T1 lab,
+			{ "leggant", "legavp", },                                           -- T3 lab, T2 lab
+			{ },                                                                -- seaplane lab (aircon only)
 		}
 	},
 
@@ -1650,24 +1649,24 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legadvestore", "legamstor", },                                   -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, napalm missile
+			{ "legflak", "leglraa", "legabm", "legrampart", },                  -- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "legstarfall", "legsilo", },                           -- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "legdeflector", },                                     -- anti-nuke, shield
+			{ "legarad", "legtarg", "legforti", "legajam", },                   -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "corasp", "corfasp" },                               -- intrusion counter, air repair pad, floating air repair pad
+			{ "legdeflector", },                                                -- shield
 		},
 		{
-			{ "legap", },                                       -- T1 lab,
-			{ "leggant", "legaap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "legap", },                                                       -- T1 lab,
+			{ "leggant", "legaap", },                                           -- T3 lab, T2 lab
+			{ "corplat", },                                                     -- seaplane lab (aircon only)
 		}
 	},
 
