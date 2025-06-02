@@ -22,9 +22,6 @@ local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 
-local spec, fullview = Spring.GetSpectatingState()
-local lastGameFrame = 0
-
 local chobbyInterface
 
 local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
@@ -135,7 +132,7 @@ local function UpdateTeamEnergy()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spec, fullview = Spring.GetSpectatingState()
+	local spec, fullview = Spring.GetSpectatingState()
 	if spec then
 		fullview = select(2,Spring.GetSpectatingState())
 	end
@@ -168,6 +165,7 @@ function widget:Initialize()
 end
 
 local function updateStalling()
+	UpdateTeamEnergy()
 	local gf = Spring.GetGameFrame()
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
@@ -201,13 +199,6 @@ local function updateStalling()
 	end
 	if energyIconVBO.dirty then
 		uploadAllElements(energyIconVBO)
-	end
-end
-
-function widget:Update(dt)
-	if Spring.GetGameFrame() ~= lastGameFrame then
-		lastGameFrame = Spring.GetGameFrame()
-		UpdateTeamEnergy()
 	end
 end
 
