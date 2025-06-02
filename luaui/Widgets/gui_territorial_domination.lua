@@ -220,8 +220,7 @@ local CACHE_KEYS = {
 	LAYOUT_DATA = "layout_data",
 	MINIMAP_GEOMETRY = "minimap_geometry",
 	TEAM_COLOR = "team_color_%d",
-	TINTED_COLOR = "tinted_color_%s",
-	SCORE_BAR_POS = "score_bar_pos_%d"
+	TINTED_COLOR = "tinted_color_%s"
 }
 
 local CACHE_TTL = {
@@ -293,10 +292,6 @@ local function getCachedMinimapGeometry()
 	end, CACHE_TTL.FAST)[1], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][2], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][3]
 end
 
-local function setOptimizedTexture(texture)
-	glTexture(texture)
-end
-
 local function createTintedColor(baseColor, tintColor, strength)
 	local tintedColor = {
 		baseColor[1] + (tintColor[1] - baseColor[1]) * strength,
@@ -314,16 +309,14 @@ local function forceDisplayListUpdate()
 	needsDynamicUpdate = true
 	needsHaloUpdate = true
 	
-	cache:invalidate("*_pos*")
 	cache:invalidate(CACHE_KEYS.LAYOUT_DATA)
 end
 
 local function cleanupDisplayList(displayList)
 	if displayList then
 		glDeleteList(displayList)
-		return nil
 	end
-	return displayList
+	return nil
 end
 
 local function cleanupCountdowns(allyTeamIDFilter)
@@ -432,14 +425,6 @@ local function calculateBarPosition(index)
 	}
 end
 
-local function setOptimizedColor(r, g, b, a)
-	glColor(r, g, b, a)
-end
-
-local function setOptimizedBlending(sourceBlendFactor, destinationBlendFactor)
-	gl.Blending(sourceBlendFactor, destinationBlendFactor)
-end
-
 local function getCachedTeamColor(teamID)
 	local cacheKey = format(CACHE_KEYS.TEAM_COLOR, teamID)
 	return cache:getOrCompute(cacheKey, function()
@@ -460,9 +445,9 @@ local function drawTextWithOutline(text, textPositionX, textPositionY, fontSize,
 	local alpha = outlineAlpha or TEXT_OUTLINE_ALPHA
 	
 	if alpha == TEXT_OUTLINE_ALPHA then
-		setOptimizedColor(0, 0, 0, TEXT_OUTLINE_ALPHA)
+		glColor(0, 0, 0, TEXT_OUTLINE_ALPHA)
 	else
-		setOptimizedColor(0, 0, 0, alpha)
+		glColor(0, 0, 0, alpha)
 	end
 	
 	glText(text, textPositionX - offset, textPositionY, fontSize, alignment)
@@ -470,7 +455,7 @@ local function drawTextWithOutline(text, textPositionX, textPositionY, fontSize,
 	glText(text, textPositionX, textPositionY - offset, fontSize, alignment)
 	glText(text, textPositionX, textPositionY + offset, fontSize, alignment)
 	
-	setOptimizedColor(color[1], color[2], color[3], color[4])
+	glColor(color[1], color[2], color[3], color[4])
 	glText(text, textPositionX, textPositionY, fontSize, alignment)
 end
 
@@ -528,7 +513,7 @@ local function drawBarFill(fillLeft, fillRight, fillBottom, fillTop, barColor, i
 end
 
 local function drawGlossEffects(fillLeft, fillRight, fillBottom, fillTop)
-	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	
 	local glossHeight = (fillTop - fillBottom) * 0.4
 	local topGlossBottom = fillTop - glossHeight
@@ -539,7 +524,7 @@ local function drawGlossEffects(fillLeft, fillRight, fillBottom, fillTop)
 	vertices = createGradientVertices(fillLeft, fillRight, fillBottom, fillBottom + bottomGlossHeight, {1, 1, 1, 0.02}, {1, 1, 1, 0})
 	gl.Shape(GL.QUADS, vertices)
 	
-	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
@@ -550,8 +535,8 @@ local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
 	local shadowAlpha = 0.6
 	local shadowScale = 1.1
 	
-	setOptimizedColor(0, 0, 0, shadowAlpha)
-	setOptimizedTexture(':n:LuaUI/Images/skull.dds')
+	glColor(0, 0, 0, shadowAlpha)
+	glTexture(':n:LuaUI/Images/skull.dds')
 	glTexRect(
 		-HALVED_ICON_SIZE * shadowScale + shadowOffset,
 		-HALVED_ICON_SIZE * shadowScale - shadowOffset,
@@ -583,10 +568,10 @@ local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
 		isSkullFaded = false
 	end
 	
-	setOptimizedColor(1, 1, 1, skullAlpha)
+	glColor(1, 1, 1, skullAlpha)
 	glTexRect(-HALVED_ICON_SIZE, -HALVED_ICON_SIZE, HALVED_ICON_SIZE, HALVED_ICON_SIZE)
 	
-	setOptimizedTexture(false)
+	glTexture(false)
 	glPopMatrix()
 end
 
@@ -594,11 +579,11 @@ local function drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exce
 	local lineExtension = 3
 	local lineColor = exceedsMaxThreshold and COLOR_WHITE_LINE or COLOR_GREY_LINE
 	
-	setOptimizedColor(0, 0, 0, 0.8)
+	glColor(0, 0, 0, 0.8)
 	glRect(linePos - lineWidth - 1, scorebarBottom - lineExtension, 
 		   linePos + lineWidth + 1, scorebarTop + lineExtension)
 
-	setOptimizedColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
 	glRect(linePos - lineWidth/2, scorebarBottom - lineExtension, 
 		   linePos + lineWidth/2, scorebarTop + lineExtension)
 end
@@ -614,7 +599,7 @@ local function drawOptimizedScoreBar(scorebarLeft, scorebarRight, scorebarBottom
 	
 	local linePos = scorebarLeft + min(score / maxThreshold, 1) * barWidth
 	
-	setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	if exceedsMaxThreshold then
 		local overfillRatio = min((score - maxThreshold) / maxThreshold, 1)
@@ -975,7 +960,7 @@ local function createOptimizedHaloDisplayList(allyTeamData)
 			return
 		end
 		
-		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
 		local targetBarIndex = nil
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
@@ -998,7 +983,7 @@ local function createOptimizedHaloDisplayList(allyTeamData)
 			local currentAlpha = alphaStep * step
 			local offset = (step - 1) * stepSize
 			
-			setOptimizedColor(1, 1, 1, currentAlpha)
+			glColor(1, 1, 1, currentAlpha)
 			
 			glRect(barPosition.scorebarLeft - offset, barPosition.scorebarTop, barPosition.scorebarRight + offset, barPosition.scorebarTop + stepSize)
 			glRect(barPosition.scorebarLeft - offset, barPosition.scorebarBottom - stepSize, barPosition.scorebarRight + offset, barPosition.scorebarBottom)
@@ -1014,7 +999,7 @@ local function createOptimizedBackgroundDisplayList(allyTeamData)
 	end
 	
 	backgroundDisplayList = glCreateList(function()
-		setOptimizedBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 			if allyTeamDataEntry and allyTeamDataEntry.allyTeamID then
@@ -1023,11 +1008,11 @@ local function createOptimizedBackgroundDisplayList(allyTeamData)
 				local tintedBg = getCachedTintedColor(COLOR_BACKGROUND, allyTeamDataEntry.teamColor, 0.15, "bg_" .. allyTeamDataEntry.allyTeamID)
 				local tintedBorder = getCachedTintedColor(COLOR_BORDER, allyTeamDataEntry.teamColor, 0.1, "border_" .. allyTeamDataEntry.allyTeamID)
 
-				setOptimizedColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
+				glColor(tintedBorder[1], tintedBorder[2], tintedBorder[3], tintedBorder[4])
 				glRect(barPosition.scorebarLeft - BORDER_WIDTH, barPosition.scorebarBottom - BORDER_WIDTH, 
 					   barPosition.scorebarRight + BORDER_WIDTH, barPosition.scorebarTop + BORDER_WIDTH)
 				
-				setOptimizedColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
+				glColor(tintedBg[1], tintedBg[2], tintedBg[3], tintedBg[4])
 				glRect(barPosition.scorebarLeft, barPosition.scorebarBottom, barPosition.scorebarRight, barPosition.scorebarTop)
 			end
 		end
@@ -1057,11 +1042,11 @@ local function createOptimizedStaticDisplayList(allyTeamData)
 					local rankPositionX = barPosition.scorebarLeft
 					local rankPositionY = barPosition.scorebarBottom - rankBoxHeight
 					
-					setOptimizedColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
+					glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
 					glRect(rankPositionX - BORDER_WIDTH, rankPositionY - BORDER_WIDTH, 
 						   rankPositionX + rankBoxWidth + BORDER_WIDTH, rankPositionY + rankBoxHeight + BORDER_WIDTH)
 					
-					setOptimizedColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
+					glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
 					glRect(rankPositionX, rankPositionY, rankPositionX + rankBoxWidth, rankPositionY + rankBoxHeight)
 				end
 			end
@@ -1113,8 +1098,7 @@ end
 local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	allyTeamID = allyTeamID or myAllyID
 	
-	local roundedTimeForCaching = ceil(timeRemaining)
-	local cacheKey = allyTeamID .. "_" .. roundedTimeForCaching
+	local cacheKey = allyTeamID .. "_" .. timeRemaining
 	
 	if allyTeamCountdownDisplayLists[cacheKey] then
 		return allyTeamCountdownDisplayLists[cacheKey]
@@ -1124,7 +1108,7 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	for displayListKey, displayList in pairs(allyTeamCountdownDisplayLists) do
 		if displayListKey:sub(1, #tostring(allyTeamID) + 1) == allyTeamID .. "_" and displayListKey ~= cacheKey then
 			local keyTime = tonumber(displayListKey:sub(#tostring(allyTeamID) + 2))
-			if keyTime and (roundedTimeForCaching - keyTime > 3 or keyTime - roundedTimeForCaching > 1) then
+			if keyTime and (timeRemaining - keyTime > 3 or keyTime - timeRemaining > 1) then
 				table.insert(keysToDelete, displayListKey)
 			end
 		end
@@ -1213,11 +1197,6 @@ local function updateScoreDisplayList()
 			end
 		end)
 	end
-
-	needsBackgroundUpdate = false
-	needsHaloUpdate = false
-	needsStaticUpdate = false
-	needsDynamicUpdate = false
 end
 
 local function updateCachedFreezeStatus(forceUpdate)
@@ -1284,8 +1263,7 @@ function widget:DrawScreen()
 			if allyDefeatTime and allyDefeatTime > 0 and gameSeconds and allyDefeatTime > gameSeconds then
 				local timeRemaining = ceil(allyDefeatTime - gameSeconds)
 				if timeRemaining >= 0 then
-					local roundedTimeForCaching = ceil(timeRemaining)
-					local cacheKey = allyTeamID .. "_" .. roundedTimeForCaching
+					local cacheKey = allyTeamID .. "_" .. timeRemaining
 					countdownsToRender[cacheKey] = {allyTeamID = allyTeamID, timeRemaining = timeRemaining}
 				end
 			end
@@ -1305,8 +1283,7 @@ function widget:DrawScreen()
 		if defeatTime and defeatTime > 0 and gameSeconds and defeatTime > gameSeconds then
 			local timeRemaining = ceil(defeatTime - gameSeconds)
 			if timeRemaining >= 0 then
-				local roundedTimeForCaching = ceil(timeRemaining)
-				local cacheKey = myAllyID .. "_" .. roundedTimeForCaching
+				local cacheKey = myAllyID .. "_" .. timeRemaining
 				
 				if not allyTeamCountdownDisplayLists[cacheKey] then
 					createOptimizedCountdownDisplayList(timeRemaining, myAllyID)
@@ -1496,7 +1473,7 @@ function widget:GameFrame(frame)
 				local volumeRange = maxVolume - minVolume
 				
 				local volumeFactor = 1 - (timeLeft / timeRange)
-				volumeFactor = math.clamp(volumeFactor, 0, 1)
+				volumeFactor = max(0, min(volumeFactor, 1))
 				local currentVolume = minVolume + (volumeFactor * volumeRange)
 				
 				for unitID in pairs(myCommanders) do
