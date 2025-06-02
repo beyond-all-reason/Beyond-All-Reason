@@ -99,10 +99,13 @@ function gadget:GameFrame(frame)
 		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
-		-- Make sure at least one builder per player is never told to move
-		if (builderTeams[builderTeam] ~= nil) then
-			visited[builderID] = true
+		if builderTeam ~= nil then
+			-- Make sure at least one builder per player is never told to move
+			if (builderTeams[builderTeam] ~= nil) then
+				visited[builderID] = true
+			end			
 		end
+
 		builderTeams[builderTeam] = true
 		
 		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
