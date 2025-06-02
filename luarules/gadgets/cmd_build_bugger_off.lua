@@ -101,11 +101,6 @@ function gadget:GameFrame(frame)
 		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
-		-- Make sure at least one builder per player is never told to move
-		if (builderTeams[builderTeam] ~= nil) then
-			visited[builderID] = true
-		end
-		builderTeams[builderTeam] = true
 		
 		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
 			watchedBuilders[builderID]	  	= nil
@@ -118,6 +113,11 @@ function gadget:GameFrame(frame)
 			local searchRadius		= cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
 			local interferingUnits	= Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
 
+			-- Make sure at least one builder per player is never told to move
+			if (builderTeams[builderTeam] ~= nil) then
+				visited[builderID] = true
+			end
+			builderTeams[builderTeam] = true
 			-- Escalate the radius every update. We want to send units away the minimum distance, but  
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
