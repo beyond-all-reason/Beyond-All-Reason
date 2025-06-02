@@ -25,7 +25,7 @@ local teamList = {} -- {team1, team2, team3....}
 local chobbyInterface
 
 local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
-local maxStall = 0
+local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6*( xsize^2 + zsize^2 )^0.5
@@ -40,7 +40,7 @@ for udid, unitDef in pairs(UnitDefs) do
 				if weaponDef.stockpile then
 					neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))
 				elseif weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
-					neededEnergy = weaponDef.energyCost
+					neededEnergy = weaponDef.energyCost --ToDO: Check if there is reloadtime < 1 sec else adjust similar to stockpile 
 				end
 			end
 		end
@@ -169,7 +169,9 @@ local function updateStalling()
 	local gf = Spring.GetGameFrame()
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
-		if teamEnergy[teamID] and teamEnergy[teamID] < maxStall then
+		if teamEnergy[teamID] then
+			--It is possible to add here a check if maxEnergy > maxStall and then remove all energy symbols and then skip the for, but I believe it is roughly the same speed as it is right now, so left that out
+			--Previous implementation of such a mechanism led to the energy symbols then remaining when the condition was reached(worked for all but starfall)
 			for unitID, unitDefID in pairs(units) do
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
