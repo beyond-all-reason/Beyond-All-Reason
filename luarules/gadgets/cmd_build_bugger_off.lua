@@ -99,16 +99,11 @@ function gadget:GameFrame(frame)
 		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
-		if builderTeam ~= nil then
-			-- Make sure at least one builder per player is never told to move
-			if (builderTeams[builderTeam] ~= nil) then
-				visited[builderID] = true
-			end			
-		end
+		if Spring.IsValidUnit(builderID) ~= true then
+			watchedBuilders[builderID]	  	= nil
+			builderRadiusOffsets[builderID] = nil
 
-		builderTeams[builderTeam] = true
-		
-		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
+		elseif cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
 			watchedBuilders[builderID]	  	= nil
 			slowUpdateBuilders[builderID]   = true
 			builderRadiusOffsets[builderID] = 0
@@ -118,6 +113,12 @@ function gadget:GameFrame(frame)
 			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
 			local searchRadius		= cachedUnitDefs[builtUnitDefID].radius + SEARCH_RADIUS_OFFSET
 			local interferingUnits	= Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
+
+			-- Make sure at least one builder per player is never told to move
+			if (builderTeams[builderTeam] ~= nil) then
+				visited[builderID] = true
+			end
+			builderTeams[builderTeam] = true
 
 			-- Escalate the radius every update. We want to send units away the minimum distance, but  
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
@@ -150,32 +151,37 @@ function gadget:GameFrame(frame)
 
 	needsUpdate = false
 	for builderID, _ in pairs(slowUpdateBuilders) do
-		local builderCommands   = Spring.GetUnitCommands(builderID, -1)
-		local hasBuildCommand, buildCommandFirst = false, false
-		local targetX, targetZ  = 0, 0
+		if Spring.IsValidUnit(builderID) ~= true then
+			slowUpdateBuilders[builderID]   = nil
+			builderRadiusOffsets[builderID] = nil
+		else
+			local builderCommands   = Spring.GetUnitCommands(builderID, -1)
+			local hasBuildCommand, buildCommandFirst = false, false
+			local targetX, targetZ  = 0, 0
 
-		if builderCommands ~= nil then
-			for idx, command in ipairs(builderCommands) do
-				if command.id < 0 then
-					hasBuildCommand = true
-					if idx == 1 then
-						buildCommandFirst = true
-						targetX, targetZ  = command.params[1], command.params[3]
+			if builderCommands ~= nil then
+				for idx, command in ipairs(builderCommands) do
+					if command.id < 0 then
+						hasBuildCommand = true
+						if idx == 1 then
+							buildCommandFirst = true
+							targetX, targetZ  = command.params[1], command.params[3]
+						end
 					end
 				end
 			end
-		end
 
-		local isBuilding  = false
-		if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
+			local isBuilding  = false
+			if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
 
-		local x, _, z = Spring.GetUnitPosition(builderID)
-		if hasBuildCommand == false then
-			slowUpdateBuilders[builderID]   = nil
-			builderRadiusOffsets[builderID] = nil
-		elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
-			slowUpdateBuilders[builderID]   = nil
-			watchedBuilders[builderID]		= true
+			local x, _, z = Spring.GetUnitPosition(builderID)
+			if hasBuildCommand == false then
+				slowUpdateBuilders[builderID]   = nil
+				builderRadiusOffsets[builderID] = nil
+			elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
+				slowUpdateBuilders[builderID]   = nil
+				watchedBuilders[builderID]		= true
+			end
 		end
 	end
 end
