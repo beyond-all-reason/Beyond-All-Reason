@@ -39,24 +39,24 @@ if SYNCED then
 		},
 	}
 	
-	local SECONDS_TO_MAX = territorialDominationConfig[modOptions.territorial_domination_config].maxTime
-	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
+	local config = territorialDominationConfig[modOptions.territorial_domination_config]
+	local SECONDS_TO_MAX = config.maxTime
+	local SECONDS_TO_START = config.gracePeriod
 
 	--configs
 	local DEBUGMODE = false
 
 	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
-	local maxEmptyImpedencePower = 25
-	local minEmptyImpedenceMultiplier = 0.80
+	local MAX_EMPTY_IMPEDENCE_POWER = 25
+	local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
 
-	local FLYING_UNIT_POWER_MULTIPLIER = 0.01 -- units capture territory super slowly while flying, so terrein only accessable via air can be captured
+	local FLYING_UNIT_POWER_MULTIPLIER = 0.01 -- units capture territory super slowly while flying, so terrain only accessible via air can be captured
 	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MAX_PROGRESS = 1.0
 	local PROGRESS_INCREMENT = 0.06
 	local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 	local DECAY_PROGRESS_INCREMENT = 0.015
-	local STATIC_POWER_MULTIPLIER = 3
 	local GRID_CHECK_INTERVAL = Game.gameSpeed
 	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
 	local GRID_SIZE = 1024
@@ -131,35 +131,35 @@ if SYNCED then
 	local flyingUnits = {}
 	local allyDefeatTime = {}
 
-	for _, teamID in ipairs(teams) do
-		local luaAI = spGetTeamLuaAI(teamID)
-		if luaAI and luaAI ~= "" then
-			if string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-				hordeModeTeams[teamID] = true
-			elseif string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-				hordeModeTeams[teamID] = true
+	local function initializeTeamData()
+		for _, teamID in ipairs(teams) do
+			local luaAI = spGetTeamLuaAI(teamID)
+			if luaAI and luaAI ~= "" then
+				if string.sub(luaAI, 1, 12) == 'ScavengersAI' or string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+					hordeModeTeams[teamID] = true
+				end
 			end
+			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 		end
-
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 	end
 
-	for defID, def in pairs(UnitDefs) do
-		local defData
-
-		if def.power then
-			defData = {power = def.power}
-			if def.speed == 0 then
-				defData.power = defData.power * STATIC_POWER_MULTIPLIER
+	local function initializeUnitDefs()
+		for defID, def in pairs(UnitDefs) do
+			local defData
+			if def.power then
+				defData = {power = def.power}
+				if def.speed == 0 then
+					defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
+				end
+				if def.customParams and def.customParams.objectify then
+					defData.power = 0 -- dragonsteeth and other objectified units aren't targetable automatically, and so aren't counted towards capture for convenience purposes.
+				end
 			end
-			if def.customParams and def.customParams.objectify then
-				defData.power = 0 -- dragonsteeth and other objectified units aren't targetable automatically, and so aren't counted towards capture for convenience purposes.
-			end
-		end
-		unitWatchDefs[defID] = defData
+			unitWatchDefs[defID] = defData
 
-		if def.customParams and def.customParams.iscommander then
-			commandersDefs[defID] = true
+			if def.customParams and def.customParams.iscommander then
+				commandersDefs[defID] = true
+			end
 		end
 	end
 
@@ -168,8 +168,7 @@ if SYNCED then
 		local minFactor = 0.2
 		local maxFactor = 1
 		local thresholdExponentialFactor = min(minFactor + ((seconds - SECONDS_TO_START) / SECONDS_TO_MAX), maxFactor)
-		local targetThreshold = #captureGrid * thresholdExponentialFactor
-		return targetThreshold
+		return #captureGrid * thresholdExponentialFactor
 	end
 
 	local function setThresholdIncreaseRate()
@@ -177,8 +176,8 @@ if SYNCED then
 		if allyCount == 1 then
 			thresholdSecondsDelay = 0
 		else
-			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
-			wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
+			local startTime = max(seconds, SECONDS_TO_START)
+			wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2))
 			
 			if wantedDefeatThreshold > 0 then
 				local delayValue = (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold
@@ -194,22 +193,23 @@ if SYNCED then
 		local seconds = spGetGameSeconds()
 		local totalDelay = max(SECONDS_TO_START, freezeThresholdTimer, thresholdDelayTimestamp)
 
-		if totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1 or seconds > SECONDS_TO_MAX then
+		if (totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1) or seconds > SECONDS_TO_MAX then
 			defeatThreshold = min(defeatThreshold + 1, wantedDefeatThreshold)
 			thresholdDelayTimestamp = seconds + thresholdSecondsDelay
 		end
 	end
 
-	local function updateLivingTeamsData()
-		local allyTeamCounts = {}
-		local allyTeamIDs = {}
-		local allyTeamsCount = 0
-		local allyHordesCount = 0
-		local teams = spGetTeamList()
-
+	local function clearAllyTeamsWatch()
 		for allyID in pairs(allyTeamsWatch) do
 			allyTeamsWatch[allyID] = nil
 		end
+	end
+
+	local function processLivingTeams()
+		local allyTeamCounts = {}
+		local allyTeamIDs = {}
+		local newAllyTeamsCount = 0
+		local newAllyHordesCount = 0
 
 		for _, teamID in ipairs(teams) do
 			local _, _, isDead = spGetTeamInfo(teamID)
@@ -224,20 +224,23 @@ if SYNCED then
 						table.insert(allyTeamIDs, allyID)
 					else
 						hordeModeAllies[allyID] = true
-						allyHordesCount = allyHordesCount + 1
+						newAllyHordesCount = newAllyHordesCount + 1
 					end
 				end
 			end
 		end
 
 		for allyID, count in pairs(allyTeamCounts) do
-			allyTeamsCount = allyTeamsCount + 1
+			newAllyTeamsCount = newAllyTeamsCount + 1
 		end
 		
-		local oldAllyCount = allyCount
-		allyCount = allyTeamsCount + allyHordesCount
+		allyTeamsCount = newAllyTeamsCount
+		allyHordesCount = newAllyHordesCount
+		return newAllyTeamsCount + newAllyHordesCount
+	end
 
-		if allyCount ~= oldAllyCount then
+	local function updateAllyCountAndFreezeTimer(newAllyCount)
+		if allyCount ~= newAllyCount then
 			local oldFreezeTimer = freezeThresholdTimer
 			freezeThresholdTimer = max(spGetGameSeconds() + FREEZE_DELAY_SECONDS, freezeThresholdTimer)
 			Spring.SetGameRulesParam(FREEZE_DELAY_KEY, freezeThresholdTimer)
@@ -254,6 +257,13 @@ if SYNCED then
 				end
 			end
 		end
+		allyCount = newAllyCount
+	end
+
+	local function updateLivingTeamsData()
+		clearAllyTeamsWatch()
+		local newAllyCount = processLivingTeams()
+		updateAllyCountAndFreezeTimer(newAllyCount)
 	end
 
 	local function setAllyGridToGaia(allyID)
@@ -263,6 +273,31 @@ if SYNCED then
 				data.progress = STARTING_PROGRESS
 			end
 		end
+	end
+
+	local function createGridSquareData(x, z)
+		local originX = x * GRID_SIZE
+		local originZ = z * GRID_SIZE
+		local data = {}
+
+		data.mapOriginX = originX
+		data.mapOriginZ = originZ
+		data.gridX = x
+		data.gridZ = z
+		data.gridMidpointX = originX + GRID_SIZE / 2
+		data.gridMidpointZ = originZ + GRID_SIZE / 2
+		data.allyOwnerID = gaiaAllyTeamID
+		data.progress = STARTING_PROGRESS
+		data.decayDelay = 0
+		data.contested = false
+		data.contiguous = false
+		data.corners = {
+			{x = data.mapOriginX, z = data.mapOriginZ},
+			{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ},
+			{x = data.mapOriginX, z = data.mapOriginZ + GRID_SIZE},
+			{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE}
+		}
+		return data
 	end
 
 	local function generateCaptureGrid()
@@ -275,28 +310,8 @@ if SYNCED then
 		
 		for x = 0, numberOfSquaresX - 1 do
 			for z = 0, numberOfSquaresZ - 1 do
-				local originX = x * GRID_SIZE
-				local originZ = z * GRID_SIZE
 				local index = x * numberOfSquaresZ + z + 1
-				local data = gridData[index]
-
-				data.mapOriginX = originX
-				data.mapOriginZ = originZ
-				data.gridX = x
-				data.gridZ = z
-				data.gridMidpointX = originX + GRID_SIZE / 2
-				data.gridMidpointZ = originZ + GRID_SIZE / 2
-				data.allyOwnerID = gaiaAllyTeamID
-				data.progress = STARTING_PROGRESS
-				data.decayDelay = 0
-				data.contested = false
-				data.contiguous = false
-				data.corners = {
-					{x = data.mapOriginX, z = data.mapOriginZ},                           -- Bottom-left
-					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ},               -- Bottom-right
-					{x = data.mapOriginX, z = data.mapOriginZ + GRID_SIZE},               -- Top-left
-					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE}    -- Top-right
-				}
+				gridData[index] = createGridSquareData(x, z)
 			end
 		end
 		return gridData
@@ -329,14 +344,21 @@ if SYNCED then
 		if not allyDefeatTime[allyID] then
 			allyDefeatTime[allyID] = spGetGameSeconds() + DEFEAT_DELAY_SECONDS
 			for teamID in pairs(allyTeamsWatch[allyID]) do
-				Spring.SetTeamRulesParam( teamID, "defeatTime", allyDefeatTime[allyID])
+				Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
 			end
 		end
-		local currentSecond = spGetGameSeconds()
-		if allyDefeatTime[allyID] < currentSecond then
-			return true
+		return allyDefeatTime[allyID] < spGetGameSeconds()
+	end
+
+	local function calculateUnitPower(unitID, unitData, allyTeam)
+		local power = unitData.power
+		if flyingUnits[unitID] then
+			power = power * FLYING_UNIT_POWER_MULTIPLIER
 		end
-		return false
+		if spGetUnitIsCloaked(unitID) then
+			power = power * CLOAKED_UNIT_POWER_MULTIPLIER
+		end
+		return power
 	end
 
 	local function getAllyPowersInSquare(gridID)
@@ -358,13 +380,8 @@ if SYNCED then
 				
 				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
 					hasUnits = true
-					local power = unitData.power
-					if flyingUnits[unitID] then
-						power = power * FLYING_UNIT_POWER_MULTIPLIER
-					end
-					if spGetUnitIsCloaked(unitID) then
-						power = power * CLOAKED_UNIT_POWER_MULTIPLIER
-					end
+					local power = calculateUnitPower(unitID, unitData, allyTeam)
+					
 					if hordeModeTeams[allyTeam] then
 						allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
 					else
@@ -385,19 +402,12 @@ if SYNCED then
 			end
 		end
 		
-		if hasUnits then
-			return allyPowers
-		end
-		return nil
+		return hasUnits and allyPowers or nil
 	end
 
 	local sortedTeams = {}
 	
-	local function getCaptureProgress(gridID, allyPowers)
-		if not allyPowers then return nil, 0 end
-		local data = captureGrid[gridID]
-		local currentOwnerID = data.allyOwnerID
-
+	local function sortAllyPowersByStrength(allyPowers)
 		for i = 1, #sortedTeams do
 			sortedTeams[i] = nil
 		end
@@ -412,28 +422,41 @@ if SYNCED then
 			table.sort(sortedTeams, function(a, b) return a.power > b.power end)
 		end
 		
-		local winningAllyID = teamCount > 0 and sortedTeams[1].team or nil
-		local secondPlaceAllyID = teamCount > 1 and sortedTeams[2].team or nil
+		return teamCount
+	end
 
-		if not winningAllyID then
-			return nil, 0
-		end
-		
+	local function calculatePowerRatio(winningAllyID, currentOwnerID, allyPowers)
 		local topPower = allyPowers[winningAllyID]
 		local comparedPower = 0
 		
 		if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
-			comparedPower = max(allyPowers[currentOwnerID], maxEmptyImpedencePower)
-		elseif secondPlaceAllyID then
-			comparedPower = max(allyPowers[secondPlaceAllyID], maxEmptyImpedencePower)
+			comparedPower = max(allyPowers[currentOwnerID], MAX_EMPTY_IMPEDENCE_POWER)
+		elseif #sortedTeams > 1 then
+			local secondPlaceAllyID = sortedTeams[2].team
+			comparedPower = max(allyPowers[secondPlaceAllyID], MAX_EMPTY_IMPEDENCE_POWER)
 		else
-			comparedPower = min(topPower * minEmptyImpedenceMultiplier, maxEmptyImpedencePower)
+			comparedPower = min(topPower * MIN_EMPTY_IMPEDENCE_MULTIPLIER, MAX_EMPTY_IMPEDENCE_POWER)
 		end
 		
-		local powerRatio = 1
 		if topPower ~= 0 and comparedPower ~= 0 then
-			powerRatio = math.abs(comparedPower / topPower - 1)
+			return math.abs(comparedPower / topPower - 1)
 		end
+		return 1
+	end
+
+	local function getCaptureProgress(gridID, allyPowers)
+		if not allyPowers then return nil, 0 end
+		
+		local data = captureGrid[gridID]
+		local currentOwnerID = data.allyOwnerID
+		local teamCount = sortAllyPowersByStrength(allyPowers)
+		
+		if teamCount == 0 then
+			return nil, 0
+		end
+		
+		local winningAllyID = sortedTeams[1].team
+		local powerRatio = calculatePowerRatio(winningAllyID, currentOwnerID, allyPowers)
 		
 		local progressChange = 0
 		if currentOwnerID == winningAllyID then
@@ -451,7 +474,7 @@ if SYNCED then
 
 		if hordeModeTeams[winningAllyID] then
 			winningAllyID = gaiaAllyTeamID -- horde mode units cannot own territory, they give it back to gaia
-			newProgress = data.progress - abs(progressChange)
+			newProgress = data.progress - math.abs(progressChange)
 		else
 			newProgress = data.progress + progressChange
 		end
@@ -482,14 +505,9 @@ if SYNCED then
 		return allies
 	end
 
-	local function getSquareContiguityProgress(gridID)
-		local currentSquareData = captureGrid[gridID]
+	local function getNeighborAllyTeamCounts(currentSquareData)
 		local neighborAllyTeamCounts = {}
-		local dominantAllyTeamCount = 0
 		local totalNeighborCount = 0
-		local dominantAllyTeamID
-		currentSquareData.contiguous = false
-		
 		local currentGridX = currentSquareData.gridX
 		local currentGridZ = currentSquareData.gridZ
 
@@ -506,11 +524,9 @@ if SYNCED then
 						local neighborSquareData = captureGrid[neighborGridID]
 						
 						if neighborSquareData then
-							local neighborOwnerID
+							local neighborOwnerID = gaiaAllyTeamID
 							if neighborSquareData.progress > OWNERSHIP_THRESHOLD then
 								neighborOwnerID = neighborSquareData.allyOwnerID
-							else
-								neighborOwnerID = gaiaAllyTeamID
 							end
 							neighborAllyTeamCounts[neighborOwnerID] = (neighborAllyTeamCounts[neighborOwnerID] or 0) + 1
 							totalNeighborCount = totalNeighborCount + 1
@@ -519,6 +535,15 @@ if SYNCED then
 				end
 			end
 		end
+		return neighborAllyTeamCounts, totalNeighborCount
+	end
+
+	local function getSquareContiguityProgress(gridID)
+		local currentSquareData = captureGrid[gridID]
+		local neighborAllyTeamCounts, totalNeighborCount = getNeighborAllyTeamCounts(currentSquareData)
+		local dominantAllyTeamCount = 0
+		local dominantAllyTeamID
+		currentSquareData.contiguous = false
 
 		for allyTeamID, neighborCount in pairs(neighborAllyTeamCounts) do
 			if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
@@ -568,13 +593,14 @@ if SYNCED then
 			
 			if allyTeamID == squareData.allyOwnerID then
 				isVisible = true
-			else --check middle first, because it's most likely to be visible
+			else
+				--check middle first, because it's most likely to be visible
 				isVisible = spGetPositionLosState(squareData.gridMidpointX, 0, squareData.gridMidpointZ, allyTeamID)
 			end
+			
 			if not isVisible then
 				for _, corner in ipairs(squareData.corners) do
 					isVisible = spGetPositionLosState(corner.x, 0, corner.z, allyTeamID)
-					
 					if isVisible then
 						break
 					end
@@ -589,7 +615,6 @@ if SYNCED then
 		return visibilityBitmask
 	end
 
-	
 	local function updateTeamRulesScores()
 		Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
 
@@ -629,7 +654,6 @@ if SYNCED then
 	local function updateUnsyncedSquare(gridID)
 		local squareData = captureGrid[gridID]
 		local visibilityBitmask = createVisibilityBitmask(squareData)
-		
 		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityBitmask)
 	end
 
@@ -645,11 +669,9 @@ if SYNCED then
 	local function setAllyTeamRanks(allyTallies)
 		local allyScores = {}
 		for allyID, tally in pairs(allyTallies) do
-			local defeatTimeRemaining = 0
+			local defeatTimeRemaining = math.huge
 			if allyDefeatTime[allyID] and allyDefeatTime[allyID] > 0 then
-				defeatTimeRemaining = math.max(0, allyDefeatTime[allyID] - spGetGameSeconds())
-			else
-				defeatTimeRemaining = math.huge
+				defeatTimeRemaining = max(0, allyDefeatTime[allyID] - spGetGameSeconds())
 			end
 			table.insert(allyScores, {allyID = allyID, tally = tally, defeatTimeRemaining = defeatTimeRemaining})
 		end
@@ -676,6 +698,104 @@ if SYNCED then
 			for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank)
 			end
+		end
+	end
+
+	local function processMainCaptureLogic()
+		currentSecond = spGetGameSeconds()
+		updateLivingTeamsData()
+		setThresholdIncreaseRate()
+		updateCurrentDefeatThreshold()
+		allyTallies = getClearedAllyTallies()
+
+		for gridID, data in pairs(captureGrid) do
+			local allyPowers = getAllyPowersInSquare(gridID)
+			local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
+			if winningAllyID then
+				addProgress(gridID, progressChange, winningAllyID, true)
+			end
+			if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
+				allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
+			end
+		end
+	end
+
+	local function processContiguityAndDecay()
+		local randomizedIDs = getRandomizedGridIDs()
+		for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
+			if not captureGrid[randomizedIDs[i]].contested then
+				local gridID = randomizedIDs[i]
+				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
+				if contiguousAllyID then
+					addProgress(gridID, progressChange, contiguousAllyID, true)
+				end
+			end
+		end
+
+		for gridID, data in pairs(captureGrid) do
+			if not data.contested and not data.contiguous and data.decayDelay < gameFrame then
+				decayProgress(gridID)
+			end
+			updateUnsyncedSquare(gridID)
+		end
+	end
+
+	local function shouldTriggerDefeat(allyData, highestTally)
+		return allyData.tally < defeatThreshold and (allyData.tally < highestTally or allyHordesCount > 0)
+	end
+
+	local function processDefeatLogic()
+		local sortedAllies = {}
+		
+		for allyID, tally in pairs(allyTallies) do
+			table.insert(sortedAllies, {allyID = allyID, tally = tally})
+			updateUnsyncedScore(allyID, tally)
+		end
+		
+		table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
+
+		if allyCount > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
+			local highestTally = sortedAllies[#sortedAllies].tally
+			for i = 1, #sortedAllies do
+				local allyData = sortedAllies[i]
+				
+				if shouldTriggerDefeat(allyData, highestTally) then
+					local timerExpired = setAndCheckAllyDefeatTime(allyData.allyID)
+					if timerExpired then
+						triggerAllyDefeat(allyData.allyID)
+						setAllyGridToGaia(allyData.allyID)
+						allyDefeatTime[allyData.allyID] = nil
+					end
+				else
+					allyDefeatTime[allyData.allyID] = nil
+					for teamID in pairs(allyTeamsWatch[allyData.allyID]) do
+						Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+					end
+				end
+			end
+		else
+			if freezeThresholdTimer >= currentSecond then
+				for allyID in pairs(allyDefeatTime) do
+					allyDefeatTime[allyID] = nil
+					for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+						Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+					end
+				end
+			end
+		end
+		
+		if not sentGridStructure then
+			initializeUnsyncedGrid()
+		end
+	end
+
+	local function processKillQueue()
+		local currentKillQueue = killQueue[gameFrame]
+		if currentKillQueue then
+			for unitID in pairs(currentKillQueue) do
+				spDestroyUnit(unitID, false, true)
+			end
+			killQueue[gameFrame] = nil
 		end
 	end
 
@@ -708,97 +828,16 @@ if SYNCED then
 		local frameModulo = frame % GRID_CHECK_INTERVAL
 
 		if frameModulo == 0 then
-			currentSecond = spGetGameSeconds()
-			updateLivingTeamsData()
-			setThresholdIncreaseRate()
-			updateCurrentDefeatThreshold()
-			allyTallies = getClearedAllyTallies()
-
-			for gridID, data in pairs(captureGrid) do
-				local allyPowers = getAllyPowersInSquare(gridID)
-				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
-				if winningAllyID then
-					addProgress(gridID, progressChange, winningAllyID, true)
-				end
-				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
-					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
-				end
-			end
+			processMainCaptureLogic()
 		elseif frameModulo == 1 then
-			local randomizedIDs = getRandomizedGridIDs()
-			for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
-				if not captureGrid[randomizedIDs[i]].contested then
-					local gridID = randomizedIDs[i]
-					local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-					if contiguousAllyID then
-						addProgress(gridID, progressChange, contiguousAllyID, true)
-					end
-				end
-			end
-
-			for gridID, data in pairs(captureGrid) do
-				if not data.contested and not data.contiguous and data.decayDelay < frame then
-					decayProgress(gridID)
-				end
-				updateUnsyncedSquare(gridID)
-			end
+			processContiguityAndDecay()
 		elseif frameModulo == 2 then
 			updateTeamRulesScores()
-			
 			setAllyTeamRanks(allyTallies)
-			
-			local sortedAllies = {}
-			local totalCount = 0
-			for allyID, tally in pairs(allyTallies) do
-				table.insert(sortedAllies, {allyID = allyID, tally = tally})
-				updateUnsyncedScore(allyID, tally)
-				totalCount = totalCount + 1
-			end
-			
-			table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
-
-			if allyCount > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
-				local highestTally = sortedAllies[#sortedAllies].tally
-				for i = 1, #sortedAllies do
-					local allyData = sortedAllies[i]
-					
-					if allyData.tally < defeatThreshold and (allyData.tally < highestTally or allyHordesCount > 0) then
-						local timerExpired = setAndCheckAllyDefeatTime(allyData.allyID)
-						if timerExpired then
-							triggerAllyDefeat(allyData.allyID)
-							setAllyGridToGaia(allyData.allyID)
-							allyDefeatTime[allyData.allyID] = nil
-						end
-					else
-						allyDefeatTime[allyData.allyID] = nil
-						for teamID in pairs(allyTeamsWatch[allyData.allyID]) do
-							Spring.SetTeamRulesParam( teamID, "defeatTime", RESET_DEFEAT_FRAME)
-						end
-					end
-				end
-			else
-				if freezeThresholdTimer >= currentSecond then
-					for allyID in pairs(allyDefeatTime) do
-						allyDefeatTime[allyID] = nil
-						for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-							Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-						end
-					end
-				end
-			end	
-			if not sentGridStructure then
-				initializeUnsyncedGrid()
-				sentGridStructure = true
-			end
+			processDefeatLogic()
 		end
 
-		local currentKillQueue = killQueue[frame]
-		if currentKillQueue then
-			for unitID in pairs(currentKillQueue) do
-				spDestroyUnit(unitID, false, true)
-			end
-			killQueue[frame] = nil
-		end
+		processKillQueue()
 	end
 
 	function gadget:Initialize()
@@ -808,6 +847,9 @@ if SYNCED then
 		freezeThresholdTimer = SECONDS_TO_START
 		Spring.SetGameRulesParam(FREEZE_DELAY_KEY, SECONDS_TO_START)
 		captureGrid = generateCaptureGrid()
+		
+		initializeTeamData()
+		initializeUnitDefs()
 		updateLivingTeamsData()
 
 		local units = Spring.GetAllUnits()
@@ -820,9 +862,6 @@ if SYNCED then
 		teams = Spring.GetTeamList()
 		for _, teamID in pairs(teams) do
 			Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-		end
-
-		for i, teamID in pairs(teams) do
 			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1)
 		end
 	end
@@ -836,7 +875,6 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 local UNSYNCED_DEBUG_MODE = false
-
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
 local SQUARE_HEIGHT = 10
@@ -849,46 +887,34 @@ local NOTIFY_DELAY = math.floor(Game.gameSpeed * 1)
 
 local captureGrid = {}
 local notifyFrames = {}
-
-local myAllyID = Spring.GetMyAllyTeamID()
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
-local teams = Spring.GetTeamList()
-
-local blankColor = {0.5, 0.5, 0.5, 0.0}
-local enemyColor = {1, 0, 0, SQUARE_ALPHA}
-local alliedColor = {0, 1, 0, SQUARE_ALPHA}
-
-local amSpectating = Spring.GetSpectatingState()
-local spIsGUIHidden = Spring.IsGUIHidden
-
-local allyColors = {}
-for _, teamID in ipairs(teams) do
-    local allyID = select(6, Spring.GetTeamInfo(teamID))
-    if allyID and not allyColors[allyID] then
-        if allyID ~= gaiaAllyTeamID then
-            local r, g, b, a = Spring.GetTeamColor(teamID)
-            allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
-        else
-            allyColors[allyID] = blankColor
-        end
-    end
-end
-
-local planeLayout = {
-	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
-	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, showSquareTimestamp
-}
-local glDepthTest = gl.DepthTest
-local glTexture = gl.Texture
-local spPlaySoundFile = Spring.PlaySoundFile
-
 local squareVBO = nil
 local squareVAO = nil
 local squareShader = nil
 local instanceVBO = nil
 local lastMoveFrame = 0
 local currentFrame = 0
+
+local myAllyID = Spring.GetMyAllyTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+local teams = Spring.GetTeamList()
+local amSpectating = Spring.GetSpectatingState()
+local spIsGUIHidden = Spring.IsGUIHidden
+
+local blankColor = {0.5, 0.5, 0.5, 0.0}
+local enemyColor = {1, 0, 0, SQUARE_ALPHA}
+local alliedColor = {0, 1, 0, SQUARE_ALPHA}
+
+local allyColors = {}
+
+local planeLayout = {
+	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
+	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
+	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, showSquareTimestamp
+}
+
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+local spPlaySoundFile = Spring.PlaySoundFile
 
 local vertexShaderSource = [[
 #version 420
@@ -1086,29 +1112,43 @@ void main() {
 }
 ]]
 
-local function GetMaxCameraHeight()
-    local mapSizeX = Game.mapSizeX
-    local mapSizeZ = Game.mapSizeZ
+local function initializeAllyColors()
+	for _, teamID in ipairs(teams) do
+		local allyID = select(6, Spring.GetTeamInfo(teamID))
+		if allyID and not allyColors[allyID] then
+			if allyID ~= gaiaAllyTeamID then
+				local r, g, b, a = Spring.GetTeamColor(teamID)
+				allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
+			else
+				allyColors[allyID] = blankColor
+			end
+		end
+	end
+end
+
+local function getMaxCameraHeight()
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
 	local fallbackMaxFactor = 1.4 --to handle all camera modes
-    local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", fallbackMaxFactor)
+	local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", fallbackMaxFactor)
 	local absoluteMinimum = 500
 	local minimumFactor = 0.8
 	local reductionFactor = 0.8
 	local minimumMaxHeight = 3000
 	local maximumMaxHeight = 5000
-    
-    local maxDimension = math.max(mapSizeX, mapSizeZ)
-    local maxHeight = UNSYNCED_DEBUG_MODE and 1 or math.min(math.max(maxDimension * maxFactor * reductionFactor, minimumMaxHeight), maximumMaxHeight)
+	
+	local maxDimension = math.max(mapSizeX, mapSizeZ)
+	local maxHeight = UNSYNCED_DEBUG_MODE and 1 or math.min(math.max(maxDimension * maxFactor * reductionFactor, minimumMaxHeight), maximumMaxHeight)
 	local minHeight = UNSYNCED_DEBUG_MODE and 0 or math.max(absoluteMinimum, maxHeight * minimumFactor * reductionFactor)
 
-    return minHeight, maxHeight
+	return minHeight, maxHeight
 end
 
 local function createShader()
 	local engineUniformBufferDefinitions = LuaShader.GetEngineUniformBufferDefs()
 	local processedVertexShader = vertexShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
 	local processedFragmentShader = fragmentShaderSource
-	local minCameraHeight, maxCameraHeight = GetMaxCameraHeight()
+	local minCameraHeight, maxCameraHeight = getMaxCameraHeight()
 	
 	squareShader = LuaShader({
 		vertex = processedVertexShader,
@@ -1233,24 +1273,25 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
-    
-    amSpectating = Spring.GetSpectatingState()
-    myAllyID = Spring.GetMyAllyTeamID()
+	
+	amSpectating = Spring.GetSpectatingState()
+	myAllyID = Spring.GetMyAllyTeamID()
+	initializeAllyColors()
 end
 
 local previousAllyID = nil
 
 local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBitmask)
-    if amSpectating or newAllyOwnerID == myAllyID then
-        return true, false
-    end
+	if amSpectating or newAllyOwnerID == myAllyID then
+		return true, false
+	end
 
-    local allyTeamBit = 2 ^ myAllyID
-    local isCurrentlyVisible = (visibilityBitmask / allyTeamBit) % 2 >= 1
-    
-    local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
-    
-    return isCurrentlyVisible, shouldResetColor
+	local allyTeamBit = 2 ^ myAllyID
+	local isCurrentlyVisible = (visibilityBitmask / allyTeamBit) % 2 >= 1
+	
+	local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
+	
+	return isCurrentlyVisible, shouldResetColor
 end
 
 local function notifyCapture(gridID)
@@ -1264,33 +1305,94 @@ local function doCaptureEffects(gridID)
 	gridData.showSquareTimestamp = currentFrame
 end
 
+local function updateGridSquareColor(gridData)
+	if not gridData.isVisible then
+		return
+	end
+	
+	if gridData.allyOwnerID == gaiaAllyTeamID then
+		gridData.currentColor = blankColor
+	elseif amSpectating then
+		allyColors[gaiaAllyTeamID] = blankColor
+		gridData.currentColor = allyColors[gridData.allyOwnerID] or blankColor
+	else
+		if gridData.allyOwnerID == myAllyID then
+			gridData.currentColor = alliedColor
+		else
+			gridData.currentColor = enemyColor
+		end
+	end
+end
+
+local function processSpectatorModeChange()
+	local currentSpectating = Spring.GetSpectatingState()
+	local currentAllyID = Spring.GetMyAllyTeamID()
+
+	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
+		amSpectating = currentSpectating
+		myAllyID = currentAllyID
+		
+		for gridID, gridSquareData in pairs(captureGrid) do
+			local resetColor = false
+			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityBitmask)
+			if resetColor then
+				gridSquareData.currentColor = blankColor
+			end
+		end
+	end
+	previousAllyID = myAllyID
+end
+
+local function updateGridSquareVisuals()
+	for gridID, _ in pairs(captureGrid) do
+		local gridData = captureGrid[gridID]
+		
+		updateGridSquareColor(gridData)
+		
+		local captureChangePerFrame = 0
+		if gridData.captureChange then
+			captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
+		end
+
+		updateGridSquareInstanceVBO(
+			gridID,
+			{gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
+			gridData.currentColor,
+			{captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp}
+		)
+		gridData.captureChange = nil
+	end
+	
+	uploadAllElements(instanceVBO)
+end
+
 function gadget:RecvFromSynced(messageName, ...)
-    if messageName == "InitializeGridSquare" then
-        local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
-        local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
-        captureGrid[gridID] = {
-            visibilityBitmask = visibilityBitmask,
-            allyOwnerID = allyOwnerID,
-            oldProgress = progress,
-            newProgress = progress,
-            captureChange = 0,
-            gridMidpointX = gridMidpointX,
-            gridMidpointZ = gridMidpointZ,
-            isVisible = isVisible,
-            currentColor = blankColor,
+	if messageName == "InitializeGridSquare" then
+		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
+		local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
+		captureGrid[gridID] = {
+			visibilityBitmask = visibilityBitmask,
+			allyOwnerID = allyOwnerID,
+			oldProgress = progress,
+			newProgress = progress,
+			captureChange = 0,
+			gridMidpointX = gridMidpointX,
+			gridMidpointZ = gridMidpointZ,
+			isVisible = isVisible,
+			currentColor = blankColor,
 			showSquareTimestamp = 0
-        }
-        
-    elseif messageName == "InitializeConfigs" then
-        SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
-        
-    elseif messageName == "UpdateGridSquare" then
-        local gridID, allyOwnerID, progress, visibilityBitmask = ...
-        local gridData = captureGrid[gridID]
-        if gridData then
-            local oldAllyOwnerID = gridData.allyOwnerID
-            gridData.visibilityBitmask = visibilityBitmask
-            gridData.allyOwnerID = allyOwnerID
+		}
+		
+	elseif messageName == "InitializeConfigs" then
+		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
+		
+	elseif messageName == "UpdateGridSquare" then
+		local gridID, allyOwnerID, progress, visibilityBitmask = ...
+		local gridData = captureGrid[gridID]
+		if gridData then
+			local oldAllyOwnerID = gridData.allyOwnerID
+			gridData.visibilityBitmask = visibilityBitmask
+			gridData.allyOwnerID = allyOwnerID
 
 			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
 			if not gridData.isVisible then
@@ -1314,8 +1416,8 @@ function gadget:RecvFromSynced(messageName, ...)
 			if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
 				gridData.playedCapturedSound = false
 			end
-        end
-    end
+		end
+	end
 end
 
 function gadget:GameFrame(frame)
@@ -1327,59 +1429,12 @@ function gadget:GameFrame(frame)
 		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
 		notifyFrames[frame] = nil
 	end
-    if frame % UPDATE_FRAME_RATE_INTERVAL == 0 and frame ~= lastMoveFrame then
-        local currentSpectating = Spring.GetSpectatingState()
-        local currentAllyID = Spring.GetMyAllyTeamID()
-
-        if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
-            amSpectating = currentSpectating
-            myAllyID = currentAllyID
-            
-            for gridID, gridSquareData in pairs(captureGrid) do
-                local resetColor = false
-                gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityBitmask)
-                if resetColor then
-                    gridSquareData.currentColor = blankColor
-                end
-            end
-        end
-        previousAllyID = myAllyID
-        
-        for gridID, _ in pairs(captureGrid) do
-            local gridData = captureGrid[gridID]
-            
-            if gridData.isVisible then
-                if gridData.allyOwnerID == gaiaAllyTeamID then
-                    gridData.currentColor = blankColor
-                elseif amSpectating then
-                    allyColors[gaiaAllyTeamID] = blankColor
-                    gridData.currentColor = allyColors[gridData.allyOwnerID] or blankColor
-                else
-                    if gridData.allyOwnerID == myAllyID then
-                        gridData.currentColor = alliedColor
-                    else
-                        gridData.currentColor = enemyColor
-                    end
-                end
-            end
-            
-            local captureChangePerFrame = 0
-            if gridData.captureChange then
-                captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
-            end
-
-            updateGridSquareInstanceVBO(
-                gridID,
-                {gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
-                gridData.currentColor,
-                {captureChangePerFrame, gridData.oldProgress, frame, gridData.showSquareTimestamp}
-            )
-            gridData.captureChange = nil
-        end
-        
-        uploadAllElements(instanceVBO)
-        lastMoveFrame = frame
-    end
+	
+	if frame % UPDATE_FRAME_RATE_INTERVAL == 0 and frame ~= lastMoveFrame then
+		processSpectatorModeChange()
+		updateGridSquareVisuals()
+		lastMoveFrame = frame
+	end
 end
 
 function gadget:DrawWorldPreUnit()
