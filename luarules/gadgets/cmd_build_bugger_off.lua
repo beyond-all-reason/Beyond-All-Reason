@@ -13,6 +13,8 @@ function gadget:GetInfo()
 	}
 end
 
+if true then return end -- kill it for now because it's broken
+
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
