@@ -221,7 +221,6 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn pelvis to y-axis <0.0> speed <149.999996> / animSpeed; //delta=5.00
 			turn rfoot to x-axis <-41.098437> speed <619.167781> / animSpeed; //delta=-20.64
 			turn rleg to x-axis <103.237025> speed <373.296749> / animSpeed; //delta=-12.44
-			turn rloarm to x-axis <33.985181> speed <86.555538> / animSpeed; //delta=-2.89
 			turn rthigh to x-axis <-47.280062> speed <890.179050> / animSpeed; //delta=29.67
 			turn rthigh to z-axis <5.913167> speed <76.718727> / animSpeed; //delta=-2.56
 			turn rthigh to y-axis <4.031663> speed <86.922022> / animSpeed; //delta=2.90
@@ -239,6 +238,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 				turn rshoulder to x-axis <1.101303> speed <22.641277> / animSpeed; //delta=0.75
 				turn rshoulder to z-axis <-1.873996> speed <29.716663> / animSpeed; //delta=-0.99
 				turn ruparm to x-axis <20.624627> speed <191.891373> / animSpeed; //delta=-6.40
+				turn rloarm to x-axis <33.985181> speed <86.555538> / animSpeed; //delta=-2.89
 			}
 		sleep ((33*animSpeed) -1);
 		}
