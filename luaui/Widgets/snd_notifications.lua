@@ -154,7 +154,7 @@ local unitsOfInterestNames = {
 	legatrans = 'AirTransportDetected',
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
-	legstronghold = 'SeaTransportDetected',
+	legstronghold = 'AirTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
 }

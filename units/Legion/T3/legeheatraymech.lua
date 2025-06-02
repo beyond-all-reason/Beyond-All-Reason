@@ -134,6 +134,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 0,
 				},

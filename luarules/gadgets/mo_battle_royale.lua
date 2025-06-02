@@ -97,9 +97,11 @@ else
 	-------------------------
 	--    UNSYNCED CODE    --
 	-------------------------
-  local luaShaderDir = "LuaUI/Include/"
-  local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-  VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+  local LuaShader = gl.LuaShader
+  local InstanceVBOTable = gl.InstanceVBOTable
+
+  local pushElementInstance = InstanceVBOTable.pushElementInstance
 
   local circleSegments = 1024
   local circleShader = nil
@@ -220,15 +222,15 @@ else
     )
     shaderCompiled = circleShader:Initialize()
     if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
-    local circleVBO,numVertices = makeCylinderVBO(circleSegments)
+    local circleVBO,numVertices = InstanceVBOTable.makeCylinderVBO(circleSegments)
     local circleInstanceVBOLayout = {
         {id = 1, name = 'posrad', size = 4}, -- the start pos + radius
         {id = 2, name = 'color', size = 4}, --- color
       }
-    circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "groundcirclevbo")
+    circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,32, "groundcirclevbo")
     circleInstanceVBO.numVertices = numVertices
     circleInstanceVBO.vertexVBO = circleVBO
-    circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO,       circleInstanceVBO.instanceVBO)
+    circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO,       circleInstanceVBO.instanceVBO)
   end
 
   local battleroyaleradius = -1

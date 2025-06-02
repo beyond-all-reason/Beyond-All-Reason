@@ -572,8 +572,8 @@ function ShardUnit:AreaCapture( p, radius )
 end
 
 function ShardUnit:MorphInto( type )
-	local order = self:SyncOrder( self.id, CMD.MORPH, { self.id }, 0 )
--- 	return Spring.GiveOrderToUnit( self.id, CMD.MORPH, { self.id }, 0 )
+	local order = self:SyncOrder( self.id, GameCMD.MORPH, { self.id }, 0 )
+-- 	return Spring.GiveOrderToUnit( self.id, GameCMD.MORPH, { self.id }, 0 )
 end
 
 function ShardUnit:HoldFire()
