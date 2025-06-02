@@ -219,9 +219,9 @@ end
 
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@return number hitX
----@return number hitY
----@return number hitZ
+---@return number? hitX
+---@return number? hitY
+---@return number? hitZ
 local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, baseY, baseZ, midX, midY, midZ)
     if midY >= minY and midY <= maxY then
         local dx, dy, dz = x - midX, y - midY, z - midZ
