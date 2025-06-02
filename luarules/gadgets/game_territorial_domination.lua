@@ -13,11 +13,9 @@ end
 
 -- TODO:
 -- code cleanup
--- red text doesn't blink when spectating.
--- when an allyteam dies, perspective changes to one of the remaining allyteams but the score doesn't refresh until a different one is selected and then the original auto-chosen allyteam is re-selected
 -- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
--- check if defeatTime is interacting with freezeTime correctly
 -- when globbal los is enabled, it appears that with high player counts enemy territories don't show up without los
+-- the visibility bitmask may be the source of the issue with large allyteam counts failing to show territory ownership
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -66,7 +64,7 @@ if SYNCED then
 	local STARTING_PROGRESS = 0
 	local CORNER_MULTIPLIER = 1.4142135623730951 -- a constant representing the diagonal of a square
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
-	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
+	local MAJORITY_THRESHOLD = 0.5
 	local FREEZE_DELAY_SECONDS = 60
 	local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 	local MIN_THRESHOLD_DELAY = 1
@@ -182,8 +180,6 @@ if SYNCED then
 			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
 			wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
 			
-			-- Fix the division by zero and ensure parameters are in correct order:
-			-- min, value, max instead of min, max, value
 			if wantedDefeatThreshold > 0 then
 				local delayValue = (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold
 				thresholdSecondsDelay = clamp(delayValue, MIN_THRESHOLD_DELAY, MAX_THRESHOLD_DELAY)
@@ -246,13 +242,11 @@ if SYNCED then
 			freezeThresholdTimer = max(spGetGameSeconds() + FREEZE_DELAY_SECONDS, freezeThresholdTimer)
 			Spring.SetGameRulesParam(FREEZE_DELAY_KEY, freezeThresholdTimer)
 			
-			-- Extend any existing defeat timers when freeze occurs to prevent instant defeats
 			if freezeThresholdTimer > oldFreezeTimer then
 				local freezeExtension = freezeThresholdTimer - spGetGameSeconds()
 				for allyID, defeatTime in pairs(allyDefeatTime) do
 					if defeatTime and defeatTime > 0 then
 						allyDefeatTime[allyID] = defeatTime + freezeExtension
-						-- Update the team rules param for UI display
 						for teamID in pairs(allyTeamsWatch[allyID] or {}) do
 							Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
 						end
@@ -271,12 +265,10 @@ if SYNCED then
 		end
 	end
 
-	--custom functions
 	local function generateCaptureGrid()
 		local gridData = {}
 		local totalSquares = numberOfSquaresX * numberOfSquaresZ
 		
-		-- Pre-allocate table size for better performance
 		for i = 1, totalSquares do
 			gridData[i] = {}
 		end
@@ -504,18 +496,15 @@ if SYNCED then
 		-- Check all 8 surrounding neighbors
 		for deltaX = -1, 1 do
 			for deltaZ = -1, 1 do
-				-- Skip the center cell (the current square itself)
 				if not (deltaX == 0 and deltaZ == 0) then
 					local neighborGridX = currentGridX + deltaX
 					local neighborGridZ = currentGridZ + deltaZ
 					
-					-- Check if neighbor is within map boundaries
 					if neighborGridX >= 0 and neighborGridX < numberOfSquaresX and 
 					   neighborGridZ >= 0 and neighborGridZ < numberOfSquaresZ then
 						local neighborGridID = neighborGridX * numberOfSquaresZ + neighborGridZ + 1
 						local neighborSquareData = captureGrid[neighborGridID]
 						
-						-- Only count neighbors owned by active ally teams (not Gaia)
 						if neighborSquareData then
 							local neighborOwnerID
 							if neighborSquareData.progress > OWNERSHIP_THRESHOLD then
@@ -531,7 +520,6 @@ if SYNCED then
 			end
 		end
 
-		-- Find the ally team that owns the most neighboring squares
 		for allyTeamID, neighborCount in pairs(neighborAllyTeamCounts) do
 			if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
 				dominantAllyTeamID = allyTeamID
@@ -539,7 +527,6 @@ if SYNCED then
 			end
 		end
 
-		-- Only apply contiguity effect if the dominant ally team owns more than half of all neighbors
 		if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
 			currentSquareData.contiguous = true
 			-- If dominant ally is different from current owner, return negative progress (capture)
@@ -555,19 +542,16 @@ if SYNCED then
 	end
 
 	local function getRandomizedGridIDs()
-		-- Clear the existing table
 		for i = 1, #randomizedGridIDs do
 			randomizedGridIDs[i] = nil
 		end
 		
-		-- Create a list of all grid IDs
 		local index = 0
 		for gridID in pairs(captureGrid) do
 			index = index + 1
 			randomizedGridIDs[index] = gridID
 		end
 		
-		-- Shuffle the grid IDs using Fisher-Yates algorithm
 		for i = index, 2, -1 do
 			local j = random(i)
 			randomizedGridIDs[i], randomizedGridIDs[j] = randomizedGridIDs[j], randomizedGridIDs[i]
@@ -576,7 +560,6 @@ if SYNCED then
 		return randomizedGridIDs
 	end
 
-	-- Helper function to create a visibility bitmask for a grid square
 	local function createVisibilityBitmask(squareData)
 		local visibilityBitmask = 0
 		
@@ -585,7 +568,7 @@ if SYNCED then
 			
 			if allyTeamID == squareData.allyOwnerID then
 				isVisible = true
-			else --check middle first, more likely to be visible
+			else --check middle first, because it's most likely to be visible
 				isVisible = spGetPositionLosState(squareData.gridMidpointX, 0, squareData.gridMidpointZ, allyTeamID)
 			end
 			if not isVisible then
@@ -620,19 +603,16 @@ if SYNCED then
 		end
 	end
 
-	-- Remove old function since we're now using rules params
 	local function updateUnsyncedScore(allyID, score)
 		SendToUnsynced("UpdateAllyScore", allyID, score, defeatThreshold)
 	end
 
 	local function initializeUnsyncedGrid()
-		-- All ally teams can see all squares initially
 		local allVisibleBitmask = 0
 		for allyTeamID in pairs(allyTeamsWatch) do
 			allVisibleBitmask = allVisibleBitmask + (2 ^ allyTeamID)
 		end
 		for gridID, squareData in pairs(captureGrid) do
-			-- For initialization, set all squares as visible to everyone
 			SendToUnsynced("InitializeGridSquare", 
 				gridID,
 				gaiaAllyTeamID,
@@ -663,22 +643,17 @@ if SYNCED then
 	end
 
 	local function setAllyTeamRanks(allyTallies)
-		-- Create array of ally teams with their tallies and defeat times
 		local allyScores = {}
 		for allyID, tally in pairs(allyTallies) do
 			local defeatTimeRemaining = 0
-			-- Calculate remaining defeat time (higher is better)
 			if allyDefeatTime[allyID] and allyDefeatTime[allyID] > 0 then
 				defeatTimeRemaining = math.max(0, allyDefeatTime[allyID] - spGetGameSeconds())
 			else
-				-- No defeat timer means safe (highest ranking for timer)
 				defeatTimeRemaining = math.huge
 			end
 			table.insert(allyScores, {allyID = allyID, tally = tally, defeatTimeRemaining = defeatTimeRemaining})
 		end
-		
-		-- Sort by tallies first (primary), then by defeat time remaining (secondary)
-		-- Higher tally ranks better, higher defeat time remaining ranks better when tallies are equal
+
 		table.sort(allyScores, function(a, b)
 			if a.tally == b.tally then
 				return a.defeatTimeRemaining > b.defeatTimeRemaining
@@ -686,24 +661,18 @@ if SYNCED then
 			return a.tally > b.tally
 		end)
 		
-		-- Assign ranks with ties sharing the same rank
 		local currentRank = 1
 		local previousScore = -1
 		local previousDefeatTime = -1
 		
 		for i, allyData in ipairs(allyScores) do
-			-- If both score and defeat time are the same as previous, keep the same rank
-			-- Otherwise, set rank to current position
-			if i > 1 and allyData.tally == previousScore and allyData.defeatTimeRemaining == previousDefeatTime then
-				-- keep the same rank as previous entry
-			else
+			if i <= 1 or allyData.tally ~= previousScore or allyData.defeatTimeRemaining ~= previousDefeatTime then
 				currentRank = i
 			end
 			
 			previousScore = allyData.tally
 			previousDefeatTime = allyData.defeatTimeRemaining
 			
-			-- Set rank for each team in this ally team
 			for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank)
 			end
@@ -776,7 +745,6 @@ if SYNCED then
 		elseif frameModulo == 2 then
 			updateTeamRulesScores()
 			
-			-- Set ally team ranks based on territory counts
 			setAllyTeamRanks(allyTallies)
 			
 			local sortedAllies = {}
@@ -809,7 +777,6 @@ if SYNCED then
 					end
 				end
 			else
-				-- Clear all defeat timers when threshold is frozen
 				if freezeThresholdTimer >= currentSecond then
 					for allyID in pairs(allyDefeatTime) do
 						allyDefeatTime[allyID] = nil
@@ -935,7 +902,7 @@ local vertexShaderSource = [[
 layout (location = 0) in vec4 vertexPosition;
 layout (location = 1) in vec4 instancePositionScale; 
 layout (location = 2) in vec4 instanceColor; 
-layout (location = 3) in vec4 captureParameters; // captureSpeed, progressValue, startFrame, showSquareTimestamp
+layout (location = 3) in vec4 captureParameters;
 
 uniform sampler2D heightmapTexture;
 uniform int isMinimapRendering;
@@ -971,7 +938,9 @@ void main() {
 	vec3 cameraPosition = cameraViewInv[3].xyz;
 	cameraDistance = cameraPosition.y;
 	
+	// Handle two different coordinate systems: minimap 2D vs world 3D
 	if (isMinimapRendering == 1) {
+		// Convert world coordinates to minimap UV coordinates (0-1 range)
 		vec2 minimapPosition = (instancePositionScale.xz / vec2(mapSizeXAxis, mapSizeZAxis));
 		vec2 squareSize = vec2(instancePositionScale.w / mapSizeXAxis, instancePositionScale.w / mapSizeZAxis) * 0.5;
 		
@@ -981,9 +950,11 @@ void main() {
 			vertexPositionMinimap.y = 1.0 - vertexPositionMinimap.y;
 		}
 		
+		// Convert from UV (0-1) to NDC (-1 to 1) for final positioning
 		gl_Position = vec4(vertexPositionMinimap.x * 2.0 - 1.0, vertexPositionMinimap.y * 2.0 - 1.0, 0.0, 1.0);
 		isInMinimap = 1.0;
 	} else {
+		// Position square in 3D world space, conforming to terrain height
 		vec4 worldPosition = vec4(vertexPosition.x * instancePositionScale.w * 0.5, 0.0, vertexPosition.y * instancePositionScale.w * 0.5, 1.0);
 		worldPosition.xz += instancePositionScale.xz;
 		
@@ -1030,17 +1001,16 @@ void main() {
 	vec2 distanceToEdges = min(textureCoordinate, 1.0 - textureCoordinate);
 	float distanceToEdge = min(distanceToEdges.x, distanceToEdges.y);
 	
-	// Border handling - only for main view, not for minimap
 	float borderOpacity = 0.0;
 	
-	// Only show borders in the main view, not in the minimap
+	// Only render borders in main view, not minimap
 	if (isInMinimap < 0.5) {
-		// Make border sharper by reducing the fade distance
-		float borderFadeDistance = 0.005; // Reduced from 8.0/1024.0 (~0.008) for sharper borders
-		borderOpacity = smoothstep(borderFadeDistance, 0.0, distanceToEdge); // Inverted smoothstep for sharper edge
+		float borderFadeDistance = 0.005;
+		borderOpacity = smoothstep(borderFadeDistance, 0.0, distanceToEdge);
 	}
 	
-	float distanceToCorner = 1.4142135623730951; // sqrt(2)
+	// Create animated progress circle that grows from center to corners
+	float distanceToCorner = 1.4142135623730951; // sqrt(2) diagonal distance
 	float distanceToCenter = length(textureCoordinate - centerPoint) * 2.0;
 	float animatedProgress = (progressValue + progressSpeed * (currentGameFrame - startFrame)) * distanceToCorner;
 	float circleSoftness = 0.05;
@@ -1048,20 +1018,19 @@ void main() {
 	float circleFillAmount = 1.0 - clamp((distanceToCenter - animatedProgress) / circleSoftness, 0.0, 1.0);
 	circleFillAmount = step(0.0, circleFillAmount) * circleFillAmount;
 	
-	// Create a local copy of the color for modification
 	vec4 modifiedColor = color;
 	
-	// Apply fill alpha to the circle fill - make it depend on camera height
+	// Fade territory visibility based on camera height
 	float fillFadeAlpha = 1.0;
 	if (isInMinimap < 0.5) {
 		float fadeRange = maxCameraDrawHeight - minCameraDrawHeight;
 		fillFadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
 		
-		// Apply pulsing effect for recently captured territories
+		// Add pulsing effect for recently captured territories
 		if (captureTimestamp > 0.0) {
 			float timeSinceCapture = currentGameFrame - captureTimestamp;
 			float pulseFrequency = 0.05;
-			float pulseDuration = 120.0; // frames the pulse effect lasts
+			float pulseDuration = 120.0;
 			
 			if (timeSinceCapture < pulseDuration) {
 				float pulseIntensity = (1.0 - timeSinceCapture / pulseDuration) * 0.8;
@@ -1074,60 +1043,42 @@ void main() {
 	
 	vec4 fillColor = vec4(modifiedColor.rgb, modifiedColor.a * circleFillAmount * fillFadeAlpha);
 	
-	// Border color only for main view - make it more distinct for sharper lines
-	vec4 borderColor = vec4(1.0, 1.0, 1.0, 0.8); // Increased alpha from 0.66 to 0.8 for more visibility
+	vec4 borderColor = vec4(1.0, 1.0, 1.0, 0.8);
 	
-	// Border has its own independent alpha that doesn't fade with height
 	float borderAlpha = borderOpacity;
 	
-	// Dynamic edge visibility based on camera height
+	// Complex border visibility: show full borders at high camera, only corners at low camera
 	if (isInMinimap < 0.5) {
-		// *** IMPORTANT: This is where we control edge visibility ***
-		// At maxCameraDrawHeight: the full square edge is visible
-		// At minCameraDrawHeight: only corners visible, rest is hidden
-		
-		// Calculate where we are between min and max camera height
 		float heightRatio = clamp((cameraDistance - minCameraDrawHeight) / (maxCameraDrawHeight - minCameraDrawHeight), 0.0, 1.0);
 		
-		// As camera gets lower (heightRatio gets smaller), 
-		// innerFadeRadius gets bigger (hiding more of the border)
-		// 0.0 = hide nothing, 1.4 = hide everything except corners
+		// At low camera: hide interior borders, only show corners
 		float innerFadeRadius = mix(1.41, 0.0, heightRatio);
 		
-		// Calculate border width based on camera height
 		float baseWidth = 0.5;
 		float maxWidthMultiplier = 1.0;
 		float dynamicBorderWidth = baseWidth * (1.0 + (maxWidthMultiplier - 1.0) * heightRatio);
 		
-		// Use the dynamic border width instead of fixed width
 		if (distanceToCenter < innerFadeRadius - dynamicBorderWidth) {
-			// Hide interior borders completely
 			borderAlpha = 0.0;
 		} else if (distanceToCenter < innerFadeRadius) {
-			// Create a sharper transition at the edge with dynamic width
 			borderAlpha *= smoothstep(innerFadeRadius - dynamicBorderWidth, innerFadeRadius, distanceToCenter);
 		}
 		
-		// Make border thickness increase with camera height
+		// Thicker borders at higher camera positions for better visibility
 		float minBorderThickness = 0.005;
 		float maxBorderThickness = 0.009;
 		float borderThickness = mix(minBorderThickness, maxBorderThickness, heightRatio);
 		
-		// Apply border thickness to edge detection
 		float edgeDistance = distanceToEdge / borderThickness;
 		if (edgeDistance < 1.0) {
-			// Increase border alpha where we're close to square edges
-			// Use smoothstep for a gradual falloff
 			borderAlpha = max(borderAlpha, (1.0 - smoothstep(0.0, 1.0, edgeDistance)) * heightRatio);
 		}
 		
-		// Also scale border alpha with height for better visibility at high camera positions
 		borderAlpha *= mix(0.66, 0.85, heightRatio);
 	}
 	
-	// Only mix in border where we have border alpha with hard edge
 	vec4 finalColor = fillColor;
-	if (borderAlpha > 0.01) { // Reduced threshold from 0.1 to 0.05 to show more of the border
+	if (borderAlpha > 0.01) {
 		finalColor = mix(fillColor, borderColor, borderAlpha);
 	}
 	
@@ -1287,7 +1238,6 @@ function gadget:Initialize()
     myAllyID = Spring.GetMyAllyTeamID()
 end
 
-local wasSpectating = false
 local previousAllyID = nil
 
 local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBitmask)
@@ -1350,7 +1300,7 @@ function gadget:RecvFromSynced(messageName, ...)
 				gridData.oldProgress = gridData.newProgress
 				gridData.captureChange = progress - gridData.oldProgress
 
-				if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then -- check absolute value
+				if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then
 					gridData.oldProgress = progress -- Snap progress if change is too large
 					gridData.captureChange = 0 -- No smooth animation needed if snapping
 				end
@@ -1381,9 +1331,7 @@ function gadget:GameFrame(frame)
         local currentSpectating = Spring.GetSpectatingState()
         local currentAllyID = Spring.GetMyAllyTeamID()
 
-        local playerStatusChanged = false
         if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
-            playerStatusChanged = true
             amSpectating = currentSpectating
             myAllyID = currentAllyID
             
@@ -1395,7 +1343,6 @@ function gadget:GameFrame(frame)
                 end
             end
         end
-        wasSpectating = amSpectating
         previousAllyID = myAllyID
         
         for gridID, _ in pairs(captureGrid) do
