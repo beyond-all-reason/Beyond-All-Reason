@@ -1900,7 +1900,7 @@ local icontypes = {
 		size = 1.51199996
 	},
 	corsala = {
-		bitmap = "icons/corseal.png",
+		bitmap = "icons/corsala.png",
 		size = 1.52250004
 	},
 	corsb = {
