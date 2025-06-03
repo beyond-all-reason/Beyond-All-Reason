@@ -106,7 +106,6 @@ if SYNCED then
 	local teams = spGetTeamList()
 	local allyCount = 0
 	local allyHordesCount = 0
-	local allyTeamsCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
@@ -206,8 +205,6 @@ if SYNCED then
 	end
 
 	local function processLivingTeams()
-		local allyTeamCounts = {}
-		local allyTeamIDs = {}
 		local newAllyTeamsCount = 0
 		local newAllyHordesCount = 0
 
@@ -220,8 +217,7 @@ if SYNCED then
 					if not hordeModeTeams[teamID] then
 						allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
 						allyTeamsWatch[allyID][teamID] = true
-						allyTeamCounts[allyID] = (allyTeamCounts[allyID] or 0) + 1
-						table.insert(allyTeamIDs, allyID)
+						newAllyTeamsCount = newAllyTeamsCount + 1
 					else
 						hordeModeAllies[allyID] = true
 						newAllyHordesCount = newAllyHordesCount + 1
@@ -229,14 +225,8 @@ if SYNCED then
 				end
 			end
 		end
-
-		for allyID, count in pairs(allyTeamCounts) do
-			newAllyTeamsCount = newAllyTeamsCount + 1
-		end
 		
-		allyTeamsCount = newAllyTeamsCount
-		allyHordesCount = newAllyHordesCount
-		return newAllyTeamsCount + newAllyHordesCount
+		return newAllyTeamsCount, newAllyHordesCount
 	end
 
 	local function updateAllyCountAndFreezeTimer(newAllyCount)
@@ -262,8 +252,9 @@ if SYNCED then
 
 	local function updateLivingTeamsData()
 		clearAllyTeamsWatch()
-		local newAllyCount = processLivingTeams()
-		updateAllyCountAndFreezeTimer(newAllyCount)
+		local newAllyTeamsCount, newAllyHordesCount = processLivingTeams()
+		allyHordesCount = newAllyHordesCount
+		updateAllyCountAndFreezeTimer(newAllyTeamsCount + newAllyHordesCount)
 	end
 
 	local function setAllyGridToGaia(allyID)
@@ -302,11 +293,6 @@ if SYNCED then
 
 	local function generateCaptureGrid()
 		local gridData = {}
-		local totalSquares = numberOfSquaresX * numberOfSquaresZ
-		
-		for i = 1, totalSquares do
-			gridData[i] = {}
-		end
 		
 		for x = 0, numberOfSquaresX - 1 do
 			for z = 0, numberOfSquaresZ - 1 do
@@ -350,7 +336,7 @@ if SYNCED then
 		return allyDefeatTime[allyID] < spGetGameSeconds()
 	end
 
-	local function calculateUnitPower(unitID, unitData, allyTeam)
+	local function calculateUnitPower(unitID, unitData)
 		local power = unitData.power
 		if flyingUnits[unitID] then
 			power = power * FLYING_UNIT_POWER_MULTIPLIER
@@ -380,7 +366,7 @@ if SYNCED then
 				
 				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
 					hasUnits = true
-					local power = calculateUnitPower(unitID, unitData, allyTeam)
+					local power = calculateUnitPower(unitID, unitData)
 					
 					if hordeModeTeams[allyTeam] then
 						allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
