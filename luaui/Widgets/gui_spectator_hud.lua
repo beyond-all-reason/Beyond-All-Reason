@@ -293,12 +293,14 @@ local function buildUnitDefs()
 		return unitDef.weapons and (#unitDef.weapons > 0) and (not unitDef.speed or (unitDef.speed == 0))
 	end
 
-	local function isUtilityUnit(unitDefID, unitDef)
-		return unitDef.customParams.unitgroup == 'util'
-	end
-
 	local function isEconomyBuilding(unitDefID, unitDef)
 		return (unitDef.customParams.unitgroup == 'metal') or (unitDef.customParams.unitgroup == 'energy')
+	end
+
+	local function isUtilityUnit(unitDefID, unitDef)
+		-- anything that is not economy, army, or defense is considered utility
+		-- thus, utility serves as a catch-all for unit value that does not fall into the other categories
+		return not (isEconomyBuilding(unitDefID, unitDef) or isArmyUnit(unitDefID, unitDef) or isDefenseUnit(unitDefID, unitDef))
 	end
 
 	unitDefsToTrack = {}
