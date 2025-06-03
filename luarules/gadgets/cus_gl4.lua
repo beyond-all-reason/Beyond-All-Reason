@@ -537,6 +537,10 @@ local LuaShader = gl.LuaShader
 
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
+local QUATERNIONDEFS = ""
+if Engine.FeatureSupport.transformsInGL4 then 
+	QUATERNIONDEFS = LuaShader.GetQuaternionDefs()
+end
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
@@ -730,6 +734,13 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 			shader.geometry = shader.geometry:gsub("%%%%([%a_]+)%%%%", InsertPlugin)
 		end
 	end
+
+	for i, program in ipairs({"vertex", "fragment", "geometry"}) do
+		if shader[program] and QUATERNIONDEFS then 
+			shader[program] = shader[program]:gsub("//__QUATERNIONDEFS__",  QUATERNIONDEFS)
+		end
+	end
+
 
 	local luaShader = LuaShader(shader, "CUS_" .. addName)
 	local compilationResult = luaShader:Initialize()
@@ -1612,6 +1623,7 @@ local function ExecuteDrawPass(drawPass)
 	gl.Culling(GL.BACK)
 	if (drawPass == 1) then --forward opaque pass
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- 
+		gl.PolygonOffset(-2.0, -2.0);
 	end
 	
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
@@ -1673,6 +1685,7 @@ local function ExecuteDrawPass(drawPass)
 	end
 	if drawPass == 1 then
 		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+		gl.PolygonOffset(0, 0);
 	end
 	
 	--drawpassstats[drawPass].batches = batches

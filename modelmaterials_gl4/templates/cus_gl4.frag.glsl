@@ -154,7 +154,7 @@ const ShadowQuality shadowQualityPresets[SHADOW_QUALITY_PRESETS] = ShadowQuality
 /***********************************************************************/
 // Varyings
 in Data {
-	vec4 modelVertexPosOrig; // .w contains model maxY
+	vec4 pieceVertexPosOrig; // .w contains model maxY
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
 	vec3 worldTangent;
@@ -784,7 +784,7 @@ void main(void){
 	#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 	vec4 myPerlin = vec4(0.0);
 	if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
-		seedVec = modelVertexPosOrig.xyz * 0.6;
+		seedVec = pieceVertexPosOrig.xyz * 0.6;
 		seedVec.y += 1024.0 * hash11(float(unitID)) + dot(seedVec.xz, vec2(0.1,0.1));
 		myPerlin = textureLod(noisetex3dcube, fract(seedVec.xyz*0.1), 0.0) * 2.0 - 1.0;
 		
@@ -1146,7 +1146,7 @@ void main(void){
 			myPerlin= myPerlin;
 			
 			// Height is the relative height of the fragment in the model compared to the full height
-			float height = clamp(modelVertexPosOrig.w/1.0,0,1);
+			float height = clamp(pieceVertexPosOrig.w/1.0,0,1);
 
 			// Helper sinusoidal patterns:
 			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
@@ -1183,7 +1183,7 @@ void main(void){
 			
 			// A dynamic grid which starts at 12 elmos size, then shrinks to 2 elmos size at 100% buildProgress
 			float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
-			vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
+			vec3 grid = step(0.5, clamp(1.0 - 10* fract((pieceVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
 
 
 			
@@ -1322,6 +1322,7 @@ void main(void){
 		//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 		//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 		//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
+		//fragData[0] = vec4(vec3(worldTBN[2]), 1.0); //debug TBN
 		#ifdef HASALPHASHADOWS
 			if (texColor2.a < 0.5) discard;
 		#endif
