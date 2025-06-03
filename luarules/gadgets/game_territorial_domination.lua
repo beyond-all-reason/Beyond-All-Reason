@@ -14,8 +14,7 @@ end
 -- TODO:
 -- code cleanup
 -- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
--- when globbal los is enabled, it appears that with high player counts enemy territories don't show up without los
--- the visibility bitmask may be the source of the issue with large allyteam counts failing to show territory ownership
+
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
@@ -571,8 +570,16 @@ if SYNCED then
 		return randomizedGridIDs
 	end
 
-	local function createVisibilityBitmask(squareData)
-		local visibilityBitmask = 0
+	local function createVisibilityArray(squareData)
+		local maxAllyID = 0
+		for allyTeamID in pairs(allyTeamsWatch) do
+			maxAllyID = max(maxAllyID, allyTeamID)
+		end
+		
+		local visibilityArray = {}
+		for i = 0, maxAllyID do
+			visibilityArray[i + 1] = "0"
+		end
 		
 		for allyTeamID in pairs(allyTeamsWatch) do
 			local isVisible = false
@@ -594,11 +601,11 @@ if SYNCED then
 			end
 			
 			if isVisible then
-				visibilityBitmask = visibilityBitmask + (2 ^ allyTeamID)
+				visibilityArray[allyTeamID + 1] = "1"
 			end
 		end
 		
-		return visibilityBitmask
+		return table.concat(visibilityArray)
 	end
 
 	local function updateTeamRulesScores()
@@ -619,10 +626,20 @@ if SYNCED then
 	end
 
 	local function initializeUnsyncedGrid()
-		local allVisibleBitmask = 0
+		local maxAllyID = 0
 		for allyTeamID in pairs(allyTeamsWatch) do
-			allVisibleBitmask = allVisibleBitmask + (2 ^ allyTeamID)
+			maxAllyID = max(maxAllyID, allyTeamID)
 		end
+		
+		local allVisibleArray = {}
+		for i = 0, maxAllyID do
+			allVisibleArray[i + 1] = "0"
+		end
+		for allyTeamID in pairs(allyTeamsWatch) do
+			allVisibleArray[allyTeamID + 1] = "1"
+		end
+		local initVisibilityArray = table.concat(allVisibleArray)
+		
 		for gridID, squareData in pairs(captureGrid) do
 			SendToUnsynced("InitializeGridSquare", 
 				gridID,
@@ -630,7 +647,7 @@ if SYNCED then
 				squareData.progress,
 				squareData.gridMidpointX,
 				squareData.gridMidpointZ,
-				allVisibleBitmask
+				initVisibilityArray
 			)
 		end
 		
@@ -639,8 +656,8 @@ if SYNCED then
 
 	local function updateUnsyncedSquare(gridID)
 		local squareData = captureGrid[gridID]
-		local visibilityBitmask = createVisibilityBitmask(squareData)
-		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityBitmask)
+		local visibilityArray = createVisibilityArray(squareData)
+		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray)
 	end
 
 	local function decayProgress(gridID)
@@ -1267,13 +1284,15 @@ end
 
 local previousAllyID = nil
 
-local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBitmask)
+local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArray)
 	if amSpectating or newAllyOwnerID == myAllyID then
 		return true, false
 	end
 
-	local allyTeamBit = 2 ^ myAllyID
-	local isCurrentlyVisible = (visibilityBitmask / allyTeamBit) % 2 >= 1
+	local isCurrentlyVisible = false
+	if visibilityArray and myAllyID >= 0 and myAllyID + 1 <= #visibilityArray then
+		isCurrentlyVisible = string.sub(visibilityArray, myAllyID + 1, myAllyID + 1) == "1"
+	end
 	
 	local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
 	
@@ -1320,7 +1339,7 @@ local function processSpectatorModeChange()
 		
 		for gridID, gridSquareData in pairs(captureGrid) do
 			local resetColor = false
-			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityBitmask)
+			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
 			if resetColor then
 				gridSquareData.currentColor = blankColor
 			end
@@ -1354,10 +1373,10 @@ end
 
 function gadget:RecvFromSynced(messageName, ...)
 	if messageName == "InitializeGridSquare" then
-		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
-		local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask)
+		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray = ...
+		local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
 		captureGrid[gridID] = {
-			visibilityBitmask = visibilityBitmask,
+			visibilityArray = visibilityArray,
 			allyOwnerID = allyOwnerID,
 			oldProgress = progress,
 			newProgress = progress,
@@ -1373,14 +1392,14 @@ function gadget:RecvFromSynced(messageName, ...)
 		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
 		
 	elseif messageName == "UpdateGridSquare" then
-		local gridID, allyOwnerID, progress, visibilityBitmask = ...
+		local gridID, allyOwnerID, progress, visibilityArray = ...
 		local gridData = captureGrid[gridID]
 		if gridData then
 			local oldAllyOwnerID = gridData.allyOwnerID
-			gridData.visibilityBitmask = visibilityBitmask
+			gridData.visibilityArray = visibilityArray
 			gridData.allyOwnerID = allyOwnerID
 
-			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
+			gridData.isVisible, _ = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
 			if not gridData.isVisible then
 				gridData.newProgress = gridData.oldProgress
 				gridData.captureChange = 0
