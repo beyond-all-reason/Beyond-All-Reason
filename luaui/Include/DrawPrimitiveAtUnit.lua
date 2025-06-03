@@ -31,6 +31,7 @@ local shaderConfig = {
 	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 	ROTATE_CIRCLES = 1, -- Set to 0 if you dont want circles to be rotated
 	PRE_OFFSET = "",
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 ---- GL4 Backend Stuff----

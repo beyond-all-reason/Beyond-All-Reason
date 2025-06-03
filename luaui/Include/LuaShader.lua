@@ -9,4 +9,3 @@ if not LuaShaderNewLocationMessageShown then
 end
 
 return gl.LuaShader
-
