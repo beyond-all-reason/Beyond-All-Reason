@@ -187,6 +187,7 @@ local function IsBuildingPositionValid(spot, x, z)
 	end
 
 	local sLeft, sRight = spot.left, spot.right
+	-- add an extra mapSquareSize to account for snapping behaviours from api users
 	local metalMapSquareSizeSqr = metalMapSquareSize*metalMapSquareSize
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
