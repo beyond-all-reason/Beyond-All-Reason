@@ -187,9 +187,10 @@ local function IsBuildingPositionValid(spot, x, z)
 	end
 
 	local sLeft, sRight = spot.left, spot.right
+	local metalMapSquareSizeSqr = metalMapSquareSize*metalMapSquareSize
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
-		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
+		local maxXOffset = sqrt(extractorRadiusSqr + metalMapSquareSizeSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
 		if x <= sRight[sz] - maxXOffset or x >= sLeft[sz] + maxXOffset then
 			return false
 		end
