@@ -31,6 +31,7 @@ newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, 
 
 #define VOLLEYCOUNT 6				//Amount of weapons in the volley group (max burst size)
 #define WEAPONNUM 2					//Which weapon has the correct weapondef to pull data from. If you have multiple volley groups each one should pull from a different weapon so you can use it to seperate them in the shotCounter().
+#define TIMETOIMPACT 3500			//time to impact, ideally at max range. After this passes the same target gets refreshed if it wasn't killed, also used for repair compenstion calculation
 
 lua_ShotCounter()					//Cob-Lua callin
 {
@@ -41,7 +42,7 @@ Timer()
 {
 	Signal SIG_TIMER;
 	set-signal-mask SIG_TIMER;
-	sleep 3500;						//time to impact, ideally at max range. After this passes the same target gets refreshed if it wasn't killed
+	sleep TIMETOIMPACT;						
 	timeout = 0;
 }
 
@@ -92,14 +93,14 @@ shotCounter(status, counter, targetID, burstrate, health, losstate, damage, armo
 				}
 				if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
 				{
-					if((((newHealth - oldHealth) / (((damage - (newHealth % damage)) / 20) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
+					if((((newHealth - oldHealth) / (((damage - (newHealth % damage)) / ((TIMETOIMPACT / 35) / reaimTime)) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
 					{
 						newExtraMissile = 1;
 					}
 				}
 				else
 				{
-					newExtraMissile = (((newHealth - oldHealth) / 15));		//If the change is greater than 500 over 3.5s fire an extra missile. 2 extra for 1000 etc
+					newExtraMissile = (((newHealth - oldHealth) / (((TIMETOIMPACT / 35) / reaimTime)) + 1));		//If the change is greater than damage over TIMETOIMPACT fire an extra missile. 2 extra for 2x damage etc. +1 prevents division by 0 error
 				}
 				if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
 				{
@@ -229,6 +230,7 @@ local function shotCounter(unitID, unitDefID, team, volleyCount, weaponNum)
 	local losState
 	local targetType, isUserTarget, targetID = Spring.GetUnitWeaponTarget(unitID, 1) 
 	local burstRate = (Spring.GetUnitWeaponState(unitID, weaponNum, "burstRate") * 1000)
+	local reaimTime = Spring.GetUnitWeaponState(unitID, weaponNum, "reaimTime")
 	local targetDefID
 	if targetType == 1 then -- target is a unit
 		losState = Spring.GetUnitLosState(targetID, team, true)
@@ -265,7 +267,7 @@ local function shotCounter(unitID, unitDefID, team, volleyCount, weaponNum)
 	else																													--fire full volley at ground
 		counter = volleyCount
 	end
-	Spring.CallCOBScript(unitID, "shotCounter", 6, counter, targetID, burstRate, health, losState, damage, armored)
+	Spring.CallCOBScript(unitID, "shotCounter", 7, counter, targetID, burstRate, health, losState, damage, armored, reaimTime)
 	return 1
 end
 

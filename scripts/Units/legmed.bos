@@ -35,6 +35,7 @@ canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldH
 
 #define VOLLEYCOUNT 6
 #define WEAPONNUM 2
+#define TIMETOIMPACT 3500
 
 lua_ShotCounter()
 {
@@ -45,7 +46,7 @@ Timer()
 {
 	Signal SIG_TIMER;
 	set-signal-mask SIG_TIMER;
-	sleep 3500;
+	sleep TIMETOIMPACT;
 	timeout = 0;
 }
 
@@ -57,7 +58,7 @@ CloseTimer()
 	justFired = justFired - 1;
 }
 
-shotCounter(counter, targetID, burstrate, health, losstate, damage, armored)
+shotCounter(counter, targetID, burstrate, health, losstate, damage, armored, reaimTime)
 {
 	//get PRINT(counter, canShoot, newArmored, oldArmored);
 	oldHealth = newHealth;
@@ -105,14 +106,14 @@ shotCounter(counter, targetID, burstrate, health, losstate, damage, armored)
 				}
 				if(oldExtraMissile < 1)												//For first extra missile check how much health is needed to next damage treshold
 				{
-					if((((newHealth - oldHealth) / (((damage - (newHealth % damage)) / 20) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +1 prevents division by 0 error
+					if((((newHealth - oldHealth) / (((damage - (newHealth % damage)) / ((TIMETOIMPACT / 35) / reaimTime)) + 1)) - 0.5) >= 1)		//checks if the current repair will get it to the next damage treshold before the missiles hit. +0.5 prevents division by 0 error
 					{
 						newExtraMissile = 1;
 					}
 				}
 				else
 				{
-					newExtraMissile = (((newHealth - oldHealth) / 15));		//If the change is greater than 500 over 3.5s fire an extra missile. 2 extra for 1000 etc
+					newExtraMissile = (((newHealth - oldHealth) / (((TIMETOIMPACT / 35) / reaimTime)) + 1));		//If the change is greater than damage over TIMETOIMPACT fire an extra missile. 2 extra for 2x damage etc. +1 prevents division by 0 error
 				}
 				if(newExtraMissile > oldExtraMissile)								//Only when an additional extra missile is needed
 				{
