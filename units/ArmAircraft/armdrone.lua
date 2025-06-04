@@ -36,6 +36,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
 			unitgroup = "weapon",
+			faction = "armada",
+			movementType = "air",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

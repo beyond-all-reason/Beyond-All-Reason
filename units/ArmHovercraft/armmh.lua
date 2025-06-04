@@ -37,6 +37,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmHovercraft",
 			unitgroup = "weapon",
+			faction = "armada",
+			movementType = "hover",
 		},
 		featuredefs = {
 			dead = {
