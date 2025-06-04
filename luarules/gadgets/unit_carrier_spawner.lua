@@ -219,6 +219,7 @@ for weaponDefID = 1, #WeaponDefs do
 			dronebomberminengagementrange = wdcp.dronebomberminengagementrange,
 			manualDrones = wdcp.manualdrones,
 			stockpilelimit = wdcp.stockpilelimit,
+			usestockpile = wdcp.dronesusestockpile,
 			metalperstockpile = wdcp.stockpilemetal,
 			energyperstockpile = wdcp.stockpileenergy
 			
@@ -386,7 +387,7 @@ local function SpawnUnit(spawnData)
 			end
 			
 			for dronetypeIndex, dronename in pairs(carrierMetaList[spawnData.ownerID].dronenames) do
-				if carrierMetaList[spawnData.ownerID].stockpilelimit == 0 or carrierMetaList[spawnData.ownerID].subUnitCount[dronetypeIndex] < stockpilecount then
+				if not(carrierMetaList[spawnData.ownerID].usestockpile) or carrierMetaList[spawnData.ownerID].subUnitCount[dronetypeIndex] < stockpilecount then
 					if carrierMetaList[spawnData.ownerID].subUnitCount[dronetypeIndex] < carrierMetaList[spawnData.ownerID].maxunits[dronetypeIndex] then
 						local metalCost
 						local energyCost
@@ -678,6 +679,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						weaponNr = i,
 						ignorenextcommand = false,
 						stockpilelimit = tonumber(spawnDef.stockpilelimit) or 0,
+						usestockpile = tonumber(spawnDef.usestockpile),
 						stockpilecount = 0,
 						metalperstockpile = tonumber(spawnDef.metalperstockpile) or 0,
 						energyperstockpile = tonumber(spawnDef.energyperstockpile) or 0
@@ -690,7 +692,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					end
 					carrierMetaList[unitID] = carrierData
 					--spSetUnitRulesParam(unitID, "is_carrier_unit", "enabled", PRIVATE)
-					if carrierMetaList[unitID].stockpilelimit == 0 then
+					if not(carrierMetaList[unitID].usestockpile) then
 						InsertUnitCmdDesc(unitID, 500, spawnCmd) --temporary
 					end
 				end
@@ -775,7 +777,7 @@ end
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD_CARRIER_SPAWN_ONOFF
 	if carrierMetaList[unitID] then
-		if carrierMetaList[unitID].stockpilelimit == 0 then
+		if not(carrierMetaList[unitID].usestockpile) then
 			local cmdDescID = FindUnitCmdDesc(unitID, CMD_CARRIER_SPAWN_ONOFF)
 			spawnCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
@@ -1485,7 +1487,7 @@ end
 
 function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	if carrierMetaList[unitID] then
-		if carrierMetaList[unitID].stockpilelimit > 0 and newCount > oldCount then
+		if carrierMetaList[unitID].usestockpile and newCount > oldCount then
 			local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
@@ -1510,7 +1512,7 @@ function gadget:GameFrame(f)
 		for unitID, _ in pairs(carrierMetaList) do
 			local isDoneBuilding = not Spring.GetUnitIsBeingBuilt(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and isDoneBuilding) and carrierMetaList[unitID].stockpilelimit == 0 then
+			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and isDoneBuilding) and not(carrierMetaList[unitID].usestockpile) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
