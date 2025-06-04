@@ -19,6 +19,7 @@ local format = string.format
 local abs = math.abs
 local max = math.max
 local min = math.min
+
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -56,24 +57,18 @@ local glTranslate = gl.Translate
 local WARNING_THRESHOLD = 3
 local ALERT_THRESHOLD = 10
 local WARNING_SECONDS = 15
-local PADDING_MULTIPLIER = 0.36
 local UPDATE_FREQUENCY = 4.0
 local BLINK_INTERVAL = 1
 local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
-
-local SCORE_RULES_KEY = "territorialDominationScore"
-local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
-local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
-local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
-local RANK_RULES_KEY = "territorialDominationRank"
+local TIMER_COOLDOWN = 120
 
 local WINDUP_SOUND_DURATION = 2
 local ACTIVATE_SOUND_DURATION = 0
 local CHARGE_SOUND_LOOP_DURATION = 4.7
 
 local TIMER_WARNING_DISPLAY_TIME = 5
-local TIMER_COOLDOWN = 120
+local PADDING_MULTIPLIER = 0.36
 local MINIMAP_GAP = 3
 local BORDER_WIDTH = 2
 local ICON_SIZE = 25
@@ -82,9 +77,14 @@ local BAR_HEIGHT = 16
 local TEXT_OUTLINE_OFFSET = 1.0
 local TEXT_OUTLINE_ALPHA = 0.6
 local COUNTDOWN_FONT_SIZE_MULTIPLIER = 1.6
-
 local HALO_EXTENSION = 4
 local HALO_MAX_ALPHA = 0.4
+
+local SCORE_RULES_KEY = "territorialDominationScore"
+local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
+local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
+local RANK_RULES_KEY = "territorialDominationRank"
 
 local COLOR_WHITE = {1, 1, 1, 1}
 local COLOR_RED = {1, 0, 0, 1}
@@ -98,6 +98,12 @@ local COLOR_WHITE_LINE = {1, 1, 1, 0.8}
 
 local myCommanders = {}
 local soundQueue = {}
+local allyTeamDefeatTimes = {}
+local allyTeamCountdownDisplayLists = {}
+local lastCountdownValues = {}
+local aliveAllyTeams = {}
+local scoreBarPositions = {}
+
 local isSkullFaded = true
 local lastTimerWarningTime = 0
 local timerWarningEndTime = 0
@@ -106,7 +112,6 @@ local myAllyID = -1
 local selectedAllyTeamID = -1
 local gaiaAllyTeamID = -1
 local lastUpdateTime = 0
-local displayList = nil
 local lastScore = -1
 local lastDifference = -1
 local scorebarWidth = 300
@@ -130,11 +135,40 @@ local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
 local lastTeamRanks = {}
 
-local allyTeamDefeatTimes = {}
-local allyTeamCountdownDisplayLists = {}
-local lastCountdownValues = {}
-local aliveAllyTeams = {}
-local scoreBarPositions = {}
+local displayList = nil
+local staticDisplayList = nil
+local dynamicDisplayList = nil
+local backgroundDisplayList = nil
+local haloDisplayList = nil
+local timerWarningDisplayList = nil
+
+local needsBackgroundUpdate = false
+local needsStaticUpdate = false
+local needsDynamicUpdate = false
+local needsHaloUpdate = false
+
+local LAYOUT_UPDATE_THRESHOLD = 4.0
+local DYNAMIC_UPDATE_THRESHOLD = 0.5
+local lastLayoutUpdate = 0
+local lastDynamicUpdate = 0
+
+local cachedFreezeStatus = {
+	isThresholdFrozen = false,
+	freezeExpirationTime = 0,
+	timeUntilUnfreeze = 0,
+	lastUpdate = 0
+}
+
+local cachedGameState = {
+	threshold = 0,
+	maxThreshold = 256,
+	lastUpdate = 0
+}
+
+local frameBasedUpdates = {
+	teamScoreCheck = 0,
+	soundUpdate = 0
+}
 
 local cache = {
 	data = {},
@@ -227,7 +261,7 @@ local CACHE_TTL = {
 	FAST = 0.1,
 	NORMAL = 0.5,
 	SLOW = 2.0,
-	STATIC = nil -- Never expires
+	STATIC = nil
 }
 
 local fontCache = cache:getOrCompute(CACHE_KEYS.FONT_DATA, function()
@@ -249,41 +283,6 @@ local layoutCache = cache:getOrCompute(CACHE_KEYS.LAYOUT_DATA, function()
 		lastViewportSize = {-1, -1}
 	}
 end, CACHE_TTL.STATIC)
-
-local staticDisplayList = nil
-local dynamicDisplayList = nil
-local backgroundDisplayList = nil
-local haloDisplayList = nil
-
-local needsBackgroundUpdate = false
-local needsStaticUpdate = false
-local needsDynamicUpdate = false
-local needsHaloUpdate = false
-
-local LAYOUT_UPDATE_THRESHOLD = 4.0
-local DYNAMIC_UPDATE_THRESHOLD = 0.5
-local lastLayoutUpdate = 0
-local lastDynamicUpdate = 0
-
-local cachedFreezeStatus = {
-	isThresholdFrozen = false,
-	freezeExpirationTime = 0,
-	timeUntilUnfreeze = 0,
-	lastUpdate = 0
-}
-
-local cachedGameState = {
-	threshold = 0,
-	maxThreshold = 256,
-	lastUpdate = 0
-}
-
-local frameBasedUpdates = {
-	teamScoreCheck = 0,
-	soundUpdate = 0
-}
-
-local timerWarningDisplayList = nil
 
 local function getCachedMinimapGeometry()
 	return cache:getOrCompute(CACHE_KEYS.MINIMAP_GEOMETRY, function()

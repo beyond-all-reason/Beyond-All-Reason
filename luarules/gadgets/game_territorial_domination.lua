@@ -11,17 +11,9 @@ function gadget:GetInfo()
 	}
 end
 
--- TODO:
--- code cleanup
--- when a spectator zooms in, the border needs to completely disappear. this maybe should be configurable in settings.
-
-
 local modOptions = Spring.GetModOptions()
-if modOptions.deathmode ~= "territorial_domination" then return false end
-
 local SYNCED = gadgetHandler:IsSyncedCode()
-
-if not SYNCED then return false end
+if modOptions.deathmode ~= "territorial_domination" or not SYNCED then return false end
 
 local territorialDominationConfig = {
 	short = {
@@ -41,28 +33,28 @@ local territorialDominationConfig = {
 local config = territorialDominationConfig[modOptions.territorial_domination_config]
 local SECONDS_TO_MAX = config.maxTime
 local SECONDS_TO_START = config.gracePeriod
-
 local DEBUGMODE = false
 
---to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
-local MAX_EMPTY_IMPEDENCE_POWER = 25
-local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
-
-local FLYING_UNIT_POWER_MULTIPLIER = 0.01 -- units capture territory super slowly while flying, so terrain only accessible via air can be captured
-local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
-local STATIC_UNIT_POWER_MULTIPLIER = 3
+local GRID_SIZE = 1024
+local GRID_CHECK_INTERVAL = Game.gameSpeed
 local MAX_PROGRESS = 1.0
+local STARTING_PROGRESS = 0
+local FINISHED_BUILDING = 1
+local CORNER_MULTIPLIER = 1.4142135623730951
+local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER
+local MAJORITY_THRESHOLD = 0.5
+
 local PROGRESS_INCREMENT = 0.06
 local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
-local GRID_CHECK_INTERVAL = Game.gameSpeed
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
-local GRID_SIZE = 1024
-local FINISHED_BUILDING = 1
-local STARTING_PROGRESS = 0
-local CORNER_MULTIPLIER = 1.4142135623730951 -- a constant representing the diagonal of a square
-local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
-local MAJORITY_THRESHOLD = 0.5
+
+local MAX_EMPTY_IMPEDENCE_POWER = 25
+local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
+local FLYING_UNIT_POWER_MULTIPLIER = 0.01
+local CLOAKED_UNIT_POWER_MULTIPLIER = 0
+local STATIC_UNIT_POWER_MULTIPLIER = 3
+
 local FREEZE_DELAY_SECONDS = 60
 local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 local MIN_THRESHOLD_DELAY = 1
@@ -79,13 +71,16 @@ local max = math.max
 local min = math.min
 local random = math.random
 local clamp = math.clamp
+
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetGameSeconds = Spring.GetGameSeconds
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spGetPositionLosState = Spring.GetPositionLosState
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
@@ -93,15 +88,14 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spDestroyUnit = Spring.DestroyUnit
 local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
-local mapSizeX = Game.mapSizeX
-local mapSizeZ = Game.mapSizeZ
-local spGetPositionLosState = Spring.GetPositionLosState
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local SendToUnsynced = SendToUnsynced
 
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 local gaiaTeamID = spGetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 local teams = spGetTeamList()
+
 local allyCount = 0
 local allyHordesCount = 0
 local defeatThreshold = 0
