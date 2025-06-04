@@ -233,7 +233,20 @@ local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, bas
     if baseY >= minY and baseY <= maxY then
         local dx, dy, dz = x - baseX, y - baseY, z - baseZ
         if dx * dx + dy * dy + dz * dz <= radius * radius then
-            return baseX, baseY + 16, baseZ
+            -- Use the intersection of the ray from mid->base and the area volume.
+            local t = max(0, (baseX - midX) * (x - midX) + (baseY - midY) * (y - midY) + (baseZ - midZ) * (z - midZ))
+
+            local dx = (midX + t * (baseX - midX)) - x
+            local dy = (midY + t * (baseY - midY)) - y
+            local dz = (midZ + t * (baseZ - midZ)) - z
+            local dw = dx * dx + dy * dy + dz * dz
+
+            if dw > radius * radius then
+                local scale = radius / (radius + math.sqrt(dw))
+                return x + dx * scale, y + dy * scale, z + dz * scale
+            else
+                return x + dx, y + dy, z + dz
+            end
         end
     end
 end
