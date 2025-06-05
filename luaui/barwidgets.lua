@@ -1349,10 +1349,10 @@ function widgetHandler:MiniMapRotationChanged(newRot, oldRot)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:MiniMapStateChanged(isMinimized, isMaximized)
+function widgetHandler:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
 	tracy.ZoneBeginN("W:MiniMapStateChanged")
 	for _, w in ipairs(self.MiniMapStateChangedList) do
-		w:MiniMapStateChanged(isMinimized, isMaximized)
+		w:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
 	end
 	tracy.ZoneEnd()
 end
