@@ -32,6 +32,7 @@ newLosState, oldLosState, missilesFired, newHealth, oldHealth, newExtraMissile, 
 #define VOLLEYCOUNT 6				//Amount of weapons in the volley group (max burst size)
 #define WEAPONNUM 2					//Which weapon has the correct weapondef to pull data from. If you have multiple volley groups each one should pull from a different weapon so you can use it to seperate them in the shotCounter().
 #define TIMETOIMPACT 3500			//time to impact, ideally at max range. After this passes the same target gets refreshed if it wasn't killed, also used for repair compenstion calculation
+#define MINTARGETHEALTH 0			//Minimum required health of target
 
 lua_ShotCounter()					//Cob-Lua callin
 {
@@ -58,6 +59,11 @@ shotCounter(status, counter, targetID, burstrate, health, losstate, damage, armo
 	oldArmored = newArmored;
 	newArmored = armored;
 	
+	if(health < MINTARGETHEALTH AND (losstate == 15 OR losstate == 1 OR losstate == 14) AND counter < VOLLEYCOUNT)		//Doesn't fire on known units with health below minimum (excluding commanders), to be used on units with additional anti swarm weapons so they dont waste their powerful shots on spam
+	{
+		canShoot = 0;
+		return(0);
+	}
 	if(newTargetID == oldTargetID)
 	{
 		if(NOT (newLosState == oldLosState))									//LOS state changed

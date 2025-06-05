@@ -36,6 +36,7 @@ canShoot, stage, ready, newLosState, oldLosState, missilesFired, newHealth, oldH
 #define VOLLEYCOUNT 6
 #define WEAPONNUM 2
 #define TIMETOIMPACT 3500
+#define MINTARGETHEALTH 0
 
 lua_ShotCounter()
 {
@@ -71,6 +72,11 @@ shotCounter(counter, targetID, burstrate, health, losstate, damage, armored, rea
 	oldArmored = newArmored;
 	newArmored = armored;
 	
+	if(health < MINTARGETHEALTH AND (losstate == 15 OR losstate == 1 OR losstate == 14) AND counter < VOLLEYCOUNT)		//Doesn't fire on known units with health below minimum (excluding commanders), to be used on units with additional anti swarm weapons so they dont waste their powerful shots on spam
+	{
+		canShoot = 0;
+		return(0);
+	}
 	if(newTargetID == oldTargetID)
 	{
 		if(NOT (newLosState == oldLosState))									//LOS state changed

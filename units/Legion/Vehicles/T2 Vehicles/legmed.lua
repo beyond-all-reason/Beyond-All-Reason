@@ -190,6 +190,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",
+				badtargetcategory = "GROUNDSCOUT"
 			},
 			[2] = {
 				def = "LEGMED_MISSILE",
