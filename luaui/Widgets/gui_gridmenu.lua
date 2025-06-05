@@ -8,6 +8,8 @@
 
 -- PERF: refreshCommands does not need to fetch activecmddescs every time, e.g. setCurrentCategory
 -- PERF: updateGrid should be replaced by a method that only updates prices on cells on places where setLabBuildMode is used followed by updateGrid
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -21,7 +23,8 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
@@ -47,7 +50,6 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
 local CMD_INSERT = CMD.INSERT
-local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
@@ -1422,6 +1424,8 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	iconMargin = math.floor((bgpadding * 0.5) + 0.5)
@@ -1440,9 +1444,8 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font2 = WG["fonts"].getFont(CONFIG.fontFile, 1.2, 0.28, 1.6)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font2 = WG['fonts'].getFont(CONFIG.fontFile, 1.7, 0.33 * (useRenderToTexture and outlineMult or 1), 1.55+(outlineMult*0.2))
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1717,7 +1720,7 @@ local function drawBuildMenuBg()
 		1,
 		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
 		0,
-		nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture
+		nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg
 	)
 end
 
@@ -2547,7 +2550,7 @@ function widget:DrawScreen()
 
 		if redraw then
 			redraw = nil
-			if useRenderToTexture then
+			if useRenderToTextureBg then
 				if not buildmenuBgTex then
 					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
 						target = GL.TEXTURE_2D,
@@ -2566,8 +2569,10 @@ function widget:DrawScreen()
 						gl.PopMatrix()
 					end)
 				end
+			end
+			if useRenderToTexture then
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(backgroundRect.yEnd-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2587,18 +2592,25 @@ function widget:DrawScreen()
 			else
 				gl.DeleteList(dlistBuildmenu)
 				dlistBuildmenu = gl.CreateList(function()
-					drawBuildMenuBg()
+					if not useRenderToTextureBg then
+						drawBuildMenuBg()
+					end
 					drawBuildMenu()
 				end)
 			end
 		end
-
-		if useRenderToTexture then
+		if useRenderToTextureBg then
 			if buildmenuBgTex then
 				-- background element
 				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 				gl.Texture(buildmenuBgTex)
 				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				gl.Texture(false)
+				gl.Color(1,1,1,1)
+			end
+		end
+		if useRenderToTexture then
+			if buildmenuTex then
 				-- content
 				gl.Color(1,1,1,1)
 				gl.Texture(buildmenuTex)

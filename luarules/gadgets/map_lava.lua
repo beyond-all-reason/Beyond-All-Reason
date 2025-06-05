@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
@@ -53,7 +55,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
-	local min = math.min
 
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}

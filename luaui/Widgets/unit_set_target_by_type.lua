@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Set Target by Unit Type",
@@ -9,7 +11,6 @@ function widget:GetInfo()
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local CMD_SET_TARGET = 34923
 

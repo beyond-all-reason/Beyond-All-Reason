@@ -106,6 +106,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'MiniMapRotationChanged',
 	'MiniMapStateChanged',
 	'MiniMapGeometryChanged',
@@ -123,6 +125,7 @@ local flexCallIns = {
 	'UnitCommand',
 	'UnitCmdDone',
 	'UnitDamaged',
+	"UnitStunned",
 	'UnitEnteredRadar',
 	'UnitEnteredLos',
 	'UnitLeftRadar',
@@ -441,7 +444,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget()
+		local widget = widgetHandler:NewWidget(enableLocalsAccess)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -463,7 +466,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget()
+	local widget = widgetHandler:NewWidget(enableLocalsAccess)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -570,9 +573,19 @@ local WidgetMeta =
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget()
+function widgetHandler:NewWidget(enableLocalsAccess)
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = setmetatable({}, WidgetMeta)
+	local widget = {}
+	if enableLocalsAccess then
+		-- copy the system calls into the widget table
+		for k, v in pairs(System) do
+			widget[k] = v
+		end
+	else
+		-- use metatable redirection
+		setmetatable(widget, WidgetMeta)
+	end
+
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
@@ -1341,11 +1354,27 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneEnd()
 end
 
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
+	end
+	tracy.ZoneEnd()
+end
+        
 function widgetHandler:MiniMapRotationChanged(newRot, oldRot)
 	tracy.ZoneBeginN("W:MiniMapRotationChanged")
 	for _, w in ipairs(self.MiniMapRotationChangedList) do
 		w:MiniMapRotationChanged(newRot, oldRot)
-	end
+  end
 	tracy.ZoneEnd()
 end
 
@@ -1361,7 +1390,7 @@ function widgetHandler:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY
 	tracy.ZoneBeginN("W:MiniMapGeometryChanged")
 	for _, w in ipairs(self.MiniMapGeometryChangedList) do
 		w:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
-	end
+  end
 	tracy.ZoneEnd()
 end
 
@@ -2346,20 +2375,18 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam,
-			cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2369,6 +2396,15 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	tracy.ZoneBeginN("W:UnitDamaged")
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	tracy.ZoneBeginN("W:UnitStunned")
+	for _, w in ipairs(self.UnitStunnedList) do
+		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2455,23 +2491,19 @@ function widgetHandler:UnitSeismicPing(x, y, z, strength)
 	return
 end
 
-function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
-								  transportID, transportTeam)
+function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
-		w:UnitLoaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam,
-									transportID, transportTeam)
+function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
-		w:UnitUnloaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2523,8 +2555,7 @@ end
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	tracy.ZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
-		w:StockpileChanged(unitID, unitDefID, unitTeam,
-			weaponNum, oldCount, newCount)
+		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
 	tracy.ZoneEnd()
 	return

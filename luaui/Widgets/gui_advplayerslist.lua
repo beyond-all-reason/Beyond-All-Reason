@@ -1,10 +1,12 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name = "AdvPlayersList",
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 44,
+        version = 45,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -53,6 +55,7 @@ end
 	v42   (Floris): support FFA allyteam ranking leaderboard style
 	v43   (Floris): extracted lockcamera execution
 	v44   (Floris): added rendertotexture draw method
+	v45   (Floris): support PvE team ranking leaderboard style
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -60,7 +63,8 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTextureBg = useRenderToTexture
 
 local customScale = 1
 local pointDuration = 45
@@ -101,6 +105,7 @@ local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
 local Spring_GetMyTeamID = Spring.GetMyTeamID
 local Spring_AreTeamsAllied = Spring.AreTeamsAllied
+local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
@@ -542,6 +547,9 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
     hideShareIcons = true
 end
 
+local teamRanking = {}
+local isPvE = Spring.Utilities.Gametype.IsPvE()
+
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -754,6 +762,53 @@ function widget:TeamDied(teamID)
     doPlayerUpdate()
 end
 
+-- rank players inside each team based on production and damage dealt
+local function rankTeamPlayers()
+    local rankingChanged = false
+    local scores = {}
+    for _,allyTeamID in ipairs(Spring_GetAllyTeamList()) do
+        local teams = Spring_GetTeamList(allyTeamID)
+        if #teams > 1 then
+            for _,teamID in ipairs(teams) do
+                if teamID ~= gaiaTeamID then
+                    if not scores[allyTeamID] then
+                        scores[allyTeamID] = {}
+                    end
+                    local range = Spring_GetTeamStatsHistory(teamID)
+                    local history = Spring_GetTeamStatsHistory(teamID,range)
+                    if history then
+                        history = history[#history]
+                        scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = math.floor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
+                    end
+                end
+            end
+
+            if scores[allyTeamID] then
+                table.sort(scores[allyTeamID], function(m1, m2)
+                    return m1.score > m2.score
+                end)
+                local ranking = {}
+                local text = ''
+                for i, params in ipairs(scores[allyTeamID]) do
+                    ranking[i] = params.teamID
+                    text = text .. params.teamID..', '
+                    if not teamRanking[allyTeamID] or not teamRanking[allyTeamID][i] or ranking[i] ~= teamRanking[allyTeamID][i] then
+                        rankingChanged = true
+                    end
+                end
+                if rankingChanged then
+                    teamRanking[allyTeamID] = ranking
+                end
+            end
+        end
+    end
+    if rankingChanged then
+        WG.teamRanking = teamRanking
+        SortList()
+        CreateLists()
+    end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 
@@ -787,6 +842,11 @@ function widget:Initialize()
 	GetAliveAllyTeams()
 	SortList()
     SetModulesPositionX()
+
+    -- when PvE: rank players inside each team based on production and damage dealt
+    if isPvE and not isSinglePlayer then
+        rankTeamPlayers()
+    end
 
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
@@ -844,20 +904,33 @@ local function SetOriginalColourNames()
     end
 end
 
-function widget:GameFrame(n)
-    if n > 0 and not gameStarted then
-        if mySpecStatus and not alwaysHideSpecs then
-            specListShow = true
-        else
-            specListShow = false
-        end
+function widget:GameOver(winningAllyTeams)
+    if isPvE and not isSinglePlayer then
+        rankTeamPlayers()
+    end
+end
 
-        gameStarted = true
-        SetSidePics()
-        InitializePlayers()
-        SortList()
-        SetOriginalColourNames()
-        forceMainListRefresh = true
+function widget:GameFrame(n)
+    if n > 0 then
+        if not gameStarted then
+            if mySpecStatus and not alwaysHideSpecs then
+                specListShow = true
+            else
+                specListShow = false
+            end
+
+            gameStarted = true
+            SetSidePics()
+            InitializePlayers()
+            SortList()
+            SetOriginalColourNames()
+            forceMainListRefresh = true
+        else
+            -- when PvE: rank players inside each team based on production and damage dealt
+            if isPvE and not isSinglePlayer and n % 250 == 1  then
+                rankTeamPlayers()
+            end
+        end
     end
 end
 
@@ -865,8 +938,10 @@ function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
     end
-	if mainListTex then
+	if mainListBgTex then
 		gl.DeleteTextureFBO(mainListBgTex)
+	end
+	if mainListTex then
 		gl.DeleteTextureFBO(mainListTex)
 		gl.DeleteTextureFBO(mainList2Tex)
 	end
@@ -1326,7 +1401,11 @@ function SortAllyTeams(vOffset)
 	vOffset = 12 / 2.66
 	if not WG.allyTeamRanking or not enemyListShow then
 		vOffset = vOffset + (labelOffset*playerScale) - 3
-		if drawAlliesLabel then
+		if teamRanking[myAllyTeamID] then
+            drawListOffset[#drawListOffset + 1] = vOffset
+            drawList[#drawList + 1] = -6  -- leader/scoreboard label
+			vOffset = SortTeams(myAllyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
+        elseif drawAlliesLabel then
 			drawListOffset[#drawListOffset + 1] = vOffset
 			drawList[#drawList + 1] = -2  -- "Allies" label
 			vOffset = SortTeams(myAllyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
@@ -1370,6 +1449,9 @@ function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
+    if teamRanking[allyTeamID] then
+        teamsList = teamRanking[allyTeamID]
+    end
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
@@ -1508,7 +1590,7 @@ function widget:DrawScreen()
 	--AdvPlayersListAtlas:DrawToScreen()
 
     -- draw the background element
-	if useRenderToTexture then
+	if useRenderToTextureBg then
 		if mainListBgTex then
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
 			gl.Texture(mainListBgTex)
@@ -1686,10 +1768,6 @@ function CreateBackground()
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
 		if useRenderToTexture then
-			if mainListBgTex then
-				gl.DeleteTextureFBO(mainListBgTex)
-				mainListBgTex = nil
-			end
 			if mainListTex then
 				gl.DeleteTextureFBO(mainListTex)
 				mainListTex = nil
@@ -1697,6 +1775,12 @@ function CreateBackground()
 			if mainList2Tex then
 				gl.DeleteTextureFBO(mainList2Tex)
 				mainList2Tex = nil
+			end
+		end
+		if useRenderToTextureBg then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
 			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 			if not mainListBgTex and width > 0 and height > 0 then
@@ -1710,7 +1794,7 @@ function CreateBackground()
 					gl.PushMatrix()
 					gl.Translate(-1, -1, 0)
 					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
-					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
 					gl.PopMatrix()
 				end)
 			end
@@ -1798,6 +1882,7 @@ end
 
 function drawMainList()
     local leader
+    leaderboardOffset = nil
     for i, drawObject in ipairs(drawList) do
         if drawObject == -5 then
             specsLabelOffset = drawListOffset[i]
@@ -1828,7 +1913,6 @@ function drawMainList()
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else
-                    leaderboardOffset = nil
                     DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
                 end
                 if Spring.GetGameFrame() <= 0 then
@@ -1839,6 +1923,9 @@ function drawMainList()
                     end
                 end
             end
+        elseif drawObject == -6 then
+            DrawLabel(" "..Spring.I18N('ui.playersList.scoreboard'), drawListOffset[i], true)
+            leaderboardOffset = drawListOffset[i]
         elseif drawObject == -2 then
             DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
             if Spring.GetGameFrame() <= 0 then
@@ -1920,7 +2007,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainListTex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-					mainListTex = gl.CreateTexture(width, height, {
+					mainListTex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -1955,7 +2042,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
             if not mainList2Tex then
 				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
-						mainList2Tex = gl.CreateTexture(width, height, {
+						mainList2Tex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2010,7 +2097,8 @@ function DrawLabel(text, vOffset, drawSeparator)
     end
 
     font:Begin()
-    font:SetTextColor(0.87, 0.87, 0.87, 1)
+    font:SetTextColor(0.88, 0.88, 0.88, 1)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX, widgetPosY + widgetHeight - vOffset + 7.5, 12, "on")
     font:End()
 end
@@ -2021,7 +2109,8 @@ function DrawLabelTip(text, vOffset, xOffset)
     end
 
     font:Begin()
-    font:SetTextColor(0.9, 0.9, 0.9, 0.66)
+    font:SetTextColor(0.8, 0.8, 0.8, useRenderToTexture and 1 or 0.75)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
     font:End()
 end
@@ -2400,10 +2489,11 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
 end
 
 function DrawIncome(energy, metal, posY, dead)
-    local fontsize = dead and 4.5 or 8.5
+    local fontsize = (dead and 4.5 or 8.5) * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
     font:Begin()
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if energy > 0 then
         font:Print(
                 '\255\255\255\050' .. string.formatSI(math.floor(energy)),
@@ -2603,13 +2693,13 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 
     font2:Begin()
-    local fontsize = isAbsent and 9 or 14
+    local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
+        font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(useRenderToTexture and 0.95 or 0.8, 0.75 * widgetScale))
     else
-        font2:SetTextColor(0, 0, 0, 0.4)
-        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetTextColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
+        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + (3*playerScale), fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
@@ -2620,7 +2710,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetTextColor(Spring_GetTeamColor(team))
     end
     if isAbsent then
-        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
     font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, dark and "o" or "n")
@@ -2672,13 +2762,14 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
     end
 
-    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-    local alphaMult = useRenderToTexture and 2.2 or 1
+	if useRenderToTexture then
+  		alpha = alpha + ((1-alpha)*0.2)
+	end
 
     font2:Begin()
-    font2:SetOutlineColor(0, 0, 0, 0.3*alphaMult)
-    font2:SetTextColor(1, 1, 1, math.min(0.9, alpha*alphaMult))
-    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale), "n")
+    font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), useRenderToTexture and 1 or 0.55)
+    font2:SetTextColor(alpha, alpha, alpha, 1)
+    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
     font2:End()
 
     if ignored then
@@ -2699,25 +2790,24 @@ function DrawID(playerID, posY, dark, dead)
     if playerID < 10 then
         spacer = " "
     end
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
     font:Begin()
-    if dead then
-        font:SetTextColor(0.7, 0.7, 0.7, 0.5)
-    else
-        font:SetTextColor(0.7, 0.7, 0.7, 1)
-    end
+	font:SetTextColor(0.7, 0.7, 0.7, 1)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
 function DrawSkill(skill, posY, dark)
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
     font:Begin()
     font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
+	local fontScale = math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
@@ -2732,6 +2822,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 
     -- display user fps
     font:Begin()
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if fps ~= nil then
         if fps > 99 then
             fps = 99
@@ -2743,20 +2834,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
         end
         if spec then
             font:SetTextColor(grayvalue*0.7, grayvalue*0.7, grayvalue*0.7, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale, "ro")
+            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale*fontScale, "ro")
         else
             font:SetTextColor(grayvalue, grayvalue, grayvalue, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale, "ro")
+            font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale*fontScale, "ro")
         end
     else
         grayvalue = 0.7 + (cpu / 135)
         gl_Texture(pics["cpuPic"])
         if spec then
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
-            DrawRect(m_cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale))
+            DrawRect(m_cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale*fontScale))
         else
             gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
-            DrawRect(m_cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale))
+            DrawRect(m_cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale*fontScale))
         end
         gl_Color(1, 1, 1, 1)
     end
@@ -3593,9 +3684,14 @@ function widget:Update(delta)
 		if leaderboardOffset then
 			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
 			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
-				tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
+                if teamRanking[myAllyTeamID] then
+                    tipTextTitle = Spring.I18N('ui.playersList.scoreboard')
+                    tipText = Spring.I18N('ui.playersList.scoreboardTooltip')
+                else
+				    tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
+                    tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
+                end
 				tipTextTime = os.clock()
-				tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
 			end
 		end
 
@@ -3723,8 +3819,9 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-    font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
+	font = WG['fonts'].getFont(nil, 1.3, 0.5 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1.2)
+    font2 = WG['fonts'].getFont(fontfile2, 1.8, 0.7 * (useRenderToTexture and outlineMult or 1), 1.2+(outlineMult*0.2))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

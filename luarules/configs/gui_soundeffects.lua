@@ -2994,6 +2994,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-bot-huge-ok",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
+	legbunk = {
+		BaseSoundSelectType = "arm-bot-huge-sel",
+		BaseSoundMovementType = "arm-bot-huge-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
 
 	-- LEGION T1 VEHICLES
 	legcv = {
