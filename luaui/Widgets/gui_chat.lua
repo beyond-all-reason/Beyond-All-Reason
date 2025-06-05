@@ -42,10 +42,13 @@ local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
 local consoleFontSizeMult = 0.85
 local maxLines = 5
 local maxConsoleLines = 2
+local maxOrgLines = 200
 local maxLinesScrollFull = 16
 local maxLinesScrollChatInput = 9
 local lineHeightMult = 1.36
 local lineTTL = 40
+local consoleLineCleanupThreshold = 200 -- cleanup stores once passing this many stored lines
+local orgLineCleanupThreshold = 600
 local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
 local maxTextInputChars = 127	-- tested 127 as being the true max
@@ -1568,6 +1571,15 @@ local drawTextInput = function()
 	end
 end
 
+local function cleanupLineTable(prevTable, maxLines)
+	local newTable = {}
+	local start = #prevTable - maxLines
+	for i=1, maxLines do
+		newTable[i] = prevTable[start + i]
+	end
+	return newTable
+end
+
 local function drawUi()
 	if not historyMode then
 
@@ -1611,7 +1623,14 @@ local function drawUi()
 				glTranslate(0, consoleLineHeight, 0)
 				i = i - 1
 			end
+			if i - 1 > consoleLineCleanupThreshold then
+				consoleLines = cleanupLineTable(consoleLines, maxConsoleLines)
+			end
 			glPopMatrix()
+
+			if #orgLines > orgLineCleanupThreshold then
+				orgLines = cleanupLineTable(orgLines, maxOrgLines)
+			end
 		end
 	end
 
