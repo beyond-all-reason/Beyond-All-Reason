@@ -2575,15 +2575,6 @@ function widget:GetConfigData(data)
 		end
 	end
 
-	local maxOrgLines = 600
-	if #orgLines > maxOrgLines then
-		local prunedOrgLines = {}
-		for i=1, maxOrgLines do
-			prunedOrgLines[i] = orgLines[(#orgLines-maxOrgLines)+i]
-		end
-		orgLines = prunedOrgLines
-	end
-
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
