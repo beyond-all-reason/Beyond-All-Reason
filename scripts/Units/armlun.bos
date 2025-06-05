@@ -1,18 +1,26 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
+piece  ground, lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
        rrocket, base;
 
-static-var  Static_Var_1, gun_1, bAiming, restore_delay;
+static-var  gun_1, isAiming, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			8
-#define SIG_IDLE			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512 
+
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <7>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 80
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_WAKE_SFX_1 1024 + 1
+#define HOVER_WAKE_SFX_2 1024 + 2
+#define HOVER_IDLE_SFX 1024 + 3
+#include "../bar_hovercraft_common.h"
+
 
 #define BASEPIECE base
 #define HITSPEED <30.0>
@@ -20,44 +28,8 @@ static-var  Static_Var_1, gun_1, bAiming, restore_delay;
 #define UNITSIZE 8
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-HoverIdle()
-{
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 3 from wake;
-	    sleep 1800;
-	}
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	signal SIG_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	signal SIG_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
 
 Create()
 {
@@ -71,19 +43,18 @@ Create()
 	turn rflare to y-axis <175> now;
 	move lflare to z-axis [6] now;
 	move rflare to z-axis [6] now;
-	bAiming = FALSE;
+	isAiming = FALSE;
 	gun_1 = lflare;
 	hide lrocket;
 	hide rrocket;
 	hide launch;
 	restore_delay = 3000;
-	return (0);
+	start-script HoverCraftMotion();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -92,9 +63,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	bAiming = FALSE;
-	turn turret to y-axis <0.00000> speed <80.00000>;
-	turn barrelcon to x-axis <0.00000> speed <50.00000>;
+	isAiming = FALSE;
+	turn turret to y-axis <0.0> speed <80.0>;
+	turn barrelcon to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -109,132 +80,83 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-RestoreSecondary()
+RestoreWeapon2()
 {
 	sleep restore_delay;
-	bAiming = FALSE;
-	turn launch to x-axis <0.00000> speed <20.00000>;
-	return (0);
+	isAiming = FALSE;
+	turn launch to x-axis <0.0> speed <20.0>;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
-	turn turret to y-axis heading speed <120.00000>;
-	turn barrelcon to x-axis <0.00000> - pitch speed <80.00000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	isAiming = TRUE;
+	turn turret to y-axis heading speed <120.0>;
+	turn barrelcon to x-axis <0.0> - pitch speed <80.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrelcon around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( !gun_1 )
 	{
 		emit-sfx 1024 + 0 from rflare;
-		move rbarrel to z-axis [-5.00000] now;
-		move rbarrel to z-axis [0.00000] speed [7.50000];
+		move rbarrel to z-axis [-5.0] now;
+		move rbarrel to z-axis [0.0] speed [7.50000];
 	}
 	if( gun_1 )
 	{
 		emit-sfx 1024 + 0 from lflare;
-		move lbarrel to z-axis [-5.00000] now;
-		move lbarrel to z-axis [0.00000] speed [7.50000];
+		move lbarrel to z-axis [-5.0] now;
+		move lbarrel to z-axis [0.0] speed [7.50000];
 	}
 	gun_1 = !gun_1;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
-	return (0);
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
-	return (0);
+	pieceIndex = gun_1;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = base;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = base;
 }
 
-FireSecondary()
+FireWeapon2()
 {	
-	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
 	hide lflare;
 	hide rflare;
-	if( Static_Var_1 == 1 )
-	{
-		if( severity <= 50 )
-		{
-			corpsetype = 2;
-			explode lbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode rbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			explode launch type FALL | BITMAP3 | NOHEATCLOUD;
-			explode turret type BITMAP4 | NOHEATCLOUD;
-			return (corpsetype);
-		}
-		corpsetype = 3;
-		explode lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode turret type BITMAP4 | NOHEATCLOUD;
-		return (corpsetype);
-	}
-	if( Static_Var_1 == 2 )
-	{
-		if( severity <= 50 )
-		{
-			corpsetype = 2;
-			explode lbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode rbarrel type FALL | BITMAP1 | NOHEATCLOUD;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			explode launch type FALL | BITMAP3 | NOHEATCLOUD;
-			explode turret type BITMAP4 | NOHEATCLOUD;
-			return (corpsetype);
-		}
-		corpsetype = 3;
-		explode lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode turret type BITMAP4 | NOHEATCLOUD;
-		return (corpsetype);
-	}
+
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
