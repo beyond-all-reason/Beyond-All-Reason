@@ -114,7 +114,7 @@ local function addAllUnits()
 	end
 end
 
-local function ChangeUnitTypeAutogroup(gr, removeAll)
+local function changeUnitTypeAutogroup(gr, removeAll)
 	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
 
 	if removeAll then
@@ -170,14 +170,14 @@ local function ChangeUnitTypeAutogroup(gr, removeAll)
 	return true
 end
 
-local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
+local function changeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args[1]
 	local removeAll = data and data['removeAll']
 
-	ChangeUnitTypeAutogroup(gr, removeAll)
+	changeUnitTypeAutogroup(gr, removeAll)
 end
 
-local function RemoveOneUnitFromGroupHandler(_, _, args)
+local function removeOneUnitFromGroupHandler(_, _, args)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	local mindist = math.huge
@@ -204,7 +204,7 @@ local function RemoveOneUnitFromGroupHandler(_, _, args)
 	return true
 end
 
-local function LoadAutogroupPreset(newPreset)
+local function loadAutogroupPreset(newPreset)
 	if not presets[newPreset] then
 		return
 	end
@@ -232,8 +232,8 @@ local function LoadAutogroupPreset(newPreset)
 	end
 end
 
-local function LoadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
-	LoadAutogroupPreset(tonumber(optWords[1]))
+local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
+	loadAutogroupPreset(tonumber(optWords[1]))
 end
 
 
@@ -241,10 +241,10 @@ function widget:Initialize()
 
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-	widgetHandler:AddAction("load_autogroup_preset", LoadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
+	widgetHandler:AddAction("add_to_autogroup", changeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", changeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
@@ -264,16 +264,16 @@ function widget:Initialize()
 		return unit2group
 	end
 	WG['autogroup'].addCurrentSelectionToAutogroup = function(groupNumber)
-		ChangeUnitTypeAutogroup(groupNumber)
+		changeUnitTypeAutogroup(groupNumber)
 	end
 	WG['autogroup'].removeCurrentSelectionFromAutogroup = function()
-		ChangeUnitTypeAutogroup(nil, true)
+		changeUnitTypeAutogroup(nil, true)
 	end
 	WG['autogroup'].removeOneUnitFromGroup = function()
-		RemoveOneUnitFromGroupHandler()
+		removeOneUnitFromGroupHandler()
 	end
 	WG['autogroup'].loadAutogroupPreset = function(newPreset)
-		LoadAutogroupPreset(newPreset)
+		loadAutogroupPreset(newPreset)
 	end
 	if GetGameFrame() > 0 then
 		addAllUnits()
