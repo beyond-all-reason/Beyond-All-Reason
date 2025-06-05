@@ -36,9 +36,9 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecaltype = "decals/armgate_aoplane.dds",
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecaltype = "decals/leggatet3_aoplane.dds",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

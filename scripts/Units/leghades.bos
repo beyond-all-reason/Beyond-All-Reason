@@ -7,7 +7,7 @@
 
 piece  base, armor, aimy1, turret, aimx1, sleeve, barrel, flare, wheelfl, wheelfr, wheelml, wheelmr, wheelbl, wheelbr;
 
-static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
+static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading, last_primary_heading;
 
 #define BASEPIECE base
 #define HITSPEED <85.0>
@@ -52,6 +52,7 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
+	last_primary_heading = -1000000;
 	moveSpeed = get MAX_SPEED;
 	oldheading = get HEADING;
 	call-script TB_Init();
@@ -92,6 +93,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	last_primary_heading = -1000000;
 	turn aimy1 to y-axis <0.000000> speed <90>;
 	turn aimx1 to x-axis <0.000000> speed <50>;
 }
@@ -117,10 +119,13 @@ AimPrimary(heading, pitch)
 	
 	turn aimy1 to y-axis heading speed <250>;
 	turn aimx1 to x-axis 0 - pitch speed <240>;
-	
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
-	
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+        wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+	}
+	last_primary_heading = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

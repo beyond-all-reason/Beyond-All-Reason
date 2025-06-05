@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
 local valuecolor = "\255\255\255\255"
@@ -189,7 +187,7 @@ function widget:ViewResize()
 	screenY = math.floor((vsy * 0.5) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 

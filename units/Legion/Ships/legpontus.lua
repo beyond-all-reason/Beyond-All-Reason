@@ -151,7 +151,6 @@ return {
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 			},
 

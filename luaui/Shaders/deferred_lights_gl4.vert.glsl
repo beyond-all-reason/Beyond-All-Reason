@@ -26,10 +26,13 @@ layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
-
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-    mat4 mat[];
-};
+#if USEQUATERNIONS == 0
+	layout(std140, binding = 0) readonly buffer MatrixBuffer {
+		mat4 mat[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 
 struct SUniformsBuffer {
@@ -57,6 +60,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 };
 #define UNITID (uni[instData.y].composite >> 16)
+
+
 
 #line 10000
 
@@ -134,38 +139,51 @@ vec4 depthAtWorldPos(vec4 worldPosition){
 
 void main()
 {
-    float time = timeInfo.x + timeInfo.w;
-   
-    float lightRadius = worldposrad.w * radiusMultiplier;
-    v_worldPosRad = worldposrad ;
-    v_worldPosRad.w = lightRadius;
-    
+	float time = timeInfo.x + timeInfo.w;
+	
+	float lightRadius = worldposrad.w * radiusMultiplier;
+	v_worldPosRad = worldposrad ;
+	v_worldPosRad.w = lightRadius;
+	
     vec4 v_color2 = color2;
-   
-    mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
-   
-    // Ok so here comes the fun part, where we if we have a unitID then fun things happen
-    // v_worldposrad contains the incoming piece-level offset
-    // v_worldPosRad should be after changing to unit-space
-    // we have to transform BOTH the center of the light to piece-space
-    // and the vertices of the light volume to piece-space
-    // we need to go from light-space to world-space
-    vec3 lightCenterPosition =  v_worldPosRad.xyz;
-    v_lightcolor = lightcolor;
-        float selfIllumMod = 1.0;
-   
-    if (attachedtounitID > 0){
-        mat4 worldMatrix = mat[instData.x];
-        placeInWorldMatrix = worldMatrix;
-        if (pieceIndex > 0u) {
-            mat4 pieceMatrix = mat[instData.x + pieceIndex];
-            placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
-        }
-        //uint drawFlags = (instData.z & 0x0000100u);// >> 8 ; // hopefully this works
-        //if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
-        // disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn.
-        // This is good because the tolerance for distant shadows is much greater
-        if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0);
+	
+	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
+	#if USEQUATERNIONS == 1 
+		Transform tx;
+	#endif
+	
+	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
+	// v_worldposrad contains the incoming piece-level offset
+	// v_worldPosRad should be after changing to unit-space
+	// we have to transform BOTH the center of the light to piece-space
+	// and the vertices of the light volume to piece-space
+	// we need to go from light-space to world-space 
+	vec3 lightCenterPosition =  v_worldPosRad.xyz;
+	v_lightcolor = lightcolor;
+    float selfIllumMod = 1.0;
+    
+	if (attachedtounitID > 0){
+		#if USEQUATERNIONS == 0 
+			mat4 worldMatrix = mat[instData.x];
+			placeInWorldMatrix = worldMatrix;
+			if (pieceIndex > 0u) {
+				mat4 pieceMatrix = mat[instData.x + pieceIndex];
+				placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
+			} 
+		#else
+			tx = GetModelWorldTransform(instData.x);
+			if (pieceIndex > 0u){
+                // Note the pieceIndex is Lua so, 1-based, so we need to subtract 1 to get the correct index
+				Transform ty = GetPieceModelTransform(instData.x, pieceIndex - 1);
+				tx = ApplyTransform(tx, ty);
+			}
+			placeInWorldMatrix = TransformToMatrix(tx);
+		#endif
+		//uint drawFlags = (instData.z & 0x0000100u);// >> 8 ; // hopefully this works
+		//if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
+		// disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn. 
+		// This is good because the tolerance for distant shadows is much greater
+		if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0); 
 
 
         uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -272,11 +290,11 @@ void main()
  
         }
 
-
-        v_worldPosRad.xyz = lightCenterPosition;
-        v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); //
-        v_position = vec4( lightVertexPosition, 1.0);
-    }
+		v_worldPosRad.xyz = lightCenterPosition;
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
+		v_position = vec4( lightVertexPosition, 1.0);
+		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesnt work
+	}
     #line 12000
     else if (pointbeamcone < 1.5){ // beam
         // we will tranform along this vector, where Y shall be the upvector
@@ -350,7 +368,7 @@ void main()
         v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
         v_position.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
     }
-    #line 12000
+    #line 13000
     else if (pointbeamcone > 1.5){ // cone
         // input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
         // make it so that cone tip is at 0 and the opening points to -y
@@ -425,7 +443,7 @@ void main()
        
         v_position =  worldPos;
     }
-    #line 13000
+    #line 14000
     // Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
    
     vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
@@ -437,6 +455,7 @@ void main()
    
     //  vec4 windInfo; // windx, windy, windz, windStrength
     v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
+    v_noiseoffset.a = float(gl_InstanceID); // InstanceID is only avail in vertex shader, and we use this as a unique offset for noise sampling. 
     //v_noiseoffset = vec4(0.0);
     //v_noiseoffset.y = windX + windZ;
    

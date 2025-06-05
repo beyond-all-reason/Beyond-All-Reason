@@ -11,8 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
-
 -- types
 -- =====
 
@@ -183,6 +181,9 @@ local BLUEPRINT_UNIT_LIMIT = 100
 ---maximum total number of orders in a given blueprint placement command
 local BLUEPRINT_ORDER_LIMIT = 400
 
+local CMD_BLUEPRINT_PLACE = GameCMD.BLUEPRINT_PLACE
+local CMD_BLUEPRINT_CREATE = GameCMD.BLUEPRINT_CREATE
+
 local CMD_BLUEPRINT_PLACE_DESCRIPTION = {
 	id = CMD_BLUEPRINT_PLACE,
 	type = CMDTYPE.ICON_MAP,
@@ -207,6 +208,8 @@ local blueprints = {}
 local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
+
+local lastExplicitlySelectedBlueprintIndex = nil
 
 local state = {
 	---@type Point|nil
@@ -274,6 +277,50 @@ local function setSelectedBlueprintIndex(index)
 	end
 end
 
+local function isValidBlueprint(blueprint)
+	if blueprint == nil then
+		return false
+	end
+
+	if blueprint.hasInvalidUnits then
+		return false
+	end
+
+	local buildable, unbuildable = WG["api_blueprint"].getBuildableUnits(blueprint)
+
+	if buildable == 0 then
+		return false
+	end
+
+	return true
+end
+
+local function getNextFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex or 0
+
+	for _ = 1, #blueprints do
+		newIndex = nextIndex(newIndex, #blueprints)
+		if isValidBlueprint(blueprints[newIndex]) then
+			return newIndex
+		end
+	end
+
+	return nil
+end
+
+local function getPrevFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex or 0
+
+	for _ = 1, #blueprints do
+		newIndex = prevIndex(newIndex, #blueprints)
+		if isValidBlueprint(blueprints[newIndex]) then
+			return newIndex
+		end
+	end
+
+	return nil
+end
+
 local function getMouseWorldPosition(blueprint, x, y)
 	local _, pos = SpringTraceScreenRay(x, y, true, true, false, not blueprint.floatOnWater)
 	if pos then
@@ -325,9 +372,7 @@ local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
-		if UnitDefs[u.unitDefID] then
-			return UnitDefs[u.unitDefID].floatOnWater
-		end
+		return UnitDefs[u.unitDefID].floatOnWater
 	end)
 	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
 		local w, h = WG["api_blueprint"].getBuildingDimensions(
@@ -415,10 +460,18 @@ local function deleteBlueprint(index)
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
-	elseif selectedBlueprintIndex > #blueprints then
+	elseif index > selectedBlueprintIndex then
+		-- no need to do anything
+	elseif index == selectedBlueprintIndex then
+		-- find the closest valid blueprint, searching backwards
+		setSelectedBlueprintIndex(
+			getPrevFilteredBlueprintIndex(selectedBlueprintIndex)
+		)
+		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
+	else -- index < selectedBlueprintIndex
+		-- keep the same blueprint selected
 		setSelectedBlueprintIndex(selectedBlueprintIndex - 1)
-	elseif index < selectedBlueprintIndex then
-		setSelectedBlueprintIndex(selectedBlueprintIndex - 1)
+		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	end
 end
 
@@ -708,6 +761,19 @@ function widget:SelectionChanged(selection)
 		)
 
 		WG["api_blueprint"].setActiveBuilders(builders)
+
+		local selectedBlueprint = getSelectedBlueprint()
+		if not selectedBlueprint or not isValidBlueprint(selectedBlueprint) then
+			local startIndex = nil
+			if lastExplicitlySelectedBlueprintIndex ~= nil then
+				-- this prevents cycling through all blueprints if you
+				-- select different faction constructors repeatedly
+				startIndex = lastExplicitlySelectedBlueprintIndex - 1
+			end
+			setSelectedBlueprintIndex(
+				getNextFilteredBlueprintIndex(startIndex)
+			)
+		end
 	end
 
 	-- track selection order (skip if we're still box selecting)
@@ -757,7 +823,8 @@ local function handleBlueprintNextAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(nextIndex(selectedBlueprintIndex, #blueprints))
+	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
+	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
@@ -774,7 +841,8 @@ local function handleBlueprintPrevAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(prevIndex(selectedBlueprintIndex, #blueprints))
+	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
+	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
@@ -1031,22 +1099,26 @@ end
 -- saving/loading
 -- ==============
 
+local serializedInvalidBlueprints = {}
+
 ---@param blueprint Blueprint
 ---@return SerializedBlueprint
 local function serializeBlueprint(blueprint)
+	if serializedInvalidBlueprints[blueprint] ~= nil then
+		return serializedInvalidBlueprints[blueprint]
+	end
+
 	return {
 		name = blueprint.name,
 		spacing = blueprint.spacing,
 		facing = blueprint.facing,
 		ordered = blueprint.ordered,
 		units = table.map(blueprint.units, function(blueprintUnit)
-			if UnitDefs[blueprintUnit.unitDefID] then
-				return {
-					unitName = UnitDefs[blueprintUnit.unitDefID].name,
-					position = blueprintUnit.position,
-					facing = blueprintUnit.facing
-				}
-			end
+			return {
+				unitName = UnitDefs[blueprintUnit.unitDefID].name,
+				position = blueprintUnit.position,
+				facing = blueprintUnit.facing
+			}
 		end),
 	}
 end
@@ -1055,33 +1127,39 @@ end
 ---@return Blueprint
 local function deserializeBlueprint(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
+	result.hasInvalidUnits = false
 	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
+		local unit = {
+			blueprintUnitID = nextBlueprintUnitID(),
+			position = serializedBlueprintUnit.position,
+			facing = serializedBlueprintUnit.facing
+		}
+
 		if UnitDefNames[serializedBlueprintUnit.unitName] then
-			return {
-				blueprintUnitID = nextBlueprintUnitID(),
-				unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
-				position = serializedBlueprintUnit.position,
-				facing = serializedBlueprintUnit.facing
-			}
+			unit.unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id
+		else
+			result.hasInvalidUnits = true
 		end
+
+		return unit
 	end)
 
-	postProcessBlueprint(result)
+	if not result.hasInvalidUnits then
+		postProcessBlueprint(result)
+	else
+		serializedInvalidBlueprints[result] = serializedBlueprint
+	end
 
 	return result
 end
 
 local function loadBlueprintsFromFile()
-	local file = io.open(BLUEPRINT_FILE_PATH, "r")
+	local content = VFS.LoadFile(BLUEPRINT_FILE_PATH)
 
-	if not file then
-		Spring.Echo("Failed to open blueprints file for reading: " .. BLUEPRINT_FILE_PATH)
+	if not content then
+		Spring.Echo("Failed to read blueprints file: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
-
-	local content = file:read("*all")
-
-	file:close()
 
 	local decoded = Json.decode(content)
 
@@ -1090,7 +1168,7 @@ local function loadBlueprintsFromFile()
 		return
 	end
 
-	if decoded.savedBlueprints == 0 then
+	if type(decoded.savedBlueprints) ~= "table" then
 		decoded.savedBlueprints = {}
 	end
 

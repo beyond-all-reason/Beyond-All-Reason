@@ -155,7 +155,7 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
 	emit-sfx 258 from nano2;
-	return (1);
+	return (0);
 }
 
 FirePrimary()

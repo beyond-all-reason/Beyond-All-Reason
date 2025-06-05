@@ -65,7 +65,7 @@ return {
 			"leglupara",
 			"legctl",
 			"legjam",
-			"corjuno",
+			"legjuno",
 			"corsy",
 			"leghive",
 		},

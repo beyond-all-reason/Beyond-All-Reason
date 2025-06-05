@@ -76,6 +76,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 --- GL4 STUFF ---
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -252,7 +259,7 @@ local function visibleUnitsRemove(unitID, reason)
 		end
 		-- call all listeners
 		if Script.LuaUI('VisibleUnitRemoved') then
-			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 		end
 	else
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
@@ -385,8 +392,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
 		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
-	visibleUnitsRemove(unitID, reason or "destroyed")
-	alliedUnitsRemove(unitID, reason or "destroyed")
+	visibleUnitsRemove(unitID, reason or "UnitDestroyed")
+	alliedUnitsRemove(unitID, reason or "UnitDestroyed")
 end
 
 --function widget:CrashingAircraft(unitID, unitDefID, teamID)
@@ -499,7 +506,7 @@ function widget:GameFrame()
 		end
 
 		if drawdebugvisible then
-			locateInvalidUnits(unitTrackerVBO)
+			InstanceVBOTable.locateInvalidUnits(unitTrackerVBO)
 		end
 
 		local cntalliedunits = 0
@@ -566,7 +573,7 @@ local function initializeAllUnits()
 	end
 
 	if debugdrawvisible then
-		clearInstanceTable(unitTrackerVBO)
+		InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	end
 
 	local allunits = Spring.GetAllUnits()
@@ -589,7 +596,7 @@ function widget:TextCommand(command)
 		if param and param == 'draw' then
 			Spring.Echo("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
 			if debugdrawvisible then
-				clearInstanceTable(unitTrackerVBO)
+				InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 				debugdrawvisible = false
 			else
 				debugdrawvisible = true

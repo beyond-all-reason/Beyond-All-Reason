@@ -195,9 +195,10 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
@@ -284,6 +285,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
+
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or 0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
@@ -341,6 +343,12 @@ local function InitStartPolygons()
 		end
 	end
 
+	--Case we start with only one team(no enemies)
+	--The shader doesn't like that so we have to let it think there are more then one
+	if(#StartPolygons == 0) then
+		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
+	end
+
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
 	local minY, maxY = Spring.GetGroundExtremes()
@@ -389,10 +397,10 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 
-	local coneVBO, numConeVertices = makeConeVBO(32, 100, 25)
-	startConeVBOTable = makeInstanceVBOTable(
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(32, 100, 25)
+	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			-- Cause 0-1-2 contain primitive per-vertex data
 			{id = 3, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
@@ -410,7 +418,7 @@ local function InitStartPolygons()
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO = makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 
@@ -459,6 +467,7 @@ end
 function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
@@ -480,7 +489,7 @@ function widget:DrawWorld()
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
-	clearInstanceTable(startConeVBOTable)
+	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
@@ -505,7 +514,8 @@ function widget:DrawWorld()
 		end
 	end
 
-	uploadAllElements(startConeVBOTable)
+
+	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
 end
