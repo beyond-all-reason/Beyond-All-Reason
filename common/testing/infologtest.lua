@@ -9,6 +9,9 @@ local function skipErrors(line)
 	if string.find(line, 'Could not finalize Decals', nil, true) then
 		return true
 	end
+	if string.find(line, 'Could not finalize groundFX texture', nil, true) then
+		return true
+	end
 	-- Errors for engine >= 2025.03.X deprecations, remove these
 	-- at a later date when they're removed from BAR too.
 	if string.find(line, '"AnimationMT" is read-only', nil, true) then
