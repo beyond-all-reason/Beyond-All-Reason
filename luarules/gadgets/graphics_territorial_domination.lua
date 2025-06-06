@@ -537,12 +537,16 @@ function gadget:RecvFromSynced(messageName, ...)
 		local gridID, allyOwnerID, progress, visibilityArray = ...
 		local gridData = captureGrid[gridID]
 		if gridData then
+			local ignoredProgress = 0.01
 			local oldAllyOwnerID = gridData.allyOwnerID
 			gridData.visibilityArray = visibilityArray
 			gridData.allyOwnerID = allyOwnerID
 
 			gridData.isVisible, _ = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
-			if not gridData.isVisible then
+			if progress < ignoredProgress and oldAllyOwnerID == myAllyID then
+				gridData.newProgress = 0
+				gridData.allyOwnerID = gaiaAllyTeamID --hidden
+			elseif not gridData.isVisible then
 				gridData.newProgress = gridData.oldProgress
 				gridData.captureChange = 0
 			else

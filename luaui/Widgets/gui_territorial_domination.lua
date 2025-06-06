@@ -81,7 +81,7 @@ local HALO_MAX_ALPHA = 0.4
 
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
-local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+local FREEZE_DELAY_KEY = "territorialDominationPauseDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
 local RANK_RULES_KEY = "territorialDominationRank"
 
