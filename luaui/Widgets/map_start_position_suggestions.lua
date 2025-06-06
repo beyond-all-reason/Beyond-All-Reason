@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Start Position Suggestions",
@@ -657,6 +659,8 @@ end
 
 function widget:Shutdown()
 	drawAllStartLocationsCircles.invalidate()
+	gl.DeleteFont(font)
+	gl.DeleteFont(fontTutorial)
 end
 
 local function checkTooltips()

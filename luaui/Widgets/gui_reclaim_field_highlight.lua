@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Reclaim Field Highlight",
@@ -651,7 +653,7 @@ end
 -- Drawing
 
 local camUpVector
-local cameraScale
+local cameraScale = 1
 
 local function DrawHullVertices(hull)
 	for j = 1, #hull do

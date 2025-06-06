@@ -124,12 +124,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 6,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 1200,
 					default = 5500,

@@ -18,28 +18,7 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
--- Get TeamIDs and AllyTeamIDs of Scavengers and Raptors
-local scavengerTeamID
-local scavengerAllyTeamID
-local raptorTeamID
-if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors() then
-    local teams = Spring.GetTeamList()
-    for i = 1,#teams do
-        local luaAI = Spring.GetTeamLuaAI(teams[i])
-        if not scavengerTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-                scavengerTeamID = i - 1
-                _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
-            end
-        end
-        if not raptorTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-                raptorTeamID = i - 1
-                _,_,_,_,_,raptorAllyTeamID = Spring.GetTeamInfo(raptorTeamID)
-            end
-        end
-    end
-end
+local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
@@ -143,6 +122,28 @@ local function OccupancyCheck(posx, posy, posz, posradius) -- Returns true if th
 	else
 		return true
 	end
+end
+
+local function ResourceCheck(posx, posz, posradius) -- Returns true if there are no resources in the spawn area
+    local posradiusSquared = posradius * posradius
+    local metalSpots = GG["resource_spot_finder"].metalSpotsList
+    if metalSpots then
+        for _,spot in ipairs(metalSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
+        end
+    end
+
+    local geoSpots = GG["resource_spot_finder"].geoSpotsList
+    if geoSpots then
+        for _,spot in ipairs(geoSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
+        end
+    end
+    return true
 end
 
 local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of specified allyTeam.
@@ -357,6 +358,7 @@ return {
     LavaCheck = LavaCheck,
     MapIsLandOrSea = MapIsLandOrSea,
     LandOrSeaCheck = LandOrSeaCheck,
+    ResourceCheck = ResourceCheck,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

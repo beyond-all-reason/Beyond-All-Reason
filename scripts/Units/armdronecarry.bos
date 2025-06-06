@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16;
+piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16, turretmis, misbox, misflare;
 
 static-var  Static_Var_1, oldHead;
 static-var  Stunned;
@@ -12,6 +12,7 @@ static-var  Stunned;
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
+#define SIG_AIM_2			8
 
 
 #define BASEPIECE base
@@ -163,7 +164,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FirePrimary()
@@ -180,6 +181,35 @@ QueryPrimary(piecenum)
 AimFromPrimary(piecenum)
 {
 	piecenum = radar;
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn turretmis to y-axis heading speed <300.000000>;
+	turn misbox to x-axis <0> - pitch speed <300>;  //?
+	wait-for-turn turretmis around y-axis;
+	wait-for-turn misbox around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretmis;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = misflare;
 	return (0);
 }
 

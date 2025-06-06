@@ -192,6 +192,10 @@ return {
 				damage = {
 					vtol = 150,
 				},
+        
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavylaser = {
 				areaofeffect = 8,
@@ -217,7 +221,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,

@@ -22,6 +22,8 @@ example usage (need cheats):
 --2. fix the culling of floating structures
 --3. make units get their default stance (e.g. armcom)
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "IconGenerator",
@@ -1025,7 +1027,6 @@ else
 
 		--// take screenshot
 		gl.ActiveFBO(final_fbo, true, function()
-			local scale = cfg.scale
 
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 			gl.Color(1, 1, 1, 1)

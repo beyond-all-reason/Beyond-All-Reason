@@ -1,5 +1,7 @@
 include("keysym.h.lua")
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Ally Selected Units", -- GL4
@@ -25,6 +27,11 @@ local platterOpacity = 0.1
 local useHexagons = true
 
 ----------------------------------------------------------------------------
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local selectionVBO = nil
 local selectShader = nil
@@ -270,7 +277,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(selectionVBO)
+	InstanceVBOTable.clearInstanceTable(selectionVBO)
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end

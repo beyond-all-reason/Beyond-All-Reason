@@ -1,6 +1,8 @@
 include("keysym.h.lua")
 local versionNumber = 1.4
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "FactoryQ Manager",
@@ -168,7 +170,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiElement = WG.FlowUI.Draw.Element

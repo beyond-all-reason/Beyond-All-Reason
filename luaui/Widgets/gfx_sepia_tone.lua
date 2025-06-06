@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Sepia Tone",
@@ -112,7 +114,7 @@ void main()
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vsx, vsy, vpx, vpy
 local screenCopyTex

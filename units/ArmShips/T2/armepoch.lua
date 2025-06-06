@@ -161,6 +161,9 @@ return {
 					commanders = 1,
 					vtol = 150,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			flak = {
 				accuracy = 1000,
@@ -198,6 +201,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					noattackrangearc = 1,
+				},
 			},
 			heavyplasma = {
 				accuracy = 600,
@@ -228,6 +234,9 @@ return {
 					default = 437,
 					vtol = 200,
 				},
+				customparams = {
+					noattackrangearc = 1,
+				},
 			},
 			mediumplasma = {
 				accuracy = 350,
@@ -254,6 +263,9 @@ return {
 				damage = {
 					default = 270,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc = 1,
 				},
 			},
 		},

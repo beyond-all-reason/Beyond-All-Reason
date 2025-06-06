@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/cordemon.s3o",
-		script = "Units/cordemon.COB",
+		script = "Units/cordemon.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 500,
@@ -76,6 +76,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
+				[2] = "custom:pilotlightxl",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

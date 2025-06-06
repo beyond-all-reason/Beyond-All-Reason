@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Awards",
@@ -39,8 +41,6 @@ local white = "\255" .. string.char(251) .. string.char(251) .. string.char(251)
 
 local playerListByTeam = {} -- does not contain specs
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font, font2, titleFont
 
 local viewScreenX, viewScreenY = Spring.GetViewGeometry()
@@ -199,9 +199,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	viewScreenX, viewScreenY = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	titleFont = WG['fonts'].getFont(fontfile2, 4, 0.2, 1)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
+	titleFont = WG['fonts'].getFont(2, 4, 0.2, 1)
 
 	-- fix geometry
 	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))

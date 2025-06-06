@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
@@ -169,8 +171,8 @@ end
 
 -- TODO:
 -- [ ] Handle overlapping of boxes and myAllyTeamID
--- [X] Handle Minimap drawing too 
-	-- [X] handle flipped minimaps 
+-- [X] Handle Minimap drawing too
+	-- [X] handle flipped minimaps
 -- [ ] Pass in my team too
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
@@ -182,34 +184,18 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 
-local scavengerAIAllyTeamID
-local raptorsAIAllyTeamID
-local teams = Spring.GetTeamList()
+local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		local scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		local raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
@@ -222,7 +208,7 @@ local shaderSourceCache = {
 			isMiniMap = 0,
 			flipMiniMap = 0,
 			mapNormals = 1,
-			heightMapTex = 2, 
+			heightMapTex = 2,
 			scavTexture = 3,
 			raptorTexture = 4,
 		},
@@ -266,21 +252,21 @@ local coneShaderSourceCache = {
 local startConeVBOTable = nil
 local startConeShader = nil
 
-local function DrawStartPolygons(inminimap)	
+local function DrawStartPolygons(inminimap)
 
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
 
-	if advMapShading then 
+	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
 			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
-		else 
+		else
 			Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
 		end
 	end
-	
+
 	gl.Texture(1, "$normals")
 	gl.Texture(2, "$heightmap")-- Texture file
 	gl.Texture(3, scavengerStartBoxTexture)
@@ -297,7 +283,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -323,18 +309,18 @@ end
 
 local function InitStartPolygons()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then 
+	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then 
+		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
-	
+
 	if autoReload and false then
 		-- MANUAL OVERRIDE FOR DEBUGGING
 		-- lets add a bunch of silly StartPolygons:
@@ -344,13 +330,19 @@ local function InitStartPolygons()
 			local y0 = math.random(0, Game.mapSizeZ)
 			local polygon = {{x0, y0}}
 
-			for j = 2, math.ceil(math.random() * 10) do 
+			for j = 2, math.ceil(math.random() * 10) do
 				local x1 = math.random(0, Game.mapSizeX / 5)
 				local y1 = math.random(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
 			StartPolygons[#StartPolygons+1] = polygon
 		end
+	end
+
+	--Case we start with only one team(no enemies)
+	--The shader doesn't like that so we have to let it think there are more then one
+	if(#StartPolygons == 0) then
+		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
 	end
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
@@ -360,7 +352,7 @@ local function InitStartPolygons()
 	if waterlevel > 0 then
 		minY = minY - waterlevel
 		maxY = maxY - waterlevel
-	end	
+	end
 	shaderSourceCache.shaderConfig.MINY = minY - 1024
 	shaderSourceCache.shaderConfig.MAXY = maxY + 1024
 
@@ -382,8 +374,8 @@ local function InitStartPolygons()
 		end
 	end
 
-	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
-	if numvertices % 4 ~= 0 then 
+	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data
+	if numvertices % 4 ~= 0 then
 		for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
@@ -401,10 +393,10 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 
-	local coneVBO, numConeVertices = makeConeVBO(32, 100, 25)
-	startConeVBOTable = makeInstanceVBOTable(
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(32, 100, 25)
+	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			-- Cause 0-1-2 contain primitive per-vertex data
 			{id = 3, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
@@ -422,17 +414,17 @@ local function InitStartPolygons()
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO = makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
-	
+
 	if not startConeShader then
 		Spring.Echo("Error: startConeShader shader not initialized")
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-end	
+end
 
 --------------------------------------------------------------------------------
 
@@ -471,6 +463,7 @@ end
 function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
@@ -492,7 +485,7 @@ function widget:DrawWorld()
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
-	clearInstanceTable(startConeVBOTable)
+	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
@@ -508,7 +501,7 @@ function widget:DrawWorld()
 				cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
 				cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
 				pushElementInstance(startConeVBOTable,
-					cacheTable, 
+					cacheTable,
 					nil, nil, true)
 				if teamID == myTeamID then
 					amPlaced = true
@@ -516,8 +509,8 @@ function widget:DrawWorld()
 			end
 		end
 	end
-	
-	uploadAllElements(startConeVBOTable)
+
+	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
 end

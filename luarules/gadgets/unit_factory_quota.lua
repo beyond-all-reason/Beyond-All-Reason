@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Factory Quotas",
@@ -14,12 +16,12 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
+
 local isFactory = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     isFactory[unitDefID] = unitDef.isFactory
 end
-
-include("luarules/configs/customcmds.h.lua")
 
 local factoryQuotaCmdDesc = {
 	id = CMD_QUOTA_BUILD_TOGGLE,

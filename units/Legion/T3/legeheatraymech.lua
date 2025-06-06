@@ -134,6 +134,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 0,
 				},
@@ -170,14 +173,13 @@ return {
 				soundstart = "heatray4burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					commanders = 18,
-					default = 36,
+					commanders = 17,
+					default = 33,
 					vtol = 14,
 				},
 				customparams = {

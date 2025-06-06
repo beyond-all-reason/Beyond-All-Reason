@@ -189,7 +189,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2.5,
 				tolerance = 10000,
 				turret = true,
@@ -198,6 +197,9 @@ return {
 				damage = {
 					default = 75,
 					vtol = 8,
+				},
+				customparams = {
+					norangering = 1,
 				},
 			},
 		},

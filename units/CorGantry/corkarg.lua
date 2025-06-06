@@ -162,7 +162,7 @@ return {
 				firestarter = 5,
 				flighttime = 2.5,
 				impulsefactor = 0.123,
-				model = "cormissile2.s3o",
+				model = "cormissile3fast.s3o",
 				name = "KarganethMissiles",
 				noselfdamage = true,
 				range = 600,
@@ -191,7 +191,6 @@ return {
 					overrange_distance = 690,
 					projectile_destruction_method = "descend",
 					speceffect = "retarget",
-					when = "always",
 				},
 				damage = {
 					default = 180,

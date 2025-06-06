@@ -12,6 +12,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "GameTypeInfo",
@@ -43,7 +45,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
+	font = WG['fonts'].getFont(1, 1.5)
 
 	if messages[1] then
 		messages[1].x = widgetScale * 60

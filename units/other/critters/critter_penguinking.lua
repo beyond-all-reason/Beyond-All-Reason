@@ -85,7 +85,6 @@ return {
 				soundstart = "Lasrhvy2",
 				soundtrigger = 1,
 				targetborder = 0.75,
-				targetmoveerror = 0.1,
 				thickness = 5.5,
 				tolerance = 9500,
 				turret = false,

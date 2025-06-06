@@ -899,7 +899,16 @@ local options = {
     {
         key    	= "experimentalextraunits",
         name   	= "Extra Units Pack",
-        desc   	= "Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various \"fun\" units",
+        desc   	= "Pack of units that didn't make it to the main game roster. Balanced for PvP",
+        type   	= "bool",
+        section = "options_extra",
+        def  	= false,
+    },
+
+    {
+        key    	= "scavunitsforplayers",
+        name   	= "Scavengers Units Pack",
+        desc   	= "Units made for Scavengers, mostly silly and unbalanced for PvP.",
         type   	= "bool",
         section = "options_extra",
         def  	= false,
@@ -931,14 +940,116 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        lock    = {"sub_header_lava3", "sub_header_lava4"},
+        bitmask = 1,
     },
 
+    {
+        key    	= "map_lavatiderhythm",
+        name   	= "Lava Tides",
+        desc   	= "Lava level periodicially cycles height when tides are present",
+        type   	= "list",
+        def    	= "default",
+        section	= "options_extra",
+        column	= 1,
+        items	= {
+            { key= "default", 	name= "Default", desc= "Map Settings",
+                lock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
+                unlock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                lock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+            { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
+                lock = 
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                unlock =
+                    { "sub_header_lava1", "sub_header_lava2"}},
+        },
+        bitmask = 2,
+    },
+
+    {
+        key     = "map_lavatidemode",
+        name	= "Lava Start Position",
+        desc	= "Toggle whether lava starts at high or low tide",
+        hidden	= false,
+        type	= "list",
+        def		= "lavastartlow",
+        section	= "options_extra",
+        items	= {
+            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+        }
+    },
+
+    {
+        key 	= "map_lavahighlevel",
+        name 	= "Lava High Tide Level",
+        desc 	= "Lava level at high tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= 0,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },
+
+    {
+        key 	= "map_lavahighdwell",
+        name 	= "Lava High Tide Time",
+        desc 	= "Time in seconds lava waits at high tide",
+        type 	= "number",
+        def 	= 60,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 2.0,
+    },
+
+    {
+        key 	= "map_lavalowlevel",
+        name 	= "Lava Low Tide Level",
+        desc 	= "Lava level at low tide",
+        type 	= "number",
+        def 	= 0,
+        min 	= 0,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 1,
+    },  
+
+    {
+        key 	= "map_lavalowdwell",
+        name 	= "Lava Low Tide Time",
+        desc 	= "Time in seconds lava waits at low tide",
+        type 	= "number",
+        def 	= 300,
+        min 	= 1,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        column	= 2.0,
+    },
+
+    { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava2", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava3", section = "options_extra", type    = "subheader", name = "",},
+    { key = "sub_header_lava4", section = "options_extra", type    = "subheader", name = "",},
+ 
+    
     {
         key     = "sub_header",
         section = "options_extra",
         type    = "separator",
     },
-
 
     {
         key 	= "ruins",
@@ -1278,16 +1389,6 @@ local options = {
     },
 
     {
-        key   	= "accuratelasers",
-        name   	= "Accurate Lasers",
-        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
-        type   	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -1343,7 +1444,7 @@ local options = {
         name   	= "Release Candidate Units",
         desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
         type   	= "bool",
-        hidden 	= false,
+        hidden 	= true,
         section = "options_experimental",
         def  	= false,
     },
@@ -1352,6 +1453,16 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "factory_costs",
+        name 	= "Factory Costs Test Patch",
+        desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
@@ -1461,6 +1572,30 @@ local options = {
         section = "dev",
         type    = "bool",
         def     =  false,
+    },
+    {
+        key     = "dummyboolfeelfreetotouch",
+        name    = "dummy to hide the faction limiter",
+        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        section = "dev",
+        type    = "bool",
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+    },
+    {
+        key     = "factionlimiter",
+        name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
+        desc    = [[BITMASK to be used via custom ui, only visible when boss
+Set to [0] To disable.
+Otherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.
+Offset by 3 for each consecutive team.
+If a team's bitmask is 0, All are Enabled.
+Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
+        section = "dev",
+        type    = "number",
+        def     =  0,
+        min    	= 0,
+        max    	= 16777215,-- math hard, 24 bit limitish?
+        step   	= 1,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

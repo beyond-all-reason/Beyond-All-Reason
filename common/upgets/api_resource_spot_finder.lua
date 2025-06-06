@@ -1,4 +1,4 @@
-local upget = gadget or widget
+local upget = gadget or widget ---@type Addon
 local globalScope = gadget and GG or WG
 
 -- gadget side must be layered after gadgets/map_metal_spot_placer.lua
@@ -182,14 +182,17 @@ end
 
 
 local function IsBuildingPositionValid(spot, x, z)
-	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
+	-- add an extra mapSquareSize to account for snapping behaviours from api users
+	local expandedRadius = extractorRadius + metalMapSquareSize
+	if z <= spot.maxZ - expandedRadius or z >= spot.minZ + expandedRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
 
+	local expandedRadiusSqr = expandedRadius*expandedRadius
 	local sLeft, sRight = spot.left, spot.right
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
-		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
+		local maxXOffset = sqrt(expandedRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
 		if x <= sRight[sz] - maxXOffset or x >= sLeft[sz] + maxXOffset then
 			return false
 		end

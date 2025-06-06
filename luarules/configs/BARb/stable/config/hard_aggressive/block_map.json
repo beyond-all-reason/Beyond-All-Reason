@@ -1,18 +1,5 @@
 // Mono-space font required
 {
-"terrain": {
-	"analyze": "armcom",
-
-	// These constants control how to decide between Seas and Lakes.
-	"lake_tiles": 100,  // 300,
-	"lake_width_tiles": 10,  // 32,
-
-	// At least area_min_tiles connected Tiles are necessary for an Area to be created.
-	"area_min_tiles": 32,  // 64,
-
-	"areas_merge_size": 64,  // 80,
-	"areas_merge_altitude": 64  // 80  // 10 * altitude_scale
-},
 
 "building": {
 	"class_land": {
@@ -63,12 +50,13 @@
 		},
 		"fac_strider": {
 			"type": ["rectangle", "factory"],
-			"offset": [0, 4],
-			"yard": [4, 4]
+			"offset": [0, 24],
+			"yard": [16, 16],
+			"size": [16, 16]
 		},
 		"solar": {
 			"type": ["rectangle", "engy_low"],
- 			"ignore": ["engy_low", "def_low", "nano"]
+			"ignore": ["engy_low", "def_low", "nano"]
 		},
 		"wind": {
 //			"type": ["circle", "engy_low"],
@@ -169,26 +157,26 @@
 		}
 	},
 	"instance": {
-		"fac_veh": ["armvp", "armavp", "corvp", "coravp"],
-		"fac_bot": ["armlab", "armalab", "coralab"],
-		"fac_bot_pass": ["corlab", "armhp", "armfhp", "corhp", "corfhp"],
-		"fac_air": ["armap", "corap", "armaap", "coraap"],
-		"fac_water": ["armsy", "armasy", "armamsub", "armplat", "corsy", "corasy", "coramsub", "corplat"],
-		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw"],
-		"solar": ["armsolar", "corsolar"],
-		"wind": ["armwin", "corwin", "armtide", "cortide"],
-		"geo": ["armgeo", "corgeo"],
-		"geo2": ["armageo", "corageo"],
-		"fusion": ["armadvsol", "coradvsol"],
-		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus"],
-		"store": ["armmstor", "armestor", "cormstor", "corestor"],
-		"mex": ["armmex", "cormex"],
-		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
-		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
-		"def_low": ["armllt", "armclaw", "corllt", "cormaw"],
-		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp"],
-		"small": ["armrad", "corrad", "armfrad", "corfrad"],
-		"wall": ["armdrag", "cordrag"]
+		"fac_veh": ["armvp", "armavp", "corvp", "coravp", "legvp", "legavp"],
+		"fac_bot": ["armlab", "armalab", "coralab", "legalab"],
+		"fac_bot_pass": ["corlab", "armhp", "armfhp", "corhp", "corfhp", "leglab", "leghp", "legfhp"],
+		"fac_air": ["armap", "corap", "armaap", "coraap", "legap", "legaap"],
+		"fac_water": ["armsy", "armasy", "armamsub", "armplat", "corsy", "corasy", "coramsub", "corplat", "legamsub", "legplat"],
+		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw", "leggant"],
+		"solar": ["armsolar", "corsolar", "legsolar"],
+		"wind": ["armwin", "corwin", "armtide", "cortide", "legwin"],
+		"geo": ["armgeo", "corgeo", "leggeo"],
+		"geo2": ["armageo", "corageo", "legageo"],
+		"fusion": ["armadvsol", "coradvsol", "legadvsol"],
+		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus", "legfus", "legafus"],
+		"store": ["armmstor", "armestor", "cormstor", "corestor", "legmstor", "legestor"],
+		"mex": ["armmex", "cormex", "armuwmex", "coruwmex", "legmex"],
+		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho", "legmohoconct"],
+		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
+		"def_low": ["armllt", "armclaw", "corllt", "cormaw", "leglht", "legdtr"],
+		"caretaker": ["armnanotc", "armnanotcplat", "cornanotc", "cornanotcplat", "legnanotc", "legnanotcplat"],
+		"small": ["armrad", "corrad", "armfrad", "corfrad", "legrad"],
+		"wall": ["armdrag", "cordrag", "legdrag"]
 	}
 }
 }

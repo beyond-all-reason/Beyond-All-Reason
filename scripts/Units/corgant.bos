@@ -121,9 +121,9 @@ StartBuilding()
 	show cagelight_emit;
 	show cagelight_emit2;
 	show cagelight_emit3;
-	spin cagelight around y-axis speed <200> accelerate <1>;
-	spin cagelight2 around y-axis speed <-200> accelerate <1>;
-	spin cagelight_emit3 around y-axis speed <200> accelerate <1>;
+	spin cagelight around y-axis speed <200> accelerate <4>;
+	spin cagelight2 around y-axis speed <-200> accelerate <4>;
+	spin cagelight_emit3 around y-axis speed <200> accelerate <4>;
 }
 
 StopBuilding() // give the gantry a 1 second breathing room

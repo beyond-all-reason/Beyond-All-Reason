@@ -32,7 +32,7 @@ return {
 		script = "Units/COREXP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		selfdestructcountdown = 1,
+		--selfdestructcountdown = 1,
 		sightdistance = 455,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
@@ -137,7 +137,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2.5,
 				tolerance = 10000,
 				turret = true,

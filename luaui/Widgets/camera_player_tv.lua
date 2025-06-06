@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Player-TV",
@@ -10,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
@@ -22,9 +24,6 @@ local displayPlayername = true
 local alwaysDisplayName = true
 local playerChangeDelay = 40
 local widgetHeight = 22
-
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local parentPos = {}
 local drawlistsCountdown = {}
@@ -50,7 +49,6 @@ local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
 local toggled2 = not fullview
-local forceRefresh = false
 local drawlist = {}
 local desiredLosmodeChanged = 0
 
@@ -142,7 +140,8 @@ local function createCountdownLists()
 	while i < playerChangeDelay do
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
-			font:SetTextColor(0, 0, 0, 0.6)
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
+			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
@@ -158,14 +157,16 @@ local function refreshUiDrawing()
 		gl.DeleteList(drawlist[i])
 	end
 
-	local buttonOpacity = useRenderToTexture and 0.85 or 0.66
-	local mult = useRenderToTexture and 1.25 or 1
+	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
+	local mult = useRenderToTexture and 1.33 or 1
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+
 		local text, color1, color2
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 
 		-- Player TV Button
 		if not toggled and not lockPlayerID then
@@ -189,7 +190,7 @@ local function refreshUiDrawing()
 
 		-- Player Camera Button
 		if isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
 			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 			textWidth = math.floor(font:GetTextWidth(text) * fontSize)
@@ -203,11 +204,11 @@ local function refreshUiDrawing()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
 			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
 		else
-			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
+			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
 			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
 			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
 		end
@@ -227,9 +228,9 @@ local function refreshUiDrawing()
 	drawlist[2] = gl.CreateList(function()
 		-- Player TV Button highlight
 		if toggled or lockPlayerID then
-			gl.Color(1*mult, 0.2*mult, 0.2*mult, 0.4*mult)
+			gl.Color(1*mult, 0.2*mult, 0.2*mult, buttonOpacity)
 		else
-			gl.Color(0.2*mult, 1*mult, 0.2*mult, 0.4*mult)
+			gl.Color(0.2*mult, 1*mult, 0.2*mult, buttonOpacity)
 		end
 		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 		gl.Color(0, 0, 0, 0.14*mult)
@@ -239,9 +240,10 @@ local function refreshUiDrawing()
 		if not toggled and not lockPlayerID then
 			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -260,9 +262,10 @@ local function refreshUiDrawing()
 		if not toggled2 then
 			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 		local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
+		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -279,9 +282,10 @@ local function refreshUiDrawing()
 			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
 
 			local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			local fontSize = (widgetHeight * widgetScale) * 0.5
+			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
 			local textWidth = math.floor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
+			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:Print(text, toggleButton3[3] - (textWidth / 2), toggleButton3[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 			font:End()
 		end)
@@ -307,7 +311,7 @@ local function refreshUiDrawing()
 	end
 end
 
-local function updatePosition(force)
+local function updatePosition()
 	local prevPos = parentPos
 	if WG['displayinfo'] ~= nil then
 		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
@@ -327,9 +331,8 @@ local function updatePosition(force)
 		right = parentPos[4]
 		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-			createCountdownLists()
-			updateDrawing = true
+		if prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5] then
+			widget:ViewResize()
 		end
 	end
 end
@@ -367,9 +370,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	if receateLists then
+	--if receateLists then
 		updateDrawing = true
-	end
+	--end
 end
 
 
@@ -482,7 +485,7 @@ function widget:Update(dt)
 	if (buttonHovered and buttonHovered ~= prevButtonHovered) or (prevButtonHovered and prevButtonHovered ~= buttonHovered) then
 		updateDrawing = true
 	end
-	
+
 	if (isSpec or lockPlayerID) and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 then
@@ -606,7 +609,7 @@ function widget:DrawScreen()
 				uiTexTopExtra = math.floor(vsy*0.06)
 				uiTexLeftExtra = math.floor(vsy*0.06)
 				if not uiTex then
-					uiTex = gl.CreateTexture(math.floor(right-left)+uiTexLeftExtra, math.floor(top-bottom)+uiTexTopExtra, {
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -699,6 +702,36 @@ local function togglePlayerView(state)
 	updateDrawing = true
 end
 
+local function playerviewCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID then
+			Spring.SendCommands("specteam " .. teamID)
+		end
+	end
+	togglePlayerView()
+end
+
+local function playercameraCmd(_, _, params)
+	togglePlayerCamera()
+end
+
+local function playertvCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
+			Spring.SendCommands("specteam " .. teamID)
+			WG.lockcamera.SetPlayerID(playerID)
+		else
+			togglePlayerTV()
+		end
+	else
+		togglePlayerTV()
+	end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	isSpec, fullview = Spring.GetSpectatingState()
@@ -749,6 +782,10 @@ function widget:Initialize()
 	WG['playertv'].SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
+
+	widgetHandler:AddAction("playerview", playerviewCmd, nil, 't')
+	widgetHandler:AddAction("playercamera", playercameraCmd, nil, 't')
+	widgetHandler:AddAction("playertv", playertvCmd, nil, 't')
 end
 
 function widget:MousePress(mx, my, mb)
@@ -780,85 +817,43 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:ViewResize()
-	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	font = WG['fonts'].getFont(nil, 1 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
-	font2 = WG['fonts'].getFont(fontfile2, 2 * (useRenderToTexture and 1.2 or 1), 0.2 * (useRenderToTexture and 1.2 or 1), 1.3)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2, 2)
 
-	if forceRefresh or prevVsx ~= vsx or prevVsy ~= vsy then
-		forceRefresh = false
-
-		for i = 1, #drawlistsCountdown do
-			gl.DeleteList(drawlistsCountdown[i])
-		end
-		for i, v in pairs(drawlistsPlayername) do
-			gl.DeleteList(drawlistsPlayername[i])
-		end
-		drawlistsCountdown = {}
-		drawlistsPlayername = {}
-		if WG['guishader'] and backgroundGuishader then
-			WG['guishader'].DeleteDlist('playertv')
-			backgroundGuishader = nil
-			showBackgroundGuishader = nil
-		end
-		for i = 1, #drawlist do
-			drawlist[i] = gl.DeleteList(drawlist[i])
-		end
-
-		updateDrawing = true
+	for i = 1, #drawlistsCountdown do
+		gl.DeleteList(drawlistsCountdown[i])
 	end
-
-	createCountdownLists()
+	for i, v in pairs(drawlistsPlayername) do
+		gl.DeleteList(drawlistsPlayername[i])
+	end
+	drawlistsCountdown = {}
+	drawlistsPlayername = {}
+	if WG['guishader'] and backgroundGuishader then
+		if backgroundGuishader then
+			backgroundGuishader = gl.DeleteList(backgroundGuishader)
+		end
+		showBackgroundGuishader = nil
+	end
+	for i = 1, #drawlist do
+		drawlist[i] = gl.DeleteList(drawlist[i])
+	end
 
 	if uiTex then
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
+
+	updateDrawing = true
+
+	createCountdownLists()
 end
 
-function widget:TextCommand(command)
-	if string.sub(command, 1, 10) == 'playerview' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID then
-				Spring.SendCommands("specteam " .. teamID)
-			end
-		end
-		togglePlayerView()
-	end
-	if string.sub(command, 1, 12) == 'playercamera' then
-		togglePlayerCamera()
-	end
-	if string.sub(command, 1, 8) == 'playertv' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
-				Spring.SendCommands("specteam " .. teamID)
-				WG.lockcamera.SetPlayerID(playerID)
-			else
-				togglePlayerTV()
-			end
-		else
-			togglePlayerTV()
-		end
-	end
-end
 
 function widget:Shutdown()
 	for i = 1, #drawlistsCountdown do
@@ -877,14 +872,16 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
-		uiBgTex = nil
 		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
 	if toggled and WG.lockcamera then
 		WG.lockcamera.SetPlayerID()
 	end
+
+	widgetHandler:RemoveAction("playerview")
+	widgetHandler:RemoveAction("playercamera")
+	widgetHandler:RemoveAction("playertv")
 end
 
 function widget:GetConfigData(data)
@@ -908,6 +905,5 @@ function widget:SetConfigData(data)
 end
 
 function widget:LanguageChanged()
-	forceRefresh = true
 	widget:ViewResize()
 end

@@ -160,12 +160,11 @@ return {
 				range = 900,
 				reloadtime = 4,
 				rgbcolor = "1 0.55 0",
-				rgbcolor2 = "0.9 1.0 0.5",
+				rgbcolor2 = "0.95 1.0 0.7",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 6,
 				tolerance = 10000,
 				turret = true,
@@ -247,6 +246,7 @@ return {
 				customparams = {
 					nodecal = true,
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -280,8 +280,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					lups_noshockwave = true,
 					nofire = true,
+					noattackrangearc= 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 150,
@@ -297,6 +298,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,
@@ -312,6 +314,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					bogus = 1,
 				},
 				damage = {
 					default = 0,

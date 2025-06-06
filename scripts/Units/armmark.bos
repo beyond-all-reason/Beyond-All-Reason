@@ -7,7 +7,13 @@ piece  torso, Rthigh, Rleg, Rfoot, Lleg, Lfoot, Lthigh, rdish,
        ldish, pelvis,rarm, rshoulder,larm,lshoulder;
 
 static-var  bMoving, Static_Var_2;
+static-var  radarcount;
 static-var  Stunned;
+
+lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
+{
+	return 0;
+}
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -297,6 +303,8 @@ Activate()
             turn ldish to z-axis <0> speed <90>;
             turn rdish to z-axis <0> speed <90>;
             emit-sfx 1024 + 0 from torso;
+			radarcount = radarcount + 1;
+			call-script lua_UnitScriptDistortion(1, radarcount);
         }
         sleep 2500;
 
@@ -304,6 +312,8 @@ Activate()
             turn ldish to z-axis <-179> speed <90>;
             turn rdish to z-axis <179> speed <90>;
             emit-sfx 1024 + 0 from torso;
+			radarcount = radarcount + 1;
+			call-script lua_UnitScriptDistortion(1, radarcount);
         }
         sleep 2500;
 	} 

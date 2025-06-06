@@ -37,9 +37,9 @@ return {
 		customparams = {
 			maxrange = 1125,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corjuno_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecaltype = "decals/legbastion_aoplane.dds",
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Gabs",
@@ -138,13 +138,13 @@ return {
 				soundstart = "heatray3",
 				soundstartvolume = 38,
 				soundtrigger = 1,
-				targetmoveerror = 0.001,
 				thickness = 5.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
 					default = 155,
+					vtol = 15,
 				},
 				
 				customparams = {

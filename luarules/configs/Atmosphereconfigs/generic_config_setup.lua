@@ -6,7 +6,6 @@ local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
 local transitionSpeed = (mapsizez/mapsizex) * 0.66
 
-local windmin = Game.windMin
 local windmax = Game.windMax
 
 local fullcyclelength = math.ceil(mapsizex+mapsizez)*2
@@ -63,6 +62,8 @@ end
 -- atmospherelevelmult = 1.2
 -- badweatherchance = 100
 -- fireflieschance = 100
+
+local gadget = gadget ---@type Gadget
 
 function gadget:GameFrame(n)
     local clock = n%fullcyclelength

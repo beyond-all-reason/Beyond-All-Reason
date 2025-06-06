@@ -1,4 +1,6 @@
 --------------------------------------------------------------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = "Anti Ranges",
@@ -8,7 +10,7 @@ function widget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 4,
         layer     = 5,
-        enabled   = true
+        enabled   = false
     }
 end
 

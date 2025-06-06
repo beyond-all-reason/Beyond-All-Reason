@@ -143,7 +143,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 1.2,
 				tolerance = 1820,
 				turret = true,
@@ -151,6 +150,9 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 300,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 			empmissile = {
@@ -229,7 +231,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				targetmoveerror = 0,
 				thickness = 1.8,
 				turret = true,
 				weapontype = "LightningCannon",
@@ -239,6 +240,7 @@ return {
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",
 					spark_range = "125",
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 300,

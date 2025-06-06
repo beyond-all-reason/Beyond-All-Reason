@@ -34,7 +34,8 @@ return {
 		objectname = "Units/legkam.s3o",
 		script = "Units/legkam.cob",
 		seismicsignature = 0,
-		selfdestructas = "fb_blastsml",
+		selfdestructas = "",
+		selfdestructcountdown = 0,
 		sightdistance = 250,
 		speedtofront = 0.06183,
 		turnradius = 48,
@@ -46,7 +47,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			subfolder = "Legion/Air",
 			crashable = 0,
 		},
 		sfxtypes = {
