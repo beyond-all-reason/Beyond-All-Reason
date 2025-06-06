@@ -88,6 +88,7 @@ local DonatorAINames = {
     "thepanther67",
     "Zee1158", --$60
     "zGeneral",
+	"Chungus",
 }
 
 return DonatorAINames
