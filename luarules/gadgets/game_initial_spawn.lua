@@ -258,8 +258,8 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, 0,-1))
 		end
 
-		local minX, maxX = math.floor((x - footprintSize) / 8) * 8, math.floor((x + footprintSize) / 8) * 8
-		local minZ, maxZ = math.floor((z - footprintSize) / 8) * 8, math.floor((z + footprintSize) / 8) * 8
+		local minX, maxX = math.floor((x - footprintSize) / Game.squareSize) * Game.squareSize, math.floor((x + footprintSize) / Game.squareSize) * Game.squareSize
+		local minZ, maxZ = math.floor((z - footprintSize) / Game.squareSize) * Game.squareSize, math.floor((z + footprintSize) / Game.squareSize) * Game.squareSize
 		for _z = minZ, maxZ, Game.squareSize do
 			for _x = minX, maxX, Game.squareSize do
 				if select(4, Spring.GetGroundNormal(_x, _z, false)) > maxSlope then
