@@ -135,8 +135,7 @@ local lastSelectedAllyTeamID = -1
 local lastAllyTeamScores = {}
 local lastTeamRanks = {}
 
-local displayList = nil
-local rankBoxDisplayList = nil
+local compositeDisplayList = nil
 local scoreBarDisplayList = nil
 local scoreBarBackgroundDisplayList = nil
 local selectionHaloDisplayList = nil
@@ -1126,12 +1125,12 @@ local function updateDisplayLists()
 		updateTrackingVariables()
 	end
 	
-	if layoutChanged or not displayList then
-		if displayList then
-			glDeleteList(displayList)
+	if layoutChanged or not compositeDisplayList then
+		if compositeDisplayList then
+			glDeleteList(compositeDisplayList)
 		end
 		
-		displayList = glCreateList(function()
+		compositeDisplayList = glCreateList(function()
 			if selectionHaloDisplayList then
 				glCallList(selectionHaloDisplayList)
 			end
@@ -1164,8 +1163,7 @@ local function updateCachedGameState()
 end
 
 local function cleanupDisplayLists()
-	displayList = cleanupDisplayList(displayList)
-	rankBoxDisplayList = cleanupDisplayList(rankBoxDisplayList)
+	compositeDisplayList = cleanupDisplayList(compositeDisplayList)
 	scoreBarDisplayList = cleanupDisplayList(scoreBarDisplayList)
 	scoreBarBackgroundDisplayList = cleanupDisplayList(scoreBarBackgroundDisplayList)
 	selectionHaloDisplayList = cleanupDisplayList(selectionHaloDisplayList)
@@ -1194,12 +1192,12 @@ function widget:DrawScreen()
 	
 	local currentGameTime = spGetGameSeconds()
 	
-	if not displayList then
+	if not compositeDisplayList then
 		updateDisplayLists()
 	end
 	
-	if displayList then
-		glCallList(displayList)
+	if compositeDisplayList then
+		glCallList(compositeDisplayList)
 	end
 	
 	local countdownsToRender = {}
@@ -1537,7 +1535,7 @@ function widget:Update(deltaTime)
 	local newAmSpectating = spGetSpectatingState()
 	local newMyAllyID = spGetMyAllyTeamID()
 	
-	if not displayList then
+	if not compositeDisplayList then
 		forceDisplayListUpdate()
 		updateDisplayLists()
 		return
