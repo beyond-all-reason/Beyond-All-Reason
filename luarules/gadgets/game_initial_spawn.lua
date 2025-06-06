@@ -251,11 +251,12 @@ if gadgetHandler:IsSyncedCode() then
 		local groundMobile, footprintSize, maxSlope = _getUnitTraversability(unitDefID)
 
 		if groundMobile then
-			return not (Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z) and
-			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, 0, 1) and
-			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z,-1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, 0,-1))
+			local y = Spring.GetGroundHeight(x, z)
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
 		end
 
 		local minX, maxX = math.floor((x - footprintSize) / Game.squareSize) * Game.squareSize, math.floor((x + footprintSize) / Game.squareSize) * Game.squareSize
