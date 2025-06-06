@@ -13,8 +13,15 @@ local function getMiniMapFlipped()
 	return rot > math.pi/2 and rot <= 3 * math.pi/2;
 end
 
+local ROTATION = {
+    NONE = 0,       -- 0 degrees
+    DEG_90 = 1,     -- 90 degrees clockwise
+    DEG_180 = 2,    -- 180 degrees
+    DEG_270 = 3     -- 270 degrees clockwise (or 90 degrees counter-clockwise)
+}
+
 local function getCurrentMiniMapRotationOption() -- Spring.GetMiniMapRotation() returns rads, instead here we return iterations of 90 degrees (0, 1, 2, 3)
-	if not spGetMiniMapRotation then return 0 end
+	if not spGetMiniMapRotation then return ROTATION.NONE end
 
 	return math.floor((spGetMiniMapRotation() / math.pi * 2 + 0.5) % 4)
 end
@@ -29,13 +36,13 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 
 	local currRot = getCurrentMiniMapRotationOption()
 
-	if currRot == 1 then
+	if currRot == ROTATION.DEG_90 then -- rotate 90 degrees
 		x,z = z,x
 		x = 1 - x
-	elseif currRot == 2 then
+	elseif currRot == ROTATION.DEG_180 then -- rotate 180 degrees
 		x = 1 - x
 		z = 1 - z
-	elseif currRot == 3 then
+	elseif currRot == ROTATION.DEG_270 then -- rotate 270 degrees
 		x, z = z, x
 		z = 1 - z
 	end
@@ -48,4 +55,4 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 	return x, y, z
 end
 
-return { getMiniMapFlipped = getMiniMapFlipped, minimapToWorld = minimapToWorld, getCurrentMiniMapRotationOption = getCurrentMiniMapRotationOption }
+return { getMiniMapFlipped = getMiniMapFlipped, minimapToWorld = minimapToWorld, getCurrentMiniMapRotationOption = getCurrentMiniMapRotationOption, ROTATION = ROTATION }
