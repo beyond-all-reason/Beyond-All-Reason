@@ -128,8 +128,7 @@ uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 // 4 + 4 + 3 * 3 + 2 + 4 + 4 + 4 + 4 + 1 + 4 = best case 48
 // worst case: 60 
 
-// Can we get down to 32?
-// We now have it down to 41/44
+// Can we get down to 32? Yes we now have it down to exactly 32
 
 out Data {
 	// this amount of varyings is already more than we can handle safely
