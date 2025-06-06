@@ -136,21 +136,21 @@ local lastAllyTeamScores = {}
 local lastTeamRanks = {}
 
 local displayList = nil
-local staticDisplayList = nil
-local dynamicDisplayList = nil
-local backgroundDisplayList = nil
-local haloDisplayList = nil
+local rankBoxDisplayList = nil
+local scoreBarDisplayList = nil
+local scoreBarBackgroundDisplayList = nil
+local selectionHaloDisplayList = nil
 local timerWarningDisplayList = nil
 
-local needsBackgroundUpdate = false
-local needsStaticUpdate = false
-local needsDynamicUpdate = false
-local needsHaloUpdate = false
+local needsScoreBarBackgroundUpdate = false
+local needsRankBoxUpdate = false
+local needsScoreBarUpdate = false
+local needsSelectionHaloUpdate = false
 
 local LAYOUT_UPDATE_THRESHOLD = 4.0
-local DYNAMIC_UPDATE_THRESHOLD = 0.5
+local SCORE_BAR_UPDATE_THRESHOLD = 0.5
 local lastLayoutUpdate = 0
-local lastDynamicUpdate = 0
+local lastScoreBarUpdate = 0
 
 local cachedFreezeStatus = {
 	isThresholdFrozen = false,
@@ -303,10 +303,10 @@ end
 
 local function forceDisplayListUpdate()
 	lastUpdateTime = 0
-	needsBackgroundUpdate = true
-	needsStaticUpdate = true
-	needsDynamicUpdate = true
-	needsHaloUpdate = true
+	needsScoreBarBackgroundUpdate = true
+	needsRankBoxUpdate = true
+	needsScoreBarUpdate = true
+	needsSelectionHaloUpdate = true
 	
 	cache:invalidate(CACHE_KEYS.LAYOUT_DATA)
 end
@@ -439,20 +439,13 @@ local function getCachedTintedColor(baseColor, tintColor, strength, cacheKey)
 	end, CACHE_TTL.STATIC)
 end
 
-local function drawTextWithOutline(text, textPositionX, textPositionY, fontSize, alignment, color, outlineOffset, outlineAlpha)
-	local offset = outlineOffset or TEXT_OUTLINE_OFFSET
-	local alpha = outlineAlpha or TEXT_OUTLINE_ALPHA
+local function drawTextWithOutline(text, textPositionX, textPositionY, fontSize, alignment, color)
+	glColor(0, 0, 0, TEXT_OUTLINE_ALPHA)
 	
-	if alpha == TEXT_OUTLINE_ALPHA then
-		glColor(0, 0, 0, TEXT_OUTLINE_ALPHA)
-	else
-		glColor(0, 0, 0, alpha)
-	end
-	
-	glText(text, textPositionX - offset, textPositionY, fontSize, alignment)
-	glText(text, textPositionX + offset, textPositionY, fontSize, alignment)
-	glText(text, textPositionX, textPositionY - offset, fontSize, alignment)
-	glText(text, textPositionX, textPositionY + offset, fontSize, alignment)
+	glText(text, textPositionX - TEXT_OUTLINE_OFFSET, textPositionY, fontSize, alignment)
+	glText(text, textPositionX + TEXT_OUTLINE_OFFSET, textPositionY, fontSize, alignment)
+	glText(text, textPositionX, textPositionY - TEXT_OUTLINE_OFFSET, fontSize, alignment)
+	glText(text, textPositionX, textPositionY + TEXT_OUTLINE_OFFSET, fontSize, alignment)
 	
 	glColor(color[1], color[2], color[3], color[4])
 	glText(text, textPositionX, textPositionY, fontSize, alignment)
@@ -587,7 +580,7 @@ local function drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exce
 		   linePos + lineWidth/2, scorebarTop + lineExtension)
 end
 
-local function drawOptimizedScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, threshold, barColor, isThresholdFrozen)
+local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, threshold, barColor, isThresholdFrozen)
 	local barWidth = scorebarRight - scorebarLeft
 	local exceedsMaxThreshold = score > maxThreshold
 	local borderSize = 3
@@ -949,12 +942,12 @@ local function manageCountdownUpdates()
 	return updatedCountdowns
 end
 
-local function createOptimizedHaloDisplayList(allyTeamData)
-	if haloDisplayList then
-		glDeleteList(haloDisplayList)
+local function createSelectionHaloDisplayList(allyTeamData)
+	if selectionHaloDisplayList then
+		glDeleteList(selectionHaloDisplayList)
 	end
 	
-	haloDisplayList = glCreateList(function()
+	selectionHaloDisplayList = glCreateList(function()
 		if not amSpectating or selectedAllyTeamID == gaiaAllyTeamID or selectedAllyTeamID == -1 then
 			return
 		end
@@ -992,12 +985,12 @@ local function createOptimizedHaloDisplayList(allyTeamData)
 	end)
 end
 
-local function createOptimizedBackgroundDisplayList(allyTeamData)
-	if backgroundDisplayList then
-		glDeleteList(backgroundDisplayList)
+local function createScoreBarBackgroundDisplayList(allyTeamData)
+	if scoreBarBackgroundDisplayList then
+		glDeleteList(scoreBarBackgroundDisplayList)
 	end
 	
-	backgroundDisplayList = glCreateList(function()
+	scoreBarBackgroundDisplayList = glCreateList(function()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
@@ -1018,12 +1011,12 @@ local function createOptimizedBackgroundDisplayList(allyTeamData)
 	end)
 end
 
-local function createOptimizedStaticDisplayList(allyTeamData)
-	if staticDisplayList then
-		glDeleteList(staticDisplayList)
+local function createRankBoxDisplayList(allyTeamData)
+	if rankBoxDisplayList then
+		glDeleteList(rankBoxDisplayList)
 	end
 	
-	staticDisplayList = glCreateList(function()
+	rankBoxDisplayList = glCreateList(function()
 		if not amSpectating then
 			for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 				if allyTeamDataEntry.rank and allyTeamDataEntry.teamID then
@@ -1053,19 +1046,19 @@ local function createOptimizedStaticDisplayList(allyTeamData)
 	end)
 end
 
-local function createOptimizedDynamicDisplayList(allyTeamData)
-	if dynamicDisplayList then
-		glDeleteList(dynamicDisplayList)
+local function createScoreBarDisplayList(allyTeamData)
+	if scoreBarDisplayList then
+		glDeleteList(scoreBarDisplayList)
 	end
 	
-	dynamicDisplayList = glCreateList(function()
+	scoreBarDisplayList = glCreateList(function()
 		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 		local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
 
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 			local barPosition = getBarPositionsCached(allyTeamIndex)
 			
-			drawOptimizedScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, threshold, allyTeamDataEntry.teamColor, isThresholdFrozen)
+			drawScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, threshold, allyTeamDataEntry.teamColor, isThresholdFrozen)
 			
 			local difference = allyTeamDataEntry.score - threshold
 			local differenceVerticalOffset = 4
@@ -1094,7 +1087,7 @@ local function createOptimizedDynamicDisplayList(allyTeamData)
 	end)
 end
 
-local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
+local function createCountdownDisplayList(timeRemaining, allyTeamID)
 	allyTeamID = allyTeamID or myAllyID
 	
 	local cacheKey = allyTeamID .. "_" .. timeRemaining
@@ -1140,7 +1133,7 @@ local function createOptimizedCountdownDisplayList(timeRemaining, allyTeamID)
 	return allyTeamCountdownDisplayLists[cacheKey]
 end
 
-local function updateScoreDisplayList()
+local function updateDisplayLists()
 	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
 	scorebarWidth = minimapSizeX - HALVED_ICON_SIZE
 
@@ -1148,31 +1141,31 @@ local function updateScoreDisplayList()
 	
 	local allyTeamData = getAllyTeamDisplayData()
 	
-	needsBackgroundUpdate = needsBackgroundUpdate or not backgroundDisplayList or layoutChanged
-	needsHaloUpdate = needsHaloUpdate or not haloDisplayList or layoutChanged or (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
-	needsStaticUpdate = needsStaticUpdate or not staticDisplayList or layoutChanged
-	needsDynamicUpdate = needsDynamicUpdate or not dynamicDisplayList or (currentTime - lastDynamicUpdate > DYNAMIC_UPDATE_THRESHOLD) or needsDisplayListUpdate()
+	needsScoreBarBackgroundUpdate = needsScoreBarBackgroundUpdate or not scoreBarBackgroundDisplayList or layoutChanged
+	needsSelectionHaloUpdate = needsSelectionHaloUpdate or not selectionHaloDisplayList or layoutChanged or (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
+	needsRankBoxUpdate = needsRankBoxUpdate or not rankBoxDisplayList or layoutChanged
+	needsScoreBarUpdate = needsScoreBarUpdate or not scoreBarDisplayList or (currentTime - lastScoreBarUpdate > SCORE_BAR_UPDATE_THRESHOLD) or needsDisplayListUpdate()
 	
-	if needsBackgroundUpdate then
-		createOptimizedHaloDisplayList(allyTeamData)
-		createOptimizedBackgroundDisplayList(allyTeamData)
-		needsBackgroundUpdate = false
+	if needsScoreBarBackgroundUpdate then
+		createSelectionHaloDisplayList(allyTeamData)
+		createScoreBarBackgroundDisplayList(allyTeamData)
+		needsScoreBarBackgroundUpdate = false
 	end
 	
-	if needsHaloUpdate then
-		createOptimizedHaloDisplayList(allyTeamData)
-		needsHaloUpdate = false
+	if needsSelectionHaloUpdate then
+		createSelectionHaloDisplayList(allyTeamData)
+		needsSelectionHaloUpdate = false
 	end
 	
-	if needsStaticUpdate then
-		createOptimizedStaticDisplayList(allyTeamData)
-		needsStaticUpdate = false
+	if needsRankBoxUpdate then
+		createRankBoxDisplayList(allyTeamData)
+		needsRankBoxUpdate = false
 	end
 	
-	if needsDynamicUpdate then
-		createOptimizedDynamicDisplayList(allyTeamData)
-		needsDynamicUpdate = false
-		lastDynamicUpdate = currentTime
+	if needsScoreBarUpdate then
+		createScoreBarDisplayList(allyTeamData)
+		needsScoreBarUpdate = false
+		lastScoreBarUpdate = currentTime
 		updateTrackingVariables()
 	end
 	
@@ -1182,17 +1175,17 @@ local function updateScoreDisplayList()
 		end
 		
 		displayList = glCreateList(function()
-			if haloDisplayList then
-				glCallList(haloDisplayList)
+			if selectionHaloDisplayList then
+				glCallList(selectionHaloDisplayList)
 			end
-			if backgroundDisplayList then
-				glCallList(backgroundDisplayList)
+			if scoreBarBackgroundDisplayList then
+				glCallList(scoreBarBackgroundDisplayList)
 			end
-			if staticDisplayList then
-				glCallList(staticDisplayList)
+			if rankBoxDisplayList then
+				glCallList(rankBoxDisplayList)
 			end
-			if dynamicDisplayList then
-				glCallList(dynamicDisplayList)
+			if scoreBarDisplayList then
+				glCallList(scoreBarDisplayList)
 			end
 		end)
 	end
@@ -1216,12 +1209,12 @@ local function updateCachedGameState()
 	cachedGameState.lastUpdate = gameSeconds
 end
 
-local function cleanupOptimizedDisplayLists()
+local function cleanupDisplayLists()
 	displayList = cleanupDisplayList(displayList)
-	staticDisplayList = cleanupDisplayList(staticDisplayList)
-	dynamicDisplayList = cleanupDisplayList(dynamicDisplayList)
-	backgroundDisplayList = cleanupDisplayList(backgroundDisplayList)
-	haloDisplayList = cleanupDisplayList(haloDisplayList)
+	rankBoxDisplayList = cleanupDisplayList(rankBoxDisplayList)
+	scoreBarDisplayList = cleanupDisplayList(scoreBarDisplayList)
+	scoreBarBackgroundDisplayList = cleanupDisplayList(scoreBarBackgroundDisplayList)
+	selectionHaloDisplayList = cleanupDisplayList(selectionHaloDisplayList)
 	timerWarningDisplayList = cleanupDisplayList(timerWarningDisplayList)
 	
 	cleanupCountdowns()
@@ -1248,7 +1241,7 @@ function widget:DrawScreen()
 	local currentGameTime = spGetGameSeconds()
 	
 	if not displayList then
-		updateScoreDisplayList()
+		updateDisplayLists()
 	end
 	
 	if displayList then
@@ -1270,7 +1263,7 @@ function widget:DrawScreen()
 		
 		for cacheKey, countdownData in pairs(countdownsToRender) do
 			if not allyTeamCountdownDisplayLists[cacheKey] then
-				createOptimizedCountdownDisplayList(countdownData.timeRemaining, countdownData.allyTeamID)
+				createCountdownDisplayList(countdownData.timeRemaining, countdownData.allyTeamID)
 			end
 			
 			local displayList = allyTeamCountdownDisplayLists[cacheKey]
@@ -1285,7 +1278,7 @@ function widget:DrawScreen()
 				local cacheKey = myAllyID .. "_" .. timeRemaining
 				
 				if not allyTeamCountdownDisplayLists[cacheKey] then
-					createOptimizedCountdownDisplayList(timeRemaining, myAllyID)
+					createCountdownDisplayList(timeRemaining, myAllyID)
 				end
 				
 				local displayList = allyTeamCountdownDisplayLists[cacheKey]
@@ -1311,7 +1304,7 @@ function widget:PlayerChanged(playerID)
 				if newSelectedAllyTeamID ~= selectedAllyTeamID then
 					selectedAllyTeamID = newSelectedAllyTeamID
 					forceDisplayListUpdate()
-					updateScoreDisplayList()
+					updateDisplayLists()
 				end
 				return
 			end
@@ -1319,7 +1312,7 @@ function widget:PlayerChanged(playerID)
 		if selectedAllyTeamID ~= myAllyID then
 			selectedAllyTeamID = myAllyID
 			forceDisplayListUpdate()
-			updateScoreDisplayList()
+			updateDisplayLists()
 		end
 	end
 end
@@ -1428,8 +1421,8 @@ function widget:GameFrame(frame)
 				cache:invalidate("spectator_teams")
 				cache:invalidate("player_team")
 			end
-			needsStaticUpdate = true
-			needsDynamicUpdate = true
+			needsRankBoxUpdate = true
+			needsScoreBarUpdate = true
 		end
 		
 		if dataChanged or rankChanged or teamStatusChanged then
@@ -1504,7 +1497,7 @@ function widget:GameFrame(frame)
 	if frameBasedUpdates.teamScoreCheck >= 15 then
 		frameBasedUpdates.teamScoreCheck = 0
 		if teamScoresChanged() then
-			needsDynamicUpdate = true
+			needsScoreBarUpdate = true
 		end
 	end
 	
@@ -1555,12 +1548,12 @@ function widget:Initialize()
 		end
 	end
 	
-	needsHaloUpdate = true
-	needsBackgroundUpdate = true
-	needsStaticUpdate = true
-	needsDynamicUpdate = true
+	needsSelectionHaloUpdate = true
+	needsScoreBarBackgroundUpdate = true
+	needsRankBoxUpdate = true
+	needsScoreBarUpdate = true
 	
-	updateScoreDisplayList()
+	updateDisplayLists()
 	
 	local allUnits = spGetAllUnits()
 	
@@ -1594,7 +1587,7 @@ function widget:Update(deltaTime)
 	
 	if not displayList then
 		forceDisplayListUpdate()
-		updateScoreDisplayList()
+		updateDisplayLists()
 		return
 	end
 	
@@ -1610,7 +1603,7 @@ function widget:Update(deltaTime)
 		
 		cleanupCountdowns()
 		forceDisplayListUpdate()
-		updateScoreDisplayList()
+		updateDisplayLists()
 		return
 	end
 	
@@ -1620,7 +1613,7 @@ function widget:Update(deltaTime)
 		local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 		local currentBlinkState = blinkPhase < 0.33
 		if isSkullFaded ~= currentBlinkState then
-			needsDynamicUpdate = true
+			needsScoreBarUpdate = true
 		end
 	end
 	
@@ -1628,23 +1621,23 @@ function widget:Update(deltaTime)
 	if layoutUpdateCounter >= 120 then
 		layoutUpdateCounter = 0
 		if updateLayoutCache() then
-			needsDynamicUpdate = true
+			needsScoreBarUpdate = true
 		end
 	end
 	
 	local needsUpdate = false
 	local forceUpdate = false
 	
-	if currentTime - lastDynamicUpdate > DYNAMIC_UPDATE_THRESHOLD then
+	if currentTime - lastScoreBarUpdate > SCORE_BAR_UPDATE_THRESHOLD then
 		if needsDisplayListUpdate() then
-			needsDynamicUpdate = true
+			needsScoreBarUpdate = true
 			needsUpdate = true
 		end
 	end
 	
 	if currentTime - lastUpdateTime > UPDATE_FREQUENCY then
 		lastUpdateTime = currentTime
-		if currentTime - lastDynamicUpdate > UPDATE_FREQUENCY then
+		if currentTime - lastScoreBarUpdate > UPDATE_FREQUENCY then
 			forceUpdate = true
 		end
 	end
@@ -1654,10 +1647,10 @@ function widget:Update(deltaTime)
 	end
 	
 	if needsUpdate or forceUpdate then
-		updateScoreDisplayList()
+		updateDisplayLists()
 	end
 end
 
 function widget:Shutdown()
-	cleanupOptimizedDisplayLists()
+	cleanupDisplayLists()
 end
