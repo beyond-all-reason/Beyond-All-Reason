@@ -143,7 +143,6 @@ local selectionHaloDisplayList = nil
 local timerWarningDisplayList = nil
 
 local needsScoreBarBackgroundUpdate = false
-local needsRankBoxUpdate = false
 local needsScoreBarUpdate = false
 local needsSelectionHaloUpdate = false
 
@@ -252,7 +251,6 @@ local cache = {
 local CACHE_KEYS = {
 	FONT_DATA = "font_data",
 	LAYOUT_DATA = "layout_data",
-	MINIMAP_GEOMETRY = "minimap_geometry",
 	TEAM_COLOR = "team_color_%d",
 	TINTED_COLOR = "tinted_color_%s"
 }
@@ -284,13 +282,6 @@ local layoutCache = cache:getOrCompute(CACHE_KEYS.LAYOUT_DATA, function()
 	}
 end, CACHE_TTL.STATIC)
 
-local function getCachedMinimapGeometry()
-	return cache:getOrCompute(CACHE_KEYS.MINIMAP_GEOMETRY, function()
-		local posX, posY, sizeX = spGetMiniMapGeometry()
-		return {posX, posY, sizeX}
-	end, CACHE_TTL.FAST)[1], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][2], cache.data[CACHE_KEYS.MINIMAP_GEOMETRY][3]
-end
-
 local function createTintedColor(baseColor, tintColor, strength)
 	local tintedColor = {
 		baseColor[1] + (tintColor[1] - baseColor[1]) * strength,
@@ -304,7 +295,6 @@ end
 local function forceDisplayListUpdate()
 	lastUpdateTime = 0
 	needsScoreBarBackgroundUpdate = true
-	needsRankBoxUpdate = true
 	needsScoreBarUpdate = true
 	needsSelectionHaloUpdate = true
 	
@@ -401,7 +391,7 @@ local function calculateLayoutParameters(totalTeams, minimapSizeX)
 end
 
 local function calculateBarPosition(index)
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	
 	local layout = cache:getOrCompute("layout_params", function()
 		local displayTeams = amSpectating and aliveAllyTeams or {myAllyID}
@@ -768,7 +758,7 @@ local function needsDisplayListUpdate()
 	local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	
 	local currentScore, currentDifference, currentTeamID, currentRank
 	
@@ -810,7 +800,7 @@ end
 
 local function updateTrackingVariables()
 	local currentGameTime = spGetGameSeconds()
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	local isThresholdFrozen = (spGetGameRulesParam(FREEZE_DELAY_KEY) or 0) > currentGameTime
@@ -825,7 +815,7 @@ local function updateLayoutCache()
 	end
 	
 	local vsx, vsy = spGetViewGeometry()
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	
 	local needsUpdate = not layoutCache.initialized or layoutCache.minimapDimensions[1] ~= minimapPosX or layoutCache.minimapDimensions[2] ~= minimapPosY or layoutCache.minimapDimensions[3] ~= minimapSizeX or layoutCache.lastViewportSize[1] ~= vsx or layoutCache.lastViewportSize[2] ~= vsy
 	
@@ -872,7 +862,7 @@ local function getBarPositionsCached(index)
 end
 
 local function calculateCountdownPosition(allyTeamID, barIndex)
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	
 	if not barIndex then
@@ -1011,41 +1001,6 @@ local function createScoreBarBackgroundDisplayList(allyTeamData)
 	end)
 end
 
-local function createRankBoxDisplayList(allyTeamData)
-	if rankBoxDisplayList then
-		glDeleteList(rankBoxDisplayList)
-	end
-	
-	rankBoxDisplayList = glCreateList(function()
-		if not amSpectating then
-			for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
-				if allyTeamDataEntry.rank and allyTeamDataEntry.teamID then
-					local barPosition = getBarPositionsCached(allyTeamIndex)
-					
-					local rankText = spI18N('ui.territorialDomination.rank', {rank = allyTeamDataEntry.rank})
-					local textWidth = glGetTextWidth(rankText) * fontCache.fontSize
-					local textHeight = fontCache.fontSize
-					
-					local paddingX = textWidth * 0.2
-					local paddingY = textHeight * 0.2
-					local rankBoxWidth = textWidth + (paddingX * 1)
-					local rankBoxHeight = textHeight + (paddingY * 1)
-					
-					local rankPositionX = barPosition.scorebarLeft
-					local rankPositionY = barPosition.scorebarBottom - rankBoxHeight
-					
-					glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
-					glRect(rankPositionX - BORDER_WIDTH, rankPositionY - BORDER_WIDTH, 
-						   rankPositionX + rankBoxWidth + BORDER_WIDTH, rankPositionY + rankBoxHeight + BORDER_WIDTH)
-					
-					glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
-					glRect(rankPositionX, rankPositionY, rankPositionX + rankBoxWidth, rankPositionY + rankBoxHeight)
-				end
-			end
-		end
-	end)
-end
-
 local function createScoreBarDisplayList(allyTeamData)
 	if scoreBarDisplayList then
 		glDeleteList(scoreBarDisplayList)
@@ -1076,10 +1031,18 @@ local function createScoreBarDisplayList(allyTeamData)
 				local rankBoxHeight = textHeight + (paddingY * 1)
 				
 				local rankPositionX = barPosition.scorebarLeft
-				local rankPositionY = barPosition.scorebarBottom - rankBoxHeight - textHeight * 0.2
+				local rankPositionY = barPosition.scorebarBottom - rankBoxHeight
+				
+				-- Draw rank background box
+				glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
+				glRect(rankPositionX - BORDER_WIDTH, rankPositionY - BORDER_WIDTH, 
+					   rankPositionX + rankBoxWidth + BORDER_WIDTH, rankPositionY + rankBoxHeight + BORDER_WIDTH)
+				
+				glColor(COLOR_BACKGROUND[1], COLOR_BACKGROUND[2], COLOR_BACKGROUND[3], COLOR_BACKGROUND[4])
+				glRect(rankPositionX, rankPositionY, rankPositionX + rankBoxWidth, rankPositionY + rankBoxHeight)
 				
 				local centerX = rankPositionX + rankBoxWidth / 2
-				local centerY = rankPositionY + rankBoxHeight / 2
+				local centerY = rankPositionY + rankBoxHeight / 2 - paddingY
 				
 				drawTextWithOutline(rankText, centerX, centerY, fontCache.fontSize, "c", COLOR_WHITE)
 			end
@@ -1134,7 +1097,7 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 end
 
 local function updateDisplayLists()
-	local minimapPosX, minimapPosY, minimapSizeX = getCachedMinimapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	scorebarWidth = minimapSizeX - HALVED_ICON_SIZE
 
 	local layoutChanged = updateLayoutCache()
@@ -1143,7 +1106,6 @@ local function updateDisplayLists()
 	
 	needsScoreBarBackgroundUpdate = needsScoreBarBackgroundUpdate or not scoreBarBackgroundDisplayList or layoutChanged
 	needsSelectionHaloUpdate = needsSelectionHaloUpdate or not selectionHaloDisplayList or layoutChanged or (amSpectating and lastSelectedAllyTeamID ~= selectedAllyTeamID)
-	needsRankBoxUpdate = needsRankBoxUpdate or not rankBoxDisplayList or layoutChanged
 	needsScoreBarUpdate = needsScoreBarUpdate or not scoreBarDisplayList or (currentTime - lastScoreBarUpdate > SCORE_BAR_UPDATE_THRESHOLD) or needsDisplayListUpdate()
 	
 	if needsScoreBarBackgroundUpdate then
@@ -1155,11 +1117,6 @@ local function updateDisplayLists()
 	if needsSelectionHaloUpdate then
 		createSelectionHaloDisplayList(allyTeamData)
 		needsSelectionHaloUpdate = false
-	end
-	
-	if needsRankBoxUpdate then
-		createRankBoxDisplayList(allyTeamData)
-		needsRankBoxUpdate = false
 	end
 	
 	if needsScoreBarUpdate then
@@ -1180,9 +1137,6 @@ local function updateDisplayLists()
 			end
 			if scoreBarBackgroundDisplayList then
 				glCallList(scoreBarBackgroundDisplayList)
-			end
-			if rankBoxDisplayList then
-				glCallList(rankBoxDisplayList)
 			end
 			if scoreBarDisplayList then
 				glCallList(scoreBarDisplayList)
@@ -1421,7 +1375,6 @@ function widget:GameFrame(frame)
 				cache:invalidate("spectator_teams")
 				cache:invalidate("player_team")
 			end
-			needsRankBoxUpdate = true
 			needsScoreBarUpdate = true
 		end
 		
@@ -1550,7 +1503,6 @@ function widget:Initialize()
 	
 	needsSelectionHaloUpdate = true
 	needsScoreBarBackgroundUpdate = true
-	needsRankBoxUpdate = true
 	needsScoreBarUpdate = true
 	
 	updateDisplayLists()
