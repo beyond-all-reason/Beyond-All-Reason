@@ -218,43 +218,46 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
-	local _unitTolorances = {}
-	--- @return number maxSlope
-	--- @return number footprintSize Half of the biggest footprint out of the x/z
-	local function _getUnitTolorance(unitDefID)
+	local _unitTraversability = {}
+	--- @return boolean groundMobile if the unit navigates on ground/sea
+	--- @return number footprintSize if immobile, Half of the biggest footprint out of the x/z
+	--- @return number maxSlope if immobile, Half of the biggest footprint out of the x/z
+	local function _getUnitTraversability(unitDefID)
 		if not unitDefID then
-			return 1, 0
+			return false, 0, 1
 		end
 
-		local tolorance = _unitTolorances[unitDefID]
-		if tolorance then
-			return tolorance[1], tolorance[2]
+		local traversability = _unitTraversability[unitDefID]
+		if traversability then
+			return traversability[1], traversability[2], traversability[3]
 		end
 
 		local unitDef = UnitDefs[unitDefID]
-		-- TODO: this currently suffices for current commanders only
-		-- 1. figure out how to detect if a unit sinks (and how deep can it go) or floats (and how shallow of water it needs)
-		-- 2. building slope and footprint
 		if unitDef.canFly then
-			-- assume seaplane
-			tolorance = {1, 0}
+			traversability = {false, 0, 1}
 		elseif unitDef.moveDef then
-			tolorance = {
-				unitDef.moveDef.maxSlope,
-				math.max(unitDef.moveDef.xsize, unitDef.moveDef.zsize) / 2,
-			}
+			traversability = {true}
 		else
-			tolorance = {1, 0}
+			-- TODO: buidlings: false, half of footpring, max slope (0..1)
+			traversability = {false, 0, 1}
 		end
 
-		_unitTolorances[unitDefID] = tolorance
-		return tolorance[1], tolorance[2]
+		_unitTraversability[unitDefID] = traversability
+		return traversability[1], traversability[2], traversability[3]
 	end
 
-	--- @return boolean traversable if the unit can not traverse the passed in x/z position
-	-- TODO: add water debth test based on if the unit needs water or can't go into water, see: _getUnitTolorance
-	local function canUnitNotNavigate(x, z, unitDefID)
-		local maxSlope, footprintSize = _getUnitTolorance(unitDefID)
+	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
+	local function isFootingUntraversable(x, z, unitDefID)
+		local groundMobile, footprintSize, maxSlope = _getUnitTraversability(unitDefID)
+
+		if groundMobile then
+			return not (Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z) and
+			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, 0,-1))
+		end
+
 		local minX, maxX = math.floor((x - footprintSize) / 8) * 8, math.floor((x + footprintSize) / 8) * 8
 		local minZ, maxZ = math.floor((z - footprintSize) / 8) * 8, math.floor((z + footprintSize) / 8) * 8
 		for _z = minZ, maxZ, Game.squareSize do
@@ -264,7 +267,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
 		return false
 	end
 
@@ -322,7 +324,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if canUnitNotNavigate(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+		if isFootingUntraversable(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
 			return false
 		end
 
