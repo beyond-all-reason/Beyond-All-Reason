@@ -63,15 +63,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitMoveDef = {}
 	local canFly = {}
-	local isHover = {}
 	local unitHeight = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
-		end
-		if unitDef.category and string.find(unitDef.category, "HOVER") then --Actual check for hovercraft, currently unused
-			isHover[unitDefID] = true
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -132,26 +128,21 @@ if gadgetHandler:IsSyncedCode() then
 						local tr = UnitDefs[UnitDefID].turnRate
 						local ar = UnitDefs[UnitDefID].maxAcc
 						lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
-						-- Spring.Echo("Unit entering lava:", lavaUnits[unitID])
 					else -- Already in lava justupdate slow factor
 						lavaUnits[unitID].unitSlow = us
 					end
 					if lavaUnits[unitID].slowed and lavaUnits[unitID].slowed == true then
-						-- calculate the slowed movement parameters
 						local unitSlow = lavaUnits[unitID].unitSlow
 						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
 						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow
 						local slowedAccRate = lavaUnits[unitID].orgAccRate * unitSlow
-						-- set the new speed
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
-						-- Spring.Echo("Lava slow updated: ", unitID, slowedMaxSpeed, slowedTurnRate, slowedAccRate)
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
-				elseif lavaUnits[unitID] then -- unit is out of lava, reset speed if it was slowed and remove from lavaUnits table
+				elseif lavaUnits[unitID] then 
 					if lavaUnits[unitID].slowed then
 						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
-						-- Spring.Echo("Lava debuf removed from unit: ", unitID, lavaUnits[unitID].orgSpeed, lavaUnits[unitID].orgTurnRate, lavaUnits[unitID].orgAccRate)
 					end
 				lavaUnits[unitID] = nil
 				end
