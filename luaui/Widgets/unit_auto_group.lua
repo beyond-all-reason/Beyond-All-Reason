@@ -171,7 +171,7 @@ local function changeUnitTypeAutogroup(gr, removeAll)
 end
 
 local function changeUnitTypeAutogroupHandler(_, _, args, data)
-	local gr = args[1]
+	local gr = args and args[1]
 	local removeAll = data and data['removeAll']
 
 	changeUnitTypeAutogroup(gr, removeAll)

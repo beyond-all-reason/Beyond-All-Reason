@@ -141,6 +141,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
+					norangering = 1,
 				}
 			},
 			armamb_gun_high = {
@@ -205,6 +206,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
+					norangering = 1,
 				}
 			},
 		},

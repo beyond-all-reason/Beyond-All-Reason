@@ -138,7 +138,7 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
 				}
 			},
 			hllt_2 = {
@@ -177,7 +177,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 			hllt_3 = {
@@ -216,7 +217,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 			hllt_4 = {
@@ -255,7 +257,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 		},

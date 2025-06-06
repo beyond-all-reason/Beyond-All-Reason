@@ -32,8 +32,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leggeo_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			cvbuildable = true,

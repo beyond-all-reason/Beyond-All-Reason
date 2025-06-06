@@ -11,9 +11,9 @@ function gadget:GetInfo()
 		enabled = true,
 	}
 end
-if gadgetHandler:IsSyncedCode() then
 
-	include("luarules/configs/customcmds.h.lua")
+
+if gadgetHandler:IsSyncedCode() then
 
 	local isFactory = {}
 	for udid = 1, #UnitDefs do
@@ -27,6 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
+	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 	local CMD_WAIT = CMD.WAIT
 	local EMPTY = {}
 	local DEQUEUE_OPTS = CMD.OPT_RIGHT -- right: dequeue, ctrl+shift: 100

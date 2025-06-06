@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 260,
-		transportcapacity = 8,
+		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,

@@ -43,9 +43,9 @@ return {						--costs should be same as legmohocon and legmohoconin
 		icontype = "legmohocon",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecaltype = "decals/legmohocon_aoplane.dds",
+			buildinggrounddecalsizey = 7,
+			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis and Protar",

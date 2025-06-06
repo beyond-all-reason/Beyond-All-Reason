@@ -57,7 +57,6 @@ local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-local currentResValue = { metal = 1000, energy = 1000 }
 local energyOverflowLevel, metalOverflowLevel
 local wholeTeamWastingMetalCount = 0
 local allyteamOverflowingMetal = false
@@ -104,7 +103,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 -- Graphics
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -156,6 +154,28 @@ local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
 local prevShowButtons = showButtons
 
+
+-- Smoothing
+local smoothedResources = {
+    metal = {0, 0, 0, 0, 0, 0},  -- Init
+    energy = {0, 0, 0, 0, 0, 0}  -- Init
+}
+local smoothingFactor = 0.5
+local function smoothResources()
+    local currentResources = r
+    for _, resType in ipairs({'metal', 'energy'}) do
+        for i = 1, 6 do
+            if smoothedResources[resType][i] == 0 then
+                smoothedResources[resType][i] = currentResources[resType][i]
+            else
+                smoothedResources[resType][i] = smoothingFactor * currentResources[resType][i] + (1 - smoothingFactor) * smoothedResources[resType][i]
+            end
+        end
+    end
+    return
+end
+
+
 -- Interactions
 local draggingShareIndicatorValue = {}
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
@@ -179,7 +199,7 @@ local blinkDirection = true
 local blinkProgress = 0
 local guishaderCheckUpdateRate = 0.5
 
-
+local nextSmoothUpdate = 0
 --------------------------------------------------------------------------------
 
 local function getPlayerLiveAllyCount()
@@ -223,9 +243,8 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
-	font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), 1.4+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
@@ -275,11 +294,11 @@ local function updateButtons()
 
 	if not gameIsOver and chobbyLoaded then
 		addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
-		if not spec and gameStarted and not isSinglePlayer then
-			addButton('resign', Spring.I18N('ui.topbar.button.resign'))
-		end
 	else
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+	end
+	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
+		addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 	end
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
@@ -615,7 +634,7 @@ local function drawResbarValue(res)
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -770,58 +789,59 @@ local function updateResbar(res)
 end
 
 local function updateResbarValues(res, update)
-	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local valueWidth = lastValueWidth[res]
-
 	if update then
+		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
+		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
 		updateRes[res][1] = true
-
-		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-		if r[res][1] > r[res][2] * 1.07 then cappedCurRes = r[res][2] * 1.07 end
+		local maxStorageRes = smoothedResources[res][2]
+		local cappedCurRes = smoothedResources[res][1]    -- limit so when production dies the value wont be much larger than what you can store
+		if cappedCurRes >maxStorageRes * 1.07 then cappedCurRes =maxStorageRes * 1.07 end
 		local barSize = barHeight * 0.2
-		valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
+		local valueWidth = math_floor(((cappedCurRes /maxStorageRes) * barWidth))
 		if valueWidth < math.ceil(barSize) then valueWidth = math.ceil(barSize) end
-		lastValueWidth[res] = valueWidth
+		if valueWidth ~= lastValueWidth[res] then  -- only recalc if the width changed
+			lastValueWidth[res] = valueWidth
 
-		-- resbar
-		dlistResValuesBar[res] = glCreateList(function()
-			local glowSize = barHeight * 7
-			local color1, color2, glowAlpha
+			-- resbar
+			if dlistResValuesBar[res] then  glDeleteList(dlistResValuesBar[res]) end
+			dlistResValuesBar[res] = glCreateList(function()
+				local glowSize = barHeight * 7
+				local color1, color2, glowAlpha
 
-			if res == 'metal' then
-				color1 = { 0.51, 0.51, 0.5, 1 }
-				color2 = { 0.95, 0.95, 0.95, 1 }
-				glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-			else
-				color1 = { 0.5, 0.45, 0, 1 }
-				color2 = { 0.8, 0.75, 0, 1 }
-				glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-			end
+				if res == 'metal' then
+					color1 = { 0.51, 0.51, 0.5, 1 }
+					color2 = { 0.95, 0.95, 0.95, 1 }
+					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+				else
+					color1 = { 0.5, 0.45, 0, 1 }
+					color2 = { 0.8, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+				end
 
-			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
-			local borderSize = 1
-			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+				RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
+				local borderSize = 1
+				RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
 
-			-- Bar value glow
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-			glTexture(barGlowCenterTexture)
-			DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-			glTexture(barGlowEdgeTexture)
-			DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-			DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-			glTexture(false)
-
-			if res == 'metal' then
-				glTexture(noiseBackgroundTexture)
-				glColor(1,1,1, 0.37)
-				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
+				-- Bar value glow
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+				glTexture(barGlowCenterTexture)
+				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+				glTexture(barGlowEdgeTexture)
+				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 				glTexture(false)
-			end
 
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end)
+				if res == 'metal' then
+					glTexture(noiseBackgroundTexture)
+					glColor(1,1,1, 0.37)
+					TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
+					glTexture(false)
+				end
+
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			end)
+		end
 
 		-- energy glow effect
 		if res == 'energy' then
@@ -846,7 +866,6 @@ local function updateResbarValues(res, update)
 		end
 
 		-- resbar text
-		currentResValue[res] = short(cappedCurRes)
 		if not useRenderToTexture then
 			if dlistResValues[res] then
 				glDeleteList(dlistResValues[res])
@@ -1058,7 +1077,7 @@ function widget:Update(dt)
 		mx, my = spGetMouseState()
 
 		hoveringTopbar = false
-		if my > topbarArea[2] then
+		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 			if hoveringTopbar then
 				Spring.SetMouseCursor('cursornormal')
@@ -1086,7 +1105,7 @@ function widget:Update(dt)
 
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
 		nextGuishaderCheck = now + guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI Shader"] ~= 0 then
+		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
 		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
@@ -1096,9 +1115,6 @@ function widget:Update(dt)
 
 	if now > nextResBarUpdate then
 		nextResBarUpdate = now + 0.05
-
-		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-
 		if not spec and not showQuitscreen then
 			if hoveringTopbar == 'energy' then
 				if not resbarHover then
@@ -1137,8 +1153,23 @@ function widget:Update(dt)
 		end
 	end
 
+	if now > nextSmoothUpdate then
+		nextSmoothUpdate = now + 0.07
+		smoothResources()
+	end
+
 	if now > nextSlowUpdate then
-		nextSlowUpdate = now + 0.5
+		nextSlowUpdate = now + 0.25
+		local prevR = r
+		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		-- check if we need to smooth the resources
+		if (r['metal'][7] > 1 and r['metal'][7] ~= prevR['metal'][7] and r['metal'][7] / r['metal'][2] > 0.05) or
+			(r['metal'][8] > 1 and r['metal'][8] ~= prevR['metal'][8] and r['metal'][8] / r['metal'][2] > 0.05) or
+			(r['energy'][7] > 1 and r['energy'][7] ~= prevR['energy'][7] and r['energy'][7] / r['energy'][2] > 0.05) or
+			(r['energy'][8] > 1 and r['energy'][8] ~= prevR['energy'][8] and r['energy'][8] / r['energy'][2] > 0.05)
+		then
+			smoothedResources = r
+		end
 
 		-- resbar values and overflow
 		updateAllyTeamOverflowing()
@@ -1190,7 +1221,9 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		glCallList(dlistResValuesBar[res]) -- res bar
+		if dlistResValuesBar[res] then
+			glCallList(dlistResValuesBar[res]) -- res bar
+		end
 		glCallList(dlistResbar[res][2]) -- sliders
 
 		if not useRenderToTexture then
@@ -1227,7 +1260,9 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		glCallList(dlistResValuesBar[res]) -- res bar
+		if dlistResValuesBar[res] then
+			glCallList(dlistResValuesBar[res]) -- res bar
+		end
 		glCallList(dlistEnergyGlow)
 		glCallList(dlistResbar[res][2]) -- sliders
 
@@ -1320,6 +1355,7 @@ local function drawResBars()
 
 				res = 'energy'
 				drawResbarValue(res)
+
 				if updateRes[res][2] then
 					updateRes[res][2] = false
 					drawResbarPullIncome(res)
@@ -1626,7 +1662,6 @@ function widget:DrawScreen()
 				drawUiBackground()
 				gl.Color(1, 1, 1, 1)	-- withouth this no guishader effects for other elements
 			end)
-
 			if WG['guishader'] then
 				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
 			end
@@ -2025,12 +2060,19 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:PlayerChanged()
+	local prevMyTeamID = myTeamID
 	local prevSpec = spec
 	spec = spGetSpectatingState()
 	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then countComs(true) end
-	if spec then resbarHover = nil end
+	if spec then
+		resbarHover = nil
+		if prevMyTeamID ~= myTeamID then
+			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+			smoothedResources = r
+		end
+	end
 
 	if not prevSpec and prevSpec ~= spec then
 		init()
@@ -2174,7 +2216,7 @@ function widget:Shutdown()
 	end
 
 	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('topbar_background')
+		WG['guishader'].DeleteDlist('topbar_background')
 	end
 
 	if WG['tooltip'] then

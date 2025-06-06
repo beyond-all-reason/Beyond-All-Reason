@@ -192,6 +192,10 @@ return {
 				damage = {
 					vtol = 150,
 				},
+        
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavylaser = {
 				areaofeffect = 8,

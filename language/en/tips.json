@@ -63,6 +63,8 @@
 			"enemyCommanderDied": "An enemy commander has died",
 			"friendlyCommanderDied": "An allied commander has died",
 			"friendlyCommanderSelfD": "An allied commander self-destructed",
+			"spectatorCommanderDied": "Commander destroyed",
+			"spectatorCommanderSelfD": "Commander self-destructed",
 			"comHeavyDamage": "Your commander is receiving heavy damage",
 			"teamDownLastCommander": "Warning: Your team is down to its last commander.",
 			"youHaveLastCommander": "Warning: You have the last commander.",

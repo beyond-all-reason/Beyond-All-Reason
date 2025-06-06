@@ -36,7 +36,7 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legdtr_aoplane.dds",
+			buildinggrounddecaltype = "decals/legdrag_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,

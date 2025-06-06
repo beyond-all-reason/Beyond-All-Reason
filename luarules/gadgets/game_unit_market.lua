@@ -17,8 +17,6 @@ function gadget:GetInfo()
     }
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
-
 if gadgetHandler:IsSyncedCode() then
 
 -- We just have a state which holds unit price. (zero or nil - can't trade it)
@@ -28,6 +26,8 @@ if gadgetHandler:IsSyncedCode() then
 -- AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with the AI for free, as long as you've given the AI more than you've taken from the AI.
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
+
+local CMD_SELL_UNIT = GameCMD.SELL_UNIT
 
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo
