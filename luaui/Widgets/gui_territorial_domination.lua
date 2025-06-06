@@ -64,7 +64,6 @@ local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
 local TIMER_COOLDOWN = 120
 
 local WINDUP_SOUND_DURATION = 2
-local ACTIVATE_SOUND_DURATION = 0
 local CHARGE_SOUND_LOOP_DURATION = 4.7
 
 local TIMER_WARNING_DISPLAY_TIME = 5
@@ -125,9 +124,9 @@ local loopSoundEndTime = 0
 local soundIndex = 1
 local currentGameFrame = 0
 
-local lastThreshold = -1
+local lastDefeatThreshold = -1
 local lastMaxThreshold = -1
-local lastIsThresholdFrozen = false
+local lastIsDefeatThresholdPaused = false
 local lastScorebarWidth = -1
 local lastMinimapDimensions = {-1, -1, -1}
 local lastAmSpectating = false
@@ -150,15 +149,15 @@ local SCORE_BAR_UPDATE_THRESHOLD = 0.5
 local lastLayoutUpdate = 0
 local lastScoreBarUpdate = 0
 
-local cachedFreezeStatus = {
-	isThresholdFrozen = false,
-	freezeExpirationTime = 0,
-	timeUntilUnfreeze = 0,
+local cachedPauseStatus = {
+	isDefeatThresholdPaused = false,
+	pauseExpirationTime = 0,
+	timeUntilUnpause = 0,
 	lastUpdate = 0
 }
 
 local cachedGameState = {
-	threshold = 0,
+	defeatThreshold = 0,
 	maxThreshold = 256,
 	lastUpdate = 0
 }
@@ -508,7 +507,7 @@ local function drawGlossEffects(fillLeft, fillRight, fillBottom, fillTop)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
-local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
+local function drawSkullIcon(skullX, skullY, isDefeatThresholdPaused)
 	glPushMatrix()
 	glTranslate(skullX, skullY, 0)
 	
@@ -526,12 +525,12 @@ local function drawSkullIcon(skullX, skullY, isThresholdFrozen)
 	)
 	
 	local skullAlpha = 1.0
-	if isThresholdFrozen then
+	if isDefeatThresholdPaused then
 		local currentGameTime = spGetGameSeconds()
-		local freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-		local timeUntilUnfreeze = freezeExpirationTime - currentGameTime
+		local pauseExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+		local timeUntilUnpause = pauseExpirationTime - currentGameTime
 		
-		if timeUntilUnfreeze <= WARNING_SECONDS then
+		if timeUntilUnpause <= WARNING_SECONDS then
 			currentTime = os.clock()
 			local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 			if blinkPhase < 0.33 then
@@ -569,7 +568,7 @@ local function drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exce
 		   linePos + lineWidth/2, scorebarTop + lineExtension)
 end
 
-local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, threshold, barColor, isThresholdFrozen)
+local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, defeatThreshold, barColor, isDefeatThresholdPaused)
 	local barWidth = scorebarRight - scorebarLeft
 	local exceedsMaxThreshold = score > maxThreshold
 	local borderSize = 3
@@ -604,27 +603,27 @@ local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scoreba
 		end
 	end
 	
-	if threshold >= 1 then
-		local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
+	if defeatThreshold >= 1 then
+		local defeatThresholdX = scorebarLeft + (defeatThreshold / maxThreshold) * barWidth
 		local skullOffset = (1 / maxThreshold) * barWidth
-		local skullX = thresholdX - skullOffset
+		local skullX = defeatThresholdX - skullOffset
 		local skullY = scorebarBottom + (scorebarTop - scorebarBottom)/2
 		
-		drawSkullIcon(skullX, skullY, isThresholdFrozen)
+		drawSkullIcon(skullX, skullY, isDefeatThresholdPaused)
 	end
 	
 	drawScoreLineIndicator(linePos, scorebarBottom, scorebarTop, exceedsMaxThreshold)
 	
-	local thresholdX = scorebarLeft + (threshold / maxThreshold) * barWidth
+	local defeatThresholdX = scorebarLeft + (defeatThreshold / maxThreshold) * barWidth
 	local skullOffset = (1 / maxThreshold) * barWidth
-	local skullX = thresholdX - skullOffset
+	local skullX = defeatThresholdX - skullOffset
 	
-	return linePos, scorebarRight, thresholdX, skullX
+	return linePos, scorebarRight, defeatThresholdX, skullX
 end
 
 local function createTimerWarningMessage(timeRemaining, territoriesNeeded)
-	local dominatedMessage = spI18N('ui.territorialDomination.beingDominated')
-	local conquerMessage = spI18N('ui.territorialDomination.conquerTerritories', {count = territoriesNeeded, time = timeRemaining})
+	local dominatedMessage = spI18N('ui.territorialDomination.losingWarning1', {seconds = timeRemaining})
+	local conquerMessage = spI18N('ui.territorialDomination.losingWarning2', {count = territoriesNeeded})
 	return dominatedMessage, conquerMessage
 end
 
@@ -641,8 +640,8 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 		local fontSize = 24
 		local spacing = 30
 		
-		drawTextWithOutline(dominatedMessage, centerX, centerY + spacing, fontSize, "c", COLOR_RED)
-		drawTextWithOutline(conquerMessage, centerX, centerY - spacing, fontSize, "c", COLOR_YELLOW)
+		drawTextWithOutline(dominatedMessage, centerX, centerY + spacing, fontSize, "c", COLOR_WHITE)
+		drawTextWithOutline(conquerMessage, centerX, centerY - spacing, fontSize, "c", COLOR_WHITE)
 	end)
 end
 
@@ -736,12 +735,12 @@ local function getAllyTeamDisplayData()
 	end, CACHE_TTL.NORMAL)
 end
 
-local function updateLastValues(score, difference, threshold, maxThreshold, isThresholdFrozen, scorebarWidth, minimapDimensions, amSpectating, selectedAllyTeamID, teamID, rank)
+local function updateLastValues(score, difference, defeatThreshold, maxThreshold, isDefeatThresholdPaused, scorebarWidth, minimapDimensions, amSpectating, selectedAllyTeamID, teamID, rank)
 	if score ~= nil then lastScore = score end
 	if difference ~= nil then lastDifference = difference end
-	if threshold ~= nil then lastThreshold = threshold end
+	if defeatThreshold ~= nil then lastDefeatThreshold = defeatThreshold end
 	if maxThreshold ~= nil then lastMaxThreshold = maxThreshold end
-	if isThresholdFrozen ~= nil then lastIsThresholdFrozen = isThresholdFrozen end
+	if isDefeatThresholdPaused ~= nil then lastIsDefeatThresholdPaused = isDefeatThresholdPaused end
 	if scorebarWidth ~= nil then lastScorebarWidth = scorebarWidth end
 	if minimapDimensions ~= nil then lastMinimapDimensions = minimapDimensions end
 	if amSpectating ~= nil then lastAmSpectating = amSpectating end
@@ -754,8 +753,8 @@ local function needsDisplayListUpdate()
 		return true
 	end
 
-	local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
-	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local isDefeatThresholdPaused = cachedPauseStatus.isDefeatThresholdPaused
+	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	
@@ -763,7 +762,7 @@ local function needsDisplayListUpdate()
 	
 	if not amSpectating then
 		currentTeamID, currentScore, currentRank = getFirstAliveTeamDataFromAllyTeam(myAllyID)
-		currentDifference = currentScore - threshold
+		currentDifference = currentScore - defeatThreshold
 	else
 		local cachedData = cache.data["spectator_teams"]
 		if not cachedData or #cachedData == 0 then
@@ -771,16 +770,16 @@ local function needsDisplayListUpdate()
 		end
 		local firstTeam = cachedData[1]
 		currentScore = firstTeam.score
-		currentDifference = firstTeam.score - threshold
+		currentDifference = firstTeam.score - defeatThreshold
 		currentTeamID = firstTeam.teamID
 		currentRank = firstTeam.rank
 	end
 	
 	local hasChanged = lastScore ~= currentScore 
 		or lastDifference ~= currentDifference 
-		or lastThreshold ~= threshold 
+		or lastDefeatThreshold ~= defeatThreshold 
 		or lastMaxThreshold ~= currentMaxThreshold 
-		or lastIsThresholdFrozen ~= isThresholdFrozen 
+		or lastIsDefeatThresholdPaused ~= isDefeatThresholdPaused 
 		or lastScorebarWidth ~= scorebarWidth 
 		or lastMinimapDimensions[1] ~= minimapPosX 
 		or lastMinimapDimensions[2] ~= minimapPosY 
@@ -790,7 +789,7 @@ local function needsDisplayListUpdate()
 		or (currentTeamID and lastTeamRanks[currentTeamID] ~= currentRank)
 	
 	if hasChanged then
-		updateLastValues(currentScore, currentDifference, threshold, currentMaxThreshold, isThresholdFrozen, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID, currentTeamID, currentRank)
+		updateLastValues(currentScore, currentDifference, defeatThreshold, currentMaxThreshold, isDefeatThresholdPaused, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID, currentTeamID, currentRank)
 		return true
 	end
 	
@@ -800,11 +799,11 @@ end
 local function updateTrackingVariables()
 	local currentGameTime = spGetGameSeconds()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
-	local isThresholdFrozen = (spGetGameRulesParam(FREEZE_DELAY_KEY) or 0) > currentGameTime
+	local isDefeatThresholdPaused = (spGetGameRulesParam(FREEZE_DELAY_KEY) or 0) > currentGameTime
 	
-	updateLastValues(nil, nil, threshold, currentMaxThreshold, isThresholdFrozen, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID)
+	updateLastValues(nil, nil, defeatThreshold, currentMaxThreshold, isDefeatThresholdPaused, scorebarWidth, {minimapPosX, minimapPosY, minimapSizeX}, amSpectating, selectedAllyTeamID)
 	maxThreshold = currentMaxThreshold
 end
 
@@ -862,7 +861,7 @@ end
 
 local function calculateCountdownPosition(allyTeamID, barIndex)
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
-	local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	
 	if not barIndex then
 		local allyTeamScores = getAllyTeamDisplayData()
@@ -878,9 +877,9 @@ local function calculateCountdownPosition(allyTeamID, barIndex)
 	if barIndex then
 		local bounds = calculateBarPosition(barIndex)
 		local barWidth = bounds.scorebarRight - bounds.scorebarLeft
-		local thresholdX = bounds.scorebarLeft + (threshold / maxThreshold) * barWidth
+		local defeatThresholdX = bounds.scorebarLeft + (defeatThreshold / maxThreshold) * barWidth
 		local skullOffset = (1 / maxThreshold) * barWidth
-		local countdownX = thresholdX - skullOffset
+		local countdownX = defeatThresholdX - skullOffset
 		local countdownY = bounds.scorebarBottom + (bounds.scorebarTop - bounds.scorebarBottom) / 2
 		
 		return countdownX, countdownY
@@ -1006,15 +1005,15 @@ local function createScoreBarDisplayList(allyTeamData)
 	end
 	
 	scoreBarDisplayList = glCreateList(function()
-		local threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-		local isThresholdFrozen = cachedFreezeStatus.isThresholdFrozen
+		local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+		local isDefeatThresholdPaused = cachedPauseStatus.isDefeatThresholdPaused
 
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 			local barPosition = getBarPositionsCached(allyTeamIndex)
 			
-			drawScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, threshold, allyTeamDataEntry.teamColor, isThresholdFrozen)
+			drawScoreBar(barPosition.scorebarLeft, barPosition.scorebarRight, barPosition.scorebarBottom, barPosition.scorebarTop, allyTeamDataEntry.score, defeatThreshold, allyTeamDataEntry.teamColor, isDefeatThresholdPaused)
 			
-			local difference = allyTeamDataEntry.score - threshold
+			local difference = allyTeamDataEntry.score - defeatThreshold
 			local differenceVerticalOffset = 4
 			local fontSize = amSpectating and barPosition.fontSize or (fontCache.fontSize * 1.20)
 			drawDifferenceText(barPosition.innerRight, barPosition.textY, difference, fontSize, "r", COLOR_WHITE, differenceVerticalOffset)
@@ -1144,20 +1143,20 @@ local function updateDisplayLists()
 	end
 end
 
-local function updateCachedFreezeStatus(forceUpdate)
+local function updateCachedPauseStatus(forceUpdate)
 	local currentGameTime = spGetGameSeconds()
-	if not forceUpdate and currentGameTime == cachedFreezeStatus.lastUpdate then
+	if not forceUpdate and currentGameTime == cachedPauseStatus.lastUpdate then
 		return
 	end
 	
-	cachedFreezeStatus.freezeExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
-	cachedFreezeStatus.isThresholdFrozen = cachedFreezeStatus.freezeExpirationTime > currentGameTime
-	cachedFreezeStatus.timeUntilUnfreeze = max(0, cachedFreezeStatus.freezeExpirationTime - currentGameTime)
-	cachedFreezeStatus.lastUpdate = currentGameTime
+	cachedPauseStatus.pauseExpirationTime = spGetGameRulesParam(FREEZE_DELAY_KEY) or 0
+	cachedPauseStatus.isDefeatThresholdPaused = cachedPauseStatus.pauseExpirationTime > currentGameTime
+	cachedPauseStatus.timeUntilUnpause = max(0, cachedPauseStatus.pauseExpirationTime - currentGameTime)
+	cachedPauseStatus.lastUpdate = currentGameTime
 end
 
 local function updateCachedGameState()
-	cachedGameState.threshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	cachedGameState.defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	cachedGameState.maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
 	cachedGameState.lastUpdate = gameSeconds
 end
@@ -1180,7 +1179,7 @@ end
 local function queueTeleportSounds()
 	soundQueue = {}
 	if defeatTime and defeatTime > 0 then
-		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION - ACTIVATE_SOUND_DURATION, sound = "cmd-off", volume = 0.4})
+		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "cmd-off", volume = 0.4})
 		table.insert(soundQueue, 1, {when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.225})
 	end
 end
@@ -1274,7 +1273,7 @@ function widget:GameFrame(frame)
 	gameSeconds = spGetGameSeconds() or 0
 	
 	updateCachedGameState()
-	updateCachedFreezeStatus(false)
+	updateCachedPauseStatus(false)
 	
 	if frame % DEFEAT_CHECK_INTERVAL == AFTER_GADGET_TIMER_UPDATE_MODULO then
 		updateAliveAllyTeams()
@@ -1381,7 +1380,7 @@ function widget:GameFrame(frame)
 		end
 	end
 	
-	if cachedFreezeStatus.isThresholdFrozen then
+	if cachedPauseStatus.isDefeatThresholdPaused then
 		if frame % 30 == 0 then
 			if amSpectating then
 				for allyTeamID in pairs(allyTeamDefeatTimes) do
@@ -1455,7 +1454,7 @@ function widget:GameFrame(frame)
 	if not amSpectating and defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
 		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
-		local difference = score - cachedGameState.threshold
+		local difference = score - cachedGameState.defeatThreshold
 		
 		if difference < 0 and gameSeconds >= lastTimerWarningTime + TIMER_COOLDOWN then
 			local territoriesNeeded = abs(difference)
@@ -1557,9 +1556,9 @@ function widget:Update(deltaTime)
 		return
 	end
 	
-	updateCachedFreezeStatus(false)
+	updateCachedPauseStatus(false)
 	
-	if cachedFreezeStatus.isThresholdFrozen and cachedFreezeStatus.timeUntilUnfreeze <= WARNING_SECONDS then
+	if cachedPauseStatus.isDefeatThresholdPaused and cachedPauseStatus.timeUntilUnpause <= WARNING_SECONDS then
 		local blinkPhase = (currentTime % BLINK_INTERVAL) / BLINK_INTERVAL
 		local currentBlinkState = blinkPhase < 0.33
 		if isSkullFaded ~= currentBlinkState then

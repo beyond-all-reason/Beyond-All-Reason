@@ -55,7 +55,7 @@ local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 
-local FREEZE_DELAY_SECONDS = 60
+local PAUSE_DELAY_SECONDS = 60
 local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 local MIN_THRESHOLD_DELAY = 1
 local DEFEAT_DELAY_SECONDS = 60
@@ -64,7 +64,7 @@ local RESET_DEFEAT_FRAME = 0
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
-local FREEZE_DELAY_KEY = "territorialDominationFreezeDelay"
+local PAUSE_DELAY_KEY = "territorialDominationPauseDelay"
 
 local floor = math.floor
 local max = math.max
@@ -106,7 +106,7 @@ local sentGridStructure = false
 local thresholdSecondsDelay = 0
 local thresholdDelayTimestamp = 0
 local wantedDefeatThreshold = 0
-local freezeThresholdTimer = 0
+local pauseThresholdTimer = 0
 local currentSecond = 0
 
 local allyTeamsWatch = {}
@@ -182,7 +182,7 @@ end
 
 local function updateCurrentDefeatThreshold()
 	local seconds = spGetGameSeconds()
-	local totalDelay = max(SECONDS_TO_START, freezeThresholdTimer, thresholdDelayTimestamp)
+	local totalDelay = max(SECONDS_TO_START, pauseThresholdTimer, thresholdDelayTimestamp)
 
 	if (totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1) or seconds > SECONDS_TO_MAX then
 		defeatThreshold = min(defeatThreshold + 1, wantedDefeatThreshold)
@@ -221,17 +221,17 @@ local function processLivingTeams()
 	return newAllyTeamsCount, newAllyHordesCount
 end
 
-local function updateAllyCountAndFreezeTimer(newAllyCount)
+local function updateAllyCountAndPauseTimer(newAllyCount)
 	if allyCount ~= newAllyCount then
-		local oldFreezeTimer = freezeThresholdTimer
-		freezeThresholdTimer = max(spGetGameSeconds() + FREEZE_DELAY_SECONDS, freezeThresholdTimer)
-		Spring.SetGameRulesParam(FREEZE_DELAY_KEY, freezeThresholdTimer)
+		local oldPauseTimer = pauseThresholdTimer
+		pauseThresholdTimer = max(spGetGameSeconds() + PAUSE_DELAY_SECONDS, pauseThresholdTimer)
+		Spring.SetGameRulesParam(PAUSE_DELAY_KEY, pauseThresholdTimer)
 		
-		if freezeThresholdTimer > oldFreezeTimer then
-			local freezeExtension = freezeThresholdTimer - spGetGameSeconds()
+		if pauseThresholdTimer > oldPauseTimer then
+			local pauseExtension = pauseThresholdTimer - spGetGameSeconds()
 			for allyID, defeatTime in pairs(allyDefeatTime) do
 				if defeatTime and defeatTime > 0 then
-					allyDefeatTime[allyID] = defeatTime + freezeExtension
+					allyDefeatTime[allyID] = defeatTime + pauseExtension
 					for teamID in pairs(allyTeamsWatch[allyID] or {}) do
 						Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
 					end
@@ -246,7 +246,7 @@ local function updateLivingTeamsData()
 	clearAllyTeamsWatch()
 	local newAllyTeamsCount, newAllyHordesCount = processLivingTeams()
 	allyHordesCount = newAllyHordesCount
-	updateAllyCountAndFreezeTimer(newAllyTeamsCount + newAllyHordesCount)
+	updateAllyCountAndPauseTimer(newAllyTeamsCount + newAllyHordesCount)
 end
 
 local function setAllyGridToGaia(allyID)
@@ -750,7 +750,7 @@ local function processDefeatLogic()
 	
 	table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
 
-	if allyCount > 1 and freezeThresholdTimer < currentSecond and not DEBUGMODE then
+	if allyCount > 1 and pauseThresholdTimer < currentSecond and not DEBUGMODE then
 		local highestTally = sortedAllies[#sortedAllies].tally
 		for i = 1, #sortedAllies do
 			local allyData = sortedAllies[i]
@@ -770,7 +770,7 @@ local function processDefeatLogic()
 			end
 		end
 	else
-		if freezeThresholdTimer >= currentSecond then
+		if pauseThresholdTimer >= currentSecond then
 			for allyID in pairs(allyDefeatTime) do
 				allyDefeatTime[allyID] = nil
 				for teamID in pairs(allyTeamsWatch[allyID] or {}) do
@@ -840,8 +840,8 @@ function gadget:Initialize()
 	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
-	freezeThresholdTimer = SECONDS_TO_START
-	Spring.SetGameRulesParam(FREEZE_DELAY_KEY, SECONDS_TO_START)
+	pauseThresholdTimer = SECONDS_TO_START
+	Spring.SetGameRulesParam(PAUSE_DELAY_KEY, SECONDS_TO_START)
 	captureGrid = generateCaptureGrid()
 	
 	initializeTeamData()
