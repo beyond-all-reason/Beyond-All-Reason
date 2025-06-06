@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 local widget = widget ---@type Widget
 
->>>>>>> ea7b66e6b77d0bafdc663e11c9bfb6e41ece4548
 function widget:GetInfo()
 	return {
 		name    = "Idle Constructor Guard After Build",
