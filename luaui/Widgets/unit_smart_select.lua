@@ -240,11 +240,11 @@ function widget:Update(dt)
 	local tmp = {}
 	local n = 0
 	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
-	if equalsMouseSelection and lastMouseSelectionCount == 0 then
+	if equalsMouseSelection and lastMouseSelectionCount == 0 and not mods.deselect and not mods.append then
 		-- if its an empty selection but reference selection isn't empty consider
 		-- it non equal so deselect by selecting empty space always works.
 		-- skip if deselect or append since it won't deselect on empty selection.
-		equalsMouseSelection = #referenceSelection == 0 and not mods.deselect and not mods.append
+		equalsMouseSelection = #referenceSelection == 0
 	end
 	local isGodMode = spIsGodModeEnabled()
 
