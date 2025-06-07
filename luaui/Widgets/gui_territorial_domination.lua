@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local modOptions = Spring.GetModOptions()
-if modOptions.deathmode ~= "territorial_domination" then return false end
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then return false end
 
 local floor = math.floor
 local ceil = math.ceil

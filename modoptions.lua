@@ -130,15 +130,14 @@ local options = {
         }
     },
 
-
-    
-    {--temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination here and in game_team_com_ends.lua and gui_game_type_info.lua once beta is over.
+    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
+    {
 		key		= "temp_enable_territorial_domination",
-		name	= "[BETA]Territorial Domination V0.1",
+		name	= "Territorial Domination V0.1",
 		desc	= "Enable experimental Territorial Domination gamemode",
+        hidden = true,
 		type	= "bool",
 		section	= "options_main",
-        hidden = true,
         unlock = {"territorial_domination_config"},
 		def		= false,
 	},

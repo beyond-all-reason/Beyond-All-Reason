@@ -13,7 +13,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 local SYNCED = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or SYNCED then return false end
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or SYNCED then return false end
 
 local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
