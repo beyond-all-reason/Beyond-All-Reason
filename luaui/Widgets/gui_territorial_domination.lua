@@ -645,23 +645,22 @@ local function createTimerWarningDisplayList(dominatedMessage, conquerMessage)
 	end)
 end
 
-local function getFirstAliveTeamDataFromAllyTeam(allyTeamID)
-	for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-		local _, _, isDead = spGetTeamInfo(teamID)
-		if not isDead then
-			local score = spGetTeamRulesParam(teamID, SCORE_RULES_KEY)
-			if score then
-				local rank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
-				return teamID, score, rank
-			end
-		end
+local function getRepresentativeTeamDataFromAllyTeam(allyTeamID)
+	local teamList = spGetTeamList(allyTeamID)
+	if not teamList or #teamList == 0 then
+		return nil, 0, nil
 	end
-	return nil, 0, nil
+	
+	local representativeTeamID = teamList[1]
+	local score = spGetTeamRulesParam(representativeTeamID, SCORE_RULES_KEY) or 0
+	local rank = spGetTeamRulesParam(representativeTeamID, RANK_RULES_KEY)
+	
+	return representativeTeamID, score, rank
 end
 
 local function teamScoresChanged()
 	for _, allyTeamID in ipairs(aliveAllyTeams) do
-		local teamID, currentScore = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
+		local teamID, currentScore = getRepresentativeTeamDataFromAllyTeam(allyTeamID)
 		if teamID then
 			local previousScore = lastAllyTeamScores[allyTeamID]
 			if previousScore ~= currentScore then
@@ -692,7 +691,7 @@ local function getAllyTeamDisplayData()
 		local allyTeamScores = {}
 		
 		for _, allyTeamID in ipairs(displayTeams) do
-			local teamID, score, rank = getFirstAliveTeamDataFromAllyTeam(allyTeamID)
+			local teamID, score, rank = getRepresentativeTeamDataFromAllyTeam(allyTeamID)
 			local teamColor = {1, 1, 1, 1}
 			local defeatTimeRemaining = 0
 			
@@ -761,7 +760,7 @@ local function needsDisplayListUpdate()
 	local currentScore, currentDifference, currentTeamID, currentRank
 	
 	if not amSpectating then
-		currentTeamID, currentScore, currentRank = getFirstAliveTeamDataFromAllyTeam(myAllyID)
+		currentTeamID, currentScore, currentRank = getRepresentativeTeamDataFromAllyTeam(myAllyID)
 		currentDifference = currentScore - defeatThreshold
 	else
 		local cachedData = cache.data["spectator_teams"]
@@ -1296,16 +1295,13 @@ function widget:GameFrame(frame)
 						local teamList = spGetTeamList(allyTeamID)
 						local allyDefeatTime = 0
 						
-						for _, teamID in ipairs(teamList) do
-							local _, _, isDead = spGetTeamInfo(teamID)
-							if not isDead then
-								allyDefeatTime = spGetTeamRulesParam(teamID, "defeatTime") or 0
-								
-								local newRank = spGetTeamRulesParam(teamID, RANK_RULES_KEY)
-								if newRank and lastTeamRanks[teamID] ~= newRank then
-									rankChanged = true
-								end
-								break
+						if teamList and #teamList > 0 then
+							local representativeTeamID = teamList[1]
+							allyDefeatTime = spGetTeamRulesParam(representativeTeamID, "defeatTime") or 0
+							
+							local newRank = spGetTeamRulesParam(representativeTeamID, RANK_RULES_KEY)
+							if newRank and lastTeamRanks[representativeTeamID] ~= newRank then
+								rankChanged = true
 							end
 						end
 						
@@ -1453,7 +1449,7 @@ function widget:GameFrame(frame)
 	
 	if not amSpectating and defeatTime > gameSeconds then
 		local timeRemaining = ceil(defeatTime - gameSeconds)
-		local _, score = getFirstAliveTeamDataFromAllyTeam(myAllyID)
+		local _, score = getRepresentativeTeamDataFromAllyTeam(myAllyID)
 		local difference = score - cachedGameState.defeatThreshold
 		
 		if difference < 0 and gameSeconds >= lastTimerWarningTime + TIMER_COOLDOWN then
