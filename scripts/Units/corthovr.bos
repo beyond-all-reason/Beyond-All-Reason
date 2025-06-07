@@ -1,67 +1,25 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3, boom4, magnet, link, boom5, boom6, fan1, fan2;
+piece  ground, base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3, boom4, magnet, link, boom5, boom6, fan1, fan2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5, Wobble_status;
 
 // Signal definitions
-#define SIG_MOVE			2
-#define SIG_IDLE			4
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
 
-WobbleUnit()
-{
-	while( TRUE )
-	{
-		if( Wobble_status)
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [1.250000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [2.500000] speed [0.50000];
-			}
-		}
-		else
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [0.250000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [1.500000] speed [0.50000];
-			}
-		}
-		Wobble_status = !Wobble_status;
-		//get PRINT (get GROUND_WATER_HEIGHT(get UNIT_XZ));
-		sleep 260;
-	}
-}
 
-BankControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <4>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 85
+#define HOVER_WOBBLE_AMPLITUDE [1.2]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 2
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#include "../bar_hovercraft_common.h"
 
-		//Remove Extreme values
-		if ( diffHeading > 1250 ) diffHeading = 1250;
-		if ( diffHeading < -1250 ) diffHeading = -1250;
-		turn base to z-axis 1.0 * diffHeading speed <7>;
-		
-		lastHeading = currHeading;
-		sleep 67;
-	}
-}
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -69,203 +27,31 @@ BankControl()
 #define UNITSIZE 10
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
 {
 	hide link;
 	hide wake;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script BankControl();
-	start-script WobbleUnit();
-	return (0);
-}
-
-HoverIdle()
-{
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 2 from wake;
-	    sleep 1750;
-	}
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	signal SIG_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	signal SIG_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
-
-StartDoorOpen()
-{
-	signal 4;
-	set-signal-mask 4;
-	turn rdoor to z-axis <-90.> speed <100.>;
-	turn ldoor to z-axis <90.> speed <100.>;
-	wait-for-turn rdoor around z-axis;
-	wait-for-turn ldoor around z-axis;
-	move rdoor to y-axis [-9.] speed [25.];
-	move ldoor to y-axis [-9.] speed [25.];
-	wait-for-move ldoor along y-axis;
-	wait-for-move ldoor along y-axis;
-	sleep 5000;
-	move rdoor to y-axis [0.] speed [25.];
-	move ldoor to y-axis [0.] speed [25.];
-	wait-for-move rdoor along y-axis;
-	wait-for-move ldoor along y-axis;
-	turn rdoor to z-axis <0.> speed <100.>;
-	turn ldoor to z-axis <0.> speed <100.>;
-	wait-for-turn rdoor around z-axis;
-	wait-for-turn ldoor around z-axis;
-	return (0);
-}
-
-BoomCalc(posxz, posy)
-{
-	var Func_Var_3, Func_Var_4, Func_Var_5;
-	Func_Var_3 = get PIECE_XZ(tower) - posxz;
-	Func_Var_4 = posy - get PIECE_Y(tower);
-	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	Static_Var_2 = get HYPOT(Func_Var_5,Func_Var_4) -[32];
-	Static_Var_3 = get XZ_ATAN(Func_Var_3);
-	Static_Var_4 = get ATAN(Func_Var_4,Func_Var_5);
-	Static_Var_5 = Static_Var_2 < 14745600;
-	return (0);
-}
-
-BoomExtend()
-{
-	start-script StartDoorOpen();
-	turn tower to y-axis Static_Var_3 speed <200.>;
-	wait-for-turn tower around y-axis;
-	move boom1 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom2 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom3 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom4 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom5 to z-axis Static_Var_2 / 6 speed [60.];
-	move boom6 to z-axis Static_Var_2 / 6 speed [60.];
-	wait-for-move boom1 along z-axis;
-	wait-for-move boom2 along z-axis;
-	wait-for-move boom3 along z-axis;
-	wait-for-move boom4 along z-axis;
-	wait-for-move boom5 along z-axis;
-	wait-for-move boom6 along z-axis;
-	turn magnet to x-axis Static_Var_4 speed <80.>;
-	turn arm to x-axis <0.> - Static_Var_4 speed <80.>;
-	wait-for-turn arm around x-axis;
-	wait-for-turn magnet around x-axis;
-	return (0);
-}
-
-BoomReset()
-{
-	turn arm to x-axis <0.> speed <60.>;
-	turn magnet to x-axis <0.> speed <60.>;
-	wait-for-turn arm around x-axis;
-	wait-for-turn magnet around x-axis;
-	turn tower to y-axis <0.> speed <200.>;
-	move boom1 to z-axis [0.] speed [50.];
-	move boom2 to z-axis [0.] speed [50.];
-	move boom3 to z-axis [0.] speed [50.];
-	move boom4 to z-axis [0.] speed [50.];
-	move boom5 to z-axis [0.] speed [50.];
-	move boom6 to z-axis [0.] speed [50.];
-	return (0);
-}
-
-BoomToPad()
-{
-	start-script StartDoorOpen();
-	turn magnet to x-axis <0.> speed <60.>;
-	turn arm to x-axis <0.> speed <60.>;
-	wait-for-turn magnet around x-axis;
-	wait-for-turn arm around x-axis;
-	turn tower to y-axis <0.> speed <200.>;
-	move boom1 to z-axis [0.] speed [60.];
-	move boom2 to z-axis [0.] speed [60.];
-	move boom3 to z-axis [0.] speed [60.];
-	move boom4 to z-axis [0.] speed [60.];
-	move boom5 to z-axis [0.] speed [60.];
-	move boom6 to z-axis [0.] speed [60.];
-	wait-for-turn tower around y-axis;
-	wait-for-turn arm around x-axis;
-	wait-for-move boom1 along z-axis;
-	wait-for-move boom2 along z-axis;
-	wait-for-move boom3 along z-axis;
-	wait-for-move boom4 along z-axis;
-	wait-for-move boom5 along z-axis;
-	wait-for-move boom6 along z-axis;
-	turn magnet to x-axis <-30.> speed <60.>;
-	turn arm to x-axis <30.> speed <60.>;
-	wait-for-turn arm around x-axis;
-	return (0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script HoverCraftMotion();
 }
 
 TransportPickup(unitid)
 {
-	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
-	if( Static_Var_5 AND get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
-	{
-		set BUSY to 1;
-		call-script BoomExtend();
-		move link to y-axis [0.] - get UNIT_HEIGHT(unitid) now;
-		attach-unit unitid to link;
-		call-script BoomToPad();
-		attach-unit unitid to 0 - 1;
-		call-script BoomReset();
-		set BUSY to 0;
-	}
-	return (0);
+	set BUSY to 1;
+	attach-unit unitid to link;
+	set BUSY to 0;
 }
 
 TransportDrop(unitid, position)
 {
-	call-script BoomCalc(position,get GROUND_HEIGHT(position) + get UNIT_HEIGHT(unitid));
-	if( Static_Var_5 )
-	{
-		set BUSY to 1;
-		call-script BoomToPad();
-		move link to y-axis [0.] - get UNIT_HEIGHT(unitid) now;
-		attach-unit unitid to link;
-		call-script BoomExtend();
-		drop-unit unitid;
-		call-script BoomReset();
-		set BUSY to 0;
-	}
-	return (0);
+	set BUSY to 1;
+	drop-unit unitid;
+	set BUSY to 0;
 }
+
 
 Killed(severity, corpsetype)
 {
@@ -277,17 +63,6 @@ Killed(severity, corpsetype)
 		explode ldoor type BITMAPONLY | NOHEATCLOUD;
 		explode tower type BITMAPONLY | NOHEATCLOUD;
 		explode arm type BITMAPONLY | NOHEATCLOUD;
-		//explode boom1 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom2 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom3 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom4 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom5 type BITMAPONLY | NOHEATCLOUD;
-		//explode boom6 type BITMAPONLY | NOHEATCLOUD;
-		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type BITMAPONLY | NOHEATCLOUD;
-		//explode fan1 type BITMAPONLY | NOHEATCLOUD;
-		//explode fan2 type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -298,17 +73,6 @@ Killed(severity, corpsetype)
 		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode tower type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom4 type FALL | NOHEATCLOUD;
-		//explode boom5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type FALL | NOHEATCLOUD;
-		//explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode fan2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -319,17 +83,7 @@ Killed(severity, corpsetype)
 		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode tower type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom4 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type SMOKE | FALL | NOHEATCLOUD;
-		//explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode fan1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode fan2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -338,16 +92,6 @@ Killed(severity, corpsetype)
 		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode tower type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode boom5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode boom6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode magnet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode link type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode fan1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode fan2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

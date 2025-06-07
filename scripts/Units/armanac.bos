@@ -1,155 +1,59 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, flare, turret, wake, sleeve, barrel;
+//#define DEBUG
+//#include "../debug.h"
+piece  ground, base, flare, turret, wake, sleeve, barrel;
 
-static-var  Static_Var_1, Wobble_status, restore_delay;
+static-var  restore_delay;
+static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE			4
-#define SIG_IDLE			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
 
-WobbleUnit()
-{
-	while( TRUE )
-	{
-		if( Wobble_status)
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [-0.100000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [1.500000] speed [0.50000];
-			}
-		}
-		else
-		{
-			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
-			{
-				move base to y-axis [-1.100000] speed [0.50000];
-			}
-			else
-			{
-				move base to y-axis [1.500000] speed [0.50000];
-			}
-		}
-		Wobble_status = !Wobble_status;
-		//get PRINT (get GROUND_WATER_HEIGHT(get UNIT_XZ));
-		sleep 260;
-	}
-}
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <12>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 46
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 3
+#define HOVER_WAKE_SFX_1 1024 + 1
+#define HOVER_WAKE_SFX_2 1024 + 2
+#include "../bar_hovercraft_common.h"
 
-BankControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
-
-		//Remove Extreme values
-		if ( diffHeading > 1500 ) diffHeading = 1500;
-		if ( diffHeading < -1500 ) diffHeading = -1500;
-		//get PRINT(diffHeading);
-		turn base to z-axis 1.0 * diffHeading speed <23>;
-		lastHeading = currHeading;
-		sleep 67;
-	}
-}
-
-
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-	return (0);
-}
-
-#define BASEPIECE base
-#define HITSPEED <35.0>
+#define BASEPIECE ground
+#define HITSPEED <15.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
-#define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-HoverIdle()
-{
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
-	while( TRUE )
-	{
-	    emit-sfx 1024 + 3 from wake;
-	    sleep 1750;
-	}
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	signal SIG_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		if (bowtime) emit-sfx 1024 + 2 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	signal SIG_IDLE;
-	start-script HoverIdle();
-	return (0);
-}
+#define MAXTILT 200
+//#define RECOIL_POWER 40000 // DO NOT USE THIS FOR HOVERS!
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare;
 	hide wake;
-	hide flare;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script BankControl();
-	start-script WobbleUnit();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script HoverCraftMotion();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	restore_delay = reloadMS * 2;
 }
-
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn sleeve to x-axis <0.000000> speed <50.000000>;
+	turn turret to y-axis <0.0> speed <90.0>;
+	turn sleeve to x-axis <0.0> speed <50.0>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -157,49 +61,41 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <170.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <80.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <170.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <80.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-6.000000] speed [1250.000000];
+	move barrel to z-axis [-6.0] speed [1250.0];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [7.500000];
-	return (0);
+	move barrel to z-axis [0.0] speed [7.500000];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
-	return (0);
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)
@@ -208,41 +104,33 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
