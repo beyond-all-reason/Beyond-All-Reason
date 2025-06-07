@@ -13,7 +13,7 @@ local function CreateTreeDef(i)
      burnable    = true,
      reclaimable = true,
      energy      = 250,
-     damage      = 5,
+     damage      = 250,
      metal       = 0,
      reclaimTime = 1500,
      mass        = 20,

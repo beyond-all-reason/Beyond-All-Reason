@@ -133,7 +133,8 @@ function widget:CommandNotify(id, params, options)
   if options.alt then opt = opt + CMD.OPT_ALT end
   if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
-  if options.meta then opt = opt + CMD.OPT_META end
+  -- options.meta not forwarded since we're doing insert with it
+  -- and don't want to alias with engine at the same time.
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
 

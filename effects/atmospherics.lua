@@ -812,6 +812,42 @@ return {
     },
   },
 
+["sanddustgray"] = {
+    usedefaultexplosions = false,
+    grounddust = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.94,
+        colormap           = [[0 0 0 0.0  0.12 0.14 0.15 0.04   0.12 0.14 0.15 0.02   0 0 0 0.0]],
+        directional        = false,
+        emitrot            = 5,
+        emitrotspread      = 10,
+        emitvector         = [[0.3, -1, 0.3]],
+        gravity            = [[0.02 r0.08, 0.004 r0.008, 0.02 r0.08]],
+        numparticles       = 3,
+        particlelife       = 220,
+        particlelifespread = 140,
+        particlesize       = 8,
+        particlesizespread = 120,
+        particlespeed      = 12.5,
+        particlespeedspread = 7.5,
+        rotParams          = [[-5 r10, -2 r4, -180 r360]],
+        pos                = [[0 r150, -25 r50, 0 r150]],
+        sizegrowth         = [[0.25 r0.1]],
+        sizemod            = 1,
+        texture            = [[smoke_puff_red]],
+        useairlos          = true,
+       -- alwaysvisible      = true,
+      },
+    },
+  },
+
 ["sanddust"] = {
     usedefaultexplosions = false,
     grounddust = {
