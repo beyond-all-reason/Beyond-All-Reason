@@ -42,13 +42,12 @@ local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
 local consoleFontSizeMult = 0.85
 local maxLines = 5
 local maxConsoleLines = 2
-local maxOrgLines = 200
 local maxLinesScrollFull = 16
 local maxLinesScrollChatInput = 9
 local lineHeightMult = 1.36
 local lineTTL = 40
-local consoleLineCleanupThreshold = 200 -- cleanup stores once passing this many stored lines
-local orgLineCleanupThreshold = 600
+local consoleLineCleanupTarget = Spring.Utilities.IsDevMode() and 1200 or 400 -- cleanup stores once passing this many stored lines
+local orgLineCleanupTarget = Spring.Utilities.IsDevMode() and 1400 or 600
 local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
 local maxTextInputChars = 127	-- tested 127 as being the true max
@@ -1623,13 +1622,13 @@ local function drawUi()
 				glTranslate(0, consoleLineHeight, 0)
 				i = i - 1
 			end
-			if i - 1 > consoleLineCleanupThreshold then
-				consoleLines = cleanupLineTable(consoleLines, maxConsoleLines)
+			if i - 1 > consoleLineCleanupTarget*1.15 then
+				consoleLines = cleanupLineTable(consoleLines, consoleLineCleanupTarget)
 			end
 			glPopMatrix()
 
-			if #orgLines > orgLineCleanupThreshold then
-				orgLines = cleanupLineTable(orgLines, maxOrgLines)
+			if #orgLines > orgLineCleanupTarget*1.15 then
+				orgLines = cleanupLineTable(orgLines, orgLineCleanupTarget)
 			end
 		end
 	end
@@ -2594,7 +2593,7 @@ function widget:GetConfigData(data)
 		end
 	end
 
-	local maxOrgLines = 600
+	local maxOrgLines = orgLineCleanupTarget
 	if #orgLines > maxOrgLines then
 		local prunedOrgLines = {}
 		for i=1, maxOrgLines do
