@@ -123,12 +123,25 @@ local options = {
         items	= {
             { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated", lock = {"territorial_domination_config"} },
             { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses", lock = {"territorial_domination_config"} },
-            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
+            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
             { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses", lock = {"territorial_domination_config"} },
             { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!", lock = {"territorial_domination_config"} },
             { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign.", lock = {"territorial_domination_config"} },
         }
     },
+
+
+    
+    {--temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination here and in game_team_com_ends.lua and gui_game_type_info.lua once beta is over.
+		key		= "temp_enable_territorial_domination",
+		name	= "[BETA]Territorial Domination V0.1",
+		desc	= "Enable experimental Territorial Domination gamemode",
+		type	= "bool",
+		section	= "options_main",
+        hidden = true,
+        unlock = {"territorial_domination_config"},
+		def		= false,
+	},
 
     {
         key		= "territorial_domination_config",
