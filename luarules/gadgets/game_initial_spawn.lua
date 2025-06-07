@@ -218,40 +218,23 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
-	local _unitTraversability = {}
-	--- @return boolean groundMobile if the unit navigates on ground/sea
-	--- @return number footprintSize if immobile, Half of the biggest footprint out of the x/z
-	--- @return number maxSlope if immobile, Half of the biggest footprint out of the x/z
-	local function _getUnitTraversability(unitDefID)
-		if not unitDefID then
-			return false, 0, 1
-		end
-
-		local traversability = _unitTraversability[unitDefID]
-		if traversability then
-			return traversability[1], traversability[2], traversability[3]
-		end
-
-		local unitDef = UnitDefs[unitDefID]
-		if unitDef.canFly then
-			traversability = {false, 0, 1}
-		elseif unitDef.moveDef then
-			traversability = {true}
-		else
-			-- TODO: buidlings: false, half of footpring, max slope (0..1)
-			traversability = {false, 0, 1}
-		end
-
-		_unitTraversability[unitDefID] = traversability
-		return traversability[1], traversability[2], traversability[3]
-	end
-
+	local _unitType = {}
 	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
 	local function isFootingUntraversable(x, z, unitDefID)
-		local groundMobile, footprintSize, maxSlope = _getUnitTraversability(unitDefID)
+		-- type: 1|2|3 : air | ground mobile | building
+		local type = _unitType[unitDefID]
+		local unitDef = UnitDefs[unitDefID]
+		if not type then
+			type = unitDef.canFly and 1 or (unitDef.moveDef and unitDef.moveDef.id) and 2 or 3
+			_unitType[unitDefID] = type
+		end
 
-		if groundMobile then
-			local y = Spring.GetGroundHeight(x, z)
+		if type == 1 then
+			return false
+		end
+
+		local y = Spring.GetGroundHeight(x, z)
+		if type == 2 then
 			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
 			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
 			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
@@ -259,16 +242,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
 		end
 
-		local minX, maxX = math.floor((x - footprintSize) / Game.squareSize) * Game.squareSize, math.floor((x + footprintSize) / Game.squareSize) * Game.squareSize
-		local minZ, maxZ = math.floor((z - footprintSize) / Game.squareSize) * Game.squareSize, math.floor((z + footprintSize) / Game.squareSize) * Game.squareSize
-		for _z = minZ, maxZ, Game.squareSize do
-			for _x = minX, maxX, Game.squareSize do
-				if select(4, Spring.GetGroundNormal(_x, _z, false)) > maxSlope then
-					return true
-				end
-			end
-		end
-		return false
+		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
