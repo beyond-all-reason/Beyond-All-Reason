@@ -147,6 +147,7 @@ function widget:SelectionChanged(sel)
 			-- if empty selection box and engine hardcoded deselect modifier is not
 			-- pressed, user is selected empty space
 			-- let engine deselect everything by itself since we didn't modify its provided value
+			selectedUnits = {}
 			return false
 		else
 			-- we also want to override back from engine selection to our selection
