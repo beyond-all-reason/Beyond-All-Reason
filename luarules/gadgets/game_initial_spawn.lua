@@ -220,7 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local _unitType = {}
 	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
-	local function isFootingUntraversable(x, z, unitDefID)
+	local function isFootingUntraversable(x, y, z, unitDefID)
 		-- type: 1|2|3 : air | ground mobile | building
 		local type = _unitType[unitDefID]
 		local unitDef = UnitDefs[unitDefID]
@@ -233,16 +233,16 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		local y = Spring.GetGroundHeight(x, z)
+		local _y = y or Spring.GetGroundHeight(x, z)
 		if type == 2 then
-			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
-			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
+			return not (Spring.TestMoveOrder(unitDefID, x, _y, z) and
+			Spring.TestMoveOrder(unitDefID, x, _y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, _y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, _y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, _y, z, 0, 0,-1))
 		end
 
-		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
+		return Spring.TestBuildOrder(unitDefID, x, _y, z, "s") == 0
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
@@ -299,7 +299,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if isFootingUntraversable(x,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+		if isFootingUntraversable(x,y,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
 			return false
 		end
 
