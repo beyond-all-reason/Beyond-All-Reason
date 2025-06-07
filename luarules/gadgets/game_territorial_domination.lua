@@ -207,12 +207,16 @@ local function processLivingTeams()
 
 			if allyID and allyID ~= gaiaAllyTeamID then
 				if not hordeModeTeams[teamID] then
+					if not allyTeamsWatch[allyID] then
+						newAllyTeamsCount = newAllyTeamsCount + 1
+					end
 					allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
 					allyTeamsWatch[allyID][teamID] = true
-					newAllyTeamsCount = newAllyTeamsCount + 1
 				else
+					if not hordeModeAllies[allyID] then
+						newAllyHordesCount = newAllyHordesCount + 1
+					end
 					hordeModeAllies[allyID] = true
-					newAllyHordesCount = newAllyHordesCount + 1
 				end
 			end
 		end
