@@ -23,7 +23,7 @@ return {
 		metalcost = 230,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCUT.s3o",
-		script = "Units/corcut_clean.cob",
+		script = "Units/corcut.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,

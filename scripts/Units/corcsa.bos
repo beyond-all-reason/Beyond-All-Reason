@@ -1,29 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, duct1, fan1, duct2, fan2, nano, thrust1, thrust2;
-
-static-var  Static_Var_1, Static_Var_2;
-
-
-activatescr()
-{
-	spin fan1 around y-axis speed <720> accelerate <720>;
-	spin fan2 around y-axis speed <-720> accelerate <720>;
-	sleep 1457;
-	return (0);
-}
-
-deactivatescr()
-{
-	stop-spin fan1 around y-axis decelerate <720>;
-	stop-spin fan2 around y-axis decelerate <720>;
-	sleep 1455;
-	return (0);
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -31,51 +9,19 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( Static_Var_2 )
-	{
-		Static_Var_1 = requestedstate;
-		return (0);
-	}
-	Static_Var_2 = 1;
-	currentstate = Static_Var_1;
-	Static_Var_1 = requestedstate;
-	while( Static_Var_1 != currentstate )
-	{
-		if( Static_Var_1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-	}
-	Static_Var_2 = 0;
-	return (0);
-}
+#include "../idlehover.h"
 
 Create()
 {
 	hide thrust1;
 	hide thrust2;
 	hide nano;
-	Static_Var_1 = 1;
-	Static_Var_2 = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -83,16 +29,16 @@ Activate()
 {
 	show thrust1;
 	show thrust2;
-	start-script RequestState(0);
-	return (0);
+	spin fan1 around y-axis speed <720> accelerate <720>;
+	spin fan2 around y-axis speed <-720> accelerate <720>;
 }
 
 Deactivate()
 {
 	hide thrust1;
 	hide thrust2;
-	start-script RequestState(1);
-	return (0);
+	stop-spin fan1 around y-axis decelerate <720>;
+	stop-spin fan2 around y-axis decelerate <720>;
 }
 
 StartBuilding()
@@ -109,17 +55,12 @@ StopBuilding()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

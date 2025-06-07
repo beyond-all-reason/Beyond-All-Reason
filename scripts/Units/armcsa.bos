@@ -1,44 +1,8 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 //piece  base, engine, thrusta, thrustb, emit;
 piece base, center, lwing, rwing, centerblad, backblade, thruster, thrusta, thrustb, nano, emit;
-
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
-
-// Signal definitions
-#define SIG_MOVE			2
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-		move lwing to x-axis [0] speed [5];
-		move rwing to x-axis [0] speed [5];
-		spin centerblad around y-axis speed <540> accelerate <5>;
-		spin backblade around x-axis speed <540> accelerate <5>;
-		sleep 1000;
-	}
-	sleep 32;
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move lwing to x-axis [7] speed [5];
-		move rwing to x-axis [-7] speed [5];
-		stop-spin centerblad around y-axis decelerate <1>;
-		stop-spin backblade around y-axis decelerate <1>;
-		sleep 1000;
-	}
-	sleep 32;
-	return (0);
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -46,60 +10,23 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide emit;
 	hide thrustb;
 	hide thrusta;
-	call-script InitState();
 	move lwing to x-axis [7] now;
 	move rwing to x-axis [-7] now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -107,28 +34,24 @@ Activate()
 {
 	show thrustb;
 	show thrusta;
-	start-script RequestState(0);
-	return (0);
+
+	move lwing to x-axis [0] speed [5];
+	move rwing to x-axis [0] speed [5];
+
+	spin centerblad around y-axis speed <540> accelerate <5>;
+	spin backblade around x-axis speed <540> accelerate <5>;
 }
 
 Deactivate()
 {
 	hide thrustb;
 	hide thrusta;
-	start-script RequestState(1);
-	return (0);
-}
 
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	return (0);
+	move lwing to x-axis [7] speed [5];
+	move rwing to x-axis [-7] speed [5];
+	
+	stop-spin centerblad around y-axis decelerate <1>;
+	stop-spin backblade around y-axis decelerate <1>;
 }
 
 StartBuilding()
@@ -145,17 +68,11 @@ StopBuilding()
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emit;
-	return (0);
+	pieceIndex = emit;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {
