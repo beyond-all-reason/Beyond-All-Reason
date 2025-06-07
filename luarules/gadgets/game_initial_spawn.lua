@@ -233,16 +233,15 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		local _y = y or Spring.GetGroundHeight(x, z)
 		if type == 2 then
-			return not (Spring.TestMoveOrder(unitDefID, x, _y, z) and
-			Spring.TestMoveOrder(unitDefID, x, _y, z, 1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, _y, z, 0, 0, 1) and
-			Spring.TestMoveOrder(unitDefID, x, _y, z,-1, 0, 0) and
-			Spring.TestMoveOrder(unitDefID, x, _y, z, 0, 0,-1))
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
 		end
 
-		return Spring.TestBuildOrder(unitDefID, x, _y, z, "s") == 0
+		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
