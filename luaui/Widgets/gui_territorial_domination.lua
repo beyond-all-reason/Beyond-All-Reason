@@ -40,6 +40,7 @@ local spI18N = Spring.I18N
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetAllUnits = Spring.GetAllUnits
+local spGetTeamLuaAI = Spring.GetTeamLuaAI
 
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -346,12 +347,27 @@ local function isAllyTeamAlive(allyTeamID)
 	return false
 end
 
+local function isHordeModeAllyTeam(allyTeamID)
+	local teamList = spGetTeamList(allyTeamID)
+	if not teamList then return false end
+	
+	for _, teamID in ipairs(teamList) do
+		local luaAI = spGetTeamLuaAI(teamID)
+		if luaAI and luaAI ~= "" then
+			if string.sub(luaAI, 1, 12) == 'ScavengersAI' or string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 local function updateAliveAllyTeams()
 	aliveAllyTeams = {}
 	local allyTeamList = spGetAllyTeamList()
 	
 	for _, allyTeamID in ipairs(allyTeamList) do
-		if isAllyTeamAlive(allyTeamID) then
+		if isAllyTeamAlive(allyTeamID) and not isHordeModeAllyTeam(allyTeamID) then
 			table.insert(aliveAllyTeams, allyTeamID)
 		end
 	end

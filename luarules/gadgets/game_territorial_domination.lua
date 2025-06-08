@@ -364,7 +364,7 @@ local function getAllyPowersInSquare(gridID)
 				hasUnits = true
 				local power = calculateUnitPower(unitID, unitData)
 				
-				if hordeModeTeams[allyTeam] then
+				if hordeModeAllies[allyTeam] then
 					allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
 				else
 					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
@@ -454,8 +454,8 @@ local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 	local data = captureGrid[gridID]
 	local newProgress
 
-	if hordeModeTeams[winningAllyID] then
-		winningAllyID = gaiaAllyTeamID -- horde mode units cannot own territory, they give it back to gaia
+	if hordeModeAllies[winningAllyID] then -- horde mode units cannot own territory, they give it back to gaia
+		winningAllyID = gaiaAllyTeamID
 		newProgress = data.progress - math.abs(progressChange)
 	else
 		newProgress = data.progress + progressChange
