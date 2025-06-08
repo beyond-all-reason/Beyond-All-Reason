@@ -108,6 +108,7 @@ local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
@@ -1152,7 +1153,7 @@ function CreatePlayer(playerID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = GetDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         pingLvl = tpingLvl,
         cpuLvl = tcpuLvl,
@@ -1245,7 +1246,7 @@ function CreatePlayerFromTeam(teamID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = GetDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         totake = ttotake,
         dead = tdead,
@@ -1314,18 +1315,6 @@ function UpdatePlayerResources()
 
     updateRateMult = math.clamp(displayedPlayers*0.05, 1, 2)
     updateFastRateMult = math.clamp(displayedPlayers*0.07, 1, 3.3)
-end
-
-function GetDark(red, green, blue)
-    -- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
-    --
-    -- Threshold was changed since the new SPADS colors include green and blue which were
-    -- just below the old threshold of 0.8
-    -- https://github.com/Yaribz/SPADS/commit/e95f4480b98aafd03420ba3de19feb5494ef0b7e
-    if red + green * 1.2 + blue * 0.4 < 0.65 then
-        return true
-    end
-    return false
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -3588,7 +3577,7 @@ function CheckPlayersChange()
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
 				end
-                player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
+                player[i].dark = ColorIsDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
             end
