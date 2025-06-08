@@ -391,7 +391,7 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 2) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<4) animSpeed=4;
-		if (animspeed> 10) animSpeed = 10;
+		if (animspeed>8) animSpeed=8;
 		sleep 65;
 	}
 }
@@ -538,7 +538,7 @@ FirePrimary() {
 AimFromPrimary(piecenum)
 {
 
-	piecenum = heatrayaimflare;
+	piecenum = heatray;
 
 }
 
