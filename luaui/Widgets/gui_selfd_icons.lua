@@ -63,6 +63,8 @@ local function DrawIcon(text)
 	if text ~= 0 then
 		gl.Translate(iconSize/2, -iconSize/2, 0)
 		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
 		font:Print(text, 0, 0, 0.66, "o")
 		font:End()
 	end
