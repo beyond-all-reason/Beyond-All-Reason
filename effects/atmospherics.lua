@@ -778,6 +778,23 @@ return {
     },
   },
 
+  ["sandcloud_sparse"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 20,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[1 r300]],
+        explosiongenerator = [[custom:sanddustgray]],
+        pos                = [[-500 r2000, 125 r30, -500 r2000]],
+      },
+    },
+  },
+
   ["sandclouddense"] = {
     usedefaultexplosions = false,
     raindrops = {
