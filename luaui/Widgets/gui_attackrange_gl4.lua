@@ -1129,7 +1129,7 @@ function widget:DrawWorld(inMiniMap)
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
 	end
 
-	if chobbyInterface then return end
+	if chobbyInterface or selUnitCount == 0 then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
