@@ -282,48 +282,14 @@ local function setSelectedBlueprintIndex(index)
 	end
 end
 
-local function isValidBlueprint(blueprint)
-	if blueprint == nil then
-		return false
-	end
-
-	if blueprint.hasInvalidUnits then
-		return false
-	end
-
-	local buildable, unbuildable = WG["api_blueprint"].getBuildableUnits(blueprint)
-
-	if buildable == 0 then
-		return false
-	end
-
-	return true
+local function getNextBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex or 0
+	return nextIndex(newIndex, #blueprints)
 end
 
-local function getNextFilteredBlueprintIndex(startIndex)
+local function getPrevBlueprintIndex(startIndex)
 	local newIndex = startIndex or selectedBlueprintIndex or 0
-
-	for _ = 1, #blueprints do
-		newIndex = nextIndex(newIndex, #blueprints)
-		if isValidBlueprint(blueprints[newIndex]) then
-			return newIndex
-		end
-	end
-
-	return nil
-end
-
-local function getPrevFilteredBlueprintIndex(startIndex)
-	local newIndex = startIndex or selectedBlueprintIndex or 0
-
-	for _ = 1, #blueprints do
-		newIndex = prevIndex(newIndex, #blueprints)
-		if isValidBlueprint(blueprints[newIndex]) then
-			return newIndex
-		end
-	end
-
-	return nil
+	return prevIndex(newIndex, #blueprints)
 end
 
 local function getMouseWorldPosition(blueprint, x, y)
@@ -470,7 +436,7 @@ local function deleteBlueprint(index)
 	elseif index == selectedBlueprintIndex then
 		-- find the closest valid blueprint, searching backwards
 		setSelectedBlueprintIndex(
-			getPrevFilteredBlueprintIndex(selectedBlueprintIndex)
+			getPrevBlueprintIndex(selectedBlueprintIndex)
 		)
 		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	else -- index < selectedBlueprintIndex
@@ -815,7 +781,7 @@ local function handleBlueprintNextAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
+	setSelectedBlueprintIndex(getNextBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
@@ -833,7 +799,7 @@ local function handleBlueprintPrevAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
+	setSelectedBlueprintIndex(getPrevBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
@@ -1089,15 +1055,9 @@ end
 -- saving/loading
 -- ==============
 
-local serializedInvalidBlueprints = {}
-
 ---@param blueprint Blueprint
 ---@return SerializedBlueprint
 local function serializeBlueprint(blueprint)
-	if serializedInvalidBlueprints[blueprint] ~= nil then
-		return serializedInvalidBlueprints[blueprint]
-	end
-
 	return {
 		name = blueprint.name,
 		spacing = blueprint.spacing,
@@ -1117,7 +1077,6 @@ end
 ---@return Blueprint
 local function deserializeBlueprint(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
-	result.hasInvalidUnits = false
 	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
 		local unit = {
 			blueprintUnitID = nextBlueprintUnitID(),
@@ -1127,19 +1086,12 @@ local function deserializeBlueprint(serializedBlueprint)
 
 		if UnitDefNames[serializedBlueprintUnit.unitName] then
 			unit.unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id
-		else
-			result.hasInvalidUnits = true
 		end
 
 		return unit
 	end)
 
-	if not result.hasInvalidUnits then
-		postProcessBlueprint(result)
-	else
-		serializedInvalidBlueprints[result] = serializedBlueprint
-	end
-
+	postProcessBlueprint(result)
 	return result
 end
 
