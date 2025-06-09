@@ -3,7 +3,7 @@
 
 #define SIGNAL_BUILD 2
 
-piece  base,doorlf, doorlb, doorrf, doorrb, nano, turret, ground, wake1, wake2;
+piece  base,doorlf, doorlb, doorrf, doorrb, nano, turret, ground, wake1, wake2, cagelight, cagelight_emit;
 
 static-var oldHead;
 
@@ -40,6 +40,7 @@ Create()
 	hide wake1;
 	hide nano;
 	hide ground;
+	hide cagelight_emit;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
@@ -62,6 +63,8 @@ StartBuilding(heading, pitch)
 	turn turret to y-axis heading speed <160.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <150> accelerate <3>;
 }
 
 StopBuilding()
@@ -69,9 +72,13 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
 
-	hide nano;
+	hide nano;	
 	
-	sleep 6000;
+	stop-spin cagelight around y-axis decelerate <5>;
+	sleep 1000;
+	hide cagelight_emit;
+	
+	sleep 5000;
 
 	set INBUILDSTANCE to 1;
 
