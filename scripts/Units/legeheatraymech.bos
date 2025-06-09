@@ -11,8 +11,8 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare, rightFrontSmoke, leftFrontSmoke,
 		 bigToroidLight, leftToroidLight, rightToroidLight;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer1, timer2, oldhead1, oldhead2, oldhead3, oldhead4, oldsteerheading, torsoaim, 
-gun_4, gun_5, isturning, aimAdj, shotcount, issmoking, targetswap1, targetswap2, heatrayReady; 			
+static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, timeLeft, isFiring1, isFiring2, timer1, timer2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, 
+isTurning, isSmoking, targetSwap1, targetSwap2, heatrayReady; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -1047,9 +1047,9 @@ lua_UnitScriptLight(lightIndex, count) {
 
 SmokeItUp()
 {	
-	if (issmoking == 0 OR TRUE)
+	if (isSmoking == 0 OR TRUE)
 	{
-		issmoking = 1;
+		isSmoking = 1;
 		emit-sfx 257 from leftFrontSmoke;
 		emit-sfx 257 from rightFrontSmoke;
 		sleep 3000;
@@ -1074,7 +1074,7 @@ SmokeItUp()
 		// emit-sfx 257 from leftFrontSmoke;
 		// emit-sfx 257 from rightFrontSmoke;
 		// sleep 1000;
-		issmoking = 0;
+		isSmoking = 0;
 	}
 }
 
@@ -1082,7 +1082,7 @@ SweepFire()
 {
 	while( TRUE )
 	{
-		if (targetswap1 == 1 AND isfiring1 == 1)
+		if (targetSwap1 == 1 AND isFiring1 == 1 AND timer1 <= 50)
 		{
 			emit-sfx 2048 + 1 from lShoulderFlare;
 			timer1 = timer1 + 1;
@@ -1091,7 +1091,7 @@ SweepFire()
 		{
 			start-script RestoreLRay();
 		}
-		if (targetswap2 == 1 AND isfiring2 == 1)
+		if (targetSwap2 == 1 AND isFiring2 == 1 AND timer2 <= 50)
 		{
 			emit-sfx 2048 + 2 from rShoulderFlare;
 			timer2 = timer2 + 1;
@@ -1118,21 +1118,17 @@ Create()
 	isMoving = FALSE;
 	InMotion = 0;
 	aimingPose = 0;
-	isfiring1 = 0;
-	isfiring2 = 0;
+	isFiring1 = 0;
+	isFiring2 = 0;
 	timeLeft = 0;
-	oldhead1 = 1000000;
-	oldhead2 = 1000000;
-	oldhead3 = 0;
-	oldhead4 = 0;
-	restore_delay = 1000;
-	gun_4 = 0;
-	gun_5 = 0;
-	oldsteerheading = get HEADING;;
-	isturning = 0;
-	aimAdj = 0;
-	shotcount = 0;
-	issmoking = 0;
+	oldHeading1 = 1000000;
+	oldHeading2 = 1000000;
+	oldHeading3 = 0;
+	oldHeading4 = 0;
+	restoreDelay = 1000;
+	oldSsteerHeading = get HEADING;;
+	isTurning = 0;
+	isSmoking = 0;
 	call-script Steering();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
@@ -1174,16 +1170,15 @@ Steering(heading, currentSpeed)
 	while (TRUE)
 	{
 		heading = get HEADING;
-		aimAdj = (heading - oldsteerheading);
-		if ((get ABS(oldsteerheading - heading)) > <1>)
+		if ((get ABS(oldSsteerHeading - heading)) > <1>)
 		{
-			isturning = 1;
+			isTurning = 1;
 		}
 		else
 		{
-			isturning = 0;
+			isTurning = 0;
 		}
-		oldsteerheading = heading;
+		oldSsteerHeading = heading;
 		sleep 20;
 	}
 }
@@ -1211,14 +1206,13 @@ ExecuteRestoreAfterDelay(addTime)
 	turn rArmGun to x-axis <0.0> speed <10>;
 	turn midTorso to y-axis <0.0> speed <25.0>;
     timeLeft = 0;
-	oldhead1 = 1000000;
-	oldhead2 = 1000000;
-	oldhead3 = 0;
-	oldhead4 = 0;
-	torsoaim = 0;
-	oldsteerheading = get HEADING;;
-	isturning = 0;
-	aimAdj = 0;
+	oldHeading1 = 1000000;
+	oldHeading2 = 1000000;
+	oldHeading3 = 0;
+	oldHeading4 = 0;
+	torsoAim = 0;
+	oldSsteerHeading = get HEADING;;
+	isTurning = 0;
 	start-script Close();
 }
 
@@ -1227,28 +1221,31 @@ RestoreAfterDelay()
 	set-signal-mask SIG_AIM;
 	set-signal-mask SIG_AIM_2;
 	set-signal-mask SIG_AIM_3;
-	sleep restore_delay;
-	oldhead1 = 1000000;
-	oldhead2 = 1000000;
-	oldhead3 = 0;
-	oldhead4 = 0;
+	sleep restoreDelay;
+	oldHeading1 = 1000000;
+	oldHeading2 = 1000000;
+	oldHeading3 = 0;
+	oldHeading4 = 0;
 	start-script ExecuteRestoreAfterDelay();
+	start-script RestoreLRay();
+	start-script RestoreRRay();
 }
 
 RestoreLRay()
 {
-	signal SIG_AIM_2;
+	//signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	sleep 1;
-	while(timer1 < 50)
+	while(timer1 < 50 AND timer1 >= 0)
 	{
-		targetswap1 = 1;
+		targetSwap1 = 1;
 		sleep 10;
 	}
-	isfiring1 = 0;
+	//set-signal-mask SIG_AIM_2;
+	isFiring1 = 0;
 	timer1 = 0;
-	targetswap1 = 0;
-	oldhead1 = -1000000;
+	targetSwap1 = 0;
+	oldHeading1 = -1000000;
 	turn lArmShoulderJoint to y-axis <0.0> speed <20.0>;
 	turn lArmShoulderGun to x-axis <35> speed <20.0>;
 	
@@ -1264,18 +1261,18 @@ RestoreLRay()
 
 RestoreRRay()
 {
-	signal SIG_AIM_3;
+	//signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 	sleep 1;
-	while(timer2 < 50)
+	while(timer2 < 50 AND timer2 >= 0)
 	{
-		targetswap2 = 1;
+		targetSwap2 = 1;
 		sleep 10;
 	}
-	isfiring2 = 0;
+	isFiring2 = 0;
 	timer2 = 0;
-	targetswap2 = 0;
-	oldhead2 = -1000000;
+	targetSwap2 = 0;
+	oldHeading2 = -1000000;
 	turn rArmShoulderJoint to y-axis <0.0> speed <20.0>;
 	turn rArmShoulderGun to x-axis <35> speed <20.0>;
 	
@@ -1306,26 +1303,26 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIG_AIM;
 	var cauaim;
     var cauface;
-	if ((((oldhead3 > 0) AND (oldhead4 < 0) AND (oldhead3 > 15000) AND (oldhead4 < (-15000))) OR ((oldhead3 < 0) AND (oldhead4 > 0) AND (oldhead3 < (-15000)) AND (oldhead4 > 15000))) AND (15000 > get ABS(cauface - cauaim)))
+	if ((((oldHeading3 > 0) AND (oldHeading4 < 0) AND (oldHeading3 > 15000) AND (oldHeading4 < (-15000))) OR ((oldHeading3 < 0) AND (oldHeading4 > 0) AND (oldHeading3 < (-15000)) AND (oldHeading4 > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
-		if (((oldhead3+oldhead4)/2) < 0)
+		if (((oldHeading3+oldHeading4)/2) < 0)
 		{
-			if (isturning == 1)
+			if (isTurning == 1)
 			{
 				turn midTorso to y-axis <179> speed <60.0000> ;
 			}
-			if (isturning == 0)
+			else
 			{
 				turn midTorso to y-axis <179> speed <30.0000> ;
 			}
 		}
-		if (((oldhead3+oldhead4)/2) > 0)
+		else
 		{
-			if (isturning == 1)
+			if (isTurning == 1)
 			{
 				turn midTorso to y-axis <-179> speed <60.0000> ;
 			}
-			if (isturning == 0)
+			else
 			{
 				turn midTorso to y-axis <-179> speed <30.0000> ;
 			}
@@ -1333,17 +1330,17 @@ AimWeapon1(heading, pitch)
 	}
 	else
 	{
-		if (isturning == 1)
+		if (isTurning == 1)
 		{
-			turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <60.0000> ;
+			turn midTorso to y-axis (oldHeading3+oldHeading4)/2 speed <60.0000> ;
 		}
-		if (isturning == 0)
+		else
 		{
-			turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ;
+			turn midTorso to y-axis (oldHeading3+oldHeading4)/2 speed <30.0000> ;
 		}
 	}
 	//turret on turret script in a single line to avoid rounding errors and make heatray snapping a bit less bad
-    torsoaim = ((get ATAN((((get PIECE_XZ(legJointTorso)) & 0x0000ffff) - ((get PIECE_XZ(front2)) & 0x0000ffff)), ((((get PIECE_XZ(legJointTorso)) & 0xffff0000) / 0x00010000) - (((get PIECE_XZ(front2)) & 0xffff0000) / 0x00010000)))) - 
+    torsoAim = ((get ATAN((((get PIECE_XZ(legJointTorso)) & 0x0000ffff) - ((get PIECE_XZ(front2)) & 0x0000ffff)), ((((get PIECE_XZ(legJointTorso)) & 0xffff0000) / 0x00010000) - (((get PIECE_XZ(front2)) & 0xffff0000) / 0x00010000)))) - 
 	(get ATAN((((get PIECE_XZ(midTorso)) & 0x0000ffff) - ((get PIECE_XZ(front)) & 0x0000ffff)), ((((get PIECE_XZ(midTorso)) & 0xffff0000) / 0x00010000) - (((get PIECE_XZ(front)) & 0xffff0000) / 0x00010000)))));
 	
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
@@ -1356,7 +1353,7 @@ AimWeapon1(heading, pitch)
     {
         start-script RestoreAfterDelay();
     }
-	timeLeft = restore_delay;
+	timeLeft = restoreDelay;
 	return (1);
 }
 
@@ -1374,29 +1371,29 @@ AimWeapon2(heading, pitch)
 {
 	start-script Open();
 	signal SIG_AIM_2;
-	if (isturning == 1)
+	if (isTurning == 1)
 	{
-		turn lArmShoulderJoint to y-axis (heading - torsoaim) speed <70>;
+		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <70>;
 	}
-	if (isturning == 0)
+	else
 	{
-		turn lArmShoulderJoint to y-axis (heading - torsoaim) speed <35>;
+		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
 	
-	if (get ABS(oldhead1 - heading) > 500)
+	if (get ABS(oldHeading1 - heading) > 500)
 	{
-		targetswap1 = 1;
+		targetSwap1 = 1;
 	}
-	if (get ABS(oldhead1 - heading) < 500)
+	else
 	{
-		oldhead1 = heading;
+		oldHeading1 = heading;
 		return (1);
 	}
 	timer1 = 0;
 	wait-for-turn lArmShoulderJoint around y-axis;
 	wait-for-turn lArmShoulderGun around x-axis;
-	oldhead1 = heading;
+	oldHeading1 = heading;
 	return (1);
 }
 
@@ -1408,8 +1405,8 @@ AimFromWeapon2(pieceIndex)
 FireWeapon2()
 {
 	start-script RestoreLRay();
-	targetswap1 = 0;
-	isfiring1 = 1;
+	targetSwap1 = 0;
+	isFiring1 = 1;
 	timer1 = 0;
 	return (0);
 }
@@ -1423,29 +1420,29 @@ AimWeapon3(heading, pitch)
 {
 	start-script Open();
 	signal SIG_AIM_3;
-	if (isturning == 1)
+	if (isTurning == 1)
 	{
-		turn rArmShoulderJoint to y-axis (heading - torsoaim) speed <70>;
+		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <70>;
 	}
-	if (isturning == 0)
+	else
 	{
-		turn rArmShoulderJoint to y-axis (heading - torsoaim) speed <35>;
+		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
 	
-	if (get ABS(oldhead2 - heading) > 500)
+	if (get ABS(oldHeading2 - heading) > 500)
 	{
-		targetswap2 = 1;
+		targetSwap2 = 1;
 	}
-	if (get ABS(oldhead2 - heading) < 500)
+	else
 	{
-		oldhead2 = heading;
+		oldHeading2 = heading;
 		return (1);
 	}
 	timer2 = 0;
 	wait-for-turn rArmShoulderJoint around y-axis;
 	wait-for-turn rArmShoulderGun around x-axis;
-	oldhead2 = heading;
+	oldHeading2 = heading;
 	return (1);
 }
 
@@ -1457,8 +1454,8 @@ AimFromWeapon3(pieceIndex)
 FireWeapon3()
 {
 	start-script RestoreRRay();
-	targetswap2 = 0;
-	isfiring2 = 1;
+	targetSwap2 = 0;
+	isFiring2 = 1;
 	timer2 = 0;
 	return (0);
 }
@@ -1485,8 +1482,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-	oldhead3 = heading;
-	call-script CATT1_Aim((heading - torsoaim) + <1>,pitch+400);
+	oldHeading3 = heading;
+	call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
 	return(1);
 }
 
@@ -1515,8 +1512,8 @@ AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
 	set-signal-mask SIG_AIM_5;
-	oldhead4 = heading;
-	call-script CATT2_Aim((heading - torsoaim) + <1>,pitch+400);
+	oldHeading4 = heading;
+	call-script CATT2_Aim((heading - torsoAim) + <1>,pitch+400);
 	return(1);
 }
 
@@ -1545,7 +1542,7 @@ AimWeapon6(heading, pitch)
 {
 	signal SIG_AIM_6;
 	set-signal-mask SIG_AIM_6;
-	turn aaBase to y-axis (heading - torsoaim + <180>) speed <300>;
+	turn aaBase to y-axis (heading - torsoAim + <180>) speed <300>;
 	turn aaTurret to x-axis pitch speed <150>;
 	start-script RestoreAfterDelay();
 	return (1);
