@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, dish, wake;
+piece  base, dish, wake, jam;
 
 static-var  oldHead;
 static-var recently_damaged, desired_activation;
@@ -28,6 +28,7 @@ static-var recently_damaged, desired_activation;
 Create()
 {
 	hide wake;
+	hide jam;
 	recently_damaged = 0;
 	desired_activation = 1;
 	start-script InitRockBoat();
@@ -40,6 +41,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -50,7 +52,7 @@ Activate()
 		return(0);
 	}
 
-	spin dish around z-axis speed <100.021978>;
+	spin dish around z-axis speed <100.0> accelerate <2>;
 }
 
 Deactivate()
@@ -73,7 +75,8 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	spin dish around z-axis speed <0.0>;
+	hide jam;
+	stop-spin dish around z-axis decelerate <2>;
 }
 
 static-var  Stunned;
@@ -91,6 +94,7 @@ OffOnHit()
 {
 	signal SIGNAL_OFF;
 	set-signal-mask SIGNAL_OFF;
+	hide jam;
 	recently_damaged = 1;
 	set ACTIVATION to 0; // turn off unit
 	sleep 8000; //hardcoded time to stay off after being hit
