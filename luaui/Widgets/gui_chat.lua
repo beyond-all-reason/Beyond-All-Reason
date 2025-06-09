@@ -58,7 +58,7 @@ local soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10		-- limit ma
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
+local widgetScale = 1
 
 local I18N = {}
 local maxLinesScroll = maxLinesScrollFull
@@ -184,6 +184,7 @@ local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamInfo = Spring.GetTeamInfo
 local ColorString = Spring.Utilities.Color.ToString
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local soundErrors = {}
 
@@ -420,7 +421,7 @@ local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -489,7 +490,7 @@ for i = 1, #teams do
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b } }
+		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b }, ColorIsDark(r, g, b) }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -653,6 +654,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
+			textOutline = ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3]),
 			text = (i > 1 and lineColor or '')..line,
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -1169,7 +1171,11 @@ local function drawChatLine(i)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin()
-			font2:SetOutlineColor(0,0,0,1)
+			if chatLines[i].textOutline then
+				font2:SetOutlineColor(1,1,1,1)
+			else
+				font2:SetOutlineColor(0,0,0,1)
+			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
@@ -1179,7 +1185,11 @@ local function drawChatLine(i)
 			font3:End()
 		else
 			font2:Begin()
-			font2:SetOutlineColor(0,0,0,1)
+			if chatLines[i].textOutline then
+				font2:SetOutlineColor(1,1,1,1)
+			else
+				font2:SetOutlineColor(0,0,0,1)
+			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
@@ -2329,7 +2339,6 @@ end
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
-	--widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	widgetScale = vsy * 0.00075 * ui_scale
 
 	UiElement = WG.FlowUI.Draw.Element
@@ -2339,8 +2348,7 @@ function widget:ViewResize()
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
-	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
-	charSize = charSize * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.2)	-- increase for small resolutions
+	charSize = 21 * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)	-- increase for small resolutions
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
@@ -2472,6 +2480,7 @@ local function preventhistorymodeCmd(_, _, params)
 		Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
 	end
 end
+
 
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
