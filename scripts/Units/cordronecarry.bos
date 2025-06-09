@@ -133,7 +133,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FireWeapon1()
