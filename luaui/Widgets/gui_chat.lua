@@ -566,7 +566,7 @@ end
 
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][7] or gameFrame < playernames[playername][7]) then
 			if not mySpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
@@ -2420,7 +2420,7 @@ function widget:PlayerChanged(playerID)
 		if isSpec ~= playernames[name].isSpec then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][6] = Spring.GetGameFrame()	-- log frame of death
+				playernames[name][7] = Spring.GetGameFrame()	-- log frame of death
 			end
 		end
 	end
@@ -2428,7 +2428,7 @@ end
 
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
