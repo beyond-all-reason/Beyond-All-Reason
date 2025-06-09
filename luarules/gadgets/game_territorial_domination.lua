@@ -48,6 +48,7 @@ local PROGRESS_INCREMENT = 0.06
 local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
+local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE = 0.25 -- maximum percentage of the total number of squares players will have to control to avoid elimination when scavengers/raptors are in the game.
 
 local MAX_EMPTY_IMPEDENCE_POWER = 25
 local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
@@ -98,6 +99,7 @@ local teams = spGetTeamList()
 
 local allyCount = 0
 local allyHordesCount = 0
+local teamCount = 0
 local defeatThreshold = 0
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
@@ -106,6 +108,7 @@ local sentGridStructure = false
 local thresholdSecondsDelay = 0
 local thresholdDelayTimestamp = 0
 local wantedDefeatThreshold = 0
+local maxDefeatThreshold = 0
 local pauseThresholdTimer = 0
 local currentSecond = 0
 
@@ -162,13 +165,23 @@ local function getTargetThreshold()
 	return #captureGrid * thresholdExponentialFactor
 end
 
+local function getMaximumThresholdForHordeMode()
+	local returnValue = math.huge
+	if allyHordesCount and allyHordesCount > 0 then
+		returnValue = min(#captureGrid * HORDE_MODE_MAX_THRESHOLD_PERCENTAGE, #captureGrid * 0.5)
+	end
+	return returnValue
+end
+
 local function setThresholdIncreaseRate()
 	local seconds = spGetGameSeconds()
-	if allyCount == 1 then
-		thresholdSecondsDelay = 0
+	if allyCount + allyHordesCount == 1 then
+		thresholdSecondsDelay = 0 --stop checking
 	else
+		local maxPVPThreshold = #captureGrid * 0.5 -- because a ally vs ally is the smallest valid territorial domination arrangment.
 		local startTime = max(seconds, SECONDS_TO_START)
-		wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, #captureGrid / 2))
+		maxDefeatThreshold = min(getMaximumThresholdForHordeMode(), maxPVPThreshold)
+		wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, maxDefeatThreshold))
 		
 		if wantedDefeatThreshold > 0 then
 			local delayValue = (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold
@@ -199,7 +212,10 @@ end
 local function processLivingTeams()
 	local newAllyTeamsCount = 0
 	local newAllyHordesCount = 0
+	allyTeamsWatch = {}
+	hordeModeAllies = {}
 
+	teams = Spring.GetTeamList()
 	for _, teamID in ipairs(teams) do
 		local _, _, isDead = spGetTeamInfo(teamID)
 		if not isDead then
@@ -242,15 +258,15 @@ local function updateAllyCountAndPauseTimer(newAllyCount)
 				end
 			end
 		end
+		allyCount = newAllyCount
 	end
-	allyCount = newAllyCount
 end
 
 local function updateLivingTeamsData()
 	clearAllyTeamsWatch()
-	local newAllyTeamsCount, newAllyHordesCount = processLivingTeams()
-	allyHordesCount = newAllyHordesCount
-	updateAllyCountAndPauseTimer(newAllyTeamsCount + newAllyHordesCount)
+	local newAllyCount, newHordeAllyCount = processLivingTeams()
+	allyHordesCount = newHordeAllyCount
+	updateAllyCountAndPauseTimer(newAllyCount)
 end
 
 local function setAllyGridToGaia(allyID)
@@ -607,9 +623,7 @@ end
 
 local function updateTeamRulesScores()
 	Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
-
-	local maxThreshold = floor(min(#captureGrid/allyCount, #captureGrid / 2)) -- because 1v1 is the smallest number of competitors
-	Spring.SetGameRulesParam(MAX_THRESHOLD_RULES_KEY, maxThreshold)
+	Spring.SetGameRulesParam(MAX_THRESHOLD_RULES_KEY, maxDefeatThreshold)
 	
 	for allyID, tally in pairs(allyTallies) do
 		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
