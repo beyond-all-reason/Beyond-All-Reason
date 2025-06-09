@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, fork1, fork2, ground;
+piece  base, fork1, fork2, ground, jam;
 
 static-var  oldHead;
 static-var recently_damaged, desired_activation;
@@ -27,6 +27,7 @@ static-var recently_damaged, desired_activation;
 Create()
 {
 	hide ground;
+	hide jam;
 	recently_damaged = 0;
 	desired_activation = 1;
 	start-script InitRockBoat();
@@ -39,6 +40,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -48,8 +50,8 @@ Activate()
 		set ACTIVATION to 0;
 		return(0);
 	}
-	spin fork1 around z-axis speed <100.021978>;
-	spin fork2 around z-axis speed <100.021978>;
+	spin fork1 around z-axis speed <100> accelerate <2>;
+	spin fork2 around z-axis speed <100> accelerate <2>;
 }
 
 Deactivate()
@@ -63,6 +65,7 @@ Deactivate()
 	// unit_paralyze_on_off deactivates this unit before it is 
 	// stunned, so it is actually turned off, but we need to wait to see if the
 	// unit is "damaged" by stun.
+	hide jam;
 	sleep 100;
 	if (recently_damaged == 0)
 	{
@@ -71,8 +74,8 @@ Deactivate()
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	stop-spin fork1 around z-axis;
-	stop-spin fork2 around z-axis;
+	stop-spin fork1 around z-axis decelerate <4>;
+	stop-spin fork2 around z-axis decelerate <4>;
 }
 
 static-var  Stunned;
