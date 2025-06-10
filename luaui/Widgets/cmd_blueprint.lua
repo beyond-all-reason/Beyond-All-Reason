@@ -287,7 +287,12 @@ local function isValidBlueprint(blueprint)
 		return false
 	end
 
-	if blueprint.hasInvalidUnits then
+	-- Filter out blueprints with invalid units
+	blueprint.units = table.filterArray(blueprint.units, function(unit)
+		return UnitDefs[unit.unitDefID] ~= nil
+	end)
+
+	if #blueprint.units == 0 then
 		return false
 	end
 
@@ -402,19 +407,6 @@ local function createBlueprint(unitIDs, ordered)
 		return
 	end
 
-	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(table.map(
-		buildableUnits,
-		function(unitID)
-			local x, y, z = SpringGetUnitPosition(unitID)
-			return {
-				position = { x, y, z },
-				unitDefID = Spring.GetUnitDefID(unitID),
-				facing = Spring.GetUnitBuildFacing(unitID),
-			}
-		end
-	))
-	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
-
 	local blueprint = {
 		spacing = 0,
 		facing = 0,
@@ -424,17 +416,28 @@ local function createBlueprint(unitIDs, ordered)
 			buildableUnits,
 			function(unitID)
 				local x, y, z = SpringGetUnitPosition(unitID)
-				local facing = Spring.GetUnitBuildFacing(unitID)
-
 				return {
 					blueprintUnitID = nextBlueprintUnitID(),
 					unitDefID = Spring.GetUnitDefID(unitID),
-					position = subtractPoints({ x, y, z }, center),
-					facing = facing
+					position = { x, y, z },
+					facing = Spring.GetUnitBuildFacing(unitID)
 				}
 			end
 		)
 	}
+
+	if not isValidBlueprint(blueprint) then
+		FeedbackForUser("[Blueprint] no valid units to save")
+		return
+	end
+
+	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(blueprint.units)
+	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
+
+	-- Adjust positions relative to center
+	for _, unit in ipairs(blueprint.units) do
+		unit.position = subtractPoints(unit.position, center)
+	end
 
 	postProcessBlueprint(blueprint)
 
@@ -1111,29 +1114,22 @@ end
 ---@return Blueprint
 local function deserializeBlueprint(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
-	result.hasInvalidUnits = false
 	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
-		local unit = {
+		local unitDefID = UnitDefNames[serializedBlueprintUnit.unitName] and UnitDefNames[serializedBlueprintUnit.unitName].id
+		return {
 			blueprintUnitID = nextBlueprintUnitID(),
 			position = serializedBlueprintUnit.position,
-			facing = serializedBlueprintUnit.facing
+			facing = serializedBlueprintUnit.facing,
+			unitDefID = unitDefID
 		}
-
-		if UnitDefNames[serializedBlueprintUnit.unitName] then
-			unit.unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id
-		else
-			result.hasInvalidUnits = true
-		end
-
-		return unit
 	end)
 
-	if not result.hasInvalidUnits then
-		postProcessBlueprint(result)
-	else
+	if not isValidBlueprint(result) then
 		serializedInvalidBlueprints[result] = serializedBlueprint
+		return result
 	end
 
+	postProcessBlueprint(result)
 	return result
 end
 
