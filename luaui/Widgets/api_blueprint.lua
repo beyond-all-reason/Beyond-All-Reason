@@ -787,21 +787,6 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
-local function getBuildableUnits(blueprint)
-	local buildable = 0
-	local unbuildable = 0
-
-	for _, unit in ipairs(blueprint.units) do
-		if activeBuilderBuildOptions[unit.unitDefID] then
-			buildable = buildable + 1
-		else
-			unbuildable = unbuildable + 1
-		end
-	end
-
-	return buildable, unbuildable
-end
-
 function widget:Initialize()
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
 
@@ -841,7 +826,6 @@ function widget:Initialize()
 		getBuildingDimensions = getBuildingDimensions,
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
-		getBuildableUnits = getBuildableUnits,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
