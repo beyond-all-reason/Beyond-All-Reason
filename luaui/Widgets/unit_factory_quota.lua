@@ -23,8 +23,6 @@ local quotas = {} -- {[factoryID] = {[unitDefID] = amount, ...}, ...}
 local builtUnits = {} -- {[factoryID] = {[unitDefID] = {[unitID] = true, ...}, ...}, ...}
 local unitToFactoryID = {} -- {[unitID] = factoryID, ...}
 
-local quotaPriority = false -- quotaPriority = false means non-repeat queue has priority
-
 local possibleFactories = {}
 local factoryDefIDs = {}
 local metalcosts = {}
