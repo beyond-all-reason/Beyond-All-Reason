@@ -2909,6 +2909,137 @@ addNewSquad({
 	}
 })
 
+--[[
+	Custom Squads Support 
+	This down here is meant for TweakDefs modders to allow them to add their custom modified Raptor units to the spawn rosters easily'ish.	
+
+	Documentation WiP	
+
+	Available CustomParameters:
+
+	raptorCustomSquad - bool - allow this unit to be processed by this whole thing
+	raptorSquadUnitsAmount - number, integrer - maximum amount of these units that can spawn in a squad
+	raptorSquadMinAnger - number, integrer - minimum evolution percentage this unit can spawn at
+	raptorSquadMaxAnger - number, integrer - maximum evolution percentage this unit can spawn at
+	raptorSquadWeight - number, integrer - how often will this unit be picked relative to other options. higher number = more often.
+	raptorSquadRarity - string - either "basic" or "special", defaults to special. Basic squads are your spammable cannon fodder while specials are more specialised elemental units.
+	raptorSquadBehavior - string - explained below
+	raptorSquadBehaviorDistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
+	raptorSquadBehaviorChance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+
+	Behavior Classes:
+
+	"Raider" - This is the default, that doesn't get any behaviors. You can specify it but it won't do anything.
+	"Berserk" - Run towards target after getting hit by enemy or after hitting the target
+	"Skirmisher" - Keep distance from the target
+	"Healer" - Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+	"Artillery" - Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
+	"Kamikaze" - Long lifetime and no regrouping, always uses Move command to rush into the enemy
+]]
+
+for name, unitDef in pairs(UnitDefNames) do
+	if unitDef.customParams then
+		if unitDef.customParams.raptorCustomSquad and tonumber(unitDef.customParams.raptorCustomSquad) == 1 then
+			local squadTable = {}
+			squadTable.units = {
+				count = tonumber(unitDef.customParams.raptorSquadUnitsAmount) or 1, 
+				unit = name
+			}
+			squadTable.minAnger = tonumber(unitDef.customParams.raptorSquadMinAnger) or 0
+			squadTable.maxAnger = tonumber(unitDef.customParams.raptorSquadMaxAnger) or 0
+			squadTable.weight = tonumber(unitDef.customParams.raptorSquadWeight) or 0
+
+			if unitDef.customParams.raptorSquadBehavior then
+
+				if unitDef.customParams.raptorSquadBehavior == "Berserk" and not BERSERK[unitDef.id] then
+					BERSERK[unitDef.id] = {
+						chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 0.1,
+						distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 2000
+					}
+				end
+
+				if unitDef.customParams.raptorSquadBehavior == "Skirmisher" then
+					if not SKIRMISH[unitDef.id] then
+						SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+					if not COWARD[unitDef.id] then
+						COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+				end
+
+				if unitDef.customParams.raptorSquadBehavior == "Healer" then
+					if not COWARD[unitDef.id] then
+						COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 1,
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+					if not HEALER[unitDef.id] then
+						HEALER[unitDef.id] = true
+					end
+					squadTable.type = "healer"
+				end
+
+				if unitDef.customParams.raptorSquadBehavior == "Artillery" then
+					if not SKIRMISH[unitDef.id] then
+						SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 0.5, 
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+					if not COWARD[unitDef.id] then
+						COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+					if not ARTILLERY[unitDef.id] then
+						ARTILLERY[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.raptorSquadBehavior == "Kamikaze" then
+					if not BERSERK[unitDef.id] then
+						BERSERK[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorSquadBehaviorChance) or 1,
+							distance = tonumber(unitDef.customParams.raptorSquadBehaviorDistance) or 500
+						}
+					end
+					if not KAMIKAZE[unitDef.id] then
+						KAMIKAZE[unitDef.id] = true
+					end
+				end
+
+
+			end
+
+			if not squadTable.type then
+				if unitDef.customParams.raptorSquadRarity and unitDef.customParams.raptorSquadRarity == "basic" then
+					if unitDef.canFly then
+						squadTable.type = "basicAir"
+					else
+						squadTable.type = "basic"
+					end
+				else
+					if unitDef.canFly then
+						squadTable.type = "specialAir"
+					else
+						squadTable.type = "special"
+					end
+				end
+			end
+			addNewSquad(squadTable)
+		end
+	end
+end
+
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 local useEggs = true -- Drop eggs (requires egg features from Beyond All Reason)
