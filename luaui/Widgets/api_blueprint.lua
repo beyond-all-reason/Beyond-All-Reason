@@ -787,6 +787,84 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
+local function createBlueprintFromSerialized(serializedBlueprint)
+	-- HACK: This function contains temporary logic to handle blueprints with units
+	-- that are not in the base game (e.g., Legion). It attempts to substitute
+	-- those units to a default faction (ARM) so that the blueprints can still
+	-- be used. This can be removed once all factions are part of the base game.
+	if not serializedBlueprint or not serializedBlueprint.units then
+		return nil
+	end
+
+	local result = table.copy(serializedBlueprint)
+	result.units = {}
+
+	local hasMissingUnits = false
+	for _, serializedUnit in ipairs(serializedBlueprint.units) do
+		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
+		if not unitDefID then
+			hasMissingUnits = true
+		end
+		table.insert(result.units, {
+			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			position = serializedUnit.position,
+			facing = serializedUnit.facing,
+			unitDefID = unitDefID,
+			originalName = serializedUnit.unitName
+		})
+	end
+
+	if hasMissingUnits then
+		local missingUnitSides = {}
+		for _, unit in ipairs(result.units) do
+			if not unit.unitDefID then
+				local unitSide = SubLogic.getSideFromUnitName(unit.originalName)
+				if unitSide then
+					missingUnitSides[unitSide] = true
+				end
+			end
+		end
+
+		local sides = {}
+		for side in pairs(missingUnitSides) do
+			table.insert(sides, side)
+		end
+
+		local sourceSide
+		if #sides == 1 then
+			sourceSide = sides[1]
+		end
+
+		if sourceSide then
+			result.sourceInfo = {
+				primarySourceSide = sourceSide,
+				numSourceSides = 1,
+				sourceSides = { [sourceSide] = true },
+				sideCounts = { [sourceSide] = #result.units }
+			}
+
+			local targetSide = BpDefs.SIDES.ARM
+			local resultTable = SubLogic.processBlueprintSubstitution(result, targetSide)
+			
+			if not resultTable.substitutionFailed then
+				for _, unit in ipairs(result.units) do
+					unit.unitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				end
+			else
+				result.units = {}
+			end
+		else
+			result.units = {}
+		end
+	end
+
+	result.units = table.filterArray(result.units, function(unit)
+		return unit.unitDefID ~= nil
+	end)
+
+	return result
+end
+
 function widget:Initialize()
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
 
@@ -821,6 +899,7 @@ function widget:Initialize()
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
+		createBlueprintFromSerialized = createBlueprintFromSerialized,
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
