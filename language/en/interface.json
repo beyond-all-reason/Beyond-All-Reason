@@ -289,7 +289,7 @@
 			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"factoryqueuemode_normal": "Queue Mode",
 			"factoryqueuemode_quota": "Quota Mode",
-			"factoryqueuemode_tooltip": "Queue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
+			"factoryqueuemode_tooltip": "Give priority to and command factory:\nQueue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
@@ -1628,8 +1628,6 @@
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
-				"factoryquotapriority": "quota priority",
-				"factoryquotapriority_descr": "Finish quotas before starting work on non-repeat queues.",
 				"transportai": "Transport AI",
 				"transportai_descr": "Transport units automatically pick up new units going to factory waypoint.",
 				"settargetdefault": "Set-target as default",

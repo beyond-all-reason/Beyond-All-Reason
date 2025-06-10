@@ -56,6 +56,12 @@ local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 -----
 
+----- handle toggle
+local function isOnQuotaBuildMode(unitID)
+    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
+	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
+end
+
 --------- quota logic -------------
 local function getNumberOfUnits(factoryID, unitDefID)
     local numberOfUnits
@@ -94,7 +100,7 @@ local function isFactoryUsable(factoryID)
     if not commandQueue or #commandQueue == 0 then
         return true
     end
-    if not quotaPriority and not spGetUnitStates(factoryID)["repeat"] then
+    if not isOnQuotaBuildMode(factoryID) and not spGetUnitStates(factoryID)["repeat"] then
         return false
     end
 
@@ -137,12 +143,6 @@ function widget:GameFrame(n)
     if n % 15 == 0 then -- improve perfomance
         fillQuotas()
     end
-end
-
------ handle toggle
-local function isOnQuotaBuildMode(unitID)
-    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
-	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
 
 ----- handle unit tracking
@@ -198,27 +198,8 @@ function widget:Initialize()
     WG.Quotas.isOnQuotaMode = function(unitID)
         return isOnQuotaBuildMode(unitID)
     end
-    WG.Quotas.setQuotaPriority = function(priority)
-        quotaPriority = priority
-    end
-    WG.Quotas.getQuotaPriority = function()
-        return quotaPriority
-    end
 end
 
 function widget:Shutdown()
     WG.Quotas = nil
-end
-
-function widget:GetConfigData()
-    local data = {}
-    data.quotaPriority = quotaPriority
-
-    return data
-end
-
-function widget:SetConfigData(data)
-    if data and type(data) == "table" then
-        quotaPriority = data.quotaPriority
-    end
 end
