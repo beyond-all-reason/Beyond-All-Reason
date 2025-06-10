@@ -16,7 +16,6 @@ end
 local CMD_AREA_MEX = GameCMD.AREA_MEX
 
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
 local taremove = table.remove
@@ -171,30 +170,6 @@ function widget:CommandNotify(id, params, options)
 		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
 	end
 	return true
-end
-
-
--- Adjust map view mode as needed
-function widget:Update(dt)
-	local _, cmd, _ = spGetActiveCommand()
-	if cmd == CMD_AREA_MEX then
-		if spGetMapDrawMode() ~= 'metal' then
-			if Spring.GetMapDrawMode() == "los" then
-				retoggleLos = true
-			end
-			spSendCommands('ShowMetalMap')
-			toggledMetal = true
-		end
-	else
-		if toggledMetal then
-			spSendCommands('ShowStandard')
-			if retoggleLos then
-				Spring.SendCommands("togglelos")
-				retoggleLos = nil
-			end
-			toggledMetal = false
-		end
-	end
 end
 
 
