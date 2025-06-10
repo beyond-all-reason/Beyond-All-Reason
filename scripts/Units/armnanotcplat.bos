@@ -29,7 +29,7 @@ StartBuilding(heading)
 
 StopBuilding()
 {
-	set INBUILDSTANCE to 1;
+	set INBUILDSTANCE to 0;
 	hide emitnano;
 }
 
