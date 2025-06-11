@@ -39,8 +39,7 @@
 				"build_speed": 15.0 // bp 300
 			},
 			"legvp": {
-				"role": ["builder"],
-				"attribute": ["support"],
+				"role": ["static"],
 				"limit": 1,
 				"build_speed": 5.0 // bp 100
 	
@@ -53,7 +52,7 @@
 			},
 			"leghp": {
 				"role": ["static"],
-				"build_speed": 5.0, //bp 200
+				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
 	
@@ -63,7 +62,7 @@
 
 			"legfhp": {
 				"role": ["static"],
-				"build_speed": 5.0, //bp 200
+				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
 			//"legsy": {
@@ -98,7 +97,8 @@
 			"legaap": {
 				"role": ["static"],
 				"attribute": ["support"],
-				"build_mod": 1000.0,
+				"since": 420,
+				"limit": 1,
 				"build_speed": 10.0 //bp 200
 			},
 			"legplat": {

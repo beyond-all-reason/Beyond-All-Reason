@@ -35,8 +35,6 @@
 			},
 			"legvp": {
 				"role": ["builder"],
-				"attribute": ["support"],
-				"limit": 1,
 				"build_speed": 5.0
 	
 			},
@@ -47,7 +45,7 @@
 				"build_speed": 10.0
 			},
 			"leghp": {
-				"role": ["static"],
+				"role": ["builder"],
 				"build_speed": 6.0
 			},
 	
@@ -411,7 +409,7 @@
 			"legotter": {
 				"role": ["builder"],
 				"limit": 10,
-				"build_speed": 9.0
+				"build_speed": 8.0
 			},
 			"legmlv": {
 				"role": ["support"],
