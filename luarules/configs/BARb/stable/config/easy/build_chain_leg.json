@@ -4,23 +4,29 @@
 
 	"unit": {
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
-			"armada":  ["armllt",		"armtl",   		"armrl",  		"armbeamer", 	"armhlt",  		"armclaw",		"armferret",	"armcir", 		"armpb",   		"armatl",
-						"armflak",   	"armamb",  		"armanni", 		"armguard", 	"armamd", 		"armrad",		"armjamt",		"armestor", 	"armmstor", 	"armadvsol",
-						"armnanotc",	"armarad",		"armtarg",		"armuwadves",  	"armemp",		"armveil",		"armckfus",     "armsolar",     "armgate",      "armfhlt"]
-	},
+			"legion":  ["leglht",		"legtl",   		"legrl",  		"legmg", 	"leghive",  		"legdtr",		"legrhapsis",	"leglupara", 		"legapopupdef",   		"coratl",
+						"legflak",   	"legacluster",  		"legbastion", 		"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
+						"legnanotc",	"legarad",		"legtarg",		"legadvestore",  	"legperdition",		"legajam",		"legfus",     "legsolar",     "legdeflector",      "legfmg"],
 
 	"superweapon": {
 		"unit": {
-			"armada": ["armmercury",  "armemp",  "armbrtha", "armvulc", "armamd", "armsilo"]
+			"legion": ["leglupara",         "legperdition",         "leglrpc",  "legstarfall",      "legfmd", "legsilo"]
 		},
-		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
+		"weight":         [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
 
 		"condition": [30, 600]  // [<Minimum income>, <maximum seconds to build>]
 	},
 
+	"wall": {
+		"legion": ["legdrag", "legfdrag"]  // or legmine1
+	},
+	"choke": {
+		"legion": ["legeyes"]
+	},
+
 	// Fallback defence
 	"default": {
-		"armada": "armllt"
+		"legion": "leglht"
 	}
 },
 
@@ -30,7 +36,7 @@
 	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
 	"energy": {
 		// <UnitDef>: {<elements>}
-		"armadvsol": {
+		"legadvsol": {
 			// Available elements:
 			// "energy": [max energy income, <"mex"|true>]
 			// "pylon": <boolean>
@@ -56,79 +62,70 @@
 			// Build chain of units
 			"hub": [
 				[  // chain1
-					{"unit": "armbeamer", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+					{"unit": "legmg", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
 //				],
 //				[  // chain2
-//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 				]
 			]
 		},
-		"armsolar": {
-			"hub": [[{"unit": "armllt", "category": "convert", "offset":[10, 0]}]]
+		"legsolar": {
+			"hub": [[{"unit": "leglht", "category": "convert", "offset":[10, 0]}]]
 		},
-		"armfus": {
+		"legfus": {
 			"hub": [
 				[  // chain1
-//					{"unit": "armmmkr", "category": "convert", "offset": [-60, +16]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [-60, -16]},
-					{"unit": "armpb", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+//					{"unit": "legadveconv", "category": "convert", "offset": [-60, +16]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [-60, -16]},
+					{"unit": "legapopupdef", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		},
-		"armckfus": {
-			"hub": [
-				[  // chain1
-
-					{"unit": "armamd", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
-					{"unit": "armpb", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
-				]
-			]
-		},
-		"armafus": {
+		"legafus": {
 			"hub": [
 				[  // chain1
 
-					{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
-					{"unit": "armanni", "category": "defence", "offset": [-180, -180]},
-					{"unit": "armpb", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "legabm", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "legbastion", "category": "defence", "offset": [-180, -180]},
+					{"unit": "legapopupdef", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		}
 	},
 	"geo": {
-		"armgeo": {
-			"hub": [[{"unit": "armbeamer", "category": "defence", "offset": {"front": 64}}]]
+		"leggeo": {
+			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
 	"factory": {
-		"armlab": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"leglab": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"armvp": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"legvp": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"armap": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		"legap": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		}
 	},
 	"mex": {
-		"armmex": {
-//			"terra": true,
+		"legmex": {
 			"energy": [500, true], //AI will force-build 1 solar near every mex till it reaches 500 energy income
 			"porc": true
 		}
 	},
 	"radar":{
-		"armrad": {
+		"legrad": {
 			"hub": [
-				[{"unit": "armllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
-				[{"unit": "armrl", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
-				[{"unit": "armhlt", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
+				[{"unit": "leglht", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "legrl", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
+				[{"unit": "leghive", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
 			]
 		}
+
 	}
+
 }
 }

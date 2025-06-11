@@ -3,15 +3,15 @@
 	"porcupine": {
 		"unit": {
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
-			"armada":  ["armllt",		"armtl",   		"armrl",  		"armbeamer", 	"armhlt",  		"armclaw",		"armferret",	"armcir", 		"armpb",   		"armatl",
-						"armflak",   	"armamb",  		"armanni", 		"armguard", 	"armamd", 		"armrad",		"armjamt",		"armestor", 	"armmstor", 	"armadvsol",
-						"armnanotc",	"armarad",		"armtarg",		"armuwadves",  	"armemp",		"armveil",		"armckfus",     "armsolar",     "armgate",      "armfhlt"]
+			"legion":  ["leglht",		"legtl",   		"legrl",  		"legmg", 	"leghive",  		"legdtr",		"legrhapsis",	"leglupara", 		"legapopupdef",   		"coratl",
+						"legflak",   	"legacluster",  		"legbastion", 		"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
+						"legnanotc",	"legarad",		"legtarg",		"legadvestore",  	"legperdition",		"legajam",		"legfus",     "legsolar",     "legdeflector",      "legfmg"],
 		},
 		
 	//superweapons get only build when there is nothing else to do
 	"superweapon": {
 		"unit": {
-			"armada": [ "armbrtha",  "armvulc"] //"armmercury", "armamd", "armemp", "armsilo"
+			"legion": [ "leglrpc",  "legstarfall"] //"leglupara", "legperdition", "legfmd", "legsilo"
 		},
 		"weight":     [    0.5,      0.1  ],
 
@@ -20,7 +20,7 @@
 
 	// Fallback defence
 	"default": {
-		"armada": "armllt"
+		"legion": "leglht"
 	}
 },
 
@@ -32,7 +32,7 @@
 	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
 	"energy": {
 		// <UnitDef>: {<elements>}
-		"armadvsol": {
+		"legadvsol": {
 			// Available elements:
 			// "energy": [max energy income, <"mex"|true>]
 			// "pylon": <boolean>
@@ -58,51 +58,42 @@
 			// Build chain of units
 			"hub": [
 				[  // chain1
-					{"unit": "armbeamer", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+					{"unit": "legmg", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
 //				],
 //				[  // chain2
-//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 				]
 			]
 		},
-//		"armsolar": {
+//		"legsolar": {
 //			"hub": [
 //				[  // chain1
-//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
 //				]
 //			]
 //		},
-		"armfus": {
+		"legfus": {
 			"hub": [
 				[ 
-					//{"unit": "armpb", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
-					{"unit": "armnanotc", "category": "defence", "offset": {"front": 100}},
-					{"unit": "armsilo", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
+					//{"unit": "legapopupdef", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
+					{"unit": "legnanotc", "category": "defence", "offset": {"front": 100}},
+					{"unit": "legsilo", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
 				]
 			]
 		},
-		"armckfus": {
-			"hub": [
-				[  
-					
-					{"unit": "armpb", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
-					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
-				]
-			]
-		},
-		"armafus": {
+		"legafus": {
 			"hub": [
 				[  // chain1
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, 120]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [150, 120]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, 150]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
-//					{"unit": "armmmkr", "category": "convert", "offset": [120, -120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, -120]},
 		
 					
 	
-					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		}
@@ -112,8 +103,8 @@
 
 
 	"geo": {
-		"armgeo": {
-			"hub": [[{"unit": "armbeamer", "category": "defence", "offset": {"front": 64}}]]
+		"leggeo": {
+			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
 
@@ -121,44 +112,28 @@
 
 
 	"factory": {
-		"armlab": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"leglab": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
-		"armvp": {
-			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		"legvp": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
 		},
 
-		"armalab": {
+		"legalab": {
 			"hub": [
-					//[{"unit": "armarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
-					[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+					//[{"unit": "legarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
+					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 		]
 		},
-		"armavp": {
+		"legavp": {
 			"hub": [
-				[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+				[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 			]
 		},
 
-		"armap": {
-			//"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
-		},
 
-		"armsy": {
-			"hub": [
-				[
-				{"unit": "armfhlt", "category": "defence", "offset": {"front": 150}, "priority": "now"},
-				{"unit": "armasy", "category": "factory", "offset": [100, 100]}
-			]
-		]
-		},
-		"armasy": {
-			"hub": [
-				[
-					{"unit": "armuwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "armatl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
-				]
-		    ]
+		"legap": {
+			//"hub": [[{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		}
 
 	},
@@ -169,7 +144,7 @@
 
 
 	"mex": {
-		"armmex": {
+		"legmex": {
 //			"terra": true,
 //			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
 			"porc": true
@@ -181,44 +156,23 @@
 
 
 	"radar":{
-		"armrad": {
+		"legrad": {
 			"hub": [
-				[{"unit": "armllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
-				[{"unit": "armrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
-				[{"unit": "armguard", "category": "defence", "offset": [120, 100], "priority": "normal"}],
+				[{"unit": "leglht", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "legrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
+				[{"unit": "legcluster", "category": "defence", "offset": [120, 100], "priority": "normal"}],
 				[
-					{"unit": "armamb", "category": "defence", "offset": [120, -100], "priority": "high"},
-					{"unit": "armpb", "category": "defence", "offset": [140, 100], "priority": "normal"}
+					{"unit": "legacluster", "category": "defence", "offset": [120, -100], "priority": "high"},
+					{"unit": "legapopupdef", "category": "defence", "offset": [140, 100], "priority": "normal"}
 				],
 				[
-					//{"unit": "armanni", "category": "defence", "offset": [70, -100], "priority": "normal"},
-					{"unit": "armanni", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}
+					//{"unit": "legbastion", "category": "defence", "offset": [70, -100], "priority": "normal"},
+					{"unit": "legbastion", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}
 				],
 				[
-					{"unit": "armjamt", "category": "defence", "offset": [-60, 0], "priority": "low"},
-					{"unit": "armarad", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
-					{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.3}, "priority": "low"}
-				]
-			]
-		},
-		"armfrad":{
-			"hub":[
-				[{"unit": "armsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance":1.0}, "priority": "now"}],
-
-				[
-					{"unit": "cortl", "category": "defence", "offset": {"front":100},  "priority": "now"},
-					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
-				],
-
-				[{"unit": "armkraken", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armatl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armfrt", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
-				[{"unit": "armanni", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
-
-				[
-					{"unit": "armamd", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
-					{"unit": "armjamt", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
+					{"unit": "legjam", "category": "defence", "offset": [-60, 0], "priority": "low"},
+					{"unit": "legarad", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
+					{"unit": "leglrpc", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.3}, "priority": "low"}
 				]
 			]
 		}
