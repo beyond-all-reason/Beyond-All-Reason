@@ -786,7 +786,7 @@
 				"attribute":["siege"],
 				"threat": {"surf": 1.5}
 			},
-			"legmcluster": {
+			"legamcluster": {
 				"role": ["artillery"],
 				"attribute": ["siege"],
 				"retreat": 0.6

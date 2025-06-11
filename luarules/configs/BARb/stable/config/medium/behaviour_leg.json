@@ -576,7 +576,7 @@
 			"legaheattank": {
 				"role": ["heavy"]
 			},
-			"legmcluster": {
+			"legamcluster": {
 				"role": ["artillery"]
 			},
 			"legavroc": {
