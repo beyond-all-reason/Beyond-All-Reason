@@ -48,7 +48,13 @@ local PROGRESS_INCREMENT = 0.06
 local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
-local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE = 0.25 -- maximum percentage of the total number of squares players will have to control to avoid elimination when scavengers/raptors are in the game.
+
+local HORDE_MODE_PLAYER_CAP = 16
+local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP = 0.50 -- the maximum percentage of territory needed to be owned by HORDE_MODE_PLAYER_CAP players to avoid defeat.
+local HORDE_MODE_MIN_TERRITORY_PERCENTAGE = 0.10 -- the minimum percentage of territory needed to be owned by 16 players to avoid defeat.
+local HORDE_MODE_MIN_TERRITORIES_PER_PLAYER = 1
+local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) / HORDE_MODE_PLAYER_CAP
+local HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES = 3
 
 local MAX_EMPTY_IMPEDENCE_POWER = 25
 local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
@@ -99,7 +105,7 @@ local teams = spGetTeamList()
 
 local allyCount = 0
 local allyHordesCount = 0
-local teamCount = 0
+local originalHighestTeamCount = nil
 local defeatThreshold = 0
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
@@ -124,18 +130,6 @@ local allyTallies = {}
 local randomizedGridIDs = {}
 local flyingUnits = {}
 local allyDefeatTime = {}
-
-local function initializeTeamData()
-	for _, teamID in ipairs(teams) do
-		local luaAI = spGetTeamLuaAI(teamID)
-		if luaAI and luaAI ~= "" then
-			if string.sub(luaAI, 1, 12) == 'ScavengersAI' or string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-				hordeModeTeams[teamID] = true
-			end
-		end
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-	end
-end
 
 local function initializeUnitDefs()
 	for defID, def in pairs(UnitDefs) do
@@ -168,7 +162,14 @@ end
 local function getMaximumThresholdForHordeMode()
 	local returnValue = math.huge
 	if allyHordesCount and allyHordesCount > 0 then
-		returnValue = min(#captureGrid * HORDE_MODE_MAX_THRESHOLD_PERCENTAGE, #captureGrid * 0.5)
+		local territories = #captureGrid
+		local teamCountMinusOne = originalHighestTeamCount - 1
+		local minPercentageTerritories = HORDE_MODE_MIN_TERRITORY_PERCENTAGE + (teamCountMinusOne) * HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER
+		local requiredTerritories = max(HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES + teamCountMinusOne * HORDE_MODE_MIN_TERRITORIES_PER_PLAYER, territories * minPercentageTerritories)
+		local maxTerritories = territories * HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP
+
+		--Spring.Echo("HORDE_MODE_PLAYER_CAP", HORDE_MODE_PLAYER_CAP, "HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP", HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP, "HORDE_MODE_MIN_TERRITORY_PERCENTAGE", HORDE_MODE_MIN_TERRITORY_PERCENTAGE, "HORDE_MODE_MIN_TERRITORIES_PER_PLAYER", HORDE_MODE_MIN_TERRITORIES_PER_PLAYER, "HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER", HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER, "HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES", HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES, "originalHighestTeamCount", originalHighestTeamCount, "territories", territories, "teamCountMinusOne", teamCountMinusOne, "minPercentageTerritories", minPercentageTerritories, "requiredTerritories", requiredTerritories, "maxTerritories", maxTerritories)
+		returnValue = min(requiredTerritories, maxTerritories)
 	end
 	return returnValue
 end
@@ -212,6 +213,7 @@ end
 local function processLivingTeams()
 	local newAllyTeamsCount = 0
 	local newAllyHordesCount = 0
+	local playerTeamsCount = 0
 	allyTeamsWatch = {}
 	hordeModeAllies = {}
 
@@ -223,6 +225,7 @@ local function processLivingTeams()
 
 			if allyID and allyID ~= gaiaAllyTeamID then
 				if not hordeModeTeams[teamID] then
+					playerTeamsCount = playerTeamsCount + 1
 					if not allyTeamsWatch[allyID] then
 						newAllyTeamsCount = newAllyTeamsCount + 1
 					end
@@ -238,7 +241,34 @@ local function processLivingTeams()
 		end
 	end
 	
-	return newAllyTeamsCount, newAllyHordesCount
+	return newAllyTeamsCount, newAllyHordesCount, playerTeamsCount
+end
+
+local function getHighestTeamCount()
+	local highestTeamCount = 0
+	for allyID, teams in pairs(allyTeamsWatch) do
+		local teamCount = 0
+		for teamID in pairs(teams) do
+			teamCount = teamCount + 1
+		end
+		highestTeamCount = max(highestTeamCount, teamCount)
+	end
+	Spring.Echo("highestTeamCount", highestTeamCount)
+	return highestTeamCount
+end
+
+local function initializeTeamData()
+	for _, teamID in ipairs(teams) do
+		local luaAI = spGetTeamLuaAI(teamID)
+		if luaAI and luaAI ~= "" then
+			if string.sub(luaAI, 1, 12) == 'ScavengersAI' or string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+				hordeModeTeams[teamID] = true
+			end
+		end
+		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+	end
+	processLivingTeams()
+	originalHighestTeamCount = getHighestTeamCount()
 end
 
 local function updateAllyCountAndPauseTimer(newAllyCount)
