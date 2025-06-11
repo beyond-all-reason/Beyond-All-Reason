@@ -67,6 +67,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+StartMoving()
+{
+	spin fan around z-axis speed <1080> accelerate <60>; 
+}
+
+StopMoving()
+{
+	stop-spin fan around z-axis decelerate <20>;
+}
+
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
