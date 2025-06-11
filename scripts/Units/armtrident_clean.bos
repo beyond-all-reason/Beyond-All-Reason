@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece  base, nano, wake1, wake2, drone1, drone2, drone3, drone4, drone5,  turret,  flare, aimy, aimfromy, bow;
+piece  base, nano1, nano2, wake1, drone1, drone2, drone3, drone4, turret, plunger, flare, aimy, aimfromy, bow;
 
 static-var  restore_delay, aimDir;
 static-var  Stunned;
@@ -26,6 +26,7 @@ Create()
 {
 	hide wake1;
 	hide flare;
+	move plunger to z-axis [0.000000] now;
     restore_delay = 3000;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
@@ -71,13 +72,13 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
-	emit-sfx 258 from nano;
+	emit-sfx 258 from nano2;
 	return (0);
 }
 
 FireWeapon1()
 {
-	emit-sfx 258 from nano;
+	emit-sfx 258 from nano1;
 	sleep 150;
 	return (1);
 }
@@ -85,11 +86,13 @@ FireWeapon1()
 QueryWeapon1(piecenum)
 {
 	piecenum = aimfromy;
+	return (0);
 }
 
 AimFromWeapon1(piecenum)
 {
 	piecenum = aimfromy;
+	return (0);
 }
 
 
@@ -104,6 +107,9 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
+	move plunger to z-axis [5.000000]  now;
+	sleep 25;
+	move plunger to z-axis [0.000000] speed [10.000000];
 }
 
 AimFromWeapon2(piecenum)
