@@ -168,7 +168,6 @@ local function getMaximumThresholdForHordeMode()
 		local requiredTerritories = max(HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES + teamCountMinusOne * HORDE_MODE_MIN_TERRITORIES_PER_PLAYER, territories * minPercentageTerritories)
 		local maxTerritories = territories * HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP
 
-		--Spring.Echo("HORDE_MODE_PLAYER_CAP", HORDE_MODE_PLAYER_CAP, "HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP", HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP, "HORDE_MODE_MIN_TERRITORY_PERCENTAGE", HORDE_MODE_MIN_TERRITORY_PERCENTAGE, "HORDE_MODE_MIN_TERRITORIES_PER_PLAYER", HORDE_MODE_MIN_TERRITORIES_PER_PLAYER, "HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER", HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER, "HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES", HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES, "originalHighestTeamCount", originalHighestTeamCount, "territories", territories, "teamCountMinusOne", teamCountMinusOne, "minPercentageTerritories", minPercentageTerritories, "requiredTerritories", requiredTerritories, "maxTerritories", maxTerritories)
 		returnValue = min(requiredTerritories, maxTerritories)
 	end
 	return returnValue
@@ -253,7 +252,6 @@ local function getHighestTeamCount()
 		end
 		highestTeamCount = max(highestTeamCount, teamCount)
 	end
-	Spring.Echo("highestTeamCount", highestTeamCount)
 	return highestTeamCount
 end
 
