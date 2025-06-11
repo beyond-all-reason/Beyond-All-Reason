@@ -77,6 +77,7 @@ local iconButtons = {}
 local existingIcons = {}
 local clicks = {}
 local unitList = {}
+local notShown = 'corvacct'
 
 local idleList = {}
 
@@ -104,7 +105,9 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if myTeamID == unitTeam and unitConf[unitDefID] ~= nil then
-		unitList[unitID] = unitDefID
+		if UnitDefs[unitDefID].name ~= notShown then
+			unitList[unitID] = unitDefID
+		end
 	end
 end
 
