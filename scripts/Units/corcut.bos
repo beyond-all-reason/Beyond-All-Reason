@@ -58,22 +58,20 @@ Activate()
 {
 	show thrustb;
 	show thrusta;
-	spin fan1 around y-axis speed <360> accelerate <1>;
-	spin fan2 around y-axis speed <360> accelerate <1>;
+	spin fan1 around y-axis speed <1080> accelerate <10>;
+	spin fan2 around y-axis speed <1080> accelerate <10>;
 }
 
 Deactivate()
 {
 	hide thrustb;
 	hide thrusta;
-	stop-spin fan1 around y-axis decelerate <1>;
-	stop-spin fan2 around y-axis decelerate <1>;
+	stop-spin fan1 around y-axis decelerate <5>;
+	stop-spin fan2 around y-axis decelerate <5>;
 }
 
 FireWeapon1()
 {
-	turn base to x-axis <10.0> speed <50.0>;
-
 	start-script RestoreAfterDelay();
 
 	gun_1 = !gun_1;
