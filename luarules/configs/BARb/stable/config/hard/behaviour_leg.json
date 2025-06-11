@@ -775,7 +775,7 @@
 			"legfloat": {
 				"role": ["raider"]
 			},
-			"legskirmtank": {
+			"legaskirmtank": {
 				"role": ["skirmish"]
 			},
 			"legmrv": {
