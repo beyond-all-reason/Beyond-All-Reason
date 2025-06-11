@@ -11,7 +11,7 @@
 	//superweapons get only build when there is nothing else to do
 	"superweapon": {
 		"unit": {
-			"legion": [ "leglrpc",  "legstarfall"] //"leglupara", "legperdition", "legfmd", "legsilo"
+			"legion": [ "leglrpc",  "legstarfall"] //"leglupara", "legperdition", "legabm", "legsilo"
 		},
 		"weight":     [    0.5,      0.1  ],
 
