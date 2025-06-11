@@ -21,7 +21,6 @@ local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
-local notShown = 'corvacct'
 local idleUnitList = {}
 
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -153,9 +152,12 @@ function widget:GameFrame(n)
 	end
 end
 
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
-		if UnitDefs[unitDefID].name ~= notShown then
+	if (not onlyOwnTeam or unitTeam == myTeamID) and unitConf[unitDefID] then
+		local ud = UnitDefs[unitDefID]
+		local cp = ud.customParams or {}
+		if not (cp.dontshowidle == "1") then
 			unitScope[unitID] = unitDefID
 		end
 	end

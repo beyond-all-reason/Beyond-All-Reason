@@ -104,7 +104,11 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if myTeamID == unitTeam and unitConf[unitDefID] ~= nil then
-		unitList[unitID] = unitDefID
+		local ud = UnitDefs[unitDefID]
+		local cp = ud.customParams or {}
+		if not (cp.dontshowidle == "1") then
+		 	unitList[unitID] = unitDefID
+		end
 	end
 end
 
