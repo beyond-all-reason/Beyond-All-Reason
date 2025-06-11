@@ -1,0 +1,132 @@
+// Mono-space font required
+{
+"porcupine": {
+	"unit": {
+	//              0          1         2          3            4         5          6          7            8        9
+		"armada": ["armllt",  "armtl",  "armrl",   "armbeamer", "armhlt", "armclaw", "armcir",  "armferret", "armpb", "armatl",
+		           "armflak", "armamb", "armanni", "armguard",  "armamd", "armtarg", "armgate"]
+	},
+	"superweapon": {
+		"unit": {
+			"armada": ["armmercury",  "armemp",  "armbrtha", "armvulc", "armamd", "armsilo"],
+			"cortex": ["corscreamer", "cortron", "corint",   "corbuzz", "corfmd", "corsilo"]
+		},
+		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
+
+		"condition": [30, 600]  // [<Minimum income>, <maximum seconds to build>]
+	},
+
+	// Fallback defence
+	"default": {
+		"armada": "armllt"
+	}
+},
+
+// Actions on building finished event
+"build_chain": {
+	// WARNING: Avoid recursion
+	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
+	"energy": {
+		// <UnitDef>: {<elements>}
+		"armadvsol": {
+			// Available elements:
+			// "energy": [max energy income, <"mex"|true>]
+			// "pylon": <boolean>
+			// "porc": <boolean>
+			// "terra": <boolean>
+			// "hub": [
+			//     // chain1
+			//     [{<unit1>, <category>, <offset>, <condition>}, {<unit2>, <category>, <offset>, <condition>}, ...],
+			//     // chain2
+			//     [{...}, {...}, ...],
+			//     ...
+			// ]
+			// <unit>: UnitDef
+			// <offset>:
+			//     1) [x, z] in South facing, elmos
+			//     2) {<direction>: <delta>} - left, right, front, back
+			// <condition>: air:<bool>, energy:<bool>, wind:<float>, sensor:<float>, chance:0.0~1.0
+			// <priority>: low, normal, high, now
+
+			// Build pylon in direction of nearby mex cluster
+//			"pylon": true,
+
+			// Build chain of units
+			"hub": [
+				[  // chain1
+					{"unit": "armbeamer", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+//				],
+//				[  // chain2
+//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+				]
+			]
+		},
+//		"armsolar": {
+//			"hub": [
+//				[  // chain1
+//					{"unit": "armmakr", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//				]
+//			]
+//		},
+		"armfus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "armmmkr", "category": "convert", "offset": [-60, +16]},
+//					{"unit": "armmmkr", "category": "convert", "offset": [-60, -16]},
+					{"unit": "armpb", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+				]
+			]
+		},
+		"armckfus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "armmmkr", "category": "convert", "offset": [200, 200], "condition": {"energy": true}},
+//					{"unit": "armmmkr", "category": "convert", "offset": [200, -200], "condition": {"energy": true}},
+					{"unit": "armamd", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
+					{"unit": "armpb", "category": "defence", "offset": [-200, -200], "condition": {"chance": 0.5}},
+					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}}
+				]
+			]
+		},
+		"armafus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "armmmkr", "category": "convert", "offset": [120, 120]},
+//					{"unit": "armmmkr", "category": "convert", "offset": [150, 120]},
+//					{"unit": "armmmkr", "category": "convert", "offset": [120, 150]},
+//					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
+//					{"unit": "armmmkr", "category": "convert", "offset": [120, -120]},
+					{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "armanni", "category": "defence", "offset": [-180, -180]},
+					{"unit": "armpb", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
+					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+				]
+			]
+		}
+	},
+	"geo": {
+		"armgeo": {
+			"hub": [[{"unit": "armbeamer", "category": "defence", "offset": {"front": 64}}]]
+		}
+	},
+	"factory": {
+		"armlab": {
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"armvp": {
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"armap": {
+			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		}
+	},
+	"mex": {
+		"armmex": {
+//			"terra": true,
+//			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
+			"porc": true
+		}
+	}
+}
+}
