@@ -179,7 +179,7 @@
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
 		"def_low": ["armllt", "corllt", "armbeamer", "corhllt", "leglht", "legmg"],
-		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt", "legdtr", "legpopupdef", "leghive"],
+		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt", "legdtr", "legapopupdef", "leghive"],
 		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun", "armkraken", "corfdoom", "legacluster", "legbastion", "legcluster", "legfmg"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad", "legrhapsis", "leglupara"],
 		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp", "legnanotc"],
