@@ -464,6 +464,10 @@ end
 
 local isDancing = false
 local function Dance1()
+	if GG.DancingDisabled then
+		return
+	end
+
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 	local speedMult = 1/4

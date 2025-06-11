@@ -383,16 +383,18 @@ if gadgetHandler:IsSyncedCode() then
 				gameoverWinners = winners
 
 				-- make all winner commanders dance!
-				gameoverAnimFrame = gf + 55		-- delay a bit because walking commanders need to stop walking + a delay look nice
-				gameoverAnimUnits = {}
-				if type(winners) == 'table' then
-					local units = Spring.GetAllUnits()
-					for i, unitID in ipairs(units) do
-						if isCommander[Spring.GetUnitDefID(unitID)] then
-							for u, allyTeamID in pairs(winners) do
-								if Spring.GetUnitAllyTeam(unitID) == allyTeamID then
-									Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
-									gameoverAnimUnits[unitID] = true
+				if not GG.DancingDisabled then
+					gameoverAnimFrame = gf + 55		-- delay a bit because walking commanders need to stop walking + a delay look nice
+					gameoverAnimUnits = {}
+					if type(winners) == 'table' then
+						local units = Spring.GetAllUnits()
+						for i, unitID in ipairs(units) do
+							if isCommander[Spring.GetUnitDefID(unitID)] then
+								for u, allyTeamID in pairs(winners) do
+									if Spring.GetUnitAllyTeam(unitID) == allyTeamID then
+										Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
+										gameoverAnimUnits[unitID] = true
+									end
 								end
 							end
 						end
