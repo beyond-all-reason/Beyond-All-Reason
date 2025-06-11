@@ -223,8 +223,8 @@ if gadgetHandler:IsSyncedCode() then
 	local function isFootingUntraversable(x, y, z, unitDefID)
 		-- type: 1|2|3 : air | ground mobile | building
 		local type = _unitType[unitDefID]
-		local unitDef = UnitDefs[unitDefID]
 		if not type then
+			local unitDef = UnitDefs[unitDefID]
 			type = unitDef.canFly and 1 or (unitDef.moveDef and unitDef.moveDef.id) and 2 or 3
 			_unitType[unitDefID] = type
 		end
