@@ -451,15 +451,26 @@
 				"role": ["skirmish"]
 			},
 			"leglob": {
-				"role": ["skirmish"],
-				"attribute": ["raider"]
-			},
-			"legkark": {
 				"role": ["assault"]
 			},
+			"legkark": {
+				"role": ["riot"],
+				"attribute": ["skirmish"]
+			},
 			"leggob": {
-				"role": ["scout"],
-				"attribute": ["raider"]
+				"role": ["raider"],
+				"attribute": ["scout"]
+			},
+
+			"legrezbot": {
+				"role": ["raider"],
+				"limit": 10,
+				"since": 200
+			},
+
+			"legaabot": {
+				"role": ["anti_air"],
+				"limit": 30
 			},
 	
 			// adv bot - legalab

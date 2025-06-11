@@ -611,20 +611,44 @@
 				"limit": 40
 			},
 			"legbal": {
-				"role": ["skirmish"]
+				"role": ["assault"],
+				"attribute": ["siege"],
+				"retreat": 0.6,
+				"limit": 10,
+				"threat": {"air": 0.0, "water": 0.0, "surf": 0.8,
+					"vs": {"artillery": 1.8, "anti_air": 1.8, "raiders":0.5}
+				}
 			},
 			"leglob": {
 				"role": ["skirmish"],
-				"attribute": ["raider"]
+				"threat": {"air": 0.0, "water": 0.0,
+					"vs": {"artillery": 2.0, "anti_air": 2.0}
+				}
 			},
 			"legkark": {
-				"role": ["assault"],
-				"limit": 10
+				"role": ["riot"],
+				"attribute": ["melee"],
+				"threat":{"air": 0.1, "water": 0.0,
+					"vs":{"artillery": 2.0, "anti_air": 2.0}
+				}
 			},
 			"leggob": {
-				"role": ["scout"],
-				"attribute": ["raider"]
+				"role": ["raider"],
+				"attribute": ["scout"],
+				"threat": {"air": 0.0, "water": 0.0,
+					"vs": {"artillery":3.0, "anti_air": 2.0, "riot":0.5, "anti_heavy": 3.0, "anti_heavy_ass":3.0}
+				}
 			},
+			"legaabot": {
+				"role": ["anti_air"],
+				"limit": 10,
+				"threat": {"air": 2.0, "water": 0.0, "surf":0.0}
+			},
+			"legrezbot": {
+				"role": ["support"],
+				"retreat": 0.6,
+				"limit":60
+			}
 	
 			// adv bot - legalab
 	
