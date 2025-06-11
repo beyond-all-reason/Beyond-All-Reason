@@ -1,41 +1,41 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, aim, emitnano;
+piece  base, stand, centerpoint, aim1, aim2, aim3, emitnano1;
 
-#define WATER_ROCK_UNITSIZE 5
+#define WATER_ROCK_UNITSIZE 7
 #include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 1
+#define UNITSIZE 4
 #define MAXTILT 100
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
-	hide emitnano;
+	hide emitnano1;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
 }
 
 StartBuilding(heading)
 {
-	show emitnano;
-	turn aim to y-axis heading speed <320.0>;
+	show emitnano1;
+	turn centerpoint to y-axis heading speed <320.0>;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	set INBUILDSTANCE to 1;
-	hide emitnano;
+	set INBUILDSTANCE to 0;
+	hide emitnano1;
 }
 
 QueryNanoPiece(pieceIndex)
 {
-	pieceIndex = emitnano;
+	pieceIndex = emitnano1;
 }
 
 Killed(severity, corpsetype)
@@ -44,29 +44,29 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode emitnano type BITMAPONLY | NOHEATCLOUD;
+		explode aim1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode emitnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode aim1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode aim type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode emitnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode aim1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode aim type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode emitnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode aim1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode emitnano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
