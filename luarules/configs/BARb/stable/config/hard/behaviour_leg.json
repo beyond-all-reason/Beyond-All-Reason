@@ -687,7 +687,23 @@
 			"legsrail": {
 				"role": ["anti_heavy"]
 			},
-	
+			"leghrk": {
+				"role": ["artillery"],
+				"attribute":["siege"],
+				"threat": {"surf":0.5, "vs":{"static":2.0, "artillery":2.0}},
+				"retreat": 0.8,
+				"limit": 10
+			},
+			"legamph": {
+				"role": ["raider"],
+				"limit": 10
+			},
+			"legadvaabot": {
+				"role": ["anti_air"],
+				//"attribute": ["support"],
+				"limit": 10
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -720,7 +736,12 @@
 				"attribute": ["melee"],
 				"retreat": 0.00
 			},
-			
+			"leglrpcmech": {
+				"role": ["artillery"],
+				//"attribute": ["siege", "support"],
+				"threat": {"air": 0.0, "water": 0.0}
+			},
+
 			// LEGION T1 VEHICLE - legvp
 	
 			"legscout": {
@@ -825,7 +846,7 @@
 				"role": ["scout", "air"],
 				"retreat": 0.6
 			},
-			"legionnaire": {
+			"legafigdef": {
 				"role": ["anti_air", "air"],
 				"retreat": 0.5
 			},
@@ -834,10 +855,6 @@
 				"retreat": 0.5
 			},
 			"legphoenix": {
-				"role": ["bomber", "air"],
-				"retreat": 0.8
-			},
-			"legnap": {
 				"role": ["bomber", "air"],
 				"retreat": 0.8
 			},
