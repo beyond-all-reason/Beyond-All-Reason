@@ -6,7 +6,8 @@
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
 			"legion":  ["leglht",		"legtl",   		"legrl",  		"legmg", 	"leghive",  		"legdtr",		"legrhapsis",	"leglupara", 		"legapopupdef",   		"coratl",
 						"legflak",   	"legacluster",  		"legbastion", 		"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
-						"legnanotc",	"legarad",		"legtarg",		"legadvestore",  	"legperdition",		"legajam",		"legfus",     "legsolar",     "legdeflector",      "legfmg"],
+						"legnanotc",	"legarad",		"legtarg",		"legadvestore",  	"legperdition",		"legajam",		"legfus",     "legsolar",     "legdeflector",      "legfmg"]
+	},
 
 	"superweapon": {
 		"unit": {
