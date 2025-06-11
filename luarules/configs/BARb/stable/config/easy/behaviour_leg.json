@@ -528,9 +528,6 @@
 			"legjav": {
 				"role": ["raider"]
 			},
-			"legelrpcmech": {
-				"role": ["artillery"]
-			},
 			"legerailtank": {
 				"role": ["assault"],
 				"attribute": ["melee"]
@@ -543,7 +540,7 @@
 				"role": ["heavy"],
 				"attribute": ["melee"]
 			},
-			"leglrpcmech": {
+			"legelrpcmech": {
 				"role": ["artillery", "heavy"],
 				"power": 2.0
 			},
