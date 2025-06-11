@@ -16,10 +16,11 @@ void AiMain()  // Initialize config params
 
 	// Example of user-assigned custom attributes
 	array<string> names = {Factory::armalab, Factory::coralab, Factory::armavp, Factory::coravp,
-		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy};
+		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy,
+		Factory::legalab, Factory::legavp, Factory::legaap};
 	for (uint i = 0; i < names.length(); ++i)
 		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T2;
-	names = {Factory::armshltx, Factory::corgant};
+	names = {Factory::armshltx, Factory::corgant, Factory::leggant};
 	for (uint i = 0; i < names.length(); ++i)
 		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T3;
 }
