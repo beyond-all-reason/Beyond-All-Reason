@@ -570,7 +570,7 @@
 				"role": ["builderT2"],
 				"attribute": ["solo"],
 				"limit": 15,
-				"build_speed": 12.5  //bp 250
+				"build_speed": 12.5
 			},
 			"legaceb": {
 				"role": ["builder"],
@@ -594,307 +594,257 @@
 			"legcs": {
 				"role": ["builder"],
 				"retreat": 0.6,
-				"limit": 6,
-				"build_speed": 7.0
+				"limit": 8,
+				"build_speed": 6.0
 			},
 			"legch": {
 				"role": ["builder"],
 				"limit": 10,
-				"build_speed": 8.0
+				"build_speed": 6.0
 			},
 	
 			// LEGION BOTLAB (leglab)
 
 			"legcen": {
 				"role": ["assault"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 4.0, "anti-heavy":3.0}},
+				"limit": 40
 			},
 			"legbal": {
-				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["skirmish"]
 			},
 			"leglob": {
 				"role": ["skirmish"],
-				"attribute": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["raider"]
 			},
 			"legkark": {
 				"role": ["assault"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"limit": 10
 			},
 			"leggob": {
 				"role": ["scout"],
-				"attribute": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["raider"]
 			},
 	
 			// adv bot - legalab
 	
 			"leginfestor": {
-				"role": ["support"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["support"]
 			},
 			"legstr": {
 				"role": ["raider"],
 				"attribute":["melee"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 4.0}},
+				"retreat": 0.85
 			},
 			"leginc": {
-				"role": ["heavy", "assault"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["heavy", "assault"]
 			},
 			"legshot": {
-				"role": ["riot"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["riot"]
 			},
 			"legbart": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat": {"surf":0.5, "vs":{"static":2.0, "artillery":2.0}},
+				"retreat": 0.8,
+				"limit": 10
 			},
 			"legdecom": {
 				"role": ["builder"],
 				"buildspeed": 6.0,
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"limit": 2
 			},
 			"legsnapper": {
 				"role": ["scout"],
 				"attribute": ["melee"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0,
+				"limit": 2
 			},
 			"legsrail": {
-				"role": ["anti_heavy"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["anti_heavy"]
 			},
 	
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
 				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.6
 			},
 			"legkeres": {
 				"role": ["assault", "heavy"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.6
 			},
 			"legjav": {
-				"role": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["raider"]
 			},
 			"legelrpcmech": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["siege"],
+				"threat": {"surf": 0.5, "vs":{"static":2.0, "artillery":2.0}},
+				"power": 0.5
 			},
 			"legerailtank": {
 				"role": ["assault"],
-				"attribute": ["melee"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["melee"]
 			},
 			"legeshotgunmech": {
 				"role": ["riot"],
-				"attribute": ["melee"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["melee"]
 			},
 			"legeheatraymech": {
 				"role": ["heavy"],
 				"attribute": ["melee"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.00
 			},
 			
 			// LEGION T1 VEHICLE - legvp
 	
 			"legscout": {
 				"role": ["scout"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 2.0}}
 			},
 			"leghades": {
 				"role": ["raider"],
 				"attribute": ["scout"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 2.0}},
+				"limit": 30
 			},
 			"legamphtank": {
-				"role": ["assault"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["assault"]
 			},
 			"leggat": {
 				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 2.0}}
 			},
 			"leghelios": {
 				"role": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 2.0}},
+				"retreat": 0.5
 			},
 			"legbar": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute":["siege"],
+				"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}}
 			},
 			"legrail": {
 				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat":{"vs":{"artillery": 2.0}}
 			},
 	
 			// 	LEGION ADV VELICLE PLANT
 			
 			"legfloat": {
-				"role": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["raider"]
 			},
 			"legskirmtank": {
-				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["skirmish"]
 			},
 			"legmrv": {
-				"role": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["raider"]
 			},
 			"legaheattank": {
 				"role": ["heavy"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute":["siege"],
+				"threat": {"surf": 1.5}
 			},
 			"legmcluster": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute": ["siege"],
+				"retreat": 0.6
 			},
 			"legavroc": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.6
 			},
 			"legmed": {
 				"role":	["assault"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.5
 			},
 			"legvcarry": {
 				"role":	["riot"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"limit": 3
 			},
 			"leginf": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
+				"retreat": 0.6,
+				"limit": 3
 			},
 	
 			// aircraft - legap
 	
 			"legcib": {
 				"role": ["super", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.8
 			},
 			"legfig": {
 				"role": ["anti_air", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.5,
+				"power": 0.5
 			},
 			"legkam": {
 				"role": ["bomber", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 0.5,
+				"limit": 30,
+				"retreat": 0.5
 			},
 			"legmos": {
 				"role": ["skirmish", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat": {"surf": 0.2},
+				"power": 0.1,
+				"retreat": 0.8
 			},
 	
 			// LEGION ADV AIRCRAFT aircraft - legaap
 	
 			"legwhisper": {
 				"role": ["scout", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.6
 			},
 			"legionnaire": {
 				"role": ["anti_air", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.5
 			},
 			"legvenator": {
 				"role": ["anti_air", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.5
 			},
 			"legphoenix": {
 				"role": ["bomber", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.8
 			},
 			"legnap": {
 				"role": ["bomber", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.8
 			},
 			"legstronghold": {
 				"role": ["assault", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.5
 			},
 			"legfort": {
 				"role": ["heavy", "air"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"retreat": 0.4
 			},
 	
 			// LEGION HOVERS
 	
 			"legsh": {
-				"role": ["raider"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["raider"]
 			},
 			"legner": {
-				"role": ["skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["skirmish"]
 			},
 			"legmh": {
 				"role": ["artillery"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
+				"limit": 6
 			},
 			"legah": {
 				"role": ["anti_air"],
-				"attribute":["support"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"attribute":["support"]
 			},
 			"legcar": {
-				"role": ["heavy", "skirmish"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"role": ["heavy", "skirmish"]
 			}
 		}
 	}
