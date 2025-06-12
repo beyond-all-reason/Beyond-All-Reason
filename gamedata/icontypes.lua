@@ -1107,6 +1107,10 @@ local icontypes = {
 		bitmap = "icons/bot_amph_t2_aa.png",
 		size = 1.41999996
 	},
+	legadvaabot = {
+		bitmap = "icons/bot_amph_t2_aa.png",
+		size = 1.41999996
+	},
 	coraap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
@@ -2379,6 +2383,10 @@ local icontypes = {
 		bitmap = "icons/def_t2_impulse.png",
 		size = 1.46999991
 	},
+	legapopupdef = {
+		bitmap = "icons/def_t2_impulse.png",
+		size = 1.46999991
+	},
 	legca = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
@@ -2608,6 +2616,10 @@ local icontypes = {
 		size = 1.6
 	},
 	legionnaire = {
+		bitmap = "icons/air_t2.png",
+		size = 1.02899992
+	},
+	legafigdef = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
 	},

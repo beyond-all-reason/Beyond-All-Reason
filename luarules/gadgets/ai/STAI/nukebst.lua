@@ -56,7 +56,8 @@ function NukeBST:Update()
 			self.currentTarget = nil
 			return
 		end
-		self.unit:Internal():AttackPos(self.currentTarget.POS)
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, self.currentTarget.POS, 0,'1-1')
+		--self.unit:Internal():AttackPos(self.currentTarget.POS)
 		self:EchoDebug('current target:',self.currentTarget.POS.x,self.currentTarget.POS.z)
 	end
 

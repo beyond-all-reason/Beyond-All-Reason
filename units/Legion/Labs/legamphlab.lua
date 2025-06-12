@@ -49,7 +49,7 @@ return {
 			[3] = "legfloat",
 			[4] = "legamph",
 			[5] = "legaabot",
-			[6] = "coraak",
+			[6] = "legadvaabot",
 			[7] = "legdecom",
 		},
 		customparams = {

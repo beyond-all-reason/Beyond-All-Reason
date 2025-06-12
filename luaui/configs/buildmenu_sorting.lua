@@ -89,6 +89,7 @@ local unitOrderTable = {
 	['corhunt']        = 004060,
 	['armawac']        = 004050,
 	['corawac']        = 004060,
+	['legwhisper']     = 004061,
 
 	-- SCOUTS/UTILITY LAND
 	['armmark']        = 004100,
@@ -113,6 +114,7 @@ local unitOrderTable = {
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
 	['legionnaire']    = 004316,
+	['legafigdef']     = 004316,
 	['legvenator']     = 004317,
 	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
 	['corsfig2']       = 004317,
@@ -332,6 +334,7 @@ local unitOrderTable = {
 	['legaabot']       = 008011,
 	['armaak']         = 008020,
 	['coraak']         = 008030,
+	['legadvaabot']    = 008031,
 
 	['armyork']        = 008200,
 	['corsent']        = 008210,
@@ -654,6 +657,7 @@ local unitOrderTable = {
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['legbombard']     = 107250,
+   ['legapopupdef']   = 107251,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
    ['legacluster']	  = 107450,

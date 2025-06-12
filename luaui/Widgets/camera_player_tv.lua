@@ -25,9 +25,6 @@ local alwaysDisplayName = true
 local playerChangeDelay = 40
 local widgetHeight = 22
 
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local parentPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
@@ -60,6 +57,8 @@ local math_isInRect = math.isInRect
 local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
+
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local aiTeams = {}
 local teamColorKeys = {}
@@ -582,7 +581,7 @@ local function drawContent()
 						end
 						font2:Begin()
 						font2:SetTextColor(r, g, b, 1)
-						if (r + g * 1.2 + b * 0.4) < 0.65 then
+						if ColorIsDark(r, g, b) then
 							font2:SetOutlineColor(1, 1, 1, 1)
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
@@ -826,9 +825,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.4, 0.4 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
-	font2 = WG['fonts'].getFont(fontfile2, 2.5, 0.4 * (useRenderToTexture and 1.2*outlineMult or 1), 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2, 2)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])

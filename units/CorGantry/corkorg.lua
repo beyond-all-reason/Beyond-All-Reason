@@ -26,7 +26,7 @@ return {
 		movementclass = "VBOT6",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
-		script = "Units/corkorg_clean.cob",
+		script = "Units/corkorg.cob",
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,

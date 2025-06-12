@@ -46,6 +46,8 @@ local maxLinesScrollFull = 16
 local maxLinesScrollChatInput = 9
 local lineHeightMult = 1.36
 local lineTTL = 40
+local consoleLineCleanupTarget = Spring.Utilities.IsDevMode() and 1200 or 400 -- cleanup stores once passing this many stored lines
+local orgLineCleanupTarget = Spring.Utilities.IsDevMode() and 1400 or 600
 local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
 local maxTextInputChars = 127	-- tested 127 as being the true max
@@ -56,7 +58,7 @@ local soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10		-- limit ma
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
+local widgetScale = 1
 
 local I18N = {}
 local maxLinesScroll = maxLinesScrollFull
@@ -92,8 +94,6 @@ local mySpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font2, font3, chobbyInterface, hovering
 
 local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
@@ -184,6 +184,7 @@ local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamInfo = Spring.GetTeamInfo
 local ColorString = Spring.Utilities.Color.ToString
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local soundErrors = {}
 
@@ -420,7 +421,7 @@ local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -489,7 +490,7 @@ for i = 1, #teams do
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b } }
+		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b }, ColorIsDark(r, g, b) }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -565,7 +566,7 @@ end
 
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][7] or gameFrame < playernames[playername][7]) then
 			if not mySpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
@@ -653,6 +654,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
+			textOutline = (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3]) or false,
 			text = (i > 1 and lineColor or '')..line,
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -1135,12 +1137,14 @@ local function drawGameTime(gameFrame)
 		offset = (usedFontSize*0.2*widgetScale)
 	end
 	font3:Begin()
+	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 local function drawConsoleLine(i)
 	font:Begin()
+	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
 end
@@ -1167,6 +1171,11 @@ local function drawChatLine(i)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin()
+			if chatLines[i].textOutline then
+				font2:SetOutlineColor(1,1,1,1)
+			else
+				font2:SetOutlineColor(0,0,0,1)
+			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
@@ -1176,6 +1185,11 @@ local function drawChatLine(i)
 			font3:End()
 		else
 			font2:Begin()
+			if chatLines[i].textOutline then
+				font2:SetOutlineColor(1,1,1,1)
+			else
+				font2:SetOutlineColor(0,0,0,1)
+			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
@@ -1183,6 +1197,7 @@ local function drawChatLine(i)
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		font3:Begin()
+		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else
@@ -1565,6 +1580,15 @@ local drawTextInput = function()
 	end
 end
 
+local function cleanupLineTable(prevTable, maxLines)
+	local newTable = {}
+	local start = #prevTable - maxLines
+	for i=1, maxLines do
+		newTable[i] = prevTable[start + i]
+	end
+	return newTable
+end
+
 local function drawUi()
 	if not historyMode then
 
@@ -1608,7 +1632,14 @@ local function drawUi()
 				glTranslate(0, consoleLineHeight, 0)
 				i = i - 1
 			end
+			if i - 1 > consoleLineCleanupTarget*1.15 then
+				consoleLines = cleanupLineTable(consoleLines, consoleLineCleanupTarget)
+			end
 			glPopMatrix()
+
+			if #orgLines > orgLineCleanupTarget*1.15 then
+				orgLines = cleanupLineTable(orgLines, orgLineCleanupTarget)
+			end
 		end
 	end
 
@@ -1913,10 +1944,12 @@ function widget:DrawScreen()
 				end
 			end
 
+			--gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 			gl.Color(1, 1, 1, 1)
 			gl.Texture(uiTex)
 			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
 			gl.Texture(false)
+			--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 	else
 		drawUi()
@@ -2306,7 +2339,6 @@ end
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
-	--widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	widgetScale = vsy * 0.00075 * ui_scale
 
 	UiElement = WG.FlowUI.Draw.Element
@@ -2316,15 +2348,17 @@ function widget:ViewResize()
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
-	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
-	charSize = charSize * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.2)	-- increase for small resolutions
+	charSize = 21 * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)	-- increase for small resolutions
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
-	local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
-	font3 = WG['fonts'].getFont(fontfile3, 1.1 * (useRenderToTexture and 2 or 1), (useRenderToTexture and 0.9 or 0.4) * outlineMult, 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+    font2 = WG['fonts'].getFont(2)
+	font3 = WG['fonts'].getFont(3)
+
+	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
+	--font = WG['fonts'].getFont(1, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
+    --font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
@@ -2386,7 +2420,7 @@ function widget:PlayerChanged(playerID)
 		if isSpec ~= playernames[name].isSpec then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][6] = Spring.GetGameFrame()	-- log frame of death
+				playernames[name][7] = Spring.GetGameFrame()	-- log frame of death
 			end
 		end
 	end
@@ -2394,7 +2428,7 @@ end
 
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -2446,6 +2480,7 @@ local function preventhistorymodeCmd(_, _, params)
 		Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
 	end
 end
+
 
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
@@ -2567,7 +2602,7 @@ function widget:GetConfigData(data)
 		end
 	end
 
-	local maxOrgLines = 600
+	local maxOrgLines = orgLineCleanupTarget
 	if #orgLines > maxOrgLines then
 		local prunedOrgLines = {}
 		for i=1, maxOrgLines do
