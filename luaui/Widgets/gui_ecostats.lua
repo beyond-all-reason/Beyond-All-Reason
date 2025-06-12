@@ -578,10 +578,10 @@ function widget:Shutdown()
 		gl.DeleteList(v)
 	end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 	end
 	WG['ecostats'] = nil
 end
@@ -623,7 +623,7 @@ local function makeTeamCompositionList()
 
 		if (not uiBgTex or rectAreaChange) and areaRect[4] then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
+				gl.DeleteTexture(uiBgTex)
 			end
 			uiBgTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
@@ -631,7 +631,7 @@ local function makeTeamCompositionList()
 				fbo = true,
 			})
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 			end
 			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
