@@ -958,11 +958,11 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListBgTex then
-		gl.DeleteTextureFBO(mainListBgTex)
+		gl.DeleteTexture(mainListBgTex)
 	end
 	if mainListTex then
-		gl.DeleteTextureFBO(mainListTex)
-		gl.DeleteTextureFBO(mainList2Tex)
+		gl.DeleteTexture(mainListTex)
+		gl.DeleteTexture(mainList2Tex)
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
@@ -1778,17 +1778,17 @@ function CreateBackground()
         end
 		if useRenderToTexture then
 			if mainListTex then
-				gl.DeleteTextureFBO(mainListTex)
+				gl.DeleteTexture(mainListTex)
 				mainListTex = nil
 			end
 			if mainList2Tex then
-				gl.DeleteTextureFBO(mainList2Tex)
+				gl.DeleteTexture(mainList2Tex)
 				mainList2Tex = nil
 			end
 		end
 		if useRenderToTextureBg then
 			if mainListBgTex then
-				gl.DeleteTextureFBO(mainListBgTex)
+				gl.DeleteTexture(mainListBgTex)
 				mainListBgTex = nil
 			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])

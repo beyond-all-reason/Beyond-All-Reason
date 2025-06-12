@@ -717,12 +717,6 @@
 			"legjav": {
 				"role": ["raider"]
 			},
-			"legelrpcmech": {
-				"role": ["artillery"],
-				"attribute": ["siege"],
-				"threat": {"surf": 0.5, "vs":{"static":2.0, "artillery":2.0}},
-				"power": 0.5
-			},
 			"legerailtank": {
 				"role": ["assault"],
 				"attribute": ["melee"]
@@ -736,7 +730,7 @@
 				"attribute": ["melee"],
 				"retreat": 0.00
 			},
-			"leglrpcmech": {
+			"legelrpcmech": {
 				"role": ["artillery"],
 				//"attribute": ["siege", "support"],
 				"threat": {"air": 0.0, "water": 0.0}
@@ -781,7 +775,7 @@
 			"legfloat": {
 				"role": ["raider"]
 			},
-			"legskirmtank": {
+			"legaskirmtank": {
 				"role": ["skirmish"]
 			},
 			"legmrv": {
@@ -792,7 +786,7 @@
 				"attribute":["siege"],
 				"threat": {"surf": 1.5}
 			},
-			"legmcluster": {
+			"legamcluster": {
 				"role": ["artillery"],
 				"attribute": ["siege"],
 				"retreat": 0.6
