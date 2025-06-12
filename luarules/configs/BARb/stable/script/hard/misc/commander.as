@@ -112,6 +112,13 @@ SOpener@ GetOpenInfo()
 		{Factory::legalab, array<SQueue> = {
 			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::RAIDER, 3), SO(RT::BUILDER2), SO(RT::ARTY, 2), SO(RT::ASSAULT), SO(RT::BUILDER2), SO(RT::AA)})
 		}},
+		{Factory::legvp, array<SQueue> = {
+			//standard
+			SQueue(0.4f, {SO(RT::SCOUT), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER, 3), SO(RT::BUILDER), SO(RT::RAIDER)}),
+			//early scout push
+			SQueue(0.3f, {SO(RT::SCOUT, 2), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER)}),
+			SQueue(0.3f, {SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER), SO(RT::RAIDER), SO(RT::BUILDER)})
+		}},
 		{Factory::legavp, array<SQueue> = {
 			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
 		}},
