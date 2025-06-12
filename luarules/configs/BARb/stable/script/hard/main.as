@@ -18,11 +18,17 @@ void AiMain()  // Initialize config params
 	array<string> names = {Factory::armalab, Factory::coralab, Factory::armavp, Factory::coravp,
 		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy,
 		Factory::legalab, Factory::legavp, Factory::legaap};
-	for (uint i = 0; i < names.length(); ++i)
-		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T2;
+	for (uint i = 0; i < names.length(); ++i) {
+		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
+		if (cdef !is null)
+			Factory::userData[cdef.id].attr |= Factory::Attr::T2;
+	}
 	names = {Factory::armshltx, Factory::corgant, Factory::leggant};
-	for (uint i = 0; i < names.length(); ++i)
-		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T3;
+	for (uint i = 0; i < names.length(); ++i) {
+		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
+		if (cdef !is null)
+			Factory::userData[cdef.id].attr |= Factory::Attr::T3;
+	}
 }
 
 void AiUpdate()  // SlowUpdate, every 30 frames with initial offset of skirmishAIId
