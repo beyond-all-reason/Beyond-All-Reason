@@ -5,7 +5,7 @@ namespace Commander {
 
 string armcom("armcom");
 string corcom("corcom");
-string corcom("legcom");
+string legcom("legcom");
 
 }
 
