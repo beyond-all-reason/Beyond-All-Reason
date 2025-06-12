@@ -73,8 +73,11 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 		// if (ai.teamId != ai.GetLeadTeamId()) then this change affects only target selection,
 		// while threatmap still counts "ignored" here units.
 		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav", "leggob", "legscout"};
-		for (uint i = 0; i < spam.length(); ++i)
-			ai.GetCircuitDef(spam[i]).SetIgnore(true);
+		for (uint i = 0; i < spam.length(); ++i) {
+			CCircuitDef@ cdef = ai.GetCircuitDef(spam[i]);
+			if (cdef !is null)
+				cdef.SetIgnore(true);
+		}
 	}
 
 	const array<Opener::SO>@ opener = Opener::GetOpener(facDef);
