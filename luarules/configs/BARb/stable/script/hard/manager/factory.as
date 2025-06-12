@@ -134,6 +134,11 @@ bool AiIsSwitchAllowed(CCircuitDef@ facDef)
 	return true;
 }
 
+CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isReset)
+{
+	return aiFactoryMgr.DefaultGetFactoryToBuild(pos, isStart, isReset);
+}
+
 /* --- Utils --- */
 
 float MakeSwitchLimit()
