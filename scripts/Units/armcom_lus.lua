@@ -832,7 +832,7 @@ function AmIBored()
 	if bMoving == false and isAiming == false and isBuilding == false and isDancing == false then
 		boredTime = boredTime + 1
 	end
-	if boredTime > (600 * (1000/131)) and not isDancing then
+	if boredTime > 1 and not isDancing then
 		isDancing = true
 		StartThread(Dance1)
 		boredTime = 0
