@@ -77,7 +77,7 @@ local function DrawStencilTexture(world, fullscreen)
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
 		if usedStencilTex == nil or vsx + vsy ~= oldvs then
-			gl.DeleteTextureFBO(usedStencilTex)
+			gl.DeleteTexture(usedStencilTex)
 
 			oldvs = vsx + vsy
 			usedStencilTex = gl.CreateTexture(vsx, vsy, {
@@ -255,10 +255,8 @@ local function CreateShaders()
 end
 
 local function DeleteShaders()
-	if gl.DeleteTextureFBO then
-		gl.DeleteTextureFBO(stenciltex)
-		gl.DeleteTextureFBO(stenciltexScreen)
-	end
+	gl.DeleteTexture(stenciltex)
+	gl.DeleteTexture(stenciltexScreen)
 	gl.DeleteTexture(screencopyUI or 0)
 	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)

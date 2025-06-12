@@ -120,9 +120,9 @@ function widget:ViewResize()
 	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 end
@@ -153,10 +153,10 @@ function widget:Shutdown()
 		gl.DeleteList(dlist)
 	end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('unitgroups')
@@ -438,7 +438,7 @@ local function updateList()
 		if usedWidth > uiTexWidth then
 			uiTexWidth = usedWidth
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 		end
@@ -452,7 +452,7 @@ local function updateList()
 		}
 		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
+				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
 			end
 			checkGuishader(true)
