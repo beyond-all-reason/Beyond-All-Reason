@@ -351,9 +351,9 @@ function widget:ViewResize()
 	doUpdate = true
 
 	if ordermenuTex then
-		gl.DeleteTextureFBO(ordermenuBgTex)
+		gl.DeleteTexture(ordermenuBgTex)
 		ordermenuBgTex = nil
-		gl.DeleteTextureFBO(ordermenuTex)
+		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
 end
@@ -422,11 +422,11 @@ function widget:Shutdown()
 		displayListOrders = gl.DeleteList(displayListOrders)
 	end
 	if ordermenuBgTex then
-		gl.DeleteTextureFBO(ordermenuBgTex)
+		gl.DeleteTexture(ordermenuBgTex)
 		ordermenuBgTex = nil
 	end
 	if ordermenuTex then
-		gl.DeleteTextureFBO(ordermenuTex)
+		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
 	WG['ordermenu'] = nil

@@ -1910,7 +1910,7 @@ function widget:DrawScreen()
 			refreshUi = false
 			updateDrawUi = true
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
@@ -2580,7 +2580,7 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 

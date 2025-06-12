@@ -1590,7 +1590,7 @@ function widget:DrawScreen()
 	if useRenderToTexture then
 		if refreshUi then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
+				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
 			end
 			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
@@ -1599,7 +1599,7 @@ function widget:DrawScreen()
 				fbo = true,
 			})
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
@@ -2207,11 +2207,11 @@ function widget:Shutdown()
 	end
 
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 

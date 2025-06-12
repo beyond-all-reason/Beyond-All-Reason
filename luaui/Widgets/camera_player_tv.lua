@@ -847,7 +847,7 @@ function widget:ViewResize()
 	end
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 
@@ -874,7 +874,7 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	if toggled and WG.lockcamera then
