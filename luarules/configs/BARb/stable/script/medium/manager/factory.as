@@ -17,6 +17,12 @@ string coravp ("coravp");
 string corasy ("corasy");
 string corap  ("corap");
 
+string leglab  ("leglab");
+string legalab ("legalab");
+string legvp   ("legvp");
+string legavp  ("legavp");
+string legap   ("legap");
+
 int switchInterval = MakeSwitchInterval();
 int switchFrame = 0;
 
