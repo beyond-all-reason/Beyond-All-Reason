@@ -255,10 +255,8 @@ local function CreateShaders()
 end
 
 local function DeleteShaders()
-	if gl.DeleteTextureFBO then
-		gl.DeleteTexture(stenciltex)
-		gl.DeleteTexture(stenciltexScreen)
-	end
+	gl.DeleteTexture(stenciltex)
+	gl.DeleteTexture(stenciltexScreen)
 	gl.DeleteTexture(screencopyUI or 0)
 	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)
