@@ -34,7 +34,7 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	local cp = unitDef.customParams or {}
+	local cp = unitDef.customParams
 	if not (cp.virtualunit == "1") then
 		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 			local xsize, zsize = unitDef.xsize, unitDef.zsize
