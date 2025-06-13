@@ -1591,7 +1591,6 @@ function widget:DrawScreen()
 		if refreshUi then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
-				uiBgTex = nil
 			end
 			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
 				target = GL.TEXTURE_2D,
@@ -1600,7 +1599,6 @@ function widget:DrawScreen()
 			})
 			if uiTex then
 				gl.DeleteTexture(uiTex)
-				uiTex = nil
 			end
 			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
