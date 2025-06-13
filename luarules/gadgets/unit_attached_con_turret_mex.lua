@@ -137,6 +137,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 
 	Spring.UnitAttach(actualID, turretID, pieceNumber)
 
+	-- The mex is non-interactive while the turret is selectable and displayed in the UI.
 	Spring.SetUnitBlocking(actualID, true, true, false)
 	Spring.SetUnitNoSelect(actualID, true)
 	Spring.SetUnitHealth(turretID, health)
