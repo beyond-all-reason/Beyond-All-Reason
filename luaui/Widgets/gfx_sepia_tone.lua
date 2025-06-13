@@ -220,6 +220,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteTexture(screenCopyTex)
+	screenCopyTex = nil
 	if sepiaShader then
 		sepiaShader:Finalize()
 	end
