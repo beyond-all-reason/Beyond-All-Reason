@@ -113,6 +113,88 @@ function gadget:Initialize()
 	end
 end
 
+---This gadget has a polling rate, so should not issue orders that will be disallowed.
+---It will be unable to acquire a new order until its next poll attempt (which also may fail).
+---See unit_prevent_cloaked_unit_reclaim for the order logic.
+-- todo: don't hit UnitDefs; prevent_reclaim via other gadgets should be an API
+local function preventEnemyUnitReclaim(enemyID, teamID)
+	local enemyUnitDef = UnitDefs[spGetUnitDefID(enemyID)]
+	return	(not enemyUnitDef.reclaimable) or
+			(enemyUnitDef.canCloak and Spring.GetUnitIsCloaked(enemyID) and not Spring.IsUnitInRadar(enemyID, Spring.GetTeamAllyTeamID(teamID)))
+end
+
+---Performs a search for the first executable automatic/smart behavior, in priority order:
+---(1) repair ally (2) reclaim enemy (3) reclaim non-ressurectable feature (4) build-assist allied unit.
+---@param turretID integer
+---@param baseID integer
+---@param unitX number
+---@param unitZ number
+---@param radius number
+---@return number dx? for new turret heading
+---@return number dz? for new turret heading
+local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
+	local unitTeamID = Spring.GetUnitTeam(baseID) ---@type integer -- todo
+	local assistUnits = {}
+
+	local alliedUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, unitX, unitZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
+
+	for _, unitID in ipairs(alliedUnits) do
+		if unitID ~= baseID and unitID ~= turretID and radius > Spring.GetUnitSeparation(unitID, baseID, false, true) then
+			local allyDefID = Spring.GetUnitDefID(maybeBuildID)
+
+			if UnitDefs[allyDefID].repairable then
+				local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+
+				if buildProgress == 1 and health < maxHealth then
+					Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+					local cx, _, cz = Spring.GetUnitPosition(unitID)
+					return unitX - cx, unitZ - cz
+				end
+			end
+
+			-- todo: bug fix, separate PR
+			-- if not unitCannotBeAssisted[allyDefID] then
+			-- 	assistUnits[#assistUnits+1] = allyID
+			-- end
+			assistUnits[#assistUnits+1] = unitID
+		end
+	end
+
+	local enemyUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, unitX, unitZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
+
+	for _, unitID in ipairs(enemyUnits) do
+		if radius > Spring.GetUnitSeparation(unitID, baseID, false, true) and not preventEnemyUnitReclaim(unitID, unitTeamID) then
+			Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
+			local cx, _, cz = Spring.GetUnitPosition(unitID)
+			return unitX - cx, unitZ - cz
+		end
+	end
+
+	local features = Spring.GetFeaturesInCylinder(unitX, unitZ, radius + unitDefRadiusMax)
+
+	for _, featureID in ipairs(features) do
+		if	FeatureDefs[Spring.GetFeatureDefID(featureID)].reclaimable and
+			Spring.GetFeatureResurrect(featureID) == FEATURE_NO_UNITDEF and
+			---@diagnostic disable-next-line: redundant-parameter
+			radius > Spring.GetUnitFeatureSeparation(baseID, featureID, false, true) -- todo: function signature
+		then
+			Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { featureID + FEATURE_BASE_INDEX }, EMPTY)
+			local cx, _, cz = Spring.GetFeaturePosition(featureID)
+			return unitX - cx, unitZ - cz
+		end
+	end
+
+	for _, maybeBuildID in ipairs(assistUnits) do
+		if Spring.GetUnitIsBeingBuilt(maybeBuildID) then
+			Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { maybeBuildID }, EMPTY)
+			local cx, _, cz = Spring.GetUnitPosition(maybeBuildID)
+			return unitX - cx, unitZ - cz
+		end
+	end
+
+	Spring.GiveOrderToUnit(turretID, CMD.STOP, EMPTY, EMPTY)
+end
+
 local function updateAttachedTurret(turretID, baseDefID)
 	local baseID = attachedUnits[turretID]
 
@@ -189,63 +271,7 @@ local function updateAttachedTurret(turretID, baseDefID)
 		return
 	end
 
-	-- next, check to see if valid repair/reclaim targets in range
-	local units = SpGetUnitsInCylinder(ux,uz,radius + unitDefRadiusMax)
-
-	for _, nearID in pairs(units) do
-		-- check for free repairs
-		local nearDefID = SpGetUnitDefID(nearID)
-		if SpGetUnitAllyTeam(nearID) == SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
-				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(nearID)
-				if buildProgress == 1 and health < maxHealth and UnitDefs[nearDefID].repairable and nearID ~= attachedUnits[unitID] then
-					SpGiveOrderToUnit(unitID,CMD_REPAIR,{nearID}, {})
-					return
-				end
-			end
-		end
-	end
-
-	for _, nearID in pairs(units) do
-		-- check for enemy to reclaim
-		local nearDefID = SpGetUnitDefID(nearID)
-		if SpGetUnitAllyTeam(nearID) ~= SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
-				if UnitDefs[nearDefID].reclaimable then
-					SpGiveOrderToUnit(unitID,CMD_RECLAIM,{nearID}, {})
-					return
-				end
-			end
-		end
-	end
-
-	local features = SpGetFeaturesInCylinder(ux,uz,radius + unitDefRadiusMax)
-	for _, nearID in pairs(features) do
-		-- check for non resurrectable feature to reclaim
-		local nearDefID = SpGetFeatureDefID(nearID)
-		if ( (SpGetUnitFeatureSeparation(unitID,nearID,true) - SpGetFeatureRadius(nearID)) < radius) then
-			if FeatureDefs[nearDefID].reclaimable and SpGetFeatureResurrect(nearID) == "" then
-				SpGiveOrderToUnit(unitID,CMD_RECLAIM,{nearID+Game.maxUnits}, {})
-				return
-			end
-		end
-	end
-
-	for _, nearID in pairs(units) do
-		-- check for nanoframe to build
-		if SpGetUnitAllyTeam(nearID) == SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
-				if SpGetUnitIsBeingBuilt(nearID) then
-					SpGiveOrderToUnit(unitID,CMD_REPAIR,{nearID}, {})
-					return
-				end
-			end
-		end
-	end
-
-	-- give stop command to attached con turret if nothing to do
-	SpGiveOrderToUnit(unitID,CMD.STOP,{}, {})
-
+	giveAutoOrderToTurret(turretID, baseID, ux, uz, radius)
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
