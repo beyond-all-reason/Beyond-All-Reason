@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local extractorToActualDefID = {}
+local extractorToBackupDefID = {}
 local extractorToTurretDefID = {}
 local extractorPieceNumber = {}
 
@@ -27,16 +28,20 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	-- See unit_attached_con_turret for non-extractor attached turrets.
 	if unitDef.extractsMetal and unitDef.extractsMetal > 0 and unitDef.customParams.attached_con_turret then
 		-- The def used as a build option is a combination of both mex + con models.
-		local actualDefID = UnitDefNames[unitDef.customParams.attached_actual_mex]
-		local turretDefID = UnitDefNames[unitDef.customParams.attached_con_turret]
+		local actualDef = UnitDefNames[unitDef.customParams.attached_actual_mex]
+		local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
 		local pieceNumber = tonumber(unitDef.customParams.attached_piece_number)
 
-		if not actualDefID then
+		-- When the two defs fail to spawn or attach, their IDs are forced free.
+		-- Then, given that we have guaranteed +1 unit capacity, spawn the backup.
+		local backupDef = UnitDefNames[unitDef.customParams.attached_backup_def]
+
+		if not actualDef then
 			local e = ("Extractor missing its finished unit def: %s"):format(unitDef.name)
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 		end
 
-		if not turretDefID then
+		if not turretDef then
 			local e = ("Extractor missing its attached unit def: %s"):format(unitDef.name)
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 		end
@@ -46,9 +51,10 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 		end
 
-		if actualDefID and turretDefID and pieceNumber then
-			extractorToActualDefID[unitDefID] = actualDefID
-			extractorToTurretDefID[unitDefID] = turretDefID
+		if actualDef and turretDef and pieceNumber then
+			extractorToActualDefID[unitDefID] = actualDef.id
+			extractorToBackupDefID[unitDefID] = backupDef.id
+			extractorToTurretDefID[unitDefID] = turretDef.id
 			extractorPieceNumber[unitDefID] = pieceNumber
 		end
 	end
