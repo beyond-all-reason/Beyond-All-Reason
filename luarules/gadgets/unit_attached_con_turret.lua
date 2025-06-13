@@ -42,18 +42,75 @@ local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 
+--------------------------------------------------------------------------------
+-- Initialize ------------------------------------------------------------------
+
+local attachedBuilderDefID = {}
+
+local attachedUnits = {}
+local attachedUnitBuildRadius = {}
+
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
 local unitDefRadiusMax = 0
-function gadget:Initialize()
 
-	local radius = 0
-	for ix, udef in pairs(UnitDefs) do
-		dimensions = SpGetUnitDefDimensions(udef.id)
-		radius = dimensions.radius
-		unitDefRadiusMax = math.max(radius,unitDefRadiusMax)
+---Constructors with attached construction turrets must pass this check.
+---Technically, it seems fine for the turret to have extra buildoptions.
+local function checkSameBuildOptions(unitDef1, unitDef2)
+	if #unitDef1.buildoptions == #unitDef2.buildoptions then
+		for i, unitName in ipairs(unitDef1.buildoptions) do
+			if not table.contains(unitDef2.buildoptions, unitName) then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option missing.")
+				return false
+			elseif unitName ~= unitDef2.buildoptions[i] then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option in different position.")
+				return false
+			end
+		end
+		return true
+	end
+	return false
+end
+
+function gadget:Initialize()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitDefRadiusMax = math.max(unitDef.radius, unitDefRadiusMax)
+
+		-- See unit_attached_con_turret_mex.lua for metal extractors.
+		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
+			local nanoDef = UnitDefNames[unitDef.customParams.attached_con_turret]
+
+			if checkSameBuildOptions(unitDef, nanoDef) then
+				attachedBuilderDefID[unitDefID] = nanoDef and nanoDef.id or nil
+				attachedUnitBuildRadius[unitDefID] = nanoDef.buildDistance
+			else
+				local message = "Unit and its attached con turret have different build lists: "
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+			end
+		end
 	end
 
+	if next(attachedBuilderDefID) then
+		-- Support `luarules /reload` by reacquiring attached cons.
+		for _, unitID in Spring.GetAllUnits() do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+
+			if attachedBuilderDefID[unitDefID] then
+				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
+
+				for _, attachedID in ipairs(attachedIDs) do
+					local attachedDefID = Spring.GetUnitDefID(attachedID)
+
+					if attachedDefID == attachedBuilderDefID[unitDefID] then
+						attachedUnits[attachedID] = unitID
+						break
+					end
+				end
+			end
+		end
+	else
+		gadgetHandler:RemoveGadget(self)
+	end
 end
 
 local function updateAttachedTurret(unitID,unitDefID)
@@ -88,7 +145,7 @@ local function updateAttachedTurret(unitID,unitDefID)
 	commandQueue = SpGetUnitCommands(unitID, 1)
 	local ux,uy,uz = SpGetUnitPosition(unitID)
 	local tx, ty, tz
-	local radius = UnitDefs[unitDefID].buildDistance
+	local radius = attachedUnitBuildRadius[unitDefID]
 	local distance = radius^2 + 1
 	local object_radius = 0
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
@@ -190,11 +247,9 @@ local function updateAttachedTurret(unitID,unitDefID)
 
 end
 
-attachedUnits = {}
-attachedDefID = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	attachedUnits[unitID] = nil
-	attachedDefID[unitID] = nil
+	attachedBuilderDefID[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -213,7 +268,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(turretID, false, false, false)
 		Spring.SetUnitNoSelect(turretID,true)
 		attachedUnits[turretID] = unitID
-		attachedDefID[turretID] = SpGetUnitDefID(turretID)
+		attachedBuilderDefID[turretID] = SpGetUnitDefID(turretID)
 	end
 	if unitDef.name == "legmohobp" then
 		local xx,yy,zz = SpGetUnitPosition(unitID)
@@ -227,7 +282,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(turretID, false, false, false)
         Spring.SetUnitNoSelect(turretID,false)
 		attachedUnits[turretID] = unitID
-		attachedDefID[turretID] = SpGetUnitDefID(turretID)
+		attachedBuilderDefID[turretID] = SpGetUnitDefID(turretID)
 	end
 
 end
@@ -237,7 +292,7 @@ function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
 		for unitID, baseID in pairs(attachedUnits) do
-			updateAttachedTurret(unitID,attachedDefID[unitID])
+			updateAttachedTurret(unitID,attachedBuilderDefID[unitID])
 		end
 	end
 
