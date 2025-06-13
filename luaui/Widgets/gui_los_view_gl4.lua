@@ -95,7 +95,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
+	gl.DeleteTexture(ScreenCopyTexture)
+	ScreenCopyTexture = nil
 end
 
 function widget:DrawPreDecals()
