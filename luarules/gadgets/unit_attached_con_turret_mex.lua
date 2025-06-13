@@ -61,7 +61,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local health = Spring.GetUnitHealth(unitID)
-	local original = Spring.GetUnitNearestAlly(unitID)
+	local original = Spring.GetUnitNearestAlly(unitID, 8)
 	local orgExtractMetal = 0
 
 	if original then
