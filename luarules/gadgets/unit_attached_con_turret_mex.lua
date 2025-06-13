@@ -79,57 +79,70 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 end
 
-local function swapMex(unitID, unitDefID, unitTeam)
-	local scav = ""
-	if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
-	local xx, yy, zz = Spring.GetUnitPosition(unitID)
-	local facing = Spring.GetUnitBuildFacing(unitID)
-	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
-	local health = Spring.GetUnitHealth(unitID)
-	local original = Spring.GetUnitNearestAlly(unitID, 8)
-	local orgExtractMetal = 0
+local function refundUnit(unitDefID, unitTeam)
+	local unitDef = UnitDefs[unitDefID]
+	Spring.AddTeamResource(unitTeam, "metal", unitDef.metalCost)
+	Spring.AddTeamResource(unitTeam, "energy", unitDef.energyCost)
+end
 
-	if original then
-		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)
-		local mexInertID = Spring.CreateUnit("legmohoconin" .. scav, xx, yy, zz, facing, Spring.GetUnitTeam(unitID))
+local function spawnBackupUnit(backupDefID, x, y, z, facing, unitTeam, healthPercent)
+	if backupDefID then
+		local backupID = Spring.CreateUnit(backupDefID, x, y, z, facing, unitTeam)
 
-		if not Spring.GetUnitIsDead(unitID) then
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)
-			orgExtractMetal = Spring.GetUnitMetalExtraction(original)
+		if backupID then
+			local _, metalCost, energyCost = Spring.GetUnitCosts(unitID)
+			Spring.UseTeamResource(unitTeam, "metal", metalCost)
+			Spring.UseTeamResource(unitTeam, "energy", energyCost)
+
+			if healthPercent ~= 1 then
+				local _, healthMax = Spring.GetUnitHealth(backupID)
+				Spring.SetUnitHealth(backupID, healthMax * healthPercent)
+			end
 		end
-
-		Spring.UseTeamResource(unitTeam, "metal", metalCost)
-
-		if not mexInertID then
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.AddTeamResource(unitTeam, "energy", energyCost)
-			return
-		end
-
-		Spring.SetUnitBlocking(mexInertID, true, true, false)
-		Spring.SetUnitNoSelect(mexInertID, true)
-		local nano_id = Spring.CreateUnit("legmohoconct" .. scav, xx, yy, zz, facing, Spring.GetUnitTeam(mexInertID))
-
-		if not nano_id then
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.DestroyUnit(mexInertID, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.AddTeamResource(unitTeam, "energy", energyCost)
-			return
-		end
-
-		local extractMetal = Spring.GetUnitMetalExtraction(unitID)
-		Spring.UnitAttach(mexInertID, nano_id, 6)
-		Spring.SetUnitHealth(nano_id, health)
-		Spring.SetUnitStealth(nano_id, true)
-		Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
-		Spring.SetUnitResourcing(mexInertID, "umm", (-extractMetal - orgExtractMetal))
-
-		mexesToSwap[unitID] = nil
 	end
+end
+
+local function swapMex(unitID, unitDefID, unitTeam)
+	local actualDefID = extractorToActualDefID[unitDefID]
+	local turretDefID = extractorToTurretDefID[unitDefID]
+	local pieceNumber = extractorPieceNumber[unitDefID]
+	local backupDefID = extractorToBackupDefID[unitDefID]
+
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local facing = Spring.GetUnitBuildFacing(unitID)
+	local health, healthMax = Spring.GetUnitHealth(unitID)
+	local metalExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
+
+	-- The unit may have been given (often automatically) or captured.
+	local unitTeamCurrent = Spring.GetUnitTeam(unitID) or unitTeam
+
+	-- Destroy the unit with prejudice to release its ID by force.
+	Spring.DestroyUnit(unitID, false, true, nil, true)
+
+	local actualID = Spring.CreateUnit(actualDefID, ux, uy, uz, facing, unitTeamCurrent)
+
+	if not actualID then
+		refundUnit(unitDefID, unitTeam)
+		-- No reason to believe the backup will be able to spawn.
+		return
+	end
+
+	local turretID = Spring.CreateUnit(turretDefID, ux, uy, uz, facing, unitTeamCurrent)
+
+	if not turretID then
+		refundUnit(unitDefID, unitTeam)
+		spawnBackupUnit(backupDefID, ux, uy, uz, facing, unitTeam, health / healthMax)
+		return
+	end
+
+	Spring.UnitAttach(actualID, turretID, pieceNumber)
+
+	Spring.SetUnitBlocking(actualID, true, true, false)
+	Spring.SetUnitNoSelect(actualID, true)
+	Spring.SetUnitHealth(turretID, health)
+	Spring.SetUnitStealth(turretID, true)
+	Spring.SetUnitResourcing(actualID, "umm", -metalExtraction)
+	Spring.SetUnitResourcing(turretID, "umm", metalExtraction)
 end
 
 function gadget:GameFrame(frame)
