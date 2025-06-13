@@ -1,28 +1,8 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare1, flare2, thrusta1, thrusta2, thrustb1, thrustb2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 20;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-	}
-	sleep 12;
-}
 
 
 #define BASEPIECE base
@@ -31,37 +11,6 @@ deactivatescr()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -71,7 +20,6 @@ Create()
 	hide thrustb2;
 	hide thrusta1;
 	hide thrustb1;
-	call-script InitState();
 }
 
 Activate()
@@ -80,7 +28,6 @@ Activate()
 	show thrustb2;
 	show thrusta1;
 	show thrustb1;
-	start-script RequestState(0);
 }
 
 Deactivate()
@@ -89,17 +36,13 @@ Deactivate()
 	hide thrustb2;
 	hide thrusta1;
 	hide thrustb1;
-	start-script RequestState(1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-QueryPrimary(piecenum)
+
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
 Killed(severity, corpsetype)

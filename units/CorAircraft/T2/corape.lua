@@ -25,7 +25,7 @@ return {
 		metalcost = 370,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAPE.s3o",
-		script = "Units/corape_clean.cob",
+		script = "Units/corape.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,
