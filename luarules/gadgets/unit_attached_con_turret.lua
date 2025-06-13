@@ -292,12 +292,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(gameFrame)
-
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
 		for turretID, baseID in pairs(turretToBaseID) do
 			updateAttachedTurret(baseID, turretID)
 		end
 	end
-
 end
