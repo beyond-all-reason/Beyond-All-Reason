@@ -17,28 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local SpGetUnitCommands = Spring.GetUnitCommands
-local SpGiveOrderToUnit = Spring.GiveOrderToUnit
-local SpGetUnitPosition = Spring.GetUnitPosition
-local SpGetFeaturePosition = Spring.GetFeaturePosition
-local SpGetUnitDefID = Spring.GetUnitDefID
-local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local SpGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local SpGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
-local SpGetFeatureDefID = Spring.GetFeatureDefID
-local SpGetFeatureResurrect = Spring.GetFeatureResurrect
-local SpGetUnitHealth = Spring.GetUnitHealth
-local SpGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local SpGetUnitDefDimensions = Spring.GetUnitDefDimensions
-local SpGetFeatureRadius = Spring.GetFeatureRadius
-local SpGetUnitRadius = Spring.GetUnitRadius
-local SpGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
-local SpGetUnitSeparation = Spring.GetUnitSeparation
-
-local SpGetHeadingFromVector = Spring.GetHeadingFromVector
-local SpGetUnitHeading = Spring.GetUnitHeading
-local SpCallCOBScript = Spring.CallCOBScript
-
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 
@@ -124,7 +102,7 @@ end
 ---See unit_prevent_cloaked_unit_reclaim for the order logic.
 -- todo: don't hit UnitDefs; prevent_reclaim via other gadgets should be an API
 local function preventEnemyUnitReclaim(enemyID, teamID)
-	local enemyUnitDef = UnitDefs[spGetUnitDefID(enemyID)]
+	local enemyUnitDef = UnitDefs[Spring.GetUnitDefID(enemyID)]
 	return	(not enemyUnitDef.reclaimable) or
 			(enemyUnitDef.canCloak and Spring.GetUnitIsCloaked(enemyID) and not Spring.IsUnitInRadar(enemyID, Spring.GetTeamAllyTeamID(teamID)))
 end
