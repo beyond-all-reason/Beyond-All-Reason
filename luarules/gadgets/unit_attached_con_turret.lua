@@ -17,9 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-
-local CMD_REPAIR = CMD.REPAIR
-local CMD_RECLAIM = CMD.RECLAIM
 local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -41,6 +38,15 @@ local SpGetUnitSeparation = Spring.GetUnitSeparation
 local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
+
+local CMD_REPAIR = CMD.REPAIR
+local CMD_RECLAIM = CMD.RECLAIM
+
+local FEATURE_BASE_INDEX = Game.maxUnits
+local FEATURE_NO_UNITDEF = ""
+local FILTER_ALLY_UNITS = -3
+local FILTER_ENEMY_UNITS = -4
+local EMPTY = {}
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
