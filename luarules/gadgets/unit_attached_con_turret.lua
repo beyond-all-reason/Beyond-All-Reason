@@ -79,7 +79,7 @@ function gadget:Initialize()
 		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
 			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
 
-			if checkSameBuildOptions(unitDef, turretDef) then
+			if unitDef.buildOptions and turretDef.buildOptions and checkSameBuildOptions(unitDef, turretDef) then
 				local turretDefID = turretDef.id
 				baseToTurretDefID[unitDefID] = turretDefID
 			else
