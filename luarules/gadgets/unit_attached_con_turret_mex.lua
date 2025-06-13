@@ -86,11 +86,34 @@ function gadget:GameFrame(frame)
 	end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
+        return
+    end
+
+	mexesToSwap[unitID] = {unitDefID = unitDefID, unitTeam = unitTeam, frame = Spring.GetGameFrame() + 1}
+end
+
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
         return 
     end
 	Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam)
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)		-- if con dies remove imex
+	
+	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
+        return 
+    end
+	if Spring.GetUnitTransporter(unitID) then
+		Spring.DestroyUnit(Spring.GetUnitTransporter(unitID), false, true)
+	end
+	for destroyedUnitID, destroyedUnitData in pairs(mexesToSwap) do
+		if unitID == destroyedUnitID then
+			mexesToSwap[destroyedUnitID] = nil
+		end
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -112,21 +135,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		end
 		if damage > (maxHealth / 4) and damage < (maxHealth / 2) then								-- if damage is >25% and <50% of max health spawn heap
 			Spring.CreateFeature("legmohocon_heap", xx, yy, zz, facing, unitTeam)
-		end
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)		-- if con dies remove imex
-	
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
-        return 
-    end
-	if Spring.GetUnitTransporter(unitID) then
-		Spring.DestroyUnit(Spring.GetUnitTransporter(unitID), false, true)
-	end
-	for destroyedUnitID, destroyedUnitData in pairs(mexesToSwap) do
-		if unitID == destroyedUnitID then
-			mexesToSwap[destroyedUnitID] = nil
 		end
 	end
 end
