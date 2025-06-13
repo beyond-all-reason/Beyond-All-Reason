@@ -58,11 +58,23 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			backupDef = nil
 		end
 
-		if actualDef and turretDef and pieceNumber then
-			extractorToActualDefID[unitDefID] = actualDef.id
-			extractorToTurretDefID[unitDefID] = turretDef.id
-			extractorPieceNumber[unitDefID] = pieceNumber
-			extractorToBackupDefID[unitDefID] = backupDef and backupDef.id
+		if actualDef and turretDef then
+			if unitDef.extractsMetal ~= actualDef.extractsMetal then
+				local e = ("Extractors have different extraction rates: %s"):format(unitDef.name)
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+			end
+
+			if unitDef.extractsMetal ~= actualDef.extractsMetal then
+				local e = ("Extractors have different maximum healths: %s"):format(unitDef.name)
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+			end
+
+			if pieceNumber then
+				extractorToActualDefID[unitDefID] = actualDef.id
+				extractorToTurretDefID[unitDefID] = turretDef.id
+				extractorPieceNumber[unitDefID] = pieceNumber
+				extractorToBackupDefID[unitDefID] = backupDef and backupDef.id
+			end
 		end
 	end
 end
