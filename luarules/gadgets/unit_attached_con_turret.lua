@@ -135,6 +135,45 @@ local function updateTurretHeading(turretID, dx, dz, baseID)
 	spCallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
 end
 
+---Share the ongoing command from the base unit to the turret, if possible to do so.
+---If the turret cannot act on that command immediately, it may pursue another task.
+---@param turretID integer
+---@param baseID integer
+---@param baseX number
+---@param baseZ number
+---@param radius number
+---@return number? dx for new turret heading
+---@return number? dz for new turret heading
+local function giveSameOrderToTurret(turretID, baseID, baseX, baseZ, radius)
+	local command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(baseID)
+
+	if	not command
+		or (command >= 0 and command ~= CMD_REPAIR and command ~= CMD_RECLAIM)
+		or param4
+		or not Spring.GiveOrderToUnit(turretID, command, { param1, param2, param3 }, EMPTY)
+	then
+		command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(turretID)
+	end
+
+	if command and not param4 then
+		if command < 0 and -command ~= baseID and -command ~= turretID then
+			if radius > math.sqrt((baseX - param1) ^ 2 + (baseZ - param3) ^ 2) - Spring.GetUnitRadius(-command) then
+				return baseX - param1, baseZ - param3
+			end
+		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
+			if param1 < FEATURE_BASE_INDEX then
+				if radius > Spring.GetUnitSeparation(turretID, param1, false, true) then
+					local cx, cy, cz = Spring.GetUnitPosition(param1)
+					return baseX - cx, baseZ - cz
+				end
+			elseif radius > Spring.GetUnitFeatureSeparation(turretID, param1 - FEATURE_BASE_INDEX, false, true) then
+				local cx, cy, cz = Spring.GetFeaturePosition(param1 - FEATURE_BASE_INDEX)
+				return baseX - cx, baseZ - cz
+			end
+		end
+	end
+end
+
 ---Performs a search for the first executable automatic/smart behavior, in priority order:
 ---(1) repair ally (2) reclaim enemy (3) reclaim non-ressurectable feature (4) build-assist allied unit.
 ---@param turretID integer
@@ -207,82 +246,18 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 	Spring.GiveOrderToUnit(turretID, CMD.STOP, EMPTY, EMPTY)
 end
 
-local function updateAttachedTurret(turretID, baseDefID)
-	local baseID = attachedUnits[turretID]
+local function updateAttachedTurret(baseID, turretID)
+	local bx, by, bz = Spring.GetUnitPosition(baseID)
+	local buildRadius = turretBuildRadius[turretID]
 
-	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(baseID, 1)
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- build command
-		-- The attached turret must have the same buildlist as the body for this to work correctly
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-        SpGiveOrderToUnit(turretID, commandQueue[1]["id"], commandQueue[1]["params"], {})
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- repair command
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(turretID, CMD_REPAIR, commandQueue[1]["params"], {})
-		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-        -- reclaim command
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(turretID, CMD_RECLAIM, commandQueue[1]["params"], {})
-		end
-    end
+	local dx, dz = giveSameOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 
-	-- next, check to see if current command (including command from chassis) is in range
-	commandQueue = SpGetUnitCommands(turretID, 1)
-	local ux,uy,uz = SpGetUnitPosition(turretID)
-	local tx, ty, tz
-	local radius = attachedUnitBuildRadius[baseDefID]
-	local distance = radius^2 + 1
-	local objectRadius = 0
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- out of range build command
-		objectRadius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
-		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - objectRadius
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- out of range repair command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			objectRadius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			objectRadius = SpGetUnitRadius(commandQueue[1]["params"][1])
-		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - objectRadius
-		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			objectRadius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			objectRadius = SpGetUnitRadius(commandQueue[1]["params"][1])
-		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - objectRadius
-		end
-    end
-	if tx and distance <= radius then
-		--let auto con turret continue its thing
-		--update heading, by calling into unit script
-		local dx, dz = ux-tx, uz-tz
+	if dx then
 		updateTurretHeading(turretID, dx, dz, baseID)
 		return
 	end
 
-	local dx, dz = giveAutoOrderToTurret(turretID, baseID, ux, uz, radius)
+	dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 	updateTurretHeading(turretID, dx, dz, baseID)
 end
 
