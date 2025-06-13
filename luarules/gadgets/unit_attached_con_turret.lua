@@ -157,7 +157,7 @@ local function giveSameOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 
 	if command and not param4 then
 		if command < 0 and -command ~= baseID and -command ~= turretID then
-			if radius > math.sqrt((baseX - param1) ^ 2 + (baseZ - param3) ^ 2) - Spring.GetUnitRadius(-command) then
+			if radius > Spring.GetUnitSeparation(turretID, -command, false, true) then
 				return baseX - param1, baseZ - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
