@@ -61,12 +61,12 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		if actualDef and turretDef then
 			if unitDef.extractsMetal ~= actualDef.extractsMetal then
 				local e = ("Extractors have different extraction rates: %s"):format(unitDef.name)
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, e)
 			end
 
 			if unitDef.extractsMetal ~= actualDef.extractsMetal then
 				local e = ("Extractors have different maximum healths: %s"):format(unitDef.name)
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, e)
 			end
 
 			if pieceNumber then
