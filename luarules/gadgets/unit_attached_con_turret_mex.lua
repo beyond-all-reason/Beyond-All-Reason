@@ -149,6 +149,7 @@ function gadget:GameFrame(frame)
 	for unitID, unitData in pairs(mexesToSwap) do
 		if frame > unitData.frame then
 			swapMex(unitID, unitData.unitDefID, unitData.unitTeam)
+			mexesToSwap[unitID] = nil
 		end
 	end
 end
