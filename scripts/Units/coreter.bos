@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, jam1, jam2, turret;
+piece  base, jam1, jam2, turret,  jam, nojam;
 
 static-var recently_damaged, desired_activation;
 
@@ -20,6 +20,8 @@ static-var recently_damaged, desired_activation;
 #include "../damagedsmoke.h"
 Create()
 {
+	hide jam;
+	show nojam;
 	recently_damaged = 0;
 	desired_activation = 1;
 	call-script TB_Init();
@@ -54,9 +56,11 @@ Activate()
 		set ACTIVATION to 0;
 		return(0);
 	}
-	spin turret around y-axis speed <25.021978>;
-	spin jam2 around x-axis speed <90.021978>;
-	spin jam1 around x-axis speed <-90.021978>;
+	show jam;
+	hide nojam;
+	spin turret around y-axis speed <25> accelerate <0.5>;
+	spin jam2 around x-axis speed <150> accelerate <1>;
+	spin jam1 around x-axis speed <-150> accelerate <1>;
 	
 	return (0);
 }
@@ -80,9 +84,11 @@ Deactivate()
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	spin turret around y-axis speed <0.0>;
-	spin jam2 around x-axis speed <0>;
-	spin jam1 around x-axis speed <0>;
+	hide jam;
+	show nojam;
+	stop-spin turret around y-axis decelerate <1>;
+	stop-spin jam2 around x-axis decelerate <6>;
+	stop-spin jam1 around x-axis decelerate <6>;
 	
 	return (0);
 }
