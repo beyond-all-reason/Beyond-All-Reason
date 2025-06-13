@@ -247,44 +247,34 @@ local function updateAttachedTurret(unitID,unitDefID)
 
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	attachedUnits[unitID] = nil
-	attachedBuilderDefID[unitID] = nil
+local function attachToUnit(unitID, unitDefID, unitTeam)
+	local attachedDefID = attachedBuilderDefID[unitDefID]
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local facing = Spring.GetUnitBuildFacing(unitID)
+
+	---@diagnostic disable-next-line: param-type-mismatch
+	local attachedID = Spring.CreateUnit(attachedDefID, ux, uy, uz, facing, unitTeam)
+
+	if attachedID then
+		Spring.UnitAttach(unitID, attachedID, 3)
+		Spring.SetUnitBlocking(attachedID, false, false, false)
+		Spring.SetUnitNoSelect(attachedID, true)
+		attachedUnits[attachedID] = unitID
+		attachedUnitBuildRadius[attachedID] = UnitDefs[attachedDefID].buildDistance
+	else
+		Spring.DestroyUnit(unitID)
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-
-	local unitDef = UnitDefs[unitDefID]
-	-- for now, just corvac gets an attached con turret
-	if unitDef.name == "corvac" then
-		local xx,yy,zz = SpGetUnitPosition(unitID)
-		turretID = Spring.CreateUnit("corvacct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
-		if not turretID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID,turretID,3)
-		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(turretID, false, false, false)
-		Spring.SetUnitNoSelect(turretID,true)
-		attachedUnits[turretID] = unitID
-		attachedBuilderDefID[turretID] = SpGetUnitDefID(turretID)
+	if attachedBuilderDefID[unitDefID] then
+		attachToUnit(unitID, unitDefID, unitTeam)
 	end
-	if unitDef.name == "legmohobp" then
-		local xx,yy,zz = SpGetUnitPosition(unitID)
-		turretID = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
-		if not turretID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID,turretID,3)
-		-- makes the attached con turret as non-interacting as possible 
-		Spring.SetUnitBlocking(turretID, false, false, false)
-        Spring.SetUnitNoSelect(turretID,false)
-		attachedUnits[turretID] = unitID
-		attachedBuilderDefID[turretID] = SpGetUnitDefID(turretID)
-	end
+end
 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	attachedUnits[unitID] = nil
+	attachedBuilderDefID[unitID] = nil
 end
 
 function gadget:GameFrame(gameFrame)
