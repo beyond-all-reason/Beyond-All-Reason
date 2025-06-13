@@ -17,18 +17,41 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local legmohoconDefID = UnitDefNames["legmohocon"] and UnitDefNames["legmohocon"].id
-local legmohoconctDefID = UnitDefNames["legmohoconct"] and UnitDefNames["legmohoconct"].id
-local legmohoconDefIDScav = UnitDefNames["legmohocon_scav"] and UnitDefNames["legmohocon_scav"].id
-local legmohoconctDefIDScav = UnitDefNames["legmohoconct_scav"] and UnitDefNames["legmohoconct_scav"].id
+local extractorToActualDefID = {}
+local extractorToTurretDefID = {}
+local extractorPieceNumber = {}
+
 local mexesToSwap = {}
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
-        return
-    end
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	-- See unit_attached_con_turret for non-extractor attached turrets.
+	if unitDef.extractsMetal and unitDef.extractsMetal > 0 and unitDef.customParams.attached_con_turret then
+		-- The def used as a build option is a combination of both mex + con models.
+		local actualDefID = UnitDefNames[unitDef.customParams.attached_actual_mex]
+		local turretDefID = UnitDefNames[unitDef.customParams.attached_con_turret]
+		local pieceNumber = tonumber(unitDef.customParams.attached_piece_number)
 
-	mexesToSwap[unitID] = {unitDefID = unitDefID, unitTeam = unitTeam, frame = Spring.GetGameFrame() + 1}
+		if not actualDefID then
+			local e = ("Extractor missing its finished unit def: %s"):format(unitDef.name)
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+		end
+
+		if not turretDefID then
+			local e = ("Extractor missing its attached unit def: %s"):format(unitDef.name)
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+		end
+
+		if not pieceNumber then
+			local e = ("Extractor missing its attachment piece index: %s"):format(unitDef.name)
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+		end
+
+		if actualDefID and turretDefID and pieceNumber then
+			extractorToActualDefID[unitDefID] = actualDefID
+			extractorToTurretDefID[unitDefID] = turretDefID
+			extractorPieceNumber[unitDefID] = pieceNumber
+		end
+	end
 end
 
 local function swapMex(unitID, unitDefID, unitTeam)
