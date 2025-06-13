@@ -176,3 +176,7 @@ bind           Alt+sc_]  blueprint_next
 
 // quotas
 bind           Alt+sc_g  factoryqueuemode
+
+// undo/redo
+bind           alt+sc_t  undo
+bind           alt+sc_y  redo
