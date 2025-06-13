@@ -306,9 +306,9 @@ local function clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	prevHoveredCellID = nil
 	if buildmenuTex then
-		gl.DeleteTextureFBO(buildmenuBgTex)
+		gl.DeleteTexture(buildmenuBgTex)
 		buildmenuBgTex = nil
-		gl.DeleteTextureFBO(buildmenuTex)
+		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
 end

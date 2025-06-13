@@ -32,7 +32,7 @@ return {
 		minwaterdepth = 12,
 		movementclass = "NANO",
 		objectname = "Units/armnanotc2plat.s3o",
-		script = "Units/ARMNANOT2.cob",
+		script = "Units/armnanotc2plat.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
 		sightdistance = 500,
