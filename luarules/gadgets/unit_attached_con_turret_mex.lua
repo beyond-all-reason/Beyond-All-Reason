@@ -51,11 +51,18 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 		end
 
+		if backupDef and backupDef.customParams.attached_con_turret then
+			local e = ("Extractor backup def must not be a multi-unit: %s"):format(unitDef.name)
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+
+			backupDef = nil
+		end
+
 		if actualDef and turretDef and pieceNumber then
 			extractorToActualDefID[unitDefID] = actualDef.id
-			extractorToBackupDefID[unitDefID] = backupDef.id
 			extractorToTurretDefID[unitDefID] = turretDef.id
 			extractorPieceNumber[unitDefID] = pieceNumber
+			extractorToBackupDefID[unitDefID] = backupDef and backupDef.id
 		end
 	end
 end
