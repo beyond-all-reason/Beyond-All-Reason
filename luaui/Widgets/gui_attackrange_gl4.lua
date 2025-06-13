@@ -683,7 +683,6 @@ local function AddSelectedUnit(unitID, mouseover)
 			-- This is quite important to pass in as posscale.y!
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
-			--local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
 			--Spring.Echo("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 			
