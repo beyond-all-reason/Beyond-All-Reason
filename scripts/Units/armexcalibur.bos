@@ -1,59 +1,137 @@
 
-//piece  flare, hatch, post, p1, p2, p3, sleeve, turret, antenna, barrel, dish, light, tail, fins, core, con, base, wake;
+#include "../recoil_common_includes.h"
 
-//static-var  gun_1, shooting, is_open, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount;
+piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, con, condar, wake, prop, aimfromy;
 
-
-
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-
-piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, con, condar, base, wake, prop, aimfromy;
-
-static-var  activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount, deployed, modpitch, Stunned;
+static-var  activated, restore_delay, animating, shooting, shotcount, deployed, modpitch, Stunned, timeLeft;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_RESTORE			8
+#define SIGNAL_TURNON			16
+
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 200
+
+///#include "../unit_hitbyweaponid_and_smoke.h"
+
+//#define TB_BASE base 
+//#define TB_TURNRATE <30.0> 
+//#define TB_TILT_X <-0.32>
+//#define TB_BANK_Z <0.5> // Do not define this if you dont want banking -- false, undefined throws error
+//#define TB_WAKE_PIECE base
+//#define TB_WAKE_FOAM 1024 + 1
+//#include "../tilt_bank_submarine.h"
 
 
 
-ExecuteRestoreAfterDelay()
+SetStunned (State)
 {
-    if (Stunned) {
-        return (1);
+    Stunned = State;
+}
+
+
+Create ()
+{
+	//get PRINT(1232);
+	//spin prop around z-axis speed <400>;
+	hide flare;
+	//move antenna to y-axis [-15] speed [240];
+	//move base to z-axis [-15] speed [240];
+	Stunned = 0;
+	activated = 0;
+	animating = 0;
+	//call-script InitState ();
+	restore_delay = 3000;
+	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
+	//call-script TB_Init ();
+	
+	shooting = 0;
+	shotcount = 0;
+	while ( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	//spin dish around y-axis speed <90>;
+}
+
+SetMaxReloadTime (reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+
+Propcontrol ()
+{
+	var currentSpeed;
+	while (1)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/60;//TB_maxSpeed;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		sleep 100;
+	}
+}
+
+StartMoving (reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	//START_TILTBANK;
+	start-script Propcontrol ();
+	while ( TRUE )
+	{
+		emit-sfx 1024 + 0 from wake;
+		sleep 250;
+		emit-sfx 1024 + 0 from wake;
+		emit-sfx 1024 + 1 from wake;
+		sleep 250;
+	}	
+}
+
+StopMoving ()
+{
+	signal SIGNAL_MOVE;
+	//STOP_TILTBANK;
+	stop-spin prop around z-axis decelerate <10.0>;
+}
+
+
+
+
+TimeToRestore (addTime){
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while ( (timeLeft > 1) || Stunned){
+		//get PRINT (timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
     }
+    // The restore section must be atomic :/
 
-	//get PRINT (8);
-	call-script deactivatescr();
-	//get PRINT (81);
+	call-script close ();
 
-	//sleep 5000;
-	
-	
-	turn turret to z-axis <0.000000> speed <50.000000>;
-	turn sleeve to x-axis <-90.000000> speed <50.000000>;
-	wait-for-turn turret around z-axis;
-	wait-for-turn sleeve around x-axis;
-	//get PRINT (811);
 
-	
+    timeLeft = 0;
 }
 
-RestoreAfterDelay()
-{
-	//get PRINT (9);
-	sleep 3000;
-	//get PRINT (91);
-	start-script ExecuteRestoreAfterDelay();
-}
+////////////
 
 
 
-activatescr()
+open ()
 {	
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	animating = 1;
 	//get PRINT (31);
 	//move antenna to y-axis <15> speed <22>;
 		turn hatch1 to z-axis <120> speed <120>;
@@ -87,16 +165,20 @@ activatescr()
 
 		//sleep 1000;
 		deployed = 1;
+		animating = 0;
+
 	//get PRINT (32);
 
 
 	sleep 33;
-	//todo: call movement deactivation script
-
+	start-script TimeToRestore ();
 }
 
-deactivatescr()
+close ()
 {
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	animating = 1;
 	//get PRINT (51);
 	activated = 0;//this might need to be at end of script?
 	deployed = 0;
@@ -140,87 +222,19 @@ deactivatescr()
 		turn hatch2 to z-axis <0> speed <120>;
 		wait-for-turn hatch1 around z-axis;
 		//sleep 1000;
+	animating = 0;
 
 
 	//get PRINT (52);
 
 	sleep 33;
 }
-/*
-
-Go()
-{
-	set ARMORED to 0;
-	if( !activated )
-	{
-		call-script activatescr();
-	}
-	activated = 1;
-}
-
-Stop()
-{
-	activated = 0;
-	call-script deactivatescr();
-	set ARMORED to 1;
-
-}//*/
 
 
 
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	spin prop around z-axis speed <400>;
-	hide flare;
-	//move antenna to y-axis [-15] speed [240];
-	//move base to z-axis [-15] speed [240];
-	Stunned = 0;
-	activated = 0;
-	call-script InitState();
-	restore_delay = 3000;
-	shooting = 0;
-	shotcount = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	//spin dish around y-axis speed <90>;
-}
-
-lua_UnitScriptLight(lightIndex, count)
+lua_UnitScriptLight (lightIndex, count)
 {
 	return 0;
 }
@@ -228,94 +242,68 @@ lua_UnitScriptLight(lightIndex, count)
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Activate()
-{
-	start-script RequestState(0);//was 0
-}
 
-Deactivate()
+
+AimPrimary (heading, pitch)
 {
 
-	start-script RequestState(1);//was 1
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 5;
-}
-
-AimPrimary(heading, pitch)
-{
-	//get PRINT(1);
-
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	//get PRINT(11);
-	while (statechg_StateChanging) {
-		//get PRINT(71);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	if (timeLeft == 0) //default script form seems to have this 0 so all first calls will cancel aiming animations?
+    {
+        start-script TimeToRestore ();
+    }
+    timeLeft = restore_delay;
+	
+	while (animating) {
 		sleep 150;
 	}
 	
-    if (shooting==1) {
-		//get PRINT(7111);
-		start-script RestoreAfterDelay();
-		return(0);
-	}
-	
 
-	if( !activated ) {
-		//get PRINT(21);
-		call-script activatescr();
+
+	if ( !activated ) {
+		call-script open ();
 	}
-	//get PRINT(111);
 	activated = 1;//requested open (might be fully open by now?)
 	
     if (deployed==0) {
-		//get PRINT(711);
 		sleep 150;
 	}
-		//sleep 150;
-	//get PRINT(1111);
 	//modpitch = pitch + 90;
 	turn turret to z-axis heading speed <50.000000>;
 	//turn sleeve to x-axis <0.000000> - modpitch speed <50.000000>;
 	turn sleeve to x-axis <-90.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around z-axis;
 	wait-for-turn sleeve around x-axis;
-	//get PRINT(11111);
-	start-script RestoreAfterDelay();
+
 	return (1);
 }
 
-FirePrimary()
+FirePrimary ()
 {
 
     shooting=1;
     shotcount = shotcount + 1;
     emit-sfx 1024 + 2 from flare;
-    call-script lua_UnitScriptLight(1, shotcount);
+    call-script lua_UnitScriptLight (1, shotcount);
 	sleep 1400;
 	shooting=0;
 }
 
-AimFromPrimary(piecenum)
+AimFromPrimary (piecenum)
 {
 	piecenum = aimfromy;
 }
 
-QueryPrimary(piecenum)
+QueryPrimary (piecenum)
 {
 	piecenum = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-Killed(severity, corpsetype)
+Killed (severity, corpsetype)
 {
-	if( severity <= 25 )
+	if ( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -327,9 +315,9 @@ Killed(severity, corpsetype)
 		explode condar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
-	if( severity <= 50 )
+	if ( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -340,9 +328,9 @@ Killed(severity, corpsetype)
 		explode condar type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
-	if( severity <= 99 )
+	if ( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -354,7 +342,7 @@ Killed(severity, corpsetype)
 		explode condar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;

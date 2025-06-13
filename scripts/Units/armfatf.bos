@@ -1,49 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, tower;
-
-static-var  statechg_DesiredState, statechg_StateChanging;
+piece  base, tower, light;
 
 
-activatescr()
-{
-	move tower to y-axis [45] speed [20];
-	wait-for-move tower along y-axis;
-	return (0);
-}
+#define WATER_ROCK_PIECE base
+#define WATER_ROCK_UNITSIZE 20
+#include "../floatmotion.h"
 
-deactivatescr()
-{
-	move tower to y-axis [0] speed [20];
-	wait-for-move tower along y-axis;
-	return (0);
-
-}
-
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -51,71 +15,26 @@ RockOnWaves()
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
-	call-script InitState();
-	return (0);	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	move tower to y-axis [45] speed [20];
+	show light;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	move tower to y-axis [0] speed [20];
+	hide light;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

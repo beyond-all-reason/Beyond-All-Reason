@@ -125,7 +125,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = gun_1;
+	pieceIndex = lflare + gun_1;
 }
 
 QueryWeapon2(pieceIndex)

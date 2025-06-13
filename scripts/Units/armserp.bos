@@ -1,17 +1,15 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  lturret, rturret, base, lprop, rprop, bprop;
 
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
-#define SIG_AIM				4
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 #define BASEPIECE base
@@ -20,94 +18,72 @@ static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAn
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-TurnControl()
-{
-	var lastHeading, currHeading, diffHeading;
-	lastHeading = GET HEADING;
-	while (TRUE)
-	{
-		currHeading = GET HEADING;
-		diffHeading = currHeading - lastHeading;
-		// Set values for tilt
-		turnClock = 1;
-		turnCounter = 1;	
-		if (diffHeading >= 500)
-			{
-			turnClock = <2>;
-			}
-		if (diffHeading <= -500)
-			{
-			turnCounter = <2>;
-			}
-		lastHeading = currHeading;
-		sleep 100;
-	}
-}
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE lprop
+#define TB_WAKE_PIECE2 rprop
+#include "../tilt_bank_submarine.h"
+
 
 Propcontrol()
 {
+	var currentspeed;
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin lprop around z-axis speed (<-1.000000> * currentSpeed ) * turnCounter accelerate <10.000000>;
-		spin rprop around z-axis speed (<1.000000> * currentSpeed ) * turnClock accelerate <10.000000>;
-		spin bprop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		currentspeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin lprop around z-axis speed (<-1.0> * currentspeed )  accelerate <10.0>;
+		spin rprop around z-axis speed (<1.0> * currentspeed )  accelerate <10.0>;
+		spin bprop around z-axis speed <1.0>*currentspeed accelerate <10.0>;
 		sleep 100;
 	}
 }
 
 Create()
 {
-	moveSpeed = get MAX_SPEED;
-	start-script Propcontrol();
-	start-script TurnControl();
+	call-script TB_Init();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 
-	while( TRUE )
-	{
-		emit-sfx 256 | 3 from lprop;
-		emit-sfx 256 | 3 from rprop;
-		emit-sfx 256 | 3 from bprop;
-		sleep 250;
-	}
+	START_TILTBANK;
+	start-script Propcontrol();
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+	stop-spin lprop around z-axis decelerate <10.0>;
+	stop-spin rprop around z-axis decelerate <10.0>;
+	stop-spin bprop around z-axis decelerate <10.0>;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 200;
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 200;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = rturret;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = rturret;
 }
 
 static-var  Stunned;
@@ -134,34 +110,34 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move lturret to x-axis [-9] speed [30];
 	wait-for-move lturret along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	move rturret to x-axis [9] speed [30];
 	wait-for-move rturret along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = lturret;
+	pieceIndex = lturret;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = rturret;
+	pieceIndex = lturret;
 }
 
 Killed(severity, corpsetype)

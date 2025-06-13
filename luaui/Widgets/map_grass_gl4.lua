@@ -21,7 +21,7 @@ function widget:GetInfo()
     enabled   = not isPotatoGpu,
   }
 end
-
+    
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
 -- The grass configuration is set in the following order:
@@ -85,6 +85,7 @@ local grassConfig = {
     SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
 	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
+	COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
   mapGrassColorModTex = "$grass", -- by default this means that grass will be colorized with the minimap
@@ -131,7 +132,7 @@ else
   end
 end
 Spring.Echo("Map is",Game.mapName)
-
+  
 -----------------------Old Map Overrides-------------------
 local mapoverrides  = {
   ["DSDR 4.0"] = {
@@ -209,6 +210,7 @@ local grassInstanceData = {}
 
 local grassPatchVBO = nil
 local grassPatchVBOsize = 0
+local grassPatchIndexVBO = nil
 local grassInstanceVBO = nil
 local grassInstanceVBOSize = nil
 local grassInstanceVBOStep = 4 -- 4 values per patch
@@ -250,7 +252,7 @@ end
 --------------------------------------------------------------------------------
 -- using: http://ogldev.atspace.co.uk/www/tutorial33/tutorial33.html
 local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see the commented out python section at the bottom to make a custom vbo
-	grassPatchVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	grassPatchVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if grassPatchVBO == nil then goodbye("No LuaVAO support") end
 
 	local VBOLayout= {  {id = 0, name = "position", size = 3},
@@ -271,12 +273,46 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		grassPatchVBOsize = 144
 		VBOData = VBOData[4]
 	end
+	-- What if we went down to 8 vertices?
+	if grassConfig.grassShaderParams.COMPACTVBO == 1 then
+
+		VBOLayout= {  {id = 0, name = "pos_u"},{id = 1, name = "norm_v"}}
+		local compactVBO = {}
+		for v = 1, grassPatchVBOsize do 
+			compactVBO[8 * (v-1) + 1] = VBOData[17 * (v-1) + 1] -- px
+			compactVBO[8 * (v-1) + 2] = VBOData[17 * (v-1) + 2] -- py
+			compactVBO[8 * (v-1) + 3] = VBOData[17 * (v-1) + 3] -- pz
+			compactVBO[8 * (v-1) + 4] = VBOData[17 * (v-1) + 13] -- u
+			compactVBO[8 * (v-1) + 5] = VBOData[17 * (v-1) + 4] -- nx
+			compactVBO[8 * (v-1) + 6] = VBOData[17 * (v-1) + 5] -- ny
+			compactVBO[8 * (v-1) + 7] = VBOData[17 * (v-1) + 6] -- nz
+			compactVBO[8 * (v-1) + 8] = VBOData[17 * (v-1) + 14] -- v
+		end
+		VBOData = compactVBO  
+	end
 
 	grassPatchVBO:Define(
 		grassPatchVBOsize, -- 3 verts, just a triangle for now
 		VBOLayout -- 17 floats per vertex
 	)
 	--Spring.Echo("VBODATA #", grassPatchSize, #VBOData)
+
+	-- Try making an indexVBO too 
+	-- NOTE THAT THIS DOES NOT WORK YET!
+	grassPatchIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false) -- order is 1 2 3 3 4 1
+	grassPatchIndexVBO:Define(grassPatchVBOsize * 6) -- 6 indices per patch
+	local indexVBO = {}
+	for i = 1, grassPatchVBOsize do 
+		local baseidx = 6*(i-1)
+		indexVBO[baseidx + 1] = baseidx 
+		indexVBO[baseidx + 2] = baseidx + 1
+		indexVBO[baseidx + 3] = baseidx + 2
+		indexVBO[baseidx + 4] = baseidx + 2
+		indexVBO[baseidx + 5] = baseidx + 3
+		indexVBO[baseidx + 6] = baseidx 
+	end
+	grassPatchIndexVBO:Upload(indexVBO)
+
 
 	grassPatchVBO:Upload(VBOData)
 end
@@ -594,6 +630,9 @@ local function MakeAndAttachToVAO()
 
   if grassVAO == nil then goodbye("Failed to create grassVAO") end
   grassVAO:AttachVertexBuffer(grassPatchVBO)
+  if grassPatchIndexVBO then
+	grassVAO:AttachIndexBuffer(grassPatchIndexVBO)
+  end
   grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
@@ -1075,8 +1114,9 @@ function widget:DrawWorldPreUnit()
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
 
 
+	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET! 
+ 	grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
-    grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
     if placementMode and Spring.GetGameFrame()%30 == 0 then Spring.Echo("Drawing",instanceCount,"grass patches") end
     grassShader:Deactivate()
     glTexture(0, false)

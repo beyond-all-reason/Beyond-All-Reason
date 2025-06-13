@@ -124,6 +124,12 @@ uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 
 /***********************************************************************/
 // Varyings
+// pre-opt varying number:
+// 4 + 4 + 3 * 3 + 2 + 4 + 4 + 4 + 4 + 1 + 4 = best case 48
+// worst case: 60 
+
+// Can we get down to 32? Yes we now have it down to exactly 32
+
 out Data {
 	// this amount of varyings is already more than we can handle safely
 	//vec4 modelVertexPos;
@@ -131,26 +137,27 @@ out Data {
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
 	vec3 worldTangent;
-	vec3 worldBitangent;
+	//vec3 worldBitangent;
 	vec3 worldNormal;
 
-	vec2 uvCoords;
+	vec4 uvCoords;
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
-	vec3 worldCameraDir;
+//	vec3 worldCameraDir;
 
 	// shadowPosition
-	vec4 shadowVertexPos;
+	vec4 shadowVertexPos; // w contains construction progress 0-1
 
 	//vec3 debugvarying; // for passing through debug garbage
-	// auxilary varyings
-	float aoTerm;
-	float fogFactor;
-	flat float selfIllumMod;
-	flat float healthFraction;
-	flat int unitID;
-	flat vec4 userDefined2;
+	// aoterm_fogFactor_selfIllumMod_healthFraction varyings
+	vec4 aoterm_fogFactor_selfIllumMod_healthFraction; // aoterm, fogFactor, selfIllumMod, healthFraction aoterm_fogFactor_selfIllumMod_healthFraction
+	//float aoTerm;
+	//float fogFactor;
+	//flat float selfIllumMod;
+	//flat float healthFraction;
+	//flat int unitID;
+	//flat vec4 userDefined2;
 
 };
 
@@ -221,7 +228,7 @@ vec3 hash31(float p) {
 }
 
 /***********************************************************************/
-// Auxilary functions
+// aoterm_fogFactor_selfIllumMod_healthFraction functions
 
 vec2 GetWind(float period) {
 	vec2 wind;
@@ -243,7 +250,7 @@ void DoWindVertexMove(inout vec4 mVP) {
 		// fractional part of model position, clamped to >.4
 		vec3 modelXYZ = gl_ModelViewMatrix[3].xyz;
 	#else
-		vec3 modelXYZ = 16.0 * hash31(float(unitID));
+		vec3 modelXYZ = 16.0 * hash31(float(UNITID));
 	#endif
 	modelXYZ = fract(modelXYZ);
 	modelXYZ = clamp(modelXYZ, 0.4, 1.0);
@@ -471,27 +478,28 @@ mat4 rotationMatrix(vec3 rot) {
 #line 12000
 void main(void)
 {
-	unitID = int(UNITID);
-	userDefined2 = UNITUNIFORMS.userDefined[2];
-	userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
+	//unitID = int(UNITID);
+	uvCoords.z = float(UNITID);
+	//userDefined2 = UNITUNIFORMS.userDefined[2];
+	//userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 
 	// 
 	vec4 piecePos = vec4(pos, 1.0);
 
-	uvCoords = uv.xy;
-	healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
+	uvCoords.xy = uv.xy;
+	aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
 	
 	// Also mix in buildprogress into health fraction:
 	#if ENABLE_OPTION_HEALTH_TEXTURING
 		float buildProgress = UNITUNIFORMS.userDefined[0].x;
 		if (buildProgress > -0.5){
 			// healthFraction, cannot, in theory be more than buildProgress
-			healthFraction = clamp(healthFraction / max(0.00000001,buildProgress), 0.0, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.w / max(0.00000001,buildProgress), 0.0, 1.0);
 		}
 	#endif
 
 	#ifdef TREE_RANDOMIZATION
-		float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
+		float randomScale = fract(float(UNITID)*0.01)*0.2 + 0.9;
 		piecePos.xyz *= randomScale;
 	#endif
 
@@ -510,10 +518,10 @@ void main(void)
 
 	#ifdef ENABLE_OPTION_HEALTH_DISPLACE
 	if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
-		if (healthFraction < 0.95 || baseVertexDisplacement > 0.01){
+		if (aoterm_fogFactor_selfIllumMod_healthFraction.w < 0.95 || baseVertexDisplacement > 0.01){
 			vec3 seedVec = 0.1 * piecePos.xyz;
-			seedVec.y += 1024.0 * hash11(float(unitID));
-			float damageAmount = (1.0 - healthFraction) * 0.8;
+			seedVec.y += 1024.0 * hash11(float(UNITID));
+			float damageAmount = (1.0 - aoterm_fogFactor_selfIllumMod_healthFraction.w) * 0.8;
 			piecePos.xyz +=
 				max(damageAmount , baseVertexDisplacement) *
 				vertexDisplacement *							//vertex displacement value
@@ -547,7 +555,7 @@ void main(void)
 
 		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
 		worldTangent   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
-		worldBitangent = RotateByQuaternion(modelToWorldTX.quat, modelSpaceBitangent);
+		//worldBitangent = RotateByQuaternion(modelToWorldTX.quat, modelSpaceBitangent);
 		worldNormal    = RotateByQuaternion(modelToWorldTX.quat, modelVertexNormal);
 	#else
 		// pieceMatrix looks up the model-space transform matrix for unit being drawn
@@ -561,7 +569,7 @@ void main(void)
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
 		worldTangent   = normalMatrix * modelSpaceTangent;
-		worldBitangent = normalMatrix * modelSpaceBitangent;
+		//worldBitangent = normalMatrix * modelSpaceBitangent;
 		worldNormal    = normalMatrix * normal; 
 	#endif
 
@@ -610,10 +618,10 @@ void main(void)
 			// ################# ARMADA ##################
 			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM)) {
 				const float texSpeedMult = 4.0;
-				if (IN_PIXEL_RECT(uvCoords, 2573, 1548, 498, 82)) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 2573, 1548, 498, 82)) {
 					// Arm small (top) width 12px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 12.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 2572, 1631, 500, 132)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 2572, 1631, 500, 132)) {
 					// Arm big (bot) width 20px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 20.0));
 				}
@@ -624,14 +632,14 @@ void main(void)
 				const float texSpeedMult = -6.0;
 				const float texSpeedMult2 = 3.0;
 
-				if (IN_PIXEL_RECT(uvCoords, 3042, 3839, (ATLAS_SIZE - 3042), (ATLAS_SIZE - 3839))) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 3042, 3839, (ATLAS_SIZE - 3042), (ATLAS_SIZE - 3839))) {
 					// tracks are right up against the bottom right of the texture
 					// Cor big (right bot) width 56px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 56.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 192, 636, 511, 68)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 192, 636, 511, 68)) {
 					// Cor small (top) width 24px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 24.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 189, 705, 506, 94)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 189, 705, 506, 94)) {
 					// Cor small (bot) width 28px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 28.0));
 				}
@@ -641,7 +649,7 @@ void main(void)
 			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
 				const float texSpeedMult = -6.0;
 
-				if (IN_PIXEL_RECT(uvCoords, 2613, 768, 660, 404)) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 2613, 768, 660, 404)) {
 					// Legion Rubber and Steel tracks (top right) width 55px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 55.0));
 				}
@@ -657,35 +665,36 @@ void main(void)
 		/***********************************************************************/
 		// Main vectors for lighting
 		// V
-		worldCameraDir = normalize(cameraPos - worldVertexPos.xyz); //from fragment to camera, world space
+//		worldCameraDir = normalize(cameraPos - worldVertexPos.xyz); //from fragment to camera, world space
 
 		//if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 			shadowVertexPos = shadowView * worldPos;
 			//shadowVertexPos.xyz = shadowVertexPos.xyz / shadowVertexPos.w
 			shadowVertexPos.xy += vec2(0.5);  //no need for shadowParams anymore
 			//shadowVertexPos = shadowProj * shadowVertexPos;
+			shadowVertexPos.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 		//}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
 			//aoTerm = clamp(1.0 * fract(uv.x * 16384.0), shadowDensity.y, 1.0);
-			aoTerm = clamp(1.0 * fract(uv.x * 16384.0), 0.1, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.x = clamp(1.0 * fract(uv.x * 16384.0), 0.1, 1.0);
 		} else {
-			aoTerm = 1.0;
+			aoterm_fogFactor_selfIllumMod_healthFraction.x = 1.0;
 		}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_FLASHLIGHTS)) {
 			// modelMatrix[3][0] + modelMatrix[3][2] are Tx, Tz elements of translation of matrix
-			selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
+			aoterm_fogFactor_selfIllumMod_healthFraction.z = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
 		} else {
-			selfIllumMod = 1.0;
+			aoterm_fogFactor_selfIllumMod_healthFraction.z = 1.0;
 		}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 			vec4 ClipVertex = cameraView * worldVertexPos;
 			// emulate linear fog
 			float fogCoord = length(ClipVertex.xyz);
-			fogFactor = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
-			fogFactor = clamp(fogFactor, 0.0, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.y = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+			aoterm_fogFactor_selfIllumMod_healthFraction.y = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.y, 0.0, 1.0);
 		}
 
 		// are we drawing reflection pass, if yes, use reflection camera!

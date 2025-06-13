@@ -1073,9 +1073,9 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
-			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "leglupara", },            -- basic AA, SAM, eradicator
+			{ "legctl", "legcluster", },                        -- coastal torp launcher, punisher
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1142,7 +1142,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
@@ -1210,7 +1210,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
 		},

@@ -585,11 +585,11 @@ function widget:ViewResize()
 		dlistInfo = gl.DeleteList(dlistInfo)
 	end
 	if infoBgTex then
-		gl.DeleteTextureFBO(infoBgTex)
+		gl.DeleteTexture(infoBgTex)
 		infoBgTex = nil
 	end
 	if infoTex then
-		gl.DeleteTextureFBO(infoTex)
+		gl.DeleteTexture(infoTex)
 		infoTex = nil
 	end
 
@@ -725,10 +725,10 @@ function widget:Shutdown()
 		dlistInfo = gl.DeleteList(dlistInfo)
 	end
 	if infoBgTex then
-		gl.DeleteTextureFBO(infoBgTex)
+		gl.DeleteTexture(infoBgTex)
 	end
 	if infoTex then
-		gl.DeleteTextureFBO(infoTex)
+		gl.DeleteTexture(infoTex)
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('info')

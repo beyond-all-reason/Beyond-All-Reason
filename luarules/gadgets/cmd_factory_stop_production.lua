@@ -12,6 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
+local identifier = "StopProduction"
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -53,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 		while count > 0 do
 			local opts = DEQUEUE_OPTS
 			if count >= 100 then
-				count = count - 100
+			count = count - 100
 				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
 			elseif count >= 20 then
 				count = count - 20
@@ -104,6 +105,7 @@ if gadgetHandler:IsSyncedCode() then
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
+		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
 	end
 
 	-- Add the command to factories
@@ -119,5 +121,27 @@ if gadgetHandler:IsSyncedCode() then
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
+	end
+else
+	local myTeamID, isSpec
+
+	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
+		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+		end
+	end
+
+	function gadget:PlayerChanged()
+		myTeamID = Spring.GetMyTeamID()
+		isSpec = Spring.GetSpectatingState()
+	end
+
+	function gadget:Initialize()
+		gadget:PlayerChanged()
+		gadgetHandler:AddSyncAction(identifier, stopProduction)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction(identifier)
 	end
 end
