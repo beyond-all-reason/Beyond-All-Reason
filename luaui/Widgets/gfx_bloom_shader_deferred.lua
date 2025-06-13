@@ -144,15 +144,16 @@ local function MakeBloomShaders()
 
 	local definesString = LuaShader.CreateShaderDefinesString(shaderConfig)
 
-	glDeleteTexture(brightTexture1 or "")
-	glDeleteTexture(brightTexture2 or "")
 	--Spring.Echo(vsx, vsy, qvsx,qvsy)
 
+	glDeleteTexture(brightTexture1)
 	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
+
+	glDeleteTexture(brightTexture2)
 	brightTexture2 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
@@ -550,7 +551,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	glDeleteTexture(brightTexture1 or "")
+	glDeleteTexture(brightTexture1)
+	glDeleteTexture(brightTexture2)
+	brightTexture1, brightTexture2 = nil, nil
 	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShader ~= nil then glDeleteShader(blurShader or 0) end

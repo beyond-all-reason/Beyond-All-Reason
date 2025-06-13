@@ -68,7 +68,14 @@ end
 
 local function DrawStencilTexture(world, fullscreen)
 	--Spring.Echo("DrawStencilTexture",world, fullscreen, Spring.GetDrawFrame(), updateStencilTexture)
-	local usedStencilTex = world and stenciltex or stenciltexScreen
+	local usedStencilTex
+	if world then
+		usedStencilTex = stenciltex
+		stenciltex = nil
+	else
+		usedStencilTex = stenciltexScreen
+		stenciltexScreen = nil
+	end
 
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
@@ -126,6 +133,7 @@ local function DrawStencilTexture(world, fullscreen)
 	else
 		stenciltexScreen = usedStencilTex
 	end
+	usedStencilTex = nil
 end
 
 local function CheckHardware()
@@ -253,8 +261,9 @@ end
 local function DeleteShaders()
 	gl.DeleteTexture(stenciltex)
 	gl.DeleteTexture(stenciltexScreen)
-	gl.DeleteTexture(screencopyUI or 0)
-	stenciltex, stenciltexScreen, screencopyUI = nil, nil, nil
+	gl.DeleteTexture(usedStencilTex)
+	gl.DeleteTexture(screencopyUI)
+	stenciltex, stenciltexScreen, screencopyUI, usedStencilTex = nil, nil, nil, nil
 	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)
 	end
