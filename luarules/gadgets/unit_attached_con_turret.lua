@@ -71,57 +71,6 @@ local function checkSameBuildOptions(unitDef1, unitDef2)
 	return false
 end
 
-function gadget:Initialize()
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		unitDefRadiusMax = math.max(unitDef.radius, unitDefRadiusMax)
-
-		-- See unit_attached_con_turret_mex.lua for metal extractors.
-		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
-			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
-
-			if turretDef then
-				if unitDef.buildOptions and turretDef.buildOptions and checkSameBuildOptions(unitDef, turretDef) then
-					local turretDefID = turretDef.id
-					baseToTurretDefID[unitDefID] = turretDefID
-				else
-					local message = "Unit and its attached con turret have different build lists: "
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
-				end
-			else
-				local message = "Unit has an incorrect or missing attached con def:"
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
-			end
-		end
-	end
-
-	if next(baseToTurretDefID) then
-		-- Support `luarules /reload` by reacquiring attached cons.
-		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local unitDefID = spGetUnitDefID(unitID)
-
-			if baseToTurretDefID[unitDefID] then
-				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
-
-				if attachedIDs then
-					for _, attachedID in ipairs(attachedIDs) do
-						local attachedDefID = spGetUnitDefID(attachedID)
-
-						if attachedDefID == baseToTurretDefID[unitDefID] then
-							turretToBaseID[attachedID] = unitID
-							break
-						end
-					end
-				else
-					local e = ("Missing attached unit: %s @ %.1f, %.1f, %.1f"):format(UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
-				end
-			end
-		end
-	else
-		gadgetHandler:RemoveGadget(self)
-	end
-end
-
 ---This gadget has a polling rate, so should not issue orders that will be disallowed.
 ---It will be unable to acquire a new order until its next poll attempt (which also may fail).
 ---See unit_prevent_cloaked_unit_reclaim for the order logic.
@@ -194,7 +143,7 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 
 	for _, unitID in ipairs(alliedUnits) do
 		if unitID ~= baseID and unitID ~= turretID and radius > spGetUnitSeparation(unitID, baseID, false, true) then
-			local allyDefID = spGetUnitDefID(maybeBuildID)
+			local allyDefID = spGetUnitDefID(unitID)
 
 			if UnitDefs[allyDefID].repairable then
 				local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
@@ -278,8 +227,63 @@ local function attachToUnit(unitID, unitDefID, unitTeam)
 		Spring.SetUnitNoSelect(turretID, true)
 		turretToBaseID[turretID] = unitID
 		turretBuildRadius[turretID] = UnitDefs[turretDefID].buildDistance
+
+		return true
 	else
 		Spring.DestroyUnit(unitID)
+	end
+end
+
+function gadget:Initialize()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitDefRadiusMax = math.max(unitDef.radius, unitDefRadiusMax)
+
+		-- See unit_attached_con_turret_mex.lua for metal extractors.
+		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
+			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
+
+			if turretDef then
+				if unitDef.buildOptions and turretDef.buildOptions and checkSameBuildOptions(unitDef, turretDef) then
+					local turretDefID = turretDef.id
+					baseToTurretDefID[unitDefID] = turretDefID
+				else
+					local message = "Unit and its attached con turret have different build lists: "
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+				end
+			else
+				local message = "Unit has an incorrect or missing attached con def:"
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+			end
+		end
+	end
+
+	if next(baseToTurretDefID) then
+		-- Support `luarules /reload` by reacquiring attached cons.
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local unitDefID = spGetUnitDefID(unitID)
+
+			if baseToTurretDefID[unitDefID] then
+				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
+
+				if attachedIDs then
+					for _, attachedID in ipairs(attachedIDs) do
+						local attachedDefID = spGetUnitDefID(attachedID)
+
+						if attachedDefID == baseToTurretDefID[unitDefID] then
+							turretToBaseID[attachedID] = unitID
+							break
+						end
+					end
+				-- The error state may be recoverable, so we reattempt; however,
+				-- recall that `attachToUnit` will destroy the unit on a failure:
+				elseif not attachToUnit(unitID, unitDefID, spGetUnitTeam(unitID)) then
+					local e = ("Missing attached unit: %s @ %.1f, %.1f, %.1f"):format(UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+				end
+			end
+		end
+	else
+		gadgetHandler:RemoveGadget(self)
 	end
 end
 
