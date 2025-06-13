@@ -139,16 +139,16 @@ end
 ---(1) repair ally (2) reclaim enemy (3) reclaim non-ressurectable feature (4) build-assist allied unit.
 ---@param turretID integer
 ---@param baseID integer
----@param unitX number
----@param unitZ number
+---@param baseX number
+---@param baseZ number
 ---@param radius number
----@return number dx? for new turret heading
----@return number dz? for new turret heading
-local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
+---@return number dx for new turret heading
+---@return number dz for new turret heading
+local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 	local unitTeamID = Spring.GetUnitTeam(baseID) ---@type integer -- todo
 	local assistUnits = {}
 
-	local alliedUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, unitX, unitZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
+	local alliedUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, baseX, baseZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
 
 	for _, unitID in ipairs(alliedUnits) do
 		if unitID ~= baseID and unitID ~= turretID and radius > Spring.GetUnitSeparation(unitID, baseID, false, true) then
@@ -160,7 +160,7 @@ local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
 				if buildProgress == 1 and health < maxHealth then
 					Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
 					local cx, _, cz = Spring.GetUnitPosition(unitID)
-					return unitX - cx, unitZ - cz
+					return baseX - cx, baseZ - cz
 				end
 			end
 
@@ -172,17 +172,17 @@ local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
 		end
 	end
 
-	local enemyUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, unitX, unitZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
+	local enemyUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, baseX, baseZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
 
 	for _, unitID in ipairs(enemyUnits) do
 		if radius > Spring.GetUnitSeparation(unitID, baseID, false, true) and not preventEnemyUnitReclaim(unitID, unitTeamID) then
 			Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
 			local cx, _, cz = Spring.GetUnitPosition(unitID)
-			return unitX - cx, unitZ - cz
+			return baseX - cx, baseZ - cz
 		end
 	end
 
-	local features = Spring.GetFeaturesInCylinder(unitX, unitZ, radius + unitDefRadiusMax)
+	local features = Spring.GetFeaturesInCylinder(baseX, baseZ, radius + unitDefRadiusMax)
 
 	for _, featureID in ipairs(features) do
 		if	FeatureDefs[Spring.GetFeatureDefID(featureID)].reclaimable and
@@ -192,7 +192,7 @@ local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
 		then
 			Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { featureID + FEATURE_BASE_INDEX }, EMPTY)
 			local cx, _, cz = Spring.GetFeaturePosition(featureID)
-			return unitX - cx, unitZ - cz
+			return baseX - cx, baseZ - cz
 		end
 	end
 
@@ -200,7 +200,7 @@ local function giveAutoOrderToTurret(turretID, baseID, unitX, unitZ, radius)
 		if Spring.GetUnitIsBeingBuilt(maybeBuildID) then
 			Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { maybeBuildID }, EMPTY)
 			local cx, _, cz = Spring.GetUnitPosition(maybeBuildID)
-			return unitX - cx, unitZ - cz
+			return baseX - cx, baseZ - cz
 		end
 	end
 
