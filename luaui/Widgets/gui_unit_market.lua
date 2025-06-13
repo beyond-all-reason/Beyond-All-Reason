@@ -1,4 +1,4 @@
-if not Spring.GetModOptions().unit_market then
+if (not Spring.GetModOptions().enable_t2con_buying) and (not Spring.GetModOptions().unit_market) then
     return
 end
 
