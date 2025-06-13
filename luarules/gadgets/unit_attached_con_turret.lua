@@ -79,11 +79,16 @@ function gadget:Initialize()
 		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
 			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
 
-			if unitDef.buildOptions and turretDef.buildOptions and checkSameBuildOptions(unitDef, turretDef) then
-				local turretDefID = turretDef.id
-				baseToTurretDefID[unitDefID] = turretDefID
+			if turretDef then
+				if unitDef.buildOptions and turretDef.buildOptions and checkSameBuildOptions(unitDef, turretDef) then
+					local turretDefID = turretDef.id
+					baseToTurretDefID[unitDefID] = turretDefID
+				else
+					local message = "Unit and its attached con turret have different build lists: "
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+				end
 			else
-				local message = "Unit and its attached con turret have different build lists: "
+				local message = "Unit has an incorrect or missing attached con def:"
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
 			end
 		end
@@ -97,13 +102,18 @@ function gadget:Initialize()
 			if baseToTurretDefID[unitDefID] then
 				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
 
-				for _, attachedID in ipairs(attachedIDs) do
-					local attachedDefID = spGetUnitDefID(attachedID)
+				if attachedIDs then
+					for _, attachedID in ipairs(attachedIDs) do
+						local attachedDefID = spGetUnitDefID(attachedID)
 
-					if attachedDefID == baseToTurretDefID[unitDefID] then
-						turretToBaseID[attachedID] = unitID
-						break
+						if attachedDefID == baseToTurretDefID[unitDefID] then
+							turretToBaseID[attachedID] = unitID
+							break
+						end
 					end
+				else
+					local e = ("Missing attached unit: %s @ %.1f, %.1f, %.1f"):format(UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 				end
 			end
 		end
