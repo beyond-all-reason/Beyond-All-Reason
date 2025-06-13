@@ -130,9 +130,9 @@ local function preventEnemyUnitReclaim(enemyID, teamID)
 end
 
 local function updateTurretHeading(turretID, dx, dz, baseID)
-	local headingCurrent = spGetUnitHeading(turretID)
-	local headingNew = dx and spGetHeadingFromVector(dx, dz) - 32768 or spGetUnitHeading(baseID)
-	spCallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
+	local headingCurrent = Spring.GetUnitHeading(turretID)
+	local headingNew = dx and Spring.GetHeadingFromVector(dx, dz) - 32768 or Spring.GetUnitHeading(baseID)
+	Spring.CallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
 end
 
 ---Share the ongoing command from the base unit to the turret, if possible to do so.
@@ -252,13 +252,13 @@ local function updateAttachedTurret(baseID, turretID)
 
 	local dx, dz = giveSameOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 
-	if dx then
-		updateTurretHeading(turretID, dx, dz, baseID)
-		return
+	if not dx then
+		dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 	end
 
-	dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius)
-	updateTurretHeading(turretID, dx, dz, baseID)
+	if dx then
+		updateTurretHeading(turretID, dx, dz, baseID)
+	end
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
