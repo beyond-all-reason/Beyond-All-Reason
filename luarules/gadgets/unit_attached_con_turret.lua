@@ -44,22 +44,22 @@ local SpCallCOBScript = Spring.CallCOBScript
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
-local max_unit_radius = 0
+local unitDefRadiusMax = 0
 function gadget:Initialize()
 
 	local radius = 0
 	for ix, udef in pairs(UnitDefs) do
 		dimensions = SpGetUnitDefDimensions(udef.id)
 		radius = dimensions.radius
-		max_unit_radius = math.max(radius,max_unit_radius)
+		unitDefRadiusMax = math.max(radius,unitDefRadiusMax)
 	end
 
 end
 
-local function auto_repair_routine(unitID,unitDefID)
+local function updateAttachedTurret(unitID,unitDefID)
 
 	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attached_builders[unitID], 1)
+	local commandQueue = SpGetUnitCommands(attachedUnits[unitID], 1)
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
         -- build command
 		-- The attached turret must have the same buildlist as the body for this to work correctly
@@ -132,53 +132,53 @@ local function auto_repair_routine(unitID,unitDefID)
 	end
 
 	-- next, check to see if valid repair/reclaim targets in range
-	local near_units = SpGetUnitsInCylinder(ux,uz,radius + max_unit_radius)
+	local units = SpGetUnitsInCylinder(ux,uz,radius + unitDefRadiusMax)
 
-	for XX, near_unit in pairs(near_units) do
+	for _, nearID in pairs(units) do
 		-- check for free repairs
-		local near_defid = SpGetUnitDefID(near_unit)
-		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
-				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
-				if buildProgress == 1 and health < maxHealth and UnitDefs[near_defid].repairable and near_unit ~= attached_builders[unitID] then
-					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
+		local nearDefID = SpGetUnitDefID(nearID)
+		if SpGetUnitAllyTeam(nearID) == SpGetUnitAllyTeam(unitID) then
+			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
+				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(nearID)
+				if buildProgress == 1 and health < maxHealth and UnitDefs[nearDefID].repairable and nearID ~= attachedUnits[unitID] then
+					SpGiveOrderToUnit(unitID,CMD_REPAIR,{nearID}, {})
 					return
 				end
 			end
 		end
 	end
 
-	for XX, near_unit in pairs(near_units) do
+	for _, nearID in pairs(units) do
 		-- check for enemy to reclaim
-		local near_defid = SpGetUnitDefID(near_unit)
-		if SpGetUnitAllyTeam(near_unit) ~= SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
-				if UnitDefs[near_defid].reclaimable then
-					SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_unit}, {})
+		local nearDefID = SpGetUnitDefID(nearID)
+		if SpGetUnitAllyTeam(nearID) ~= SpGetUnitAllyTeam(unitID) then
+			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
+				if UnitDefs[nearDefID].reclaimable then
+					SpGiveOrderToUnit(unitID,CMD_RECLAIM,{nearID}, {})
 					return
 				end
 			end
 		end
 	end
 
-	local near_features = SpGetFeaturesInCylinder(ux,uz,radius + max_unit_radius)
-	for XX, near_feature in pairs(near_features) do
+	local features = SpGetFeaturesInCylinder(ux,uz,radius + unitDefRadiusMax)
+	for _, nearID in pairs(features) do
 		-- check for non resurrectable feature to reclaim
-		local near_defid = SpGetFeatureDefID(near_feature)
-		if ( (SpGetUnitFeatureSeparation(unitID,near_feature,true) - SpGetFeatureRadius(near_feature)) < radius) then
-			if FeatureDefs[near_defid].reclaimable and SpGetFeatureResurrect(near_feature) == "" then
-				SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_feature+Game.maxUnits}, {})
+		local nearDefID = SpGetFeatureDefID(nearID)
+		if ( (SpGetUnitFeatureSeparation(unitID,nearID,true) - SpGetFeatureRadius(nearID)) < radius) then
+			if FeatureDefs[nearDefID].reclaimable and SpGetFeatureResurrect(nearID) == "" then
+				SpGiveOrderToUnit(unitID,CMD_RECLAIM,{nearID+Game.maxUnits}, {})
 				return
 			end
 		end
 	end
 
-	for XX, near_unit in pairs(near_units) do
+	for _, nearID in pairs(units) do
 		-- check for nanoframe to build
-		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
-			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
-				if SpGetUnitIsBeingBuilt(near_unit) then
-					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
+		if SpGetUnitAllyTeam(nearID) == SpGetUnitAllyTeam(unitID) then
+			if ( (SpGetUnitSeparation(nearID,unitID,true) - SpGetUnitRadius(nearID)) < radius) then
+				if SpGetUnitIsBeingBuilt(nearID) then
+					SpGiveOrderToUnit(unitID,CMD_REPAIR,{nearID}, {})
 					return
 				end
 			end
@@ -190,11 +190,11 @@ local function auto_repair_routine(unitID,unitDefID)
 
 end
 
-attached_builders = {}
-attached_builder_def = {}
+attachedUnits = {}
+attachedDefID = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	attached_builders[unitID] = nil
-	attached_builder_def[unitID] = nil
+	attachedUnits[unitID] = nil
+	attachedDefID[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -203,31 +203,31 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- for now, just corvac gets an attached con turret
 	if unitDef.name == "corvac" then
 		local xx,yy,zz = SpGetUnitPosition(unitID)
-		nano_id = Spring.CreateUnit("corvacct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
-		if not nano_id then
+		turretID = Spring.CreateUnit("corvacct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		if not turretID then
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID,nano_id,3)
+		Spring.UnitAttach(unitID,turretID,3)
 		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(nano_id, false, false, false)
-		Spring.SetUnitNoSelect(nano_id,true)
-		attached_builders[nano_id] = unitID
-		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
+		Spring.SetUnitBlocking(turretID, false, false, false)
+		Spring.SetUnitNoSelect(turretID,true)
+		attachedUnits[turretID] = unitID
+		attachedDefID[turretID] = SpGetUnitDefID(turretID)
 	end
 	if unitDef.name == "legmohobp" then
 		local xx,yy,zz = SpGetUnitPosition(unitID)
-		nano_id = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
-		if not nano_id then
+		turretID = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		if not turretID then
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID,nano_id,3)
+		Spring.UnitAttach(unitID,turretID,3)
 		-- makes the attached con turret as non-interacting as possible 
-		Spring.SetUnitBlocking(nano_id, false, false, false)
-        Spring.SetUnitNoSelect(nano_id,false)
-		attached_builders[nano_id] = unitID
-		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
+		Spring.SetUnitBlocking(turretID, false, false, false)
+        Spring.SetUnitNoSelect(turretID,false)
+		attachedUnits[turretID] = unitID
+		attachedDefID[turretID] = SpGetUnitDefID(turretID)
 	end
 
 end
@@ -236,8 +236,8 @@ function gadget:GameFrame(gameFrame)
 
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
-		for unitID, base_unit_id in pairs(attached_builders) do
-			auto_repair_routine(unitID,attached_builder_def[unitID])
+		for unitID, baseID in pairs(attachedUnits) do
+			updateAttachedTurret(unitID,attachedDefID[unitID])
 		end
 	end
 
