@@ -113,17 +113,18 @@ function gadget:Initialize()
 	end
 end
 
-local function updateAttachedTurret(unitID,unitDefID)
+local function updateAttachedTurret(turretID, baseDefID)
+	local baseID = attachedUnits[turretID]
 
 	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attachedUnits[unitID], 1)
+	local commandQueue = SpGetUnitCommands(baseID, 1)
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
         -- build command
 		-- The attached turret must have the same buildlist as the body for this to work correctly
 		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
 		--	Spring.Echo(XX,YY)
 		--end
-        SpGiveOrderToUnit(unitID, commandQueue[1]["id"], commandQueue[1]["params"], {})
+        SpGiveOrderToUnit(turretID, commandQueue[1]["id"], commandQueue[1]["params"], {})
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- repair command
@@ -131,21 +132,21 @@ local function updateAttachedTurret(unitID,unitDefID)
 		--	Spring.Echo(XX,YY)
 		--end
 		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_REPAIR, commandQueue[1]["params"], {})
+			SpGiveOrderToUnit(turretID, CMD_REPAIR, commandQueue[1]["params"], {})
 		end
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
         -- reclaim command
 		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_RECLAIM, commandQueue[1]["params"], {})
+			SpGiveOrderToUnit(turretID, CMD_RECLAIM, commandQueue[1]["params"], {})
 		end
     end
 
 	-- next, check to see if current command (including command from chassis) is in range
-	commandQueue = SpGetUnitCommands(unitID, 1)
-	local ux,uy,uz = SpGetUnitPosition(unitID)
+	commandQueue = SpGetUnitCommands(turretID, 1)
+	local ux,uy,uz = SpGetUnitPosition(turretID)
 	local tx, ty, tz
-	local radius = attachedUnitBuildRadius[unitDefID]
+	local radius = attachedUnitBuildRadius[baseDefID]
 	local distance = radius^2 + 1
 	local objectRadius = 0
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
@@ -183,8 +184,8 @@ local function updateAttachedTurret(unitID,unitDefID)
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
 		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
-		heading2 = SpGetUnitHeading(unitID)
-		SpCallCOBScript(unitID, 'UpdateHeading', 0, heading1-heading2+32768)
+		heading2 = SpGetUnitHeading(turretID)
+		SpCallCOBScript(turretID, 'UpdateHeading', 0, heading1-heading2+32768)
 		return
 	end
 
