@@ -24,8 +24,7 @@ local extractorPieceNumber = {}
 local turretToExtractorDefID = {}
 
 local mexesToSwap = {}
-local turretUnits = {}
-local hiddenUnits = {}
+local pairedUnits = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	-- See unit_attached_con_turret for non-extractor attached turrets.
@@ -149,8 +148,8 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	Spring.SetUnitResourcing(actualID, "umm", -metalExtraction)
 	Spring.SetUnitResourcing(turretID, "umm", metalExtraction)
 
-	turretUnits[turretID] = actualID
-	hiddenUnits[actualID] = turretID
+	pairedUnits[turretID] = actualID
+	pairedUnits[actualID] = turretID
 end
 
 function gadget:GameFrame(frame)
@@ -173,19 +172,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local transferID = turretUnits[unitID] or hiddenUnits[unitID]
-	if transferID then
-		Spring.TransferUnit(transferID, newTeam)
+	if pairedUnits[unitID] then
+		Spring.TransferUnit(pairedUnits[unitID], newTeam)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if turretUnits[unitID] then
-		hiddenUnits[turretUnits[unitID]] = nil
-		Spring.DestroyUnit(turretUnits[unitID], false, true)
-	elseif hiddenUnits[unitID] then
-		turretUnits[hiddenUnits[unitID]] = nil
-		Spring.DestroyUnit(hiddenUnits[unitID], false, true)
+	if pairedUnits[unitID] then
+		pairedUnits[pairedUnits[unitID]] = nil
+		Spring.DestroyUnit(pairedUnits[unitID], false, true)
 	elseif extractorToActualDefID[unitDefID] then
 		for swapID in pairs(mexesToSwap) do
 			if unitID == swapID then
@@ -198,7 +193,7 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID,
 							   attackerID, attackerDefID, attackerTeam)
-	if turretUnits[unitID] then
+	if turretToExtractorDefID[unitDefID] then
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 
 		if health - damage < 0 then
