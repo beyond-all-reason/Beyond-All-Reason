@@ -91,7 +91,7 @@ function gadget:Initialize()
 
 	if next(baseToTurretDefID) then
 		-- Support `luarules /reload` by reacquiring attached cons.
-		for _, unitID in Spring.GetAllUnits() do
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
 			local unitDefID = spGetUnitDefID(unitID)
 
 			if baseToTurretDefID[unitDefID] then
