@@ -21,8 +21,11 @@ local extractorToActualDefID = {}
 local extractorToBackupDefID = {}
 local extractorToTurretDefID = {}
 local extractorPieceNumber = {}
+local turretToExtractorDefID = {}
 
 local mexesToSwap = {}
+local turretUnits = {}
+local hiddenUnits = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	-- See unit_attached_con_turret for non-extractor attached turrets.
@@ -74,6 +77,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 				extractorToTurretDefID[unitDefID] = turretDef.id
 				extractorPieceNumber[unitDefID] = pieceNumber
 				extractorToBackupDefID[unitDefID] = backupDef and backupDef.id
+				turretToExtractorDefID[turretDef.id] = unitDefID
 			end
 		end
 	end
@@ -144,6 +148,9 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	Spring.SetUnitStealth(turretID, true)
 	Spring.SetUnitResourcing(actualID, "umm", -metalExtraction)
 	Spring.SetUnitResourcing(turretID, "umm", metalExtraction)
+
+	turretUnits[turretID] = actualID
+	hiddenUnits[actualID] = turretID
 end
 
 function gadget:GameFrame(frame)
@@ -156,54 +163,59 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
-        return
-    end
-
-	mexesToSwap[unitID] = {unitDefID = unitDefID, unitTeam = unitTeam, frame = Spring.GetGameFrame() + 1}
+	if extractorToActualDefID[unitDefID] then
+		mexesToSwap[unitID] = {
+			unitDefID = unitDefID,
+			unitTeam  = unitTeam,
+			frame     = Spring.GetGameFrame() + 1,
+		}
+	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
-        return 
-    end
-	Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam)
+	local transferID = turretUnits[unitID] or hiddenUnits[unitID]
+	if transferID then
+		Spring.TransferUnit(transferID, newTeam)
+	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)		-- if con dies remove imex
-	
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
-        return 
-    end
-	if Spring.GetUnitTransporter(unitID) then
-		Spring.DestroyUnit(Spring.GetUnitTransporter(unitID), false, true)
-	end
-	for destroyedUnitID, destroyedUnitData in pairs(mexesToSwap) do
-		if unitID == destroyedUnitID then
-			mexesToSwap[destroyedUnitID] = nil
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if turretUnits[unitID] then
+		hiddenUnits[turretUnits[unitID]] = nil
+		Spring.DestroyUnit(turretUnits[unitID], false, true)
+	elseif hiddenUnits[unitID] then
+		turretUnits[hiddenUnits[unitID]] = nil
+		Spring.DestroyUnit(hiddenUnits[unitID], false, true)
+	elseif extractorToActualDefID[unitDefID] then
+		for swapID in pairs(mexesToSwap) do
+			if unitID == swapID then
+				mexesToSwap[swapID] = nil
+				return
+			end
 		end
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID,
+							   attackerID, attackerDefID, attackerTeam)
+	if turretUnits[unitID] then
+		local health, maxHealth = Spring.GetUnitHealth(unitID)
 
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then
-        return
-    end
-	local health,maxHealth = Spring.GetUnitHealth(unitID)
-	if health-damage < 0 then																		-- when damaged and killed
-		local xx,yy,zz = Spring.GetUnitPosition(unitID)
-		local facing = Spring.GetUnitBuildFacing(unitID)
-		local scav = ""
-		if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
-		
-		if damage < (maxHealth / 4) then
-			--Spring.Echo("Legmohocon feature created")															-- if damage is <25% of max health spawn wreck
-			local featureID = Spring.CreateFeature("legmohocon" .. scav .. "_dead" , xx, yy, zz, facing, unitTeam)
-			Spring.SetFeatureResurrect(featureID, "legmohocon" .. scav, facing, 0)
-		end
-		if damage > (maxHealth / 4) and damage < (maxHealth / 2) then								-- if damage is >25% and <50% of max health spawn heap
-			Spring.CreateFeature("legmohocon_heap", xx, yy, zz, facing, unitTeam)
+		if health - damage < 0 then
+			local ux, uy, uz = Spring.GetUnitPosition(unitID)
+			local facing = Spring.GetUnitBuildFacing(unitID)
+
+			local buildDef = UnitDefs[turretToExtractorDefID[unitDefID]]
+			local buildName = buildDef.name
+
+			if damage < maxHealth / 4 then
+				local featureID = Spring.CreateFeature(buildName .. "_dead", ux, uy, uz, facing, unitTeam)
+				if featureID then
+					Spring.SetFeatureResurrect(featureID, buildName, facing, 0)
+				end
+			elseif damage < maxHealth / 2 then
+				Spring.CreateFeature(buildName .. "_heap", ux, uy, uz, facing, unitTeam)
+			end
 		end
 	end
 end
