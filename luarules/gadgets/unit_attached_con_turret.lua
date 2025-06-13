@@ -147,36 +147,36 @@ local function updateAttachedTurret(unitID,unitDefID)
 	local tx, ty, tz
 	local radius = attachedUnitBuildRadius[unitDefID]
 	local distance = radius^2 + 1
-	local object_radius = 0
+	local objectRadius = 0
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
         -- out of range build command
-		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
-		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
+		objectRadius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
+		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - objectRadius
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- out of range repair command
 		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
 			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
+			objectRadius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+			objectRadius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
+			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - objectRadius
 		end
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
 		-- out of range reclaim command
 		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
 			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
+			objectRadius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+			objectRadius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
+			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - objectRadius
 		end
     end
 	if tx and distance <= radius then
