@@ -87,8 +87,8 @@ local unitConf = {}
 local function refreshUnitDefs()
 	unitHumanName = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		local cp = unitDef.customParams or {}
-		if not (cp.virturalunit == "1") then
+		local cp = unitDef.customParams
+		if not (cp.virtualunit == "1") then
 			if unitDef.translatedHumanName then
 				unitHumanName[unitDefID] = unitDef.translatedHumanName
 			end
