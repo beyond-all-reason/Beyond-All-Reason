@@ -8,7 +8,7 @@ function gadget:GetInfo()
         version   = 'v1',
         date      = 'September 2024',
         license   = 'GNU GPL, v2 or later',
-        layer     = 12,
+        layer     = 12, -- after unit_mex_upgrade_reclaimer
         enabled   = true
     }
 end
