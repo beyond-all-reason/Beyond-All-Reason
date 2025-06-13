@@ -17,6 +17,10 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
+
 local extractorToActualDefID = {}
 local extractorToBackupDefID = {}
 local extractorToTurretDefID = {}
@@ -93,12 +97,12 @@ local function spawnBackupUnit(backupDefID, x, y, z, facing, unitTeam, healthPer
 		local backupID = Spring.CreateUnit(backupDefID, x, y, z, facing, unitTeam)
 
 		if backupID then
-			local _, metalCost, energyCost = Spring.GetUnitCosts(unitID)
+			local _, metalCost, energyCost = Spring.GetUnitCosts(backupID)
 			Spring.UseTeamResource(unitTeam, "metal", metalCost)
 			Spring.UseTeamResource(unitTeam, "energy", energyCost)
 
 			if healthPercent ~= 1 then
-				local _, healthMax = Spring.GetUnitHealth(backupID)
+				local _, healthMax = spGetUnitHealth(backupID)
 				Spring.SetUnitHealth(backupID, healthMax * healthPercent)
 			end
 		end
@@ -111,9 +115,9 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	local pieceNumber = extractorPieceNumber[unitDefID]
 	local backupDefID = extractorToBackupDefID[unitDefID]
 
-	local ux, uy, uz = Spring.GetUnitPosition(unitID)
-	local facing = Spring.GetUnitBuildFacing(unitID)
-	local health, healthMax = Spring.GetUnitHealth(unitID)
+	local ux, uy, uz = spGetUnitPosition(unitID)
+	local facing = spGetUnitBuildFacing(unitID)
+	local health, healthMax = spGetUnitHealth(unitID)
 	local metalExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
 
 	-- The unit may have been given (often automatically) or captured.
@@ -194,11 +198,11 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID,
 							   attackerID, attackerDefID, attackerTeam)
 	if turretToExtractorDefID[unitDefID] then
-		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		local health, maxHealth = spGetUnitHealth(unitID)
 
 		if health - damage < 0 then
-			local ux, uy, uz = Spring.GetUnitPosition(unitID)
-			local facing = Spring.GetUnitBuildFacing(unitID)
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			local facing = spGetUnitBuildFacing(unitID)
 
 			local buildDef = UnitDefs[turretToExtractorDefID[unitDefID]]
 			local buildName = buildDef.name
