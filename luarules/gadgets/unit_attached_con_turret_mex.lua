@@ -64,8 +64,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 				Spring.Log(gadget:GetInfo().name, LOG.WARNING, e)
 			end
 
-			if unitDef.extractsMetal ~= actualDef.extractsMetal then
-				local e = ("Extractors have different maximum healths: %s"):format(unitDef.name)
+			if unitDef.health ~= turretDef.health then
+				local e = ("Extractor and turret have different healths: %s"):format(unitDef.name)
 				Spring.Log(gadget:GetInfo().name, LOG.WARNING, e)
 			end
 
