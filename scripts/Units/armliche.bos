@@ -1,10 +1,8 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  flare1, base, wing1, wing2, thrusta, thrustb, thrustc,  bomb1;
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, active;
+piece  flare1, base, wing1, wing2, thrusta, thrustb, thrustc, bomb1;
+static-var inAileronRoll, active;
 
 
 #define BASEPIECE base
@@ -13,115 +11,39 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, active;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-activatescr()
-{
-	if( TRUE )
-	{
-		move wing1 to x-axis [0.000000] now;
-		move wing1 to x-axis [-2.400000] speed [1.646088];
-		move wing1 to z-axis [0.000000] now;
-		move wing1 to z-axis [-0.500000] speed [0.342920];
-		move wing2 to x-axis [0.000000] now;
-		move wing2 to x-axis [2.449994] speed [1.680371];
-		move wing2 to z-axis [0.000000] now;
-		move wing2 to z-axis [-0.550000] speed [0.377228];
-		turn wing1 to z-axis <0.000000> now;
-		turn wing1 to z-axis <0.890110> speed <0.615385>;
-		turn wing2 to z-axis <0.000000> now;
-		turn wing2 to z-axis <-2.692308> speed <1.846154>;
-		sleep 1458;
-	}
-	sleep 66;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move wing1 to x-axis [-2.400000] now;
-		move wing1 to x-axis [0.000000] speed [1.646088];
-		move wing1 to z-axis [-0.500000] now;
-		move wing1 to z-axis [0.000000] speed [0.342920];
-		move wing2 to x-axis [2.449994] now;
-		move wing2 to x-axis [0.000000] speed [1.680371];
-		move wing2 to z-axis [-0.550000] now;
-		move wing2 to z-axis [0.000000] speed [0.377228];
-		turn wing1 to z-axis <0.890110> now;
-		turn wing1 to z-axis <0.000000> speed <0.615385>;
-		turn wing2 to z-axis <-2.692308> now;
-		turn wing2 to z-axis <0.000000> speed <1.846154>;
-		sleep 1458;
-	}
-	sleep 66;
-}
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 MoveRate1() {
 	active = get(GAME_FRAME);
 }
 
+
 MoveRate2()
 {
 	active = get(GAME_FRAME);
-	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
+	if( Rand( 1, 10 ) == 1 AND ( !inAileronRoll ) )
 	{
-		Static_Var_1 = 1;
+		inAileronRoll = 1;
 		turn base to z-axis <240.049451> speed <120.027473>;
 		wait-for-turn base around z-axis;
 		turn base to z-axis <120.027473> speed <180.038462>;
 		wait-for-turn base around z-axis;
-		turn base to z-axis <0.000000> speed <120.027473>;
-		Static_Var_1 = 0;
+		turn base to z-axis <0.0> speed <120.027473>;
+		inAileronRoll = 0;
 	}
+}
+
+Create()
+{
+	hide thrustc;
+	hide thrusta;
+	hide thrustb;
+	hide flare1;
+	active = 0;
+	inAileronRoll = 0;
 }
 
 ReloadBomb() {
 	sleep 9000;
 	show bomb1;
-}
-Create()
-{
-	active = 0;
-	hide thrustc;
-	hide thrusta;
-	hide thrustb;
-	hide flare1;
-	Static_Var_1 = 0;
-	
-	
-	call-script InitState();
 }
 
 Activate()
@@ -130,43 +52,49 @@ Activate()
 	show thrustc;
 	show thrusta;
 	show thrustb;
-	start-script RequestState(0);
+	move wing1 to x-axis [-2.4] speed [2.4];
+	move wing1 to z-axis [-0.5] speed [0.5];
+	move wing2 to x-axis [2.4] speed [2.4];
+	move wing2 to z-axis [-0.5] speed [0.5];
+	turn wing1 to z-axis <0.89> speed <0.89>;
+	turn wing2 to z-axis <-2.69> speed <2.69>;
 }
 
 Deactivate()
 {
-	active = 7;
+	active = 0;
 	hide thrustc;
 	hide thrusta;
 	hide thrustb;
-	start-script RequestState(1);
+	move wing1 to x-axis [0.0] speed [2.4];
+	move wing1 to z-axis [0.0] speed [0.5];
+	move wing2 to x-axis [0.0] speed [2.4];
+	move wing2 to z-axis [0.0] speed [0.5];
+	turn wing1 to z-axis <0.0> speed <0.89>;
+	turn wing2 to z-axis <0.0> speed <2.69>;
 }
 
-FirePrimary() {
+FireWeapon1()
+{
 	hide bomb1;
 	start-script ReloadBomb();
-	return (1);
 }
 
-AimPrimary()
+AimWeapon1()
 {
 	if (active < (get(GAME_FRAME) - 60)) {
-		
 		return (1);//only shoot if we've been flying for more than a second
 	} else {
 		return (0);
-	}
+ 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -183,7 +111,6 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type FALL | BITMAP2 | NOHEATCLOUD;
-		//explode flare2 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode thrustc type BITMAPONLY | NOHEATCLOUD;
 		explode wing1 type BITMAPONLY | NOHEATCLOUD;
 		explode thrusta type BITMAPONLY | NOHEATCLOUD;
@@ -195,7 +122,6 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode rearthrust type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wing1 type BITMAPONLY | NOHEATCLOUD;
 		explode thrusta type BITMAPONLY | NOHEATCLOUD;
 		explode thrustb type BITMAPONLY | NOHEATCLOUD;
