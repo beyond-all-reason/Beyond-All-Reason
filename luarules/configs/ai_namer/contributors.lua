@@ -111,6 +111,7 @@ local ContributorAINames = {
     "mupersega",
     "neb_",
     "pandaro",
+	"Qbansky",
     "resopmok",
     "robert the pie",
     "rossco",
