@@ -1,64 +1,34 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, turret, base, sleeve, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, ourheading;
-static-var out_of_arc_count;
+static-var  restore_delay, gun_1, ourheading;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE      4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
-		animSpeed = 1800 / currentSpeed;
-		sleep 142;
-	}
-}
-
-Smoke()
-{
-	while( TRUE )
-	{
-		if ( bMoving )
-		{
-			if( terrain == 4 )
-			{
-				emit-sfx 1024 + 1 from smoke1;
-				emit-sfx 1024 + 1 from smoke2;
-			}
-		}
-		sleep animSpeed;
-	}
-}
-
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
 
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
 #define MAXTILT 100
+#define RECOIL_POWER 100000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
@@ -66,40 +36,31 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide smoke1;
-	bMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
+
 	hide flare1;
 	hide flare2;
 	gun_1 = flare1;
 	restore_delay = 2400;
-	out_of_arc_count = 0;
+	call-script TB_Init();
 }
 
-setSFXoccupy(state)
+SetMaxReloadTime(reloadMS)
 {
-	terrain = state;
+	restore_delay = reloadMS * 2;
 }
 
-SetMaxReloadTime(Func_Var_1)
+StartMoving(reversing)
 {
-	restore_delay = Func_Var_1 * 2;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	START_TILTBANK;
 }
-
-StartMoving()
-{
-	bMoving = TRUE;
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
-  start-script UnitSpeed();
-	start-script Smoke();
-}
-
 
 StopMoving()
 {
-	bMoving = FALSE;
-  signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 static-var  Stunned;
@@ -108,8 +69,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <100.000000>;
-	turn sleeve to x-axis <0.000000> speed <100.000000>;
+	turn turret to y-axis <0.0> speed <100.0>;
+	turn sleeve to x-axis <0.0> speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 }
@@ -126,10 +87,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	// out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
@@ -137,41 +98,30 @@ AimPrimary(heading, pitch)
 	ourheading = heading;
 
 
-	turn turret to y-axis ourheading speed <125.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <125.000000>;
+	turn turret to y-axis ourheading speed <125.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <125.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	if( gun_1 == 1 )
-	{
-		sleep 20;
-	}
-	if( gun_1 == 0 )
-	{
-		sleep 20;
-	}
 	gun_1 = !gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = flare1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -181,8 +131,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -192,7 +142,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -202,7 +152,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -210,6 +160,6 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
 	return corpsetype;
 }

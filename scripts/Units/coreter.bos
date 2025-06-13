@@ -1,64 +1,52 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, jam1, jam2, turret, jam, nojam;
+piece  base, jam1, jam2, turret,  jam, nojam;
 
-static-var  Static_Var_1;
 static-var recently_damaged, desired_activation;
 
-#define SIG_ACTIVATE			2
-#define SIG_OFF 				8
+#define SIGNAL_MOVE 1
+#define SIGNAL_TURNON 4
+#define SIGNAL_OFF 8
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.18>
+#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
+
+#include "../damagedsmoke.h"
 Create()
 {
 	hide jam;
 	show nojam;
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
 	recently_damaged = 0;
 	desired_activation = 1;
-	return (0);
+	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
-	show jam;
-	hide nojam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -68,6 +56,8 @@ Activate()
 		set ACTIVATION to 0;
 		return(0);
 	}
+	show jam;
+	hide nojam;
 	spin turret around y-axis speed <25> accelerate <0.5>;
 	spin jam2 around x-axis speed <150> accelerate <1>;
 	spin jam1 around x-axis speed <-150> accelerate <1>;
@@ -86,16 +76,16 @@ Deactivate()
 	// unit_paralyze_on_off deactivates this unit before it is 
 	// stunned, so it is actually turned off, but we need to wait to see if the
 	// unit is "damaged" by stun.
-	hide jam;
-	show nojam;
 	sleep 100;
 	if (recently_damaged == 0)
 	{
 		//set desired state if deactivated and not recently damaged
 		desired_activation = 0;
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	hide jam;
+	show nojam;
 	stop-spin turret around y-axis decelerate <1>;
 	stop-spin jam2 around x-axis decelerate <6>;
 	stop-spin jam1 around x-axis decelerate <6>;
@@ -116,8 +106,8 @@ SetStunned(State)
 
 OffOnHit()
 {
-signal SIG_OFF;
-set-signal-mask SIG_OFF;
+signal SIGNAL_OFF;
+set-signal-mask SIGNAL_OFF;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit
@@ -128,20 +118,16 @@ set ACTIVATION to desired_activation;
 HitByWeapon(anglex, anglez)
 {
 	start-script OffOnHit();
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <30.000000>;
-	turn base to x-axis <0.000000> speed <30.000000>;
+	turn base to z-axis <0.0> speed <30.0>;
+	turn base to x-axis <0.0> speed <30.0>;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -151,7 +137,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode jam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode jam2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -160,7 +145,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode jam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode jam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -169,13 +153,11 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode jam1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode jam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode jam1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode jam2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
