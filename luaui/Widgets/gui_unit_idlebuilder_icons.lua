@@ -155,9 +155,8 @@ function widget:GameFrame(n)
 	end
 end
 
-
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if (not onlyOwnTeam or unitTeam == myTeamID) and unitConf[unitDefID] then
+	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
 		unitScope[unitID] = unitDefID
 	end
 end
