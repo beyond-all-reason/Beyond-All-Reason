@@ -129,6 +129,12 @@ local function preventEnemyUnitReclaim(enemyID, teamID)
 			(enemyUnitDef.canCloak and Spring.GetUnitIsCloaked(enemyID) and not Spring.IsUnitInRadar(enemyID, Spring.GetTeamAllyTeamID(teamID)))
 end
 
+local function updateTurretHeading(turretID, dx, dz, baseID)
+	local headingCurrent = spGetUnitHeading(turretID)
+	local headingNew = dx and spGetHeadingFromVector(dx, dz) - 32768 or spGetUnitHeading(baseID)
+	spCallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
+end
+
 ---Performs a search for the first executable automatic/smart behavior, in priority order:
 ---(1) repair ally (2) reclaim enemy (3) reclaim non-ressurectable feature (4) build-assist allied unit.
 ---@param turretID integer
@@ -271,13 +277,13 @@ local function updateAttachedTurret(turretID, baseDefID)
 	if tx and distance <= radius then
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
-		heading2 = SpGetUnitHeading(turretID)
-		SpCallCOBScript(turretID, 'UpdateHeading', 0, heading1-heading2+32768)
+		local dx, dz = ux-tx, uz-tz
+		updateTurretHeading(turretID, dx, dz, baseID)
 		return
 	end
 
-	giveAutoOrderToTurret(turretID, baseID, ux, uz, radius)
+	local dx, dz = giveAutoOrderToTurret(turretID, baseID, ux, uz, radius)
+	updateTurretHeading(turretID, dx, dz, baseID)
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
