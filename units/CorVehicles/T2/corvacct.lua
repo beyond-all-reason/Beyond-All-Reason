@@ -57,6 +57,7 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			virtualunit = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
