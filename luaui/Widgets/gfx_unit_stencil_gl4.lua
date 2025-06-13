@@ -415,7 +415,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if unitFeatureStencilTex then gl.DeleteTexture(unitFeatureStencilTex) end
+	gl.DeleteTexture(unitFeatureStencilTex)
+	unitFeatureStencilTex = nil
 	WG['unitstencilapi'] = nil
 	widgetHandler:DeregisterGlobal('GetUnitStencilTexture')
 end
