@@ -776,6 +776,10 @@ function widget:Shutdown()
 	explosionDistortions  = nil
 	gibDistortion = nil
 
+	gl.DeleteTexture(ScreenCopy)
+	gl.DeleteTexture(DistortionTexture)
+	ScreenCopy, DistortionTexture = nil, nil
+
 	--collectgarbage("collect")
 	--collectgarbage("collect")
 
