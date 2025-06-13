@@ -51,10 +51,10 @@ local EMPTY = {}
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
 
-local attachedBuilderDefID = {}
+local baseToTurretDefID = {}
 
-local attachedUnits = {}
-local attachedUnitBuildRadius = {}
+local turretToBaseID = {}
+local turretBuildRadius = {}
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -84,11 +84,11 @@ function gadget:Initialize()
 
 		-- See unit_attached_con_turret_mex.lua for metal extractors.
 		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
-			local nanoDef = UnitDefNames[unitDef.customParams.attached_con_turret]
+			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
 
-			if checkSameBuildOptions(unitDef, nanoDef) then
-				attachedBuilderDefID[unitDefID] = nanoDef and nanoDef.id or nil
-				attachedUnitBuildRadius[unitDefID] = nanoDef.buildDistance
+			if checkSameBuildOptions(unitDef, turretDef) then
+				local turretDefID = turretDef.id
+				baseToTurretDefID[unitDefID] = turretDefID
 			else
 				local message = "Unit and its attached con turret have different build lists: "
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
@@ -96,19 +96,19 @@ function gadget:Initialize()
 		end
 	end
 
-	if next(attachedBuilderDefID) then
+	if next(baseToTurretDefID) then
 		-- Support `luarules /reload` by reacquiring attached cons.
 		for _, unitID in Spring.GetAllUnits() do
 			local unitDefID = Spring.GetUnitDefID(unitID)
 
-			if attachedBuilderDefID[unitDefID] then
+			if baseToTurretDefID[unitDefID] then
 				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
 
 				for _, attachedID in ipairs(attachedIDs) do
 					local attachedDefID = Spring.GetUnitDefID(attachedID)
 
-					if attachedDefID == attachedBuilderDefID[unitDefID] then
-						attachedUnits[attachedID] = unitID
+					if attachedDefID == baseToTurretDefID[unitDefID] then
+						turretToBaseID[attachedID] = unitID
 						break
 					end
 				end
@@ -287,41 +287,41 @@ local function updateAttachedTurret(turretID, baseDefID)
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
-	local attachedDefID = attachedBuilderDefID[unitDefID]
+	local turretDefID = baseToTurretDefID[unitDefID]
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 
 	---@diagnostic disable-next-line: param-type-mismatch
-	local attachedID = Spring.CreateUnit(attachedDefID, ux, uy, uz, facing, unitTeam)
+	local turretID = Spring.CreateUnit(turretDefID, ux, uy, uz, facing, unitTeam)
 
-	if attachedID then
-		Spring.UnitAttach(unitID, attachedID, 3)
-		Spring.SetUnitBlocking(attachedID, false, false, false)
-		Spring.SetUnitNoSelect(attachedID, true)
-		attachedUnits[attachedID] = unitID
-		attachedUnitBuildRadius[attachedID] = UnitDefs[attachedDefID].buildDistance
+	if turretID then
+		Spring.UnitAttach(unitID, turretID, 3)
+		Spring.SetUnitBlocking(turretID, false, false, false)
+		Spring.SetUnitNoSelect(turretID, true)
+		turretToBaseID[turretID] = unitID
+		turretBuildRadius[turretID] = UnitDefs[turretDefID].buildDistance
 	else
 		Spring.DestroyUnit(unitID)
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if attachedBuilderDefID[unitDefID] then
+	if baseToTurretDefID[unitDefID] then
 		attachToUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	attachedUnits[unitID] = nil
-	attachedBuilderDefID[unitID] = nil
+	turretToBaseID[unitID] = nil
+	baseToTurretDefID[unitID] = nil
 end
 
 function gadget:GameFrame(gameFrame)
 
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
-		for unitID, baseID in pairs(attachedUnits) do
-			updateAttachedTurret(unitID,attachedBuilderDefID[unitID])
+		for turretID, baseID in pairs(turretToBaseID) do
+			updateAttachedTurret(baseID, turretID)
 		end
 	end
 
