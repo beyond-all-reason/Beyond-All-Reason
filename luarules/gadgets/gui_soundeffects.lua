@@ -286,35 +286,49 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if not enabled then return end
-	if builderID and GUIUnitSoundEffects[unitDefID]then
+
+	local unitSoundEffects = GUIUnitSoundEffects[unitDefID]
+
+	if builderID and unitSoundEffects then
 		local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
-		if buildProgress < 0.05 then	--buildProgress
+
+		if buildProgress < 0.05 then
 			if myTeamID == spGetUnitTeam(builderID) then
-				local posx, posy, posz = spGetUnitPosition(unitID)
 				if CurrentGameFrame >= UnitCreatedSoundDelayLastFrame + UnitCreatedSoundDelayFrames then
-					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
-						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
-						spPlaySoundFile(pickSound(sound), 0.4, posx, posy, posz, 'sfx')
-						UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+					local applyDelay = false
+					local posx, posy, posz = spGetUnitPosition(unitID)
+
+					if unitSoundEffects.BaseSoundSelectType then
+						spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundSelectType), 0.4, posx, posy, posz, 'sfx')
+						applyDelay = true
 					end
-					if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
-						spPlaySoundFile(pickSound(sound), 0.1, posx, posy, posz, 'sfx')
-						UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+
+					if unitSoundEffects.BaseSoundWeaponType then
+						spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundWeaponType), 0.1, posx, posy, posz, 'sfx')
+						applyDelay = true
+					end
+
+					if applyDelay then
+						UnitCreatedSoundDelayLastFrame = CurrentGameFrame + math_random(-DelayRandomization, DelayRandomization)
 					end
 				end
-			elseif spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
+			elseif (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) and spIsUnitInView(unitID) then
 				if CurrentGameFrame >= AllyUnitCreatedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
-				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
-					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
-						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
-						spPlaySoundFile(pickSound(sound), 0.2, posx, posy, posz, 'sfx')
-						AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+					local applyDelay = false
+					local posx, posy, posz = spGetUnitPosition(unitID)
+
+					if unitSoundEffects.BaseSoundSelectType then
+						spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundSelectType), 0.2, posx, posy, posz, 'sfx')
+						applyDelay = true
 					end
-					if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
-						spPlaySoundFile(pickSound(sound), 0.05, posx, posy, posz, 'sfx')
-						AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+
+					if unitSoundEffects.BaseSoundWeaponType then
+						spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundWeaponType), 0.05, posx, posy, posz, 'sfx')
+						applyDelay = true
+					end
+
+					if applyDelay then
+						AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + math_random(-DelayRandomization, DelayRandomization)						
 					end
 				end
 			end
