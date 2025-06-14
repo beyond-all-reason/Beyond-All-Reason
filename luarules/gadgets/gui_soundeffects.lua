@@ -254,12 +254,12 @@ function gadget:GameFrame(frame)
 	for unitID, previousActiveState in pairs(ActiveStateTrackingUnitList) do
 		local unitDefID = units[unitID]
 
-		local currentlyActive = spGetUnitIsActive(unitID) and 2 or 1
+		local currentlyActive = spGetUnitIsActive(unitID)
 
 		if previousActiveState ~= currentlyActive then
 			local posx, posy, posz = spGetUnitPosition(unitID)
-			if currentlyActive == 1 then
-				ActiveStateTrackingUnitList[unitID] = 1
+			if currentlyActive == false then
+				ActiveStateTrackingUnitList[unitID] = false
 				if not GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate and GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
 					GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
 				end
@@ -274,8 +274,8 @@ function gadget:GameFrame(frame)
 						spPlaySoundFile(pickSound(sound), 0.5, posx, posy, posz, 'sfx')
 					end
 				end
-			elseif currentlyActive == 2 then
-				ActiveStateTrackingUnitList[unitID] = 2
+			elseif currentlyActive == true then
+				ActiveStateTrackingUnitList[unitID] = true
 				if myTeamID == unitsTeam[unitID] then
 					if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
 						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
@@ -392,7 +392,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 
 			if unitSoundEffects.BaseSoundActivate then
-				ActiveStateTrackingUnitList[unitID] = 1
+				ActiveStateTrackingUnitList[unitID] = false
 			end
 		end
 	end
