@@ -34,6 +34,7 @@ local CallAsTeam = CallAsTeam
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
+local CMD_STOP = CMD.STOP
 
 local FEATURE_BASE_INDEX = Game.maxUnits
 local FILTER_ALLY_UNITS = -3
@@ -51,6 +52,7 @@ local nonResurrectableDefID = {}
 local turretToBaseID = {}
 local turretBuildRadius = {}
 local turretOrderPending = {}
+local transportedUnits = {}
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -193,34 +195,38 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 		end
 	end
 
-	spGiveOrderToUnit(turretID, CMD.STOP, EMPTY, EMPTY)
+	spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
 end
 
 local function updateAttachedTurret(baseID, turretID)
-	local bx, by, bz = spGetUnitPosition(baseID)
-	local buildRadius = turretBuildRadius[turretID]
+	if transportedUnits[baseID] then
+		spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
+	else
+		local bx, by, bz = spGetUnitPosition(baseID)
+		local buildRadius = turretBuildRadius[turretID]
 
-	local dx, dz = giveSameOrderToTurret(turretID, baseID, bx, bz, buildRadius)
+		local dx, dz = giveSameOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 
-	if not dx then
-		turretOrderPending[turretID] = true -- gate around our retries
+		if not dx then
+			turretOrderPending[turretID] = true -- gate around our retries
 
-		local forbidID = {
-			baseID   = true,
-			turretID = true,
-		}
+			local forbidID = {
+				baseID   = true,
+				turretID = true,
+			}
 
-		local retries = 3
+			local retries = 3
 
-		repeat
-			dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius, forbidID)
-			retries = retries - 1
-		until not dx or retries == 0 or not turretOrderPending[turretID]
+			repeat
+				dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius, forbidID)
+				retries = retries - 1
+			until not dx or retries == 0 or not turretOrderPending[turretID]
 
-		turretOrderPending[turretID] = nil
+			turretOrderPending[turretID] = nil
+		end
+
+		updateTurretHeading(turretID, dx, dz, baseID)
 	end
-
-	updateTurretHeading(turretID, dx, dz, baseID)
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
@@ -321,6 +327,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	turretToBaseID[unitID] = nil
 	baseToTurretDefID[unitID] = nil
+	transportedUnits[unitID] = nil
 end
 
 function gadget:GameFrame(gameFrame)
@@ -333,4 +340,12 @@ end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	turretOrderPending[unitID] = nil
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	transportedUnits[unitID] = true
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
+	transportedUnits[unitID] = nil
 end
