@@ -19,7 +19,6 @@ end
 
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureResurrect = Spring.GetFeatureResurrect
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitDefID = Spring.GetUnitDefID
