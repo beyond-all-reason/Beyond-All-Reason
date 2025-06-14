@@ -78,6 +78,7 @@ VFS.Include('luarules/configs/gui_soundeffects.lua')
 
 -- convert key: name -> unitdefid
 -- + add scavenger units
+local GUIUnitSoundEffects = GUIUnitSoundEffects
 local newGUIUnitSoundEffects = {}
 for name, defs in pairs(GUIUnitSoundEffects) do
 	if UnitDefNames[name] then
