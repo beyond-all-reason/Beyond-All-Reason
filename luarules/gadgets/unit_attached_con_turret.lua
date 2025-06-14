@@ -31,6 +31,7 @@ local spGetUnitSeparation = Spring.GetUnitSeparation
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local CallAsTeam = CallAsTeam
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
@@ -45,9 +46,13 @@ local EMPTY = {}
 -- Initialize ------------------------------------------------------------------
 
 local baseToTurretDefID = {}
+local repairableDefID = {}
+local reclaimableDefID = {}
+local nonResurrectableDefID = {}
 
 local turretToBaseID = {}
 local turretBuildRadius = {}
+local turretOrderPending = {}
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -238,6 +243,14 @@ function gadget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefRadiusMax = math.max(unitDef.radius, unitDefRadiusMax)
 
+		if unitDef.repairable then
+			repairableDefID[unitDefID] = true
+		end
+
+		if unitDef.reclaimable then
+			reclaimableDefID[unitDefID] = true
+		end
+
 		-- See unit_attached_con_turret_mex.lua for metal extractors.
 		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
 			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
@@ -280,6 +293,13 @@ function gadget:Initialize()
 					local e = ("Missing attached unit: %s @ %.1f, %.1f, %.1f"):format(UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
 					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 				end
+			end
+		end
+
+		-- Feature auto-reclaim is "smart" so ignores resurrectable features.
+		for featureDefID, featureDef in ipairs(FeatureDefs) do
+			if not featureDef.resurrectable then
+				nonResurrectableDefID[featureDefID] = true
 			end
 		end
 	else
