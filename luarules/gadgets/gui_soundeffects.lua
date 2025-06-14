@@ -256,39 +256,39 @@ function gadget:GameFrame(frame)
 
 		local currentlyActive = spGetUnitIsActive(unitID) and 2 or 1
 
-			if previousActiveState ~= currentlyActive then
-				local posx, posy, posz = spGetUnitPosition(unitID)
-				if currentlyActive == 1 then
-					ActiveStateTrackingUnitList[unitID] = 1
-					if not GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate and GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
-						GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+		if previousActiveState ~= currentlyActive then
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			if currentlyActive == 1 then
+				ActiveStateTrackingUnitList[unitID] = 1
+				if not GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate and GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+					GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+				end
+				if myTeamID == unitsTeam[unitID] then
+					if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
+						spPlaySoundFile(pickSound(sound), 1, posx, posy, posz, 'sfx')
 					end
-					if myTeamID == unitsTeam[unitID] then
-						if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
-							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
-							spPlaySoundFile(pickSound(sound), 1, posx, posy, posz, 'sfx')
-						end
-					elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
-						if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
-							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
-							spPlaySoundFile(pickSound(sound), 0.5, posx, posy, posz, 'sfx')
-						end
+				elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+					if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
+						spPlaySoundFile(pickSound(sound), 0.5, posx, posy, posz, 'sfx')
 					end
-				elseif currentlyActive == 2 then
-					ActiveStateTrackingUnitList[unitID] = 2
-					if myTeamID == unitsTeam[unitID] then
-						if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
-							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
-							spPlaySoundFile(pickSound(sound), 1, posx, posy, posz, 'sfx')
-						end
-					elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
-						if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
-							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
-							spPlaySoundFile(pickSound(sound), 0.5, posx, posy, posz, 'sfx')
-						end
+				end
+			elseif currentlyActive == 2 then
+				ActiveStateTrackingUnitList[unitID] = 2
+				if myTeamID == unitsTeam[unitID] then
+					if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+						spPlaySoundFile(pickSound(sound), 1, posx, posy, posz, 'sfx')
+					end
+				elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+					if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+						spPlaySoundFile(pickSound(sound), 0.5, posx, posy, posz, 'sfx')
 					end
 				end
 			end
+		end
 	end
 end
 
