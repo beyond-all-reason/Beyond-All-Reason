@@ -170,13 +170,15 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 	local enemyUnits = CallAsTeam(unitTeamID, spGetUnitsInCylinder, baseX, baseZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
 
 	for _, unitID in ipairs(enemyUnits) do
-		if not forbidden[unitID] and reclaimableDefID[spGetUnitDefID(unitID)] and
-			radius >= spGetUnitSeparation(unitID, baseID, false, true)
-		then
-			forbidden[unitID] = true
-			spGiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
-			local cx, _, cz = spGetUnitPosition(unitID)
-			return baseX - cx, baseZ - cz
+		if not forbidden[unitID] and reclaimableDefID[spGetUnitDefID(unitID)] then
+			local separation = spGetUnitSeparation(unitID, baseID, false, true)
+
+			if separation and radius >= separation then
+				forbidden[unitID] = true
+				spGiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
+				local cx, _, cz = spGetUnitPosition(unitID)
+				return baseX - cx, baseZ - cz
+			end
 		end
 	end
 
@@ -185,14 +187,15 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 	for _, featureID in ipairs(features) do
 		local sequentialID = featureID + FEATURE_BASE_INDEX
 
-		if not forbidden[sequentialID] and nonResurrectableDefID[spGetFeatureDefID(featureID)] and
-			---@diagnostic disable-next-line: redundant-parameter
-			radius >= spGetUnitFeatureSeparation(baseID, featureID, false, true) -- todo: function signature
-		then
-			forbidden[sequentialID] = true
-			spGiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
-			local cx, _, cz = spGetFeaturePosition(featureID)
-			return baseX - cx, baseZ - cz
+		if not forbidden[sequentialID] and nonResurrectableDefID[spGetFeatureDefID(featureID)] then
+			local separation = spGetUnitFeatureSeparation(baseID, featureID)
+
+			if separation and radius >= separation - spGetFeatureRadius(featureID) then
+				forbidden[sequentialID] = true
+				spGiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
+				local cx, _, cz = spGetFeaturePosition(featureID)
+				return baseX - cx, baseZ - cz
+			end
 		end
 	end
 
