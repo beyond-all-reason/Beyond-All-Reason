@@ -127,24 +127,30 @@ local function pickSound(sound)
 	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
 end
 
-local function PlaySelectSound(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
+local function PlaySelectSound(selectedUnits)
+	if CurrentGameFrame >= SelectSoundDelayLastFrame + SelectSoundDelayFrames then
+		-- As long as all units have sound, this returns in O(1).
+		local unitSoundEffects = getFirstWithSound(selectedUnits)
 
-	-- DEACTIVATE BELOW FOR NORMAL SOUNDS
-	if GUIUnitSoundEffects[unitDefID] and CurrentGameFrame >= SelectSoundDelayLastFrame + SelectSoundDelayFrames then
-		local posx, posy, posz = spGetUnitPosition(unitID)
-		if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
-			local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
-			spPlaySoundFile(pickSound(sound), 0.35, posx, posy, posz, 'sfx')
-			SelectSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
-		end
-		if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
-			local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
-			spPlaySoundFile(pickSound(sound), 0.7, posx, posy, posz, 'sfx')
-			SelectSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+		if unitSoundEffects then
+			local applyDelay = false
+			local posx, posy, posz = spGetUnitPosition(unitID)
+
+			if unitSoundEffects.BaseSoundSelectType then
+				spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundSelectType), 0.35, posx, posy, posz, 'sfx')
+				applyDelay = true
+			end
+
+			if unitSoundEffects.BaseSoundWeaponType then
+				spPlaySoundFile(pickSound(unitSoundEffects.BaseSoundWeaponType), 0.7, posx, posy, posz, 'sfx')
+				applyDelay = true
+			end
+
+			if applyDelay then
+				SelectSoundDelayLastFrame = CurrentGameFrame + math_random(-DelayRandomization,DelayRandomization)
+			end
 		end
 	end
-	selectionChanged = false
 end
 
 function gadget:Initialize()
