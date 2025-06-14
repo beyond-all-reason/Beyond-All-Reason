@@ -95,6 +95,10 @@ for name, defs in pairs(GUIUnitSoundEffects) do
 				defs[key] = value[1]
 			end
 		end
+		-- ensure activate-able units have deactivate sounds
+		if not defs.BaseSoundDeactivate and defs.BaseSoundActivate then
+			defs.BaseSoundDeactivate = defs.BaseSoundActivate
+		end
 	end
 end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
