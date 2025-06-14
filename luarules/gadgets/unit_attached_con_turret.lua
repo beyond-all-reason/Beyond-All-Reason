@@ -49,15 +49,12 @@ local baseToTurretDefID = {}
 local repairableDefID = {}
 local reclaimableDefID = {}
 local combatReclaimDefID = {}
+local unitDefRadiusMax = 0
 
 local turretToBaseID = {}
 local turretBuildRadius = {}
 local turretOrderPending = {}
 local transportedUnits = {}
-
---repairs and reclaims start at the edge of the unit radius
---so we need to increase our search radius by the maximum unit radius
-local unitDefRadiusMax = 0
 
 ---Constructors with attached construction turrets must pass this check.
 ---Technically, it seems fine for the turret to have extra buildoptions.
