@@ -383,7 +383,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 					end
 				end
 			end
-			if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+
+			if unitSoundEffects.BaseSoundActivate then
 				ActiveStateTrackingUnitList[unitID] = 1
 			end
 		end
@@ -394,9 +395,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	units[unitID] = nil
 	unitsTeam[unitID] = nil
 	unitsAllyTeam[unitID] = nil
-	if ActiveStateTrackingUnitList[unitID] then
-		ActiveStateTrackingUnitList[unitID] = nil
-	end
+	ActiveStateTrackingUnitList[unitID] = nil
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
