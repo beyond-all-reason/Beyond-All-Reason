@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spGetFeatureDefID = Spring.GetFeatureDefID
+local spGetFeatureRadius = Spring.GetFeatureRadius
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
@@ -103,20 +104,27 @@ local function giveSameOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 	end
 
 	if command and not param4 then
-		if command < 0 and -command ~= baseID and -command ~= turretID then
-			if radius > spGetUnitSeparation(turretID, -command, false, true) then
+		if command < 0 then
+			if radius >= spGetUnitSeparation(turretID, -command, false, true) then
 				return baseX - param1, baseZ - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
 			if param1 < FEATURE_BASE_INDEX then
-				if radius > spGetUnitSeparation(turretID, param1, false, true) then
+				-- Targets go out of sight (mostly) or are blocked, so this is nillable:
+				local separation = spGetUnitSeparation(turretID, param1, false, true)
+
+				if separation and radius >= separation then
 					local cx, cy, cz = spGetUnitPosition(param1)
 					return baseX - cx, baseZ - cz
 				end
-			---@diagnostic disable-next-line: redundant-parameter
-			elseif radius > spGetUnitFeatureSeparation(turretID, param1 - FEATURE_BASE_INDEX, false, true) then
-				local cx, cy, cz = spGetFeaturePosition(param1 - FEATURE_BASE_INDEX)
-				return baseX - cx, baseZ - cz
+			else
+				local featureID = param1 - FEATURE_BASE_INDEX
+				local separation = spGetUnitFeatureSeparation(turretID, featureID)
+
+				if separation and radius >= separation - spGetFeatureRadius(featureID) then
+					local cx, cy, cz = spGetFeaturePosition(featureID)
+					return baseX - cx, baseZ - cz
+				end
 			end
 		end
 	end
