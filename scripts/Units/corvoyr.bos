@@ -1,24 +1,23 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, rthigh, lthigh, lleg, lfoot, rleg, rfoot, dish1,belt,dish2,cover1,cover2,cover3,lens1,lens2,lens3, pelvis;
 
-static-var  bMoving, Static_Var_2;
+static-var  isMoving;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 // For N:\animations\corvoyr_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
-	//CC BY NC ND (c) Beherith
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	//Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <2.498132> speed <548.994061> / animSpeed; //delta=-18.30 
 			turn lfoot to z-axis <-0.004969> speed <321.525153> / animSpeed; //delta=10.72 
 			turn lfoot to y-axis <-0.003030> speed <88.669098> / animSpeed; //delta=-2.96 
@@ -28,29 +27,29 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn lthigh to y-axis <-55.769652> speed <2076.881149> / animSpeed; //delta=-69.23 //WARNING: possible gimbal lock issue detected in frame 4 bone lthigh
 
 			move pelvis to y-axis [-2.499635] speed [44.989042] / animSpeed; //delta=-1.50 
-			turn pelvis to z-axis <-4.000000> speed <119.999986> / animSpeed; //delta=4.00 
-			turn pelvis to y-axis <-10.000000> speed <299.999991> / animSpeed; //delta=-10.00 
+			turn pelvis to z-axis <-4.0> speed <119.999986> / animSpeed; //delta=4.00 
+			turn pelvis to y-axis <-10.0> speed <299.999991> / animSpeed; //delta=-10.00 
 			turn rfoot to x-axis <-69.187747> speed <1624.829211> / animSpeed; //delta=54.16 
-			turn rfoot to z-axis <0.000013> speed <317.155065> / animSpeed; //delta=-10.57 
-			turn rfoot to y-axis <0.000385> speed <83.359052> / animSpeed; //delta=2.78 
+			turn rfoot to z-axis <0.0> speed <317.155065> / animSpeed; //delta=-10.57 
+			turn rfoot to y-axis <0.0> speed <83.359052> / animSpeed; //delta=2.78 
 			turn rleg to x-axis <54.230876> speed <99.852175> / animSpeed; //delta=-3.33 
 			turn rthigh to x-axis <18.536018> speed <1581.606305> / animSpeed; //delta=-52.72 
 			turn rthigh to z-axis <5.676764> speed <183.106349> / animSpeed; //delta=6.10 
 			turn rthigh to y-axis <9.547723> speed <752.060125> / animSpeed; //delta=25.07 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn lfoot to x-axis <9.449029> speed <208.526903> / animSpeed; //delta=-6.95 
 			turn lleg to x-axis <35.862055> speed <1245.720671> / animSpeed; //delta=41.52 
 			turn lthigh to x-axis <-87.954805> speed <273.953765> / animSpeed; //delta=-9.13 
 			turn lthigh to z-axis <27.160669> speed <2813.941513> / animSpeed; //delta=-93.80 
 			turn lthigh to y-axis <42.799762> speed <2957.082419> / animSpeed; //delta=98.57 //WARNING: possible gimbal lock issue detected in frame 8 bone lthigh
 
-			move pelvis to y-axis [-3.000000] speed [15.010958] / animSpeed; //delta=-0.50 
-			turn pelvis to x-axis <4.000000> speed <119.999999> / animSpeed; //delta=-4.00 
-			turn pelvis to z-axis <-0.000000> speed <119.999986> / animSpeed; //delta=-4.00 
-			turn pelvis to y-axis <-15.000000> speed <150.000021> / animSpeed; //delta=-5.00 
+			move pelvis to y-axis [-3.0] speed [15.010958] / animSpeed; //delta=-0.50 
+			turn pelvis to x-axis <4.0> speed <119.999999> / animSpeed; //delta=-4.00 
+			turn pelvis to z-axis <-0.0> speed <119.999986> / animSpeed; //delta=-4.00 
+			turn pelvis to y-axis <-15.0> speed <150.0> / animSpeed; //delta=-5.00 
 			turn rfoot to x-axis <-36.861424> speed <969.789669> / animSpeed; //delta=-32.33 
 			turn rleg to x-axis <66.513755> speed <368.486383> / animSpeed; //delta=-12.28 
 			turn rthigh to x-axis <23.060713> speed <135.740840> / animSpeed; //delta=-4.52 
@@ -58,16 +57,16 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <9.866766> speed <9.571272> / animSpeed; //delta=0.32 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn lfoot to x-axis <23.034917> speed <407.576649> / animSpeed; //delta=-13.59 
 			turn lleg to x-axis <37.682413> speed <54.610743> / animSpeed; //delta=-1.82 
 			turn lthigh to x-axis <-63.158609> speed <743.885875> / animSpeed; //delta=-24.80 
 			turn lthigh to z-axis <-8.928342> speed <1082.670335> / animSpeed; //delta=36.09 
 			turn lthigh to y-axis <2.612451> speed <1205.619330> / animSpeed; //delta=-40.19 
 			move pelvis to y-axis [-1.613899] speed [41.583019] / animSpeed; //delta=1.39 
-			turn pelvis to x-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00 
-			turn pelvis to z-axis <4.000000> speed <119.999999> / animSpeed; //delta=-4.00 
-			turn pelvis to y-axis <-10.000000> speed <150.000021> / animSpeed; //delta=5.00 
+			turn pelvis to x-axis <2.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to z-axis <4.0> speed <119.999999> / animSpeed; //delta=-4.00 
+			turn pelvis to y-axis <-10.0> speed <150.0> / animSpeed; //delta=5.00 
 			turn rfoot to x-axis <-73.153573> speed <1088.764460> / animSpeed; //delta=36.29 
 			turn rleg to x-axis <79.006793> speed <374.791126> / animSpeed; //delta=-12.49 
 			turn rthigh to x-axis <8.674156> speed <431.596717> / animSpeed; //delta=14.39 
@@ -75,16 +74,16 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <10.289436> speed <12.680101> / animSpeed; //delta=0.42 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis <-34.696374> speed <1731.938735> / animSpeed; //delta=57.73 
 			turn lleg to x-axis <69.133747> speed <943.540022> / animSpeed; //delta=-31.45 
 			turn lthigh to x-axis <-35.312420> speed <835.385684> / animSpeed; //delta=-27.85 
 			turn lthigh to z-axis <-7.175859> speed <52.574493> / animSpeed; //delta=-1.75 
 			turn lthigh to y-axis <-2.401188> speed <150.409147> / animSpeed; //delta=-5.01 
-			move pelvis to y-axis [-1.000000] speed [18.416981] / animSpeed; //delta=0.61 
-			turn pelvis to x-axis <1.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <6.000000> speed <60.000006> / animSpeed; //delta=-2.00 
-			turn pelvis to y-axis <0.000000> speed <299.999991> / animSpeed; //delta=10.00 
+			move pelvis to y-axis [-1.0] speed [18.416981] / animSpeed; //delta=0.61 
+			turn pelvis to x-axis <1.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <6.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn pelvis to y-axis <0.0> speed <299.999991> / animSpeed; //delta=10.00 
 			turn rfoot to x-axis <-42.717181> speed <913.091756> / animSpeed; //delta=-30.44 
 			turn rleg to x-axis <90.748277> speed <352.244535> / animSpeed; //delta=-11.74 
 			turn rleg to z-axis <-0.269048> speed <9.353566> / animSpeed; //delta=0.31 
@@ -94,16 +93,16 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <4.301284> speed <179.644545> / animSpeed; //delta=-5.99 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lfoot to x-axis <-69.655888> speed <1048.785417> / animSpeed; //delta=34.96 
 			turn lleg to x-axis <54.424996> speed <441.262527> / animSpeed; //delta=14.71 
 			turn lthigh to x-axis <18.799694> speed <1623.363418> / animSpeed; //delta=-54.11 
 			turn lthigh to z-axis <-5.762684> speed <42.395266> / animSpeed; //delta=-1.41 
 			turn lthigh to y-axis <-9.934393> speed <225.996168> / animSpeed; //delta=-7.53 
 			move pelvis to y-axis [-2.528348] speed [45.850453] / animSpeed; //delta=-1.53 
-			turn pelvis to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <4.000000> speed <60.000006> / animSpeed; //delta=2.00 
-			turn pelvis to y-axis <10.000000> speed <299.999991> / animSpeed; //delta=10.00 
+			turn pelvis to x-axis <-0.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <4.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to y-axis <10.0> speed <299.999991> / animSpeed; //delta=10.00 
 			turn rfoot to x-axis <1.269836> speed <1319.610522> / animSpeed; //delta=-43.99 
 			turn rleg to x-axis <78.432018> speed <369.487757> / animSpeed; //delta=12.32 
 			turn rleg to z-axis <-0.017466> speed <7.547467> / animSpeed; //delta=-0.25 
@@ -114,16 +113,16 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn lfoot to x-axis <-36.865557> speed <983.709936> / animSpeed; //delta=-32.79 
 			turn lleg to x-axis <66.815253> speed <371.707706> / animSpeed; //delta=-12.39 
 			turn lthigh to x-axis <23.295088> speed <134.861795> / animSpeed; //delta=-4.50 
 			turn lthigh to z-axis <-3.702358> speed <61.809771> / animSpeed; //delta=-2.06 
 			turn lthigh to y-axis <-10.384403> speed <13.500287> / animSpeed; //delta=-0.45 
-			move pelvis to y-axis [-3.000000] speed [14.149547] / animSpeed; //delta=-0.47 
-			turn pelvis to x-axis <4.000000> speed <119.999999> / animSpeed; //delta=-4.00 
-			turn pelvis to z-axis <-0.000000> speed <119.999999> / animSpeed; //delta=4.00 
-			turn pelvis to y-axis <15.000000> speed <150.000021> / animSpeed; //delta=5.00 
+			move pelvis to y-axis [-3.0] speed [14.149547] / animSpeed; //delta=-0.47 
+			turn pelvis to x-axis <4.0> speed <119.999999> / animSpeed; //delta=-4.00 
+			turn pelvis to z-axis <-0.0> speed <119.999999> / animSpeed; //delta=4.00 
+			turn pelvis to y-axis <15.0> speed <150.0> / animSpeed; //delta=5.00 
 			turn rfoot to x-axis <7.620218> speed <190.511468> / animSpeed; //delta=-6.35 
 			turn rleg to x-axis <36.463149> speed <1259.066075> / animSpeed; //delta=41.97 
 			turn rthigh to x-axis <-87.089311> speed <220.110291> / animSpeed; //delta=-7.34 
@@ -131,15 +130,15 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <13.589570> speed <942.241125> / animSpeed; //delta=-31.41 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn lfoot to x-axis <-71.956774> speed <1052.736510> / animSpeed; //delta=35.09 
 			turn lleg to x-axis <78.974445> speed <364.775747> / animSpeed; //delta=-12.16 
 			turn lthigh to x-axis <8.500066> speed <443.850640> / animSpeed; //delta=14.80 
 			turn lthigh to z-axis <3.561027> speed <217.901549> / animSpeed; //delta=-7.26 
 			move pelvis to y-axis [-1.512294] speed [44.631186] / animSpeed; //delta=1.49 
-			turn pelvis to x-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00 
-			turn pelvis to z-axis <-4.000000> speed <119.999999> / animSpeed; //delta=4.00 
-			turn pelvis to y-axis <10.000000> speed <150.000021> / animSpeed; //delta=-5.00 
+			turn pelvis to x-axis <2.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to z-axis <-4.0> speed <119.999999> / animSpeed; //delta=4.00 
+			turn pelvis to y-axis <10.0> speed <150.0> / animSpeed; //delta=-5.00 
 			turn rfoot to x-axis <23.773006> speed <484.583634> / animSpeed; //delta=-16.15 
 			turn rleg to x-axis <29.899621> speed <196.905850> / animSpeed; //delta=6.56 
 			turn rthigh to x-axis <-57.455592> speed <889.011548> / animSpeed; //delta=-29.63 
@@ -147,17 +146,17 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <-2.599492> speed <485.671849> / animSpeed; //delta=-16.19 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn lfoot to x-axis <-42.421489> speed <886.058550> / animSpeed; //delta=-29.54 
 			turn lleg to x-axis <90.027050> speed <331.578159> / animSpeed; //delta=-11.05 
 			turn lleg to z-axis <1.254578> speed <37.962064> / animSpeed; //delta=-1.27 
 			turn lleg to y-axis <-1.262127> speed <38.168078> / animSpeed; //delta=-1.27 
 			turn lthigh to x-axis <-45.987869> speed <1634.638045> / animSpeed; //delta=54.49 
 			turn lthigh to y-axis <-2.461012> speed <239.440266> / animSpeed; //delta=7.98 
-			move pelvis to y-axis [-1.000000] speed [15.368814] / animSpeed; //delta=0.51 
-			turn pelvis to x-axis <1.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <-6.000000> speed <60.000006> / animSpeed; //delta=2.00 
-			turn pelvis to y-axis <0.000000> speed <299.999991> / animSpeed; //delta=-10.00 
+			move pelvis to y-axis [-1.0] speed [15.368814] / animSpeed; //delta=0.51 
+			turn pelvis to x-axis <1.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <-6.0> speed <60.0> / animSpeed; //delta=2.00 
+			turn pelvis to y-axis <0.0> speed <299.999991> / animSpeed; //delta=-10.00 
 			turn rfoot to x-axis <-34.943675> speed <1761.500425> / animSpeed; //delta=58.72 
 			turn rleg to x-axis <69.608042> speed <1191.252644> / animSpeed; //delta=-39.71 
 			turn rthigh to x-axis <-35.023393> speed <672.965971> / animSpeed; //delta=-22.43 
@@ -165,7 +164,7 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn rthigh to y-axis <3.391952> speed <179.743329> / animSpeed; //delta=5.99 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn lfoot to x-axis <2.498132> speed <1347.588624> / animSpeed; //delta=-44.92 
 			turn lleg to x-axis <77.386077> speed <379.229178> / animSpeed; //delta=12.64 
 			turn lleg to z-axis <0.014915> speed <37.189867> / animSpeed; //delta=1.24 
@@ -175,9 +174,9 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 			turn lthigh to y-axis <-55.769652> speed <1599.259204> / animSpeed; //delta=-53.31 //WARNING: possible gimbal lock issue detected in frame 36 bone lthigh
 
 			move pelvis to y-axis [-2.499635] speed [44.989042] / animSpeed; //delta=-1.50 
-			turn pelvis to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
-			turn pelvis to z-axis <-4.000000> speed <60.000019> / animSpeed; //delta=-2.00 
-			turn pelvis to y-axis <-10.000000> speed <299.999991> / animSpeed; //delta=-10.00 
+			turn pelvis to x-axis <-0.0> speed <30.0> / animSpeed; //delta=1.00 
+			turn pelvis to z-axis <-4.0> speed <60.0> / animSpeed; //delta=-2.00 
+			turn pelvis to y-axis <-10.0> speed <299.999991> / animSpeed; //delta=-10.00 
 			turn rfoot to x-axis <-69.187747> speed <1027.322162> / animSpeed; //delta=34.24 
 			turn rleg to x-axis <54.230876> speed <461.315006> / animSpeed; //delta=15.38 
 			turn rthigh to x-axis <18.536018> speed <1606.782348> / animSpeed; //delta=-53.56 
@@ -187,27 +186,27 @@ Walk() {// For N:\animations\corvoyr_anim_walk.blend Created by https://github.c
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move pelvis to y-axis [-1.000000] speed [11.462613];
+	move pelvis to y-axis [-1.0] speed [11.462613];
 	turn lfoot to x-axis <-15.801670> speed <432.984684>;
 	turn lfoot to y-axis <2.952606> speed <22.167275>;
 	turn lfoot to z-axis <10.712536> speed <80.381288>;
 	turn lleg to x-axis <49.807751> speed <311.430168>;
-	turn lleg to y-axis <0.000000> speed <9.542020>;
-	turn lleg to z-axis <0.000000> speed <9.490516>;
+	turn lleg to y-axis <0.0> speed <9.542020>;
+	turn lleg to z-axis <0.0> speed <9.490516>;
 	turn lthigh to x-axis <-32.798606> speed <482.159933>;
 	turn lthigh to y-axis <13.459719> speed <739.270605>;
 	turn lthigh to z-axis <-13.454992> speed <703.485378>;
-	turn pelvis to x-axis <0.000000> speed <30.000000>;
-	turn pelvis to y-axis <0.000000> speed <74.999998>;
-	turn pelvis to z-axis <0.000000> speed <30.000000>;
+	turn pelvis to x-axis <0.0> speed <30.0>;
+	turn pelvis to y-axis <0.0> speed <74.999998>;
+	turn pelvis to z-axis <0.0> speed <30.0>;
 	turn rfoot to x-axis <-15.026773> speed <440.375106>;
 	turn rfoot to y-axis <-2.778250> speed <20.839763>;
 	turn rfoot to z-axis <-10.571822> speed <79.288766>;
 	turn rleg to x-axis <50.902470> speed <314.766519>;
-	turn rleg to y-axis <0.000000> speed <2.350710>;
-	turn rleg to z-axis <0.000000> speed <2.338391>;
+	turn rleg to y-axis <0.0> speed <2.350710>;
+	turn rleg to z-axis <0.0> speed <2.338391>;
 	turn rthigh to x-axis <-34.184192> speed <407.039796>;
 	turn rthigh to y-axis <-15.520947> speed <305.222422>;
 	turn rthigh to z-axis <11.780309> speed <431.371681>;
@@ -227,16 +226,16 @@ UnitSpeed(){
 		sleep 131;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -247,7 +246,7 @@ StopMoving(){
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -264,16 +263,15 @@ Lights()
 
 Create()
 {
-	bMoving = FALSE;
-	Static_Var_2 = 1000;
+	isMoving = FALSE;
 	animSpeed = 4;
 	return (0);
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	start-script Lights();
 	spin belt around y-axis speed <20.021978> accelerate <5>;
 	spin dish1 around x-axis speed <100.021978> accelerate <50>;
@@ -289,11 +287,11 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	turn belt to y-axis <0.000000> speed <10.021978>;
-	turn dish1 to x-axis <0.000000> speed <100.021978>;
-	turn dish2 to x-axis <0.000000> speed <100.021978>;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	turn belt to y-axis <0.0> speed <10.021978>;
+	turn dish1 to x-axis <0.0> speed <100.021978>;
+	turn dish2 to x-axis <0.0> speed <100.021978>;
 
 	turn cover1 to x-axis <0> speed <90>;
 	turn cover2 to x-axis <0> speed <60>;
@@ -310,9 +308,9 @@ SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    spin belt around y-axis speed <0.000000>;
-	    spin dish1 around x-axis speed <0.000000>;
-	    spin dish2 around x-axis speed <0.000000>;
+	    spin belt around y-axis speed <0.0>;
+	    spin dish1 around x-axis speed <0.0>;
+	    spin dish2 around x-axis speed <0.0>;
 	} else {
         spin belt around y-axis speed <20.021978> accelerate <5>;
         spin dish1 around x-axis speed <100.021978> accelerate <50>;
@@ -321,11 +319,7 @@ SetStunned(State)
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -334,21 +328,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode belt type BITMAPONLY | NOHEATCLOUD;
-		//explode dish2 type BITMAPONLY | NOHEATCLOUD;
 		explode dish1 type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lens1 type BITMAPONLY | NOHEATCLOUD;
-		//explode cover2 type BITMAPONLY | NOHEATCLOUD;
-		//explode lens3 type BITMAPONLY | NOHEATCLOUD;
-		//explode lens2 type BITMAPONLY | NOHEATCLOUD;
-		//explode cover1 type BITMAPONLY | NOHEATCLOUD;
-		//explode cover3 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -357,20 +338,8 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode belt type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dish2 type FALL | NOHEATCLOUD;
 		explode dish1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens1 type FALL | NOHEATCLOUD;
-		//explode cover2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens2 type FALL | NOHEATCLOUD;
-		//explode cover1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode cover3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -380,19 +349,8 @@ Killed(severity, corpsetype)
 		explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode belt type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode dish2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode cover2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens2 type SMOKE | FALL | NOHEATCLOUD;
-		//explode cover1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode cover3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -400,18 +358,7 @@ Killed(severity, corpsetype)
 		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode belt type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode dish2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dish1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lens1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode cover2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lens3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lens2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode cover1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode cover3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
