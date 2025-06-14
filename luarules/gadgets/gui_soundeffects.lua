@@ -127,6 +127,24 @@ local function pickSound(sound)
 	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
 end
 
+local function getFirstWithSound(unitList)
+	local count = #unitList
+	if count == 1 then
+		return GUIUnitSoundEffects[spGetUnitDefID(unitList[1])]
+	elseif count > 1 then
+		local index = math_random(count)
+		local tries = 0
+		repeat
+			local sound = GUIUnitSoundEffects[spGetUnitDefID(unitList[index])]
+			if sound then
+				return sound
+			end
+			index = (index % count) + 1
+			tries = tries + 1
+		until tries == count
+	end
+end
+
 local function PlaySelectSound(selectedUnits)
 	if CurrentGameFrame >= SelectSoundDelayLastFrame + SelectSoundDelayFrames then
 		-- As long as all units have sound, this returns in O(1).
