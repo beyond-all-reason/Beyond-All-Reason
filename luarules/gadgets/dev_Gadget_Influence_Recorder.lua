@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Snapshot Recorder",
-		desc = "Gathers info on units in game every 5 seconds",
+		desc = "Gathers and stores units info during game for replay and stats widget",
 		author = "Mr_Chinny",
 		date = "May 2025",
 		license = "GNU GPL, v2 or later",
@@ -19,51 +19,69 @@ end
 --add allowing list at end game
 --interesting deaths?
 --remove all hardcoded units if possible
+-- I think I can use .techlevel (which seems only exists for non T1 units as far as I can see) AND .speed>0) for the first list, but don't see anything convenient for the second list (maybe sightdistance ==1, mine ==true)
+
 
 if gadgetHandler:IsSyncedCode() then
     return
 else
 ------------------------unsynced------------------------
 
-    local masterNewUnitListStatic = {}      --All units made within last replay frame that have movement of 0.                  [udid,teamID,posX,posY,posZ,]
-    local masterNewUnitListMobile = {}      --All units made within last replay frame that have movement.                       [udid,teamID,posX,posY,posZ,]
+    local masterNewUnitListStatic = {}      --All units made within last replay frame that have movement of 0.                  [udid,teamID,posX,posZ,]
+    local masterNewUnitListMobile = {}      --All units made within last replay frame that have movement.                       [udid,teamID,posX,posZ,]
     local masterDeadUnitListAll = {}        --All units that died/removed within last replay Frame                              [udid,teamID]
-    local masterExistingUnitListMobile = {} --Mobile living units that moved within last replay Frame (inc new mobile units)    [posX,posY,poxZ]
+    local masterExistingUnitListMobile = {} --Mobile living units that moved within last replay Frame (inc new mobile units)    [posX,poxZ]
     local masterTransferedUnitListAll = {}  --All living units that changed teamID (inc capture), within last frame.            [original teamID, New TeamID]
-    local mobileTrackingList = {}           --Tracking all mobile, living units positions for internal gadget use.              [posX,posY,poxZ]
+    local mobileTrackingList = {}           --Tracking all mobile, living units positions for internal gadget use.              [posX,poxZ]
+    local mobileTrackingCount = 0           --Tracking all mobile, living units positions for internal gadget use.              [posX,poxZ]
     local teamAllyTeamIDCache = {}          --Cache of teamID/allyTeamIDS
     local replayFrame = 1                   --Saved frame number for replay (not game frame). default 300 gameframes. start at 1 for ipairs.
     local gaiaTeamId        = Spring.GetGaiaTeamID()
     local gaiaAllyTeamID    = select(6, Spring.GetTeamInfo(gaiaTeamId, false))
-
-
+    local frameLengthModifierThreshold = 100--once this number of frames is reached, the time between frames can be increased so as to limit total stored frames.
+    local gameEnded = false
     ---Configurables
-    local replayFrameLength = 150           --length in frames. 300 = 10 seconds. xxx This will need to be dynamic - EG 10 seconds at start, 20 seconds once 200 frames, 30 seconds once 250 frames etc
+    local replayFrameLength = 300           --length in frames. 300 = 10 seconds. xxx This will need to be dynamic - EG 10 seconds at start, 20 seconds once 200 frames, 30 seconds once 250 frames etc
     
     ---Excludable units---
-    local excludeUnits = { --Units to ignore completly,currently. all flying, plus rez bots and walls XXX add legion 
-        [UnitDefNames["cordrag"].id]    = true, ---xxx need a unitdef to autopopulate
-        [UnitDefNames["armdrag"].id]    = true
-    }
+    -- local excludeUnits = { --Units to ignore completly,currently. all flying, plus rez bots and walls XXX add legion
+    --     [UnitDefNames["cordrag"].id]    = true, ---xxx need a unitdef to autopopulate
+    --     [UnitDefNames["armdrag"].id]    = true
+    -- }
+    local spamUnits = {}
+    local excludeUnits  = {}
 
     for unitDefID, unitDef in pairs(UnitDefs) do
-        if unitDef.canFly then
+        if unitDef.customParams.fighter then -- air fighters
             excludeUnits[unitDefID] = true
-            --XXX need to keep bombers/gunships etc.
+        elseif unitDef.customParams.drone then --air drones
+            excludeUnits[unitDefID] = true
+        elseif unitDef.customParams.mine then --mines
+            excludeUnits[unitDefID] = true
+        elseif unitDef.customParams.objectify then --walls
+            excludeUnits[unitDefID] = true
         end
+
+        if not unitDef.customParams.techlevel then --tech 1
+            if unitDef.speed > 0 then --mobile
+                spamUnits[unitDefID] = true
+            end
+        end     
     end
 
-    local spamDisabled = 0
-    local spamUnits = { --Units that are T1 spam, late game can set to be ignored to save on performance. xxx need a unitdef to autopopulate
-        [UnitDefNames["armflea"].id]    =true,
-        [UnitDefNames["armpw"].id]      =true,
-        [UnitDefNames["corak"].id]      =true,
-        [UnitDefNames["armfav"].id]     =true,
-        [UnitDefNames["corfav"].id]     =true
-    }
+    local spamDisabled = false
+    -- local spamUnits = { --Units that are T1 spam, late game can set to be ignored to save on performance. xxx need a unitdef to autopopulate
+    --     [UnitDefNames["armflea"].id]    =true,
+    --     [UnitDefNames["armpw"].id]      =true,
+    --     [UnitDefNames["corak"].id]      =true,
+    --     [UnitDefNames["armfav"].id]     =true,
+    --     [UnitDefNames["corfav"].id]     =true
+    -- }
+
+    
 
     ---------------------------------------
-    function PrimeNextReplayFrame()
+    local function PrimeNextReplayFrame()
         masterNewUnitListMobile[replayFrame] = {}
         masterNewUnitListStatic[replayFrame] = {}
         masterDeadUnitListAll[replayFrame] = {}
@@ -71,7 +89,7 @@ else
         masterTransferedUnitListAll[replayFrame] = {}
     end
 
-    function CacheTeams()
+    local function CacheTeams()
         for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
             for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
                 teamAllyTeamIDCache[teamID] = allyTeamID
@@ -96,31 +114,30 @@ else
         return skippable
     end
 
-    function UpdateNewMobileUnitListPosition() --call in just before changing to next replay frame
+    local function UpdateNewMobileUnitListPosition() --call in just before changing to next replay frame
         for unitID,_ in pairs(masterNewUnitListMobile[replayFrame]) do
-            local posX,posY,posZ = Spring.GetUnitPosition(unitID)
+            local posX,_,posZ = Spring.GetUnitPosition(unitID)
             masterNewUnitListMobile[replayFrame][unitID][3] = posX
-            masterNewUnitListMobile[replayFrame][unitID][4] = posY
-            masterNewUnitListMobile[replayFrame][unitID][5] = posZ
-            masterExistingUnitListMobile[replayFrame][unitID] = {posX, posY, posZ} --only added if unit has moved.
-            mobileTrackingList[unitID] = {posX, posY, posZ}
+            masterNewUnitListMobile[replayFrame][unitID][4] = posZ
+            masterExistingUnitListMobile[replayFrame][unitID] = {posX, posZ} --only added if unit has moved.
+            mobileTrackingList[unitID] = {posX, posZ}
         end
     end
 
-    function UpdateExistingMobileUnitLists() --call in just before changing to next replay frame. checks all living mobile units, adds to masterlist only if moved. xxx should I ceiling this?
-        local posX,posY,posZ
+    local function UpdateExistingMobileUnitLists() --call in just before changing to next replay frame. checks all living mobile units, adds to masterlist only if moved. xxx should I ceiling this?
+        local posX,_,posZ
         for unitID, posData in pairs(mobileTrackingList) do
             if not masterNewUnitListMobile[replayFrame][unitID] then --ignores new mobile units as these are already added in previous function
-                posX,posY,posZ = Spring.GetUnitPosition(unitID)
+                posX,_,posZ = Spring.GetUnitPosition(unitID)
                 if posX ~= posData[1] or posZ ~= posData[3] then
-                    masterExistingUnitListMobile[replayFrame][unitID] = {posX, posY, posZ} --only added if unit has moved.
-                    mobileTrackingList[unitID] = {posX, posY, posZ}
+                    masterExistingUnitListMobile[replayFrame][unitID] = {posX, posZ} --only added if unit has moved.
+                    mobileTrackingList[unitID] = {posX, posZ}
                 end
             end
         end
     end
 
-    function MakeListsAvalibleToWidgets()
+    local function MakeListsAvalibleToWidgets()
         if Script.LuaUI("Influence") then
             Script.LuaUI.Influence(masterNewUnitListStatic,masterNewUnitListMobile,masterDeadUnitListAll,masterExistingUnitListMobile,masterTransferedUnitListAll)
         end
@@ -130,21 +147,30 @@ else
         if not CheckForSkippables(teamAllyTeamIDCache[teamID],unitDefID, true) then
             local unitDef = UnitDefs[unitDefID]
             if unitDef.speed >0 then
-                masterNewUnitListMobile[replayFrame][unitID] = {unitDefID, teamID,"X","Y","Z"} --xxx can update to nils. note the unit position at time of creation may not match when the replay frame is recorded, so I must go through this list and update positions.
-                mobileTrackingList[unitID] = {"X","Y","Z"}
-                --Spring.Echo("log001: new mobile unit", unitID, mobileTrackingList[unitID])
+                masterNewUnitListMobile[replayFrame][unitID] = {unitDefID, teamID,"X","Z"} --xxx can update to nils. note the unit position at time of creation may not match when the replay frame is recorded, so I must go through this list and update positions.
+                mobileTrackingList[unitID] = {"X","Z"}
+                mobileTrackingCount = mobileTrackingCount + 1
             else
-                local posX,posY,posZ = Spring.GetUnitPosition(unitID)
-                masterNewUnitListStatic[replayFrame][unitID] = {unitDefID, teamID,posX,posY,posZ}
+                local posX,_,posZ = Spring.GetUnitPosition(unitID)
+                masterNewUnitListStatic[replayFrame][unitID] = {unitDefID, teamID,posX,posZ}
             end
         end
     end
 
     function gadget:UnitDestroyed (unitID, unitDefID, teamID, attUnitID, attUnitDefID, attTeamID)
-        if not CheckForSkippables(teamAllyTeamIDCache[teamID],unitDefID, false) then
-            masterDeadUnitListAll[replayFrame][unitID] = {unitDefID, teamID, attUnitDefID, attTeamID}
+        if not CheckForSkippables(teamAllyTeamIDCache[teamID],unitDefID, true) then
+            masterDeadUnitListAll[replayFrame][unitID] = {unitDefID, teamID, attUnitDefID, attTeamID} --xxx this will add spam units to the dead list even if antispam enabled
             if mobileTrackingList[unitID] then
                 mobileTrackingList[unitID] = nil
+                mobileTrackingCount = mobileTrackingCount - 1
+            end
+        elseif spamDisabled then -- when spam units are still on map we still need to remove them from lists once they die
+            if spamUnits[unitDefID] then
+                if mobileTrackingList[unitID] then
+                    masterDeadUnitListAll[replayFrame][unitID] = {unitDefID, teamID, attUnitDefID, attTeamID}
+                    mobileTrackingList[unitID] = nil
+                    mobileTrackingCount = mobileTrackingCount - 1
+                end
             end
         end
     end
@@ -155,8 +181,15 @@ else
         end
     end
     
-    local function gbug()
-        Spring.Echo("Gadget Bug:")
+    local function gbug() --xxx remove, just for debugging
+        Spring.Echo("Gadget Bug Excluded:")
+        for i, _ in pairs(excludeUnits) do
+            Spring.Echo(UnitDefs[i].name)
+        end
+        Spring.Echo("Gadget Bug spamUnits:")
+        for i, _ in pairs(spamUnits) do
+            Spring.Echo(UnitDefs[i].name)
+        end
     end
 
     function gadget:Initialize()
@@ -164,15 +197,31 @@ else
         gadgetHandler:AddChatAction('allow', MakeListsAvalibleToWidgets)
         CacheTeams()
         PrimeNextReplayFrame()
-        --widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
     end
 
     function gadget:GameFrame(gf)
         if gf % replayFrameLength == 0 then --record every 10 seconds
-            UpdateNewMobileUnitListPosition()
-            UpdateExistingMobileUnitLists()
-            replayFrame = replayFrame + 1
-            PrimeNextReplayFrame()   
+            if Script.LuaUI("Influence") and not gameEnded then --record only if companion widget is running
+                UpdateNewMobileUnitListPosition()
+                UpdateExistingMobileUnitLists()
+                replayFrame = replayFrame + 1
+                PrimeNextReplayFrame()
+                if mobileTrackingCount > 1000 then --ignore T1 spam if tracking too many mobile units, reenable if lower threshhold is met
+                    spamDisabled = true
+                elseif mobileTrackingCount < 500 then
+                    spamDisabled = false
+                end
+                if replayFrame % frameLengthModifierThreshold then --every [120] frames we will double the interval that a snapshot is taken, and half the next interval this is run. This will make stop the replay list getting too large in v long games.
+                    replayFrameLength = replayFrameLength * 2
+                    frameLengthModifierThreshold = math.max(frameLengthModifierThreshold / 2,15)
+                end
+            end
         end
     end
+
+    function gadget:GameOver()
+        MakeListsAvalibleToWidgets()
+        gameEnded = true
+    end
+
 end
