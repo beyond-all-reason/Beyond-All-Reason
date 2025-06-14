@@ -111,6 +111,7 @@ local function giveSameOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 					local cx, cy, cz = spGetUnitPosition(param1)
 					return baseX - cx, baseZ - cz
 				end
+			---@diagnostic disable-next-line: redundant-parameter
 			elseif radius > spGetUnitFeatureSeparation(turretID, param1 - FEATURE_BASE_INDEX, false, true) then
 				local cx, cy, cz = spGetFeaturePosition(param1 - FEATURE_BASE_INDEX)
 				return baseX - cx, baseZ - cz
