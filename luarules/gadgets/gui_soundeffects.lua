@@ -229,21 +229,16 @@ function gadget:GameFrame(n)
 				end
 			end
 		end
-	elseif selectionChanged then
+	end
+
+	if selectionChanged then
 		local _,_,LMBPress,_,_,offscreen = spGetMouseState()
 		if not LMBPress and not offscreen then
 			selectionChanged = false
-			local units = spGetSelectedUnits()
-			table.sort(units)
-			PreviouslySelectedUnits = units
-			local unitcount = #units
-			if unitcount > 1 then
-				local unitID = units[math_random(1,unitcount)]
-				PlaySelectSound(unitID)
-			elseif unitcount == 1 then
-				local unitID = units[1]
-				PlaySelectSound(unitID)
-			end
+			local selectedUnits = spGetSelectedUnits()
+			table.sort(selectedUnits)
+			PreviouslySelectedUnits = selectedUnits
+			PlaySelectSound(selectedUnits)
 		end
 	end
 
