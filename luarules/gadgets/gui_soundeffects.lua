@@ -197,10 +197,11 @@ function gadget:Update()
 	end
 end
 
-function gadget:GameFrame(n)
+function gadget:GameFrame(frame)
 	if not enabled then return end
 
-	CurrentGameFrame = spGetGameFrame()
+	CurrentGameFrame = frame
+
 	if not selectionChanged then
 		selectionChanged = false
 		local selectedUnits = spGetSelectedUnits()
