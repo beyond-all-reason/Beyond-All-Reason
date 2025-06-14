@@ -142,18 +142,20 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 			local allyDefID = spGetUnitDefID(unitID)
 
 			-- This is designed for combat, so repair is prioritized over assist.
-			if repairableDefID[allyDefID] then
-				local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
+			if not spGetUnitIsBeingBuilt(unitID) then
+				if repairableDefID[allyDefID] then
+					local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
 
-				if buildProgress == 1 and health < maxHealth then
-					forbidden[unitID] = true
-					spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
-					local cx, _, cz = spGetUnitPosition(unitID)
-					return baseX - cx, baseZ - cz
+					if buildProgress == 1 and health < maxHealth then
+						forbidden[unitID] = true
+						spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+						local cx, _, cz = spGetUnitPosition(unitID)
+						return baseX - cx, baseZ - cz
+					end
 				end
+			else
+				assistUnits[#assistUnits+1] = unitID
 			end
-
-			assistUnits[#assistUnits+1] = unitID
 		end
 	end
 
@@ -187,12 +189,10 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 	end
 
 	for _, unitID in ipairs(assistUnits) do
-		if spGetUnitIsBeingBuilt(unitID) then
-			forbidden[unitID] = true
-			spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
-			local cx, _, cz = spGetUnitPosition(unitID)
-			return baseX - cx, baseZ - cz
-		end
+		forbidden[unitID] = true
+		spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+		local cx, _, cz = spGetUnitPosition(unitID)
+		return baseX - cx, baseZ - cz
 	end
 
 	spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
