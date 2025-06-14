@@ -175,7 +175,7 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 
 		if not forbidden[sequentialID] and nonResurrectableDefID[spGetFeatureDefID(featureID)] and
 			---@diagnostic disable-next-line: redundant-parameter
-			radius > spGetUnitFeatureSeparation(baseID, featureID, false, true) -- todo: function signature
+			radius >= spGetUnitFeatureSeparation(baseID, featureID, false, true) -- todo: function signature
 		then
 			forbidden[sequentialID] = true
 			spGiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
