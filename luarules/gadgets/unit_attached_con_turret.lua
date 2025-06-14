@@ -78,7 +78,7 @@ end
 
 local function updateTurretHeading(turretID, dx, dz, baseID)
 	local headingCurrent = Spring.GetUnitHeading(turretID)
-	local headingNew = dx and Spring.GetHeadingFromVector(dx, dz) - 32768 or Spring.GetUnitHeading(baseID)
+	local headingNew = Spring.GetHeadingFromVector(dx, dz) - 32768
 	Spring.CallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
 end
 
@@ -225,7 +225,9 @@ local function updateAttachedTurret(baseID, turretID)
 			turretOrderPending[turretID] = nil
 		end
 
-		updateTurretHeading(turretID, dx, dz, baseID)
+		if dx then
+			updateTurretHeading(turretID, dx, dz, baseID)
+		end
 	end
 end
 
