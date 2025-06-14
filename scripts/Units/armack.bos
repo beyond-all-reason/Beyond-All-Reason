@@ -3,7 +3,7 @@
 
 #define SIGNAL_BUILD 2
 
-piece  torso, pelvis, lleg, lfoot, rleg, rfoot, beacon1, beacon2,
+piece  torso, pelvis, lleg, lfoot, rleg, rfoot, cagelight1, cagelight2, cagelight1emit, cagelight2emit,
        rthigh, lthigh, cover, gun, nano, aimy1;
 
 static-var  isMoving, moveSpeed, currentSpeed;
@@ -285,8 +285,8 @@ StopMoving(){
 Create()
 {
 	hide nano;
-	hide beacon1;
-	hide beacon2;
+	hide cagelight1emit;
+	hide cagelight2emit;
 	hide aimy1;
 	isMoving = FALSE;
 
@@ -314,10 +314,11 @@ StartBuilding(heading, pitch)
 	
 	set INBUILDSTANCE to 1;
 
-	show beacon1;
-	show beacon2;
-	spin beacon1 around y-axis speed <450> accelerate <20>;
-	spin beacon2 around y-axis speed <-450> accelerate <20>;
+
+	show cagelight1emit;
+	show cagelight2emit;
+	spin cagelight1emit around y-axis speed <450> accelerate <20>;
+	spin cagelight2emit around y-axis speed <-450> accelerate <20>;
 }
 
 StopBuilding()
@@ -326,10 +327,13 @@ StopBuilding()
 	set-signal-mask SIGNAL_BUILD;
 
 	hide nano;
-	hide beacon1;
-	hide beacon2;
-	stop-spin beacon1 around y-axis;
-	stop-spin beacon2 around y-axis;
+
+	stop-spin cagelight1emit around y-axis decelerate <20>;
+	stop-spin cagelight2emit around y-axis decelerate <20>;
+	sleep 500;
+	
+	hide cagelight1emit;
+	hide cagelight2emit;
 	
 	sleep 3000;
 
