@@ -369,7 +369,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 					end
 				end
 			elseif spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
-				if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and spIsUnitInView(unitID) then
+				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and spIsUnitInView(unitID) then
 					local posx, posy, posz = spGetUnitPosition(unitID)
 					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
 						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
