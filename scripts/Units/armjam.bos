@@ -1,16 +1,23 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg, jam;
 
-static-var  Static_Var_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
+static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
 static-var recently_damaged, desired_activation;
 
-#define SIG_ACTIVATE			2
-#define SIG_OFF 				8
+#define SIGNAL_MOVE 1
+#define SIGNAL_TURNON 4
+#define SIGNAL_OFF 	8
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 TurnControl()
 {
@@ -62,19 +69,19 @@ WheelControl()
 		{
 		//	get PRINT((<6.8> * wheelSpeed ) * turnClock)
 			//left wheels
-			spin flwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnClock accelerate <5.000000> * currentSpeed;
-			spin blwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnClock accelerate <5.000000> * currentSpeed;
+			spin flwheel around x-axis speed (<1.0> * wheelSpeed ) * turnClock accelerate <5.0> * currentSpeed;
+			spin blwheel around x-axis speed (<1.0> * wheelSpeed ) * turnClock accelerate <5.0> * currentSpeed;
 		
 			//right wheels
-			spin frwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnCounter accelerate <5.000000> * currentSpeed;
-			spin brwheel around x-axis speed (<1.000000> * wheelSpeed ) * turnCounter accelerate <5.000000> * currentSpeed;
+			spin frwheel around x-axis speed (<1.0> * wheelSpeed ) * turnCounter accelerate <5.0> * currentSpeed;
+			spin brwheel around x-axis speed (<1.0> * wheelSpeed ) * turnCounter accelerate <5.0> * currentSpeed;
 		}
 		if ( !get ACTIVATION )
 		{
-			spin flwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin blwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin frwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-			spin brwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+			spin flwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin blwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin frwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
+			spin brwheel around x-axis speed (<1.0> * wheelSpeed ) * 2 accelerate <5.0> * currentSpeed;
 		}
 		sleep 67;
 	}
@@ -82,51 +89,24 @@ WheelControl()
 
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script WheelControl();
-	start-script TurnControl();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-}
-
+#include "../damagedsmoke.h"
 Create()
 {
 	hide jam;
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
 	recently_damaged = 0;
 	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;
-	return (0);
+	call-script TB_Init();	
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script WheelControl();
+	start-script TurnControl();
+	start-script DamagedSmoke();
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
 	show jam;
 	// if we are in this function, the unit is already on
@@ -168,8 +148,8 @@ Deactivate()
 		//set desired state if deactivated and not recently damaged
 		desired_activation = 0;
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 
 	turn base to z-axis <0> speed 400;
 	wait-for-turn base around z-axis;
@@ -185,21 +165,17 @@ Deactivate()
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
-	//spin flwheel around x-axis speed <50> accelerate <10>;
-	//spin blwheel around x-axis speed <50> accelerate <10>;
-	//spin frwheel around x-axis speed <50> accelerate <10>;
-	//spin brwheel around x-axis speed <50> accelerate <10>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-//	stop-spin flwheel around x-axis;
-//	stop-spin blwheel around x-axis;
-//	stop-spin frwheel around x-axis;
-//	stop-spin brwheel around x-axis;
-sleep 1; //need for some odd reason (does not open/close otherwise)
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 static-var  Stunned;
@@ -215,8 +191,8 @@ SetStunned(State)
 
 OffOnHit()
 {
-signal SIG_OFF;
-set-signal-mask SIG_OFF;
+signal SIGNAL_OFF;
+set-signal-mask SIGNAL_OFF;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit
@@ -228,20 +204,16 @@ HitByWeapon(anglex, anglez)
 {
 
 	start-script OffOnHit();
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
+	turn base to z-axis anglez speed <105.0>;
+	turn base to x-axis <0> - anglex speed <105.0>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <30.000000>;
-	turn base to x-axis <0.000000> speed <30.000000>;
+	turn base to z-axis <0.0> speed <30.0>;
+	turn base to x-axis <0.0> speed <30.0>;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

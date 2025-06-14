@@ -1,21 +1,24 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lfwheel, rfwheel, bwheel, gun, flare;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading, wpn1_lasthead;
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE 			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <0.2>
+#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -32,21 +35,6 @@ Steering(heading, steer, currentSpeed)
 	}
 }
 
-//WheelControl()
-//{
-//	while(TRUE)
-//	{
-//		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-//		wheelSpeed = currentSpeed * 40; //original speed 7
-//		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
-//		spin lfwheel around x-axis speed  (<1> * wheelSpeed);         //(<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-//		spin rfwheel around x-axis speed  (<1> * wheelSpeed);				//(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-//		spin bwheels around x-axis speed  (<0.7> * wheelSpeed);		 //(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-//		sleep 50; //200
-//	}
-// }
-
-
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -54,45 +42,44 @@ Steering(heading, steer, currentSpeed)
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare;
-	Static_Var_1 = 0;
 	oldheading = get HEADING;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	hide flare;
+	call-script TB_Init();
 }
-//Create()
-//{
-//	restore_delay = 3000;
-//	moveSpeed = get MAX_SPEED;
-//	start-script SmokeUnit();
-//	return (0);
-//}
 
-StartMoving()
+
+StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
 	start-script Steering();
+
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	stop-spin rfwheel around x-axis;
 	stop-spin lfwheel around x-axis;
 	stop-spin bwheel around x-axis;
+	
+	STOP_TILTBANK;
 }
 
 
 
 //following block returns weapon in straight position after firing
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 	return (0);
 }
 
@@ -102,10 +89,10 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	turn gun to y-axis <0.000000> speed <90.000000>;
-	turn gun to x-axis <0.000000> speed <50.000000>;
+	turn gun to y-axis <0.0> speed <90.0>;
+	turn gun to x-axis <0.0> speed <50.0>;
 	wait-for-turn gun around y-axis;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0xbadface;
  }
 SetStunned(State)
 {
@@ -121,18 +108,14 @@ RestoreAfterDelay()
 }
 
 
-
-
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn gun to y-axis heading speed <300.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	signal SIGNAL_AIM1;
+	turn gun to y-axis heading speed <300.0>;
+	turn gun to x-axis <0.0> - pitch speed <300.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn gun around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -140,28 +123,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = gun;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
