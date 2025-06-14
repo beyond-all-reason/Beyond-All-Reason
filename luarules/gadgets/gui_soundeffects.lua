@@ -86,6 +86,12 @@ for name, defs in pairs(GUIUnitSoundEffects) do
 		if UnitDefNames[name..'_scav'] then
 			newGUIUnitSoundEffects[UnitDefNames[name..'_scav'].id] = defs
 		end
+		-- only use sub-tables for selecting multiple sounds
+		for key, value in pairs(defs) do
+			if type(value) == "table" and #value == 1 then
+				defs[key] = value[1]
+			end
+		end
 	end
 end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
@@ -116,6 +122,10 @@ local UsedFrame
 local units = {}
 local unitsTeam = {}
 local unitsAllyTeam = {}
+
+local function pickSound(sound)
+	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
+end
 
 local function PlaySelectSound(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
