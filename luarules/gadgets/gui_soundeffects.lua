@@ -337,7 +337,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if not enabled then return end
 	if GUIUnitSoundEffects[unitDefID] then
 		units[unitID] = unitDefID
 		unitsTeam[unitID] = unitTeam
