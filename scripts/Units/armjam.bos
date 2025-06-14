@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg;
+piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg, jam;
 
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
@@ -92,6 +92,7 @@ WheelControl()
 #include "../damagedsmoke.h"
 Create()
 {
+	hide jam;
 	recently_damaged = 0;
 	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;
@@ -107,6 +108,7 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -139,6 +141,7 @@ Deactivate()
 	// unit_paralyze_on_off deactivates this unit before it is 
 	// stunned, so it is actually turned off, but we need to wait to see if the
 	// unit is "damaged" by stun.
+	hide jam;
 	sleep 100;
 	if (recently_damaged == 0)
 	{
