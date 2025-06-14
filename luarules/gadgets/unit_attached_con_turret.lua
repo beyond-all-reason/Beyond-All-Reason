@@ -48,7 +48,7 @@ local EMPTY = {}
 local baseToTurretDefID = {}
 local repairableDefID = {}
 local reclaimableDefID = {}
-local nonResurrectableDefID = {}
+local combatReclaimDefID = {}
 
 local turretToBaseID = {}
 local turretBuildRadius = {}
@@ -187,7 +187,7 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, for
 	for _, featureID in ipairs(features) do
 		local sequentialID = featureID + FEATURE_BASE_INDEX
 
-		if not forbidden[sequentialID] and nonResurrectableDefID[spGetFeatureDefID(featureID)] then
+		if not forbidden[sequentialID] and combatReclaimDefID[spGetFeatureDefID(featureID)] then
 			local separation = spGetUnitFeatureSeparation(baseID, featureID)
 
 			if separation and radius >= separation - spGetFeatureRadius(featureID) then
@@ -322,8 +322,8 @@ function gadget:Initialize()
 
 		-- Feature auto-reclaim is "smart" so ignores resurrectable features.
 		for featureDefID, featureDef in ipairs(FeatureDefs) do
-			if not featureDef.resurrectable then
-				nonResurrectableDefID[featureDefID] = true
+			if featureDef.reclaimable and (featureDef.resurrectable == 0 or not featureDef.customParams.fromunit) then
+				combatReclaimDefID[featureDefID] = true
 			end
 		end
 	else
@@ -344,7 +344,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(gameFrame)
-	if gameFrame % 15 == 0 then
+	if gameFrame % 6 == 0 then
 		for turretID, baseID in pairs(turretToBaseID) do
 			updateAttachedTurret(baseID, turretID)
 		end
