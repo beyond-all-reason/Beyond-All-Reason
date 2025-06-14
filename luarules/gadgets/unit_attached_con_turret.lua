@@ -37,7 +37,6 @@ local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 
 local FEATURE_BASE_INDEX = Game.maxUnits
-local FEATURE_NO_UNITDEF = ""
 local FILTER_ALLY_UNITS = -3
 local FILTER_ENEMY_UNITS = -4
 local EMPTY = {}
@@ -74,16 +73,6 @@ local function checkSameBuildOptions(unitDef1, unitDef2)
 		return true
 	end
 	return false
-end
-
----This gadget has a polling rate, so should not issue orders that will be disallowed.
----It will be unable to acquire a new order until its next poll attempt (which also may fail).
----See unit_prevent_cloaked_unit_reclaim for the order logic.
--- todo: don't hit UnitDefs; prevent_reclaim via other gadgets should be an API
-local function preventEnemyUnitReclaim(enemyID, teamID)
-	local enemyUnitDef = UnitDefs[spGetUnitDefID(enemyID)]
-	return	(not enemyUnitDef.reclaimable) or
-			(enemyUnitDef.canCloak and Spring.GetUnitIsCloaked(enemyID) and not Spring.IsUnitInRadar(enemyID, Spring.GetTeamAllyTeamID(teamID)))
 end
 
 local function updateTurretHeading(turretID, dx, dz, baseID)
@@ -138,32 +127,30 @@ end
 ---@param baseX number
 ---@param baseZ number
 ---@param radius number
----@return number dx for new turret heading
----@return number dz for new turret heading
-local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
+---@return number? dx for new turret heading
+---@return number? dz for new turret heading
+local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius, forbidden)
 	local unitTeamID = spGetUnitTeam(baseID) ---@type integer -- todo
 	local assistUnits = {}
 
 	local alliedUnits = CallAsTeam(unitTeamID, spGetUnitsInCylinder, baseX, baseZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
 
 	for _, unitID in ipairs(alliedUnits) do
-		if unitID ~= baseID and unitID ~= turretID and radius > spGetUnitSeparation(unitID, baseID, false, true) then
+		if not forbidden[unitID] and radius >= spGetUnitSeparation(unitID, baseID, false, true) then
 			local allyDefID = spGetUnitDefID(unitID)
 
-			if UnitDefs[allyDefID].repairable then
+			-- This is designed for combat, so repair is prioritized over assist.
+			if repairableDefID[allyDefID] then
 				local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
 
 				if buildProgress == 1 and health < maxHealth then
+					forbidden[unitID] = true
 					spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
 					local cx, _, cz = spGetUnitPosition(unitID)
 					return baseX - cx, baseZ - cz
 				end
 			end
 
-			-- todo: bug fix, separate PR
-			-- if not unitCannotBeAssisted[allyDefID] then
-			-- 	assistUnits[#assistUnits+1] = allyID
-			-- end
 			assistUnits[#assistUnits+1] = unitID
 		end
 	end
@@ -171,7 +158,10 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 	local enemyUnits = CallAsTeam(unitTeamID, spGetUnitsInCylinder, baseX, baseZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
 
 	for _, unitID in ipairs(enemyUnits) do
-		if radius > spGetUnitSeparation(unitID, baseID, false, true) and not preventEnemyUnitReclaim(unitID, unitTeamID) then
+		if not forbidden[unitID] and reclaimableDefID[spGetUnitDefID(unitID)] and
+			radius >= spGetUnitSeparation(unitID, baseID, false, true)
+		then
+			forbidden[unitID] = true
 			spGiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
 			local cx, _, cz = spGetUnitPosition(unitID)
 			return baseX - cx, baseZ - cz
@@ -181,21 +171,24 @@ local function giveAutoOrderToTurret(turretID, baseID, baseX, baseZ, radius)
 	local features = spGetFeaturesInCylinder(baseX, baseZ, radius + unitDefRadiusMax)
 
 	for _, featureID in ipairs(features) do
-		if	FeatureDefs[spGetFeatureDefID(featureID)].reclaimable and
-			spGetFeatureResurrect(featureID) == FEATURE_NO_UNITDEF and
+		local sequentialID = featureID + FEATURE_BASE_INDEX
+
+		if not forbidden[sequentialID] and nonResurrectableDefID[spGetFeatureDefID(featureID)] and
 			---@diagnostic disable-next-line: redundant-parameter
 			radius > spGetUnitFeatureSeparation(baseID, featureID, false, true) -- todo: function signature
 		then
-			spGiveOrderToUnit(turretID, CMD_RECLAIM, { featureID + FEATURE_BASE_INDEX }, EMPTY)
+			forbidden[sequentialID] = true
+			spGiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
 			local cx, _, cz = spGetFeaturePosition(featureID)
 			return baseX - cx, baseZ - cz
 		end
 	end
 
-	for _, maybeBuildID in ipairs(assistUnits) do
-		if spGetUnitIsBeingBuilt(maybeBuildID) then
-			spGiveOrderToUnit(turretID, CMD_REPAIR, { maybeBuildID }, EMPTY)
-			local cx, _, cz = spGetUnitPosition(maybeBuildID)
+	for _, unitID in ipairs(assistUnits) do
+		if spGetUnitIsBeingBuilt(unitID) then
+			forbidden[unitID] = true
+			spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+			local cx, _, cz = spGetUnitPosition(unitID)
 			return baseX - cx, baseZ - cz
 		end
 	end
@@ -210,12 +203,24 @@ local function updateAttachedTurret(baseID, turretID)
 	local dx, dz = giveSameOrderToTurret(turretID, baseID, bx, bz, buildRadius)
 
 	if not dx then
-		dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius)
+		turretOrderPending[turretID] = true -- gate around our retries
+
+		local forbidID = {
+			baseID   = true,
+			turretID = true,
+		}
+
+		local retries = 3
+
+		repeat
+			dx, dz = giveAutoOrderToTurret(turretID, baseID, bx, bz, buildRadius, forbidID)
+			retries = retries - 1
+		until not dx or retries == 0 or not turretOrderPending[turretID]
+
+		turretOrderPending[turretID] = nil
 	end
 
-	if dx then
-		updateTurretHeading(turretID, dx, dz, baseID)
-	end
+	updateTurretHeading(turretID, dx, dz, baseID)
 end
 
 local function attachToUnit(unitID, unitDefID, unitTeam)
@@ -324,4 +329,8 @@ function gadget:GameFrame(gameFrame)
 			updateAttachedTurret(baseID, turretID)
 		end
 	end
+end
+
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	turretOrderPending[unitID] = nil
 end
