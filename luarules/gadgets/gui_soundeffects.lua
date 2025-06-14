@@ -304,7 +304,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 					end
 				end
 			elseif spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
-				local posx, posy, posz = spGetUnitPosition(unitID)
+				if CurrentGameFrame >= AllyUnitCreatedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
 				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
 					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
 						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
