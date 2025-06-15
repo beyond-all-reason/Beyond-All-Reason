@@ -149,6 +149,7 @@ local soundData = {
 			default = 0.17,
 			custom = {
 				['^lasr'] = 0.03,
+				['^mgun'] = 0.02,
 			},
 		},
 		gainmod  = 0.2 * 0.3,

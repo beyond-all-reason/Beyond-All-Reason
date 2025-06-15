@@ -109,13 +109,13 @@ if gadgetHandler:IsSyncedCode() then
 			geothermals[featureDefID] = featureDefID
 		end
 
-		if featureDef.name:find('treetype') == nil then
+		--if featureDef.name:find('treetype') == nil then
 			treeName[featureDefID] = featureDef.name
 			treeMass[featureDefID] = math.max(1, featureDef.mass)
 			if featureDef.collisionVolume then
 				treeScaleY[featureDefID] = featureDef.collisionVolume.scaleY
 			end
-		end
+		--end
 	end
 
 	local unitMass = {}

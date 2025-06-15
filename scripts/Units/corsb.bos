@@ -1,28 +1,8 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, door1, door2, flare, thrusta, thrustb ;
 
-static-var  Static_Var_1, bMoving, statechg_DesiredState, statechg_StateChanging;
-
-Go()
-{
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-Stop()
-{
-}
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -30,33 +10,7 @@ InitState()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -64,49 +18,27 @@ Create()
 	hide thrustb;
 	hide thrusta;
 	hide flare;
-	Static_Var_1 = 0;
-	bMoving = FALSE;
-	call-script InitState();
 }
 
 Activate()
 {
 	show thrustb;
 	show thrusta;
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
 	hide thrustb;
 	hide thrusta;
-	start-script RequestState(1);
 }
 
-setSFXoccupy(Func_Var_1)
+
+QueryWeapon1(pieceIndex)
 {
-	Static_Var_1 = Func_Var_1;
+	pieceIndex = flare;
 }
 
-StartMoving()
-{
-	bMoving = TRUE;
-}
 
-StopMoving()
-{
-	bMoving = FALSE;
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

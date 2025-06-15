@@ -1,41 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, wingl, wingr, flarel, flarer, thrust, turretmisl, misboxl, misflarel, turretmisr, misboxr, misflarer;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, gun_1;
+static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
-#define SIG_AIM				4
+#define SIGNAL_AIM1 256
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn wingl to z-axis <90> speed <90.000000>;
-		turn wingr to z-axis <-90> speed <90.000000>;
-		sleep 690;
-	}
-	sleep 10;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn wingl to z-axis <0> speed <90.000000>;
-		turn wingr to z-axis <0> speed <90.000000>;
-		sleep 990;
-	}
-	sleep 10;
-	return (0);
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -44,60 +16,10 @@ deactivatescr()
 #define MAXTILT 100
 
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#define BARRELROLLSPEEED <200>
+#include "../air_barrelroll.h"
 
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
 Create()
 {
 	hide flarel;
@@ -106,77 +28,54 @@ Create()
 	hide misflarel;
 	hide misflarer;
 	gun_1=0;
-	call-script InitState();
 	start-script BarrelRoll();
-	return (0);
 }
 
 Activate()
 {
 	show thrust;
-	start-script RequestState(0);
-	return (0);
+	turn wingl to z-axis <90> speed <90.0>;
+	turn wingr to z-axis <-90> speed <90.0>;
 }
 
 Deactivate()
 {
 	hide thrust;
-	start-script RequestState(1);
-	return (0);
+	turn wingl to z-axis <0> speed <90.0>;
+	turn wingr to z-axis <0> speed <90.0>;
 }
 
-StartMoving()
+AimWeapon1(heading, pitch)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	return (0);
-}
-
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-
-	turn turretmisl to x-axis 0-pitch speed <720.000000>;
-	turn turretmisl to y-axis heading speed <360.000000>;
-	turn turretmisr to x-axis 0-pitch speed <720.000000>;
-	turn turretmisr to y-axis heading speed <360.000000>;
+	turn turretmisl to x-axis 0-pitch speed <720.0>;
+	turn turretmisl to y-axis heading speed <360.0>;
+	turn turretmisr to x-axis 0-pitch speed <720.0>;
+	turn turretmisr to y-axis heading speed <360.0>;
 	wait-for-turn turretmisl around x-axis;
 	wait-for-turn turretmisl around y-axis;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 1000;
 	gun_1 = !gun_1;
-	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if (gun_1 == 0)
-	{
-	piecenum = misflarel;
+
+	if (gun_1 == 0)	{
+		pieceIndex = misflarel;
+	}else{
+		pieceIndex = misflarer;
 	}
-	if (gun_1 == 1)
-	{
-	piecenum = misflarer;
-	}
-	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
