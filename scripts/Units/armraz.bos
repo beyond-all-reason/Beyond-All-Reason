@@ -19,7 +19,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }// For C:\Users\logst\Downloads\BAR\armraz_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 #define SIGNAL_MOVE 1
 Walk() {// For C:\Users\logst\Downloads\BAR\armraz_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	turn lthigh to y-axis <0.0> speed <2000.0> / animSpeed;
@@ -356,13 +355,13 @@ lua_UnitScriptDistortion(lightIndex, count)
 #define CATT1_PIECE_Y aimy1
 #define CATT1_PIECE_X aimx1
 
-#define CATT1_MAX_VELOCITY <7.5>
-#define CATT1_ACCELERATION <1.0>
-#define CATT1_JERK <1.5>
-#define CATT1_PRECISION <7.5>
-#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_MAX_VELOCITY <12.0>
+#define CATT1_ACCELERATION <2.0>
+#define CATT1_JERK <4>
+#define CATT1_PRECISION <10.0>
+#define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
-#define CATT1_PITCH_SPEED <75>
+#define CATT1_RESTORE_SPEED <3.0>
 
 #include "../constant_acceleration_turret_turning_1.h"
 
