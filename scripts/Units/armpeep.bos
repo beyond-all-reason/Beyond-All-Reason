@@ -1,12 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base,wing1,wing2,jet1,jet2;
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -14,89 +9,28 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
+#define BARRELROLLSPEEED <200>
+#include "../air_barrelroll.h"
 
 Create()
 {
 	hide jet2;
 	hide jet1;
-	call-script InitState();
 	start-script BarrelRoll();
-	return (0);
 }
 
 Activate()
 {
 	show jet2;
 	show jet1;
-	start-script RequestState(0);
-	return (0);
 }
 
 Deactivate()
 {	
 	hide jet2;
 	hide jet1;
-	start-script RequestState(1);
-	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {
