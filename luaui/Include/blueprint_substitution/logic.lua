@@ -123,10 +123,15 @@ function BlueprintSubLogic.analyzeBlueprintSides(blueprint)
     local buildingUnitCount = 0
 
     for _, unit in ipairs(blueprint.units) do
-        local unitDef = UnitDefs[unit.unitDefID]
-        if unitDef and unitDef.name then
-            local unitNameLower = unitDef.name:lower()
-            local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
+		local unitNameLower = nil
+        if unit.originalName then
+            unitNameLower = unit.originalName:lower()
+        elseif unit.unitDefID and UnitDefs[unit.unitDefID] and UnitDefs[unit.unitDefID].name then
+            unitNameLower = UnitDefs[unit.unitDefID].name:lower()
+        end
+
+        if unitNameLower then
+			local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
             
             if buildingData and buildingData.side then
                 buildingUnitCount = buildingUnitCount + 1
@@ -177,73 +182,74 @@ BlueprintSubLogic.generateEquivalentUnits()
 
 Spring.Log("BlueprintSubLogic", LOG.INFO, "Generating Master Building Data...")
 local buildingCount = 0
-if UnitDefs then 
-    for unitDefID, unitDef in pairs(UnitDefs) do
-        if unitDef and unitDef.name and (unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0) and not unitDef.isFeature then
-            local unitNameLower = unitDef.name:lower()
-            local side = BlueprintSubLogic.getSideFromUnitName(unitNameLower)
-            local categoryName = BlueprintSubLogic.unitCategories[unitNameLower] or "Misc"
-            local translatedHumanName = unitDef.translatedHumanName or unitDef.name
-            local equivalents = BlueprintSubLogic.equivalentUnits[unitNameLower] or {}
-            BlueprintSubLogic.MasterBuildingData[unitNameLower] = {
-                unitDefID = unitDefID, name = unitNameLower, translatedHumanName = translatedHumanName,
-                side = side, categoryName = categoryName, equivalents = equivalents
-            }
-            buildingCount = buildingCount + 1
+if BlueprintSubLogic.unitCategories then
+    for unitNameLower, categoryName in pairs(BlueprintSubLogic.unitCategories) do
+        local side = BlueprintSubLogic.getSideFromUnitName(unitNameLower)
+        local equivalents = BlueprintSubLogic.equivalentUnits[unitNameLower] or {}
+        local unitDefID = unitNameToDefIDMap[unitNameLower]
+        local translatedHumanName = "N/A"
+        if unitDefID and UnitDefs[unitDefID] then
+            translatedHumanName = UnitDefs[unitDefID].translatedHumanName or UnitDefs[unitDefID].name
         end
+
+        BlueprintSubLogic.MasterBuildingData[unitNameLower] = {
+            unitDefID = unitDefID,
+            name = unitNameLower,
+            translatedHumanName = translatedHumanName,
+            side = side,
+            categoryName = categoryName,
+            equivalents = equivalents,
+        }
+        buildingCount = buildingCount + 1
     end
 end
 Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("Generated Master Building Data for %d buildings.", buildingCount))
 Spring.Log("BlueprintSubLogic", LOG.INFO, "Internal data structures for substitution logic generated. Module ready to be used.")
 
-local function _getActualSubstitutedUnitDefID(originalUnitDefID, targetSide)
-    if not originalUnitDefID or not targetSide then
-        return originalUnitDefID 
+local function _getActualSubstitutedUnitDefID(originalUnitName, targetSide)
+    if not originalUnitName or not targetSide then
+        return originalUnitName 
     end
-    local originalUnitDef = UnitDefs[originalUnitDefID]
-    if not (originalUnitDef and originalUnitDef.name) then
-        Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("_getActualSubstitutedUnitDefID: Original UnitDef for ID %s not found or has no name. Returning original.", tostring(originalUnitDefID)))
-        return originalUnitDefID
-    end
-    local unitNameLower = originalUnitDef.name:lower()
+    
+    local unitNameLower = originalUnitName:lower()
     local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
     if not buildingData then
-        return originalUnitDefID
+        Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
+        return originalUnitName
     end
+    
     local equivalentUnitName = buildingData.equivalents[targetSide]
     if not equivalentUnitName then
-        Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'. OriginalDefID: %s", unitNameLower, targetSide, tostring(originalUnitDefID)))
-        return originalUnitDefID
+        Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'.", unitNameLower, targetSide))
+        return originalUnitName
     end
-    local foundDefID = unitNameToDefIDMap[equivalentUnitName] 
-    if not foundDefID then
-        Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: Equivalent name '%s' for unit '%s' (target side '%s') not in UnitDefs map. OriginalDefID: %s", equivalentUnitName, unitNameLower, targetSide, tostring(originalUnitDefID)))
-        return originalUnitDefID 
-    end
-    return foundDefID
+    
+    return equivalentUnitName
 end
 
-local function _getBuildingSubstitutionOutcome(originalUnitDefID, buildingData, targetSide, sourceSideOrNil)
-    local newUnitDefID = originalUnitDefID
+local function _getBuildingSubstitutionOutcome(originalUnitName, buildingData, targetSide, sourceSideOrNil)
+    local newUnitName = originalUnitName
     local status = "unknown"
     local equivalentUnitNameAttempted = nil
+    
     if sourceSideOrNil and buildingData.side == targetSide then 
         status = "unchanged_same_side"
     else
         equivalentUnitNameAttempted = buildingData.equivalents[targetSide]
         if not equivalentUnitNameAttempted then
             status = "failed_no_mapping" 
-            newUnitDefID = _getActualSubstitutedUnitDefID(originalUnitDefID, targetSide) 
+            newUnitName = _getActualSubstitutedUnitDefID(originalUnitName, targetSide) 
         else
-            newUnitDefID = _getActualSubstitutedUnitDefID(originalUnitDefID, targetSide) 
-            if newUnitDefID == originalUnitDefID then 
+            newUnitName = _getActualSubstitutedUnitDefID(originalUnitName, targetSide) 
+            if newUnitName == originalUnitName then 
                 status = "failed_invalid_equivalent"
             else
                 status = "substituted"
             end
         end
     end
-    return { newUnitDefID = newUnitDefID, status = status, equivalentUnitNameAttempted = equivalentUnitNameAttempted }
+    
+    return { newUnitName = newUnitName, status = status, equivalentUnitNameAttempted = equivalentUnitNameAttempted }
 end
 
 local function _generateSubstitutionSummary(aggregatedStats, itemTypeString, sourceSide, targetSide)
@@ -271,8 +277,8 @@ local function _generateSubstitutionSummary(aggregatedStats, itemTypeString, sou
     return message, substitutionActuallyFailed
 end
 
-function BlueprintSubLogic.getEquivalentUnitDefID(originalUnitDefID, targetSide)
-    return _getActualSubstitutedUnitDefID(originalUnitDefID, targetSide)
+function BlueprintSubLogic.getEquivalentUnitDefID(originalUnitName, targetSide)
+    return _getActualSubstitutedUnitDefID(originalUnitName, targetSide)
 end
 
 function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targetSide)
@@ -291,32 +297,34 @@ function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targe
         totalConsidered = 0, substituted = 0, failedNoMapping = 0, failedInvalidEquivalent = 0,
         unchangedSameSide = 0, unchangedOther = 0, unchangedNotBuilding = 0
     }
+    
     for _, unit in ipairs(originalBlueprint.units) do
-        local originalUnitDefID = unit.unitDefID
-        if not (originalUnitDefID and originalUnitDefID > 0) then
+        local originalUnitName = unit.originalName
+        if not originalUnitName then
             aggregatedStats.unchangedNotBuilding = aggregatedStats.unchangedNotBuilding + 1
         else
             aggregatedStats.totalConsidered = aggregatedStats.totalConsidered + 1
-            local originalUnitDef = UnitDefs[originalUnitDefID]
-            if not (originalUnitDef and originalUnitDef.name) then
+            local buildingData = BlueprintSubLogic.MasterBuildingData[originalUnitName:lower()]
+            if not buildingData then
                 aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
             else
-                local buildingData = BlueprintSubLogic.MasterBuildingData[originalUnitDef.name:lower()]
-                if not buildingData then
+                local outcome = _getBuildingSubstitutionOutcome(originalUnitName, buildingData, targetSide, sourceSide)
+                unit.originalName = outcome.newUnitName
+                if outcome.status == "substituted" then 
+                    aggregatedStats.substituted = aggregatedStats.substituted + 1
+                elseif outcome.status == "failed_no_mapping" then 
+                    aggregatedStats.failedNoMapping = aggregatedStats.failedNoMapping + 1
+                elseif outcome.status == "failed_invalid_equivalent" then 
+                    aggregatedStats.failedInvalidEquivalent = aggregatedStats.failedInvalidEquivalent + 1
+                elseif outcome.status == "unchanged_same_side" then 
+                    aggregatedStats.unchangedSameSide = aggregatedStats.unchangedSameSide + 1
+                else 
                     aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-                else
-                    local outcome = _getBuildingSubstitutionOutcome(originalUnitDefID, buildingData, targetSide, sourceSide)
-                    unit.unitDefID = outcome.newUnitDefID 
-                    if outcome.status == "substituted" then aggregatedStats.substituted = aggregatedStats.substituted + 1
-                    elseif outcome.status == "failed_no_mapping" then aggregatedStats.failedNoMapping = aggregatedStats.failedNoMapping + 1
-                    elseif outcome.status == "failed_invalid_equivalent" then aggregatedStats.failedInvalidEquivalent = aggregatedStats.failedInvalidEquivalent + 1
-                    elseif outcome.status == "unchanged_same_side" then aggregatedStats.unchangedSameSide = aggregatedStats.unchangedSameSide + 1
-                    else aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-                    end
                 end
             end
         end
     end
+    
     local summaryMsg, subFailed = _generateSubstitutionSummary(aggregatedStats, "Blueprint", sourceSide, targetSide)
     return { stats = aggregatedStats, summaryMessage = summaryMsg, substitutionFailed = subFailed }
 end
@@ -337,29 +345,23 @@ function BlueprintSubLogic.processBuildQueueSubstitution(originalBuildQueue, sou
     }
     for _, bq_item in ipairs(originalBuildQueue) do
         if type(bq_item) == "table" and #bq_item >= 1 then
-            local originalUnitDefID = bq_item[1]
-            if originalUnitDefID and originalUnitDefID > 0 then
+            local originalUnitName = bq_item[1]
+            if originalUnitName then
                 aggregatedStats.totalConsidered = aggregatedStats.totalConsidered + 1
-                local originalUnitDef = UnitDefs[originalUnitDefID]
-                if originalUnitDef and originalUnitDef.name then
-                    local buildingData = BlueprintSubLogic.MasterBuildingData[originalUnitDef.name:lower()]
-                    if buildingData then
-                        local outcome = _getBuildingSubstitutionOutcome(originalUnitDefID, buildingData, targetSide, sourceSide)
-                        bq_item[1] = outcome.newUnitDefID 
-                        if outcome.status == "substituted" then aggregatedStats.substituted = aggregatedStats.substituted + 1
-                        elseif outcome.status == "failed_no_mapping" then aggregatedStats.failedNoMapping = aggregatedStats.failedNoMapping + 1
-                        elseif outcome.status == "failed_invalid_equivalent" then aggregatedStats.failedInvalidEquivalent = aggregatedStats.failedInvalidEquivalent + 1
-                        elseif outcome.status == "unchanged_same_side" then aggregatedStats.unchangedSameSide = aggregatedStats.unchangedSameSide + 1
-                        else 
-                            aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-                        end
+                local buildingData = BlueprintSubLogic.MasterBuildingData[originalUnitName:lower()]
+                if buildingData then
+                    local outcome = _getBuildingSubstitutionOutcome(originalUnitName, buildingData, targetSide, sourceSide)
+                    bq_item[1] = outcome.newUnitName 
+                    if outcome.status == "substituted" then aggregatedStats.substituted = aggregatedStats.substituted + 1
+                    elseif outcome.status == "failed_no_mapping" then aggregatedStats.failedNoMapping = aggregatedStats.failedNoMapping + 1
+                    elseif outcome.status == "failed_invalid_equivalent" then aggregatedStats.failedInvalidEquivalent = aggregatedStats.failedInvalidEquivalent + 1
+                    elseif outcome.status == "unchanged_same_side" then aggregatedStats.unchangedSameSide = aggregatedStats.unchangedSameSide + 1
                     else 
                         aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-                        Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("processBuildQueueSubstitution: No MasterBuildingData for %s. Item not substituted.", originalUnitDef.name:lower()))
                     end
                 else 
                     aggregatedStats.unchangedOther = aggregatedStats.unchangedOther + 1
-                    Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("processBuildQueueSubstitution: Item with DefID %s has no UnitDef or name. Item not substituted.", tostring(originalUnitDefID)))
+                    Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("processBuildQueueSubstitution: No MasterBuildingData for %s. Item not substituted.", originalUnitName:lower()))
                 end
             else 
                 aggregatedStats.unchangedNotBuilding = aggregatedStats.unchangedNotBuilding + 1
