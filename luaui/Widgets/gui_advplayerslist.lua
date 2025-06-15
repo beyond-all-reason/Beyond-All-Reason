@@ -1374,7 +1374,7 @@ function SortList()
         end
     end
     local deadTeamSize = 0.66
-    playerScale = math.min(1, 37 / (aliveTeams+(deadTeams*deadTeamSize)))
+    playerScale = math.min(1, 35 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
