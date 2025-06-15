@@ -24,7 +24,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMAW.s3o",
 		radardistancejam = 8,
-		script = "Units/CORMAW_clean.cob",
+		script = "Units/cormaw.cob",
 		seismicsignature = 0,
 		selfdestructas = "flamethrowerSelfd",
 		sightdistance = 422,
