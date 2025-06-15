@@ -136,9 +136,9 @@ out Data {
 	vec4 pieceVertexPosOrig; // .w contains model maxY
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
-	vec3 worldTangent;
+	vec3 worldTangent_VS;
 	//vec3 worldBitangent;
-	vec3 worldNormal;
+	vec3 worldNormal_VS;
 
 	vec4 uvCoords;
 	flat vec4 teamCol; // .a contains selectedness
@@ -554,9 +554,9 @@ void main(void)
 		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
 
 		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
-		worldTangent   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
+		worldTangent_VS   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
 		//worldBitangent = RotateByQuaternion(modelToWorldTX.quat, modelSpaceBitangent);
-		worldNormal    = RotateByQuaternion(modelToWorldTX.quat, modelVertexNormal);
+		worldNormal_VS    = RotateByQuaternion(modelToWorldTX.quat, modelVertexNormal);
 	#else
 		// pieceMatrix looks up the model-space transform matrix for unit being drawn
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
@@ -568,9 +568,9 @@ void main(void)
 		// tangent --> world space transformation (for vectors)
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
-		worldTangent   = normalMatrix * modelSpaceTangent;
+		worldTangent_VS   = normalMatrix * modelSpaceTangent;
 		//worldBitangent = normalMatrix * modelSpaceBitangent;
-		worldNormal    = normalMatrix * normal; 
+		worldNormal_VS    = normalMatrix * normal; 
 	#endif
 
 
