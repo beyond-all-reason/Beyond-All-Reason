@@ -993,6 +993,7 @@ local function initializeTestEnvironment()
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,

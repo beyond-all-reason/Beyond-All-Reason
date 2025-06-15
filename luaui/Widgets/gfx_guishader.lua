@@ -49,12 +49,9 @@ local updateStencilTextureScreen = false
 
 local oldvs = 0
 local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-local ivsx, ivsy = vsx, vsy
-local intensityMult = (vsx + vsy) / 1600
 
 function widget:ViewResize(_, _)
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-	ivsx, ivsy = vsx, vsy
 
 	if screencopyUI then gl.DeleteTexture(screencopyUI) end
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
@@ -65,7 +62,6 @@ function widget:ViewResize(_, _)
 		wrap_t = GL.CLAMP,
 	})
 
-	intensityMult = (vsx + vsy) / 2800
 	updateStencilTexture = true
 	updateStencilTextureScreen = true
 end
@@ -77,7 +73,7 @@ local function DrawStencilTexture(world, fullscreen)
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
 		if usedStencilTex == nil or vsx + vsy ~= oldvs then
-			gl.DeleteTextureFBO(usedStencilTex)
+			gl.DeleteTexture(usedStencilTex)
 
 			oldvs = vsx + vsy
 			usedStencilTex = gl.CreateTexture(vsx, vsy, {
@@ -89,7 +85,7 @@ local function DrawStencilTexture(world, fullscreen)
 				fbo = true,
 			})
 
-			if (usedStencilTex == nil) then
+			if usedStencilTex == nil then
 				Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 				widgetHandler:RemoveWidget()
 				return false
@@ -169,7 +165,7 @@ local function CreateShaders()
 			quadVector = quadVector * odd_start_mirror;
 			return sign(quadVector);
 		}
-		
+
 		void main(void)
 		{
 			vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
@@ -191,7 +187,7 @@ local function CreateShaders()
 						}
 					}
 					gl_FragColor.rgba = sum/9.0;
-				#else 
+				#else
 					//amazingly useless pixel quad message passing for less hammering of membus? 4 lookups instead of 9
 					vec2 quadVector = quadGetQuadVector(gl_FragCoord.xy);
 					vec2 subpixel = vec2(ivsx, ivsy) ;
@@ -255,11 +251,10 @@ local function CreateShaders()
 end
 
 local function DeleteShaders()
-	if gl.DeleteTextureFBO then
-		gl.DeleteTextureFBO(stenciltex)
-		gl.DeleteTextureFBO(stenciltexScreen)
-	end
+	gl.DeleteTexture(stenciltex)
+	gl.DeleteTexture(stenciltexScreen)
 	gl.DeleteTexture(screencopyUI or 0)
+	stenciltex, stenciltexScreen, screencopyUI = nil, nil, nil
 	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)
 	end
@@ -392,21 +387,18 @@ function widget:Initialize()
 		end
 	end
 	WG['guishader'].RemoveDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
-		end
-		guishaderDlists[name] = nil
+		local found = guishaderDlists[name] ~= nil
 		if found then
+			guishaderDlists[name] = nil
 			updateStencilTexture = true
 		end
 		return found
 	end
 	WG['guishader'].DeleteDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
+		local found = guishaderDlists[name] ~= nil
+		if found then
 			deleteDlistQueue[name] = guishaderDlists[name]
+			updateStencilTexture = true
 		end
 		return found
 	end
@@ -415,12 +407,9 @@ function widget:Initialize()
 		updateStencilTexture = true
 	end
 	WG['guishader'].RemoveRect = function(name)
-		local found = false
-		if guishaderRects[name] ~= nil then
-			found = true
-		end
-		guishaderRects[name] = nil
+		local found = guishaderRects[name] ~= nil
 		if found then
+			guishaderRects[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -430,12 +419,11 @@ function widget:Initialize()
 		updateStencilTextureScreen = true
 	end
 	WG['guishader'].RemoveScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
+		local found = guishaderScreenDlists[name] ~= nil
+		if found then
+			guishaderScreenDlists[name] = nil
+			updateStencilTextureScreen = true
 		end
-		guishaderScreenDlists[name] = nil
-		updateStencilTextureScreen = true
 		return found
 	end
 	WG['guishader'].DeleteScreenDlist = function(name)
@@ -451,12 +439,11 @@ function widget:Initialize()
 		updateStencilTextureScreen = true
 	end
 	WG['guishader'].RemoveScreenRect = function(name)
-		local found = false
-		if guishaderScreenRects[name] ~= nil then
-			found = true
+		local found = guishaderScreenRects[name] ~= nil
+		if found then
+			guishaderScreenRects[name] = nil
+			updateStencilTextureScreen = true
 		end
-		guishaderScreenRects[name] = nil
-		updateStencilTextureScreen = true
 		return found
 	end
 	WG['guishader'].getBlurDefault = function()

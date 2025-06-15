@@ -161,25 +161,25 @@
 		}
 	},
 	"instance": {
-		"fac_land": ["armlab", "armalab", "armvp", "armavp", "coralab", "corvp", "coravp"],
-		"fac_land2": ["corlab", "armhp", "armfhp", "corhp", "corfhp"],
-		"fac_air": ["armap", "corap", "armaap", "coraap"],
+		"fac_land": ["armlab", "armalab", "armvp", "armavp", "coralab", "corvp", "coravp", "leglab", "legalab", "legvp", "legavp"],
+		"fac_land2": ["corlab", "armhp", "armfhp", "corhp", "corfhp", "leghp", "legfhp"],
+		"fac_air": ["armap", "corap", "armaap", "coraap", "legap", "legaap"],
 		"fac_water": ["armsy", "armasy", "armamsub", "armplat", "corsy", "corasy", "coramsub", "corplat"],
-		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw"],
-		"solar": ["armsolar", "corsolar"],
-		"wind": ["armwin", "corwin", "armtide", "cortide"],
-		"geo": ["armgeo", "corgeo"],
-		"geo2": ["armageo", "corageo"],
-		"fusion": ["armadvsol", "coradvsol"],
-		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus"],
-		"store": ["armmstor", "armestor", "cormstor", "corestor"],
-		"mex": ["armmex", "cormex"],
-		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
-		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
-		"def_low": ["armllt", "armclaw", "corllt", "cormaw"],
-		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp"],
-		"small": ["armrad", "corrad", "armfrad", "corfrad"],
-		"wall": ["armdrag", "cordrag"]
+		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw", "leggant"],
+		"solar": ["armsolar", "corsolar", "legsolar"],
+		"wind": ["armwin", "corwin", "armtide", "cortide", "legwin"],
+		"geo": ["armgeo", "corgeo", "leggeo"],
+		"geo2": ["armageo", "corageo", "legageo"],
+		"fusion": ["armadvsol", "coradvsol", "legadvsol"],
+		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus", "legfus", "legafus"],
+		"store": ["armmstor", "armestor", "cormstor", "corestor", "legmstor", "legestor"],
+		"mex": ["armmex", "cormex", "legmex"],
+		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho"],
+		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
+		"def_low": ["armllt", "armclaw", "corllt", "cormaw", "leglht", "legdtr"],
+		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp", "legnanotc"],
+		"small": ["armrad", "corrad", "armfrad", "corfrad", "legrad", "legfrad"],
+		"wall": ["armdrag", "cordrag", "legdrag"]
 	}
 }
 }

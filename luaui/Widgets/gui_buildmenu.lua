@@ -14,9 +14,10 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
-VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
+
+local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
@@ -75,8 +76,6 @@ local refreshBuildmenu = true
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
-
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -307,9 +306,9 @@ local function clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	prevHoveredCellID = nil
 	if buildmenuTex then
-		gl.DeleteTextureFBO(buildmenuBgTex)
+		gl.DeleteTexture(buildmenuBgTex)
 		buildmenuBgTex = nil
-		gl.DeleteTextureFBO(buildmenuTex)
+		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
 end
@@ -318,7 +317,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font2 = WG['fonts'].getFont(fontFile, 1.25, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
+	font2 = WG['fonts'].getFont(2)
 
 	if WG['minimap'] then
 		minimapHeight = WG['minimap'].getHeight()
@@ -459,10 +458,19 @@ function widget:Update(dt)
 		prevSelBuilderDefs = selBuilderDefs
 	end
 
+	local prevBuildmenuShows = buildmenuShows
 	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
+	end
+
+	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+		if buildmenuShows then
+			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+		else
+			WG['guishader'].RemoveDlist('buildmenu')
+		end
 	end
 
 	sec = sec + dt
@@ -772,9 +780,6 @@ function widget:DrawScreen()
 	end
 
 	if not buildmenuShows then
-		if WG['guishader'] and dlistGuishader then
-			WG['guishader'].RemoveDlist('buildmenu')
-		end
 		return
 	end
 
@@ -805,11 +810,6 @@ function widget:DrawScreen()
 		RefreshCommands()
 		doUpdate = nil
 		refreshBuildmenu = true
-	end
-
-	-- create buildmenu drawlists
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
 	end
 
 	-- create buildmenu

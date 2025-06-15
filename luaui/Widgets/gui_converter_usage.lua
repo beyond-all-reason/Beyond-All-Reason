@@ -15,7 +15,6 @@ function widget:GetInfo()
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2
 
 local RectRound, UiElement
@@ -159,7 +158,7 @@ function widget:ViewResize()
     RectRound = WG.FlowUI.Draw.RectRound
     UiElement = WG.FlowUI.Draw.Element
 
-    font2 = WG['fonts'].getFont(fontfile2)
+    font2 = WG['fonts'].getFont(2)
 end
 
 function widget:Initialize()

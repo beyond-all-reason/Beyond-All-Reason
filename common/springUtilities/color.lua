@@ -33,8 +33,18 @@ local function ColorString(r, g, b)
 	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
 end
 
+local function ColorIsDark(red, green, blue)
+    -- Determines if the (player) color is dark (i.e. if a white outline is needed)
+    if red + green * 1.2 + blue * 0.4 < 0.65 then
+        return true
+	else
+    	return false
+    end
+end
+
 return {
 	ToString = ColorString,
 	ToStringEx = ColorStringEx,
 	ToIntArray = ColorArray,
+	ColorIsDark = ColorIsDark,
 }

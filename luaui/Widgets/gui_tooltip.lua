@@ -33,9 +33,6 @@ local cfgFontSize = 14
 local xOffset = 12
 local yOffset = -xOffset
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = 1
 local usedFontSize = cfgFontSize
@@ -146,9 +143,8 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font, loadedFontSize = WG['fonts'].getFont(nil, 1.2, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
-	font2 = WG['fonts'].getFont(fontfile2, 1.5, 0.22 * outlineMult, 1.1+(outlineMult*0.2))
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2, 1.6)
 
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
@@ -211,6 +207,7 @@ local function drawTooltip(name, x, y)
 			if tooltips[name].title and tooltips[name].title ~= '' then
 				maxHeight = math_ceil(maxHeight - (titleFontSize * 0.1))
 				font2:Begin()
+				font2:SetOutlineColor(0,0,0,0.6)
 				font2:Print('\255\205\255\205'..tooltips[name].title, addX, maxHeight+addY, titleFontSize, "o")
 				font2:End()
 				maxHeight = math_ceil(maxHeight - (titleFontSize * 1.12))
@@ -218,6 +215,7 @@ local function drawTooltip(name, x, y)
 
 			if tooltips[name].value and tooltips[name].value ~= '' then
 				font:Begin()
+				font:SetOutlineColor(0,0,0,0.4)
 				for i, line in ipairs(lines) do
 					font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
 					maxHeight = maxHeight - lineHeight

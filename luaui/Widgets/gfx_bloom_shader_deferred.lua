@@ -72,8 +72,8 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local glGetSun = gl.GetSun
 
@@ -513,9 +513,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
-local luaShaderDir = "LuaUI/Include/"
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-
 function widget:Initialize()
 
 	if glCreateShader == nil then
@@ -549,7 +546,7 @@ function widget:Initialize()
 	end
 
 	MakeBloomShaders()
-	rectVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	rectVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()

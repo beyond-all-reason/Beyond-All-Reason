@@ -578,10 +578,12 @@ function widget:Shutdown()
 		gl.DeleteList(v)
 	end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
+		uiTex = nil
 	end
 	WG['ecostats'] = nil
 end
@@ -623,7 +625,7 @@ local function makeTeamCompositionList()
 
 		if (not uiBgTex or rectAreaChange) and areaRect[4] then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
+				gl.DeleteTexture(uiBgTex)
 			end
 			uiBgTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
@@ -631,7 +633,7 @@ local function makeTeamCompositionList()
 				fbo = true,
 			})
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 			end
 			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
@@ -1365,8 +1367,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.4, 0.45 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
+	font = WG['fonts'].getFont()
 
 	Reinit()
 end

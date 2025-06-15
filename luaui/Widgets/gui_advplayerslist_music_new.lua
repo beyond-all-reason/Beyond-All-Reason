@@ -944,11 +944,11 @@ function widget:Shutdown()
 	end
 	if guishaderList then glDeleteList(guishaderList) end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	WG['music'] = nil
@@ -959,8 +959,7 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1, 0.22 * outlineMult, 1.7+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -990,9 +989,9 @@ function widget:ViewResize(newX,newY)
 
 	updateDrawing = true
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 end

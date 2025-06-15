@@ -83,7 +83,7 @@ SchedulerHST.BScheduler = {
 	'ScoutBST',
 	'RaidBST',
 	'AttackerBST',
-	'BomberBST',
+	--'BomberBST',
 	'ReclaimBST',
 	'CleanerBST',
 	'AntinukeBST',

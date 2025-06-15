@@ -1358,6 +1358,49 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Factory costs test
+
+	if modOptions.factory_costs == true then
+
+		if name == "armmoho" or name == "cormoho" or name == "cormexp" then
+			uDef.metalcost = uDef.metalcost + 50
+			uDef.energycost = uDef.energycost + 2000
+		end
+		if name == "armageo" or name == "corageo" then
+			uDef.metalcost = uDef.metalcost + 100
+			uDef.energycost = uDef.energycost + 4000
+		end
+		if name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" then
+			uDef.metalcost = uDef.metalcost - 1000
+			uDef.workertime = 600
+			uDef.buildtime = uDef.buildtime * 2
+		end
+		if name == "armvp" or name == "corvp" or name == "armlab" or name == "corlab" or name == "armsy" or name == "corsy"then
+			uDef.metalcost = uDef.metalcost - 50
+			uDef.buildtime = uDef.buildtime - 1500
+			uDef.energycost = uDef.energycost - 280
+		end
+		if name == "armap" or name == "corap" or name == "armhp" or name == "corhp" or name == "armfhp" or name == "corfhp" or name == "armplat" or name == "corplat" then
+			uDef.metalcost = uDef.metalcost - 100
+			uDef.buildtime = uDef.buildtime - 600
+			uDef.energycost = uDef.energycost - 100
+		end
+		if name == "armshltx" or name == "corgant" or name == "armshltxuw" or name == "corgantuw" then
+			uDef.workertime = 2000
+			uDef.buildtime = uDef.buildtime * 1.33
+		end
+
+		if tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") then
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015 / 5) * 500
+		end
+		if tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime then
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.0015) * 1000
+		end
+
+		if name == "armnanotc" or name == "cornanotc" or name == "armnanotcplat" or name == "cornanotcplat" then
+			uDef.metalcost = uDef.metalcost + 40
+		end
+	end
 
 	-- Multipliers Modoptions
 

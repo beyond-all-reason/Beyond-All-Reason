@@ -30,12 +30,12 @@ local labGrids = {
 	},
 	legalab = {
 		-- page1
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, strider, spy
-		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
-		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
+		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, hoplite, spy
+		"corvoyr", "corspec", "legshot", "leghrk",             -- radar bot, jammer bot, phalanx, Thanatos
+		"legbart", "legsrail", "legadvaabot", "leginc",        -- belcher, railgun, AA bot, incinerator
 		-- page2
-		"legamph", "leghrk", "legsnapper", "corsktl",				-- amphbious bot, Thanatos, snapper, skuttle
-		"legdecom",					-- decoycom
+		"legamph", "leginfestor", "legsnapper", "corsktl",     -- amphbious bot, infestor, snapper, skuttle
+		"legdecom",					                           -- decoycom
 	},
 	-- T1 vehicle
 	armvp = {
@@ -102,7 +102,7 @@ local labGrids = {
 	legaap = {
 		"legaca", "legafigdef", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
 		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
-		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
+		"legfort", "", "legmineb", ""			--flying fort, empty, minebomber
 	},
 	-- seaplanes
 	armplat = {
@@ -154,7 +154,7 @@ local labGrids = {
 	legamphlab = {
 		"legotter", "legdecom", "legamphtank", "", 		-- amphibious con, decoy com, t1 amphibious tank, idk
 		"",         "legfloat", "legamph",            "", 		-- idk, t2 floating tank, idk, idk
-		"",         "legaabot", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
+		"",         "legaabot", "legadvaabot",      "",		-- idk, t1 aa bot, t2 aa bot, idk
 	},
 	-- hover labs
 	armhp = {
@@ -1073,9 +1073,9 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
-			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "leglupara", },            -- basic AA, SAM, eradicator
+			{ "legctl", "legcluster", },                        -- coastal torp launcher, punisher
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1142,7 +1142,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
@@ -1210,7 +1210,7 @@ local unitGrids = {
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
 			{ "legctl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
@@ -1511,7 +1511,7 @@ local unitGrids = {
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1581,7 +1581,7 @@ local unitGrids = {
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1650,7 +1650,7 @@ local unitGrids = {
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
