@@ -13,7 +13,8 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 if Game.startPosType ~= 2 then
 	return false
@@ -42,10 +43,15 @@ local infotextFontsize = 13
 
 local commanderNameList = {}
 local usedFontSize = fontSize
-
+Spring.Echo(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
-local startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+local startPosScale
+if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
+	startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+else
+	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+end
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
@@ -58,6 +64,7 @@ local amPlaced = false
 local gaiaTeamID
 
 local startTimer = Spring.GetTimer()
+local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local infotextList
 
@@ -183,9 +190,6 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
-
-
 local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
@@ -208,7 +212,7 @@ local shaderSourceCache = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
 			isMiniMap = 0,
-			flipMiniMap = 0,
+			roationMiniMap = 0,
 			mapNormals = 1,
 			heightMapTex = 2,
 			scavTexture = 3,
@@ -239,7 +243,7 @@ local coneShaderSourceCache = {
 	fssrcpath = "LuaUI/Shaders/map_startcone_gl4.frag.glsl",
 	uniformInt = {
 		mapDepths = 0,
-		flipMiniMap = 0,
+		rotationMiniMap = 0,
 	},
 	uniformFloat = {
 		isMiniMap = 0,
@@ -284,7 +288,8 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
-	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+
+	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
@@ -300,7 +305,7 @@ end
 local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
-	startConeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
@@ -512,6 +517,7 @@ function widget:DrawWorld()
 		end
 	end
 
+
 	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
@@ -560,7 +566,12 @@ function widget:ViewResize(x, y)
 	vsx, vsy = x, y
 	widgetScale = (0.75 + (vsx * vsy / 7500000))
 
-	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	local currRot = getCurrentMiniMapRotationOption()
+	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
+		startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+	else
+		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	end
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -579,6 +590,12 @@ end
 
 local sec = 0
 function widget:Update(delta)
+	local currRot = getCurrentMiniMapRotationOption()
+	if lastRot ~= currRot then
+		lastRot = currRot
+		widget:ViewResize(vsx, vsy)
+		return
+	end
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 	end
