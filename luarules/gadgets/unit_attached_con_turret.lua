@@ -19,27 +19,65 @@ end
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
+local CMD_STOP = CMD.STOP
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
 
-local attachedBuilders = {}
-local attachedBuilderDefID = {}
+local baseToTurretDefID = {}
+local repairableDefID = {}
+local reclaimableDefID = {}
 local unitDefRadiusMax = 0
+local combatReclaimDefID = {}
 
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local dimensions = Spring.GetUnitDefDimensions(unitDef.id)
-	if dimensions then
-		unitDefRadiusMax = math.max(dimensions.radius, unitDefRadiusMax)
-	end
-end
+local turretToBaseID = {}
+local turretBuildRadius = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
+---Constructors with attached construction turrets must pass this check.
+---Technically, it seems fine for the turret to have extra buildoptions.
+local function matchBuildOptions(unitDef1, unitDef2)
+	if #unitDef1.buildoptions == #unitDef2.buildoptions then
+		for i, unitName in ipairs(unitDef1.buildoptions) do
+			if not table.contains(unitDef2.buildoptions, unitName) then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option missing.")
+				return false
+			elseif unitName ~= unitDef2.buildoptions[i] then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option in different position.")
+				return false
+			end
+		end
+		return true
+	end
+	return false
+end
+
+local function attachToUnit(baseID, baseDefID, baseTeam)
+	local turretDefID = baseToTurretDefID[baseDefID]
+	local ux, uy, uz = Spring.GetUnitPosition(baseID)
+	local facing = Spring.GetUnitBuildFacing(baseID)
+
+	local turretID = Spring.CreateUnit(turretDefID, ux, uy, uz, facing, baseTeam)
+
+	if turretID then
+		Spring.UnitAttach(baseID, turretID, 3)
+		Spring.SetUnitBlocking(turretID, false, false, false)
+		Spring.SetUnitNoSelect(turretID, true)
+
+		turretToBaseID[turretID] = baseID
+		turretBuildRadius[turretID] = UnitDefs[turretDefID].buildDistance
+
+		return true
+	else
+		Spring.DestroyUnit(baseID)
+	end
+end
+
 local function updateTurretOrder(unitID, unitDefID)
 	-- first, check command the body is performing
-	local commandQueue = Spring.GetUnitCommands(attachedBuilders[unitID], 1)
+	local commandQueue = Spring.GetUnitCommands(turretToBaseID[unitID], 1)
 
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
 		-- build command
@@ -130,7 +168,7 @@ local function updateTurretOrder(unitID, unitDefID)
 		if Spring.GetUnitAllyTeam(nearID) == Spring.GetUnitAllyTeam(unitID) then
 			if ((Spring.GetUnitSeparation(nearID, unitID, true) - Spring.GetUnitRadius(nearID)) < radius) then
 				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(nearID)
-				if buildProgress == 1 and health < maxHealth and UnitDefs[nearDefID].repairable and nearID ~= attachedBuilders[unitID] then
+				if buildProgress == 1 and health < maxHealth and UnitDefs[nearDefID].repairable and nearID ~= turretToBaseID[unitID] then
 					Spring.GiveOrderToUnit(unitID, CMD_REPAIR, { nearID }, {})
 					return
 				end
@@ -177,57 +215,97 @@ local function updateTurretOrder(unitID, unitDefID)
 	end
 
 	-- give stop command to attached con turret if nothing to do
-	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+	Spring.GiveOrderToUnit(unitID, CMD_STOP, {}, {})
 end
 
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	attachedBuilders[unitID] = nil
-	attachedBuilderDefID[unitID] = nil
+function gadget:Initialize()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		-- See unit_attached_con_turret_mex.lua for metal extractors.
+		if unitDef.customParams.attached_con_turret and not (unitDef.extractsMetal and unitDef.extractsMetal > 0) then
+			local turretDef = UnitDefNames[unitDef.customParams.attached_con_turret]
+
+			if turretDef then
+				if not unitDef.buildOptions or (turretDef.buildOptions and matchBuildOptions(unitDef, turretDef)) then
+					local turretDefID = turretDef.id
+					baseToTurretDefID[unitDefID] = turretDefID
+				else
+					local message = "Unit and its attached con turret have different build lists: "
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+				end
+			else
+				local message = "Unit has an incorrect or missing attached con def:"
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message .. unitDef.name)
+			end
+		end
+
+		unitDefRadiusMax = math.max(unitDef.radius, unitDefRadiusMax)
+
+		if unitDef.repairable then
+			repairableDefID[unitDefID] = true
+		end
+
+		if unitDef.reclaimable then
+			reclaimableDefID[unitDefID] = true
+		end
+	end
+
+	if next(baseToTurretDefID) then
+		-- Support `luarules /reload` by reacquiring attached cons.
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+
+			if baseToTurretDefID[unitDefID] then
+				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
+
+				if attachedIDs then
+					for _, attachedID in ipairs(attachedIDs) do
+						local attachedDefID = Spring.GetUnitDefID(attachedID)
+
+						if attachedDefID == baseToTurretDefID[unitDefID] then
+							turretToBaseID[attachedID] = unitID
+							break
+						end
+					end
+					-- The error state may be recoverable, so we reattempt; however,
+					-- recall that `attachToUnit` will destroy the unit on a failure:
+				elseif not attachToUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID)) then
+					local s = "Missing attached unit: %s @ %.1f, %.1f, %.1f"
+					local e = s:format(UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
+				end
+			end
+		end
+
+		-- Feature auto-reclaim is "smart" so ignores resurrectable features.
+		for featureDefID, featureDef in ipairs(FeatureDefs) do
+			if featureDef.reclaimable and (featureDef.resurrectable == 0 or not featureDef.customParams.fromunit) then
+				combatReclaimDefID[featureDefID] = true
+			end
+		end
+	else
+		gadgetHandler:RemoveGadget(self)
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	local unitDef = UnitDefs[unitDefID]
-
-	-- for now, just corvac gets an attached con turret
-	if unitDef.name == "corvac" then
-		local xx, yy, zz = Spring.GetUnitPosition(unitID)
-		local turretID = Spring.CreateUnit("corvacct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
-		if not turretID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID, turretID, 3)
-		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(turretID, false, false, false)
-		Spring.SetUnitNoSelect(turretID, true)
-		attachedBuilders[turretID] = unitID
-		attachedBuilderDefID[turretID] = Spring.GetUnitDefID(turretID)
+	if baseToTurretDefID[unitDefID] then
+		attachToUnit(unitID, unitDefID, unitTeam)
 	end
+end
 
-	if unitDef.name == "legmohobp" then
-		local xx, yy, zz = Spring.GetUnitPosition(unitID)
-		local turretID = Spring.CreateUnit("legmohobpct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
-		if not turretID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID, turretID, 3)
-		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(turretID, false, false, false)
-		Spring.SetUnitNoSelect(turretID, false)
-		attachedBuilders[turretID] = unitID
-		attachedBuilderDefID[turretID] = Spring.GetUnitDefID(turretID)
-	end
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	turretToBaseID[unitID] = nil
+	turretBuildRadius[unitID] = nil
 end
 
 function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 		-- go on a slowupdate cycle
-		for unitID in pairs(attachedBuilders) do
-			updateTurretOrder(unitID, attachedBuilderDefID[unitID])
+		for unitID in pairs(turretToBaseID) do
+			updateTurretOrder(unitID, baseToTurretDefID[unitID])
 		end
 	end
 end
