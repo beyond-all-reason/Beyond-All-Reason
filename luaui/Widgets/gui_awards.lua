@@ -75,6 +75,45 @@ local function findPlayerName(teamID)
 	return name
 end
 
+-- Return a human-readable string for a number using suffixes (k, M, etc).
+local function humaniseNumber(number)
+    local isInteger = math.floor(number) == number
+    -- Special case for non-integers between -10 and 10 -- return 2 decimal places
+    if not isInteger and number < 10 and number > -10 then
+        return string.format("%.2f", number)
+    end
+    -- Unprefixed integers have no decimal places
+    if isInteger and number < 1000 and number > -1000 then
+        return tostring(number)
+    end
+
+    local absnumber = math.abs(number)
+    local prefixes = {{
+        value = 1e12,
+        suffix = "T"
+    }, {
+        value = 1e9,
+        suffix = "B"
+    }, {
+        value = 1e6,
+        suffix = "M"
+    }, {
+        value = 1e3,
+        suffix = "k"
+    }}
+
+    for _, prefix in ipairs(prefixes) do
+        -- A prefix is valid if the absolute number (when rounded) is 1x (or more) of the value
+        -- We check absolute number so this works for negatives
+        -- We check the rounded number so that 999 999 is 1.0M, not 1000.0k
+        local valid = tonumber(string.format("%.0f", absnumber / prefix.value)) >= 1
+        if valid then
+            local scaled = number / prefix.value
+            return string.format("%.1f%s", scaled, prefix.suffix)
+        end
+    end
+end
+
 local function createAward(pic, award, note, noteColour, winnersTable, offset)
 	offset = offset * widgetScale
 
@@ -109,11 +148,11 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 		else	-- others
 			local heightoffset = 0
 			if winnerTeamID >= 0 then
-				font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerTeamID), player = winnerName, textColor = white, score = math.floor(winnerScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+				font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerTeamID), player = winnerName, textColor = white, score = humaniseNumber(winnerScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				heightoffset = heightoffset + (20 * widgetScale)
 			end
 			if secondTeamID >= 0 then
-				font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondTeamID), player = secondName, textColor = white, score = math.floor(secondScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+				font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondTeamID), player = secondName, textColor = white, score = humaniseNumber(secondScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				heightoffset = heightoffset + (20 * widgetScale)
 			end
 			if thirdTeamID >= 0 then
@@ -126,9 +165,9 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			-- normal awards
 			if winnerTeamID >= 0 then
 				if pic == 'comwreath' then
-					winnerScore = round(winnerScore, 2)
+					winnerScore = humaniseNumber(winnerScore)
 				else
-					winnerScore = math.floor(winnerScore)
+					winnerScore = humaniseNumber(math.floor(winnerScore))
 				end
 				font:Print(colourNames(winnerTeamID) .. winnerScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 			else
@@ -138,9 +177,9 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 
 			if secondScore > 0 then
 				if pic == 'comwreath' then
-					secondScore = round(secondScore, 2)
+					secondScore = humaniseNumber(secondScore)
 				else
-					secondScore = math.floor(secondScore)
+					secondScore = humaniseNumber(math.floor(secondScore))
 				end
 				font:End()
 				font2:Begin()
@@ -152,9 +191,9 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 
 			if thirdScore > 0 then
 				if pic == 'comwreath' then
-					thirdScore = round(thirdScore, 2)
+					thirdScore = humaniseNumber(thirdScore)
 				else
-					thirdScore = math.floor(thirdScore)
+					thirdScore = humaniseNumber(math.floor(thirdScore))
 				end
 				font:End()
 				font2:Begin()
