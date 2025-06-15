@@ -16,6 +16,7 @@ local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 
 local maxAllowedWidth = 0.26
@@ -173,8 +174,7 @@ end
 function widget:Update(dt)
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
-		if currRot == 1 or currRot == 3 then
-			-- 90 or 270 degrees
+		if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
 			ratio = Game.mapY / Game.mapX
 		else
 			ratio = Game.mapX / Game.mapY

@@ -15,6 +15,7 @@ function widget:GetInfo()
 end
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 ----------------------------------------------------------------
 -- config
@@ -287,16 +288,16 @@ function widget:DrawInMiniMap(sx, sy)
 		if defs.x then
 			local x, y
 
-			if currRot == 0 then
+			if currRot == ROTATION.DEG_0 then
 				x = defs.x * sx / mapX
 				y = sy - defs.z * sy / mapY
-			elseif currRot == 1 then
+			elseif currRot == ROTATION.DEG_90 then
 				x = defs.z * sx / mapY
 				y = defs.x * sy / mapX
-			elseif currRot == 2 then
+			elseif currRot == ROTATION.DEG_180 then
 				x = sx - defs.x * sx / mapX
 				y = defs.z * sy / mapY
-			elseif currRot == 3 then
+			elseif currRot == ROTATION.DEG_270 then
 				x = sx - defs.z * sx / mapY
 				y = sy - defs.x * sy / mapX
 			end

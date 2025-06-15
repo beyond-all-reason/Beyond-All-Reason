@@ -14,6 +14,7 @@ function widget:GetInfo()
 end
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 if Game.startPosType ~= 2 then
 	return false
@@ -46,7 +47,7 @@ Spring.Echo(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
 local startPosScale
-if getCurrentMiniMapRotationOption() == 1 or getCurrentMiniMapRotationOption() == 3 then
+if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
 	startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 else
 	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
@@ -286,7 +287,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 
-	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or 0)
+	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
@@ -302,7 +303,7 @@ end
 local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
-	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or 0)
+	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
@@ -564,7 +565,7 @@ function widget:ViewResize(x, y)
 	widgetScale = (0.75 + (vsx * vsy / 7500000))
 
 	local currRot = getCurrentMiniMapRotationOption()
-	if currRot == 1 or currRot == 3 then
+	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
 		startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 	else
 		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())

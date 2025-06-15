@@ -14,7 +14,7 @@ local function getMiniMapFlipped()
 end
 
 local ROTATION = {
-    NONE = 0,       -- 0 degrees
+    DEG_0 = 0,      -- 0 degrees
     DEG_90 = 1,     -- 90 degrees clockwise
     DEG_180 = 2,    -- 180 degrees
     DEG_270 = 3     -- 270 degrees clockwise (or 90 degrees counter-clockwise)
