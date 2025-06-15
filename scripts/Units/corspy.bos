@@ -1,19 +1,17 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  head, rthigh, lthigh, rfoot, lleg, lfoot, rleg, pelvis ;
 
-static-var  bMoving, Static_Var_2, Static_Var_3;
+static-var  isMoving, buildTimer;
 // Generated for D:\spring\animation\corspy_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corspy_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	//set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
 			turn head to x-axis <-8.500000> speed <254.999990> / animSpeed; 
 			turn head to z-axis <-0.884000> speed <26.519997> / animSpeed; 
 			turn head to y-axis <0.884000> speed <26.519997> / animSpeed; 
@@ -28,7 +26,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <-1.186994> speed <424.911176> / animSpeed; 
 			move pelvis to z-axis [0.039343] speed [31.395532] / animSpeed; 
 			move pelvis to y-axis [0.983569] speed [108.822112] / animSpeed; 
-			turn pelvis to x-axis <-0.000000> speed <329.999975> / animSpeed; 
+			turn pelvis to x-axis <-0.0> speed <329.999975> / animSpeed; 
 			turn pelvis to y-axis <5.357556> speed <160.726680> / animSpeed; 
 			turn rfoot to x-axis <27.198047> speed <1276.335013> / animSpeed; 
 			turn rfoot to z-axis <-1.693794> speed <50.808809> / animSpeed; 
@@ -40,8 +38,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <3.653189> speed <448.085361> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			turn head to x-axis <-4.700000> speed <113.999990> / animSpeed; 
 			turn head to z-axis <-2.992000> speed <63.239997> / animSpeed; 
 			turn head to y-axis <2.992000> speed <63.239997> / animSpeed; 
@@ -68,7 +66,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <-1.517551> speed <155.122199> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn head to x-axis <8.399999> speed <392.999967> / animSpeed; 
 			turn head to z-axis <-5.508000> speed <75.480002> / animSpeed; 
 			turn head to y-axis <5.508000> speed <75.480002> / animSpeed; 
@@ -95,7 +93,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <1.889787> speed <102.220164> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn head to x-axis <1.700000> speed <200.999981> / animSpeed; 
 			turn head to z-axis <-7.615999> speed <63.239974> / animSpeed; 
 			turn head to y-axis <7.615999> speed <63.239974> / animSpeed; 
@@ -113,7 +111,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rfoot to x-axis <8.011376> speed <1149.500910> / animSpeed; 
 			turn rfoot to z-axis <-2.255484> speed <20.746905> / animSpeed; 
 			turn rfoot to y-axis <0.964495> speed <11.456472> / animSpeed; 
-			turn rleg to x-axis <-4.299766> speed <356.000059> / animSpeed; 
+			turn rleg to x-axis <-4.299766> speed <356.0> / animSpeed; 
 			turn rleg to z-axis <0.087867> speed <39.959610> / animSpeed; 
 			turn rleg to y-axis <-0.257089> speed <44.371897> / animSpeed; 
 			turn rthigh to x-axis <-3.942633> speed <1535.786310> / animSpeed; 
@@ -121,7 +119,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <-0.126288> speed <60.482276> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn head to x-axis <-8.500000> speed <305.999975> / animSpeed; 
 			turn head to z-axis <-8.500000> speed <26.520019> / animSpeed; 
 			turn head to y-axis <8.500000> speed <26.520019> / animSpeed; 
@@ -147,7 +145,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <0.747492> speed <26.213417> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			turn head to x-axis <-4.700000> speed <113.999990> / animSpeed; 
 			turn head to z-axis <-4.700000> speed <113.999990> / animSpeed; 
 			turn head to y-axis <4.700000> speed <113.999990> / animSpeed; 
@@ -158,7 +156,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lleg to z-axis <-1.593439> speed <7.219029> / animSpeed; 
 			turn lleg to y-axis <0.860034> speed <50.364661> / animSpeed; 
 			turn lthigh to x-axis <-102.290627> speed <1276.544119> / animSpeed; 
-			turn lthigh to z-axis <-1.227646> speed <41.000950> / animSpeed; 
+			turn lthigh to z-axis <-1.227646> speed <41.0> / animSpeed; 
 			turn lthigh to y-axis <0.404285> speed <48.812960> / animSpeed; 
 			move pelvis to z-axis [0.629484] speed [33.047922] / animSpeed; 
 			turn pelvis to y-axis <-7.109897> speed <65.614217> / animSpeed; 
@@ -173,7 +171,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <1.276401> speed <15.867266> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn head to x-axis <8.399999> speed <392.999967> / animSpeed; 
 			turn head to z-axis <8.399999> speed <392.999967> / animSpeed; 
 			turn head to y-axis <-8.399999> speed <392.999967> / animSpeed; 
@@ -200,7 +198,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <-0.304817> speed <47.436538> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn head to x-axis <1.700000> speed <200.999981> / animSpeed; 
 			turn head to z-axis <1.700000> speed <200.999981> / animSpeed; 
 			turn head to y-axis <-1.700000> speed <200.999981> / animSpeed; 
@@ -226,7 +224,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn rthigh to y-axis <0.759533> speed <31.930506> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn head to x-axis <-8.500000> speed <305.999975> / animSpeed; 
 			turn head to z-axis <-0.884000> speed <77.519982> / animSpeed; 
 			turn head to y-axis <0.884000> speed <77.519982> / animSpeed; 
@@ -255,16 +253,16 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	move pelvis to y-axis [-2.643835] speed [27.205528];
 	move pelvis to z-axis [1.085860] speed [14.163395];
-	turn head to x-axis <0.000000> speed <98.249992>;
-	turn head to y-axis <0.000000> speed <98.249992>;
-	turn head to z-axis <0.000000> speed <98.249992>;
+	turn head to x-axis <0.0> speed <98.249992>;
+	turn head to y-axis <0.0> speed <98.249992>;
+	turn head to z-axis <0.0> speed <98.249992>;
 	turn lfoot to x-axis <-14.935460> speed <390.333876>;
-	turn lfoot to y-axis <0.000000> speed <19.098727>;
-	turn lfoot to z-axis <0.000000> speed <25.747446>;
+	turn lfoot to y-axis <0.0> speed <19.098727>;
+	turn lfoot to z-axis <0.0> speed <25.747446>;
 	turn lleg to x-axis <-12.244538> speed <387.738000>;
 	turn lleg to y-axis <2.547105> speed <167.296157>;
 	turn lleg to z-axis <-1.053010> speed <146.469962>;
@@ -272,10 +270,10 @@ StopWalking() {
 	turn lthigh to y-axis <-15.350700> speed <106.227794>;
 	turn lthigh to z-axis <-1.422855> speed <24.010606>;
 	turn pelvis to x-axis <10.999999> speed <82.499994>;
-	turn pelvis to y-axis <0.000000> speed <40.181670>;
+	turn pelvis to y-axis <0.0> speed <40.181670>;
 	turn rfoot to x-axis <-15.346453> speed <404.161832>;
-	turn rfoot to y-axis <0.000000> speed <21.519060>;
-	turn rfoot to z-axis <0.000000> speed <14.771893>;
+	turn rfoot to y-axis <0.0> speed <21.519060>;
+	turn rfoot to z-axis <0.0> speed <14.771893>;
 	turn rleg to x-axis <-12.530351> speed <375.374441>;
 	turn rleg to y-axis <-3.121162> speed <131.333077>;
 	turn rleg to z-axis <1.391352> speed <106.810614>;
@@ -298,47 +296,47 @@ UnitSpeed(){
 		sleep 131;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
   call-script StopWalking();
 }
 
 Create()
 {
-	Static_Var_3 = 1;
+	buildTimer = 1;
 	animSpeed = 4;
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
-#define SMOKEPIECE pelvis
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE pelvis
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Reload()
 {
 	sleep 5000;
-	Static_Var_3 = 1;
+	buildTimer = 1;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
-	while( !Static_Var_3 )
+	while( !buildTimer )
 	{
 		sleep 100;
 	}
-	Static_Var_3 = 0;
+	buildTimer = 0;
 	set INBUILDSTANCE to 1;
 	start-script Reload();
 }
@@ -346,11 +344,6 @@ StartBuilding(Func_Var_1)
 StopBuilding()
 {
 	set INBUILDSTANCE to 0;
-}
-
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_2 = Func_Var_1;
 }
 
 AimWeapon1()
@@ -373,10 +366,6 @@ AimFromWeapon1(piecenum)
 	piecenum = head;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = head;
-}
 
 Killed(severity, corpsetype)
 {

@@ -1,168 +1,166 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lbLeg, lbFoot, rbLeg, rbFoot, lfLeg, lfFoot, rfLeg,
        rfFoot;
 
-static-var  bMoving;
+static-var  isMoving;
 
 
-MotionControl()
+Movement()
 {
 	while( TRUE )
 	{
-		if( bMoving )
+		if( isMoving )
 		{
 		turn base to y-axis <-18> speed <60>;
 		move base to x-axis [0] speed [10];
 		
-		turn rfleg to y-axis <0> speed <255.000000>;
-		turn rfleg to z-axis <0> speed <135.000000>;
-		turn rffoot to z-axis <0> speed <285.000000>;
+		turn rfleg to y-axis <0> speed <255.0>;
+		turn rfleg to z-axis <0> speed <135.0>;
+		turn rffoot to z-axis <0> speed <285.0>;
 		
-		turn lfleg to y-axis <19> speed <405.000000>;
-		turn lfleg to z-axis <-24> speed <300.000000>;
-		turn lffoot to z-axis <13> speed <30.000000>;
+		turn lfleg to y-axis <19> speed <405.0>;
+		turn lfleg to z-axis <-24> speed <300.0>;
+		turn lffoot to z-axis <13> speed <30.0>;
 		
-		turn lbleg to y-axis <0> speed <405.000000>;
-		turn lbleg to z-axis <0> speed <75.000000>;
-		turn lbfoot to z-axis <0> speed <180.000000>;
+		turn lbleg to y-axis <0> speed <405.0>;
+		turn lbleg to z-axis <0> speed <75.0>;
+		turn lbfoot to z-axis <0> speed <180.0>;
 		
 		
-		turn rbleg to y-axis <19> speed <285.000000>;
-		turn rbleg to z-axis <24> speed <15.000000>;
-		turn rbfoot to z-axis <-13> speed <90.000000>;
+		turn rbleg to y-axis <19> speed <285.0>;
+		turn rbleg to z-axis <24> speed <15.0>;
+		turn rbfoot to z-axis <-13> speed <90.0>;
 		
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		//step 1
 		turn base to y-axis <-12> speed <60>;
 		move base to x-axis [2] speed [10];
 		
-		turn rfleg to y-axis <-27> speed <405.000000>;
-		turn rfleg to z-axis <5> speed <75.000000>;
-		turn rffoot to z-axis <-12> speed <180.000000>;
+		turn rfleg to y-axis <-27> speed <405.0>;
+		turn rfleg to z-axis <5> speed <75.0>;
+		turn rffoot to z-axis <-12> speed <180.0>;
 		
-		turn lfleg to y-axis <0> speed <285.000000>;
-		turn lfleg to z-axis <-23> speed <15.000000>;
-		turn lffoot to z-axis <7> speed <90.000000>;
+		turn lfleg to y-axis <0> speed <285.0>;
+		turn lfleg to z-axis <-23> speed <15.0>;
+		turn lffoot to z-axis <7> speed <90.0>;
 		
-		turn lbleg to y-axis <17> speed <255.000000>;
-		turn lbleg to z-axis <9> speed <135.000000>;
-		turn lbfoot to z-axis <-19> speed <285.000000>;
+		turn lbleg to y-axis <17> speed <255.0>;
+		turn lbleg to z-axis <9> speed <135.0>;
+		turn lbfoot to z-axis <-19> speed <285.0>;
 		
 		
-		turn rbleg to y-axis <46> speed <405.000000>;
-		turn rbleg to z-axis <4> speed <300.000000>;
-		turn rbfoot to z-axis <-11> speed <30.000000>;
+		turn rbleg to y-axis <46> speed <405.0>;
+		turn rbleg to z-axis <4> speed <300.0>;
+		turn rbfoot to z-axis <-11> speed <30.0>;
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		turn base to y-axis <12> speed <60>;
 		move base to x-axis [2] speed [10];
 		//step 2 
-		turn rfleg to y-axis <-46> speed <285.000000>;
-		turn rfleg to z-axis <4> speed <15.000000>;
-		turn rffoot to z-axis <-11> speed <15.000000>;
+		turn rfleg to y-axis <-46> speed <285.0>;
+		turn rfleg to z-axis <4> speed <15.0>;
+		turn rffoot to z-axis <-11> speed <15.0>;
 		
-		turn lfleg to y-axis <-17> speed <255.000000>;
-		turn lfleg to z-axis <9> speed <480.000000>;
-		turn lffoot to z-axis <-19> speed <390.000000>;
+		turn lfleg to y-axis <-17> speed <255.0>;
+		turn lfleg to z-axis <9> speed <480.0>;
+		turn lffoot to z-axis <-19> speed <390.0>;
 		
-		turn lbleg to y-axis <0> speed <255.000000>;
-		turn lbleg to z-axis <-23> speed <480.000000>;
-		turn lbfoot to z-axis <7> speed <390.000000>;
+		turn lbleg to y-axis <0> speed <255.0>;
+		turn lbleg to z-axis <-23> speed <480.0>;
+		turn lbfoot to z-axis <7> speed <390.0>;
 		
 		
-		turn rbleg to y-axis <27> speed <285.000000>;
-		turn rbleg to z-axis <5> speed <15.000000>;
-		turn rbfoot to z-axis <-12> speed <15.000000>;
+		turn rbleg to y-axis <27> speed <285.0>;
+		turn rbleg to z-axis <5> speed <15.0>;
+		turn rbfoot to z-axis <-12> speed <15.0>;
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 		
 		turn base to y-axis <18> speed <60>;
 		move base to x-axis [0] speed [10];
 		//step 3 
-		turn rfleg to y-axis <-19> speed <405.000000>;
-		turn rfleg to z-axis <24> speed <300.000000>;
-		turn rffoot to z-axis <-13> speed <30.000000>;
+		turn rfleg to y-axis <-19> speed <405.0>;
+		turn rfleg to z-axis <24> speed <300.0>;
+		turn rffoot to z-axis <-13> speed <30.0>;
 		
-		turn lfleg to y-axis <0> speed <255.000000>;
-		turn lfleg to z-axis <0> speed <135.000000>;
-		turn lffoot to z-axis <0> speed <285.000000>;
+		turn lfleg to y-axis <0> speed <255.0>;
+		turn lfleg to z-axis <0> speed <135.0>;
+		turn lffoot to z-axis <0> speed <285.0>;
 		
-		turn lbleg to y-axis <-19> speed <285.000000>;
-		turn lbleg to z-axis <-24> speed <15.000000>;
-		turn lbfoot to z-axis <13> speed <90.000000>;
+		turn lbleg to y-axis <-19> speed <285.0>;
+		turn lbleg to z-axis <-24> speed <15.0>;
+		turn lbfoot to z-axis <13> speed <90.0>;
 		
 		
-		turn rbleg to y-axis <0> speed <405.000000>;
-		turn rbleg to z-axis <0> speed <75.000000>;
-		turn rbfoot to z-axis <0> speed <180.000000>;
+		turn rbleg to y-axis <0> speed <405.0>;
+		turn rbleg to z-axis <0> speed <75.0>;
+		turn rbfoot to z-axis <0> speed <180.0>;
 		
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 			
 		turn base to y-axis <12> speed <60>;
 		move base to x-axis [-2] speed [10];
 		//step 4 
-		turn rfleg to y-axis <0> speed <285.000000>;
-		turn rfleg to z-axis <23> speed <15.000000>;
-		turn rffoot to z-axis <-7> speed <90.000000>;
+		turn rfleg to y-axis <0> speed <285.0>;
+		turn rfleg to z-axis <23> speed <15.0>;
+		turn rffoot to z-axis <-7> speed <90.0>;
 		
-		turn lfleg to y-axis <27> speed <405.000000>;
-		turn lfleg to z-axis <-5> speed <75.000000>;
-		turn lffoot to z-axis <12> speed <180.000000>;
+		turn lfleg to y-axis <27> speed <405.0>;
+		turn lfleg to z-axis <-5> speed <75.0>;
+		turn lffoot to z-axis <12> speed <180.0>;
 		
-		turn lbleg to y-axis <-46> speed <405.000000>;
-		turn lbleg to z-axis <-4> speed <300.000000>;
-		turn lbfoot to z-axis <11> speed <30.000000>;
+		turn lbleg to y-axis <-46> speed <405.0>;
+		turn lbleg to z-axis <-4> speed <300.0>;
+		turn lbfoot to z-axis <11> speed <30.0>;
 		
-		turn rbleg to y-axis <-17> speed <255.000000>;
-		turn rbleg to z-axis <-9> speed <135.000000>;
-		turn rbfoot to z-axis <19> speed <285.000000>;
+		turn rbleg to y-axis <-17> speed <255.0>;
+		turn rbleg to z-axis <-9> speed <135.0>;
+		turn rbfoot to z-axis <19> speed <285.0>;
 		
 		sleep 60;
 		}
-		if( bMoving )
+		if( isMoving )
 		{
 	
 		turn base to y-axis <-12> speed <60>;
 		move base to x-axis [-2] speed [10];
 		//step 5 
-		turn rfleg to y-axis <17> speed <255.000000>;
-		turn rfleg to z-axis <-9> speed <480.000000>;
-		turn rffoot to z-axis <19> speed <390.000000>;
+		turn rfleg to y-axis <17> speed <255.0>;
+		turn rfleg to z-axis <-9> speed <480.0>;
+		turn rffoot to z-axis <19> speed <390.0>;
 		
 		
-		turn lfleg to y-axis <46> speed <285.000000>;
-		turn lfleg to z-axis <-4> speed <15.000000>;
-		turn lffoot to z-axis <11> speed <15.000000>;
+		turn lfleg to y-axis <46> speed <285.0>;
+		turn lfleg to z-axis <-4> speed <15.0>;
+		turn lffoot to z-axis <11> speed <15.0>;
 		
-		turn lbleg to y-axis <-27> speed <285.000000>;
-		turn lbleg to z-axis <-5> speed <15.000000>;
-		turn lbfoot to z-axis <12> speed <15.000000>;
+		turn lbleg to y-axis <-27> speed <285.0>;
+		turn lbleg to z-axis <-5> speed <15.0>;
+		turn lbfoot to z-axis <12> speed <15.0>;
 		
-		turn rbleg to y-axis <0> speed <255.000000>;
-		turn rbleg to z-axis <23> speed <480.000000>;
-		turn rbfoot to z-axis <-7> speed <390.000000>;
+		turn rbleg to y-axis <0> speed <255.0>;
+		turn rbleg to z-axis <23> speed <480.0>;
+		turn rbfoot to z-axis <-7> speed <390.0>;
 		
 		sleep 60;
 		}
-		if( !bMoving )
+		if( !isMoving )
 		{
 			sleep 100;
 		}
@@ -172,37 +170,38 @@ MotionControl()
 
 Create()
 {
-	bMoving = FALSE;
-	start-script MotionControl();
+	isMoving = FALSE;
+	start-script Movement();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-StartMoving()
+#define BASEPIECE base
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+StartMoving(reversing)
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 	
-	turn rfleg to y-axis <0> speed <255.000000>;
-	turn rfleg to z-axis <0> speed <135.000000>;
-	turn rffoot to z-axis <0> speed <285.000000>;
+	turn rfleg to y-axis <0> speed <255.0>;
+	turn rfleg to z-axis <0> speed <135.0>;
+	turn rffoot to z-axis <0> speed <285.0>;
 	
-	turn lfleg to y-axis <0> speed <405.000000>;
-	turn lfleg to z-axis <0> speed <300.000000>;
-	turn lffoot to z-axis <0> speed <30.000000>;
+	turn lfleg to y-axis <0> speed <405.0>;
+	turn lfleg to z-axis <0> speed <300.0>;
+	turn lffoot to z-axis <0> speed <30.0>;
 	
-	turn lbleg to y-axis <0> speed <405.000000>;
-	turn lbleg to z-axis <0> speed <75.000000>;
-	turn lbfoot to z-axis <0> speed <180.000000>;
+	turn lbleg to y-axis <0> speed <405.0>;
+	turn lbleg to z-axis <0> speed <75.0>;
+	turn lbfoot to z-axis <0> speed <180.0>;
 	
-	turn rbleg to y-axis <0> speed <285.000000>;
-	turn rbleg to z-axis <0> speed <15.000000>;
-	turn rbfoot to z-axis <0> speed <90.000000>;
+	turn rbleg to y-axis <0> speed <285.0>;
+	turn rbleg to z-axis <0> speed <15.0>;
+	turn rbfoot to z-axis <0> speed <90.0>;
 	
 	turn base to y-axis <0> speed <60>;
 	move base to x-axis [0] speed [10];
@@ -215,25 +214,27 @@ AimWeapon1()
 	return (TRUE);
 }
 
+AimWeapon2()
+{
+	return (TRUE);
+}
+
 FireWeapon1()
 {
+
 	get KILL_UNIT(get MY_ID,TRUE,FALSE);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -241,53 +242,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode rfleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lffoot type BITMAPONLY | NOHEATCLOUD;
-		//explode rbleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rbfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode lbleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lbfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode rfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lffoot type FALL | NOHEATCLOUD;
-		//explode rbleg type FALL | NOHEATCLOUD;
-		//explode rbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode rffoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbfoot type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rffoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lffoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
