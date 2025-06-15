@@ -157,9 +157,9 @@ in Data {
 	vec4 pieceVertexPosOrig; // .w contains model maxY
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
-	vec3 worldTangent;
+	vec3 worldTangent_VS; // needs to be normalized due to varying interpolation
 	//vec3 worldBitangent;
-	vec3 worldNormal;
+	vec3 worldNormal_VS; // needs to be normalized due to varying interpolation
 
 	vec4 uvCoords;
 	flat vec4 teamCol; //.a contains selectedness
@@ -167,7 +167,7 @@ in Data {
 //	vec3 worldCameraDir;
 
 	// shadowPosition
-	vec4 shadowVertexPos;
+	vec4 shadowVertexPos; // has construction progress in .w
 
 
 	//vec3 debugvarying; // for passing through debug garbage
@@ -768,7 +768,11 @@ void main(void){
 	#line 30540
 
 	vec2 myUV = uvCoords.xy;
-	float unitID = uvCoords.z;
+	float unitID = floor(uvCoords.z + 0.5); // Because it sometimes interpolated to a bit below integer value
+
+	vec3 worldNormal = normalize(worldNormal_VS.xyz);
+	vec3 worldTangent = normalize(worldTangent_VS.xyz);
+	
 	vec3 worldBitangent = normalize(cross(worldNormal, worldTangent));
 	mat3 worldTBN = mat3(worldTangent, worldBitangent, worldNormal);
 
