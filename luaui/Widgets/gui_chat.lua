@@ -1178,9 +1178,15 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 			font3:Begin()
+			if chatLines[i].textOutline then
+				font3:SetOutlineColor(1,1,1,1)
+			else
+				font3:SetOutlineColor(0,0,0,1)
+			end
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
@@ -1192,12 +1198,17 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font:SetOutlineColor(0,0,0,1)
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		font3:Begin()
-		font3:SetOutlineColor(0,0,0,1)
+		if chatLines[i].textOutline then
+			font3:SetOutlineColor(1,1,1,1)
+		else
+			font3:SetOutlineColor(0,0,0,1)
+		end
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else

@@ -348,6 +348,7 @@ local function updateComs(forceText)
 		if gameFrame > 0 or forceText then
 			font2:Begin()
 			local fontsize = (height / 2.85) * widgetScale
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\255\000\000' .. enemyComCount, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
 			fontSize = (height / 2.15) * widgetScale
 			font2:Print("\255\000\255\000" .. allyComs, area[1] + ((area[3] - area[1]) / 2), area[2] + ((area[4] - area[2]) / 2.05) - (fontSize / 5), fontSize, 'oc')
@@ -412,6 +413,7 @@ local function updateWind()
 			local fontsize = (height / 3.7) * widgetScale
 			if minWind+maxWind >= 0.5 then
 				font2:Begin()
+				font2:SetOutlineColor(0,0,0,1)
 				font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
 				font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
 				-- uncomment below to display average wind speed on UI
@@ -419,6 +421,7 @@ local function updateWind()
 				font2:End()
 			else
 				font2:Begin()
+				font2:SetOutlineColor(0,0,0,1)
 				--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
@@ -468,6 +471,7 @@ local function updateTidal()
 		if not useRenderToTexture then
 			local fontSize = (height / 2.66) * widgetScale
 			font2:Begin()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 			font2:End()
 		end
@@ -480,6 +484,7 @@ end
 
 local function drawResbarPullIncome(res)
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	-- Text: pull
 	font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 	-- Text: expense
@@ -491,6 +496,7 @@ end
 
 local function drawResbarStorage(res)
 	font2:Begin()
+	font2:SetOutlineColor(0,0,0,1)
 	if res == 'metal' then
 		font2:SetTextColor(0.55, 0.55, 0.55, 1)
 	else
@@ -1684,6 +1690,7 @@ function widget:DrawScreen()
 					local fontSize = (height / 2.66) * widgetScale
 					dlistWindText[currentWind] = glCreateList(function()
 						font2:Begin()
+						font2:SetOutlineColor(0,0,0,1)
 						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
 						font2:End()
 					end)
@@ -1726,6 +1733,7 @@ function widget:DrawScreen()
 
 					local fontSize = (height / 2.66) * widgetScale
 					font2:Begin()
+					font2:SetOutlineColor(0,0,0,1)
 					font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
 					font2:End()
 					gl.PopMatrix()
