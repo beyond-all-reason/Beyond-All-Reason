@@ -24,21 +24,21 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isImmobile then
 		shouldNotBuggeroff[unitDefID] = true
 	end
-	
+
 	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
 end
 
 local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	if not ux then return false end
-	
+
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 	if not vx then return false end
-	
+
 	local futureX = ux + vx * seconds * Game.gameSpeed
 	local futureY = uy + vy * seconds * Game.gameSpeed
 	local futureZ = uz + vz * seconds * Game.gameSpeed
-	
+
 	local dx = futureX - tx
 	local dy = futureY - ty
 	local dz = futureZ - tz
@@ -99,7 +99,7 @@ function gadget:GameFrame(frame)
 		local builderTeam   = Spring.GetUnitTeam(builderID);
 		if targetID then isBuilding = true end
 		local visited = {}
-		
+
 		if cmdID == nil or cmdID > -1 or math.distance2d(targetX, targetZ, x, z) > FAST_UPDATE_RADIUS  then
 			watchedBuilders[builderID]	  	= nil
 			slowUpdateBuilders[builderID]   = true
@@ -116,7 +116,7 @@ function gadget:GameFrame(frame)
 				visited[builderID] = true
 			end
 			builderTeams[builderTeam] = true
-			-- Escalate the radius every update. We want to send units away the minimum distance, but  
+			-- Escalate the radius every update. We want to send units away the minimum distance, but
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
@@ -128,7 +128,7 @@ function gadget:GameFrame(frame)
 					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitX, unitZ)
 
-						if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then 
+						if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
 							Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT )
 						end
 					end
@@ -189,11 +189,14 @@ function gadget:Initialize()
 		for _, unitID in ipairs(unitList) do
 			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
 		end
-	end	
+	end
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	cachedBuilderTeams[unitID] = nil
+	watchedBuilders[unitID] = nil
+	slowUpdateBuilders[unitID] = nil
+	builderRadiusOffsets[unitID] = nil
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)

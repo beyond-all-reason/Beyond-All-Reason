@@ -1,80 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4;
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn enginec to x-axis <90.021978> speed <62.000000>;
-		turn engines to x-axis <90> speed <30.000000>;
-		turn wingl to z-axis <-135> speed <90.000000>;
-		turn wingr to z-axis <135> speed <90.000000>;
-		sleep 1457;
-	}
-	sleep 6;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn enginec to x-axis <0> speed <62.000000>;
-		
-		turn engines to x-axis <0> speed <30.000000>;
-		turn wingl to z-axis <0> speed <90.000000>;
-		turn wingr to z-axis <0> speed <90.000000>;
-		sleep 1446;
-	}
-	sleep 4;
-}
-
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -83,12 +16,12 @@ Create()
 	hide thrust2;
 	hide thrust1;
 	hide thrustc;
+
 	turn thrust1 to x-axis <-90> now;
 	turn thrust2 to x-axis <-90> now;
 	turn thrust3 to x-axis <-90> now;
 	turn thrust4 to x-axis <-90> now;
 	turn thrustc to x-axis <-90> now; 
-	call-script InitState();
 }
 
 Activate()
@@ -98,7 +31,11 @@ Activate()
 	show thrust2;
 	show thrust1;
 	show thrustc;
-	start-script RequestState(0);
+
+	turn enginec to x-axis <90> speed <62.0>;
+	turn engines to x-axis <90> speed <30.0>;
+	turn wingl to z-axis <-135> speed <90.0>;
+	turn wingr to z-axis <135> speed <90.0>;
 }
 
 Deactivate()
@@ -108,29 +45,30 @@ Deactivate()
 	hide thrust2;
 	hide thrust1;
 	hide thrustc;
-	start-script RequestState(1);
+
+	turn enginec to x-axis <0> speed <62.0>;
+	turn engines to x-axis <0> speed <30.0>;
+	turn wingl to z-axis <0> speed <90.0>;
+	turn wingr to z-axis <0> speed <90.0>;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	turn doorl to z-axis <-60> speed <120>;
 	turn doorr to z-axis <60> speed <120>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-FirePrimary()
+FireWeapon1()
 {
- 	sleep 11;
+ 	sleep 1000;
+	turn doorl to z-axis <0> speed <120>;
+	turn doorr to z-axis <0> speed <120>;
 }
 
 Killed(severity, corpsetype)

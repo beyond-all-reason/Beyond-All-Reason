@@ -66,7 +66,7 @@ end
 local function clear()
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if WG['guishader'] and dlistGuishader then
@@ -118,7 +118,7 @@ function widget:ViewResize()
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 end

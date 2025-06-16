@@ -1,27 +1,29 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16, turretmis, misbox, misflare;
+piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
-#define SIG_AIM				4
-#define SIG_AIM_2			8
+#define SIGNAL_AIM1 256
 
 
-#define BASEPIECE base
-#define HITSPEED <10.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 8
-#define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_PIECE wake1
+#define RB_WAKE_CEG 1024 + 1
+#define RB_BOWSPLASH_PIECE wake2
+#define RB_BOWSPLASH_CEG 1024 + 2
+
+#include "../bar_ships_common.h"
 
 Lights()
 {
@@ -36,24 +38,6 @@ Lights()
 	start-script Lights();
 }
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.11> )
-		{
-			rockSpeed = <1.25> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*2;
-			wait-for-turn base around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
 
 Go()
 {
@@ -63,7 +47,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -96,11 +80,9 @@ Create()
 	hide blink;
 	hide wake1;
 	hide wake2;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
 }
 
 Activate()
@@ -115,102 +97,38 @@ Deactivate()
 }
 
 
-waveSplash()
+StartMoving(reversing)
 {
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
-	}
-}
 
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	var bowtime;
-	bowtime = 0;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake1;
-		if (bowtime) emit-sfx 1024 + 2 from wake2;
-        bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
-	}
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <1.0>;
-	move base to y-axis [0.0] speed [0.17];
+
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	start-script RestoreAfterDelay();
-	return (0);
-}
 
-FirePrimary()
+AimWeapon1(heading, pitch)
 {
-	sleep 150;
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = radar;
-	return (0);
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = radar;
-	return (0);
-}
-
-AimSecondary(heading, pitch)
-{
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn turretmis to y-axis heading speed <300.000000>;
-	turn misbox to x-axis <0> - pitch speed <300>;  //?
-	wait-for-turn turretmis around y-axis;
-	wait-for-turn misbox around x-axis;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireSecondary()
+FireWeapon1()
 {
-	return (0);
 }
 
-AimFromSecondary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = turretmis;
-	return (0);
+	pieceIndex = radar;
 }
 
-QuerySecondary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = misflare;
-	return (0);
+	pieceIndex = radar;
 }
 
 Killed(severity, corpsetype)

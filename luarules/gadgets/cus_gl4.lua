@@ -1623,7 +1623,7 @@ local function ExecuteDrawPass(drawPass)
 	gl.Culling(GL.BACK)
 	if (drawPass == 1) then --forward opaque pass
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- 
-		gl.PolygonOffset(-2.0, -2.0);
+		--gl.PolygonOffset(-2.0, -2.0);
 	end
 	
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
@@ -1685,7 +1685,7 @@ local function ExecuteDrawPass(drawPass)
 	end
 	if drawPass == 1 then
 		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
-		gl.PolygonOffset(0, 0);
+		--gl.PolygonOffset(0, 0);
 	end
 	
 	--drawpassstats[drawPass].batches = batches

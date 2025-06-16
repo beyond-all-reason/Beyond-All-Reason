@@ -228,11 +228,12 @@ function widget:Update(dt)
 	sec = 0
 
 	-- get units under selection rectangle
+	local isGodMode = spIsGodModeEnabled()
 	local mouseSelection
 	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
-		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and -2) or {}		-- -2 = own units
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and not isGodMode and -2) or {}		-- -2 = own units
 	end
 
 	local newSelection = {}
@@ -247,7 +248,6 @@ function widget:Update(dt)
 		-- skip if deselect or append since it won't deselect on empty selection.
 		equalsMouseSelection = #referenceSelection == 0
 	end
-	local isGodMode = spIsGodModeEnabled()
 
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]

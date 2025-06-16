@@ -567,7 +567,7 @@ end
 
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][7] or gameFrame < playernames[playername][7]) then
 			if not mySpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
@@ -655,7 +655,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
-			textOutline = ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3]),
+			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -1179,9 +1179,19 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
+<<<<<<< blended-render2texture
 			font3:Begin(customBlend)
+=======
+			font3:Begin()
+			if chatLines[i].textOutline then
+				font3:SetOutlineColor(1,1,1,1)
+			else
+				font3:SetOutlineColor(0,0,0,1)
+			end
+>>>>>>> master
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
@@ -1193,12 +1203,22 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font:SetOutlineColor(0,0,0,1)
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
+<<<<<<< blended-render2texture
 		font3:Begin(customBlend)
 		font3:SetOutlineColor(0,0,0,1)
+=======
+		font3:Begin()
+		if chatLines[i].textOutline then
+			font3:SetOutlineColor(1,1,1,1)
+		else
+			font3:SetOutlineColor(0,0,0,1)
+		end
+>>>>>>> master
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else
@@ -1911,7 +1931,7 @@ function widget:DrawScreen()
 			refreshUi = false
 			updateDrawUi = true
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
@@ -2413,7 +2433,7 @@ function widget:PlayerChanged(playerID)
 		if isSpec ~= playernames[name].isSpec then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][6] = Spring.GetGameFrame()	-- log frame of death
+				playernames[name][7] = Spring.GetGameFrame()	-- log frame of death
 			end
 		end
 	end
@@ -2421,7 +2441,7 @@ end
 
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -2573,7 +2593,7 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 

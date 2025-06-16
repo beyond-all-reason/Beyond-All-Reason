@@ -1,44 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwing, centerwing, centerpadd, rhookbase, rhookext1, rhookext2, rhook, lhookbase, lhookext1, lhookext2, lhook;
-
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
-
-
-activatescr()   //transport start  - LOAD - animation of claws
-{
-	if( TRUE ) //
-	{
-		//move larm3 to y-axis <-5> now;
-		//move rarm3 to y-axis <-5> now;
-		//turn larm2 to z-axis <-45> speed <90>;
-		//turn rarm2 to z-axis <45> speed <90>;
-
-
-		sleep 50;  //close
-
-		//turn larm2 to z-axis <0> speed <90>;
-		//turn rarm2 to z-axis <0> speed <90>;
-
-	}
-	sleep 50;
-}
-
-deactivatescr()  //transport end - UNLOAD -
-{
-	if( TRUE )
-	{
-		//turn larm2 to z-axis <-45> speed <90>;
-		//turn rarm2 to z-axis <45> speed <90>;
-		sleep 100;
-		//turn larm2 to z-axis <0> speed <90>;
-		//turn rarm2 to z-axis <0> speed <90>;
-	}
-	sleep 50;
-}
 
 
 #define BASEPIECE base
@@ -50,75 +13,9 @@ deactivatescr()  //transport end - UNLOAD -
 #define IDLEHOVERSCALE 16
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-/*
-StartMoving(){
-	get PRINT( get GAME_FRAME,1111);
-	isIdle = TRUE;
-}
-
-
-StopMoving(){
-	get PRINT( get GAME_FRAME,2222);
-	isIdle = FALSE;
-}
-
-MoveRate0(){
-	get PRINT(get GAME_FRAME,333, 00);
-}
-SetSFXOccupy(terraintype){
-	get PRINT(get GAME_FRAME,0, terraintype);
-}
-
-
-MoveRate1(){
-	get PRINT(get GAME_FRAME,333, 11);
-}
-
-MoveRate2(){
-	get PRINT(get GAME_FRAME,333, 22);
-}
-
-MoveRate3(){
-	get PRINT(get GAME_FRAME,333, 33);
-}*/
 
 Create()
 {
@@ -127,36 +24,23 @@ Create()
 	hide thrustr;
 	hide thrustm;
 	hide link;
-	turn jetl to x-axis <-90.000000> now;
-	turn jetr to x-axis <-90.000000> now;
-	Static_Var_1 = 0;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	turn jetl to x-axis <-90.0> now;
+	turn jetr to x-axis <-90.0> now;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
 
-SweetSpot(piecenum)
+
+QueryTransport(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = 1;
 }
 
 
-QueryTransport(Func_Var_1)
+BeginTransport(targetHeight)
 {
-	Func_Var_1 = 1;
-}
-
-
-BeginTransport(Func_Var_1)
-{
-	move link to y-axis [0.000000] - Func_Var_1 now;
-	start-script RequestState(0);
-	//move larm3 to y-axis [-3] now;
-	//move rarm3 to y-axis [-3] now;
+	move link to y-axis [0.0] - targetHeight now;
 
 }
 
@@ -176,35 +60,32 @@ Deactivate()
 
 EndTransport()
 {
-	start-script RequestState(1);
 }
-
-
 
 MoveRate0()
 {
-	turn jetl to x-axis <-90.000000> speed <150.000000>;
-	turn jetr to x-axis <-90.000000> speed <150.000000>;
+	turn jetl to x-axis <-90.0> speed <150.0>;
+	turn jetr to x-axis <-90.0> speed <150.0>;
 
 }
 
 MoveRate1()
 {
-	turn jetl to x-axis <-70.000000> speed <75.000000>;
-	turn jetr to x-axis <-70.000000> speed <75.000000>;
+	turn jetl to x-axis <-70.0> speed <75.0>;
+	turn jetr to x-axis <-70.0> speed <75.0>;
 }
 
 MoveRate2()
 {
-	turn jetl to x-axis <-50.000000> speed <55.000000>;
-	turn jetr to x-axis <-50.000000> speed <55.000000>;
+	turn jetl to x-axis <-50.0> speed <55.0>;
+	turn jetr to x-axis <-50.0> speed <55.0>;
 
 }
 
 MoveRate3()
 {
-	turn jetl to x-axis <0.000000> speed <85.000000>;
-	turn jetr to x-axis <0.000000> speed <85.000000>;
+	turn jetl to x-axis <0.0> speed <85.0>;
+	turn jetr to x-axis <0.0> speed <85.0>;
 }
 
 
