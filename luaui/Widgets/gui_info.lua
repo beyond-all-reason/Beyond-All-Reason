@@ -1922,7 +1922,7 @@ function widget:DrawScreen()
 			)
 		end
 		if not infoTex then
-			infoTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {
+			infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
 				target = GL.TEXTURE_2D,
 				format = GL.RGBA,
 				fbo = true,

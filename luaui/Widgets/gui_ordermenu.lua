@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -538,10 +537,6 @@ local function drawCell(cell, zoom)
 				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
 				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
 			end
-			if useRenderToTexture then
-				color1[4] = color1[4] * 2.1
-				color2[4] = color2[4] * 2.1
-			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
 				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
@@ -554,7 +549,7 @@ local function drawCell(cell, zoom)
 			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
-		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, useRenderToTexture and 1.66)
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
 
 		-- icon
 		if showIcons then
@@ -715,9 +710,7 @@ local function drawCell(cell, zoom)
 	end
 end
 local function drawOrdersBackground()
-	-- just making sure blending mode is correct
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawOrders()
@@ -801,16 +794,14 @@ function widget:DrawScreen()
 
 		if not displayListOrders and not useRenderToTexture then
 			displayListOrders = gl.CreateList(function()
-				if not useRenderToTextureBg then
-					drawOrdersBackground()
-				end
 				if not useRenderToTexture then
+					drawOrdersBackground()
 					drawOrders()
 				end
 			end)
 		end
 
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if not ordermenuBgTex then
 				ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 					target = GL.TEXTURE_2D,
@@ -818,16 +809,15 @@ function widget:DrawScreen()
 					fbo = true,
 				})
 				if ordermenuBgTex then
-					gl.RenderToTexture(ordermenuBgTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.Color(1,1,1,1)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawOrdersBackground()
-						gl.PopMatrix()
-					end)
+					gl.R2tHelper.RenderToTexture(ordermenuBgTex,
+						function()
+							gl.Translate(-1, -1, 0)
+							gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+							drawOrdersBackground()
+						end,
+						useRenderToTexture
+					)
 				end
 			end
 		end
@@ -841,32 +831,26 @@ function widget:DrawScreen()
 			end
 		end
 		if ordermenuTex and doUpdate then
-			gl.RenderToTexture(ordermenuTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.Color(1,1,1,1)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawOrders()
-				gl.PopMatrix()
-			end)
+			gl.R2tHelper.RenderToTexture(ordermenuTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawOrders()
+				end,
+				useRenderToTexture
+			)
 		end
 
-		if useRenderToTextureBg and ordermenuBgTex then
-			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(ordermenuBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-			gl.Texture(false)
-			gl.Color(1,1,1,1)
-		end
-		if useRenderToTexture and ordermenuTex then
-			-- content
-			gl.Color(1,1,1,1)
-			gl.Texture(ordermenuTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-			gl.Texture(false)
+		if useRenderToTexture then
+			if ordermenuBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
+			if ordermenuTex then
+				-- content
+				gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
 		else
 			gl.CallList(displayListOrders)
 		end
