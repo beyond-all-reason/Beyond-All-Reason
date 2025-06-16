@@ -221,9 +221,7 @@ local function updateTurretHeading(turretID, dx, dz)
 end
 
 local function updateAttachedTurret(baseID, turretID)
-	if transportedUnits[baseID] then
-		spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
-	else
+	if not transportedUnits[baseID] then
 		local ux, uy, uz = spGetUnitPosition(turretID)
 		local buildRadius = turretBuildRadius[turretID]
 
@@ -344,14 +342,20 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	turretOrderPending[unitID] = nil
 end
 
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+	return not transportedUnits[unitID]
+end
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	turretOrderPending[unitID] = nil
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	if baseToTurretID[unitID] then
+		local turretID = baseToTurretID[unitID]
 		transportedUnits[unitID] = true
-		spGiveOrderToUnit(baseToTurretID[unitID], CMD_STOP, EMPTY, EMPTY)
+		transportedUnits[turretID] = true
+		spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
 	end
 end
 
