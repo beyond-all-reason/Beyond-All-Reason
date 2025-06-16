@@ -46,6 +46,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
+			convertibleboat = true,
 		},
 		featuredefs = {
 			dead = {
