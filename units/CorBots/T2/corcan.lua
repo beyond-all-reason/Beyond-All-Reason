@@ -22,7 +22,7 @@ return {
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAN.s3o",
-		script = "Units/CORCAN_clean.cob",
+		script = "Units/corcan.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 350,
