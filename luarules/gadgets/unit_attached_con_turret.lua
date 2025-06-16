@@ -35,9 +35,10 @@ local reclaimableDefID = {}
 local unitDefRadiusMax = 0
 local combatReclaimDefID = {}
 
-local turretToBaseID = {}
+local baseToTurretID = {}
 local turretBuildRadius = {}
 local turretOrderPending = {}
+local transportedUnits = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -72,7 +73,7 @@ local function attachToUnit(baseID, baseDefID, baseTeam)
 		Spring.SetUnitBlocking(turretID, false, false, false)
 		Spring.SetUnitNoSelect(turretID, true)
 
-		turretToBaseID[turretID] = baseID
+		baseToTurretID[baseID] = turretID
 		turretBuildRadius[turretID] = UnitDefs[turretDefID].buildDistance
 
 		return true
@@ -196,30 +197,34 @@ local function updateTurretHeading(turretID, dx, dz)
 end
 
 local function updateAttachedTurret(baseID, turretID)
-	local ux, uy, uz = Spring.GetUnitPosition(turretID)
-	local buildRadius = turretBuildRadius[turretID]
+	if transportedUnits[baseID] then
+		Spring.GiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
+	else
+		local ux, uy, uz = Spring.GetUnitPosition(turretID)
+		local buildRadius = turretBuildRadius[turretID]
 
-	local dx, dz = echoTurretOrders(baseID, turretID, ux, uz, buildRadius)
+		local dx, dz = echoTurretOrders(baseID, turretID, ux, uz, buildRadius)
 
-	if dx == nil then
-		turretOrderPending[turretID] = true -- gate around our retries
+		if dx == nil then
+			turretOrderPending[turretID] = true -- gate around our retries
 
-		local retries = 3
-		local forbidID = {
-			baseID   = true,
-			turretID = true,
-		}
+			local retries = 3
+			local forbidID = {
+				baseID   = true,
+				turretID = true,
+			}
 
-		repeat
-			dx, dz = findTurretOrders(baseID, turretID, ux, uz, buildRadius, forbidID)
-			retries = retries - 1
-		until dx == nil or retries == 0 or not turretOrderPending[turretID]
+			repeat
+				dx, dz = findTurretOrders(baseID, turretID, ux, uz, buildRadius, forbidID)
+				retries = retries - 1
+			until dx == nil or retries == 0 or not turretOrderPending[turretID]
 
-		turretOrderPending[turretID] = nil
-	end
+			turretOrderPending[turretID] = nil
+		end
 
-	if dx then
-		updateTurretHeading(turretID, dx, dz)
+		if dx then
+			updateTurretHeading(turretID, dx, dz)
+		end
 	end
 end
 
@@ -270,7 +275,7 @@ function gadget:Initialize()
 						local attachedDefID = Spring.GetUnitDefID(attachedID)
 
 						if attachedDefID == baseToTurretDefID[unitDefID] then
-							turretToBaseID[attachedID] = unitID
+							baseToTurretID[unitID] = attachedID
 							break
 						end
 					end
@@ -297,7 +302,7 @@ end
 
 function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
-		for turretID, baseID in pairs(turretToBaseID) do
+		for baseID, turretID in pairs(baseToTurretID) do
 			updateAttachedTurret(baseID, turretID)
 		end
 	end
@@ -310,11 +315,22 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	turretToBaseID[unitID] = nil
+	baseToTurretID[unitID] = nil
 	turretBuildRadius[unitID] = nil
 	turretOrderPending[unitID] = nil
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	turretOrderPending[unitID] = nil
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	if baseToTurretID[unitID] then
+		transportedUnits[unitID] = true
+		Spring.GiveOrderToUnit(baseToTurretID[unitID], CMD_STOP, EMPTY, EMPTY)
+	end
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
+	transportedUnits[unitID] = nil
 end
