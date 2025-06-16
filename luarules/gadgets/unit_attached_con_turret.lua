@@ -122,8 +122,8 @@ local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
 			if param1 < FEATURE_BASE_INDEX then
-				-- Targets go out of sight (mostly) or are blocked, so this is nillable:
-				local separation = spGetUnitSeparation(turretID, param1, false, true)
+				-- Targets outside the team's LOS will return nil:
+				local separation = CallAsTeam(spGetUnitTeam(turretID), spGetUnitSeparation, turretID, param1, false, true)
 
 				if separation and radius >= separation then
 					local cx, cy, cz = spGetUnitPosition(param1)
@@ -131,7 +131,7 @@ local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
 				end
 			else
 				local featureID = param1 - FEATURE_BASE_INDEX
-				local separation = spGetUnitFeatureSeparation(turretID, featureID)
+				local separation = CallAsTeam(teamID, Spring.GetUnitFeatureSeparation, turretID, featureID)
 
 				if separation and radius >= separation - spGetFeatureRadius(featureID) then
 					local cx, cy, cz = spGetFeaturePosition(featureID)
