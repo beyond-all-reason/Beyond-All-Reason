@@ -37,6 +37,7 @@ local combatReclaimDefID = {}
 
 local turretToBaseID = {}
 local turretBuildRadius = {}
+local turretOrderPending = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -80,11 +81,7 @@ local function attachToUnit(baseID, baseDefID, baseTeam)
 	end
 end
 
-local function updateTurretOrder(turretID, baseID)
-	local teamID = Spring.GetUnitTeam(turretID)
-	local ux, uy, uz = Spring.GetUnitPosition(turretID)
-	local radius = turretBuildRadius[turretID]
-
+local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
 	local command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(baseID)
 
 	if	not command
@@ -98,46 +95,50 @@ local function updateTurretOrder(turretID, baseID)
 	if command and not param4 then
 		if command < 0 then
 			if radius >= Spring.GetUnitSeparation(turretID, -command, false, true) then
-				return ux - param1, uz - param3
+				return turretX - param1, turretZ - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
 			if param1 < FEATURE_BASE_INDEX then
-				-- Targets leave LOS (mostly) or are blocked, so this is nillable:
-				local separation = CallAsTeam(teamID, Spring.GetUnitSeparation, turretID, param1, false, true)
+				-- Targets go out of sight (mostly) or are blocked, so this is nillable:
+				local separation = Spring.GetUnitSeparation(turretID, param1, false, true)
 
 				if separation and radius >= separation then
 					local cx, cy, cz = Spring.GetUnitPosition(param1)
-					return ux - cx, uz - cz
+					return turretX - cx, turretZ - cz
 				end
 			else
 				local featureID = param1 - FEATURE_BASE_INDEX
-				local separation = CallAsTeam(teamID, Spring.GetUnitFeatureSeparation, turretID, featureID)
+				local separation = Spring.GetUnitFeatureSeparation(turretID, featureID)
 
 				if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
 					local cx, cy, cz = Spring.GetFeaturePosition(featureID)
-					return ux - cx, uz - cz
+					return turretX - cx, turretZ - cz
 				end
 			end
 		end
 	end
+end
 
+local function findTurretOrders(baseID, turretID, turretX, turretZ, radius, forbidden)
+	local unitTeamID = Spring.GetUnitTeam(baseID) ---@type integer -- todo
 	local assistUnits = {}
 
-	local alliedUnits = CallAsTeam(teamID, Spring.GetUnitsInCylinder, ux, uz, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
+	local alliedUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
 
 	for _, unitID in ipairs(alliedUnits) do
-		if unitID ~= baseID and unitID ~= turretID and radius >= Spring.GetUnitSeparation(unitID, baseID, false, true) then
+		if not forbidden[unitID] and radius >= Spring.GetUnitSeparation(unitID, baseID, false, true) then
 			local allyDefID = Spring.GetUnitDefID(unitID)
 
-			-- This is coded for a combat engineer, so repair is prioritized over assist.
+			-- This is designed for combat, so repair is prioritized over assist.
 			if not Spring.GetUnitIsBeingBuilt(unitID) then
 				if repairableDefID[allyDefID] then
 					local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 
 					if buildProgress == 1 and health < maxHealth then
+						forbidden[unitID] = true
 						Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
 						local cx, _, cz = Spring.GetUnitPosition(unitID)
-						return ux - cx, uz - cz
+						return turretX - cx, turretZ - cz
 					end
 				end
 			else
@@ -146,41 +147,80 @@ local function updateTurretOrder(turretID, baseID)
 		end
 	end
 
-	local enemyUnits = CallAsTeam(teamID, Spring.GetUnitsInCylinder, ux, uz, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
+	local enemyUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
 
 	for _, unitID in ipairs(enemyUnits) do
-		if unitID ~= baseID and unitID ~= turretID and reclaimableDefID[Spring.GetUnitDefID(unitID)] then
-			local separation = CallAsTeam(teamID, Spring.GetUnitSeparation, turretID, unitID, false, true)
+		if not forbidden[unitID] and reclaimableDefID[Spring.GetUnitDefID(unitID)] then
+			local separation = Spring.GetUnitSeparation(unitID, baseID, false, true)
 
 			if separation and radius >= separation then
+				forbidden[unitID] = true
 				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
 				local cx, _, cz = Spring.GetUnitPosition(unitID)
-				return ux - cx, uz - cz
+				return turretX - cx, turretZ - cz
 			end
 		end
 	end
 
-	local features = Spring.GetFeaturesInCylinder(ux, uz, radius + unitDefRadiusMax)
+	local features = Spring.GetFeaturesInCylinder(turretX, turretZ, radius + unitDefRadiusMax)
 
 	for _, featureID in ipairs(features) do
-		if unitID ~= baseID and unitID ~= turretID and combatReclaimDefID[Spring.GetFeatureDefID(featureID)] then
-			local separation = CallAsTeam(teamID, Spring.GetUnitFeatureSeparation, turretID, featureID)
+		local sequentialID = featureID + FEATURE_BASE_INDEX
+
+		if not forbidden[sequentialID] and combatReclaimDefID[Spring.GetFeatureDefID(featureID)] then
+			local separation = Spring.GetUnitFeatureSeparation(baseID, featureID)
 
 			if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
-				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { featureID + FEATURE_BASE_INDEX }, EMPTY)
+				forbidden[sequentialID] = true
+				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
 				local cx, _, cz = Spring.GetFeaturePosition(featureID)
-				return ux - cx, uz - cz
+				return turretX - cx, turretZ - cz
 			end
 		end
 	end
 
 	for _, unitID in ipairs(assistUnits) do
+		forbidden[unitID] = true
 		Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
 		local cx, _, cz = Spring.GetUnitPosition(unitID)
-		return ux - cx, uz - cz
+		return turretX - cx, turretZ - cz
 	end
 
 	Spring.GiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
+end
+
+local function updateTurretHeading(turretID, dx, dz)
+	local headingCurrent = Spring.GetUnitHeading(turretID)
+	local headingNew = Spring.GetHeadingFromVector(dx, dz) - 32768
+	Spring.CallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
+end
+
+local function updateAttachedTurret(baseID, turretID)
+	local ux, uy, uz = Spring.GetUnitPosition(turretID)
+	local buildRadius = turretBuildRadius[turretID]
+
+	local dx, dz = echoTurretOrders(baseID, turretID, ux, uz, buildRadius)
+
+	if dx == nil then
+		turretOrderPending[turretID] = true -- gate around our retries
+
+		local retries = 3
+		local forbidID = {
+			baseID   = true,
+			turretID = true,
+		}
+
+		repeat
+			dx, dz = findTurretOrders(baseID, turretID, ux, uz, buildRadius, forbidID)
+			retries = retries - 1
+		until dx == nil or retries == 0 or not turretOrderPending[turretID]
+
+		turretOrderPending[turretID] = nil
+	end
+
+	if dx then
+		updateTurretHeading(turretID, dx, dz)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -255,6 +295,14 @@ function gadget:Initialize()
 	end
 end
 
+function gadget:GameFrame(gameFrame)
+	if gameFrame % 15 == 0 then
+		for turretID, baseID in pairs(turretToBaseID) do
+			updateAttachedTurret(baseID, turretID)
+		end
+	end
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if baseToTurretDefID[unitDefID] then
 		attachToUnit(unitID, unitDefID, unitTeam)
@@ -264,21 +312,9 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	turretToBaseID[unitID] = nil
 	turretBuildRadius[unitID] = nil
+	turretOrderPending[unitID] = nil
 end
 
-function gadget:GameFrame(gameFrame)
-	if gameFrame % 15 == 0 then
-		-- go on a slowupdate cycle
-		for turretID, baseID in pairs(turretToBaseID) do
-			local dx, dz = updateTurretOrder(turretID, baseID)
-
-			if dx then
-				local ux, uy, uz = Spring.GetUnitPosition(turretID)
-				local headingNew = Spring.GetHeadingFromVector(ux - dx, uz - dz)
-				local headingOld = Spring.GetUnitHeading(turretID) - 32768
-				Spring.CallCOBScript(turretID, 'UpdateHeading', 0, headingNew - headingOld)
-				return
-			end
-		end
-	end
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	turretOrderPending[unitID] = nil
 end
