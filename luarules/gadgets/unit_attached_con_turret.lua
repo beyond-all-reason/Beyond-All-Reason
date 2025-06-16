@@ -22,6 +22,8 @@ local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
 
 local FEATURE_BASE_INDEX = Game.maxUnits
+local FILTER_ALLY_UNITS = -3
+local FILTER_ENEMY_UNITS = -4
 local EMPTY = {}
 
 --------------------------------------------------------------------------------
@@ -79,8 +81,9 @@ local function attachToUnit(baseID, baseDefID, baseTeam)
 end
 
 local function updateTurretOrder(turretID, baseID)
+	local teamID = Spring.GetUnitTeam(turretID)
 	local ux, uy, uz = Spring.GetUnitPosition(turretID)
-	local dx, dy, dz
+	local radius = turretBuildRadius[turretID]
 
 	local command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(baseID)
 
@@ -93,22 +96,18 @@ local function updateTurretOrder(turretID, baseID)
 	end
 
 	if command and not param4 then
-		local radius = turretBuildRadius[turretID]
-
 		if command < 0 then
 			if radius >= Spring.GetUnitSeparation(turretID, -command, false, true) then
-				dx, dz = ux - param1, uz - param3
+				return ux - param1, uz - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
-			local teamID = Spring.GetUnitTeam(turretID)
-
 			if param1 < FEATURE_BASE_INDEX then
 				-- Targets leave LOS (mostly) or are blocked, so this is nillable:
 				local separation = CallAsTeam(teamID, Spring.GetUnitSeparation, turretID, param1, false, true)
 
 				if separation and radius >= separation then
 					local cx, cy, cz = Spring.GetUnitPosition(param1)
-					dx, dz = ux - cx, uz - cz
+					return ux - cx, uz - cz
 				end
 			else
 				local featureID = param1 - FEATURE_BASE_INDEX
@@ -116,78 +115,72 @@ local function updateTurretOrder(turretID, baseID)
 
 				if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
 					local cx, cy, cz = Spring.GetFeaturePosition(featureID)
-					dx, dz = ux - cx, uz - cz
+					return ux - cx, uz - cz
 				end
 			end
 		end
 	end
 
-	if dx then
-		--let auto con turret continue its thing
-		--update heading, by calling into unit script
-		local heading1 = Spring.GetHeadingFromVector(ux - dx, uz - dz)
-		local heading2 = Spring.GetUnitHeading(turretID)
-		Spring.CallCOBScript(turretID, 'UpdateHeading', 0, heading1 - heading2 + 32768)
-		return
-	end
+	local assistUnits = {}
 
-	-- next, check to see if valid repair/reclaim targets in range
-	local nearUnits = Spring.GetUnitsInCylinder(ux, uz, radius + unitDefRadiusMax)
+	local alliedUnits = CallAsTeam(teamID, Spring.GetUnitsInCylinder, ux, uz, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
 
-	for _, nearID in pairs(nearUnits) do
-		-- check for free repairs
-		local nearDefID = Spring.GetUnitDefID(nearID)
-		if Spring.GetUnitAllyTeam(nearID) == Spring.GetUnitAllyTeam(turretID) then
-			if ((Spring.GetUnitSeparation(nearID, turretID, true) - Spring.GetUnitRadius(nearID)) < radius) then
-				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth(nearID)
-				if buildProgress == 1 and health < maxHealth and UnitDefs[nearDefID].repairable and nearID ~= turretToBaseID[turretID] then
-					Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { nearID }, {})
-					return
+	for _, unitID in ipairs(alliedUnits) do
+		if unitID ~= baseID and unitID ~= turretID and radius >= Spring.GetUnitSeparation(unitID, baseID, false, true) then
+			local allyDefID = Spring.GetUnitDefID(unitID)
+
+			-- This is coded for a combat engineer, so repair is prioritized over assist.
+			if not Spring.GetUnitIsBeingBuilt(unitID) then
+				if repairableDefID[allyDefID] then
+					local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+
+					if buildProgress == 1 and health < maxHealth then
+						Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+						local cx, _, cz = Spring.GetUnitPosition(unitID)
+						return ux - cx, uz - cz
+					end
 				end
+			else
+				assistUnits[#assistUnits+1] = unitID
 			end
 		end
 	end
 
-	for _, nearID in pairs(nearUnits) do
-		-- check for enemy to reclaim
-		local nearDefID = Spring.GetUnitDefID(nearID)
-		if Spring.GetUnitAllyTeam(nearID) ~= Spring.GetUnitAllyTeam(turretID) then
-			if ((Spring.GetUnitSeparation(nearID, turretID, true) - Spring.GetUnitRadius(nearID)) < radius) then
-				if UnitDefs[nearDefID].reclaimable then
-					Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { nearID }, {})
-					return
-				end
+	local enemyUnits = CallAsTeam(teamID, Spring.GetUnitsInCylinder, ux, uz, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
+
+	for _, unitID in ipairs(enemyUnits) do
+		if unitID ~= baseID and unitID ~= turretID and reclaimableDefID[Spring.GetUnitDefID(unitID)] then
+			local separation = CallAsTeam(teamID, Spring.GetUnitSeparation, turretID, unitID, false, true)
+
+			if separation and radius >= separation then
+				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
+				local cx, _, cz = Spring.GetUnitPosition(unitID)
+				return ux - cx, uz - cz
 			end
 		end
 	end
 
-	local nearFeatures = Spring.GetFeaturesInCylinder(ux, uz, radius + unitDefRadiusMax)
+	local features = Spring.GetFeaturesInCylinder(ux, uz, radius + unitDefRadiusMax)
 
-	for _, nearID in pairs(nearFeatures) do
-		-- check for non resurrectable feature to reclaim
-		local nearDefID = Spring.GetFeatureDefID(nearID)
-		if ((Spring.GetUnitFeatureSeparation(turretID, nearID, true) - Spring.GetFeatureRadius(nearID)) < radius) then
-			if FeatureDefs[nearDefID].reclaimable and Spring.GetFeatureResurrect(nearID) == "" then
-				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { nearID + Game.maxUnits }, {})
-				return
+	for _, featureID in ipairs(features) do
+		if unitID ~= baseID and unitID ~= turretID and combatReclaimDefID[Spring.GetFeatureDefID(featureID)] then
+			local separation = CallAsTeam(teamID, Spring.GetUnitFeatureSeparation, turretID, featureID)
+
+			if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
+				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { featureID + FEATURE_BASE_INDEX }, EMPTY)
+				local cx, _, cz = Spring.GetFeaturePosition(featureID)
+				return ux - cx, uz - cz
 			end
 		end
 	end
 
-	for _, nearID in pairs(nearUnits) do
-		-- check for nanoframe to build
-		if Spring.GetUnitAllyTeam(nearID) == Spring.GetUnitAllyTeam(turretID) then
-			if ((Spring.GetUnitSeparation(nearID, turretID, true) - Spring.GetUnitRadius(nearID)) < radius) then
-				if Spring.GetUnitIsBeingBuilt(nearID) then
-					Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { nearID }, {})
-					return
-				end
-			end
-		end
+	for _, unitID in ipairs(assistUnits) do
+		Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+		local cx, _, cz = Spring.GetUnitPosition(unitID)
+		return ux - cx, uz - cz
 	end
 
-	-- give stop command to attached con turret if nothing to do
-	Spring.GiveOrderToUnit(turretID, CMD_STOP, {}, {})
+	Spring.GiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
 end
 
 --------------------------------------------------------------------------------
@@ -277,7 +270,15 @@ function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 		-- go on a slowupdate cycle
 		for turretID, baseID in pairs(turretToBaseID) do
-			updateTurretOrder(turretID, baseID)
+			local dx, dz = updateTurretOrder(turretID, baseID)
+
+			if dx then
+				local ux, uy, uz = Spring.GetUnitPosition(turretID)
+				local headingNew = Spring.GetHeadingFromVector(ux - dx, uz - dz)
+				local headingOld = Spring.GetUnitHeading(turretID) - 32768
+				Spring.CallCOBScript(turretID, 'UpdateHeading', 0, headingNew - headingOld)
+				return
+			end
 		end
 	end
 end
