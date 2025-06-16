@@ -1,7 +1,7 @@
 local GL_BUFFER = 0x82E0
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 --Spring.Echo("gldebugannotations", gldebugannotations)
-local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
+local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID, bufferType)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
 	-- myName: optional name, useful for debugging
@@ -9,7 +9,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- returns: nil | instanceTable
 	if maxElements == nil then maxElements = 64 end -- default size
 	if myName == nil then myName = "InstanceVBOTable" end
-	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	local newInstanceVBO = gl.GetVBO(bufferType or GL.ARRAY_BUFFER,true)
 	if newInstanceVBO == nil then Spring.Echo("makeInstanceVBOTable, cannot get VBO for", myName); return nil end
 	newInstanceVBO:Define(
 		maxElements,
