@@ -68,12 +68,12 @@ local transportedUnits = {}
 ---Constructors with attached construction turrets must pass this check.
 ---Technically, it seems fine for the turret to have extra buildoptions.
 local function matchBuildOptions(unitDef1, unitDef2)
-	if #unitDef1.buildoptions == #unitDef2.buildoptions then
-		for i, unitName in ipairs(unitDef1.buildoptions) do
-			if not table.contains(unitDef2.buildoptions, unitName) then
+	if #unitDef1.buildOptions == #unitDef2.buildOptions then
+		for i, unitName in ipairs(unitDef1.buildOptions) do
+			if not table.contains(unitDef2.buildOptions, unitName) then
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option missing.")
 				return false
-			elseif unitName ~= unitDef2.buildoptions[i] then
+			elseif unitName ~= unitDef2.buildOptions[i] then
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Build option in different position.")
 				return false
 			end
