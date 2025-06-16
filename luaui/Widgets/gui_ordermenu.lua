@@ -709,13 +709,15 @@ local function drawCell(cell, zoom)
 		end
 	end
 end
+
 local function drawOrdersBackground()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawOrders()
 	if #commands > 0 then
-		font:Begin()
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		font:Begin(useRenderToTexture)
 		for cell = 1, #commands do
 			drawCell(cell, cellZoom)
 		end
