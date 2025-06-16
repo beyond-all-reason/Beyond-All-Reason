@@ -121,9 +121,11 @@ local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
 				return turretX - param1, turretZ - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
+			local teamID = spGetUnitTeam(turretID)
+
 			if param1 < FEATURE_BASE_INDEX then
 				-- Targets outside the team's LOS will return nil:
-				local separation = CallAsTeam(spGetUnitTeam(turretID), spGetUnitSeparation, turretID, param1, false, true)
+				local separation = CallAsTeam(teamID, spGetUnitSeparation, turretID, param1, false, true)
 
 				if separation and radius >= separation then
 					local cx, cy, cz = spGetUnitPosition(param1)
