@@ -4,7 +4,7 @@ function widget:GetInfo()
   return {
     name      = "HighlightUnit API GL4",
     version   = "v0.2",
-    desc      = "Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
+    desc      = "DEPRECATED! Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
     author    = "Beherith,ivand",
     date      = "2022.01.04",
 	license   = "GNU GPL, v2 or later",
@@ -14,6 +14,8 @@ function widget:GetInfo()
 end
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
+-- This API is now fully deprecated, as the swith to quaternions breaks it entirely. 
+
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOIdTable
@@ -32,6 +34,7 @@ local highlightunitShaderConfig = {
 	ANIMFREQUENCY = 1 / Game.gameSpeed,
 	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
+
 
 local vsSrc =
 [[#version 420
@@ -325,7 +328,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+	if not gl.CreateShader or Engine.FeatureSupport.transformsInGL4 then -- no shader support or outdated non-quaterion engine,  so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -422,8 +425,14 @@ function widget:TextCommand(command)
 	end
 end
 
+local deprecationWarning = "Highlight Unit API is deprecated due to lack of quaterion support. Please use CUS GL4 unit uniform buffers instead"
+
 function widget:DrawWorld()
 	if highlightUnitVBOTable.usedElements > 0 then
+		if deprecationWarning then 
+			Spring.Echo(deprecationWarning)
+			deprecationWarning = nil
+		end
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)

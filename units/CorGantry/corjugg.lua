@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT7",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
-		script = "Units/CORJUGG_CLEAN.cob",
+		script = "Units/corjugg.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,

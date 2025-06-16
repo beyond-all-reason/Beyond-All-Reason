@@ -5,29 +5,27 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-#if (SKINSUPPORT == 0)
-	layout (location = 5) in uint pieceIndex;
-#else
-	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
-	#define pieceIndex (bonesInfo.x & 0x000000FFu)
-#endif
-#ifndef STATICMODEL
-	layout (location = 6) in uvec4 instData;
-#else
-	layout (location = 6) in vec4 offsetpos_targetpiece;
-	layout (location = 7) in vec4 offsetrot;
-	layout (location = 8) in uvec4 instData;
-#endif
+layout (location = 5) in uvec3 bonesInfo; //boneIDs, boneWeights, boneIDsHigh
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
+layout (location = 6) in uvec4 instData;
 
 // u32 matOffset
 // u32 uniOffset
 // u32 {teamIdx, drawFlag, unused, unused}
 // u32 unused
 
+#if USEQUATERNIONS == 0 
+	layout(std140, binding = 0) readonly buffer MatrixBuffer {
+		mat4 mat[];
+	}; 
 
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-	mat4 mat[];
-};
+	uint GetUnpackedValue(uint packedValue, uint byteNum) {
+		return (packedValue >> (8u * byteNum)) & 0xFFu;
+	}
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 struct SUniformsBuffer {
 	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -126,33 +124,40 @@ uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 
 /***********************************************************************/
 // Varyings
+// pre-opt varying number:
+// 4 + 4 + 3 * 3 + 2 + 4 + 4 + 4 + 4 + 1 + 4 = best case 48
+// worst case: 60 
+
+// Can we get down to 32? Yes we now have it down to exactly 32
+
 out Data {
 	// this amount of varyings is already more than we can handle safely
 	//vec4 modelVertexPos;
-	vec4 modelVertexPosOrig; // .w contains model maxY
+	vec4 pieceVertexPosOrig; // .w contains model maxY
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
-	vec3 worldTangent;
-	vec3 worldBitangent;
-	vec3 worldNormal;
+	vec3 worldTangent_VS;
+	//vec3 worldBitangent;
+	vec3 worldNormal_VS;
 
-	vec2 uvCoords;
+	vec4 uvCoords;
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
-	vec3 worldCameraDir;
+//	vec3 worldCameraDir;
 
 	// shadowPosition
-	vec4 shadowVertexPos;
+	vec4 shadowVertexPos; // w contains construction progress 0-1
 
 	//vec3 debugvarying; // for passing through debug garbage
-	// auxilary varyings
-	float aoTerm;
-	float fogFactor;
-	flat float selfIllumMod;
-	flat float healthFraction;
-	flat int unitID;
-	flat vec4 userDefined2;
+	// aoterm_fogFactor_selfIllumMod_healthFraction varyings
+	vec4 aoterm_fogFactor_selfIllumMod_healthFraction; // aoterm, fogFactor, selfIllumMod, healthFraction aoterm_fogFactor_selfIllumMod_healthFraction
+	//float aoTerm;
+	//float fogFactor;
+	//flat float selfIllumMod;
+	//flat float healthFraction;
+	//flat int unitID;
+	//flat vec4 userDefined2;
 
 };
 
@@ -223,7 +228,7 @@ vec3 hash31(float p) {
 }
 
 /***********************************************************************/
-// Auxilary functions
+// aoterm_fogFactor_selfIllumMod_healthFraction functions
 
 vec2 GetWind(float period) {
 	vec2 wind;
@@ -245,7 +250,7 @@ void DoWindVertexMove(inout vec4 mVP) {
 		// fractional part of model position, clamped to >.4
 		vec3 modelXYZ = gl_ModelViewMatrix[3].xyz;
 	#else
-		vec3 modelXYZ = 16.0 * hash31(float(unitID));
+		vec3 modelXYZ = 16.0 * hash31(float(UNITID));
 	#endif
 	modelXYZ = fract(modelXYZ);
 	modelXYZ = clamp(modelXYZ, 0.4, 1.0);
@@ -277,75 +282,165 @@ void DoWindVertexMove(inout vec4 mVP) {
 	//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 }
 
-#ifdef USESKINNING
-	uint GetUnpackedValue(uint packedValue, uint byteNum) {
-		return (packedValue >> (8u * byteNum)) & 0xFFu;
-	}
-	// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
 
-	// The only difference is that displacedPos is passed in, and we always assume staticModel = false
-	void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
-	{
-		#ifndef STATICMODEL
-			bool staticModel = false;// (matrixMode > 0);
-		#else
-			bool staticModel = true;// (matrixMode > 0);
-		#endif
 
-		vec4 piecePos = vec4(displacedPos, 1.0);
+// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
+// There are multiple switches:
+// Skinning or not (defined by USESKINNING)
+// Quaternions or not (defined by USEQUATERNIONS)
+// SLERPQUATERNIONS or not (defined by SLERPQUATERNIONS)
+// STATICMODEL or not (defined by STATICMODEL)
 
-		vec4 weights = vec4(
-			float(GetUnpackedValue(bonesInfo.y, 0)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 1)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 2)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 3)) / 255.0
-		);
+// The only difference is that displacedPos is passed in, and we always assume staticModel = false
+void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal, in vec3 safeTangent, out vec3 msTangent, in vec3 safeBitangent, out vec3 msBitangent)
+{
+	#ifdef STATICMODEL
+		bool staticModel = true;// (matrixMode > 0);
+	#else
+		bool staticModel = false;// (matrixMode > 0);
+	#endif
 
-		uint b0 = GetUnpackedValue(bonesInfo.x, 0); //first boneID
-		mat4 b0BoneMat = mat[instData.x + b0 + uint(!staticModel)];
+	vec4 piecePos = vec4(displacedPos, 1.0);
+
+	vec4 weights = vec4(
+		float(GetUnpackedValue(bonesInfo.y, 0u)) / 255.0,0,0,0
+	);
+
+	uint bID0 = GetUnpackedValue(bonesInfo.x, 0u); //first boneID
+
+	#if USEQUATERNIONS == 0
+		mat4 b0BoneMat = mat[instData.x + bID0 + uint(!staticModel)];
 		mat3 b0NormMat = mat3(b0BoneMat);
 
 		weights[0] *= b0BoneMat[3][3];
 
 		msPosition = b0BoneMat * piecePos;
 		msNormal   = b0NormMat * normal;
+		msTangent  = b0NormMat * safeTangent;
+		msBitangent= b0NormMat * safeBitangent;
+	#else
+		Transform tx;
+		if (staticModel) {
+			tx = transforms[instData.x + bID0];
+		} else {
+			// do interpolation
+			#ifdef SLERPQUATERNIONS
+				tx = SLerp(
+					transforms[instData.x + 2u * (1u + bID0) + 0u],
+					transforms[instData.x + 2u * (1u + bID0) + 1u],
+					timeInfo.w
+				);
+			#else
+				tx = Lerp(
+					transforms[instData.x + 2u * (1u + bID0) + 0u],
+					transforms[instData.x + 2u * (1u + bID0) + 1u],
+					timeInfo.w
+				);
+			#endif
+		}
 
+		weights[0] *= float(tx.trSc.w > 0.0);
+		msPosition = ApplyTransform(tx, piecePos);
+
+		msNormal    = RotateByQuaternion(tx.quat, normal);
+		msTangent   = RotateByQuaternion(tx.quat, safeTangent);
+		msBitangent = RotateByQuaternion(tx.quat, safeBitangent);
+	#endif
+	// Without skinning, we can bail quite early here, as we dont need to check all the other bones and weights
+	#ifdef USESKINNING
 		if (staticModel || weights[0] == 1.0)
 			return;
+		weights.yzw = vec3(
+			float(GetUnpackedValue(bonesInfo.y, 1u)) / 255.0,
+			float(GetUnpackedValue(bonesInfo.y, 2u)) / 255.0,
+			float(GetUnpackedValue(bonesInfo.y, 3u)) / 255.0
+		);
 
 		float wSum = 0.0;
 
 		msPosition *= weights[0];
 		msNormal   *= weights[0];
+		msTangent  *= weights[0];
+		msBitangent*= weights[0];
 		wSum       += weights[0];
 
-		uint numPieces = GetUnpackedValue(instData.z, 3);
-		mat4 bposeMat    = mat[instData.w + b0];
+		// Old matrix path
+		#if USEQUATERNIONS == 0
 
-		// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
-		for (uint bi = 1; bi < 3; ++bi) {
-			uint bID = GetUnpackedValue(bonesInfo.x, bi);
+			uint numPieces = GetUnpackedValue(instData.z, 3);
+			mat4 bposeMat    = mat[instData.w + bID0];
 
-			if (bID == 0xFFu || weights[bi] == 0.0)
-				continue;
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi);
 
-			mat4 bposeInvMat = mat[instData.w + numPieces + bID];
-			mat4 boneMat     = mat[instData.x +        1u + bID];
+				if (bID == 0xFFu || weights[bi] == 0.0)
+					continue;
 
-			weights[bi] *= boneMat[3][3];
+				mat4 bposeInvMat = mat[instData.w + numPieces + bID];
+				mat4 boneMat     = mat[instData.x +        1u + bID];
 
-			mat4 skinMat = boneMat * bposeInvMat * bposeMat;
-			mat3 normMat = mat3(skinMat);
+				weights[bi] *= boneMat[3][3];
 
-			msPosition += skinMat * piecePos * weights[bi];
-			msNormal   += normMat * normal   * weights[bi];
-			wSum       += weights[bi];
-		}
+				mat4 skinMat = boneMat * bposeInvMat * bposeMat;
+				mat3 normMat = mat3(skinMat);
+
+				msPosition += skinMat * piecePos * weights[bi];
+				msNormal   += normMat * normal   * weights[bi];
+				msTangent  += normMat * safeTangent   * weights[bi];
+				msBitangent+= normMat * safeBitangent   * weights[bi];
+				wSum       += weights[bi];
+			}
+		#else // New quaternion path
+			Transform bposeTra = transforms[instData.w + bID0];
+
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi) + (GetUnpackedValue(bonesInfo.z, bi) << 8u);
+
+				if (bID == 0xFFFFu || weights[bi] == 0.0)
+					continue;
+
+				Transform bposeInvTra = InvertTransformAffine(transforms[instData.w + bID]);
+
+				#ifndef SLERPQUATERNIONS
+					Transform boneTx = Lerp(
+						transforms[instData.x + 2u * (1u + bID) + 0u],
+						transforms[instData.x + 2u * (1u + bID) + 1u],
+						timeInfo.w
+					);
+				#else
+					Transform boneTx = SLerp(
+						transforms[instData.x + 2u * (1u + bID) + 0u],
+						transforms[instData.x + 2u * (1u + bID) + 1u],
+						timeInfo.w
+					);
+				#endif
+
+				weights[bi] *= float(boneTx.trSc.w > 0.0);
+
+				// emulate boneTx * bposeInvTra * bposeTra * piecePos
+				vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
+
+				tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
+
+				// emulate boneTx * bposeInvTra * bposeTra * normal
+				vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
+				vec3 txPieceTangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeTangent);
+				vec3 txPieceBitangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeBitangent);
+
+				msPosition += txPiecePos    * weights[bi];
+				msNormal   += txPieceNormal * weights[bi];
+				msTangent  += txPieceTangent * weights[bi];
+				msBitangent+= txPieceBitangent * weights[bi];
+				wSum       += weights[bi];
+			}
+		#endif
 
 		msPosition /= wSum;
 		msNormal   /= wSum;
-	}
-#endif
+	#endif
+}
 
 mat4 rotationMatrix(vec3 rot) {
 	float c1 = cos(rot.x);
@@ -379,63 +474,40 @@ mat4 rotationMatrix(vec3 rot) {
 /***********************************************************************/
 // Vertex shader main()
 
-#define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)])
+// #define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)]) // This is the non-quat way of getting it
 #line 12000
 void main(void)
 {
-	unitID = int(UNITID);
-	userDefined2 = UNITUNIFORMS.userDefined[2];
-	userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
-	#ifndef STATICMODEL
-		// pieceMatrix looks up the model-space transform matrix for unit being drawn
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+	//unitID = int(UNITID);
+	uvCoords.z = float(UNITID);
+	//userDefined2 = UNITUNIFORMS.userDefined[2];
+	//userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 
-		// Then it places it in the world
-		mat4 worldMatrix = mat[instData.x];
-	#else
-		// First lets orient the
-
-		// pieceMatrix looks up the model-space transform matrix for the unit we are drawing onto!
-		uint targetPieceIndex = uint(offsetpos_targetpiece.w);
-		mat4 pieceMatrix = mat[instData.x + targetPieceIndex + 1u];
-
-		// Then it places it in the world
-		mat4 worldMatrix = mat[instData.x];
-
-	#endif
-
-
-	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
-	mat3 normalMatrix = mat3(worldPieceMatrix);
-
-
+	// 
 	vec4 piecePos = vec4(pos, 1.0);
 
-	uvCoords = uv.xy;
-	healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
+	uvCoords.xy = uv.xy;
+	aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
 	
 	// Also mix in buildprogress into health fraction:
 	#if ENABLE_OPTION_HEALTH_TEXTURING
 		float buildProgress = UNITUNIFORMS.userDefined[0].x;
 		if (buildProgress > -0.5){
 			// healthFraction, cannot, in theory be more than buildProgress
-			healthFraction = clamp(healthFraction / max(0.00000001,buildProgress), 0.0, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.w = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.w / max(0.00000001,buildProgress), 0.0, 1.0);
 		}
 	#endif
 
-	//modelVertexPos = piecePos;
-
 	#ifdef TREE_RANDOMIZATION
-		float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
+		float randomScale = fract(float(UNITID)*0.01)*0.2 + 0.9;
 		piecePos.xyz *= randomScale;
 	#endif
-
 
 	#if (XMAS == 1)
 	//	piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9
 	#endif
 
-	modelVertexPosOrig = piecePos;
+	pieceVertexPosOrig = piecePos;
 	vec3 modelVertexNormal = normal;
 
 	%%VERTEX_PRE_TRANSFORM%%
@@ -446,10 +518,10 @@ void main(void)
 
 	#ifdef ENABLE_OPTION_HEALTH_DISPLACE
 	if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
-		if (healthFraction < 0.95 || baseVertexDisplacement > 0.01){
+		if (aoterm_fogFactor_selfIllumMod_healthFraction.w < 0.95 || baseVertexDisplacement > 0.01){
 			vec3 seedVec = 0.1 * piecePos.xyz;
-			seedVec.y += 1024.0 * hash11(float(unitID));
-			float damageAmount = (1.0 - healthFraction) * 0.8;
+			seedVec.y += 1024.0 * hash11(float(UNITID));
+			float damageAmount = (1.0 - aoterm_fogFactor_selfIllumMod_healthFraction.w) * 0.8;
 			piecePos.xyz +=
 				max(damageAmount , baseVertexDisplacement) *
 				vertexDisplacement *							//vertex displacement value
@@ -459,17 +531,52 @@ void main(void)
 	}
 	#endif
 
-	#ifdef USESKINNING
-		// What in the lords name do we have to do here?
-		vec4 modelPos; // model-space positision
-		GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
-		vec4 worldPos = worldMatrix * modelPos;
+	vec4 modelPos = vec4(pos, 1.0); // model-space position	
+
+	//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
+	vec3 safeT = T; // already defined REM
+	vec3 safeB = B; // already defined REM
+	if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
+		safeT = vec3(1.0, 0.0, 0.0);
+		safeB = vec3(0.0, 0.0, 1.0);
+	}
+
+	vec3 modelSpaceTangent;
+	vec3 modelSpaceBitangent;
+	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal, safeT, modelSpaceTangent, safeB, modelSpaceBitangent);
+
+	#if USEQUATERNIONS == 1
+		Transform modelToWorldTX = Lerp(
+			transforms[instData.x + 0u],
+			transforms[instData.x + 1u],
+			timeInfo.w
+		);
+		vec4 worldPos = ApplyTransform(modelToWorldTX, modelPos);
+
+		// Rotate normals with quaternions (this is incorrect, as modelvertexnormal is purely in modelspace, whereas T and B are in piece space!)
+		worldTangent_VS   = RotateByQuaternion(modelToWorldTX.quat, modelSpaceTangent);
+		//worldBitangent = RotateByQuaternion(modelToWorldTX.quat, modelSpaceBitangent);
+		worldNormal_VS    = RotateByQuaternion(modelToWorldTX.quat, modelVertexNormal);
 	#else
-		vec4 modelPos = pieceMatrix * piecePos;
-		vec4 worldPos = worldPieceMatrix * piecePos;
+		// pieceMatrix looks up the model-space transform matrix for unit being drawn
+		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+		// Then it places it in the world
+		mat4 worldMatrix = mat[instData.x];
+		vec4 worldPos = worldMatrix * modelPos;
+
+		// Calculate Normals:
+		// tangent --> world space transformation (for vectors)
+		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+		mat3 normalMatrix = mat3(worldPieceMatrix);
+		worldTangent_VS   = normalMatrix * modelSpaceTangent;
+		//worldBitangent = normalMatrix * modelSpaceBitangent;
+		worldNormal_VS    = normalMatrix * normal; 
 	#endif
+
+
+
 	//worldPos.x += 64; // for dem debuggins
-	modelVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
+	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -511,10 +618,10 @@ void main(void)
 			// ################# ARMADA ##################
 			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_ARM)) {
 				const float texSpeedMult = 4.0;
-				if (IN_PIXEL_RECT(uvCoords, 2573, 1548, 498, 82)) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 2573, 1548, 498, 82)) {
 					// Arm small (top) width 12px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 12.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 2572, 1631, 500, 132)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 2572, 1631, 500, 132)) {
 					// Arm big (bot) width 20px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 20.0));
 				}
@@ -525,14 +632,14 @@ void main(void)
 				const float texSpeedMult = -6.0;
 				const float texSpeedMult2 = 3.0;
 
-				if (IN_PIXEL_RECT(uvCoords, 3042, 3839, (ATLAS_SIZE - 3042), (ATLAS_SIZE - 3839))) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 3042, 3839, (ATLAS_SIZE - 3042), (ATLAS_SIZE - 3839))) {
 					// tracks are right up against the bottom right of the texture
 					// Cor big (right bot) width 56px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 56.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 192, 636, 511, 68)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 192, 636, 511, 68)) {
 					// Cor small (top) width 24px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 24.0));
-				} else if (IN_PIXEL_RECT(uvCoords, 189, 705, 506, 94)) {
+				} else if (IN_PIXEL_RECT(uvCoords.xy, 189, 705, 506, 94)) {
 					// Cor small (bot) width 28px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult2, 28.0));
 				}
@@ -542,7 +649,7 @@ void main(void)
 			if (BITMASK_FIELD(bitOptions, OPTION_TREADS_LEG)) {
 				const float texSpeedMult = -6.0;
 
-				if (IN_PIXEL_RECT(uvCoords, 2613, 768, 660, 404)) {
+				if (IN_PIXEL_RECT(uvCoords.xy, 2613, 768, 660, 404)) {
 					// Legion Rubber and Steel tracks (top right) width 55px
 					uvCoords.x += PX_TO_UV(mod(baseOffset * texSpeedMult, 55.0));
 				}
@@ -558,50 +665,36 @@ void main(void)
 		/***********************************************************************/
 		// Main vectors for lighting
 		// V
-		worldCameraDir = normalize(cameraPos - worldVertexPos.xyz); //from fragment to camera, world space
+//		worldCameraDir = normalize(cameraPos - worldVertexPos.xyz); //from fragment to camera, world space
 
 		//if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 			shadowVertexPos = shadowView * worldPos;
 			//shadowVertexPos.xyz = shadowVertexPos.xyz / shadowVertexPos.w
 			shadowVertexPos.xy += vec2(0.5);  //no need for shadowParams anymore
 			//shadowVertexPos = shadowProj * shadowVertexPos;
+			shadowVertexPos.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
 		//}
-
-		// Calculate Normals:
-		//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
-		vec3 safeT = T; // already defined REM
-		vec3 safeB = B; // already defined REM
-		if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
-			safeT = vec3(1.0, 0.0, 0.0);
-			safeB = vec3(0.0, 0.0, 1.0);
-		}
-		// tangent --> world space transformation (for vectors)
-		worldTangent = normalMatrix * safeT;
-		worldBitangent = normalMatrix * safeB;
-		worldNormal = normalMatrix * modelVertexNormal;
 
 		if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
 			//aoTerm = clamp(1.0 * fract(uv.x * 16384.0), shadowDensity.y, 1.0);
-			aoTerm = clamp(1.0 * fract(uv.x * 16384.0), 0.1, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.x = clamp(1.0 * fract(uv.x * 16384.0), 0.1, 1.0);
 		} else {
-			aoTerm = 1.0;
+			aoterm_fogFactor_selfIllumMod_healthFraction.x = 1.0;
 		}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_FLASHLIGHTS)) {
 			// modelMatrix[3][0] + modelMatrix[3][2] are Tx, Tz elements of translation of matrix
-			selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
+			aoterm_fogFactor_selfIllumMod_healthFraction.z = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
 		} else {
-			selfIllumMod = 1.0;
+			aoterm_fogFactor_selfIllumMod_healthFraction.z = 1.0;
 		}
-
-		//gl_Position = projectionMatrix * viewMatrix * worldVertexPos; // OOOOLD
 
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 			vec4 ClipVertex = cameraView * worldVertexPos;
 			// emulate linear fog
 			float fogCoord = length(ClipVertex.xyz);
-			fogFactor = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
-			fogFactor = clamp(fogFactor, 0.0, 1.0);
+			aoterm_fogFactor_selfIllumMod_healthFraction.y = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+			aoterm_fogFactor_selfIllumMod_healthFraction.y = clamp(aoterm_fogFactor_selfIllumMod_healthFraction.y, 0.0, 1.0);
 		}
 
 		// are we drawing reflection pass, if yes, use reflection camera!

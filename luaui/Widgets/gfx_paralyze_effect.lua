@@ -24,9 +24,6 @@ local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local paralyzedUnitShader, unitShapeShader
 
-local shaderConfig = {
-	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
-}
 
 local vsSrc = [[
 #version 420
@@ -42,12 +39,10 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-#if (SKINSUPPORT == 0)
-	layout (location = 5) in uint pieceIndex;
-#else
-	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
-	#define pieceIndex (bonesInfo.x & 0x000000FFu)
-#endif
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
 layout (location = 6) in vec4 startcolorpower;
 layout (location = 7) in vec4 endcolor_endgameframe;
 layout (location = 8) in uvec4 instData;
@@ -61,14 +56,16 @@ layout(std140, binding = 2) uniform FixedStateMatrices {
 	mat4 modelViewProjectionMat;
 };
 #line 15000
-//layout(std140, binding=0) readonly buffer MatrixBuffer {
-layout(std140, binding=0) buffer MatrixBuffer {
-	mat4 mat[];
-};
 
-mat4 GetPieceMatrix(bool staticModel) {
-    return mat[instData.x + pieceIndex + uint(!staticModel)];
-}
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) buffer MatrixBuffer {
+		mat4 mat[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
+
+
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -97,16 +94,28 @@ out vec4 v_endcolor_alpha;
 
 void main() {
 	uint baseIndex = instData.x;
-	mat4 modelMatrix = mat[baseIndex];
+	
+	#line 16000
+	#if USEQUATERNIONS == 0
+		mat4 modelMatrix = mat[baseIndex];
 
-	uint isDynamic = 1u; //default dynamic model
-	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	//mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
-	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], 1.0);
-	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+		uint isDynamic = 1u; //default dynamic model
+		// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+		//mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
+		mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], 1.0);
+		vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
 
-	v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
-	vec4 modelPos = modelMatrix * localModelPos;
+		v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
+		vec4 modelPos = modelMatrix * localModelPos;
+
+	#else 
+		Transform pieceModelTransform = GetPieceModelTransform(baseIndex, pieceIndex);
+		Transform modelWorldTransform = GetModelWorldTransform(baseIndex);
+
+		v_modelPosOrig = (ApplyTransform(pieceModelTransform, vec4(pos, 1.0))).xyz;
+
+		vec4 modelPos = ApplyTransform(modelWorldTransform, vec4(v_modelPosOrig.xyz, 1.0));
+	#endif
 
 	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
 	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
@@ -307,6 +316,19 @@ void main() {
 }
 ]]
 
+
+local paralyzeSourceShaderCache = {
+	vsSrc = vsSrc,
+	fsSrc = fsSrc,
+	shaderName = "paralyzedUnitShader",
+	uniformInt = {},
+	uniformFloat = {},
+	shaderConfig = {
+		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+	},
+	forceupdate = true  -- otherwise file-less defines are not updated
+}
+
 --holy hacks batman
 if Spring.GetModOptions().emprework then
 	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
@@ -335,21 +357,10 @@ local function initGL4()
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
 
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-	fsSrc = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-		
-	paralyzedUnitShader = LuaShader({
-		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		uniformInt = {
-			--tex1 = 0,
-		},
-	}, "paralyzedDrawparalyzedUnitShader")
+	paralyzedUnitShader = LuaShader.CheckShaderUpdates(paralyzeSourceShaderCache)
 
-	local paralyzedUnitShaderCompiled = paralyzedUnitShader:Initialize()
-	if paralyzedUnitShaderCompiled ~= true  then
-		Spring.Echo("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShaderCompiled, unitshapeshaderCompiled)
+	if not paralyzedUnitShader  then
+		Spring.Echo("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShader)
 		widgetHandler:RemoveWidget()
 	end
 end

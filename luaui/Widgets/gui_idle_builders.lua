@@ -384,7 +384,7 @@ local function updateList(force)
 		if usedWidth > uiTexWidth then
 			uiTexWidth = usedWidth
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 		end
@@ -397,7 +397,7 @@ local function updateList(force)
 		}
 		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
+				gl.DeleteTexture(uiBgTex)
 				uiBgTex = nil
 			end
 			checkGuishader(true)
@@ -587,10 +587,10 @@ function widget:Shutdown()
 		gl.DeleteList(dlist)
 	end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')

@@ -58,6 +58,8 @@ local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+
 local aiTeams = {}
 local teamColorKeys = {}
 for i = 1, #teamList do
@@ -579,7 +581,7 @@ local function drawContent()
 						end
 						font2:Begin()
 						font2:SetTextColor(r, g, b, 1)
-						if (r + g * 1.2 + b * 0.4) < 0.65 then
+						if ColorIsDark(r, g, b) then
 							font2:SetOutlineColor(1, 1, 1, 1)
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
@@ -845,7 +847,7 @@ function widget:ViewResize()
 	end
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 
@@ -872,7 +874,7 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	if toggled and WG.lockcamera then
