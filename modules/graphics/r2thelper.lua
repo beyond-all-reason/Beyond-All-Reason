@@ -1,4 +1,4 @@
-local RenderToTextureBlend = function(tex, drawFn, customBlend)
+local RenderToTextureBlend = function(tex, drawFn, customBlend, scissors)
 	if customBlend == nil then
 		customBlend = true
 	end
@@ -8,7 +8,20 @@ local RenderToTextureBlend = function(tex, drawFn, customBlend)
 		if customBlend then
 			gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE_MINUS_DST_ALPHA, GL.ONE)
 		end
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		-- clear
+		if scissors and scissors[1] then
+			if scissors[1][1] then
+				for i = 1, #scissors do
+					gl.Scissor(scissors[i][1], scissors[i][2], scissors[i][3], scissors[i][4])
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				end
+			else
+				gl.Scissor(scissors[1], scissors[2], scissors[3], scissors[4])
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+			end
+		else
+			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+		end
 		gl.PushMatrix()
 		-- draw
 		drawFn()
