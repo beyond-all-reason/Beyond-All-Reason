@@ -17,6 +17,28 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local CallAsTeam = CallAsTeam
+
+local spGetFeatureDefID = Spring.GetFeatureDefID
+local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetFeatureRadius = Spring.GetFeatureRadius
+local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetHeadingFromVector = Spring.GetHeadingFromVector
+local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
+local spGetUnitHeading = Spring.GetUnitHeading
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitSeparation = Spring.GetUnitSeparation
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local spCallCOBScript = Spring.CallCOBScript
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
@@ -63,8 +85,8 @@ end
 
 local function attachToUnit(baseID, baseDefID, baseTeam)
 	local turretDefID = baseToTurretDefID[baseDefID]
-	local ux, uy, uz = Spring.GetUnitPosition(baseID)
-	local facing = Spring.GetUnitBuildFacing(baseID)
+	local ux, uy, uz = spGetUnitPosition(baseID)
+	local facing = spGetUnitBuildFacing(baseID)
 
 	local turretID = Spring.CreateUnit(turretDefID, ux, uy, uz, facing, baseTeam)
 
@@ -83,36 +105,36 @@ local function attachToUnit(baseID, baseDefID, baseTeam)
 end
 
 local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
-	local command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(baseID)
+	local command, _, _, param1, param2, param3, param4 = spGetUnitCurrentCommand(baseID)
 
 	if	not command
 		or (command >= 0 and command ~= CMD_REPAIR and command ~= CMD_RECLAIM)
 		or param4
-		or not Spring.GiveOrderToUnit(turretID, command, { param1, param2, param3 }, EMPTY)
+		or not spGiveOrderToUnit(turretID, command, { param1, param2, param3 }, EMPTY)
 	then
-		command, _, _, param1, param2, param3, param4 = Spring.GetUnitCurrentCommand(turretID)
+		command, _, _, param1, param2, param3, param4 = spGetUnitCurrentCommand(turretID)
 	end
 
 	if command and not param4 then
 		if command < 0 then
-			if radius >= Spring.GetUnitSeparation(turretID, -command, false, true) then
+			if radius >= spGetUnitSeparation(turretID, -command, false, true) then
 				return turretX - param1, turretZ - param3
 			end
 		elseif command == CMD_REPAIR or command == CMD_RECLAIM then
 			if param1 < FEATURE_BASE_INDEX then
 				-- Targets go out of sight (mostly) or are blocked, so this is nillable:
-				local separation = Spring.GetUnitSeparation(turretID, param1, false, true)
+				local separation = spGetUnitSeparation(turretID, param1, false, true)
 
 				if separation and radius >= separation then
-					local cx, cy, cz = Spring.GetUnitPosition(param1)
+					local cx, cy, cz = spGetUnitPosition(param1)
 					return turretX - cx, turretZ - cz
 				end
 			else
 				local featureID = param1 - FEATURE_BASE_INDEX
-				local separation = Spring.GetUnitFeatureSeparation(turretID, featureID)
+				local separation = spGetUnitFeatureSeparation(turretID, featureID)
 
-				if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
-					local cx, cy, cz = Spring.GetFeaturePosition(featureID)
+				if separation and radius >= separation - spGetFeatureRadius(featureID) then
+					local cx, cy, cz = spGetFeaturePosition(featureID)
 					return turretX - cx, turretZ - cz
 				end
 			end
@@ -121,24 +143,24 @@ local function echoTurretOrders(baseID, turretID, turretX, turretZ, radius)
 end
 
 local function findTurretOrders(baseID, turretID, turretX, turretZ, radius, forbidden)
-	local unitTeamID = Spring.GetUnitTeam(baseID) ---@type integer -- todo
+	local unitTeamID = spGetUnitTeam(baseID) ---@type integer -- todo
 	local assistUnits = {}
 
-	local alliedUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
+	local alliedUnits = CallAsTeam(unitTeamID, spGetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ALLY_UNITS)
 
 	for _, unitID in ipairs(alliedUnits) do
-		if not forbidden[unitID] and radius >= Spring.GetUnitSeparation(unitID, baseID, false, true) then
-			local allyDefID = Spring.GetUnitDefID(unitID)
+		if not forbidden[unitID] and radius >= spGetUnitSeparation(unitID, baseID, false, true) then
+			local allyDefID = spGetUnitDefID(unitID)
 
 			-- This is designed for combat, so repair is prioritized over assist.
-			if not Spring.GetUnitIsBeingBuilt(unitID) then
+			if not spGetUnitIsBeingBuilt(unitID) then
 				if repairableDefID[allyDefID] then
-					local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+					local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
 
 					if buildProgress == 1 and health < maxHealth then
 						forbidden[unitID] = true
-						Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
-						local cx, _, cz = Spring.GetUnitPosition(unitID)
+						spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+						local cx, _, cz = spGetUnitPosition(unitID)
 						return turretX - cx, turretZ - cz
 					end
 				end
@@ -148,33 +170,33 @@ local function findTurretOrders(baseID, turretID, turretX, turretZ, radius, forb
 		end
 	end
 
-	local enemyUnits = CallAsTeam(unitTeamID, Spring.GetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
+	local enemyUnits = CallAsTeam(unitTeamID, spGetUnitsInCylinder, turretX, turretZ, radius + unitDefRadiusMax, FILTER_ENEMY_UNITS)
 
 	for _, unitID in ipairs(enemyUnits) do
-		if not forbidden[unitID] and reclaimableDefID[Spring.GetUnitDefID(unitID)] then
-			local separation = Spring.GetUnitSeparation(unitID, baseID, false, true)
+		if not forbidden[unitID] and reclaimableDefID[spGetUnitDefID(unitID)] then
+			local separation = spGetUnitSeparation(unitID, baseID, false, true)
 
 			if separation and radius >= separation then
 				forbidden[unitID] = true
-				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
-				local cx, _, cz = Spring.GetUnitPosition(unitID)
+				spGiveOrderToUnit(turretID, CMD_RECLAIM, { unitID }, EMPTY)
+				local cx, _, cz = spGetUnitPosition(unitID)
 				return turretX - cx, turretZ - cz
 			end
 		end
 	end
 
-	local features = Spring.GetFeaturesInCylinder(turretX, turretZ, radius + unitDefRadiusMax)
+	local features = spGetFeaturesInCylinder(turretX, turretZ, radius + unitDefRadiusMax)
 
 	for _, featureID in ipairs(features) do
 		local sequentialID = featureID + FEATURE_BASE_INDEX
 
-		if not forbidden[sequentialID] and combatReclaimDefID[Spring.GetFeatureDefID(featureID)] then
-			local separation = Spring.GetUnitFeatureSeparation(baseID, featureID)
+		if not forbidden[sequentialID] and combatReclaimDefID[spGetFeatureDefID(featureID)] then
+			local separation = spGetUnitFeatureSeparation(baseID, featureID)
 
-			if separation and radius >= separation - Spring.GetFeatureRadius(featureID) then
+			if separation and radius >= separation - spGetFeatureRadius(featureID) then
 				forbidden[sequentialID] = true
-				Spring.GiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
-				local cx, _, cz = Spring.GetFeaturePosition(featureID)
+				spGiveOrderToUnit(turretID, CMD_RECLAIM, { sequentialID }, EMPTY)
+				local cx, _, cz = spGetFeaturePosition(featureID)
 				return turretX - cx, turretZ - cz
 			end
 		end
@@ -182,25 +204,25 @@ local function findTurretOrders(baseID, turretID, turretX, turretZ, radius, forb
 
 	for _, unitID in ipairs(assistUnits) do
 		forbidden[unitID] = true
-		Spring.GiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
-		local cx, _, cz = Spring.GetUnitPosition(unitID)
+		spGiveOrderToUnit(turretID, CMD_REPAIR, { unitID }, EMPTY)
+		local cx, _, cz = spGetUnitPosition(unitID)
 		return turretX - cx, turretZ - cz
 	end
 
-	Spring.GiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
+	spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
 end
 
 local function updateTurretHeading(turretID, dx, dz)
-	local headingCurrent = Spring.GetUnitHeading(turretID)
-	local headingNew = Spring.GetHeadingFromVector(dx, dz) - 32768
-	Spring.CallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
+	local headingCurrent = spGetUnitHeading(turretID)
+	local headingNew = spGetHeadingFromVector(dx, dz) - 32768
+	spCallCOBScript(turretID, "UpdateHeading", 0, headingNew - headingCurrent)
 end
 
 local function updateAttachedTurret(baseID, turretID)
 	if transportedUnits[baseID] then
-		Spring.GiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
+		spGiveOrderToUnit(turretID, CMD_STOP, EMPTY, EMPTY)
 	else
-		local ux, uy, uz = Spring.GetUnitPosition(turretID)
+		local ux, uy, uz = spGetUnitPosition(turretID)
 		local buildRadius = turretBuildRadius[turretID]
 
 		local dx, dz = echoTurretOrders(baseID, turretID, ux, uz, buildRadius)
@@ -265,14 +287,14 @@ function gadget:Initialize()
 	if next(baseToTurretDefID) then
 		-- Support `luarules /reload` by reacquiring attached cons.
 		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
 
 			if baseToTurretDefID[unitDefID] then
 				local attachedIDs = Spring.GetUnitIsTransporting(unitID)
 
 				if attachedIDs then
 					for _, attachedID in ipairs(attachedIDs) do
-						local attachedDefID = Spring.GetUnitDefID(attachedID)
+						local attachedDefID = spGetUnitDefID(attachedID)
 
 						if attachedDefID == baseToTurretDefID[unitDefID] then
 							baseToTurretID[unitID] = attachedID
@@ -281,9 +303,9 @@ function gadget:Initialize()
 					end
 					-- The error state may be recoverable, so we reattempt; however,
 					-- recall that `attachToUnit` will destroy the unit on a failure:
-				elseif not attachToUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID)) then
+				elseif not attachToUnit(unitID, unitDefID, spGetUnitTeam(unitID)) then
 					local s = "Missing attached unit: %s @ %.1f, %.1f, %.1f"
-					local e = s:format(UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
+					local e = s:format(UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
 					Spring.Log(gadget:GetInfo().name, LOG.ERROR, e)
 				end
 			end
@@ -327,7 +349,7 @@ end
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	if baseToTurretID[unitID] then
 		transportedUnits[unitID] = true
-		Spring.GiveOrderToUnit(baseToTurretID[unitID], CMD_STOP, EMPTY, EMPTY)
+		spGiveOrderToUnit(baseToTurretID[unitID], CMD_STOP, EMPTY, EMPTY)
 	end
 end
 
