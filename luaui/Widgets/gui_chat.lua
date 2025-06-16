@@ -1182,7 +1182,7 @@ local function drawChatLine(i)
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-			font3:Begin()
+			font3:Begin(customBlend)
 			if chatLines[i].textOutline then
 				font3:SetOutlineColor(1,1,1,1)
 			else
@@ -1204,7 +1204,7 @@ local function drawChatLine(i)
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin()
+		font3:Begin(customBlend)
 		if chatLines[i].textOutline then
 			font3:SetOutlineColor(1,1,1,1)
 		else
