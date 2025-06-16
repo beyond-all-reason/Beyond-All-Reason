@@ -1186,11 +1186,12 @@ function widget:MousePress(x, y, button)
 					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						local uDefID = cmds[cellRectID].id  --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
+						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
-							if setQuotas then
+							if setQuotas and not alt then
 								changeQuotas(-uDefID, 1)
 							else
 								if preGamestartPlayer then
@@ -1201,7 +1202,7 @@ function widget:MousePress(x, y, button)
 									if isRepeatMex then
 										WG['areamex'].setAreaMexType(uDefID)
 									end
-									Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+									Spring.SetActiveCommand(cmd, 1, true, false, alt, ctrl, meta, shift)
 								end
 							end
 						else
@@ -1209,7 +1210,7 @@ function widget:MousePress(x, y, button)
 								-- has queue
 								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 							end
-							if setQuotas then
+							if setQuotas and not alt then
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
