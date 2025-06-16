@@ -1727,9 +1727,26 @@ local function drawBuildMenuBg()
 		(backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0),
 		1,
 		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0,
-		nil, nil, nil, nil, nil, nil, nil, nil
+		0
 	)
+
+	if selectedBuildersCount > 1 and activeBuilder then
+		height = backgroundRect:getHeight()
+		UiElement(
+			buildersRect.x,
+			buildersRect.y,
+			buildersRect.xEnd + bgpadding * 2,
+			buildersRect.yEnd + bgpadding + (iconMargin * 2),
+			(backgroundRect.x > 0 and 1 or 0),
+			1,
+			((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
+			0,
+			1,
+			1,
+			0,
+			1
+		)
+	end
 end
 
 local function drawButton(rect)
@@ -2248,25 +2265,6 @@ local function drawBuilder(rect)
 end
 
 local function drawBuilders()
-	-- draw background
-	local height = backgroundRect:getHeight()
-	local posY = backgroundRect.y
-
-	UiElement(
-		buildersRect.x,
-		buildersRect.y,
-		buildersRect.xEnd + bgpadding * 2,
-		buildersRect.yEnd + bgpadding + (iconMargin * 2),
-		(backgroundRect.x > 0 and 1 or 0),
-		1,
-		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0,
-		1,
-		1,
-		0,
-		1,
-		nil, nil, nil, nil
-	)
 
 	-- draw builders
 	for i = 1, selectedBuildersCount do
@@ -2564,7 +2562,7 @@ function widget:DrawScreen()
 			redraw = nil
 			if useRenderToTexture then
 				if not buildmenuBgTex then
-					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2574,15 +2572,13 @@ function widget:DrawScreen()
 					gl.R2tHelper.RenderToTexture(buildmenuBgTex,
 						function()
 							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
 							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
 							drawBuildMenuBg()
 						end,
 						useRenderToTexture
 					)
 				end
-			end
-			if useRenderToTexture then
 				if not buildmenuTex then
 					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
@@ -2604,9 +2600,7 @@ function widget:DrawScreen()
 			else
 				gl.DeleteList(dlistBuildmenu)
 				dlistBuildmenu = gl.CreateList(function()
-					if not useRenderToTexture then
-						drawBuildMenuBg()
-					end
+					drawBuildMenuBg()
 					drawBuildMenu()
 				end)
 			end
@@ -2614,7 +2608,7 @@ function widget:DrawScreen()
 		if useRenderToTexture then
 			if buildmenuBgTex then
 				-- background element
-				gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, useRenderToTexture)
+				gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
 			end
 		end
 		if useRenderToTexture then
