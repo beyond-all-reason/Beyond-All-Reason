@@ -10,7 +10,7 @@ local RenderToTextureBlend = function(tex, drawFn, customBlend, scissors)
 		end
 		-- clear
 		if scissors and scissors[1] then
-			if scissors[1][1] then
+			if type(scissors[1]) == "table" then
 				for i = 1, #scissors do
 					gl.Scissor(scissors[i][1], scissors[i][2], scissors[i][3], scissors[i][4])
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
@@ -19,6 +19,7 @@ local RenderToTextureBlend = function(tex, drawFn, customBlend, scissors)
 				gl.Scissor(scissors[1], scissors[2], scissors[3], scissors[4])
 				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 			end
+			gl.Scissor(false)
 		else
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		end

@@ -14,7 +14,6 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local customBlend = useRenderToTexture
 
 local LineTypes = {
 	Console = -1,
@@ -1137,14 +1136,14 @@ local function drawGameTime(gameFrame)
 	if minutes >= 100 then
 		offset = (usedFontSize*0.2*widgetScale)
 	end
-	font3:Begin(customBlend)
+	font3:Begin(useRenderToTexture)
 	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 local function drawConsoleLine(i)
-	font:Begin(customBlend)
+	font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
@@ -1168,10 +1167,10 @@ end
 
 local function drawChatLine(i)
 	local fontHeightOffset = usedFontSize*0.3
-	font:Begin(customBlend)
+	font:Begin(useRenderToTexture)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
-			font2:Begin(customBlend)
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1182,7 +1181,7 @@ local function drawChatLine(i)
 			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-			font3:Begin(customBlend)
+			font3:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font3:SetOutlineColor(1,1,1,1)
 			else
@@ -1191,7 +1190,7 @@ local function drawChatLine(i)
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
-			font2:Begin(customBlend)
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1204,7 +1203,7 @@ local function drawChatLine(i)
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin(customBlend)
+		font3:Begin(useRenderToTexture)
 		if chatLines[i].textOutline then
 			font3:SetOutlineColor(1,1,1,1)
 		else
@@ -1451,7 +1450,7 @@ local function drawChatInput()
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
-			usedFont:Begin(customBlend)
+			usedFont:Begin(useRenderToTexture)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
@@ -1613,7 +1612,7 @@ local function drawUi()
 			glColor(0,0,0,backgroundOpacity)
 			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-				font:Begin(customBlend)
+				font:Begin(useRenderToTexture)
 				font:SetTextColor(0.1,0.1,0.1,0.66)
 				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 				font:End()
@@ -1658,7 +1657,7 @@ local function drawUi()
 	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
-			font:Begin(customBlend)
+			font:Begin(useRenderToTexture)
 			font:SetTextColor(0.35,0.35,0.35,0.66)
 			font:Print(I18N.nohistory, activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
 			font:End()
@@ -1943,7 +1942,7 @@ function widget:DrawScreen()
 					gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
 					gl.Translate(-rttArea[1], -rttArea[2], 0)
 					drawUi()
-				end, customBlend)
+				end, useRenderToTexture)
 
 				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
 				if updateDrawUi == false then
@@ -1953,7 +1952,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], customBlend)
+			gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], useRenderToTexture)
 		end
 	else
 		drawUi()
