@@ -22,7 +22,6 @@ local normalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 local level = 1 -- pre-game lava level
 local grow = 0.25 -- initial lava grow speed
 local damage = 100 -- damage per second or health proportion (0-1)
-local slow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 local damageFeatures = false -- Lava also damages features when set, if set to float, it's proportional damage per second (0 to 1), if set to true sets default of 0.1
 local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
 local colorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
@@ -116,7 +115,6 @@ local function applyConfig(lavaConfig)
 	level = lavaConfig.level or level
 	grow = lavaConfig.grow or grow
 	damage = lavaConfig.damage or damage
-	slow = lavaConfig.slow or slow
 	if lavaConfig.damageFeatures ~= nil then
 		damageFeatures = lavaConfig.damageFeatures
 	end
@@ -188,7 +186,6 @@ if mapLavaConfig and (not voidWaterMap) then
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	isLavaMap = true
 	grow = 0
-	slow = 0
 	effectBurst = false
 	level = 1
 	colorCorrection = "vec3(0.15, 1.0, 0.45)"
@@ -236,7 +233,6 @@ return {
 	level = level,
 	grow = grow,
 	damage = damage,
-	slow = slow,
 	damageFeatures = damageFeatures,
 	uvScale = uvScale,
 	colorCorrection = colorCorrection,

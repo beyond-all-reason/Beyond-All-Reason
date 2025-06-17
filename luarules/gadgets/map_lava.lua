@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
 		desc      = "lava",
-		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
+		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
 		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -3,
@@ -28,7 +28,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
-	local lavaSlow = lava.slow 
+
+	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -128,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 						local tr = UnitDefs[UnitDefID].turnRate
 						local ar = UnitDefs[UnitDefID].maxAcc
 						lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
-					else -- Already in lava justupdate slow factor
+					else -- Already in lava just update slow factor
 						lavaUnits[unitID].unitSlow = us
 					end
 					if lavaUnits[unitID].slowed and lavaUnits[unitID].slowed == true then
