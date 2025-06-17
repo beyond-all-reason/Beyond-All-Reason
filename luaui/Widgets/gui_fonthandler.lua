@@ -18,7 +18,7 @@ local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regu
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
-local defaultSize = 32
+local defaultSize = 34
 
 local defaultOutlineStrength = 1.7
 local defaultOutlineSize -- assigned in ViewResize

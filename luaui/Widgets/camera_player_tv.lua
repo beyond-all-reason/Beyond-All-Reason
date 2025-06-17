@@ -609,9 +609,9 @@ function widget:DrawScreen()
 		if useRenderToTexture then
 			if right-left >= 1 and top-bottom >= 1 then
 				uiTexTopExtra = math.floor(vsy*0.06)
-				uiTexLeftExtra = math.floor(vsy*0.06)
+				uiTexLeftExtra = math.floor(vsy*0.08)
 				if not uiTex then
-					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
