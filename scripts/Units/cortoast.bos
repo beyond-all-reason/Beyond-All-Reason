@@ -1,11 +1,12 @@
 
 
 #include "../recoil_common_includes.h"
+#include "smart_weapon_select.h"
 
-piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
+piece  base, flare, turret, door1, door2, barrel, bore, aimpoint, turretmidpoint;
 
 static-var  turretOpen, restoreDelay, stunned, trajectoryMode, lastHeading, cardinalHeading;
-#define SIGNAL_AIM2			1
+#define SIGNAL_AIM			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
@@ -117,7 +118,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM;
 	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -141,18 +142,6 @@ Create()
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Activate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = HIGH_TRAJECTORY;
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = LOW_TRAJECTORY;
-}
-
 aimCommon(heading, pitch)
 {
 	while( turretOpen == 0 )
@@ -169,15 +158,15 @@ aimCommon(heading, pitch)
 
 AimWeapon1(heading, pitch)
 {
+	if (AimingState != AIMING_PRIORITY)
+	{
+		return(0);
+	}
 	start-script Go();
 
-	if(trajectoryMode != LOW_TRAJECTORY)
-	 {
-	 	return(0);
-	 }
-	
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -195,19 +184,33 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != HIGH_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
 
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
+	start-script Go();
+
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
+}
+
+AimWeapon3(heading, pitch)
+{
+	return (0);
 }
 
 fireCommon()
@@ -230,12 +233,22 @@ FireWeapon2()
 	call-script fireCommon();
 }
 
+FireWeapon3()
+{
+	call-script fireCommon();
+}
+
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = aimpoint;
 }
 
 AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = aimpoint;
+}
+
+AimFromWeapon3(pieceIndex)
 {
 	pieceIndex = aimpoint;
 }
@@ -248,6 +261,10 @@ QueryWeapon1(pieceIndex)
 QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
+}
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
 }
 
 
