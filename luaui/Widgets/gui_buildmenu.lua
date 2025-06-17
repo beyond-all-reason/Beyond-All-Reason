@@ -511,7 +511,7 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
@@ -714,7 +714,7 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
 	local iconCount = 0
 	for row = 1, rows do
 		if cellRectID >= maxCellRectID then
@@ -827,26 +827,26 @@ function widget:DrawScreen()
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(buildmenuBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenuBg()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenuBg()
+					end,
+					useRenderToTexture
+				)
 			end
 			if buildmenuTex then
-				gl.RenderToTexture(buildmenuTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenu()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(buildmenuTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenu()
+					end,
+					useRenderToTexture
+				)
 			end
 		else
 			if not dlistBuildmenuBg then
@@ -861,9 +861,7 @@ function widget:DrawScreen()
 	-- draw buildmenu background
 	if useRenderToTexture then
 		if buildmenuBgTex and backgroundRect then
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(buildmenuBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
 		end
 	else
 		gl.CallList(dlistBuildmenuBg)
@@ -1004,7 +1002,7 @@ function widget:DrawScreen()
 								end
 
 								-- re-draw cell with hover zoom (and price shown)
-								font2:Begin()
+								font2:Begin(useRenderToTexture)
 								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
