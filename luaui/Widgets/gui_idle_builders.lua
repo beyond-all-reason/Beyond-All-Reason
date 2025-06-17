@@ -178,10 +178,10 @@ local function drawContent()
 		local fontSize = height*vsy*0.33
 		local offset = ((iconRect[3]-iconRect[1])/5)
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
-		local style = 'c'
+		local style = 'co'
 		font2:Begin(useRenderToTexture)
-		font2:SetOutlineColor(0, 0, 0, 0)
-		font2:SetTextColor(0.33, 0.33, 0.33, 1)
+		font2:SetOutlineColor(0, 0, 0, 0.2)
+		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
 		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
