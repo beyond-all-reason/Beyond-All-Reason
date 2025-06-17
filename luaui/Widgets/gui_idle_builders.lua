@@ -583,9 +583,11 @@ function widget:Shutdown()
 	end
 	if uiBgTex then
 		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)
+		uiTex = nil
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')

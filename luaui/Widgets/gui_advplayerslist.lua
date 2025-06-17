@@ -958,10 +958,13 @@ function widget:Shutdown()
     end
 	if mainListBgTex then
 		gl.DeleteTexture(mainListBgTex)
+		mainListBgTex = nil
 	end
 	if mainListTex then
 		gl.DeleteTexture(mainListTex)
 		gl.DeleteTexture(mainList2Tex)
+		mainListTex = nil
+		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
