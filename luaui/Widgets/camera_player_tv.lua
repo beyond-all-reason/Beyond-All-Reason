@@ -143,7 +143,7 @@ local function createCountdownLists()
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
+			font:SetTextColor(0, 0, 0, 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
@@ -159,8 +159,8 @@ local function refreshUiDrawing()
 		gl.DeleteList(drawlist[i])
 	end
 
-	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
-	local mult = useRenderToTexture and 1.33 or 1
+	local buttonOpacity = 0.66
+	local mult = 1
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
@@ -617,25 +617,22 @@ function widget:DrawScreen()
 						fbo = true,
 					})
 				end
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-					gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
-					drawContent()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+						gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+						drawContent()
+					end,
+					useRenderToTexture
+				)
 			end
 		end
 	end
 
 	if useRenderToTexture then
 		if uiTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, useRenderToTexture)
 		end
 	else
 		drawContent()

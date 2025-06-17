@@ -64,8 +64,6 @@ end
 local vsx, vsy = Spring.GetViewGeometry()
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
-local customBlend = useRenderToTexture
 
 local customScale = 1
 local pointDuration = 45
@@ -1600,9 +1598,9 @@ function widget:DrawScreen()
 	--AdvPlayersListAtlas:DrawToScreen()
 
     -- draw the background element
-	if useRenderToTextureBg then
+	if useRenderToTexture then
 		if mainListBgTex then
-			gl.R2tHelper.BlendTexRect(mainListBgTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], customBlend)
+			gl.R2tHelper.BlendTexRect(mainListBgTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
 		end
 	else
 		if Background then
@@ -1614,10 +1612,10 @@ function widget:DrawScreen()
 
     if useRenderToTexture then
 		if mainListTex then
-			gl.R2tHelper.BlendTexRect(mainListTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], customBlend)
+			gl.R2tHelper.BlendTexRect(mainListTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
 		end
     	if mainList2Tex then
-			gl.R2tHelper.BlendTexRect(mainList2Tex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], customBlend)
+			gl.R2tHelper.BlendTexRect(mainList2Tex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
    		end
 	end
 
@@ -1781,7 +1779,7 @@ function CreateBackground()
 				mainList2Tex = nil
 			end
 		end
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if mainListBgTex then
 				gl.DeleteTexture(mainListBgTex)
 				mainListBgTex = nil
@@ -1797,7 +1795,7 @@ function CreateBackground()
 					gl.LoadIdentity()
 					gl.Ortho(absLeft, absRight, absBottom, absTop, 0, 1000)
 					UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
-				end, customBlend)
+				end, useRenderToTexture)
 			end
 		else
 			if Background then
@@ -2023,7 +2021,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                     local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
                     gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
                     drawMainList()
-                end, customBlend)
+                end, useRenderToTexture)
             end
         else
             if MainList then
@@ -2055,7 +2053,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                     local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
                     gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
                     drawMainList2()
-                end, customBlend)
+                end, useRenderToTexture)
             end
         else
 			if MainList2 then
@@ -2091,7 +2089,7 @@ function DrawLabel(text, vOffset, drawSeparator)
         text = string.sub(text, 0, 1)
     end
 
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
     font:SetTextColor(0.88, 0.88, 0.88, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX, widgetPosY + widgetHeight - vOffset + 7.5, 12, "on")
@@ -2103,7 +2101,7 @@ function DrawLabelTip(text, vOffset, xOffset)
         text = string.sub(text, 0, 1)
     end
 
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
     font:SetTextColor(0.8, 0.8, 0.8, useRenderToTexture and 1 or 0.75)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
@@ -2487,7 +2485,7 @@ function DrawIncome(energy, metal, posY, dead)
     local fontsize = (dead and 4.5 or 8.5) * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if energy > 0 then
         font:Print(
@@ -2687,7 +2685,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         DrawState(playerID, m_name.posX + widgetPosX, posY)
     end
 
-    font2:Begin(customBlend)
+    font2:Begin(useRenderToTexture)
     local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
@@ -2757,7 +2755,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
   		alpha = alpha + ((1-alpha)*0.2)
 	end
 
-    font2:Begin(customBlend)
+    font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), useRenderToTexture and 1 or 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
     font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
@@ -2782,7 +2780,7 @@ function DrawID(playerID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.7, 0.7, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
@@ -2791,7 +2789,7 @@ end
 
 function DrawSkill(skill, posY, dark)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
     font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
@@ -2812,7 +2810,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 
 
     -- display user fps
-    font:Begin(customBlend)
+    font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if fps ~= nil then
         if fps > 99 then
@@ -3037,7 +3035,7 @@ function CreateShareSlider()
     ShareSlider = gl_CreateList(function()
 		gl_Color(1,1,1,1)
         if sliderPosition then
-            font:Begin(customBlend)
+            font:Begin(useRenderToTexture)
             local posY
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
