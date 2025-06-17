@@ -1,9 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, door1, door2, flare;
+piece  base, door1, door2, flare, greenlight, orangelight;
 
-static-var  restore_delay;
+static-var  restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -13,6 +13,9 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
+	missiles_stockpiled = 0;
+	hide greenlight;
+	show orangelight;
 	return (0);
 }
 
@@ -69,6 +72,33 @@ QueryWeapon1(pieceIndex)
 	return (0);
 }
 
+lights_orange()
+{
+	hide greenlight;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greenlight;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
+}
 
 
 Killed(severity, corpsetype)
