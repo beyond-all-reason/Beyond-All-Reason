@@ -511,7 +511,7 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
@@ -714,7 +714,7 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
 	local iconCount = 0
 	for row = 1, rows do
 		if cellRectID >= maxCellRectID then
@@ -827,26 +827,26 @@ function widget:DrawScreen()
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(buildmenuBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenuBg()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenuBg()
+					end,
+					useRenderToTexture
+				)
 			end
 			if buildmenuTex then
-				gl.RenderToTexture(buildmenuTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBuildmenu()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(buildmenuTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenu()
+					end,
+					useRenderToTexture
+				)
 			end
 		else
 			if not dlistBuildmenuBg then
@@ -861,9 +861,7 @@ function widget:DrawScreen()
 	-- draw buildmenu background
 	if useRenderToTexture then
 		if buildmenuBgTex and backgroundRect then
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(buildmenuBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
 		end
 	else
 		gl.CallList(dlistBuildmenuBg)
@@ -1004,7 +1002,7 @@ function widget:DrawScreen()
 								end
 
 								-- re-draw cell with hover zoom (and price shown)
-								font2:Begin()
+								font2:Begin(useRenderToTexture)
 								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
@@ -1186,11 +1184,12 @@ function widget:MousePress(x, y, button)
 					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						local uDefID = cmds[cellRectID].id  --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
+						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
-							if setQuotas then
+							if setQuotas and not alt then
 								changeQuotas(-uDefID, 1)
 							else
 								if preGamestartPlayer then
@@ -1201,7 +1200,7 @@ function widget:MousePress(x, y, button)
 									if isRepeatMex then
 										WG['areamex'].setAreaMexType(uDefID)
 									end
-									Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+									Spring.SetActiveCommand(cmd, 1, true, false, alt, ctrl, meta, shift)
 								end
 							end
 						else
@@ -1209,7 +1208,7 @@ function widget:MousePress(x, y, button)
 								-- has queue
 								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 							end
-							if setQuotas then
+							if setQuotas and not alt then
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
