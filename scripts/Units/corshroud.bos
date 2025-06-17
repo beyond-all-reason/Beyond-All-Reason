@@ -3,7 +3,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, tower;
+piece  base, tower, jam;
 
 static-var  recentlyDamaged;
 
@@ -26,12 +26,14 @@ Activate()
 		set ACTIVATION to 0;
 		return (0);
 	}
-	spin tower around y-axis speed <40.005495>;
+	show jam;
+	spin tower around y-axis speed <60> accelerate <1>;
 }
 
 Deactivate()
 {
-	stop-spin tower around y-axis;
+	hide jam;
+	stop-spin tower around y-axis decelerate <4>;
 }
 
 TurnOffWhileDamaged(){
