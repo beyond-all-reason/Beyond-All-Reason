@@ -612,7 +612,7 @@
 			"raptorCount": "异虫数量: %{count}",
 			"raptorKillCount": "已击杀异虫: %{count}",
 			"raptorPlayerAgression": "玩家的攻击性水平:%{count}",
-			"queenAngerWithGain": "虫后孵化：%{anger}%%(+%{gain}%%/每秒)",
+			"queenAngerWithGain": "虫后孵化值：%{anger}%%(+%{gain}%%/每秒)",
 			"queenAngerWithTech": "虫后孵化值：%{anger}%%（进化值：%{techAnger}%%）",
 			"queenAngerBase": "基数：+%{value}%%/每秒",
 			"queenAngerAggression": "玩家攻击性:%{value}%%/s",
