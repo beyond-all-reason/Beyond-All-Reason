@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece  base,dish;
+piece  base,dish,jam;
 
 static-var  Stunned;
 
@@ -24,12 +24,14 @@ Create()
 
 Activate()
 {
-	spin dish around y-axis speed <150.0>;
+	show jam;
+	spin dish around y-axis speed <200.000000> accelerate <1>;
 }
 
 Deactivate()
 {
-	stop-spin dish around y-axis;
+	hide jam;
+	stop-spin dish around y-axis decelerate <6>;
 }
 
 Killed(severity, corpsetype)
