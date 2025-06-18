@@ -390,12 +390,13 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	uniform sampler2D mapnormalsTex;
 
 	out DataVS {
-		vec4 v_worldPosRad;
-		vec4 v_localxz;
-		vec4 v_worldUV;
-		vec4 v_lifeparams;
-		vec4 v_mapnormals;
-		float v_trueradius;
+		vec4 v_localxz; // only xz used but why?
+		vec4 v_worldUV_rad; // only xyz used 
+		vec4 v_mapnormals_truerad; // only RA used
+		//vec4 v_worldPosRad; // only w used but why?
+		//vec4 v_lifeparams;  // totes unused
+		//float v_trueradius; // used
+		// total of 1 + 2 + 3 + 2 + 1 = 9 floats instead of 25
 	};
 
 	float rand(vec2 co){ // a pretty crappy random function
@@ -405,8 +406,8 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	#line 11000
 	void main()
 	{
-		v_worldPosRad = worldposradius;
-		v_lifeparams = lifeparams;
+		v_worldUV_rad.w = worldposradius.w;
+		//v_lifeparams = lifeparams;
 		v_localxz = xyworld_xyfract;
 		// Transform the [-1, 1] rect into world space
 		vec4 mapPos = vec4(worldposradius.xyz, 1.0);
@@ -417,20 +418,20 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 		mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 3.0;
 
 		// sample the map normals and pass it on for later use:
-		v_mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
+		v_mapnormals_truerad.xy = textureLod(mapnormalsTex, uvhm, 0.0).ra;
 
-		v_worldUV =  mapPos.xyzw;
+		v_worldUV_rad =  mapPos.xyzw;
 
 		float time = timeInfo.x + timeInfo.w;
 
-		v_worldUV.x += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV.xy));
-		v_worldUV.z += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV.zy));
+		v_worldUV_rad.x += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV_rad.xy));
+		v_worldUV_rad.z += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV_rad.zy));
 
 		if (lifeparams.y > 0.0) {
-			v_trueradius = clamp (lifeparams.y * (time - lifeparams.x), 0.0,  v_worldPosRad.w);
+			v_mapnormals_truerad.w = clamp (lifeparams.y * (time - lifeparams.x), 0.0,  v_worldUV_rad.w);
 		}
 		else{
-			v_trueradius = clamp (v_worldPosRad.w + lifeparams.y * (time - lifeparams.x), 0.0, v_worldPosRad.w) ;
+			v_mapnormals_truerad.w = clamp (v_worldUV_rad.w + lifeparams.y * (time - lifeparams.x), 0.0, v_worldUV_rad.w) ;
 		}
 		//mapPos.y += fract( 10 * (time - lifeparams.x) * 0.001) * 100;
 
@@ -454,12 +455,12 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	uniform float iconDistance;
 	uniform vec4 nightFactor;
 	in DataVS {
-		vec4 v_worldPosRad;
 		vec4 v_localxz;
-		vec4 v_worldUV;
-		vec4 v_lifeparams;
-		vec4 v_mapnormals;
-		float v_trueradius;
+		vec4 v_worldUV_rad;
+		vec4 v_mapnormals_truerad;
+		//vec4 v_worldPosRad;
+		//vec4 v_lifeparams;
+		//float v_trueradius;
 	};
 
 	uniform sampler2D heightmapTex;
@@ -491,39 +492,39 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	#line 31000
 	void main(void)
 	{
-		if (any(lessThan(vec4(v_worldUV.xz, mapSize.xy - v_worldUV.xz) , vec4(0.0) ))) discard; // Discard out-of-map fragments
+		if (any(lessThan(vec4(v_worldUV_rad.xz, mapSize.xy - v_worldUV_rad.xz) , vec4(0.0) ))) discard; // Discard out-of-map fragments
 		#if (VOIDWATER == 1)
-			if (v_worldUV.y < 0) discard;
+			if (v_worldUV_rad.y < 0) discard;
 		#endif
 
 		float time = timeInfo.x+timeInfo.w;
 
 		float internalradius = length (v_localxz.xy) ; //dot(v_localxz.xy, v_localxz.xy);
-		float radialgrowth = v_trueradius/v_worldPosRad.w;
+		float radialgrowth = v_mapnormals_truerad.w/v_worldUV_rad.w;
 		// discard outside of current radius
 		if (internalradius> radialgrowth) discard; // bail before any texture fetches
-		vec4 texdistort = texture(distortion, v_worldUV.xz * CREEPTEXREZ * 1.0);
+		vec4 texdistort = texture(distortion, v_worldUV_rad.xz * CREEPTEXREZ * 1.0);
 		float radialScum = smoothstep(radialgrowth - 0.15, radialgrowth, internalradius + 0.1 * texdistort.x );
 		if (radialScum > 0.7) discard;
 
-		vec4 texcolorheight= texture(colorheight, v_worldUV.xz * CREEPTEXREZ, -0.5);
-		vec4 texnormalspec = texture(normalspec, v_worldUV.xz* CREEPTEXREZ, - 0.5);
-		//vec4 texdistort2 = texture(distortion, v_worldUV.xz * CREEPTEXREZ * 2.0 + vec2(sin(time * 0.0002))) * 0.5 + 0.5;
+		vec4 texcolorheight= texture(colorheight, v_worldUV_rad.xz * CREEPTEXREZ, -0.5);
+		vec4 texnormalspec = texture(normalspec, v_worldUV_rad.xz* CREEPTEXREZ, - 0.5);
+		//vec4 texdistort2 = texture(distortion, v_worldUV_rad.xz * CREEPTEXREZ * 2.0 + vec2(sin(time * 0.0002))) * 0.5 + 0.5;
 
 		vec3 fragNormal = (texnormalspec.xzy * 2.0 -1.0);
 
 		vec4 camPos = cameraViewInv[3];
-		vec3 worldtocam = camPos.xyz - v_worldUV.xyz;
+		vec3 worldtocam = camPos.xyz - v_worldUV_rad.xyz;
 
-		float shadow = clamp(textureProj(shadowTex, shadowMapUVAtWorldPos(v_worldUV.xyz)), SHADOWSTRENGTH, 1.0);
+		float shadow = clamp(textureProj(shadowTex, shadowMapUVAtWorldPos(v_worldUV_rad.xyz)), SHADOWSTRENGTH, 1.0);
 
-		vec2 losUV = clamp(v_worldUV.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
+		vec2 losUV = clamp(v_worldUV_rad.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
 		float loslevel = dot(vec3(0.33), texture(infoTex, losUV).rgb) ; // lostex is PO2
 		loslevel = clamp(loslevel * 4.0 - 1.0, LOSDARKNESS, 1.0);
 
 		// this is the actually correct way of blending according to
 		// Whiteout blending https://blog.selfshadow.com/publications/blending-in-detail/
-		fragNormal.xz += v_mapnormals.ra;
+		fragNormal.xz += v_mapnormals_truerad.xy;
 		vec3 normal = normalize(fragNormal.xyz);//  + texdistort2.xzy);
 		//normal = vec3(0.0, 1.0, 0.0);
 
