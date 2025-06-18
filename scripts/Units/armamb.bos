@@ -1,7 +1,8 @@
 
 #include "../recoil_common_includes.h"
+#include "smart_weapon_select.h"
 
-piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint;
+piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
 static-var  turretOpen, restoreDelay, trajectoryMode, stunned, lastHeading;
 
@@ -24,7 +25,6 @@ openTurret()
 	move stand to y-axis [0] speed [34];
 	wait-for-move door1 along y-axis;
 	wait-for-move stand along y-axis;
-
 
 	move barrel to z-axis [0] speed [51];
 	wait-for-move barrel along z-axis;
@@ -145,18 +145,6 @@ Create()
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Activate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = HIGH_TRAJECTORY;
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = LOW_TRAJECTORY;
-}
-
 aimCommon(heading, pitch)
 {
 	while(!turretOpen)
@@ -172,12 +160,11 @@ aimCommon(heading, pitch)
 
 AimWeapon1(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != LOW_TRAJECTORY)
+	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
 	}
+	start-script Go();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -198,20 +185,33 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != HIGH_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
+	start-script Go();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
+
+AimWeapon3(piecenum)
+{
+	return (0);
+}
+
 
 fireCommon()
 {
@@ -241,6 +241,11 @@ AimFromWeapon2(pieceIndex)
 	pieceIndex = aimpoint;
 }
 
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
+}
+
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
@@ -251,6 +256,10 @@ QueryWeapon2(pieceIndex)
 	pieceIndex = flare;
 }
 
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
+}
 
 
 Killed(severity, corpsetype)
