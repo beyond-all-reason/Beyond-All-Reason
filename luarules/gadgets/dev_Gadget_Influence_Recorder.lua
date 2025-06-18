@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Snapshot Recorder",
 		desc = "Gathers and stores units info during game for replay and stats widget",
 		author = "Mr_Chinny",
-		date = "May 2025",
+		date = "June 2025",
 		license = "GNU GPL, v2 or later",
 		layer = -99999,
 		enabled = true,
@@ -14,7 +14,7 @@ end
 
 --todo
 --check transfer units / capture working as it should.
---add transport logic for moving static.
+--add transport logic for moving static. Need to ensure widget tracks/works if a unit dies/changes hands etc while in the air.
 --add antispam unit logic when mobile units > 1000? done
 --add allowing list at end game. -> done
 --interesting deaths? -> no, can be done in widget.
@@ -32,6 +32,7 @@ else
     local masterDeadUnitListAll = {}        --All units that died/removed within last replay Frame                              [udid,teamID]
     local masterExistingUnitListMobile = {} --Mobile living units that moved within last replay Frame (inc new mobile units)    [posX,poxZ]
     local masterTransferedUnitListAll = {}  --All living units that changed teamID (inc capture), within last frame.            [original teamID, New TeamID]
+    local masterTransportedUnitListStatic = {}--All static units that are loaded (true) or unloaded (false) into a transport    [udid,loaded,posX,posZ]
     local mobileTrackingList = {}           --Tracking all mobile, living units positions for internal gadget use.              [posX,poxZ]
     local mobileTrackingCount = 0           --Tracking all mobile, living units positions for internal gadget use.              [posX,poxZ]
     local teamAllyTeamIDCache = {}          --Cache of teamID/allyTeamIDS
@@ -89,6 +90,7 @@ else
         masterDeadUnitListAll[replayFrame] = {}
         masterExistingUnitListMobile[replayFrame] = {}
         masterTransferedUnitListAll[replayFrame] = {}
+        masterTransportedUnitListStatic[replayFrame] = {}
     end
 
     local function CacheTeams()
@@ -150,7 +152,7 @@ else
 
     local function MakeListsAvalibleToWidgets()
         if Script.LuaUI("Influence") then
-            Script.LuaUI.Influence(masterNewUnitListStatic,masterNewUnitListMobile,masterDeadUnitListAll,masterExistingUnitListMobile,masterTransferedUnitListAll)
+            Script.LuaUI.Influence(masterNewUnitListStatic,masterNewUnitListMobile,masterDeadUnitListAll,masterExistingUnitListMobile,masterTransferedUnitListAll,masterTransportedUnitListStatic)
         end
     end
 
@@ -189,6 +191,25 @@ else
         if not CheckForSkippables(teamAllyTeamIDCache[oldTeamID],unitDefID, true) then
             if select(5,Spring.GetUnitHealth(unitID)) == 1 then
                 masterTransferedUnitListAll[replayFrame][unitID] = {oldTeamID,newTeamID}
+            end
+        end
+    end
+
+    function gadget:UnitLoaded(unitID, unitDefID, teamID, transportId, transportTeam)
+        if not CheckForSkippables(teamAllyTeamIDCache[teamID],unitDefID, false) then
+            local unitDef = UnitDefs[unitDefID]
+            if not unitDef.speed >0 then
+                masterTransportedUnitListStatic[replayFrame][unitID] = {unitDefID,true,nil,nil}
+            end
+        end
+    end
+
+    function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportId, transportTeam)
+        if not CheckForSkippables(teamAllyTeamIDCache[teamID],unitDefID, false) then
+            local unitDef = UnitDefs[unitDefID]
+            if not unitDef.speed >0 then
+                local posX,_,posZ = Spring.GetUnitPosition(unitID)
+                masterTransportedUnitListStatic[replayFrame][unitID] = {unitDefID,false,posX,posZ}
             end
         end
     end
