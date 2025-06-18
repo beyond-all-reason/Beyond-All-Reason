@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, turret, spinner1, spinner2;
+piece  base, turret, spinner1, spinner2, jam;
 
 static-var  Stunned;
 
@@ -27,20 +27,25 @@ SetStunned(State)
 
 Create()
 {
+	hide jam;
 }
 
 Activate()
 {
+	show jam;
 	spin turret around y-axis speed <25.0>;
-	spin spinner1 around y-axis speed <100.0>;
-	spin spinner2 around y-axis speed <-100.0>;
+	spin spinner1 around y-axis speed <200.000000> accelerate <1>;
+	spin spinner2 around y-axis speed <-100.000000> accelerate <10>;
 }
 
 Deactivate()
 {
+	hide jam;
 	stop-spin turret around y-axis;
 	stop-spin spinner1 around y-axis;
 	stop-spin spinner2 around y-axis;
+	stop-spin spinner1 around y-axis decelerate <6>;
+	stop-spin spinner2 around y-axis decelerate <2>;
 }
 
 
