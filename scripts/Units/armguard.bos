@@ -1,7 +1,8 @@
 
 #include "../recoil_common_includes.h"
+#include "smart_weapon_select.h"
 
-piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
+piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves, turretmidpoint;
 
 static-var  nextBarrel, trajectoryMode, lastHeading;
 
@@ -78,7 +79,7 @@ aimCommon(heading, pitch)
 
 AimWeapon1(heading, pitch)
 {
-	if( trajectoryMode != LOW_TRAJECTORY )
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
@@ -100,7 +101,7 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
-	if( trajectoryMode != HIGH_TRAJECTORY )
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
@@ -108,7 +109,19 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	call-script aimCommon(heading, pitch);
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
 	return (1);
+}
+
+AimWeapon3(pieceIndex)
+{
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
@@ -119,6 +132,11 @@ AimFromWeapon1(pieceIndex)
 AimFromWeapon2(pieceIndex)
 {
 	pieceIndex = sleeves;
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
 }
 
 fireCommon()
@@ -150,6 +168,7 @@ FireWeapon2()
 	call-script fireCommon();
 }
 
+
 QueryWeapon1(pieceIndex)
 {
 	if( nextBarrel == 0 )
@@ -174,6 +193,10 @@ QueryWeapon2(pieceIndex)
 	}
 }
 
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = turretmidpoint;
+}
 
 
 Killed(severity, corpsetype)
