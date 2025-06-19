@@ -82,7 +82,7 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 
-	if string.find(udef.name, 'armspid') then
+	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
 		builder = false
 	end
 	combatFilter[udid] = combat
