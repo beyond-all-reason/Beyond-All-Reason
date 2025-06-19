@@ -1535,7 +1535,7 @@
 				"displaydps_descr": "当目标被击中时显示\"每秒伤害\"",
 				"flankingicons": "显示侧翼打击方向",
 				"flankingicons_descr": "显示侧翼打击方向 展示哪里是更强装甲 哪里是更弱装甲\n包围单位以获得更大的伤害加成！",
-				"givenunits": "被转让单位图标",
+				"givenunits": "被分享单位图标",
 				"givenunits_descr": "给被转让单位以 'new' 的图标",
 				"radarrange": "雷达范围",
 				"radarrange_descr": "显示以绿圈覆盖的雷达范围",
