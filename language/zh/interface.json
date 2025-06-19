@@ -296,8 +296,8 @@
 				"trajectory_tooltip": "在低弹道和高弹道之间切换炮台射击角度",
 				"gauss_tooltip": "在电磁炮 和 等离子炮 之间切换"
 			},
-			"quicksharetotarget": "转让单位",
-			"quicksharetotarget_tooltip": "转让单位给目标玩家"
+			"quicksharetotarget": "分享单位",
+			"quicksharetotarget_tooltip": "分享单位给目标玩家"
 		},
 		"idleBuilders": {
 			"name": "闲置建造单位",
