@@ -41,6 +41,8 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmHovercraft",
+			faction = "armada",
+			movementType = "hover",
 		},
 		featuredefs = {
 			dead = {
