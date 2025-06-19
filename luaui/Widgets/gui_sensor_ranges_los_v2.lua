@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Sensor Ranges LOS",
+		name = "Sensor Ranges LOS V2",
 		desc = "Shows LOS ranges of all ally units. (GL4)",
 		author = "Beherith GL4, Borg_King",
 		date = "2021.06.18",
@@ -13,6 +13,8 @@ function widget:GetInfo()
 end
 
 -------   Configurables: -------------------
+local debugmode = true
+---
 local rangeColor = { 0.9, 0.9, 0.9, 0.24 } -- default range color
 local opacity = 0.08
 local useteamcolors = false
@@ -65,21 +67,45 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+local stencilShader = nil
 local circleShader = nil
 local circleInstanceVBO = nil
 
-local shaderConfig = {
-	EXAMPLE_DEFINE = 1.0,
-	--USE_STIPPLE = 1.5;
-}
+local circleShaderConfig = {
+}  
+ 
+local losStencilTexture 
+local resolution = 2
+local vsx, vsy  = Spring.GetViewGeometry()
 
-local shaderSourceCache = {
+local circleShaderSourceCache = {
 	shaderName = 'LOS Ranges GL4',
-	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
-	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
-	shaderConfig = shaderConfig,
+	vssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.frag.glsl",
+	shaderConfig = {
+		VSX = vsx,
+		VSY = vsy,
+	},
 	uniformInt = {
 		heightmapTex = 0,
+		losStencilTexture = 1,
+	},
+	uniformFloat = {
+		teamColorMix = 1.0,
+		rangeColor = rangeColor,
+	},
+} 
+ 
+local stencilShaderSourceCache = {
+	shaderName = 'LOS Ranges GL4',
+	vssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.frag.glsl",
+	shaderConfig = {
+		STENCILPASS = 1,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losStencilTexture = 1,
 	},
 	uniformFloat = {
 		teamColorMix = 1.0,
@@ -87,183 +113,24 @@ local shaderSourceCache = {
 	},
 }
 
-local counterSSBO
-
-local visibilitySSBO 
-
---- CMP Visibility shader
---- 
-local visibilityComputeShader 
-local cmpVisSrc = [[
-#version 430 core
-#line 40000
-//layout (location = 1) in vec4 radius_params; //x is startradius, rest is unused, we need to get pos from drawpos
-//layout (location = 2) in uvec4 instData;
-
-layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
-
-struct SUniformsBuffer {
-	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
-
-	uint unused2;	uint unused3;	uint unused4;
-
-	float maxHealth; 	float health; 	float unused5; 	float unused6;
-
-    vec4 drawPos;
-    vec4 speed;
-    vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
-};
-
-layout(std140, binding=1) readonly buffer UniformsBuffer {
-	SUniformsBuffer uni[];
-};
-
-struct SensorVBOStruct {
-	vec4 radius_params;
-	uvec4 instData;
-};
-
-layout(std140, binding=2) readonly buffer InputInstanceBuffer {
-	SensorVBOStruct inputInstances[];
-};
-
-layout(std140, binding=3) writeonly buffer OutputVisibleBuffer {
-	SensorVBOStruct visibleInstances[];
-};
-
-layout(std140, binding = 4) buffer CounterBuffer {
-    uint visibleCount;
-};
-
-uniform mat4 viewProjectionMatrix; // view projection matrix for the camera
-#line 41000
-void main(void)
-{
-	vec4 in_radius_params = inputInstances[gl_GlobalInvocationID.x].radius_params;
-	uvec4 instData = inputInstances[gl_GlobalInvocationID.x].instData;
-	vec4 drawPos = uni[instData.x].drawPos;
-	float losrange = in_radius_params.x;
-	vec4 out_radius_params = vec4(drawPos.xzz, losrange); // x is pos.x, y is pos.z, z is losrange, w is unused
-
-	uint index = gl_GlobalInvocationID.x;
-	// check if its in view based on the viewProjectionMatrix
-	vec4 posInClipSpace = viewProjectionMatrix * vec4(drawPos.x, drawPos.y, drawPos.z, 1.0);
-	bool visible = true;
-	if (posInClipSpace.w <= 0.0) {
-		// not in view
-		visible = false;
-	}
-	// check if its in the view frustum
-	if (abs(posInClipSpace.x) > posInClipSpace.w || abs(posInClipSpace.y) > posInClipSpace.w) {
-		// not in view
-		visible = false;
-	}
-	
-	if (visible) {
-		// increment the visible count
-		uint currentCount = atomicAdd(visibleCount, 1);
-
-		visibleInstances[currentCount].radius_params = out_radius_params;
-		visibleInstances[currentCount].instData = instData;
-	}
-}
-]]
-
-
-local coveredSSBO
-local overlapComputeShader
-
-local cmpCoveredShader = [[  
-#version 430 core
-
-layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
-
-struct SensorVBOStruct {
-	vec4 radius_params;
-	uvec4 instData;
-};
-
-layout(std430, binding=2) buffer SensorVBOBuffer {
-	SensorVBOStruct visibleInstances[];
-};
-
-
-uniform uint numUnits; // number of units in the visibilitySSBO
-
-// see https://www.khronos.org/opengl/wiki/Compute_Shader
-
-// this came to me in a dream, and I hope it works
-
-
-
-
-# line 50000
-void main(void){
-	uint index = gl_GlobalInvocationID.x;
-	vec4 px_pz_r_v = visibleInstances[index].radius_params;
-	vec2 mypos = px_pz_r_v.xy;
-	float losrange = px_pz_r_v.z;
-	bool bigcovered = false;
-	bvec4 smallcovered = bvec4(false);
-	float smallRange = px_pz_r_v.z * 0.8; // 80% of the los range
-
-	vec4 smallx = mypos.x + losrange * vec4(0.25, 0.25, -0.25, -0.25);
-	vec4 smally = mypos.y + losrange * vec4(0.25, -0.25, 0.25, -0.25);
-
-	for( uint i = 0; i < (numUnits-1); i++ ) {
-		if (i == index) i++; // worlds silliest skip hack to avoid branching 
-		vec4 px_pz_r_v2 = visibleInstances[i].radius_params;
-		float losrange2 = px_pz_r_v2.z;
-		if (losrange2 > losrange) {
-			// check if the other unit is within the los range of this unit
-			vec2 d12 = mypos.xy - px_pz_r_v2.xy;
-			float r12 = losrange - losrange2;
-			if (dot(d12,d12) < dot(r12,r12)) {
-				bigcovered = true; // this unit is covered by another unit
-			}
-		}
-		
-		vec4 dcx = px_pz_r_v2.x - smallx;
-		vec4 dcy = px_pz_r_v2.y - smally;
-
-		vec4 small_sqrdistances = dcx * dcx + dcy * dcy;
-
-		float minDist = (smallRange - losrange2) * (smallRange - losrange2); // square the distance
-
-		smallcovered = smallcovered || bvec4(lessThan(small_sqrdistances, vec4(minDist))) ;
-	}
-	
-	if (all(smallcovered)) {
-		// if all small covered, then we are done
-		visibleInstances[index].radius_params.z = 32.0;
-	}
-	if (bigcovered) {
-		// if all small covered, then we are done
-		visibleInstances[index].radius_params.z = 40.0;
-	}
-}
-]]
-
-local structSize = 8 -- Is it vec4 or float or bytes? only the god knows. Also, should by like 64 floats aligned or else upload craps out
-local numEntries = 32768 -- max number of units we can handle
-
 local function goodbye(reason)
 	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
+	return false
 end
 
-local function initgl4()
-	if circleShader then
-		circleShader:Finalize()
-	end
-	if circleInstanceVBO then
-		InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
-	end
-	circleShader = LuaShader.CheckShaderUpdates(shaderSourceCache,0)
 
+local function initgl4()
+	circleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
 	if not circleShader then
-		goodbye("Failed to compile losrange shader GL4 ")
+		return goodbye("Failed to compile losrange shader GL4 ")
 	end
+
+	stencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)
+	if not stencilShader then
+  		return goodbye("Failed to compile losrange stencil shader GL4 ")
+ 	end
+
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
@@ -273,65 +140,48 @@ local function initgl4()
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
 	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
-
-	if true then return end
-	local pcache = {}
-	for i = 0,  (numEntries * structSize -1) do pcache[i+1] = 0	end
-
-	visibilitySSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
-	visibilitySSBO:Define(numEntries, {
-		{id = 0, name = "visibility", size = structSize},
-	})
-	visibilitySSBO:Upload(pcache)
-
-	counterSSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
-	counterSSBO:Define(1, {
-		{id = 0, name = "counter", size = 1},
-	})
-	counterSSBO:Upload({0,0,0,0}) -- At least 4 for some reason
-
-	visibilityComputeShader = LuaShader({
-		compute = cmpVisSrc,
-		uniformInt = {
-			--heightmapTex = 0,
-		},
-		uniformFloat = {
-			--frameTime = 0.016, -- this is a dummy value, we dont use it
-		}
-	}, "visibilityComputeShader")
-
-	if not visibilityComputeShader:Initialize() then
-		goodbye("Failed to initialize visibility compute shader")
-	end
-
-	overlapComputeShader = LuaShader({
-		compute = cmpCoveredShader,
-		uniformInt = {
-			--heightmapTex = 0,
-		},
-		uniformFloat = {
-			--frameTime = 0.016, -- this is a dummy value, we dont use it
-		}
-	}, "overlapComputeShader")
-
-	if not overlapComputeShader:Initialize() then
-		goodbye("Failed to initialize overlap compute shader")
-	end
-
 end
 
+ 
+local function DrawMe() -- about 0.025 ms
+	if circleInstanceVBO.usedElements > 0 then
+        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
+		gl.Blending(GL.ONE, GL.ZERO)
+        gl.Culling(false)
+		
+		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
+		stencilShader:Activate()
+        stencilShader:SetUniform("stencilColor", 0.5)
+		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+		stencilShader:Deactivate()
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	end
+end
 
+function widget:DrawWorldPreUnit()
+    --DrawMe()
+end
+
+local stencilRequested = false
+
+function widget:DrawWorld()
+ 
+end
 function widget:DrawGenesis()
-	if true then return end
-	circleInstanceVBO.instanceVBO:BindBufferRange(2)
-	visibilitySSBO:BindBufferRange(3)
-	counterSSBO:BindBufferRange(4)
-	visibilityComputeShader:Activate()
-	gl.DispatchCompute(circleInstanceVBO.usedElements, 1, 1) -- 32 is the local size x
-	visibilityComputeShader:Deactivate()
-	
+    gl.RenderToTexture(losStencilTexture, DrawMe)
 end
 
+-- This shows the debug stencil texture
+
+if debugmode then 
+	function widget:DrawScreen()
+		gl.Color(1,1,1,1)
+		gl.Blending(GL.ONE, GL.ZERO)
+		gl.Texture(losStencilTexture)
+		gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	end
+end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -367,9 +217,20 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function widget:ViewResize(newX, newY)
-	local vsx, vsy = Spring.GetViewGeometry()
+	local GL_R8 = 0x8229
+    vsx, vsy = Spring.GetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
-end
+    if losStencilTexture then gl.DeleteTexture(unitFeatureStencilTex) end
+    losStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
+		--format = GL.RGBA8,
+        format = GL_R8,
+		fbo = true,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+end 
 
 -- a reusable table, since we will literally only modify its first element.
 local instanceCache = {0,0,0,0,0,0,0,0}
@@ -473,38 +334,7 @@ local function CalculateOverlapping()
 		end
 	end
 	Spring.Echo("Sensor Ranges LOS: ",omult, totalcircles, totaloverlapping, inviewcircles, inviewoverlapping, inviewoverlapsmalls, additionalOverlaps)
---[[
-	for index, unitID in ipairs(allcircles) do
-		--Spring.Echo(px,py,pz)
-		if px then
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			local losrange = unitRange[unitDefID]
-			totalcircles = totalcircles + 1
-			-- check for overlap
-			local overlaps = False
-			for index2, unitID2 in ipairs(allcircles) do
-				local unitDefID2 = Spring.GetUnitDefID(unitID2)
-				local losrange2 = unitRange[unitDefID2]
-				--Spring.Echo(losrange2, losrange)
-				if losrange2 > losrange then
-					local px2, py2, pz2 = Spring.GetUnitPosition(unitID2)
-					--Spring.Echo(px-px2, pz-pz2, losrange2, losrange)
-					if px2 and (math.diag(px-px2, pz-pz2) < losrange2 - losrange) then
-						overlaps = true
-					end
-				end
-			end
 
-
-
-			if Spring.IsSphereInView(px,py,pz,losrange) then
-				inviewcircles =inviewcircles + 1
-				if overlaps then inviewoverlapping = inviewoverlapping + 1 end
-			end
-			if overlaps then totaloverlapping = totaloverlapping + 1 end
-		end
-	end
-]]--
 	return totalcircles, totaloverlapping, inviewcircles, inviewoverlapping, inviewoverlapsmalls
 end
 
@@ -578,65 +408,41 @@ function widget:VisibleUnitRemoved(unitID)
 	end
 end
 
-local updateTimer = Spring.GetTimer()
-
-
 function widget:DrawWorld()
 	--if spec and fullview then return end
 	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	if circleInstanceVBO.usedElements == 0 then return end
 	if opacity < 0.01 then return end
-
-	if Spring.DiffTimers(Spring.GetTimer(), updateTimer) > 2.0 then
-		updateTimer = Spring.GetTimer()
-		--CalculateOverlapping()
-	end
-
-	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear stencil buffer before starting work
-	glColorMask(false, false, false, false) -- disable color drawing
-	glStencilTest(true) -- Enable stencil testing
-	glDepthTest(false)  -- Dont do depth tests, as we are still pre-unit
+ 
+	--[[
 	circleShader:Activate()
-
+ 
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
+	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 	circleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	circleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
 
-	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-	-- Borg_King: Draw solid circles into masking stencil buffer
-	--glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
-	glStencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-	glStencilMask(1) -- Only check the first bit of the stencil buffer
-	-- As a test, disable the stencil drawing to see overlappiness
 	circleInstanceVBO.VAO:DrawArrays(GL_TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	circleShader:Deactivate()
-
+	]]--#region
+    
+ 
 	circleShader:Activate()
-
-	-- Borg_King: Draw thick ring with partial width outside of solid circle, replacing stencil to 0 (draw) where test passes
-	glColorMask(true, true, true, true)	-- re-enable color drawing
-	glStencilFunc(GL_NOTEQUAL, 1, 1)
-	--glStencilMask(0) -- this is commented out to not double-draw los ring edges
-	--glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
+	
+	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
+	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
-	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
 	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
+	
 	circleShader:Deactivate()
-	glStencilMask(255) -- enable all bits for future drawing
-	glStencilFunc(GL_ALWAYS, 1, 1) -- reset gl stencilfunc too
-
 	gl.Texture(0, false)
-	glStencilTest(false)
+	gl.Texture(1, false)
 	glDepthTest(true)
 	--glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
-	gl.Clear(GL.STENCIL_BUFFER_BIT)
-	
-
 end
 
 function widget:GetConfigData(data)
