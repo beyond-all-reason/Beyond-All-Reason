@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -------   Configurables: -------------------
-local debugmode = true
+local debugmode = false
 ---
 local rangeColor = { 0.9, 0.9, 0.9, 0.24 } -- default range color
 local opacity = 0.08
@@ -75,16 +75,18 @@ local circleShaderConfig = {
 }  
  
 local losStencilTexture 
-local resolution = 2
+local resolution = 4
 local vsx, vsy  = Spring.GetViewGeometry()
 
 local circleShaderSourceCache = {
-	shaderName = 'LOS Ranges GL4',
+	shaderName = 'LOS Ranges Circles GL4',
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.frag.glsl",
 	shaderConfig = {
 		VSX = vsx,
 		VSY = vsy,
+		RESOLUTION = resolution,
+		PADDING = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -97,11 +99,15 @@ local circleShaderSourceCache = {
 } 
  
 local stencilShaderSourceCache = {
-	shaderName = 'LOS Ranges GL4',
+	shaderName = 'LOS Ranges Stencil GL4',
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los_v2.frag.glsl",
 	shaderConfig = {
 		STENCILPASS = 1,
+		VSX = vsx,
+		VSY = vsy,
+		RESOLUTION = resolution,
+		PADDING = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -118,7 +124,7 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
-
+ 
 
 local function initgl4()
 	circleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
@@ -131,7 +137,7 @@ local function initgl4()
   		return goodbye("Failed to compile losrange stencil shader GL4 ")
  	end
 
-	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
+	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "LOSRangeCircles")
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
 		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
@@ -141,12 +147,13 @@ local function initgl4()
 	circleInstanceVBO.vertexVBO = circleVBO
 	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
-
+ 
  
 local function DrawMe() -- about 0.025 ms
 	if circleInstanceVBO.usedElements > 0 then
         gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
-		gl.Blending(GL.ONE, GL.ZERO)
+		gl.BlendEquation(GL.MAX)
+		gl.Blending(GL.ONE, GL.ONE)
         gl.Culling(false)
 		
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
@@ -155,6 +162,8 @@ local function DrawMe() -- about 0.025 ms
 		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 		stencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.BlendEquation(GL.FUNC_ADD)
+		
 	end
 end
 
@@ -166,7 +175,7 @@ local stencilRequested = false
 
 function widget:DrawWorld()
  
-end
+end 
 function widget:DrawGenesis()
     gl.RenderToTexture(losStencilTexture, DrawMe)
 end
@@ -175,13 +184,16 @@ end
 
 if debugmode then 
 	function widget:DrawScreen()
+		
+	circleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or circleShader
+	stencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or stencilShader
 		gl.Color(1,1,1,1)
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Texture(losStencilTexture)
 		gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
-end
+end  
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -427,15 +439,15 @@ function widget:DrawWorld()
 	circleShader:Deactivate()
 	]]--#region
     
- 
+  
 	circleShader:Activate()
 	
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	glDepthTest(true)
-	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -0, 1, circleInstanceVBO.usedElements, 0)
+ 
 	
 	circleShader:Deactivate()
 	gl.Texture(0, false)

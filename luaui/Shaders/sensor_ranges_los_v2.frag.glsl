@@ -25,7 +25,7 @@ out vec4 fragColor;
 	// sample the stencil texture to determine if this pixel is visible
 	#ifdef STENCILPASS
 		// if we are in stencil pass, we just output the blended color
-		fragColor.rgba = vec4(1.0);
+		fragColor.rgba = vec4(vec3(v_uv.w/32), 1.0);
 	#else
 		//vec2 stencilUV = fract((v_uv.xy * vec2(1.0/VSX, 1.0/ VSY) - 0.5)); // adjust UV coordinates if needed
 		vec2 stencilUV = gl_FragCoord.xy * vec2(1.0/VSX, 1.0/ VSY); // adjust UV coordinates if needed
@@ -39,8 +39,11 @@ out vec4 fragColor;
 			fragColor = vec4(1.0);
 
 		}
-		fragColor.rgba = vec4(1.0, 1.0, 1.0,  1.0 - stencilValue);
+		float flatstenc = step(stencilValue* 1.0 , 0.48);
+		float smoothstenc = 1.0 - smoothstep(0.47, 0.48, stencilValue);
+		fragColor.rgba = vec4(1.0,  flatstenc, 0.0, 1.0);
 		//fragColor.rgba = vec4(v_uv.xyz / 1024.0, 1.0);
+		fragColor.rgba = vec4(vec3(1.0), 0.5* smoothstenc);
 	#endif
 
 

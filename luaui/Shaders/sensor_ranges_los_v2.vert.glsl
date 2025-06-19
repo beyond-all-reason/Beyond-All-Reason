@@ -12,6 +12,7 @@ layout (location = 1) in vec4 radius_params; //x is startradius, y is starttime,
 layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -64,6 +65,9 @@ void main() {
 
 	vec4 circleWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
 	float circleRadius = radius_params.x;
+	#ifdef STENCILPASS
+	    circleRadius += 16.0;
+	#endif
 
 	bool isclipped = isSphereVisibleXY(vec4(circleWorldPos.xyz,1.0), circleRadius * 1.1);
 	if (isclipped){
@@ -93,4 +97,7 @@ void main() {
 	//blendedcolor.rgb = coveredness[gl_InstanceID].rgb * blendedcolor.rgba;
 	gl_Position = cameraViewProj * circleWorldPos;
 	v_uv = gl_Position;
+	v_uv.w = 0;
+  // if the circlepointposition is zero, we set the radius to 0
+	if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {	v_uv.w = radius_params.x; }
 }
