@@ -17,7 +17,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
 local allyTeamCount = #allyTeamList - 1
-local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors()
+local isSurvival = Spring.Utilities.Gametype.IsPvE()
 
 local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
@@ -798,22 +798,38 @@ else	-- UNSYNCED
 				or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
 			then
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-				local brightnessVariation = (0.73 - ((1.05 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-				local maxColorVariation = (120 / (allyTeamCount-1))
-				if teamID == myTeamID and #teamList-1 > 40 then
-					brightnessVariation = 0
-					maxColorVariation = 0
-					color[1] = color[1] + 170
-					color[2] = color[2] + 170
-					color[3] = color[3] + 170
-				elseif teamID == gaiaTeamID then
+				local maxColorVariation = 0
+				local maxIterations =  1 + math.floor((#teamList-1) / #ffaColors)
+				if maxIterations > 1 then
+					local iteration = 1 + math.floor((allyTeamID+1)/(#ffaColors))
+					local ffaColor = (allyTeamID+1) - (#ffaColors*(iteration-1)) + 1
+					if iteration ~= 1 then
+						color = hex2RGB(ffaColors[ffaColor])
+					end
+					if iteration == 1 then
+						color[1] = math.min(color[1] + 40, 255)
+						color[2] = math.min(color[2] + 40, 255)
+						color[3] = math.min(color[3] + 40, 255)
+					elseif iteration == 2 then
+						color[1] = math.max(color[1] - 70, 0)
+						color[2] = math.max(color[2] - 70, 0)
+						color[3] = math.max(color[3] - 70, 0)
+						maxColorVariation = 20
+					elseif iteration == 3 then
+						color[1] = math.min(color[1] + 130, 255)
+						color[2] = math.min(color[2] + 130, 255)
+						color[3] = math.min(color[3] + 130, 255)
+						maxColorVariation = 30
+					end
+				end
+				if teamID == gaiaTeamID then
 					brightnessVariation = 0
 					maxColorVariation = 0
 					color = hex2RGB(gaiaGrayColor)
 				end
-				color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
-				color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
-				color[3] = math.min(color[3] + brightnessVariation, 255) + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation)
+				color[1] = math.min(color[1] + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation), 255)
+				color[2] = math.min(color[2] + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation), 255)
+				color[3] = math.min(color[3] + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation), 255)
 				Spring.SetTeamColor(teamID, color[1] / 255, color[2] / 255, color[3] / 255)
 			else
 				Spring.SetTeamColor(teamID, r, g, b)
