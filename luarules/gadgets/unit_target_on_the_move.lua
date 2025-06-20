@@ -109,6 +109,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
+	--local needSend = {}
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -232,15 +233,14 @@ if gadgetHandler:IsSyncedCode() then
 	local function sendTargetsToUnsynced(unitID)
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
 		for index, targetData in ipairs(unitTargets[unitID].targets) do
-			if not targetData.sent then 
+			if not targetData.sent then
 				if tonumber(targetData.target) then
 					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
 				else
 					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
 				end
+				targetData.sent = true
 			end
-			targetData.sent = true
-			
 		end
 		--tracy.ZoneEnd()
 	end
@@ -255,26 +255,29 @@ if gadgetHandler:IsSyncedCode() then
 			local count = 0
 			local stride = 8
 			for index, targetData in ipairs(unitTargets[unitID].targets) do
-				data[count + 1] = unitID
-				data[count + 2] = index
-				data[count + 3] = targetData.alwaysSeen
-				data[count + 4] = targetData.ignoreStop
-				data[count + 5] = targetData.userTarget
-				if tonumber(targetData.target) then
-					data[count + 6] = targetData.target
-					data[count + 7] = -1
-					data[count + 8] = -1
-					--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
-				else
-					data[count + 6] = targetData.target[1]
-					data[count + 7] = targetData.target[2]
-					data[count + 8] = targetData.target[3]
-					--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+				if not targetData.sent then
+					data[count + 1] = unitID
+					data[count + 2] = index
+					data[count + 3] = targetData.alwaysSeen
+					data[count + 4] = targetData.ignoreStop
+					data[count + 5] = targetData.userTarget
+					if tonumber(targetData.target) then
+						data[count + 6] = targetData.target
+						data[count + 7] = -1
+						data[count + 8] = -1
+						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
+					else
+						data[count + 6] = targetData.target[1]
+						data[count + 7] = targetData.target[2]
+						data[count + 8] = targetData.target[3]
+						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+					end
+					targetData.sent = true
 				end
 				count = count + stride
 				if count > 4000 then break end
 			end
-			SendToUnsynced("targetListBatched", count, stride, unpack(data))
+			SendToUnsynced("targetListBatched", count, stride, data)
 		end
 		--tracy.ZoneEnd()
 	end
@@ -282,6 +285,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function addUnitTargets(unitID, unitDefID, targets, append, reason)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
+			--needSend[#needSend] = unitID
 			local data = unitTargets[unitID]
 			if not data then
 				data = {
@@ -340,7 +344,9 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- refresh the sent list:
 			for i, targetData in ipairs(unitTargets[unitID].targets) do
-				targetData.sent = nil
+				if i >= index then
+					targetData.sent = nil
+				end
 			end
 			sendTargetsToUnsynced(unitID)
 		end
@@ -353,6 +359,13 @@ if gadgetHandler:IsSyncedCode() then
 	function GG.getUnitTargetIndex(unitID)
 		return unitTargets[unitID] and unitTargets[unitID].currentIndex
 	end
+
+	--[[function gadget:GameFramePost()
+		for _, unitID in ipairs(needSend) do
+			sendTargetsToUnsyncedBatched(unitID)
+		end
+		needSend = {}
+	end]]
 
 	function gadget:Initialize()
 		-- register command
@@ -797,18 +810,17 @@ else	-- UNSYNCED
 		--tracy.ZoneEnd()
 	end
 
-	function handleTargetListBatchedEvent(_, count, stride, ...)
-		local args  = { ... }
+	function handleTargetListBatchedEvent(_, count, stride, data)
 		for i =1, count, stride do 
-			local targetB = args[i+6]
-			local targetC = args[i+7]
+			local targetB = data[i+6]
+			local targetC = data[i+7]
 			if targetB < 0 then
 				targetB = nil
 			end
 			if targetC < 0 then
 				targetC = nil
 			end
-			handleTargetListEvent(_, args[i], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5], targetB, targetC)
+			handleTargetListEvent(_, data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], targetB, targetC)
 		end
 	end
 
