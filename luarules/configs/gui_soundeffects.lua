@@ -3149,6 +3149,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-bot-t3-ok",
 		BaseSoundWeaponType = "lrpc",
 	},
+	legeallterrainmech = {
+		BaseSoundSelectType = "cor-bot-t3-at-sel",
+		BaseSoundMovementType = "cor-bot-t3-at-ok",
+		BaseSoundWeaponType = "lrpc",
+	},
 
 
 

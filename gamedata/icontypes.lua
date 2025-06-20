@@ -2519,6 +2519,10 @@ local icontypes = {
 		bitmap = "icons/heavyheatraydrone.png",
 		size = 0.9
 	},
+	legheavydronesmall = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.9
+	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -2870,6 +2874,10 @@ local icontypes = {
 	legvcarry = {
 		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
+	},
+	legeallterrainmech = {
+		bitmap = "icons/t3_allterrain_drone_cluster_bot.png",
+		size = 2.61999998
 	},
 	legvelite = {
 		bitmap = "icons/ship_raid.png",
