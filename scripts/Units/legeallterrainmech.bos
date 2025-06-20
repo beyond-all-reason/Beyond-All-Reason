@@ -1260,8 +1260,14 @@ AimTertiary(piecenum)
 	return (0);
 }
 
-AimWeapon5(heading, pitch){
-    return (1);
+AimWeapon5(heading, pitch)
+{
+    return (0);
+}
+
+FireWeapon5()
+{
+	return (1);
 }
 
 AimFromWeapon5(pieceIndex)

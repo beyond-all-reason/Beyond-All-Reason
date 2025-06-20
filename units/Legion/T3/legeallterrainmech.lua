@@ -254,15 +254,19 @@ return {
 				impulsefactor = 0.123,
 				name = "Dual-Unit Heatray-Drone Control Matrix",
 				noselfdamage = true,
+				metalpershot = 90,
+				energypershot = 1000,
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 8,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -284,6 +288,10 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "32 33",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 2,
+					stockpilemetal = 90,
+					stockpileenergy = 1000,
+					dronesusestockpile = true,
 				}
 			},
 			light_antiair_missile = {
