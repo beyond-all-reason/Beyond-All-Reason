@@ -43,9 +43,13 @@ piece
     barrelFlare2,
     padR,
     padL,
-    turretPitchFake;
+    turretPitchFake,
+    barrelSpinPivot,
+    rocketFlare1,
+    rocketFlare2,
+    rocketFlare3;
 
-static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, whichBarrel;
+static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, whichBarrel, whichMissile;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -1064,7 +1068,8 @@ Create()
 	bSteering = FALSE;
 	oldHeading = get HEADING;
 	animSpeed = 5;
-    whichBarrel = 1;
+    whichBarrel = 0;
+    whichMissile = 0;
 
     move padR to y-axis [-5] now;
     move padL to y-axis [-5] now;
@@ -1129,15 +1134,16 @@ fireCommon()
         sleep 1;
         move lowerBarrel to z-axis [-10] speed [1000];
         whichBarrel = 0;
+	    // sleep 751;
         }
-	sleep 751;
+    sleep 751;
 	move upperBarrel to z-axis [0.000000] speed [4.000000];
     move lowerBarrel to z-axis [0.000000] speed [4.000000];
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turretHeadingPivot;
+	piecenum = turretPitchPivot;
 }
 
 QueryPrimary(piecenum)
@@ -1192,7 +1198,7 @@ FirePrimary()
 
 AimFromSecondary(piecenum)
 {
-	piecenum = turretHeadingPivot;
+	piecenum = turretPitchPivot;
 }
 
 QuerySecondary(piecenum)
@@ -1254,14 +1260,73 @@ AimTertiary(piecenum)
 	return (0);
 }
 
+AimWeapon4(heading, pitch){
+    return (1);
+}
+
 AimFromWeapon4(pieceIndex)
 {
-	pieceIndex = turretHeadingPivot;
+	pieceIndex = turret;
 }
 
 QueryWeapon4(pieceIndex)
 {
-	pieceIndex = turretHeadingPivot;
+	pieceIndex = turret;
+}
+
+AimWeapon5(heading, pitch){
+    return (1);
+}
+
+AimFromWeapon5(pieceIndex){
+    pieceIndex = barrelSpinPivot;
+}
+
+QueryWeapon5(pieceIndex){
+    if(whichMissile == 0){
+        pieceIndex = rocketFlare1;
+    }
+    if(whichMissile == 1){
+        pieceIndex = rocketFlare2;
+    }
+    if(whichMissile == 2){
+        pieceIndex = rocketFlare3;
+    }
+}
+
+Shot5(zero) {
+    if (whichMissile == 0){
+        //emit-sfx 1024 + 0 from barrelFlare1;
+        whichMissile = 1;
+        emit-sfx 1024 + 1 from rocketFlare1;
+    }
+    if (whichMissile == 1){
+        //emit-sfx 1024 + 0 from barrelFlare2;
+        whichMissile = 2;
+        emit-sfx 1024 + 1 from rocketFlare2;
+    }
+    if (whichMissile == 2){
+        //emit-sfx 1024 + 0 from barrelFlare3;
+        whichMissile = 0;
+        emit-sfx 1024 + 1 from rocketFlare3;
+    }
+    if (whichMissile >= 3) whichMissile = 0;
+}
+
+FireWeapon5(){
+    spin barrelSpinPivot around y-axis speed <900>;
+    stop-spin barrelSpinPivot around y-axis decelerate <45>;
+    // if(whichMissile == 0){
+    //     whichMissile = 1;
+    // }
+    // else if(whichMissile == 1){
+    //     whichMissile = 2;
+    // }
+    // else if(whichMissile == 2){
+    //     whichMissile = 0;
+    // }
+    // sleep 1;
+
 }
 
 
