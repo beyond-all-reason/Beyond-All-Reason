@@ -37,6 +37,7 @@ return {
 		turnrate = 265.64999,
 		customparams = {
 			model_author = "ZephyrSkies (model), Johnathan Crimson, Darth Mikey, Protar (Concept Art)",
+            maxrange = "1300",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/T3",
 			techlevel = 3,
@@ -354,12 +355,12 @@ return {
 				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},
-            [4] = {
+            [5] = {
 				badtargetcategory = "VTOL",
 				def = "drone_controller",
 				onlytargetcategory = "NOTSUB",
             },
-            [5] = {
+            [4] = {
 				badtargetcategory = "SURFACE LIGHTAIRSCOUT",
 				def = "light_antiair_missile",
 				onlytargetcategory = "VTOL",

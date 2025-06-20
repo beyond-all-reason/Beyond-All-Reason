@@ -1260,29 +1260,29 @@ AimTertiary(piecenum)
 	return (0);
 }
 
-AimWeapon4(heading, pitch){
-    return (1);
-}
-
-AimFromWeapon4(pieceIndex)
-{
-	pieceIndex = turret;
-}
-
-QueryWeapon4(pieceIndex)
-{
-	pieceIndex = turret;
-}
-
 AimWeapon5(heading, pitch){
     return (1);
 }
 
-AimFromWeapon5(pieceIndex){
+AimFromWeapon5(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+QueryWeapon5(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+AimWeapon4(heading, pitch){
+    return (1);
+}
+
+AimFromWeapon4(pieceIndex){
     pieceIndex = barrelSpinPivot;
 }
 
-QueryWeapon5(pieceIndex){
+QueryWeapon4(pieceIndex){
     if(whichMissile == 0){
         pieceIndex = rocketFlare1;
     }
@@ -1294,7 +1294,7 @@ QueryWeapon5(pieceIndex){
     }
 }
 
-Shot5(zero) {
+Shot4(zero) {
     if (whichMissile == 0){
         //emit-sfx 1024 + 0 from barrelFlare1;
         whichMissile = 1;
@@ -1313,7 +1313,7 @@ Shot5(zero) {
     if (whichMissile >= 3) whichMissile = 0;
 }
 
-FireWeapon5(){
+FireWeapon4(){
     spin barrelSpinPivot around y-axis speed <900>;
     stop-spin barrelSpinPivot around y-axis decelerate <45>;
     // if(whichMissile == 0){
