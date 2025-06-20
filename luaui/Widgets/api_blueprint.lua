@@ -726,7 +726,7 @@ local function setActiveBlueprint(bp)
 	end
 
 	if substitutionNeeded then 
-		Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
+		Spring.Log("BlueprintAPI", LOG.WARNING, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
 			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
 		
 		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
@@ -734,7 +734,17 @@ local function setActiveBlueprint(bp)
 		if resultTable.substitutionFailed then
 			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
 		else
-			Spring.Log("BlueprintAPI", LOG.INFO, "[Blueprint API] " .. resultTable.summaryMessage)
+			Spring.Log("BlueprintAPI", LOG.WARNING, "[Blueprint API] " .. resultTable.summaryMessage)
+		end
+		
+		-- This allows partial substitutions to work even when some units fail to map
+		for _, unit in ipairs(blueprintToProcess.units) do
+			if unit.originalName then
+				local substitutedUnitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				if substitutedUnitDefID then
+					unit.unitDefID = substitutedUnitDefID
+				end
+			end
 		end
 	end
 	

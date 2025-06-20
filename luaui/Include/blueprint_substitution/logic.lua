@@ -219,12 +219,12 @@ local function _getActualSubstitutedUnitDefID(originalUnitName, targetSide)
     local unitNameLower = originalUnitName:lower()
     local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
     if not buildingData then
-        Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
+        Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
         return originalUnitName
     end
     
     local equivalentUnitName = buildingData.equivalents[targetSide]
-    if not equivalentUnitName then
+    if not equivalentUnitName or equivalentUnitName == "" then
         Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'.", unitNameLower, targetSide))
         return originalUnitName
     end
