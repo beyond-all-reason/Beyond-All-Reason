@@ -100,30 +100,32 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 
 
-	if name == "armvp" or name == "corvp" then
-		uDef.metalcost = uDef.metalcost - 30
-	end
+	--if name == "armvp" or name == "corvp" then
+	--	uDef.metalcost = uDef.metalcost - 30
+	--end
 	if name == "corgator" then
 		uDef.speed = 84
 	end
 	if name == "armpw" then
 		uDef.speed = 85
 	end
-	if name == "corak" then
-		uDef.speed = 83
-	end
-	if name == "armflash" then
-		uDef.speed = 101
-	end
 	if name == "armmanni" then
 		uDef.energycost = 17000
 	end
 	if name == "armbull" then
-		uDef.speed = 63
+		uDef.speed = 61
 	end
 	if name == "armlatnk" then
-		uDef.weapondefs.lightning.damage.default = 20
+		uDef.weapondefs.lightning.damage.default = 21
 	end
+	if name == "armmart" then
+		uDef.energycost = 6000
+	end
+		if name == "cormart" then
+		uDef.energycost = 5500
+		uDef.buildtime = 8000
+	end
+
 	if name == "corspy" then
 		uDef.buildtime = 15000
 		uDef.energycost = 10000
