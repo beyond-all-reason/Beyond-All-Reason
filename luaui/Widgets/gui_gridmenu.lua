@@ -243,7 +243,7 @@ local categoryFontSize, categoryButtonHeight, hotkeyFontSize, priceFontSize, pag
 local builderButtonSize
 local disableInput = CONFIG.disableInputWhenSpec and isSpec
 
-local columns = 4
+local columns = 6
 local rows = 3
 local cellCount = rows * columns
 local pages = 1
@@ -671,7 +671,7 @@ local function updateGrid()
 	local offset = (currentPage - 1) * cellCount
 
 	for row = 1, 3 do
-		for col = 1, 4 do
+		for col = 1, 6 do
 			cellRectID = cellRectID + 1
 
 			-- offset for pages
@@ -747,7 +747,7 @@ local function setupCells()
 	local cellRectID = 0
 
 	for row = 1, 3 do
-		for col = 1, 4 do
+		for col = 1, 6 do
 			cellRectID = cellRectID + 1
 
 			-- if gridmenu is on bottom, we need to remap positions from 2x6 -> 3x4 grid
@@ -948,7 +948,7 @@ local function reloadBindings()
 
 	keyLayout = { {}, {}, {} }
 
-	for c = 1, 4 do
+	for c = 1, 6 do
 		local categoryAction = "gridmenu_category " .. c
 		local cKey = getActionHotkey(categoryAction)
 
@@ -1126,11 +1126,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
 
-	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 6) then
 		return
 	end
 
-	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
+	local uDefID = cellRects[(row - 1) * 6 + col].opts.uDefID -- cellRects iterate row then column
 	if not uDefID or units.unitRestricted[uDefID] then
 		return
 	end
@@ -1538,7 +1538,7 @@ function widget:ViewResize()
 		)
 
 		rows = 3
-		columns = 4
+		columns = 6
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
 
 		buildpicsRect:set(

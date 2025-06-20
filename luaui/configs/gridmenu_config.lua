@@ -24,7 +24,7 @@ local categories = {
 }
 
 local rows = 3
-local columns = 4
+local columns = 6
 
 local categoryGroupMapping = {
 	energy = BUILDCAT_ECONOMY,
@@ -66,7 +66,7 @@ for uname, ugrid in pairs(unitGrids) do
 		local uncategorizedCount = 0;
 		for cat=1,4 do
 			for row =1,3 do
-				for col =1,4 do
+				for col =1,6 do
 					local unitAtPos = ugrid[cat] and ugrid[cat][row] and ugrid[cat][row][col]
 
 					if unitAtPos then
@@ -104,8 +104,8 @@ for uname, ugrid in pairs(labGrids) do
 		end
 
 		for r=1,3 do
-			for c=1,4 do
-				local index = (r - 1) * 4 + c
+			for c=1,6 do
+				local index = (r - 1) * 6 + c
 				local ugdefname = ugrid[index]
 
 				if ugdefname then
