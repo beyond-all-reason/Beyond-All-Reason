@@ -28,7 +28,7 @@ return {
 		metalcost = 5100,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRWH.s3o",
-		script = "Units/CORCRWH_clean.cob",
+		script = "Units/corcrwh.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
@@ -127,6 +127,9 @@ return {
 				damage = {
 					vtol = 76,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			dragonmawh = {
 				accuracy = 700,
@@ -169,6 +172,9 @@ return {
 				waterweapon = false,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 6,
 					subs = 3,
@@ -204,6 +210,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -241,6 +250,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 90,
 				},

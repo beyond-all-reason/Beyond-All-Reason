@@ -1,65 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, main1, mid1, end1, nano1, main2, mid2, end2, nano2, main3, mid3, end3, nano3, main4, mid4, end4, nano4,beam1,beam2,beam3,beam4;
-static-var  spray, unitviewer, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+piece  base, pad, main1, mid1, end1, nano1, nano2, nano3, nano4, main2, mid2, end2,  main3, mid3, end3, main4, mid4, end4, beam1,beam2,beam3,beam4;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
-
-
-activatescr()
-{
-	turn main1 to y-axis <-135> speed <135>;
-	turn mid1 to z-axis <100> speed <100>;
-	turn end1 to z-axis <110> speed <110>;
-	turn nano1 to y-axis <180> speed <180>;
-	
-	turn main2 to y-axis <135> speed <135>;
-	turn mid2 to z-axis <-100> speed <100>;
-	turn end2 to z-axis <-110> speed <110>;
-	turn nano2 to y-axis <180> speed <180>;
-	
-	turn main3 to y-axis <-135> speed <135>;
-	turn mid3 to z-axis <-100> speed <100>;
-	turn end3 to z-axis <-110> speed <110>;
-	turn nano3 to y-axis <180> speed <180>;
-	
-	turn main4 to y-axis <135> speed <135>;
-	turn mid4 to z-axis <100> speed <100>;
-	turn end4 to z-axis <110> speed <110>;
-	turn nano4 to y-axis <180> speed <180>;
-	sleep 1000;
-	return (0);
-}
-
-deactivatescr()
-{
-	turn main1 to y-axis <0> speed <135>;
-	turn mid1 to z-axis <0> speed <100>;
-	turn end1 to z-axis <0> speed <110>;
-	turn nano1 to y-axis <0> speed <180>;
-	
-	turn main2 to y-axis <0> speed <135>;
-	turn mid2 to z-axis <0> speed <100>;
-	turn end2 to z-axis <0> speed <110>;
-	turn nano2 to y-axis <0> speed <180>;
-	
-	turn main3 to y-axis <0> speed <135>;
-	turn mid3 to z-axis <0> speed <100>;
-	turn end3 to z-axis <0> speed <110>;
-	turn nano3 to y-axis <0> speed <180>;
-	
-	turn main4 to y-axis <0> speed <135>;
-	turn mid4 to z-axis <0> speed <100>;
-	turn end4 to z-axis <0> speed <110>;
-	turn nano4 to y-axis <0> speed <180>;
-	sleep 1000;
-	return (0);
-	return (0);
-}
+#define SIGNAL_TURNON 4
 
 #define BASEPIECE base
 #define HITSPEED <15.0>
@@ -67,105 +14,18 @@ deactivatescr()
 #define UNITSIZE 15
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.11> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*1.5;
-			turn base to z-axis rockAng speed rockSpeed*1.5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	return (0);
-}
+#define WATER_ROCK_PIECE base
+#define WATER_ROCK_AMPLITUDE <1.0>
+#define WATER_ROCK_FRAMES 15
+#define WATER_ROCK_FREQ_X 20
+#define WATER_ROCK_FREQ_Z 23
+#define WATER_ROCK_FREQ_Y 52
+#define WATER_BOB_HEIGHT 64000
+#include "../floatmotion.h"
 
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	return (0);
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -176,20 +36,14 @@ Create()
 	hide pad;
 
 	spray = 0;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-
-	piecenum=beam1+spray;
-	spray=spray+1;
-	if (spray>3) spray=0;
+	spray = (spray + 1) % 4;
+	pieceIndex = nano1 + spray;
 }
 
 StartBuilding()
@@ -210,31 +64,72 @@ StopBuilding()
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
-	return (0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn main1 to y-axis <-135> speed <135>;
+	turn mid1 to z-axis <100> speed <100>;
+	turn end1 to z-axis <110> speed <110>;
+	turn nano1 to y-axis <180> speed <180>;
+	
+	turn main2 to y-axis <135> speed <135>;
+	turn mid2 to z-axis <-100> speed <100>;
+	turn end2 to z-axis <-110> speed <110>;
+	turn nano2 to y-axis <180> speed <180>;
+	
+	turn main3 to y-axis <-135> speed <135>;
+	turn mid3 to z-axis <-100> speed <100>;
+	turn end3 to z-axis <-110> speed <110>;
+	turn nano3 to y-axis <180> speed <180>;
+	
+	turn main4 to y-axis <135> speed <135>;
+	turn mid4 to z-axis <100> speed <100>;
+	turn end4 to z-axis <110> speed <110>;
+	turn nano4 to y-axis <180> speed <180>;
+	sleep 1000;
+	
+	FACTORY_OPEN_BUILD;
+
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn main1 to y-axis <0> speed <135>;
+	turn mid1 to z-axis <0> speed <100>;
+	turn end1 to z-axis <0> speed <110>;
+	turn nano1 to y-axis <0> speed <180>;
+	
+	turn main2 to y-axis <0> speed <135>;
+	turn mid2 to z-axis <0> speed <100>;
+	turn end2 to z-axis <0> speed <110>;
+	turn nano2 to y-axis <0> speed <180>;
+	
+	turn main3 to y-axis <0> speed <135>;
+	turn mid3 to z-axis <0> speed <100>;
+	turn end3 to z-axis <0> speed <110>;
+	turn nano3 to y-axis <0> speed <180>;
+	
+	turn main4 to y-axis <0> speed <135>;
+	turn mid4 to z-axis <0> speed <100>;
+	turn end4 to z-axis <0> speed <110>;
+	turn nano4 to y-axis <0> speed <180>;
+	
+	sleep 1000;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

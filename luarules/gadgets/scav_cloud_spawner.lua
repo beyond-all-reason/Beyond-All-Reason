@@ -126,7 +126,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                         if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
                             local random = math.random()
                             Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random*data.age))
-                            Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
+                            GG.ScavengersSpawnEffectFeatureID(featureID)
                             --Spring.Echo("resurrecting", data.lastResurrectionCheck)
                             SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random*data.age))
                         end
@@ -187,7 +187,6 @@ if gadgetHandler:IsSyncedCode() then -- Synced
     function gadget:FeatureDestroyed(featureID, featureAllyTeamID)
         aliveWrecks[featureID] = nil
     end
-
 else -- Unsynced
 
 end

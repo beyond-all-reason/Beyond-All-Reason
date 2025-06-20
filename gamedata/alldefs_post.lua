@@ -294,10 +294,27 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_noantinuke then
 			if uDef.weapondefs then
-				for _, weapon in pairs(uDef.weapondefs) do
+				local numWeapons = 0
+				local newWdefs = {}
+				local hasAnti = false
+				for i, weapon in pairs(uDef.weapondefs) do
 					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.weapondefs[i] = nil
+						hasAnti = true
+					else
+						numWeapons = numWeapons + 1
+						newWdefs[numWeapons] = weapon
+					end
+				end
+				if hasAnti then
+					uDef.weapondefs = newWdefs
+					if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
 						uDef.maxthisunit = 0
-						break
+					else
+						if uDef.metalcost then
+							uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
+							uDef.energycost = math.floor(uDef.energycost * 0.6)
+						end
 					end
 				end
 			end
@@ -513,7 +530,7 @@ function UnitDef_Post(name, uDef)
 		if name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 		end
-	
+
 		-- Cortex T1 Sea Constructors
 		if name == "corcs" or name == "corcsa" then
 			local numBuildoptions = #uDef.buildoptions
@@ -521,7 +538,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "corfrock" -- Janitor - Anti Air Missile Battery
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 		end
@@ -542,7 +559,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "cornanotc2plat" -- Floating T2 Constructor Turret
 		end
 
-		-- Cortex T2 Bots Factory 
+		-- Cortex T2 Bots Factory
 		if name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
@@ -666,7 +683,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos
@@ -994,6 +1011,9 @@ function UnitDef_Post(name, uDef)
 	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
 		local healthmass = math.ceil(uDef.health/6)
 		uDef.mass = math.max(uDef.metalcost, healthmass)
+		if uDef.metalcost < 751 and uDef.mass > 750 then
+			uDef.mass = 750
+		end
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
@@ -1338,6 +1358,49 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Factory costs test
+
+	if modOptions.factory_costs == true then
+
+		if name == "armmoho" or name == "cormoho" or name == "cormexp" then
+			uDef.metalcost = uDef.metalcost + 50
+			uDef.energycost = uDef.energycost + 2000
+		end
+		if name == "armageo" or name == "corageo" then
+			uDef.metalcost = uDef.metalcost + 100
+			uDef.energycost = uDef.energycost + 4000
+		end
+		if name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" then
+			uDef.metalcost = uDef.metalcost - 1000
+			uDef.workertime = 600
+			uDef.buildtime = uDef.buildtime * 2
+		end
+		if name == "armvp" or name == "corvp" or name == "armlab" or name == "corlab" or name == "armsy" or name == "corsy"then
+			uDef.metalcost = uDef.metalcost - 50
+			uDef.buildtime = uDef.buildtime - 1500
+			uDef.energycost = uDef.energycost - 280
+		end
+		if name == "armap" or name == "corap" or name == "armhp" or name == "corhp" or name == "armfhp" or name == "corfhp" or name == "armplat" or name == "corplat" then
+			uDef.metalcost = uDef.metalcost - 100
+			uDef.buildtime = uDef.buildtime - 600
+			uDef.energycost = uDef.energycost - 100
+		end
+		if name == "armshltx" or name == "corgant" or name == "armshltxuw" or name == "corgantuw" then
+			uDef.workertime = 2000
+			uDef.buildtime = uDef.buildtime * 1.33
+		end
+
+		if tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") then
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015 / 5) * 500
+		end
+		if tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime then
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.0015) * 1000
+		end
+
+		if name == "armnanotc" or name == "cornanotc" or name == "armnanotcplat" or name == "cornanotcplat" then
+			uDef.metalcost = uDef.metalcost + 40
+		end
+	end
 
 	-- Multipliers Modoptions
 

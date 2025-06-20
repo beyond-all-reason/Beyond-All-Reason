@@ -159,15 +159,15 @@ function widget:ViewResize()
 		glDeleteTexture(depthTexture)
 	end
 
-	if fogTexture then
-		glDeleteTexture(fogTexture)
-	end
-
 	depthTexture = glCreateTexture(vsx, vsy, {
 		format = GL_DEPTH_COMPONENT24,
 		min_filter = GL_NEAREST,
 		mag_filter = GL_NEAREST,
 	})
+
+	if fogTexture then
+		glDeleteTexture(fogTexture)
+	end
 
 	fogTexture = glCreateTexture(vsx / 4, vsy / 4, {
 		min_filter = GL.LINEAR,
@@ -178,7 +178,7 @@ function widget:ViewResize()
 	})
 
 
-	if depthTexture == nil then
+	if depthTexture == nil or fogTexture == nil then
 		spEcho("Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
 	end
@@ -608,10 +608,12 @@ end
 function widget:Shutdown()
 	glDeleteTexture(depthTexture)
 	glDeleteTexture(fogTexture)
+	depthTexture, fogTexture = nil, nil
 	if glDeleteShader then
 		glDeleteShader(depthShader)
 	end
 	glDeleteTexture(noiseTex)
+	glDeleteTexture(noiseTex3D)
 end
 
 

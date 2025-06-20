@@ -115,7 +115,7 @@ local function addAllUnits()
 end
 
 local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
-	local gr = args[1]
+	local gr = args and args[1]
 	local removeAll = data and data['removeAll']
 
 	if not removeAll and not gr then return end -- noop if add to autogroup and no argument

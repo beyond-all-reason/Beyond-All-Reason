@@ -1,7 +1,7 @@
-function IsAttacker(unit)
+--[[function IsAttacker(unit)
 	-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
 	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
-end
+end]]
 
 RaidBST = class(Behaviour)
 
@@ -15,6 +15,7 @@ function RaidBST:Init()
 	self.mtype = mtype
 	self.network = network
 	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
 	self.x = self.unit:Internal().x
 	self.y = self.unit:Internal().y
 	self.z = self.unit:Internal().z
@@ -41,8 +42,16 @@ function RaidBST:Init()
 end
 
 function RaidBST:OwnerBuilt()
-	self.attacking = false
 	self.ai.raidhst:AddRecruit(self)
+end
+
+function RaidBST:SetLastCommandReceived(cmd,target)
+	self.lastCommand = cmd
+	self.lastTarget = target
+end
+
+function RaidBST:GetLastCommandReceived()
+	return self.lastCommand, self.lastTarget
 end
 
 function RaidBST:OwnerDamaged(attacker,damage)
@@ -50,8 +59,6 @@ function RaidBST:OwnerDamaged(attacker,damage)
 end
 
 function RaidBST:OwnerDead()
-	self.attacking = nil
-	self.active = nil
 	self.unit = nil
 	self.ai.raidhst:RemoveRecruit(self)
 	self.ai.raidhst:RemoveMember(self)
@@ -59,9 +66,6 @@ end
 
 function RaidBST:OwnerIdle()
 	self.idle = true
-	if self.active then
-		self.ai.raidhst:MemberIdle(self)
-	end
 end
 
 function RaidBST:OwnerMoveFailed(unit)
@@ -70,31 +74,23 @@ function RaidBST:OwnerMoveFailed(unit)
 end
 
 function RaidBST:Priority()
-	if not self.attacking then
-		return 0
-	else
+	--if self.ai.raidhst:IsSoldier(self.id) then
+	if self.ai.raidhst:RaiderHaveTarget(self.squad) then
 		return 200
+	else
+		return 0
 	end
 end
 
 function RaidBST:Activate()
-	self.active = true
-	self.movestateSet = false
-	if self.target then
-		self.needToMoveToTarget = true
-	end
 end
 
 function RaidBST:Deactivate()
-	self.active = false
 end
 
 function RaidBST:Update()
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'RaidBST' then return end
-	if not self.active and self.squad and self.target then
-		self.unit:ElectBehaviour()
-	end
 	if not self.mtype then
 		self:Warn('no mtype and network')
 	end
@@ -103,57 +99,9 @@ function RaidBST:Update()
 			self.damaged = nil
 		end
 	end
-	if self.active and not self.movestateSet then
-		self:SetMoveState()
-	end
-	if self.active and self.needToMoveToTarget then
-		self.needToMoveToTarget = false
-		self.unit:Internal():AttackMove(self.target) --need to check this
-
-	end
-end
-
-function RaidBST:MoveRandom(pos,dist)
-	local away = self.ai.tool:RandomAway(pos, dist)
-	if not self.unit then return end
-	self.unit:Internal():AttackMove(away)
-end
-
-function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
-	self.idle = false
-	self.attacking = true
-	if reverseAttackAngle then
-		self:EchoDebug('adv reverse')
-		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
-		if not self.sturdy or self.ai.loshst:posInLos(pos) then
-			awayDistance = self.weaponDistance
-		end
-		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
-		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
-	else
-		self:EchoDebug('adv drit')
-		self.target = self.ai.tool:RandomAway2( pos, self.formationDist, nil, perpendicularAttackAngle,self.target)
-	end
-	--local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
-	local canMoveThere = Spring.TestMoveOrder(self.defID, self.target.x, self.target.y, self.target.z,nil,nil,nil,true,true,true)--TEST
-	if canMoveThere and self.squad then
-		self:EchoDebug('adv', canMoveThere)
-		self.squad.lastValidMove = self.target
-	elseif self.squad and self.squad.lastValidMove then
-		self:EchoDebug('adv lastvalidMove',self.squad.lastValidMove)
-		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
-		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
-	end
-	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
-	if self.active and canMoveThere then
-		self:EchoDebug('adv move',self.target.x,self.target.z)
-		self.unit:Internal():Move(self.target) --need to check this
-	end
-	return canMoveThere
 end
 
 function RaidBST:Free()
-	self.attacking = false
 	self.target = nil
 	self.idle = nil
 	if self.squad and self.squad.disbanding then
@@ -162,13 +110,4 @@ function RaidBST:Free()
 		self.ai.raidhst:RemoveMember(self)
 	end
 	self.unit:ElectBehaviour()
-end
-
--- this will issue the correct move state to all units
-function RaidBST:SetMoveState()
-	self.movestateSet = true
-	local thisUnit = self.unit
-	if thisUnit then
-		thisUnit:Internal():HoldPosition()
-	end
 end

@@ -14,7 +14,6 @@ end
 
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -27,8 +26,8 @@ local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/
 -- list and interface vars
 local facs = {}
 local unfinished_facs = {}
-local openedMenu = -1
-local hoveredFac = -1
+local openedMenu = -1 --Last non -1 hoveredFac value
+local hoveredFac = -1 --Number of factory icon with mouse over it(starts at 0)
 local hoveredBOpt = -1
 local pressedFac = -1
 local pressedBOpt = -1
@@ -61,7 +60,6 @@ for udid, unitDef in pairs(UnitDefs) do
 end
 orgIconTypes = nil
 
-local blurred = false
 local repeatPic = ":l:LuaUI/Images/repeat.png"
 
 local iconSizeY = 65		-- reset in ViewResize
@@ -162,7 +160,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(2)
 
 	iconSizeY = math.floor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
@@ -553,19 +551,106 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	glColor(1,1,1,1)
 end
 
+
+
+local function mouseOverIcon(x, y)
+	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
+		local icon
+		if bar_horizontal then
+			icon = math.floor((x - facRect[1]) / fac_inext[1])
+		else
+			icon = math.floor((y - facRect[2]) / fac_inext[2])
+		end
+
+		if icon >= #facs then
+			icon = (#facs - 1)
+		elseif icon < 0 then
+			icon = 0
+		end
+
+		return icon
+	end
+	return -1
+end
+
+local function mouseOverSubIcon(x, y)
+	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
+		local icon
+		if bar_side == 0 then
+			icon = math.floor((x - boptRect[1]) / bopt_inext[1])
+		elseif bar_side == 2 then
+			icon = math.floor((y - boptRect[2]) / bopt_inext[2])
+		elseif bar_side == 1 then
+			icon = math.floor((x - boptRect[3]) / bopt_inext[1])
+		else
+			--bar_side==3
+			icon = math.floor((y - boptRect[4]) / bopt_inext[2])
+		end
+
+		if facs[openedMenu + 1] and icon > #facs[openedMenu + 1].buildList - 1 then
+			icon = #facs[openedMenu + 1].buildList - 1
+		elseif icon < 0 then
+			icon = 0
+		end
+		return icon
+	end
+	return -1
+end
+
 local sec = 0
 function widget:Update(dt)
 
 	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
-
 	if myTeamID ~= Spring.GetMyTeamID() then
 		myTeamID = Spring.GetMyTeamID()
 		updateFactoryList()
 	end
+	if WG['topbar'] and WG['topbar'].showingQuit() then
+		openedMenu = -1
+		return false
+	end
 
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
+	if ((lb or mb or rb) and openedMenu == -1) then
+		return false
+	end
+
+	hoveredFac = mouseOverIcon(mx, my)
+	hoveredBOpt = mouseOverSubIcon(mx, my)
+	-- set hover unitdef id for buildmenu so info widget can show it
+	if WG['info'] then
+		if hoveredFac >= 0 then
+			if(not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID))then
+				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
+				WG['info'].displayUnitID(setInfoDisplayUnitID)
+			end	
+		elseif hoveredBOpt >= 0 then
+			if(setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1])then
+				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
+				WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
+			end			
+		else
+			if setInfoDisplayUnitID then
+				setInfoDisplayUnitID = nil
+				WG['info'].clearDisplayUnitID()
+			end
+			if setInfoDisplayUnitDefID then
+				setInfoDisplayUnitDefID = nil
+				WG['info'].clearDisplayUnitDefID()
+			end
+		end
+	end
+	
+	if hoveredFac >= 0 then
+		--factory icon
+		if not moffscreen then
+			openedMenu = hoveredFac
+		end
+	end
 
 	sec = sec + dt
 	local doupdate = false
@@ -584,19 +669,6 @@ function widget:Update(dt)
 		end
 	end
 
-	if setInfoDisplayUnitID then
-		setInfoDisplayUnitID = nil
-		if WG['info'] then
-			WG['info'].clearDisplayUnitID()
-		end
-	end
-
-	if setInfoDisplayUnitDefID then
-		setInfoDisplayUnitDefID = nil
-		if WG['info'] then
-			WG['info'].clearDisplayUnitDefID()
-		end
-	end
 	if doupdate then
 		sec = 0
 		setupDimensions(#facs)
@@ -605,9 +677,7 @@ function widget:Update(dt)
 			gl.DeleteList(dlists[i])
 		end
 		dlists = {}
-
 		local dlistsCount = 1
-
 		factoriesArea = nil
 
 		-- draw factory list
@@ -648,7 +718,7 @@ function widget:Update(dt)
 				options.hovered = true
 			end
 			-- border
-			options.selected = (i == openedMenu + 1)
+			options.selected = (i == hoveredFac + 1)
 
 			dlistsCount = dlistsCount + 1
 			dlists[dlistsCount] = gl.CreateList(drawButton, fac_rec, unitDefID, options, true)
@@ -665,7 +735,7 @@ function widget:Update(dt)
 		if factoriesArea then
 			dlists[1] = gl.CreateList(drawBackground)
 			if WG['guishader'] then
-				if openedMenu >= 0 then
+				if hoveredFac >= 0 then
 					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
 
 					if dlistGuishader2 then
@@ -966,102 +1036,4 @@ function widget:MouseRelease(x, y, button)
 	end
 
 	return -1
-end
-
-
-local function mouseOverIcon(x, y)
-	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
-		local icon
-		if bar_horizontal then
-			icon = math.floor((x - facRect[1]) / fac_inext[1])
-		else
-			icon = math.floor((y - facRect[2]) / fac_inext[2])
-		end
-
-		if icon >= #facs then
-			icon = (#facs - 1)
-		elseif icon < 0 then
-			icon = 0
-		end
-
-		return icon
-	end
-	return -1
-end
-
-local function mouseOverSubIcon(x, y)
-	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
-		local icon
-		if bar_side == 0 then
-			icon = math.floor((x - boptRect[1]) / bopt_inext[1])
-		elseif bar_side == 2 then
-			icon = math.floor((y - boptRect[2]) / bopt_inext[2])
-		elseif bar_side == 1 then
-			icon = math.floor((x - boptRect[3]) / bopt_inext[1])
-		else
-			--bar_side==3
-			icon = math.floor((y - boptRect[4]) / bopt_inext[2])
-		end
-
-		if facs[openedMenu + 1] and icon > #facs[openedMenu + 1].buildList - 1 then
-			icon = #facs[openedMenu + 1].buildList - 1
-		elseif icon < 0 then
-			icon = 0
-		end
-		return icon
-	end
-	return -1
-end
-
-function widget:IsAbove(x, y)
-	if WG['topbar'] and WG['topbar'].showingQuit() then
-		openedMenu = -1
-		return false
-	end
-
-	local _, _, lb, mb, rb, moffscreen = GetMouseState()
-	if ((lb or mb or rb) and openedMenu == -1) then
-		return false
-	end
-
-	hoveredFac = mouseOverIcon(x, y)
-	hoveredBOpt = mouseOverSubIcon(x, y)
-
-	-- set hover unitdef id for buildmenu so info widget can show it
-	if WG['info'] then
-		if hoveredFac >= 0 then
-			setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-			WG['info'].displayUnitID(setInfoDisplayUnitID)
-		elseif hoveredBOpt >= 0 then
-			setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-			WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
-		end
-	end
-
-	if hoveredFac >= 0 then
-		--factory icon
-		if not moffscreen then
-			openedMenu = hoveredFac
-		end
-		if not blurred then
-			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blurred = true
-		end
-		return true
-	elseif openedMenu >= 0 and isInRect(x, y, boptRect) then
-		--buildoption icon
-		if not blurred then
-			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blurred = true
-		end
-		return true
-	else
-		openedMenu = -1
-	end
-
-	if blurred then
-		Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-		blurred = false
-	end
-	return false
 end

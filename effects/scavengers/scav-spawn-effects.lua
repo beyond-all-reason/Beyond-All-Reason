@@ -1,7 +1,7 @@
 -- Spawns effects for Scavengers
 
 return {
-  ["scav-spawnexplo"] = {
+  ["scav-spawnexplo-small"] = {
     centerflare = {
       air                = true,
       class              = [[CHeatCloudProjectile]],
