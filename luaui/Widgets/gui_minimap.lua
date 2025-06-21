@@ -38,7 +38,6 @@ local backgroundRect = { 0, 0, 0, 0 }
 local delayedSetup = false
 local sec = 0
 local sec2 = 0
-local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local spGetCameraState = Spring.GetCameraState
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -179,17 +178,6 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	local currRot = getCurrentMiniMapRotationOption()
-	if lastRot ~= currRot then
-		if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
-			ratio = Game.mapY / Game.mapX
-		else
-			ratio = Game.mapX / Game.mapY
-		end
-		lastRot = currRot
-		widget:ViewResize()
-		return
-	end
 	if not delayedSetup then
 		sec = sec + dt
 		if sec > 2 then
