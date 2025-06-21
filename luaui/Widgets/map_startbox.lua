@@ -64,7 +64,6 @@ local amPlaced = false
 local gaiaTeamID
 
 local startTimer = Spring.GetTimer()
-local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local infotextList
 
@@ -590,12 +589,6 @@ end
 
 local sec = 0
 function widget:Update(delta)
-	local currRot = getCurrentMiniMapRotationOption()
-	if lastRot ~= currRot then
-		lastRot = currRot
-		widget:ViewResize(vsx, vsy)
-		return
-	end
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 	end
@@ -629,4 +622,8 @@ function widget:Update(delta)
 			removeLists()
 		end
 	end
+end
+
+function widget:MiniMapRotationChanged()
+	widget:ViewResize(vsx, vsy)
 end
