@@ -203,7 +203,7 @@ local labGrids = {
 	},
 	leggant = {
 		"legelrpcmech", "legeallterrainmech", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
-		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
+		"corjugg", "legehovertank", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
 		"legkeres","legerailtank","" -- keres, daedalus
 	},
 	-- T3 underwater labs

@@ -185,6 +185,8 @@ return {
 		-- Hovercraft
 		"armlun",
 		"corsok",
+		"armlun",
+		"legehovertank",
 		"armsptkt4",
 		"armlunchbox",
 		"armmeatball",

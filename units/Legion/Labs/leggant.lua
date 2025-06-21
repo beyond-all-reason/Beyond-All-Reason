@@ -36,7 +36,7 @@ return {
 			"legeallterrainmech",
 			"legjav",
 			"legelrpcmech",
-			"corsok",
+			"legehovertank",
 			"legerailtank",
 			"legeshotgunmech",
 			"legkeres",

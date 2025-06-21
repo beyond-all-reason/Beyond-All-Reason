@@ -305,6 +305,7 @@ local unitOrderTable = {
 	--T3 HOVER
 	['armlun']         = 007100, --hover
 	['corsok']         = 007110, --hover
+	['legehovertank']  = 007111, --hover
 
 	--T4 LAND ATTACK (SCAVS)
 	['armmeatball']    = 007200,

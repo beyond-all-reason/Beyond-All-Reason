@@ -2019,6 +2019,10 @@ local icontypes = {
 		bitmap = "icons/corsok_1.8.png",
 		size = 1.88999987
 	},
+	legehovertank = {
+		bitmap = "icons/corsok_1.8.png",
+		size = 1.88999987
+	},
 	corsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995

@@ -3004,6 +3004,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legehovertank = {
+		BaseSoundSelectType = "cor-hov-large-sel",
+		BaseSoundMovementType = "cor-hov-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	leggobt3 = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-large-ok",
