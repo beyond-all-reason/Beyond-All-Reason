@@ -12,19 +12,6 @@ local parameters = schema.Parameters
 
 local actions = {}
 
-local function instantiateCustomTypes()
-	for _, action in pairs(actions) do
-		for _, parameter in pairs(parameters[action.type]) do
-			local value = action.parameters[parameter.name]
-			local customType = GG['MissionAPI'].Types[parameter.type]
-
-			if value ~= nil and customType then
-				action.parameters[parameter.name] = customType.new(value)
-			end
-		end
-	end
-end
-
 local function prevalidateActions()
 	for actionID, action in pairs(actions) do
 		if not action.type then
@@ -38,14 +25,13 @@ local function prevalidateActions()
 				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " ..actionID .. ", Parameter: " .. parameter.name)
 			end
 
-			if value ~= nil and GG['MissionAPI'].Types[parameter.type] then
+			if value ~= nil then
 				local expectedType = parameter.type
 				local actualType = type(value)
 
 				if actualType ~= expectedType then
 					Spring.Log('actions_loader.lua', LOG.ERROR,"[Mission API] Unexpected parameter type, expected " ..parameter.type ..", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
 				end
-				value:validate()
 			end
 		end
 	end
@@ -56,7 +42,6 @@ local function preprocessRawActions(rawActions)
 		actions[actionID] = table.copy(rawAction)
 	end
 
-	instantiateCustomTypes()
 	prevalidateActions()
 end
 

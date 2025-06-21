@@ -40,15 +40,7 @@ local function prevalidateTriggers()
 				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerID .. ", Parameter: " .. parameter.name)
 			end
 
-			if value ~= nil and GG['MissionAPI'].Types[parameter.type] then
-				if value.__name ~= parameter.type then
-					local actualType = value.__name or type
-					Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. actualType .. ". Action: " .. triggerID .. ", Parameter: " .. parameter.name)
-				elseif value.validate then 
-					value.validate('actions_loader.lua', 'Mission API') 
-				end
-
-			elseif value ~= nil and type ~= parameter.type then
+			if value ~= nil and type ~= parameter.type then
 				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerID .. ", Parameter: " .. parameter.name)
 			end
 		end

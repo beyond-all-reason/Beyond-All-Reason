@@ -6,23 +6,17 @@ function gadget:GetInfo()
 		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
-
---============================================================--
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
---============================================================--
-
 local scriptPath
 local triggersController, actionsController
 local rawTriggers, rawActions
-
---============================================================--
 
 local function loadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
@@ -37,8 +31,6 @@ local function loadMission()
 
 	triggersController.PostprocessTriggers()
 end
-
-----------------------------------------------------------------
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path
@@ -57,18 +49,12 @@ function gadget:Initialize()
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
 
-	GG['MissionAPI'].Types = VFS.Include('luarules/mission_api/types.lua')
-
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
 	loadMission();
 end
 
-----------------------------------------------------------------
-
 function gadget:Shutdown()
 	GG['MissionAPI'] = nil
 end
-
---============================================================--
