@@ -373,7 +373,7 @@ function gadget:GameFrame(gameFrame)
 						if health > 1 then
 							Spring.SetFeatureHealth(targetID, health)
 						else
-							Spring.DestroyFeature(targetID)
+							GG.reduceWreckageToDebris(targetID, health, damage)
 						end
 					end
 				end
