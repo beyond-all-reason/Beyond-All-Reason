@@ -75,7 +75,8 @@ if Spring.Echo then
 end
 
 -- Disable widget issued unit orders
-if Spring.GiveOrderToUnit then
+local environment = Script.GetName and Script.GetName()
+if environment == "LuaUI" and Spring.GiveOrderToUnit then
     local function disabledOrder()
         Spring.Echo("Widget issued unit order blocked")
         return false
