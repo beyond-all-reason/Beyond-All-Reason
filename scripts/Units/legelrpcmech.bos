@@ -894,10 +894,10 @@ Create()
 	bSteering = FALSE;
 	oldHeading = get HEADING;
 	start-script Steering();
-	turn leftFrontLegPivot to y-axis <-45> now;
-    turn leftRearLegPivot to y-axis <45> now;
-	turn rightFrontLegPivot to y-axis <45> now;
-	turn rightRearLegPivot to y-axis <-45> now;
+	turn leftFrontLegPivot to y-axis <-60> now;
+    turn leftRearLegPivot to y-axis <0> now;
+	turn rightFrontLegPivot to y-axis <60> now;
+	turn rightRearLegPivot to y-axis <-0> now;
     
     turn coolingCellPivotA to x-axis <-42> now;
     turn coolingCellPivotB to x-axis <-42> now;

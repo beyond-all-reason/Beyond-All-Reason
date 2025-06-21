@@ -23,7 +23,9 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
 
@@ -52,8 +54,8 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
-local CMD_SETTARGET = 34923
-local CMD_MANUAL_LAUNCH = 32102
+local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
+local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
 
 local formationCmds = {
     [CMD.MOVE] = true,
@@ -836,13 +838,22 @@ function widget:DrawInMiniMap()
     glPushMatrix()
     glLoadIdentity()
 
-    if getMiniMapFlipped() then
-      glTranslate(1, 0, 0)
-      glScale(-1 / mapSizeX, 1 / mapSizeZ, 1)
-    else
-      glTranslate(0, 1, 0)
-      glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
-    end
+	local currRot = getCurrentMiniMapRotationOption()
+	if currRot == ROTATION.DEG_0 then
+		gl.Translate(0, 1, 0)
+		gl.Scale(1 / mapSizeX, -1 / mapSizeZ, 1)
+	elseif currRot == ROTATION.DEG_90 then
+		gl.Scale(-1 / mapSizeZ, 1 / mapSizeX, 1)
+		gl.Rotate(90, 0, 0, 1)
+	elseif currRot == ROTATION.DEG_180 then
+		gl.Translate(1, 0, 0)
+		gl.Scale(1 / mapSizeX, 1 / mapSizeZ, 1)
+		gl.Rotate(180, 0, 1, 0)
+	elseif currRot == ROTATION.DEG_270 then
+		gl.Translate(1, 1, 0)
+		gl.Scale(-1 / mapSizeZ, 1 / mapSizeX, 1)
+		gl.Rotate(-90, 0, 0, 1)
+	end
 
     DrawFormationLines(tVertsMinimap, 1)
     glPopMatrix()

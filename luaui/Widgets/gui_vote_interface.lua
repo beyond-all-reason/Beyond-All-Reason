@@ -26,11 +26,8 @@ local voteEndDelay = 4
 local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
 local vsx, vsy = Spring.GetViewGeometry()
-local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local myPlayerID = Spring.GetMyPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
@@ -292,7 +289,6 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -303,7 +299,7 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 end
 
 function widget:PlayerChanged(playerID)

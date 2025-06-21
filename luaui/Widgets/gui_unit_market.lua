@@ -49,7 +49,6 @@ function widget:GetInfo() return {
 -- develop UI so that you can browse units that are for sale with a buy button maybe?
 
 --------------------------------
-VFS.Include("luarules/configs/customcmds.h.lua")
 
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState  = Spring.GetSpectatingState
@@ -133,16 +132,10 @@ local spec_sale_offers = false -- Whether spectators see sale offers
 
 -- UI
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 4.5
-local fontfileOutlineStrength = 9
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local fontSize = fontfileSize * 0.4
+local fontSize = 18
 
-local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiScale
+local UiElement, UiUnit, UiButton, uiScale
 
 local uiElementRect = {0,0,0,0}
 local buyButtons = {}
@@ -187,7 +180,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.customParams.unitgroup == "buildert2" and not unitDef.isFactory and unitDef.isBuilder then
         T2ConDef[unitDefID] = true
     end
-    
+
     unitDefInfo[unitDefID] = {}
     if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
         unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
@@ -670,7 +663,7 @@ local function updatedSeePrices(value)
                 end
             end
         end
-    end 
+    end
     if seePrices ~= value then
         for k,_ in pairs(drawLists) do
             glDeleteList(drawLists[k])
@@ -740,7 +733,7 @@ function widget:Initialize()
 		return buyWithoutHoldingAlt
 	end
     updatedSeePrices(seePrices)
-    
+
     if WG['buildmenu'] and WG['buildmenu'].getGroups then
         groups, unitGroup = WG['buildmenu'].getGroups()
     end
@@ -924,16 +917,12 @@ end
 function widget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
+
+	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
+
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiButton = WG.FlowUI.Draw.Button
-	RectRound = WG.FlowUI.Draw.RectRound
-	elementPadding = WG.FlowUI.elementPadding
 
     -- I'll dynamically resize it before showing it...
 	uiElementRect = {
@@ -954,6 +943,7 @@ function widget:DrawWorld()
     DrawUnitTradeInfo()
 	glDepthTest(true)
 end
+
 function widget:DrawScreen()
     if notEnoughForUnit then
         local text = Spring.I18N('ui.unitMarket.notEnoughMetal')
@@ -991,6 +981,7 @@ function widget:DrawScreen()
         end
     end
 end
+
 function widget:Shutdown()
     spSendLuaRulesMsg("stopSaving")
 	for k,_ in pairs(drawLists) do
@@ -1000,6 +991,7 @@ function widget:Shutdown()
     glDeleteList(buyRequestDock)
 	WG['unit_market'] = nil
 end
+
 local sec, sec2, sec3, updatePeriod = 0, 0, 0, 0.25
 local prevCam = {spGetCameraDirection()}
 function widget:Update(dt)

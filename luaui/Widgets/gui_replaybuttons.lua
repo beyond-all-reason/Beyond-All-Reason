@@ -14,8 +14,6 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -101,7 +99,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiButton = WG.FlowUI.Draw.Button
 
-	font = WG['fonts'].getFont(fontfile2)
+	font = WG['fonts'].getFont(2, 1.6)
 end
 
 function widget:Initialize()

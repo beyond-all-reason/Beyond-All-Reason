@@ -138,9 +138,13 @@ local GL_LEQUAL = GL.LEQUAL
 
 ---- GL4 Backend Stuff----
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local compactInstanceVBO  = InstanceVBOTable.compactInstanceVBO
 
 local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
@@ -198,7 +202,7 @@ local function initGL4( DPATname)
 
 	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	decalVBO = makeInstanceVBOTable(
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
@@ -215,10 +219,10 @@ local function initGL4( DPATname)
 	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 	decalVBO.VAO = smallDecalVAO
 
-	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
+	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
 
-	decalLargeVBO = makeInstanceVBOTable(
+	decalLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
 			{id = 2, name = 'uv_atlaspos', size = 4},
@@ -233,16 +237,16 @@ local function initGL4( DPATname)
 
 	decalLargeVBO.vertexVBO = planeVBO
 	decalLargeVBO.indexVBO = planeIndexVBO
-	decalLargeVBO.VAO = makeVAOandAttach(
+	decalLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		decalLargeVBO.vertexVBO,
 		decalLargeVBO.instanceVBO,
 		decalLargeVBO.indexVBO
 	)
 
-	planeVBO, numVertices = makePlaneVBO(1,1,resolution*4,resolution*4)
-	planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
+	planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution*4,resolution*4)
+	planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
 
-	decalExtraLargeVBO = makeInstanceVBOTable(
+	decalExtraLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
 			{id = 2, name = 'uv_atlaspos', size = 4},
@@ -257,7 +261,7 @@ local function initGL4( DPATname)
 
 	decalExtraLargeVBO.vertexVBO = planeVBO
 	decalExtraLargeVBO.indexVBO = planeIndexVBO
-	decalExtraLargeVBO.VAO = makeVAOandAttach(
+	decalExtraLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		decalExtraLargeVBO.vertexVBO,
 		decalExtraLargeVBO.instanceVBO,
 		decalExtraLargeVBO.indexVBO
@@ -1589,16 +1593,16 @@ local UnitScriptDecalsNames = {
 	['corsumo'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corsumo_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns
-			offsetz = 0, --
+			offsetx = -1, --offset from what the UnitScriptDecal returns
+			offsetz = -1, --
 			offsetrot = 0.0, -- in radians
-			width = 30,
+			width = 26,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.85,
+			alphastart = 0.80,
 			alphadecay = 0.0010,
-			maxalpha = 1.0,
+			maxalpha = 0.9,
 			bwfactor = 0.1,
 			glowsustain = 0.0,
 			glowadd = 0.0,

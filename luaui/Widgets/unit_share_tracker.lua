@@ -14,7 +14,8 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 ----------------------------------------------------------------
 -- config
@@ -223,7 +224,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 
 	sMidX = vsx * 0.5
 	sMidY = vsy * 0.5
@@ -281,21 +282,24 @@ function widget:DrawInMiniMap(sx, sy)
 	end
 	glLineWidth(lineWidth)
 
-	local ratioX = sx / mapX
-	local ratioY = sy / mapY
-
-	local flipped = getMiniMapFlipped()
+	local currRot = getCurrentMiniMapRotationOption()
 
 	for unitID, defs in pairs(mapPoints) do
 		if defs.x then
 			local x, y
 
-			if flipped then
-				x = (mapX - defs.x) * ratioX
-				y = sy - (mapY - defs.z) * ratioY
-			else
-				x = defs.x * ratioX
-				y = sy - defs.z * ratioY
+			if currRot == ROTATION.DEG_0 then
+				x = defs.x * sx / mapX
+				y = sy - defs.z * sy / mapY
+			elseif currRot == ROTATION.DEG_90 then
+				x = defs.z * sx / mapY
+				y = defs.x * sy / mapX
+			elseif currRot == ROTATION.DEG_180 then
+				x = sx - defs.x * sx / mapX
+				y = defs.z * sy / mapY
+			elseif currRot == ROTATION.DEG_270 then
+				x = sx - defs.z * sx / mapY
+				y = sy - defs.x * sy / mapX
 			end
 
 			local expired = timeNow > defs.time

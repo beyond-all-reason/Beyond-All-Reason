@@ -107,7 +107,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		end
 
 		defWatchTable[weaponDefID] = watchParams
-		Script.SetWatchWeapon(weaponDefID, true)
+		Script.SetWatchProjectile(weaponDefID, true)
 	end
 end
 

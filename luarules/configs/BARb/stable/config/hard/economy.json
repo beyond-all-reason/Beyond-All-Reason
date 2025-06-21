@@ -72,11 +72,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "armgeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "armmex"
 	},
 // buildpower -  Mobile buildpower to metal income ratio,
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
@@ -127,7 +129,8 @@
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "armwin"
 	}
 }
 }

@@ -144,7 +144,7 @@ local function findTestFiles(directory, patterns, rootDirectory, result)
 		result = {}
 	end
 
-	for _, filename in ipairs(VFS.DirList(directory, "*", VFS.RAW_FIRST)) do
+	for _, filename in ipairs(VFS.DirList(directory, "*.lua", VFS.RAW_FIRST)) do
 		local relativePath = string.sub(filename, string.len(rootDirectory) + 1)
 		local withoutExtension = Util.removeFileExtension(relativePath)
 		if patterns == nil or #patterns == 0 or matchesPatterns(withoutExtension, patterns) then
@@ -993,6 +993,7 @@ local function initializeTestEnvironment()
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,

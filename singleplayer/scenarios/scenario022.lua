@@ -20,7 +20,7 @@ Reinforcements:
     
 Tips:
  - Sharing is Caring! When you share limited units & buildings with your Ally this will strengthens economy and combat capabilities of both.
- - To gain access of your Ally units, build Decoy Commander and capture one of your Ally Constructor unit. 
+ - To gain access to Ally units, build Decoy Commander and capture one of your Ally Constructor unit. 
  - Use Radar Jamming units to hide your presence from enemy Radar.
  - Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
  - You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging

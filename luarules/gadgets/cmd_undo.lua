@@ -46,18 +46,26 @@ if gadgetHandler:IsSyncedCode() then
 			dgunDef[weaponDefID] = true
 		end
 	end
-	local undgunableUnits = {}
+
+	local safeguardedUnits = {}
+	local weaponUnitSelfd = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams and tonumber(unitDef.customParams.techlevel) > 1 then
 			if unitDef.isBuilding then
-				undgunableUnits[unitDefID] = true
+				safeguardedUnits[unitDefID] = true
 			end
 			if unitDef.metalMake > 0.5 or unitDef.energyMake > 5 or unitDef.energyUpkeep < 0 or unitDef.windGenerator > 0 or unitDef.customParams.solar or unitDef.tidalGenerator > 0 or unitDef.customParams.energyconv_capacity then
-				undgunableUnits[unitDefID] = true
+				safeguardedUnits[unitDefID] = true
 			end
 		end
 		if unitDef.customParams.energyconv_capacity then
-			undgunableUnits[unitDefID] = true
+			safeguardedUnits[unitDefID] = true
+		end
+		if unitDef.selfDExplosion then
+			local wDef = WeaponDefNames[unitDef.selfDExplosion]
+			if wDef then
+				weaponUnitSelfd[wDef.id] = unitDefID
+			end
 		end
 	end
 
@@ -197,8 +205,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if dgunDef[weaponID] and undgunableUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
-			return 0, 0
+		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
+			if dgunDef[weaponID] then
+				-- TODO: moderator echo/log playername tried to dgun playername's unit
+				return 0, 0
+			elseif weaponUnitSelfd[weaponID] then
+				-- TODO: moderator echo/log playername tried to selfd playername's unit(s)
+				return 0, 0
+			elseif not Spring.GetUnitNearestEnemy(unitID, 1000) then
+				-- TODO: moderator echo/log playername damaged playername's unit(s) without nearby enemy
+				return 0, 0
+			end
 		end
 		return damage, 1
 	end

@@ -28,15 +28,17 @@ uniform sampler2D mapGrassColorModTex;
 uniform sampler2D grassWindPerturbTex;
 
 in DataVS {
-	vec3 worldPos;
+	//vec3 worldPos;
 	//vec3 Normal;
-	vec2 texCoord0;
+	vec4 texCoord0;
 	//vec3 Tangent;
 	//vec3 Bitangent;
 	vec4 mapColor;
 	//vec4 grassNoise;
 	vec4 instanceParamsVS;
-	vec4 debuginfo;
+	#if DEBUG == 1 
+		vec4 debuginfo;
+	#endif
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -44,7 +46,7 @@ in DataVS {
 out vec4 fragColor;
 
 void main() {
-	fragColor = texture(grassBladeColorTex, texCoord0);
+	fragColor = texture(grassBladeColorTex, texCoord0.xy);
 	fragColor.rgb = mix(fragColor.rgb,fragColor.rgb * (mapColor.rgb * 2.0), MAPCOLORFACTOR); //blend mapcolor multiplicative
 	fragColor.rgb = mix(fragColor.rgb,mapColor.rgb, (1.0 - texCoord0.y)* MAPCOLORBASE); // blend more mapcolor mix at base
 	//fragColor.rgb = fragColor.rgb * 0.8; // futher darken
@@ -62,7 +64,9 @@ void main() {
 	//fragColor = vec4(debuginfo.r,debuginfo.g, 0, (debuginfo.g)*5	);
 	//fragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);
-	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
+	#if DEBUG == 1
+		fragColor.a *= clamp(texCoord0.w *3,0.0,1.0);
+	#endif
 	fragColor.rgb *= nightFactor.rgb;
 
 	if (fragColor.a < ALPHATHRESHOLD)

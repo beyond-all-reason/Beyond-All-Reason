@@ -32,7 +32,7 @@ return {
 		script = "Units/COREXP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		selfdestructcountdown = 1,
+		--selfdestructcountdown = 1,
 		sightdistance = 455,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {

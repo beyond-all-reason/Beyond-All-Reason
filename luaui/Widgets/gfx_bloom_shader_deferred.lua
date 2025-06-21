@@ -72,8 +72,8 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local glGetSun = gl.GetSun
 
@@ -144,15 +144,16 @@ local function MakeBloomShaders()
 
 	local definesString = LuaShader.CreateShaderDefinesString(shaderConfig)
 
-	glDeleteTexture(brightTexture1 or "")
-	glDeleteTexture(brightTexture2 or "")
 	--Spring.Echo(vsx, vsy, qvsx,qvsy)
 
+	glDeleteTexture(brightTexture1)
 	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
+
+	glDeleteTexture(brightTexture2)
 	brightTexture2 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
@@ -513,9 +514,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
-local luaShaderDir = "LuaUI/Include/"
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-
 function widget:Initialize()
 
 	if glCreateShader == nil then
@@ -549,11 +547,13 @@ function widget:Initialize()
 	end
 
 	MakeBloomShaders()
-	rectVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	rectVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()
-	glDeleteTexture(brightTexture1 or "")
+	glDeleteTexture(brightTexture1)
+	glDeleteTexture(brightTexture2)
+	brightTexture1, brightTexture2 = nil, nil
 	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShader ~= nil then glDeleteShader(blurShader or 0) end

@@ -714,6 +714,11 @@ AimFromWeapon2(piecenum)
 
 AimWeapon2(heading, pitch)
 {
+	//get PRINT(get GROUND_WATER_HEIGHT(get UNIT_XZ));
+	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000 )
+    {
+     return (0);
+    }	
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	turn aaturret to y-axis heading - torsoRot speed <250.0>;
