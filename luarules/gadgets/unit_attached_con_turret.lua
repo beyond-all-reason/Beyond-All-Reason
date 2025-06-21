@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local SpGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
 local SpGetFeaturePosition = Spring.GetFeaturePosition
@@ -45,6 +44,8 @@ local CMD_GUARD = CMD.GUARD
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
 local CMD_STOP = CMD.STOP
+
+local FEATURE_BASE_INDEX = Game.maxUnits
 
 --------------------------------------------------------------------------------
 -- Command introspection -------------------------------------------------------
@@ -152,49 +153,66 @@ local function auto_repair_routine(unitID, baseID)
 	end
 
 	local unitDefID = attached_builder_def[unitID]
+	local ux, uy, uz = SpGetUnitPosition(unitID)
+	local radius = UnitDefs[unitDefID].buildDistance
 
 	-- next, check to see if current command (including command from chassis) is in range
-	commandQueue = SpGetUnitCommands(unitID, 1)
-	local ux,uy,uz = SpGetUnitPosition(unitID)
-	local tx, ty, tz
-	local radius = UnitDefs[unitDefID].buildDistance
-	local distance = radius^2 + 1
-	local object_radius = 0
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- out of range build command
-		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
-		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- out of range repair command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+
+	-- The engine and call-ins can modify our orders, so we *must* re-fetch the current order;
+	-- e.g., when executing the build command, the engine prepends orders to reclaim features.
+	command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(unitID)
+
+	local dx, dy, dz
+	local distance
+
+	if command ~= nil then
+		local paramCount = #(repack5(param1, param2, param3, param4, param5))
+
+		local allowed = commandParamAllowed[command]
+
+		-- Blanket-verify all parameter counts to avoid (e.g.) area commands:
+		if allowed == buildTarget then
+			if buildTarget[paramCount] then
+				local object_radius = 0
+				local tx, ty, tz
+
+				if param1 < FEATURE_BASE_INDEX then
+					tx, ty, tz = SpGetUnitPosition(param1)
+					object_radius = SpGetUnitDefDimensions(-command).radius
+					object_radius = SpGetUnitRadius(param1)
+				else
+					local featureID = param1 - FEATURE_BASE_INDEX
+					tx, ty, tz = SpGetFeaturePosition(featureID)
+					object_radius = SpGetFeatureRadius(featureID)
+				end
+
+				dx = ux - tx
+				dy = uy - ty
+				dz = uz - tz
+
+				distance = math.sqrt(dx * dx + dy * dy + dz * dz) - object_radius
+			end
+		elseif
+			(allowed == buildOrder and buildOrder[paramCount]) or
+			(allowed == mapPosition and mapPosition[paramCount])
+		then
+			local tx, ty, tz = param1, param2, param3
+
+			dx = ux - tx
+			dy = uy - ty
+			dz = uz - tz
+
+			distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+		elseif allowed[paramCount] then
+			-- We may be WAITing, for example.
+			return true
 		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
-		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
-		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
-		end
-    end
-	if tx and distance <= radius then
+	end
+
+	if distance ~= nil and distance <= radius then
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
+		heading1 = SpGetHeadingFromVector(dx, dz)
 		heading2 = SpGetUnitHeading(unitID)
 		SpCallCOBScript(unitID, 'UpdateHeading', 0, heading1-heading2+32768)
 		return
