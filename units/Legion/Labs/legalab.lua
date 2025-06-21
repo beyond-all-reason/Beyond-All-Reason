@@ -46,7 +46,7 @@ return {
 			"legadvaabot",
 			"legsnapper",
 			"corvoyr",
-			"legspy",
+			"legaspy",
 			"corspec",
 			"legdecom",
 		},
