@@ -17,9 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-
-local CMD_REPAIR = CMD.REPAIR
-local CMD_RECLAIM = CMD.RECLAIM
 local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -41,6 +38,54 @@ local SpGetUnitSeparation = Spring.GetUnitSeparation
 local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
+
+local CMD_CAPTURE = CMD.CAPTURE
+local CMD_GUARD = CMD.GUARD
+local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+local CMD_STOP = CMD.STOP
+
+--------------------------------------------------------------------------------
+-- Command introspection -------------------------------------------------------
+
+-- Parameter counts used with commands
+local always = {}; for i = 0, 8 do always[i] = true end
+local withParams = {}; for i = 1, 8 do withParams[i] = true end
+local never = {}
+local buildOrder = { [4] = true, }
+local buildTarget = { [1] = true, [5] = true }
+local mapPosition = { [3] = true, [4] = true, }
+
+local commandParamAllowed = {
+	[CMD.STOP]       = always,
+	[CMD.INSERT]     = always,
+	[CMD.REMOVE]     = always,
+	[CMD.WAIT]       = always,
+	[CMD.DEATHWAIT]  = always,
+	[CMD.GATHERWAIT] = always,
+	[CMD.TIMEWAIT]   = always,
+
+	[CMD.FIRE_STATE] = withParams,
+	[CMD.MOVE_STATE] = withParams,
+	[CMD.ONOFF]      = withParams,
+	[CMD.TRAJECTORY] = withParams,
+
+	[CMD.CAPTURE]    = buildTarget,
+	[CMD.RECLAIM]    = buildTarget,
+	[CMD.REPAIR]     = buildTarget,
+	[CMD.RESURRECT]  = buildTarget,
+
+	[CMD.RESTORE]    = mapPosition,
+}
+
+commandParamAllowed = setmetatable(commandParamAllowed, {
+	__index = function(self, key)
+		return key < 0 and buildOrder or never
+	end
+})
+
+local moveStateTeamAssist = CMD.MOVESTATE_MANEUVER
+local moveStateAllyAssist = CMD.MOVESTATE_ROAM
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
