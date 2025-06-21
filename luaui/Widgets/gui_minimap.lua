@@ -132,6 +132,13 @@ function widget:Initialize()
 	oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	gl.SlaveMiniMap(true)
 
+	local currRot = getCurrentMiniMapRotationOption()
+	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
+		ratio = Game.mapY / Game.mapX
+	else
+		ratio = Game.mapX / Game.mapY
+	end
+
 	widget:ViewResize()
 
 	if Spring.GetConfigInt("MinimapMinimize", 0) == 1 then
@@ -204,6 +211,15 @@ function widget:Update(dt)
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 	checkGuishader()
+end
+
+function widget:MiniMapRotationChanged(newRot)
+	if newRot == ROTATION.DEG_90 or newRot == ROTATION.DEG_270 then
+		ratio = Game.mapY / Game.mapX
+	else
+		ratio = Game.mapX / Game.mapY
+	end
+	widget:ViewResize()
 end
 
 

@@ -630,3 +630,7 @@ function widget:Update(delta)
 		end
 	end
 end
+
+function widget:MiniMapRotationChanged()
+	widget:ViewResize(vsx, vsy)
+end
