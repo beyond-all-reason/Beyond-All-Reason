@@ -1129,6 +1129,33 @@ local unitDistortions = {
 		},
 	},
 
+	-- ['legspy'] = {
+	-- 	-- spycloakhead = {
+	-- 	-- 	distortionType = 'point',
+	-- 	-- 	pieceName = 'body',
+	-- 	-- 	distortionConfig = { posx = 0, posy = 5.5, posz = 13, radius = 4.5,
+	-- 	-- 					noiseStrength = 3, noiseScaleSpace = -1.7, distanceFalloff = 0.75, onlyModelMap = -1,
+	-- 	-- 					windAffected = -1, riseRate = -0.5,
+	-- 	-- 					lifeTime = 0,  effectType = 0},
+	-- 	-- },
+	-- 	spycloakl = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'chassis',
+	-- 		distortionConfig = { posx = -7.5, posy = 4.8, posz = 0, radius = 5.5,
+	-- 						noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+	-- 						windAffected = -1, riseRate = -0.5,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- 	spycloakr = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'chassis',
+	-- 		distortionConfig = { posx = 7.5, posy = 4.8, posz = 0, radius = 5.5,
+	-- 						noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+	-- 						windAffected = -1, riseRate = -0.5,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- },
+
 	['armveil'] = {
 		-- magnifier = {
 		-- 	distortionType = 'point',

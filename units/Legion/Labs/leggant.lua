@@ -33,7 +33,7 @@ return {
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo yoeeeeeeeeoy",
 		buildoptions = {
 			"legeheatraymech",
-			"corkarg",
+			"legeallterrainmech",
 			"legjav",
 			"legelrpcmech",
 			"corsok",

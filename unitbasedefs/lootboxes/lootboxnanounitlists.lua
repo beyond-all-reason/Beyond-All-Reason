@@ -87,6 +87,7 @@ return {
 		"coramph",
 		"corsktl",
 		"corspy",
+		"legaspy",
 		"corcan",
 		"coraak",
 		"cortermite",

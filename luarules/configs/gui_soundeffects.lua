@@ -2982,6 +2982,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
+	legaspy = {
+		BaseSoundSelectType = "cor-bot-small-sel",
+		BaseSoundMovementType = "cor-bot-small-ok",
+		BaseSoundWeaponType = "cloak",
+	},
 
 	-- LEGION T3 BOTS
 	legpede = {
@@ -3147,6 +3152,11 @@ GUIUnitSoundEffects = {
 
 		BaseSoundSelectType = "arm-banth-sel",
 		BaseSoundMovementType = "arm-bot-t3-ok",
+		BaseSoundWeaponType = "lrpc",
+	},
+	legeallterrainmech = {
+		BaseSoundSelectType = "cor-bot-t3-at-sel",
+		BaseSoundMovementType = "cor-bot-t3-at-ok",
 		BaseSoundWeaponType = "lrpc",
 	},
 

@@ -1332,7 +1332,7 @@ local icontypes = {
 		size = 2.0999999
 	},
 	corcrwh = {
-		bitmap = "icons/air_krow.png",
+		bitmap = "icons/air_t2_flame_laserlaser.png",
 		size = 2.0999999
 	},
 	corcrwt4 = {
@@ -2035,6 +2035,10 @@ local icontypes = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
 	},
+	legaspy = {
+		bitmap = "icons/spy.png",
+		size = 1.17999995
+	},
 	corssub = {
 		bitmap = "icons/battlesub_t2.png",
 		size = 2.20000005
@@ -2519,6 +2523,10 @@ local icontypes = {
 		bitmap = "icons/heavyheatraydrone.png",
 		size = 0.9
 	},
+	legheavydronesmall = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.9
+	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -2536,7 +2544,7 @@ local icontypes = {
 		size = 1.4
 	},
 	legfort = {
-		bitmap = "icons/air_battleship.png",
+		bitmap = "icons/air_t2_plasma_mg_fortress.png",
 		size = 2.29999995
 	},
 	legfortt4 = {
@@ -2832,7 +2840,7 @@ local icontypes = {
 		size = 1.29999995
 	},
 	legstronghold = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t2_transport_shotgun.png",
 		size = 1.83749986
 	},
 	legjim = {
@@ -2870,6 +2878,10 @@ local icontypes = {
 	legvcarry = {
 		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
+	},
+	legeallterrainmech = {
+		bitmap = "icons/t3_allterrain_drone_cluster_bot.png",
+		size = 2.61999998
 	},
 	legvelite = {
 		bitmap = "icons/ship_raid.png",
