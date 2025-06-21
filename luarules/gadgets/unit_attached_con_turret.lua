@@ -39,7 +39,6 @@ local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 
-local CMD_CAPTURE = CMD.CAPTURE
 local CMD_GUARD = CMD.GUARD
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
@@ -85,9 +84,6 @@ commandParamAllowed = setmetatable(commandParamAllowed, {
 		return key < 0 and buildOrder or never
 	end
 })
-
-local moveStateTeamAssist = CMD.MOVESTATE_MANEUVER
-local moveStateAllyAssist = CMD.MOVESTATE_ROAM
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -273,7 +269,7 @@ local function auto_repair_routine(unitID, baseID)
 	end
 
 	-- give stop command to attached con turret if nothing to do
-	SpGiveOrderToUnit(unitID,CMD.STOP,{}, {})
+	SpGiveOrderToUnit(unitID, CMD_STOP, {}, {})
 
 end
 
