@@ -73,7 +73,11 @@ Steering(heading, steery, currentSpeed)
 		heading = get HEADING;
 		aimAdj = (heading - oldsteerheading);
 		sleep 33;
-		oldsteerheading = heading;
+
+
+		steery = (heading - oldsteerheading)*4;
+		
+		turn rear_engine to y-axis (0 - steery*3) speed <120>;
 
         if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > 0 )
 		{
@@ -85,7 +89,8 @@ Steering(heading, steery, currentSpeed)
             move tlTurretHeadingPivot to y-axis [-8] speed [8];
 			inwater = 1;
 		}
-
+        
+        oldsteerheading = heading;
 	}
 }
 
