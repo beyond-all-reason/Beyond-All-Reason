@@ -23,7 +23,9 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
 
@@ -836,13 +838,22 @@ function widget:DrawInMiniMap()
     glPushMatrix()
     glLoadIdentity()
 
-    if getMiniMapFlipped() then
-      glTranslate(1, 0, 0)
-      glScale(-1 / mapSizeX, 1 / mapSizeZ, 1)
-    else
-      glTranslate(0, 1, 0)
-      glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
-    end
+	local currRot = getCurrentMiniMapRotationOption()
+	if currRot == ROTATION.DEG_0 then
+		gl.Translate(0, 1, 0)
+		gl.Scale(1 / mapSizeX, -1 / mapSizeZ, 1)
+	elseif currRot == ROTATION.DEG_90 then
+		gl.Scale(-1 / mapSizeZ, 1 / mapSizeX, 1)
+		gl.Rotate(90, 0, 0, 1)
+	elseif currRot == ROTATION.DEG_180 then
+		gl.Translate(1, 0, 0)
+		gl.Scale(1 / mapSizeX, 1 / mapSizeZ, 1)
+		gl.Rotate(180, 0, 1, 0)
+	elseif currRot == ROTATION.DEG_270 then
+		gl.Translate(1, 1, 0)
+		gl.Scale(-1 / mapSizeZ, 1 / mapSizeX, 1)
+		gl.Rotate(-90, 0, 0, 1)
+	end
 
     DrawFormationLines(tVertsMinimap, 1)
     glPopMatrix()

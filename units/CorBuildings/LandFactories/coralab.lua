@@ -24,7 +24,7 @@ return {
 		metalcost = 2900,
 		metalstorage = 200,
 		objectname = "Units/CORALAB.s3o",
-		script = "Units/CORALAB.lua",
+		script = "Units/CORALAB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 288.60001,

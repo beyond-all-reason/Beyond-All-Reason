@@ -1,3 +1,4 @@
+// This shader is Copyright (c) 2025 Beherith (mysterme@gmail.com) and licensed under the MIT License
 //shader version is added via widget
 
 layout (location = 0) in vec3 pos;

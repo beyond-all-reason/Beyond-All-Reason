@@ -1122,7 +1122,7 @@ local function drawBars()
 		(mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
 		mouseOnBar = true
 	end
-
+	
 	for metricIndex,metric in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height
@@ -1316,8 +1316,8 @@ local function createMetricDisplayLists()
 				bottom,
 				right,
 				top,
-				metricIndex == 1 and 0 or 1, 1, 1, 1,
-				metricIndex == 1 and 0 or 1, 1, 1, 1
+				metricIndex == 1 and 0 or 1, 0, 0, 1,
+				0 or 1, 1, 1, 1
 			)
 		end)
 		table.insert(metricDisplayLists, newDisplayList)

@@ -1,9 +1,0 @@
-
-#include "../recoil_common_includes.h"
-
-piece base;
-
-Create()
-{
-	return (0);
-}

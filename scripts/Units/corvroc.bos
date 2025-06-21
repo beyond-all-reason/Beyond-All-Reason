@@ -56,10 +56,7 @@ SetMaxReloadTime(reloadMS)
 }
 
 static-var  Stunned;
-SetStunned(State)
-{
-    Stunned = State;
-}
+
 
 ExecuteRestoreAfterDelay()
 {
@@ -140,9 +137,9 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode base type BITMAPONLY | NOHEATCLOUD;
+	explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		
-	return corpsetype;
+	return (corpsetype);
 }

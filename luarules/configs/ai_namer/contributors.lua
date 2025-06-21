@@ -127,7 +127,8 @@ local ContributorAINames = {
     "wilkubyk",
     "Whocanitbnow",
     "SuperKitowiec",
-
+	"Rippsy",
+	"Flameink",
 }
 
 return ContributorAINames

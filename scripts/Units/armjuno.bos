@@ -1,23 +1,20 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, collar, tower, emit1, emit2, emit3, emit4,
        flare;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, restore_delay;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+
+#include "../opencloseanim.h"
 
 NanoEmit()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	while( TRUE )
 	{
 	
@@ -26,7 +23,7 @@ NanoEmit()
 	}
 }
 
-Activatescr()
+Open()
 {
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
@@ -57,70 +54,26 @@ Activatescr()
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+	gun_1 = flare;
 }
-
-deactivatescr()
-{
+Close(){
+	gun_1 = base;
+	sleep 4000;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	spin tower around y-axis speed <0.000000>;
-	spin collar around y-axis speed <0.000000>;
+	spin tower around y-axis speed <0.0>;
+	spin collar around y-axis speed <0.0>;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 40;
+
 }
 
-Go()
-{
-	call-script Activatescr();
-	gun_1 = flare;
-}
-
-Stop()
-{
-	gun_1 = base;
-	sleep 4000;
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -132,29 +85,30 @@ Create()
 	gun_1 = flare;
 	restore_delay = 3000;
 	start-script NanoEmit();
-	call-script InitState();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
 	spin tower around y-axis speed <25.005495>;
-	spin collar around y-axis speed <15.000000>;
-	start-script RequestState(0);
+	spin collar around y-axis speed <15.0>;
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
 	stop-spin tower around y-axis decelerate <0.2>;
 	stop-spin collar around y-axis decelerate <0.2>;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 ExecuteRestoreAfterDelay()
@@ -163,17 +117,13 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
+
 SetStunned(State)
 {
     Stunned = State;
-	if (Stunned) {
-	    call-script Stop();
-	} else {
-	    call-script Go();
-	    start-script ExecuteRestoreAfterDelay();
-	}
+	start-script OpenCloseAnim(!Stunned);
 }
 
 RestoreAfterDelay()
@@ -182,11 +132,11 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	while( !gun_1 )
 	{
 		sleep 250;
@@ -195,21 +145,18 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_1 = base;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = flare;
-}
+
 
 Killed(severity, corpsetype)
 {

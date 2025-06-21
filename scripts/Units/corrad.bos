@@ -1,10 +1,6 @@
-#define TA			// This is a TA script
-
-static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dish, blink;
 
@@ -15,68 +11,22 @@ piece  base, dish, blink;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-Go()
-{
-	spin dish around y-axis speed <40.005495>;
-	return (0);
-}
-
-Stop()
-{
-	stop-spin dish around y-axis;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
 }
 
 Create()
 {
 	hide blink;
-	call-script InitState();
 	return (0);
 }
 
@@ -96,21 +46,17 @@ Lights()
 Activate()
 {
 	start-script Lights();
-	start-script RequestState(0);
+	spin dish around y-axis speed <40.005495>;
 	return (0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin dish around y-axis;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

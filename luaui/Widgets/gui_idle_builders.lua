@@ -86,11 +86,14 @@ local unitConf = {}
 local function refreshUnitDefs()
 	unitHumanName = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.translatedHumanName then
-			unitHumanName[unitDefID] = unitDef.translatedHumanName
-		end
-		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
-			unitConf[unitDefID] = unitDef.isFactory
+		local cp = unitDef.customParams
+		if not (cp.virtualunit == "1") then
+			if unitDef.translatedHumanName then
+				unitHumanName[unitDefID] = unitDef.translatedHumanName
+			end
+			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
+				unitConf[unitDefID] = unitDef.isFactory
+			end
 		end
 	end
 end

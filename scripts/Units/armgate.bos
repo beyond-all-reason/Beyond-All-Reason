@@ -1,122 +1,72 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, shield;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
-
-
-ShieldOn()
-{
-	Static_Var_1 = 1;
-}
-
-ShieldOff()
-{
-	Static_Var_1 = 0;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script ShieldOn();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script ShieldOff();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+static-var  shieldEnabled;
 
 Create()
 {
 	hide shield;
-
-	Static_Var_1 = 1;
-	call-script InitState();
+	shieldEnabled = 1;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	shieldEnabled = 1;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	shieldEnabled = 0;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	sleep 100;
-	return (Static_Var_1);
+	return (shieldEnabled);
 }
 
-FirePrimary()
-{
-	sleep 100;
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = shield;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = base;
-}
-
-AimSecondary(heading, pitch)
-{
-	sleep 100;
-	return (Static_Var_1);
-}
-
-FireSecondary()
+FireWeapon1()
 {
 	sleep 100;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = shield;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-SweetSpot(piecenum)
+AimWeapon2(heading, pitch)
 {
-	piecenum = base;
+	return (shieldEnabled);
 }
+
+FireWeapon2()
+{
+	sleep 100;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+
 
 Killed(severity, corpsetype)
 {

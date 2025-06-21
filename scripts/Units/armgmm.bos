@@ -1,18 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, smoke;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
+#define SIGNAL_TURNON 4
 
 SteamVents()
 {
-	signal 2;
-	set-signal-mask 2;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 		emit-sfx 257 from smoke;
@@ -20,80 +16,29 @@ SteamVents()
 	}
 }
 
-Go()
-{
-	set ARMORED to 0;
-	start-script SteamVents();
-
-}
-
-Stop()
-{
-
-	signal 2;
-	set ARMORED to 1;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide smoke;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
-	call-script InitState();
-	start-script RequestState(0);
+	start-script Activate();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	set ARMORED to 0;
+	start-script SteamVents();
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	signal SIGNAL_TURNON;
+	set ARMORED to 1;
 }
 
 Killed(severity, corpsetype)

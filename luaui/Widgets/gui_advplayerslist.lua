@@ -2105,7 +2105,7 @@ function DrawLabelTip(text, vOffset, xOffset)
     end
 
     font:Begin(useRenderToTexture)
-    font:SetTextColor(0.8, 0.8, 0.8, useRenderToTexture and 1 or 0.75)
+    font:SetTextColor(0.8, 0.8, 0.8, 0.75)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
     font:End()
@@ -2113,7 +2113,7 @@ end
 
 function DrawSeparator(vOffset)
     -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-    local alpha = useRenderToTexture and 0.7 or 0.35
+    local alpha = 0.35
     vOffset = vOffset - (3*playerScale)
     RectRound(
 		widgetPosX + 2,
@@ -2702,7 +2702,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         font2:SetTextColor(Spring_GetTeamColor(team))
     end
     if isAbsent then
-        font2:SetOutlineColor(0, 0, 0, useRenderToTexture and 0.8 or 0.4)
+        font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
     font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
@@ -2754,12 +2754,8 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
     end
 
-	if useRenderToTexture then
-  		alpha = alpha + ((1-alpha)*0.2)
-	end
-
     font2:Begin(useRenderToTexture)
-    font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), useRenderToTexture and 1 or 0.55)
+    font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
     font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
     font2:End()
