@@ -36,6 +36,7 @@ local ContributorAINames = {
     "Itanthias",
     "Jazcash",
     "Johannes",
+	"JonathanCrimson",
     "Krogoth",
     "Lexon",
     "Lonewolfdesign",
@@ -65,6 +66,7 @@ local ContributorAINames = {
     "Raghna",
     "RebelNode",
     "Requiem",
+	"Robert82",
     "Rubus",
     "Russell Lucas-Nutt",
     "Ryan Krause",
@@ -80,6 +82,7 @@ local ContributorAINames = {
     "TeeeeVeeeeOn",
     "Teifion",
     "Tharsy",
+	"Tim B",
     "Tom Fyuri",
     "Vache",
     "Volshok",
@@ -108,6 +111,7 @@ local ContributorAINames = {
     "mupersega",
     "neb_",
     "pandaro",
+	"Qbansky",
     "resopmok",
     "robert the pie",
     "rossco",
@@ -123,7 +127,8 @@ local ContributorAINames = {
     "wilkubyk",
     "Whocanitbnow",
     "SuperKitowiec",
-
+	"Rippsy",
+	"Flameink",
 }
 
 return ContributorAINames

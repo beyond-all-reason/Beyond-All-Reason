@@ -1,0 +1,120 @@
+// Mono-space font required
+{
+"porcupine": {
+	"unit": {
+	//              0          1         2          3            4         5          6          7            8        9
+		"legion": ["leglht",  "leglht",    		"legrl",   		"leghive", 		"legmg",  "legdtr",  "legrhapsis",    "leglupara", 	"legbombard", 	"leghive",
+			   "legflak", "legacluster", 	"legbastion", 	"legcluster",  	"legabm", "legtarg", "legdeflector",  "corptl"]
+	},
+	"superweapon": {
+		"unit": {
+			"legion": ["leglupara",         "legperdition",         "leglrpc",  "legstarfall",      "legabm", "legsilo"]
+		},
+		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
+
+		"condition": [30, 600]  // [<Minimum income>, <maximum seconds to build>]
+	},
+
+	// Fallback defence
+	"default": {
+		"legion": "leglht"
+	}
+},
+
+// Actions on building finished event
+"build_chain": {
+	// WARNING: Avoid recursion
+	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
+	"energy": {
+		// <UnitDef>: {<elements>}
+		"legadvsol": {
+			// Available elements:
+			// "energy": [max energy income, <"mex"|true>]
+			// "pylon": <boolean>
+			// "porc": <boolean>
+			// "terra": <boolean>
+			// "hub": [
+			//     // chain1
+			//     [{<unit1>, <category>, <offset>, <condition>}, {<unit2>, <category>, <offset>, <condition>}, ...],
+			//     // chain2
+			//     [{...}, {...}, ...],
+			//     ...
+			// ]
+			// <unit>: UnitDef
+			// <offset>:
+			//     1) [x, z] in South facing, elmos
+			//     2) {<direction>: <delta>} - left, right, front, back
+			// <condition>: air:<bool>, energy:<bool>, wind:<float>, sensor:<float>, chance:0.0~1.0
+			// <priority>: low, normal, high, now
+
+			// Build pylon in direction of nearby mex cluster
+//			"pylon": true,
+
+			// Build chain of units
+			"hub": [
+				[  // chain1
+					{"unit": "legmg", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+//				],
+//				[  // chain2
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+				]
+			]
+		},
+//		"legsolar": {
+//			"hub": [
+//				[  // chain1
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//				]
+//			]
+//		},
+		"legfus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "legadveconv", "category": "convert", "offset": [-60, +16]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [-60, -16]},
+					{"unit": "legapopupdef", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+				]
+			]
+		},
+		"legafus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, -120]},
+					{"unit": "legabm", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "legbastion", "category": "defence", "offset": [-180, -180]},
+					{"unit": "legapopupdef", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+				]
+			]
+		}
+	},
+	"geo": {
+		"leggeo": {
+			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
+		}
+	},
+	"factory": {
+		"leglab": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"legvp": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"legap": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		}
+	},
+	"mex": {
+		"legmex": {
+//			"terra": true,
+//			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
+			"porc": true
+		}
+	}
+}
+}

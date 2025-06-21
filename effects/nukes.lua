@@ -70,25 +70,69 @@ local definitions = {
             drawOrder          = 0,
           },
         },
-        brightflareslow = {
-          air                = true,
+        brightflaresingularity = {
+          air                = false,
           class              = [[CBitmapMuzzleFlame]],
           count              = 1,
           ground             = true,
           underwater         = true,
           water              = true,
           properties = {
-            colormap           = [[1.0 0.96 0.80 0.4    0.8 0.72 0.60 0.25    0.35 0.28 0.18 0.11    0 0 0 0]],
+            colormap           = [[0.5 0.5 0.5 0.7    0.7 0.6 0.5 0.4    0.35 0.30 0.24 0.2    0 0 0 0]],
             dir                = [[0, 1, 0]],
             --gravity            = [[0.0, 0.1, 0.0]],
-            frontoffset        = 9,
+            frontoffset        = 1,
+            fronttexture       = [[exploflare]],
+            length             = 40,
+            sidetexture        = [[none]],
+            size               = 200,
+            sizegrowth         = [[1.8 r1.2]],
+            ttl                = 125,
+            pos                = [[0, -10, 0]],
+            drawOrder          = 0,
+          },
+        },
+        brightflareslow = {
+          air                = false,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          properties = {
+            colormap           = [[1.0 0.96 0.80 0.4    0.8 0.72 0.60 0.25    0.35 0.28 0.18 0.11    0 0 0 0.1]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 2,
             fronttexture       = [[circularthingy]],
             length             = 40,
             sidetexture        = [[none]],
-            size               = 500,
-            sizegrowth         = [[0.4 r0.2]],
-            ttl                = 200,
-            pos                = [[0, -350, 0]],
+            size               = 450,
+            sizegrowth         = [[0.4 r0.8]],
+            ttl                = 250,
+            pos                = [[0, 0, 0]],
+            drawOrder          = 0,
+          },
+        },
+        brightflareslowair = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = false,
+          underwater         = false,
+          water              = false,
+          properties = {
+            colormap           = [[1.0 0.96 0.80 0.4    0.6 0.5 0.4 0.15    0.25 0.22 0.16 0.09    0 0 0 0.1]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 4,
+            fronttexture       = [[circularthingy]],
+            length             = 40,
+            sidetexture        = [[none]],
+            size               = 400,
+            sizegrowth         = [[0.7 r0.6]],
+            ttl                = 150,
+            pos                = [[0, -150, 0]],
             drawOrder          = 0,
           },
         },
@@ -233,6 +277,48 @@ local definitions = {
             castShadow         = true,
           },
         },
+        groundflash_anim = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 1,
+            air                = false,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                colormap           = [[0.9 0.65 0.35 1   1 1 1 1.0    0.85 0.85 0.85 1   0.45 0.45 0.45 1   0.35 0.35 0.35 0.5    0 0 0 0.01]],
+                size               = 570,
+                sizegrowth         = 1,
+                ttl                = 120,
+                pos                = [[0, 75, 0]],
+                rotParams          = [[0, 0, -180 r360]],
+                texture            = [[barshockwave]],
+                animParams         = [[8,12,120]],
+            },
+        },
+        airflash_anim = {
+        air                = true,
+        class              = [[CBitmapMuzzleFlame]],
+        count              = 2,
+        ground             = false,
+        underwater         = false,
+        water              = false,
+        properties = {
+            --colormap           = [[0 0 0 0   1 0.95 0.8 0.25   0.9 0.8 0.70 0.3  0.8 0.65 0.4 0.15   0.6 0.6 0.6 0.012    0.09 0.09 0.09 0.006    0 0 0 0.01]],
+            colormap           = [[0.95 0.95 0.95 0.9   1 0.95 0.8 0.16    0.8 0.6 0.3 0.009    0.4 0.3 0.2 0.007    0.3 0.2 0.1 0.005    0 0 0 0.01]],
+            dir                = [[0, 1, 0]],
+            frontoffset        = 0,
+            length             = [[10]],
+            fronttexture       = [[1InstaHeat1Shock1]], 
+            sidetexture        = [[none]],
+            animParams         = [[8,12,90]], -- animated sidetexture params
+            size               = 240,
+            sizegrowth         = [[0.5 r0.3]],
+            ttl                = 90,
+            pos                = [[0, 0, 0]],
+            rotParams          = [[-5 r10, -3 r6, -180 r360]],
+            drawOrder          = 0,
+            },
+        },
         explosion = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -336,16 +422,16 @@ local definitions = {
           underwater         = true,
           water              = true,
           properties = {
-            colormap           = [[0 0 0 0   1 0.95 0.8 0.50   0.9 0.8 0.70 0.7  0.8 0.65 0.4 0.35   0.10 0.08 0.04 0.012    0.06 0.04 0.02 0.006    0 0 0 0.01]],
+            colormap           = [[0 0 0 0.1   1 0.95 0.8 0.48   0.9 0.8 0.70 0.6   0.8 0.65 0.4 0.45   0.10 0.08 0.04 0.012    0.06 0.04 0.02 0.006    0 0 0 0.01]],
             dir                = [[0, 1, 0]],
             --gravity            = [[0.0, 0.1, 0.0]],
             frontoffset        = 0,
             fronttexture       = [[blastwave]],
             length             = 1,
             sidetexture        = [[none]],
-            size               = 12,
-            sizegrowth         = [[-29 r6]],
-            ttl                = 38,
+            size               = 8,
+            sizegrowth         = [[-70 r6]],
+            ttl                = 34,
             pos                = [[0, 75, 0]],
             drawOrder          = 1,
           },
@@ -1389,6 +1475,10 @@ definitions['newnukecor'].centerflare.properties.maxheat = math.floor(definition
 definitions['newnukecor'].groundflash_large.properties.size = math.floor(definitions['newnukecor'].groundflash_large.properties.size * size)
 definitions['newnukecor'].groundflash_white.properties.size = math.floor(definitions['newnukecor'].groundflash_white.properties.size * size)
 definitions['newnukecor'].groundflash_quick.properties.size = math.floor(definitions['newnukecor'].groundflash_quick.properties.size * size)
+
+definitions['newnukecor'].groundflash_anim.properties.size = math.floor(definitions['newnukecor'].groundflash_anim.properties.size * size)
+definitions['newnukecor'].airflash_anim.properties.size = math.floor(definitions['newnukecor'].airflash_anim.properties.size * size)
+
 definitions['newnukecor'].bigsmoketrails.properties.size = [[226 r45]]
 definitions['newnukecor'].bigsmoketrails.properties.length = [[310 r45]]
 definitions['newnukecor'].bigsmoketrails.count = 7
@@ -1435,6 +1525,11 @@ definitions['newnukehuge'].centerflare.properties.heat = math.floor(definitions[
 definitions['newnukehuge'].centerflare.properties.maxheat = math.floor(definitions['newnukehuge'].centerflare.properties.maxheat * size * 0.7)
 definitions['newnukehuge'].groundflash_large.properties.size = math.floor(definitions['newnukehuge'].groundflash_large.properties.size * size)
 definitions['newnukehuge'].groundflash_white.properties.size = math.floor(definitions['newnukehuge'].groundflash_white.properties.size * size)
+definitions['newnukehuge'].groundflash_anim.properties.size = math.floor(definitions['newnukehuge'].groundflash_anim.properties.size * size * 0.8)
+definitions['newnukehuge'].groundflash_anim.properties.ttl = math.floor(definitions['newnukehuge'].groundflash_anim.properties.ttl * size * 0.7)
+definitions['newnukehuge'].groundflash_anim.properties.animParams = [[8,12,170]]
+definitions['newnukehuge'].groundflash_anim.properties.sizegrowth = math.floor(definitions['newnukehuge'].groundflash_anim.properties.sizegrowth * size * 0.3)
+definitions['newnukehuge'].airflash_anim.properties.size = math.floor(definitions['newnukehuge'].airflash_anim.properties.size * size)
 
 local size = 0.48
 
@@ -1488,8 +1583,11 @@ definitions['newnuketac'].dirt3.properties.particlespeedspread = math.floor(defi
 definitions['newnuketac'].dirt3.properties.numparticles = math.floor(definitions['newnuketac'].dirt3.properties.numparticles * size)
 definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size * 0.5)
 definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size * 0.2)
+definitions['newnuketac'].brightflare.properties.pos = [[0, 40, 0]]
 definitions['newnuketac'].brightflareslow.properties.ttl = math.floor(definitions['newnuketac'].brightflareslow.properties.ttl * size * 0.5)
 definitions['newnuketac'].brightflareslow.properties.size = math.floor(definitions['newnuketac'].brightflareslow.properties.size * size * 0.2)
+definitions['newnuketac'].brightflaresingularity.properties.sizegrowth = [[0.4 r0.3]]
+definitions['newnuketac'].brightflareslow.properties.sizegrowth = [[0.2 r0.1]]
 definitions['newnuketac'].shockwave.properties.ttl = math.floor(definitions['newnuketac'].shockwave.properties.ttl * size * 0.7)
 definitions['newnuketac'].shockwave.properties.size = math.floor(definitions['newnuketac'].shockwave.properties.size * size * 1.2)
 definitions['newnuketac'].shockwave_fast.properties.size = math.floor(definitions['newnuketac'].shockwave_fast.properties.size * size * 0.6)
@@ -1515,6 +1613,11 @@ definitions['newnuketac'].grounddust.properties.particlelife = math.floor(defini
 definitions['newnuketac'].bigsmoketrails.properties.size = [[130 r25]]
 definitions['newnuketac'].bigsmoketrails.properties.length = [[170 r25]]
 definitions['newnuketac'].bigsmoketrails.count = 3
+
+definitions['newnuketac'].groundflash_anim.properties.size = math.floor(definitions['newnuketac'].groundflash_anim.properties.size * size * 0.66)
+definitions['newnuketac'].groundflash_anim.properties.sizegrowth = math.floor(definitions['newnuketac'].groundflash_anim.properties.sizegrowth * size * 5.5)
+definitions['newnuketac'].groundflash_anim.properties.ttl = math.floor(definitions['newnuketac'].groundflash_anim.properties.ttl * size * 0.75)
+definitions['newnuketac'].airflash_anim.properties.size = math.floor(definitions['newnuketac'].airflash_anim.properties.size * size * 0.8)
 
 local size = 0.6
 

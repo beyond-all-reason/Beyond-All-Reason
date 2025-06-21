@@ -198,6 +198,9 @@ return {
 					default = 75,
 					vtol = 8,
 				},
+				customparams = {
+					norangering = 1,
+				},
 			},
 		},
 		weapons = {

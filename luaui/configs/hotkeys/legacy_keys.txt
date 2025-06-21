@@ -210,8 +210,8 @@ bind sc_c buildunit_corvipe
 bind Shift+sc_c buildunit_corvipe
 bind sc_c buildunit_corflak
 bind Shift+sc_c buildunit_corflak
-bind sc_c buildunit_legbombard
-bind Shift+sc_c buildunit_legbombard
+bind sc_c buildunit_legapopupdef
+bind Shift+sc_c buildunit_legapopupdef
 bind sc_c buildunit_legflak
 bind Shift+sc_c buildunit_legflak
 bind sc_c buildunit_armgplat
@@ -288,7 +288,9 @@ bind Ctrl+Shift+sc_o cameraflip // CameraFlip
 
 //if not WG[ Set target default ] then
 bind Alt+sc_y settarget
+bind Shift+Alt+sc_y settarget
 bind sc_y settargetnoground
+bind Shift+sc_y settargetnoground
 
 bind Ctrl+sc_` group unset
 

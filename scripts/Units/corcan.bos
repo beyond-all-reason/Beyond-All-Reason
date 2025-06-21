@@ -1,38 +1,36 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
 
-static-var  restore_delay,bMoving, wpn1_lasthead, stashed_max_speed;
+static-var  restore_delay,isMoving, wpn1_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
 }
 // Signal definitions
-#define SIG_WALK			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcan_anim_walk_v2.blend 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
 			turn head to x-axis <-2.988460> speed <266.653795> / animSpeed; 
 			turn head to z-axis <-1.299999> speed <38.999979> / animSpeed; 
 			turn head to y-axis <1.299999> speed <38.999979> / animSpeed; 
-			turn lfoot to x-axis <-15.000000> speed <450.000013> / animSpeed; 
+			turn lfoot to x-axis <-15.0> speed <450.0> / animSpeed; 
 			turn lfoot to z-axis <-9.600000> speed <287.999998> / animSpeed; 
 			turn lfoot to y-axis <-17.099998> speed <794.999928> / animSpeed; 
 			turn lleg to x-axis <15.399998> speed <164.999988> / animSpeed; 
-			turn lleg to z-axis <0.000000> speed <74.999991> / animSpeed; 
+			turn lleg to z-axis <0.0> speed <74.999991> / animSpeed; 
 			turn rfoot to x-axis <-3.420312> speed <102.609373> / animSpeed; 
 			turn rfoot to z-axis <10.171875> speed <305.156263> / animSpeed; 
 			turn rfoot to y-axis <-12.787501> speed <26.625034> / animSpeed; 
 			move rleg to y-axis [1.190000] speed [35.700002] / animSpeed; 
 			turn rleg to x-axis <-15.699999> speed <779.999962> / animSpeed; 
-			turn rleg to z-axis <2.333333> speed <35.000002> / animSpeed; 
+			turn rleg to z-axis <2.333333> speed <35.0> / animSpeed; 
 			move torso to x-axis [0.247273] speed [7.418178] / animSpeed; 
 			move torso to y-axis [0.791272] speed [16.515861] / animSpeed; 
 			turn torso to x-axis <1.555560> speed <364.666782> / animSpeed; 
@@ -41,27 +39,27 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to y-axis <-11.599999> speed <347.999965> / animSpeed; 
 		sleep 131;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <-5.814835> speed <84.791223> / animSpeed; 
 			turn lfoot to x-axis <-17.299998> speed <68.999937> / animSpeed; 
 			turn lfoot to z-axis <-19.200000> speed <287.999998> / animSpeed; 
 			turn lfoot to y-axis <-29.399996> speed <368.999928> / animSpeed; 
-			turn lleg to x-axis <31.099999> speed <471.000027> / animSpeed; 
+			turn lleg to x-axis <31.099999> speed <471.0> / animSpeed; 
 			turn rfoot to x-axis <3.300000> speed <201.609364> / animSpeed; 
 			turn rfoot to z-axis <8.500000> speed <50.156273> / animSpeed; 
 			turn rfoot to y-axis <-20.599999> speed <234.374953> / animSpeed; 
-			move rleg to y-axis [0.000000] speed [35.700002] / animSpeed; 
+			move rleg to y-axis [0.0] speed [35.700002] / animSpeed; 
 			turn rleg to x-axis <-30.649996> speed <448.499898> / animSpeed; 
 			turn rleg to z-axis <1.166667> speed <34.999996> / animSpeed; 
 			turn torso to x-axis <3.777780> speed <66.666606> / animSpeed; 
 			turn torso to z-axis <0.078148> speed <142.555542> / animSpeed; 
-			turn torso to y-axis <25.000000> speed <234.375004> / animSpeed; 
+			turn torso to y-axis <25.0> speed <234.375004> / animSpeed; 
 			turn turret to y-axis <-16.199998> speed <137.999977> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			turn head to x-axis <9.399999> speed <456.445013> / animSpeed; 
 			turn lfoot to x-axis <-15.248437> speed <61.546852> / animSpeed; 
 			turn lfoot to z-axis <-17.528125> speed <50.156248> / animSpeed; 
@@ -69,78 +67,78 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move lleg to y-axis [1.330000] speed [39.899998] / animSpeed; 
 			turn lleg to x-axis <15.365600> speed <472.031983> / animSpeed; 
 			turn rfoot to x-axis <7.200000> speed <116.999994> / animSpeed; 
-			turn rfoot to z-axis <9.200000> speed <21.000014> / animSpeed; 
+			turn rfoot to z-axis <9.200000> speed <21.0> / animSpeed; 
 			turn rfoot to y-axis <-16.799999> speed <113.999990> / animSpeed; 
 			turn rleg to x-axis <-15.199999> speed <463.499916> / animSpeed; 
-			turn rleg to z-axis <0.000000> speed <34.999996> / animSpeed; 
+			turn rleg to z-axis <0.0> speed <34.999996> / animSpeed; 
 			move torso to x-axis [-0.820945] speed [32.046536] / animSpeed; 
 			move torso to y-axis [1.076130] speed [8.545741] / animSpeed; 
-			turn torso to x-axis <6.000000> speed <66.666599> / animSpeed; 
+			turn torso to x-axis <6.0> speed <66.666599> / animSpeed; 
 			turn torso to z-axis <-4.673703> speed <142.555542> / animSpeed; 
 			turn torso to y-axis <17.187500> speed <234.375004> / animSpeed; 
 			turn turret to y-axis <-10.699998> speed <164.999988> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn head to x-axis <4.739835> speed <139.804927> / animSpeed; 
 			turn lfoot to x-axis <-10.112500> speed <154.078105> / animSpeed; 
 			turn lfoot to z-axis <-13.850001> speed <110.343729> / animSpeed; 
 			turn lfoot to y-axis <-4.399999> speed <515.624948> / animSpeed; 
 			move lleg to y-axis [2.040000] speed [21.300001] / animSpeed; 
-			turn lleg to x-axis <-0.000000> speed <460.967999> / animSpeed; 
+			turn lleg to x-axis <-0.0> speed <460.967999> / animSpeed; 
 			turn rfoot to x-axis <-4.400000> speed <347.999978> / animSpeed; 
 			turn rfoot to z-axis <7.300000> speed <56.999995> / animSpeed; 
 			turn rfoot to y-axis <0.899999> speed <530.999943> / animSpeed; 
-			turn rleg to x-axis <-0.000000> speed <455.999958> / animSpeed; 
+			turn rleg to x-axis <-0.0> speed <455.999958> / animSpeed; 
 			move torso to x-axis [-0.963374] speed [4.272872] / animSpeed; 
 			move torso to y-axis [2.001919] speed [27.773659] / animSpeed; 
-			turn torso to x-axis <3.000000> speed <90.000003> / animSpeed; 
+			turn torso to x-axis <3.0> speed <90.0> / animSpeed; 
 			turn torso to z-axis <-7.999999> speed <99.788884> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <515.624990> / animSpeed; 
-			turn turret to y-axis <0.000000> speed <320.999954> / animSpeed; 
+			turn torso to y-axis <0.0> speed <515.624990> / animSpeed; 
+			turn turret to y-axis <0.0> speed <320.999954> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn head to x-axis <-2.634065> speed <221.217012> / animSpeed; 
 			turn lfoot to x-axis <-3.420312> speed <200.765620> / animSpeed; 
 			turn lfoot to z-axis <-10.171875> speed <110.343755> / animSpeed; 
 			turn lfoot to y-axis <12.787501> speed <515.624999> / animSpeed; 
 			move lleg to y-axis [1.190000] speed [25.499997] / animSpeed; 
 			turn lleg to x-axis <-15.699999> speed <470.999976> / animSpeed; 
-			turn rfoot to x-axis <-15.000000> speed <318.000020> / animSpeed; 
+			turn rfoot to x-axis <-15.0> speed <318.0> / animSpeed; 
 			turn rfoot to z-axis <9.600000> speed <68.999988> / animSpeed; 
 			turn rfoot to y-axis <17.099998> speed <485.999993> / animSpeed; 
 			turn rleg to x-axis <16.099999> speed <482.999969> / animSpeed; 
 			move torso to x-axis [-0.180015] speed [23.500793] / animSpeed; 
 			move torso to y-axis [1.004916] speed [29.910096] / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <90.000003> / animSpeed; 
+			turn torso to x-axis <-0.0> speed <90.0> / animSpeed; 
 			turn torso to z-axis <-5.500000> speed <74.999985> / animSpeed; 
 			turn torso to y-axis <-17.187500> speed <515.625009> / animSpeed; 
 			turn turret to y-axis <10.599999> speed <317.999982> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <-5.924175> speed <98.703294> / animSpeed; 
 			turn lfoot to x-axis <3.300000> speed <201.609364> / animSpeed; 
 			turn lfoot to z-axis <-8.500000> speed <50.156273> / animSpeed; 
 			turn lfoot to y-axis <20.599999> speed <234.374953> / animSpeed; 
-			move lleg to y-axis [0.000000] speed [35.700002] / animSpeed; 
+			move lleg to y-axis [0.0] speed [35.700002] / animSpeed; 
 			turn lleg to x-axis <-30.649996> speed <448.499898> / animSpeed; 
 			turn rfoot to x-axis <-17.299998> speed <68.999937> / animSpeed; 
 			turn rfoot to z-axis <19.200000> speed <287.999998> / animSpeed; 
 			turn rfoot to y-axis <29.399996> speed <368.999928> / animSpeed; 
-			turn rleg to x-axis <31.099999> speed <450.000013> / animSpeed; 
-			turn torso to x-axis <3.000000> speed <90.000003> / animSpeed; 
-			turn torso to z-axis <-0.000000> speed <164.999988> / animSpeed; 
-			turn torso to y-axis <-25.000000> speed <234.375004> / animSpeed; 
-			turn turret to y-axis <16.799999> speed <186.000002> / animSpeed; 
+			turn rleg to x-axis <31.099999> speed <450.0> / animSpeed; 
+			turn torso to x-axis <3.0> speed <90.0> / animSpeed; 
+			turn torso to z-axis <-0.0> speed <164.999988> / animSpeed; 
+			turn torso to y-axis <-25.0> speed <234.375004> / animSpeed; 
+			turn turret to y-axis <16.799999> speed <186.0> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn head to x-axis <9.504121> speed <462.848892> / animSpeed; 
 			turn lfoot to x-axis <7.200000> speed <116.999994> / animSpeed; 
-			turn lfoot to z-axis <-9.200000> speed <21.000014> / animSpeed; 
+			turn lfoot to z-axis <-9.200000> speed <21.0> / animSpeed; 
 			turn lfoot to y-axis <16.799999> speed <113.999990> / animSpeed; 
 			turn lleg to x-axis <-15.199999> speed <463.499916> / animSpeed; 
 			turn rfoot to x-axis <-15.248437> speed <61.546852> / animSpeed; 
@@ -150,34 +148,34 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rleg to x-axis <15.365600> speed <472.031983> / animSpeed; 
 			move torso to x-axis [0.674560] speed [25.637230] / animSpeed; 
 			move torso to y-axis [1.360988] speed [10.682176] / animSpeed; 
-			turn torso to x-axis <6.000000> speed <90.000003> / animSpeed; 
-			turn torso to z-axis <5.500000> speed <165.000000> / animSpeed; 
+			turn torso to x-axis <6.0> speed <90.0> / animSpeed; 
+			turn torso to z-axis <5.500000> speed <165.0> / animSpeed; 
 			turn torso to y-axis <-17.187498> speed <234.375056> / animSpeed; 
 			turn turret to y-axis <10.399999> speed <191.999999> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			turn head to x-axis <4.798352> speed <141.173069> / animSpeed; 
 			turn lfoot to x-axis <-4.400000> speed <347.999978> / animSpeed; 
 			turn lfoot to z-axis <-7.300000> speed <56.999995> / animSpeed; 
 			turn lfoot to y-axis <-0.899999> speed <530.999943> / animSpeed; 
-			turn lleg to x-axis <-0.000000> speed <455.999958> / animSpeed; 
+			turn lleg to x-axis <-0.0> speed <455.999958> / animSpeed; 
 			turn rfoot to x-axis <-10.112500> speed <154.078105> / animSpeed; 
 			turn rfoot to z-axis <13.850001> speed <110.343729> / animSpeed; 
 			turn rfoot to y-axis <4.399999> speed <515.624948> / animSpeed; 
 			move rleg to y-axis [2.040000] speed [21.300001] / animSpeed; 
-			turn rleg to x-axis <-0.000000> speed <460.967999> / animSpeed; 
+			turn rleg to x-axis <-0.0> speed <460.967999> / animSpeed; 
 			move torso to x-axis [1.529134] speed [25.637228] / animSpeed; 
 			move torso to y-axis [1.859490] speed [14.955046] / animSpeed; 
 			turn torso to x-axis <4.444447> speed <46.666602> / animSpeed; 
-			turn torso to z-axis <8.000000> speed <74.999998> / animSpeed; 
-			turn torso to y-axis <0.000007> speed <515.625172> / animSpeed; 
+			turn torso to z-axis <8.0> speed <74.999998> / animSpeed; 
+			turn torso to y-axis <0.0> speed <515.625172> / animSpeed; 
 			turn turret to y-axis <-0.500000> speed <326.999977> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			turn head to x-axis <-2.526372> speed <219.741736> / animSpeed; 
-			turn lfoot to x-axis <-15.000000> speed <318.000020> / animSpeed; 
+			turn lfoot to x-axis <-15.0> speed <318.0> / animSpeed; 
 			turn lfoot to z-axis <-9.600000> speed <68.999988> / animSpeed; 
 			turn lfoot to y-axis <-17.099998> speed <485.999993> / animSpeed; 
 			turn lleg to x-axis <16.099999> speed <482.999969> / animSpeed; 
@@ -196,34 +194,31 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move lleg to y-axis [0.000000] speed [9.974999];
-	move rleg to y-axis [0.000000] speed [9.974999];
-	move torso to x-axis [0.000000] speed [8.011634];
+	move lleg to y-axis [0.0] speed [9.974999];
+	move rleg to y-axis [0.0] speed [9.974999];
+	move torso to x-axis [0.0] speed [8.011634];
 	move torso to y-axis [0.240744] speed [8.011633];
 	turn head to x-axis <5.899999> speed <115.712223>;
-	turn head to y-axis <0.000000> speed <9.749995>;
-	turn head to z-axis <0.000000> speed <9.749995>;
-	turn lfoot to x-axis <0.000000> speed <112.500003>;
+	turn head to y-axis <0.0> speed <9.749995>;
+	turn head to z-axis <0.0> speed <9.749995>;
+	turn lfoot to x-axis <0.0> speed <112.500003>;
 	turn lfoot to y-axis <9.399999> speed <198.749982>;
-	turn lfoot to z-axis <0.000000> speed <71.999999>;
+	turn lfoot to z-axis <0.0> speed <71.999999>;
 	turn lleg to x-axis <9.899999> speed <120.749992>;
 	turn lleg to z-axis <-2.500000> speed <18.749998>;
-	turn rfoot to x-axis <0.000000> speed <86.999995>;
+	turn rfoot to x-axis <0.0> speed <86.999995>;
 	turn rfoot to y-axis <-11.900000> speed <132.749986>;
-	turn rfoot to z-axis <0.000000> speed <76.289066>;
+	turn rfoot to z-axis <0.0> speed <76.289066>;
 	turn rleg to x-axis <10.300000> speed <194.999990>;
 	turn rleg to z-axis <3.500000> speed <8.750001>;
 	turn torso to x-axis <-10.599999> speed <91.166695>;
-	turn torso to y-axis <0.000000> speed <128.906293>;
-	turn torso to z-axis <0.000000> speed <41.250000>;
-	turn turret to y-axis <0.000000> speed <86.999991>;
+	turn torso to y-axis <0.0> speed <128.906293>;
+	turn torso to z-axis <0.0> speed <41.250000>;
+	turn turret to y-axis <0.0> speed <86.999991>;
 }
 UnitSpeed(){
- maxSpeed = stashed_max_speed;
- animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
- maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
  while(TRUE){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
@@ -242,57 +237,55 @@ UnitSpeed(){
 #define UNITSIZE 7
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-	set-signal-mask SIG_WALK;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
 Create()
 {
-	stashed_max_speed = get MAX_SPEED; // fix roadrunner bug with emp rework
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	bMoving=TRUE;
+	isMoving=TRUE;
 	hide flare;
 	restore_delay = 3000;
 	animSpeed = 4;
+	wpn1_lasthead = 0;
 	start-script StopMoving();
-	start-script SmokeUnit();
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+ 	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
+ 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	return (0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 	return (0);
 }
 
-SweetSpot(piecenum)
+
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = head;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = head;
-	return (0);
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
@@ -302,10 +295,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <135.000000>;
-	turn head to x-axis <0.000000> speed <85.000000>;
-	wait-for-turn turret around y-axis;
-	wpn1_lasthead = 1000000;
+	turn aimy1 to y-axis <0.0> speed <135.0>;
+	turn aimx1 to x-axis <0.0> speed <85.0>;
+	wpn1_lasthead = 0xbadface;
+	wait-for-turn aimy1 around y-axis;
 }
 SetStunned(State)
 {
@@ -316,36 +309,33 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	turn turret to y-axis heading speed <270.000000>;
-	turn head to x-axis <0.000000> - pitch speed <170.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	signal SIGNAL_AIM1;
+	turn aimy1 to y-axis heading speed <270.0>;
+	turn aimx1 to x-axis <0.0> - pitch speed <170.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn head around y-axis;
-		wait-for-turn turret around x-axis;
+		wpn1_lasthead = 0xbadface;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	emit-sfx 4096 + 1 from barrel;
 	move barrel to z-axis [-2] speed [62.500000];
-	show flare;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [4.000000];
-	sleep 15;
-	hide flare;
-	return (0);
+	move barrel to z-axis [0.0] speed [4.0];
 }
 
 Killed(severity, corpsetype)
@@ -357,11 +347,11 @@ Killed(severity, corpsetype)
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode head type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
+		
+		
+		
+		
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -371,11 +361,11 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FALL | NOHEATCLOUD;
+		
+		
+		
+		
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -386,10 +376,10 @@ Killed(severity, corpsetype)
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type SMOKE | FALL | NOHEATCLOUD;
+		
+		
+		
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -397,10 +387,10 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		
+		
+		
+		
 	return corpsetype;
 }

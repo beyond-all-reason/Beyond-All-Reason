@@ -34,6 +34,11 @@ local unitHeights = {}
 local spec, fullview = Spring.GetSpectatingState()
 
 -- GL4 stuff:
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local atlasID = nil
 local atlasSize = 2048
 --local atlassedImages = {}
@@ -166,19 +171,6 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 		unitID) -- last one should be UNITID!
 end
 
-local function ProcessAllUnits()
-	clearInstanceTable(rankVBO)
-	local units = Spring.GetAllUnits()
-	--Spring.Echo("Refreshing Ground Plates", #units)
-	for _, unitID in ipairs(units) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		if unitDefID then
-			updateUnitRank(unitID, unitDefID, true)
-		end
-	end
-	uploadAllElements(rankVBO)
-end
-
 local function RemovePrimitive(unitID,reason)
 	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	if rankVBO.instanceIDtoIndex[unitID] then
@@ -243,6 +235,19 @@ local function updateUnitRank(unitID, unitDefID, noUpload)
 			AddPrimitiveAtUnit(unitID, unitDefID, noUpload, "updateUnitRank", newrank, false)
 		end
 	end
+end
+
+local function ProcessAllUnits()
+	InstanceVBOTable.clearInstanceTable(rankVBO)
+	local units = Spring.GetAllUnits()
+	--Spring.Echo("Refreshing Ground Plates", #units)
+	for _, unitID in ipairs(units) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if unitDefID then
+			updateUnitRank(unitID, unitDefID, true)
+		end
+	end
+	InstanceVBOTable.uploadAllElements(rankVBO)
 end
 
 function widget:PlayerChanged(playerID)
@@ -335,12 +340,12 @@ function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(rankVBO)
+	InstanceVBOTable.clearInstanceTable(rankVBO)
 	doRefresh = true
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		updateUnitRank(unitID, unitDefID, true)
 	end
-	uploadAllElements(rankVBO)
+	InstanceVBOTable.uploadAllElements(rankVBO)
 	doRefresh = false
 end
 

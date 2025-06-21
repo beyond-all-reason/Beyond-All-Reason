@@ -48,7 +48,7 @@ in Data {
 	vec3 worldNormal;
 	
 	vec4 modelVertexPos;
-	vec4 modelVertexPosOrig;
+	vec4 pieceVertexPosOrig;
 	vec4 worldVertexPos;
 	// TBN matrix components
 	vec3 worldTangent;

@@ -1,136 +1,20 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-
-#define SIG_BUILD		4	
-#define SIG_FOLD		8	
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4	
 
 piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doorbr, doortl, doortr, thrust, nanolight;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
-activatescr()
-{
-	signal SIG_FOLD;
-	set-signal-mask SIG_FOLD;
-
-	show thrust;
-	if( TRUE )
-	{
-		turn wingbr to x-axis <-90> speed <90>;
-		turn wingbl to x-axis <-90> speed <90>;
-		turn wingfr to z-axis <-90> speed <90>;
-		turn wingfl to z-axis <90> speed <90>;
-		sleep 108;
-	}
-	sleep 40;
-	return (0);
-}
-
-deactivatescr()
-{
-	signal SIG_FOLD;
-	set-signal-mask SIG_FOLD;
-
-	hide thrust;
-	hide nanolight;
-	if( TRUE )
-	{
-		turn wingbr to x-axis <0> speed <90>;
-		turn wingbl to x-axis <0> speed <90>;
-		turn wingfr to z-axis <0> speed <90>;
-		turn wingfl to z-axis <0> speed <90>;
-		turn doorbl to z-axis <0> speed <270>;
-		turn doorbr to z-axis  <0> speed <270>;
-		turn arm1 to x-axis <0> speed <60>;
-		turn arm2 to x-axis <0> speed <-500>;
-		turn nano to x-axis <0> speed <300>;  
-		wait-for-turn arm1 around x-axis;
-		sleep 108;
-	}
-	sleep 40;
-	return (0);
-}
+#include "../buildeffect_lua.h"
 
 #define SMOKEPIECE base
-static-var isSmoking;
-SmokeUnit(healthpercent) // ah yes, clever use of stack variables 
-{
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if (healthpercent > 66) {
-			sleep 97;
-			isSmoking = 0;
-			return;
-		}
-		if (healthpercent < 4 ) healthpercent = 4;
-		sleep healthpercent * 50;
-
-		if( Rand( 1, 66 ) < healthpercent ) emit-sfx 257 from SMOKEPIECE;
-		else emit-sfx 258 from SMOKEPIECE;
-	}
-}
-
-// this is what a pure hitbyweapon can look like, without any of the motion garbage
-HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	if( get BUILD_PERCENT_LEFT) return (0);
-	if (isSmoking == 0)	{ 
-		isSmoking = 1;
-		start-script SmokeUnit();
-	}	
-	turn base to z-axis anglez speed <105.000000>;
-	turn base to x-axis <0> - anglex speed <105.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <15.000000>;
-	turn base to x-axis <0.000000> speed <15.000000>;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#include "../idlehover.h"
 
 Create()
 {
@@ -138,90 +22,76 @@ Create()
 	hide nano;
 	hide thrust;
 	hide nanolight;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	//start-script IdleHover();
-}
-
-
-//seems not always called when movement starts.
-StartMoving() {
-	start-script RequestState(0);
-	return (0);
-}
-StopMoving() {
-	start-script RequestState(1);
-	return (0);
-}
-
-///moving. quite what or how is up for debate but /something/ is happening.
-MoveRate1() {
-	start-script RequestState(0);
-	return (0);
-}
-MoveRate2() {
-	start-script RequestState(0);
-	return (0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script IdleHover();
 }
 
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	//get PRINT(get GAME_FRAME, 111);
+	show thrust;
+	turn wingbr to x-axis <-90> speed <90>;
+	turn wingbl to x-axis <-90> speed <90>;
+	turn wingfr to z-axis <-90> speed <90>;
+	turn wingfl to z-axis <90> speed <90>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	//get PRINT(get GAME_FRAME, 22);
+	hide thrust;
+
+	turn wingbr to x-axis <0> speed <90>;
+	turn wingbl to x-axis <0> speed <90>;
+	turn wingfr to z-axis <0> speed <90>;
+	turn wingfl to z-axis <0> speed <90>;
 }
 
 
 StartBuilding(heading, pitch)
 {
-	
-	start-script RequestState(0);
-	signal SIG_BUILD;
+
+	//get PRINT(get GAME_FRAME, 333,0,0);
+	signal SIGNAL_BUILD;
 	show nano;
+	show nanolight;
+	
 	turn doorbl to z-axis <-135> speed <270>;
-	turn doorbr to z-axis  <135> speed <270>;
 	turn arm1 to x-axis <-60> speed <60>;
+	turn doorbr to z-axis  <135> speed <270>;
 	turn arm2 to x-axis <-250> speed <-500>;
-	turn nano to x-axis <150> speed <300>;  
-	wait-for-turn arm1 around x-axis;
+	turn nano to x-axis <150> speed <300>; 
+
 	set INBUILDSTANCE to 1;
+	LUASTARTBUILD;
 	show nanolight;
 }
 
 
 StopBuilding()
 {
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	//get PRINT(get GAME_FRAME, 444);
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide nanolight;
-	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
-	set INBUILDSTANCE to 0;
 	hide nano;
+
+	sleep 6000;
+
+	turn doorbl to z-axis <0> speed <270>;
+	turn doorbr to z-axis  <0> speed <270>;
+	turn arm1 to x-axis <0> speed <60>;
+	turn arm2 to x-axis <0> speed <-500>;
+	turn nano to x-axis <0> speed <300>;  
+	LUASTOPBUILD;
+	set INBUILDSTANCE to 0;
 	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emit;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	pieceIndex = emit;
 }
 
 Killed(severity, corpsetype)

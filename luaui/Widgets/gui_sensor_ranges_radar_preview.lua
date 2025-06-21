@@ -29,9 +29,8 @@ local mousepos = { 0, 0, 0 }
 local spGetActiveCommand = Spring.GetActiveCommand
 
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local radarTruthShader = nil
 
@@ -89,14 +88,14 @@ local function initgl4()
 		goodbye("Failed to compile radarTruthShader  GL4 ")
 	end
 
-	local smol, smolsize = makePlaneVBO(1, 1, smallradarrange / SHADERRESOLUTION)
-	local smoli, smolisize = makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION, smallradarrange / SHADERRESOLUTION, true)
+	local smol, smolsize = InstanceVBOTable.makePlaneVBO(1, 1, smallradarrange / SHADERRESOLUTION)
+	local smoli, smolisize = InstanceVBOTable.makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION, smallradarrange / SHADERRESOLUTION, true)
 	smallradVAO = gl.GetVAO()
 	smallradVAO:AttachVertexBuffer(smol)
 	smallradVAO:AttachIndexBuffer(smoli)
 
-	local larg, largsize = makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
-	local largi, largisize = makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
+	local larg, largsize = InstanceVBOTable.makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
+	local largi, largisize = InstanceVBOTable.makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
 	largeradVAO = gl.GetVAO()
 	largeradVAO:AttachVertexBuffer(larg)
 	largeradVAO:AttachIndexBuffer(largi)

@@ -11,6 +11,7 @@ return {
 		corpse = "DEAD",
 		energycost = 3700,
 		explodeas = "smallexplosiongeneric",
+		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,

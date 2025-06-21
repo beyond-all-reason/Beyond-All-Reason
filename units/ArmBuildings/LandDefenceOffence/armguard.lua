@@ -134,6 +134,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
+					norangering = 1,
 				}
 			},
 			plasma_high = {
@@ -196,7 +197,8 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					smart_trajectory_checker = true
+					smart_trajectory_checker = true,
+					bogus = 1,
 				}
 			},
 		},
