@@ -2035,6 +2035,10 @@ local icontypes = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
 	},
+	legaspy = {
+		bitmap = "icons/spy.png",
+		size = 1.17999995
+	},
 	corssub = {
 		bitmap = "icons/battlesub_t2.png",
 		size = 2.20000005

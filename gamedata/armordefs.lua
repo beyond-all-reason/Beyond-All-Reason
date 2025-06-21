@@ -305,6 +305,7 @@ local armorDefs = {
         "armspy",
 		"cormando",
 		"corspy",
+		"legaspy",
         "armdl",
 		"cordl",
 		"legctl",

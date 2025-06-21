@@ -6276,6 +6276,7 @@ function init()
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["legaspy"].id] = true,
 		[UnitDefNames["corphantom"].id] = true,
 	}
 	local unitdefConfig = {}
