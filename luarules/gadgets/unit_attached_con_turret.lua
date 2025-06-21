@@ -278,9 +278,11 @@ local function auto_repair_routine(unitID, baseID)
 end
 
 attached_builders = {}
+attached_builders_reverse = {}
 attached_builder_def = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	attached_builders[unitID] = nil
+	attached_builders_reverse[unitID] = nil
 	attached_builder_def[unitID] = nil
 end
 
@@ -300,6 +302,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(nano_id, false, false, false)
 		Spring.SetUnitNoSelect(nano_id,true)
 		attached_builders[nano_id] = unitID
+		attached_builders_reverse[unitID] = nano_id
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end
 	if unitDef.name == "legmohobp" then
@@ -314,6 +317,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(nano_id, false, false, false)
         Spring.SetUnitNoSelect(nano_id,false)
 		attached_builders[nano_id] = unitID
+		attached_builders_reverse[unitID] = nano_id
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end
 
@@ -328,4 +332,47 @@ function gadget:GameFrame(gameFrame)
 		end
 	end
 
+end
+
+---Avoid enqueuing commands on the construction turret.
+---@param commandOptions CommandOptions
+---@return CommandOptions
+local function resetOptions(commandOptions)
+	-- NB: Other callins need to reuse the table.
+	local options = table.copy(commandOptions)
+
+	options.meta = nil
+
+	if options.alt ~= options.shift then
+		options.alt = nil
+		options.shift = nil
+	end
+
+	return options
+end
+
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if cmdTag == 0 and attached_builders_reverse[unitID] then
+		-- Forward to the turret.
+		local turretID = attached_builders_reverse[unitID]
+
+		if cmdID >= 0 then
+			if commandParamAllowed[cmdID][#cmdParams] then
+				SpGiveOrderToUnit(turretID, cmdID, cmdParams, resetOptions(cmdOpts))
+			end
+		else
+			-- In the crazy chance that the build frame is already placed, we would need to REPAIR:
+			local buildFrames = SpGetUnitsInCylinder(cmdParams[1], cmdParams[3], Game.squareSize)
+
+			for _, assistID in ipairs(buildFrames) do
+				if -cmdID == SpGetUnitDefID(assistID) then
+					SpGiveOrderToUnit(turretID, CMD_REPAIR, assistID)
+					return
+				end
+			end
+
+			-- Otherwise, accept the build order on the turret:
+			SpGiveOrderToUnit(turretID, cmdID, cmdParams, cmdOpts)
+		end
+	end
 end
