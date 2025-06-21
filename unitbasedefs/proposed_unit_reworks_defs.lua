@@ -113,18 +113,20 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = 17000
 	end
 	if name == "armbull" then
-		uDef.speed = 61
+		uDef.speed = 60
 	end
 	if name == "armlatnk" then
-		uDef.weapondefs.lightning.damage.default = 21
+		uDef.weapondefs.lightning.damage.default = 22
+		uDef.weapondefs.lightning.reloadtime = 1.5
+		uDef.weapondefs.lightning.range = 300
 	end
-	if name == "armmart" then
-		uDef.energycost = 6000
-	end
-		if name == "cormart" then
-		uDef.energycost = 5500
-		uDef.buildtime = 8000
-	end
+	--if name == "armmart" then
+	--	uDef.energycost = 6000
+	--end
+	--	if name == "cormart" then
+	--	uDef.energycost = 5500
+	--	uDef.buildtime = 8000
+	--end
 
 	if name == "corspy" then
 		uDef.buildtime = 15000
@@ -172,6 +174,225 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		},
 		}
 	end
+
+	if name == "coraak" then
+		uDef.script = "Units/coraak_clean.cob"
+		uDef.health = 3200
+		uDef.weapondefs = {
+			coraabot_missile1 = {
+				areaofeffect = 24,
+				avoidfeature = false,
+				burnblow = true,
+				canattackground = false,
+				castshadow = false,
+				cegtag = "missiletrailaa",
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				firestarter = 70,
+				fixedlauncher = true,
+				flighttime = 1.9,
+				impulsefactor = 0,
+				metalpershot = 0,
+				model = "cormissile.s3o",
+				name = "Missiles",
+				noselfdamage = true,
+				range = 1400,
+				reloadtime = 1.6,
+				smokecolor = 0.5,
+				smokeperiod = 6,
+				smokesize = 6,
+				smoketime = 12,
+				smoketrail = true,
+				smoketrailcastshadow = false,
+				soundhit = "xplosml2",
+				soundhitvolume = 7.5,
+				soundhitwet = "splshbig",
+				soundstart = "rocklit1",
+				soundstartvolume = 7.5,
+				startvelocity = 650,
+				texture1 = "null",
+				texture2 = "smoketrailaa",
+				tolerance = 15000,
+				tracks = true,
+				turnrate = 30000,
+				turret = true,
+				weaponacceleration = 141,
+				weapontimer = 5,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 825,
+				damage = {
+					vtol = 250,
+				},
+			},
+			botflak = {
+				accuracy = 1000,
+				areaofeffect = 140,
+				avoidfeature = false,
+				burnblow = true,
+				canattackground = false,
+				cegtag = "flaktrailaa",
+				craterareaofeffect = 140,
+				craterboost = 0,
+				cratermult = 0,
+				cylindertargeting = 2,
+				edgeeffectiveness = 1,
+				explosiongenerator = "custom:flak",
+				impulsefactor = 0,
+				name = "Heavy g2a flak cannon",
+				noselfdamage = true,
+				range = 775,
+				reloadtime = 5.5,
+				soundhit = "flakhit",
+				soundhitwet = "splsmed",
+				soundstart = "flakfire",
+				stages = 0,
+				turret = true,
+				weapontimer = 1,
+				weapontype = "Cannon",
+				weaponvelocity = 1550,
+				damage = {
+					vtol = 300,
+				},
+				rgbcolor = {
+					[1] = 1,
+					[2] = 0.33,
+					[3] = 0.7,
+				},
+			},
+		}
+		uDef.weapons = {
+			[1] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
+				def = "CORAABOT_MISSILE1",
+				onlytargetcategory = "VTOL",
+			},
+			[2] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
+				def = "BOTFLAK",
+				onlytargetcategory = "VTOL",
+			},
+		}
+	end
+if name == "armaak" then
+		uDef.script = "Units/armaak_clean.cob"
+		uDef.health = 2200
+		uDef.weapondefs = {	
+			longrangemissile = {
+				areaofeffect = 24,
+				avoidfeature = false,
+				burnblow = true,
+				canattackground = false,
+				castshadow = false,
+				cegtag = "missiletrailaa",
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				firestarter = 70,
+				fixedlauncher = true,
+				flighttime = 1.8,
+				impulsefactor = 0,
+				metalpershot = 0,
+				model = "cormissile.s3o",
+				name = "Long-Range Anti-Air Missile Launcher",
+				noselfdamage = true,
+				proximitypriority = -1,
+				range = 1300,
+				reloadtime = 1.5,
+				smokecolor = 1,
+				smokeperiod = 6,
+				smokesize = 5.5,
+				smoketime = 11,
+				smoketrail = true,
+				smoketrailcastshadow = false,
+				soundhit = "xplosml2",
+				soundhitvolume = 7.5,
+				soundhitwet = "splssml",
+				soundstart = "rocklit1",
+				soundstartvolume = 7.5,
+				startvelocity = 600,
+				texture1 = "null",
+				texture2 = "smoketrailaa3",
+				tolerance = 15000,
+				tracks = true,
+				turnrate = 30000,
+				turret = true,
+				weaponacceleration = 150,
+				weapontimer = 6,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 1000,
+				damage = {
+					vtol = 150,
+				},
+			},
+			shortrangemissile = {
+				areaofeffect = 24,
+				avoidfeature = false,
+				burnblow = true,
+				canattackground = false,
+				castshadow = false,
+				cegtag = "missiletrailaa",
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				firestarter = 70,
+				fixedlauncher = true,
+				flighttime = 1.85,
+				impulsefactor = 0,
+				metalpershot = 0,
+				model = "cormissile.s3o",
+				name = "Medium-Range Anti-Air Missile Launcher",
+				noselfdamage = true,
+				proximitypriority = 1,
+				range = 880,
+				reloadtime = 0.7,
+				smokecolor = 1,
+				smokeperiod = 6,
+				smokesize = 2,
+				smoketime = 11,
+				smoketrail = true,
+				smoketrailcastshadow = false,
+				soundhit = "xplosml2",
+				soundhitvolume = 7.5,
+				soundhitwet = "splshbig",
+				soundstart = "rocklit1",
+				soundstartvolume = 7.5,
+				startvelocity = 100,
+				texture1 = "null",
+				texture2 = "smoketrailaa",
+				tolerance = 26000,
+				tracks = true,
+				turnrate = 30000,
+				turret = true,
+				weaponacceleration = 400,
+				weapontimer = 5,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 800,
+				damage = {
+					vtol = 100,
+				},
+			},
+		}
+		uDef.weapons = {
+			[1] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
+				def = "LONGRANGEMISSILE",
+				onlytargetcategory = "VTOL",
+			},
+			[2] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
+				def = "SHORTRANGEMISSILE",
+				onlytargetcategory = "VTOL",
+			},
+		}
+	end
+
 
 	return uDef
 end
