@@ -429,7 +429,7 @@ if not useFFAColors and not teamColors[allyTeamCount] and not isSurvival then --
 	useFFAColors = true
 end
 
-if gadgetHandler:IsSyncedCode() then
+if gadgetHandler:IsSyncedCode() then	--- NOTE: STUFF DONE IN SYNCED IS COMPLETELY UNUSED IN UNSYNCED
 	if anonymousMode ~= "disabled" then
 		shuffleAllColors()
 	end
@@ -545,15 +545,11 @@ if gadgetHandler:IsSyncedCode() then
 		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 		local isAI = Spring.GetTeamLuaAI(teamID)
 		setUpTeamColor(teamID, allyTeamID, isAI)
-		local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")
-		local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")
-		local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")
-
 		AutoColors[i] = {
 			teamID = teamID,
-			r = r,
-			g = g,
-			b = b,
+			r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed"),
+			g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen"),
+			b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue"),
 		}
 	end
 
@@ -566,8 +562,11 @@ else	-- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
 	local teamColorsTable = {}
+	local trueTeamColorsTable = {} -- run first as if we were specs so when we become specs, we can restore the true intended team colors
+	local trueFfaColors = table.copy(ffaColors) -- run first as if we were specs so when we become specs, we can restore the true intended ffa colors
+	local trueSurvivalColors = table.copy(survivalColors) -- run first as if we were specs so when we become specs, we can restore the true intended survival colors
 
-	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
+	local function setupLocalTeamColor(teamID, allyTeamID, isAI)
 		if anonymousMode ~= "disabled" and anonymousMode ~= "global" then
 			if isAI and string.find(isAI, "Scavenger") then
 				teamColorsTable[teamID] = {
@@ -663,7 +662,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function setUpAllLocalTeamColors()
+	local function setupAllLocalTeamColors()
 		survivalColorNum = 1 -- Starting from color #1
 		survivalColorVariation = 0 -- Current color variation
 		ffaColorNum = 1 -- Starting from color #1
@@ -675,14 +674,16 @@ else	-- UNSYNCED
 			local teamID = teamList[i]
 			local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 			local isAI = Spring.GetTeamLuaAI(teamID)
-			setUpLocalTeamColor(teamID, allyTeamID, isAI)
+			setupLocalTeamColor(teamID, allyTeamID, isAI)
 		end
 	end
+	setupAllLocalTeamColors()
+	trueTeamColorsTable = table.copy(teamColorsTable) -- store the true team colors so we can restore them when we become a spec
 
 	if anonymousMode == "local" then
 		shuffleAllColors()
+		setupAllLocalTeamColors()
 	end
-	setUpAllLocalTeamColors()
 
 	local iconDevModeColors = {
 		armblue = armBlueColor,
@@ -700,12 +701,12 @@ else	-- UNSYNCED
 		return anonymousMode == "disco" and not mySpecState
 	end
 
-	---shuffle colors for all teams except ourselves
+	-- shuffle colors for all teams except ourselves
 	local function discoShuffle(myTeamID)
 		-- store own color and do regular shuffle
 		local myColor = teamColorsTable[myTeamID]
 		shuffleAllColors()
-		setUpAllLocalTeamColors()
+		setupAllLocalTeamColors()
 
 		-- swap color with any team that might have been assigned own color
 		local teamIDToSwapWith = nil
@@ -786,7 +787,7 @@ else	-- UNSYNCED
 
 			-- auto ffa gradient colored for huge player games
 			elseif
-				(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)])) or #Spring.GetTeamList() > #ffaColors
+				(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)])) or #Spring.GetTeamList() > 30
 				or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
 			then
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
@@ -853,10 +854,15 @@ else	-- UNSYNCED
 	end
 
 	function gadget:PlayerChanged(playerID)
-		if playerID ~= myPlayerID then
+		if playerID ~= myPlayerID or mySpecState then
 			return
 		end
-		mySpecState = Spring.GetSpectatingState()
-		Spring.SetConfigInt("UpdateTeamColors", 1)
+		if mySpecState ~= Spring.GetSpectatingState() then
+			mySpecState = Spring.GetSpectatingState()
+			teamColorsTable = table.copy(trueTeamColorsTable)
+			ffaColors = table.copy(trueFfaColors)
+			survivalColors = table.copy(trueSurvivalColors)
+			Spring.SetConfigInt("UpdateTeamColors", 1)
+		end
 	end
 end
