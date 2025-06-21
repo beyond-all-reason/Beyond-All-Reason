@@ -174,7 +174,6 @@ local function auto_repair_routine(unitID, baseID)
 
 				if param1 < FEATURE_BASE_INDEX then
 					tx, ty, tz = SpGetUnitPosition(param1)
-					object_radius = SpGetUnitDefDimensions(-command).radius
 					object_radius = SpGetUnitRadius(param1)
 				else
 					local featureID = param1 - FEATURE_BASE_INDEX
