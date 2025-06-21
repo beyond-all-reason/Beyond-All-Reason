@@ -101,33 +101,25 @@ function gadget:Initialize()
 
 end
 
-local function auto_repair_routine(unitID,unitDefID)
+local function auto_repair_routine(unitID, baseID)
+	local command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(baseID)
 
-	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attached_builders[unitID], 1)
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- build command
-		-- The attached turret must have the same buildlist as the body for this to work correctly
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-        SpGiveOrderToUnit(unitID, commandQueue[1]["id"], commandQueue[1]["params"], {})
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- repair command
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_REPAIR, commandQueue[1]["params"], {})
+	if command == CMD_GUARD then
+		if findGuardOrder(unitID, param1) then
+			return
+		else
+			-- The engine doesn't do anything special for chained GUARDs, so neither do we:
+			command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(param1)
 		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-        -- reclaim command
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_RECLAIM, commandQueue[1]["params"], {})
-		end
-    end
+	end
+
+	local params = repack5(param1, param2, param3, param4, param5)
+
+	if command ~= nil and commandParamAllowed[command][#params] then
+		SpGiveOrderToUnit(unitID, command, params)
+	end
+
+	local unitDefID = attached_builder_def[unitID]
 
 	-- next, check to see if current command (including command from chassis) is in range
 	commandQueue = SpGetUnitCommands(unitID, 1)
@@ -282,7 +274,7 @@ function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
 		for unitID, base_unit_id in pairs(attached_builders) do
-			auto_repair_routine(unitID,attached_builder_def[unitID])
+			auto_repair_routine(unitID, base_unit_id)
 		end
 	end
 
