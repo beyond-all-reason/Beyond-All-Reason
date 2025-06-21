@@ -168,7 +168,7 @@ local function auto_repair_routine(unitID, baseID)
 
 		-- Blanket-verify all parameter counts to avoid (e.g.) area commands:
 		if allowed == buildTarget then
-			if buildTarget[paramCount] then
+			if allowed[paramCount] then
 				local object_radius = 0
 				local tx, ty, tz
 
@@ -189,8 +189,8 @@ local function auto_repair_routine(unitID, baseID)
 				distance = math.sqrt(dx * dx + dy * dy + dz * dz) - object_radius
 			end
 		elseif
-			(allowed == buildOrder and buildOrder[paramCount]) or
-			(allowed == mapPosition and mapPosition[paramCount])
+			(allowed == buildOrder and allowed[paramCount]) or
+			(allowed == mapPosition and allowed[paramCount])
 		then
 			local tx, ty, tz = param1, param2, param3
 
