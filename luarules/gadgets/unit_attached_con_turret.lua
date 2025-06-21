@@ -17,6 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
+local SpGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -99,6 +100,37 @@ function gadget:Initialize()
 		max_unit_radius = math.max(radius,max_unit_radius)
 	end
 
+end
+
+local repack5 -- Same as Lua `pack` but for reusing tables.
+do
+	local commandParams = table.new(5, 0)
+
+	---@return number[] commandParams where #commandParams := 1|2|3|4|5
+	repack5 = function(p1, p2, p3, p4, p5)
+		local p = commandParams
+		p[1], p[2], p[3], p[4], p[5] = p1, p2, p3, p4, p5
+		return p
+	end
+end
+
+---@return boolean found
+local function findGuardOrder(turretID, guardedID)
+	local health, healthMax, _, _, buildProgress = SpGetUnitHealth(guardedID)
+
+	if health == nil then
+		return false
+	end
+
+	local command, params
+
+	if health < healthMax then
+		command, params = CMD_REPAIR, guardedID
+	elseif buildProgress < 1 then
+		command, params = -guardedID, {}
+	end
+
+	return command ~= nil and SpGiveOrderToUnit(turretID, command, params)
 end
 
 local function auto_repair_routine(unitID, baseID)
