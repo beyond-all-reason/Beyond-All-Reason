@@ -29,6 +29,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
 		isWaterUnit[unitDefID] = nil
 	end
+	if unitDef.customParams.convertibleboat then
+		isWaterUnit[unitDefID] = nil
+	end
 
 	if unitDef.needGeo then
 		isGeothermal[unitDefID] = true
