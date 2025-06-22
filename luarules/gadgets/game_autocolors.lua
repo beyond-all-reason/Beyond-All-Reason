@@ -453,36 +453,6 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			g = hex2RGB(iconDevModeColor)[2],
 			b = hex2RGB(iconDevModeColor)[3],
 		}
-	elseif isAI and string.find(isAI, "Scavenger") then
-		teamColorsTable[teamID] = {
-			r = hex2RGB(scavPurpColor)[1],
-			g = hex2RGB(scavPurpColor)[2],
-			b = hex2RGB(scavPurpColor)[3],
-		}
-	elseif isAI and string.find(isAI, "Raptor") then
-		teamColorsTable[teamID] = {
-			r = hex2RGB(raptorOrangeColor)[1],
-			g = hex2RGB(raptorOrangeColor)[2],
-			b = hex2RGB(raptorOrangeColor)[3],
-		}
-	elseif teamID == gaiaTeamID then
-		teamColorsTable[teamID] = {
-			r = hex2RGB(gaiaGrayColor)[1],
-			g = hex2RGB(gaiaGrayColor)[2],
-			b = hex2RGB(gaiaGrayColor)[3],
-		}
-	elseif isSurvival and survivalColors[#Spring.GetTeamList()-2] then
-
-		-- Assigning R,G,B values with specified color variations
-		teamColorsTable[teamID] = {
-			r = hex2RGB(survivalColors[survivalColorNum])[1]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
-			g = hex2RGB(survivalColors[survivalColorNum])[2]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
-			b = hex2RGB(survivalColors[survivalColorNum])[3]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
-		}
-		survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
 	-- Simple Team Colors
 	elseif localRun and
@@ -523,6 +493,36 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			g = color[2],
 			b = color[3],
 		}
+
+	elseif isAI and string.find(isAI, "Scavenger") then
+		teamColorsTable[teamID] = {
+			r = hex2RGB(scavPurpColor)[1],
+			g = hex2RGB(scavPurpColor)[2],
+			b = hex2RGB(scavPurpColor)[3],
+		}
+	elseif isAI and string.find(isAI, "Raptor") then
+		teamColorsTable[teamID] = {
+			r = hex2RGB(raptorOrangeColor)[1],
+			g = hex2RGB(raptorOrangeColor)[2],
+			b = hex2RGB(raptorOrangeColor)[3],
+		}
+	elseif teamID == gaiaTeamID then
+		teamColorsTable[teamID] = {
+			r = hex2RGB(gaiaGrayColor)[1],
+			g = hex2RGB(gaiaGrayColor)[2],
+			b = hex2RGB(gaiaGrayColor)[3],
+		}
+
+	elseif isSurvival and survivalColors[#Spring.GetTeamList()-2] then
+		teamColorsTable[teamID] = {
+			r = hex2RGB(survivalColors[survivalColorNum])[1]
+				+ math.random(-survivalColorVariation, survivalColorVariation),
+			g = hex2RGB(survivalColors[survivalColorNum])[2]
+				+ math.random(-survivalColorVariation, survivalColorVariation),
+			b = hex2RGB(survivalColors[survivalColorNum])[3]
+				+ math.random(-survivalColorVariation, survivalColorVariation),
+		}
+		survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
 	-- auto ffa gradient colored for huge player games
 	elseif useFFAColors or
