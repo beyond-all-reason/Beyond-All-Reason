@@ -23,8 +23,12 @@ local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
 local allyTeamNum = 0
 local teamSizes = {}
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local myTeamID = Spring.GetMyTeamID()
+
+local myAllyTeamID, myTeamID
+if not gadgetHandler:IsSyncedCode() then
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myTeamID = Spring.GetMyTeamID()
+end
 
 -- Special colors
 local armBlueColor = "#004DFF" -- Armada Blue
@@ -542,17 +546,17 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 				color = hex2RGB(ffaColors[ffaColor])
 			end
 			if iteration == 1 then
-				color[1] = math.min(color[1] + 40, 255)
-				color[2] = math.min(color[2] + 40, 255)
-				color[3] = math.min(color[3] + 40, 255)
+				color[1] = color[1] + 40
+				color[2] = color[2] + 40
+				color[3] = color[3] + 40
 			elseif iteration == 2 then
-				color[1] = math.max(color[1] - 70, 0)
-				color[2] = math.max(color[2] - 70, 0)
-				color[3] = math.max(color[3] - 70, 0)
+				color[1] = color[1] - 70
+				color[2] = color[2] - 70
+				color[3] = color[3] - 70
 			elseif iteration == 3 then
-				color[1] = math.min(color[1] + 130, 255)
-				color[2] = math.min(color[2] + 130, 255)
-				color[3] = math.min(color[3] + 130, 255)
+				color[1] = color[1] + 130
+				color[2] = color[2] + 130
+				color[3] = color[3] + 130
 			end
 		end
 		if teamID == gaiaTeamID then
@@ -560,9 +564,9 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			maxColorVariation = 0
 			color = hex2RGB(gaiaGrayColor)
 		end
-		color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
-		color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
-		color[3] = math.min(color[3] + brightnessVariation, 255) + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation)
+		color[1] = math.clamp(math.floor(color[1] + brightnessVariation + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)), 0, 255)
+		color[2] = math.clamp(math.floor(color[2] + brightnessVariation + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)), 0, 255)
+		color[3] = math.clamp(math.floor(color[3] + brightnessVariation + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation)), 0, 255)
 		teamColorsTable[teamID] = {
 			r = color[1],
 			g = color[2],
