@@ -280,8 +280,8 @@ AimWeapon1(heading, pitch)
 		targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
-	turn turret to y-axis heading - aimAdj speed <65>;
-	turn turret_body to x-axis <0.000000> - pitch speed <65>;
+	turn turret to y-axis heading - aimAdj speed <100>;
+	turn turret_body to x-axis <0.000000> - pitch speed <100>;
 	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
 	{
 		oldhead = 1000000;
