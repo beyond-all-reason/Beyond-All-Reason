@@ -355,8 +355,8 @@ lua_UnitScriptDistortion(lightIndex, count)
 #define CATT1_PIECE_Y aimy1
 #define CATT1_PIECE_X aimx1
 
-#define CATT1_MAX_VELOCITY <12.0>
-#define CATT1_ACCELERATION <2.0>
+#define CATT1_MAX_VELOCITY <9.0>
+#define CATT1_ACCELERATION <1.5>
 #define CATT1_JERK <4>
 #define CATT1_PRECISION <10.0>
 #define CATT1_PITCH_SPEED <85>
