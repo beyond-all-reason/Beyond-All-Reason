@@ -1332,7 +1332,7 @@ local icontypes = {
 		size = 2.0999999
 	},
 	corcrwh = {
-		bitmap = "icons/air_t2_flame_laserlaser.png",
+		bitmap = "icons/air_krow.png",
 		size = 2.0999999
 	},
 	corcrwt4 = {
@@ -2548,7 +2548,7 @@ local icontypes = {
 		size = 1.4
 	},
 	legfort = {
-		bitmap = "icons/air_t2_plasma_mg_fortress.png",
+		bitmap = "icons/air_battleship.png",
 		size = 2.29999995
 	},
 	legfortt4 = {
