@@ -78,7 +78,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit'
+			type = 'string'
 		},
 		[2] = {
 			name = 'orders',
@@ -132,7 +132,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit',
+			type = 'string',
 		},
 	},
 	[actionTypes.SpawnWeapons] = {},
@@ -141,7 +141,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit'
+			type = 'string'
 		},
 		[2] = {
 			name = 'newTeam',

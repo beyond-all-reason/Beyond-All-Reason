@@ -80,21 +80,21 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit',
+			type = 'string',
 		},
 	},
 	[triggerTypes.UnitKilled] = { 
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit'
+			type = 'string'
 		},
 	},
 	[triggerTypes.UnitCaptured] = { 
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit'
+			type = 'string'
 		},
 	},
 	[triggerTypes.UnitResurrected] = {  },
@@ -102,7 +102,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit'
+			type = 'string'
 		},
 		[2] = {
 			name = 'position',
@@ -128,14 +128,14 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit',
+			type = 'string',
 		},
 	 },
 	[triggerTypes.ConstructionFinished] = { 
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'Unit',
+			type = 'string',
 		},
 	 },
 
