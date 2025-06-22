@@ -283,7 +283,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     spSetFeatureHealth(featureID, health)
                     featDamageTaken[featureID] = damageTaken + damage
                 else
-                    Spring.DestroyFeature(featureID)
+                    GG.reduceWreckToHeap(featureID, health, damage)
                 end
             end
         end
