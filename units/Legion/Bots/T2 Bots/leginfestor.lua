@@ -12,7 +12,7 @@ return {
 		canreclaim = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "36 26 44",
+		collisionvolumescales = "36 35 44",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
@@ -39,7 +39,6 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
 		workertime = 150,
-		usePieceCollisionVolumes=true,
 		buildoptions = {
 			[1] = "leginfestor"
 		},
