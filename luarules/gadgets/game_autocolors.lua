@@ -526,14 +526,15 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 
 	-- auto ffa gradient colored for huge player games
 	elseif useFFAColors or
-		(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)])) or #Spring.GetTeamList() > 30
+		(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)]))
+		or #Spring.GetTeamList() > 30
 		or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
 	then
 		local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 		local maxIterations =  1 + math.floor((#teamList-1) / #ffaColors)
 		local brightnessVariation = (0.7 - ((1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
 		brightnessVariation = brightnessVariation * math.min((#Spring.GetTeamList(allyTeamID) * 0.8)-1, 1)	-- dont change brightness too much in tiny teams
-		local maxColorVariation = (120 / (allyTeamCount-1))
+		local maxColorVariation = (120 / math.max(1, allyTeamCount-1))
 		if maxIterations > 1 then
 			local iteration = 1 + math.floor((allyTeamID+1)/(#ffaColors))
 			local ffaColor = (allyTeamID+1) - (#ffaColors*(iteration-1)) + 1
@@ -567,7 +568,6 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			g = color[2],
 			b = color[3],
 		}
-
 	else
 		if not teamSizes[allyTeamID] then
 			allyTeamNum = allyTeamNum + 1
