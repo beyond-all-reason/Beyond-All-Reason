@@ -654,7 +654,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
-			textOutline = (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3]) or false,
+			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -1136,14 +1136,14 @@ local function drawGameTime(gameFrame)
 	if minutes >= 100 then
 		offset = (usedFontSize*0.2*widgetScale)
 	end
-	font3:Begin()
+	font3:Begin(useRenderToTexture)
 	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 local function drawConsoleLine(i)
-	font:Begin()
+	font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
@@ -1167,10 +1167,10 @@ end
 
 local function drawChatLine(i)
 	local fontHeightOffset = usedFontSize*0.3
-	font:Begin()
+	font:Begin(useRenderToTexture)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1178,13 +1178,19 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-			font3:Begin()
+			font3:Begin(useRenderToTexture)
+			if chatLines[i].textOutline then
+				font3:SetOutlineColor(1,1,1,1)
+			else
+				font3:SetOutlineColor(0,0,0,1)
+			end
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1192,15 +1198,17 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font:SetOutlineColor(0,0,0,1)
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin()
+		font3:Begin(useRenderToTexture)
 		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else
+		font:SetOutlineColor(0,0,0,1)
 		font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 	end
 	font:End()
@@ -1439,7 +1447,7 @@ local function drawChatInput()
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
-			usedFont:Begin()
+			usedFont:Begin(useRenderToTexture)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
@@ -1594,14 +1602,14 @@ local function drawUi()
 
 		-- draw background
 		if backgroundOpacity > 0 and displayedChatLines > 0 then
-			glColor(1,1,1,0.1*backgroundOpacity*(useRenderToTexture and 2 or 1))
+			glColor(1,1,1,0.1*backgroundOpacity)
 			local borderSize = 1
 			RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
 
-			glColor(0,0,0,backgroundOpacity*(useRenderToTexture and 2 or 1))
+			glColor(0,0,0,backgroundOpacity)
 			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-				font:Begin()
+				font:Begin(useRenderToTexture)
 				font:SetTextColor(0.1,0.1,0.1,0.66)
 				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 				font:End()
@@ -1646,7 +1654,7 @@ local function drawUi()
 	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
-			font:Begin()
+			font:Begin(useRenderToTexture)
 			font:SetTextColor(0.35,0.35,0.35,0.66)
 			font:Print(I18N.nohistory, activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
 			font:End()
@@ -1910,7 +1918,7 @@ function widget:DrawScreen()
 			refreshUi = false
 			updateDrawUi = true
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
@@ -1926,15 +1934,15 @@ function widget:DrawScreen()
 			end
 			if updateDrawUi ~= nil then
 				lastDrawUiUpdate = clock()
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
-					gl.Translate(-rttArea[1], -rttArea[2], 0)
-					drawUi()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
+						gl.Translate(-rttArea[1], -rttArea[2], 0)
+						drawUi()
+					end,
+					useRenderToTexture
+				)
 
 				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
 				if updateDrawUi == false then
@@ -1944,12 +1952,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			--gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1, 1, 1, 1)
-			gl.Texture(uiTex)
-			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
-			gl.Texture(false)
-			--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], useRenderToTexture)
 		end
 	else
 		drawUi()
@@ -2580,7 +2583,7 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 

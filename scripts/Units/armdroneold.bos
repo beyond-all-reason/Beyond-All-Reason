@@ -1,12 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, body, jetl, thrustl, jetr, thrustr, centerwing, centerpadd, w_glass, thrustm, sleeve, flare, barrel1, barrel2, barrel3, barrel4;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -75,8 +73,8 @@ Create()
 	hide flare;
 	hide thrustr;
 	hide thrustl;
-	turn jetl to x-axis <-90.000000> now;
-	turn jetr to x-axis <-90.000000> now;
+	turn jetl to x-axis <-90.0> now;
+	turn jetr to x-axis <-90.0> now;
 	start-script IdleHover();
 }
 
@@ -122,78 +120,75 @@ RestoreAfterDelay()
 
 MoveRate1()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	turn jetl to x-axis <-70.000000> speed <75.000000>;
-	turn jetr to x-axis <-70.000000> speed <75.000000>;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	turn jetl to x-axis <-70.0> speed <75.0>;
+	turn jetr to x-axis <-70.0> speed <75.0>;
+	turn base to z-axis <0.0> speed <120.0>;
 	//start-script ProcessFlames();
 }
 
 MoveRate2()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	turn jetl to x-axis <-50.000000> speed <55.000000>;
-	turn jetr to x-axis <-50.000000> speed <55.000000>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	turn jetl to x-axis <-50.0> speed <55.0>;
+	turn jetr to x-axis <-50.0> speed <55.0>;
 	//start-script ProcessFlames();
 	sleep 1000;
-	turn base to z-axis <240.000000> speed <120.000000>;
+	turn base to z-axis <240.0> speed <120.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <120.000000> speed <180.000000>;
+	turn base to z-axis <120.0> speed <180.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	
 }
 
 MoveRate3()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	turn jetl to x-axis <0.000000> speed <85.000000>;
-	turn jetr to x-axis <0.000000> speed <85.000000>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	turn jetl to x-axis <0.0> speed <85.0>;
+	turn jetr to x-axis <0.0> speed <85.0>;
 	//start-script ProcessFlames();
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 200;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

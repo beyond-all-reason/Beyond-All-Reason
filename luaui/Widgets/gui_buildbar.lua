@@ -12,7 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -626,13 +627,13 @@ function widget:Update(dt)
 				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
 				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
 				WG['info'].displayUnitID(setInfoDisplayUnitID)
-			end	
+			end
 		elseif hoveredBOpt >= 0 then
 			if(setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1])then
 				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
 				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
 				WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
-			end			
+			end
 		else
 			if setInfoDisplayUnitID then
 				setInfoDisplayUnitID = nil
@@ -644,7 +645,7 @@ function widget:Update(dt)
 			end
 		end
 	end
-	
+
 	if hoveredFac >= 0 then
 		--factory icon
 		if not moffscreen then
@@ -917,12 +918,21 @@ function widget:DrawInMiniMap(sx, sy)
 
 		gl.LoadIdentity()
 
-		if getMiniMapFlipped() then
-			gl.Translate(1, 0, 0)
-			gl.Scale(-1 / msx, 1 / msz, 1)
-		else
+		local currRot = getCurrentMiniMapRotationOption()
+		if currRot == ROTATION.DEG_0 then
 			gl.Translate(0, 1, 0)
 			gl.Scale(1 / msx, -1 / msz, 1)
+		elseif currRot == ROTATION.DEG_90 then
+			gl.Scale(-1 / msz, 1 / msx, 1)
+			gl.Rotate(90, 0, 0, 1)
+		elseif currRot == ROTATION.DEG_180 then
+			gl.Translate(1, 0, 0)
+			gl.Scale(1 / msx, 1 / msz, 1)
+			gl.Rotate(180, 0, 1, 0)
+		elseif currRot == ROTATION.DEG_270 then
+			gl.Translate(1, 1, 0)
+			gl.Scale(-1 / msz, 1 / msx, 1)
+			gl.Rotate(-90, 0, 0, 1)
 		end
 
 		local r, g, b

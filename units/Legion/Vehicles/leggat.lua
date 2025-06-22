@@ -140,7 +140,7 @@ return {
 				soundstart = "mgun6",
 				soundstartvolume = 3,
 				soundtrigger = true,
-				sprayangle = 1080,
+				sprayangle = 1600,
 				texture1 = "shot",
 				texture2 = "empty",
 				thickness = 2.0,

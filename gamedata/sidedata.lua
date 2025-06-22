@@ -6,6 +6,9 @@ if not SIDES then
     error("[Sidedata] Failed to load sides_enum.lua!")
 end
 
+-- NOTE: Don't change the ordering here until
+-- chobby fixed to accept arbitrary ordering, otherwise
+-- AI will crash.
 local sideOptions = {
     {
         name = "Armada",
@@ -16,12 +19,12 @@ local sideOptions = {
         startunit = SIDES.CORE .. 'com',
     },
     {
-        name = "Legion",
-        startunit = SIDES.LEGION .. 'com',
-    },
-    {
         name = "Random",
         startunit = 'dummycom',
+    },
+    {
+        name = "Legion",
+        startunit = SIDES.LEGION .. 'com',
     },
 }
 

@@ -49,12 +49,9 @@ local updateStencilTextureScreen = false
 
 local oldvs = 0
 local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-local ivsx, ivsy = vsx, vsy
-local intensityMult = (vsx + vsy) / 1600
 
 function widget:ViewResize(_, _)
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-	ivsx, ivsy = vsx, vsy
 
 	if screencopyUI then gl.DeleteTexture(screencopyUI) end
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
@@ -65,19 +62,25 @@ function widget:ViewResize(_, _)
 		wrap_t = GL.CLAMP,
 	})
 
-	intensityMult = (vsx + vsy) / 2800
 	updateStencilTexture = true
 	updateStencilTextureScreen = true
 end
 
 local function DrawStencilTexture(world, fullscreen)
 	--Spring.Echo("DrawStencilTexture",world, fullscreen, Spring.GetDrawFrame(), updateStencilTexture)
-	local usedStencilTex = world and stenciltex or stenciltexScreen
+	local usedStencilTex
+	if world then
+		usedStencilTex = stenciltex
+		stenciltex = nil
+	else
+		usedStencilTex = stenciltexScreen
+		stenciltexScreen = nil
+	end
 
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
 		if usedStencilTex == nil or vsx + vsy ~= oldvs then
-			gl.DeleteTextureFBO(usedStencilTex)
+			gl.DeleteTexture(usedStencilTex)
 
 			oldvs = vsx + vsy
 			usedStencilTex = gl.CreateTexture(vsx, vsy, {
@@ -89,7 +92,7 @@ local function DrawStencilTexture(world, fullscreen)
 				fbo = true,
 			})
 
-			if (usedStencilTex == nil) then
+			if usedStencilTex == nil then
 				Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 				widgetHandler:RemoveWidget()
 				return false
@@ -130,6 +133,7 @@ local function DrawStencilTexture(world, fullscreen)
 	else
 		stenciltexScreen = usedStencilTex
 	end
+	usedStencilTex = nil
 end
 
 local function CheckHardware()
@@ -255,11 +259,11 @@ local function CreateShaders()
 end
 
 local function DeleteShaders()
-	if gl.DeleteTextureFBO then
-		gl.DeleteTextureFBO(stenciltex)
-		gl.DeleteTextureFBO(stenciltexScreen)
-	end
-	gl.DeleteTexture(screencopyUI or 0)
+	gl.DeleteTexture(stenciltex)
+	gl.DeleteTexture(stenciltexScreen)
+	gl.DeleteTexture(usedStencilTex)
+	gl.DeleteTexture(screencopyUI)
+	stenciltex, stenciltexScreen, screencopyUI, usedStencilTex = nil, nil, nil, nil
 	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)
 	end
