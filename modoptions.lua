@@ -489,8 +489,8 @@ local options = {
     },
 
     {
-        key		= "coop",
-        name	= "Cooperative mode",
+        key		= "coopcoms",
+        name	= "Extra Commanders for Shared Teams",
         desc	= "Adds extra commanders to id-sharing teams, 1 com per player",
         type	= "bool",
         hidden 	= true,
