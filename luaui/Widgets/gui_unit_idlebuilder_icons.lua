@@ -23,7 +23,7 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
 
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec = Spring.GetSpectatingState()
@@ -115,7 +115,7 @@ local function updateIcons()
 	local gf = Spring.GetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
 		if queue == 0 then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
