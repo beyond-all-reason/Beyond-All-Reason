@@ -56,6 +56,24 @@ if gadgetHandler:IsSyncedCode() then
 		['corvrad'] = true,
 		['legarad'] = true,
 		['legajam'] = true,
+		['legavrad'] = true,
+		['legavjam'] = true,
+		['legaradk'] = true,
+		['legajamk'] = true,
+		['legfrad'] = true,
+		
+		['armmine1'] = true,
+		['armmine2'] = true,
+		['armmine3'] = true,
+		['armfmine3'] = true,	
+		['cormine1'] = true,
+		['cormine2'] = true,
+		['cormine3'] = true,		
+		['cormine4'] = true,		
+		['corfmine3'] = true,	
+		['legmine1'] = true,
+		['legmine2'] = true,
+		['legmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,
@@ -66,6 +84,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
