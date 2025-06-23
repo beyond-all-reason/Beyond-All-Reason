@@ -28,11 +28,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 370.5,
-		speed = 50,
+		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.188,
-		turnrate = 750,
+		turnrate = 300,
 		upright = false,
 		customparams = {
 			model_author = "Tharsis",
