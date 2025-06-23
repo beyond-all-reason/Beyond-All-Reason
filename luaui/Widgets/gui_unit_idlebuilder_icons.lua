@@ -36,7 +36,7 @@ local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local cp = unitDef.customParams
 	if not (cp.virtualunit == "1") then
-		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
+		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 			local xsize, zsize = unitDef.xsize, unitDef.zsize
 			local scale = 3.3 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
 			unitConf[unitDefID] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
