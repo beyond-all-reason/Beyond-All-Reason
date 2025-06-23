@@ -263,7 +263,7 @@ for udefID, def in ipairs(UnitDefs) do
 				isT3mobile[udefID] = true
 			end
 			if def.customParams.techlevel == '4' and not def.isBuilding then
-				isT4mobile[udefID] = true
+				isT4mobile[udefID] = true --there are no units with this techlevel assigned, need to see which ones
 			end
 		end
 		if def.modCategories.mine then
