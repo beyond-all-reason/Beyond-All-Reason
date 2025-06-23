@@ -1,18 +1,22 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armsam" then
-		uDef.weapondefs.armtruck_missile.tracking = true
+		uDef.weapondefs.armtruck_missile.tracks = true
 		uDef.weapondefs.armtruck_missile.range = 525
-		uDef.weapondefs.armtruck_missile.turnrate = 63000
-		uDef.weapondefs.armtruck_missile.damage.default = 55
+		uDef.weapondefs.armtruck_missile.turnrate = 21000
+		uDef.weapondefs.armtruck_missile.damage.default = 54
+		uDef.weapondefs.armtruck_missile.flighttime = 1.6
+		uDef.weapondefs.armtruck_missile.weaponvelocity = 550		
 		uDef.collisionvolumetype = "ellipsoid"
 		uDef.collisionvolumescales = "29 31 41"
 		uDef.collisionvolumeoffsets = "0 3 -1"
 	end
 	if name == "cormist" then
-		uDef.weapondefs.cortruck_missile.tracking = true
+		uDef.weapondefs.cortruck_missile.tracks = true
 		uDef.weapondefs.cortruck_missile.range = 550
-		uDef.weapondefs.cortruck_missile.turnrate = 63000
+		uDef.weapondefs.cortruck_missile.turnrate = 21000
 		uDef.weapondefs.cortruck_missile.damage.default = 40
+		uDef.weapondefs.cortruck_missile.flighttime = 1.6
+		uDef.weapondefs.cortruck_missile.weaponvelocity = 550		
 		uDef.collisionvolumetype = "ellipsoid"
 		uDef.collisionvolumescales = "32 31 43"
 		uDef.collisionvolumeoffsets = "0 0 -2"
@@ -36,12 +40,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = uDef.speed + 3
 		uDef.turnrate = 750
 	end
-	if name == "armstump" or name == "corraid" then
-		uDef.weapondefs.arm_lightcannon.predictboost = 0.4
-	end
-
+	
 	if name == "armmex" or name == "cormex" then
-		uDef.health = uDef.health + 61
+		uDef.health = uDef.health + 81
 	end
 	if name == "armck" or name == "corck" then
 		uDef.health = uDef.health + 90
@@ -58,9 +59,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = math.floor(uDef.energycost *0.9)
 		uDef.buildtime = math.floor(uDef.buildtime *0.9)
 	end
-	if name == "corcan" then
-		uDef.speed = 39
-	end
+
 	if name == "cortermite" then
 		uDef.metalcost = math.floor(uDef.metalcost *0.9)
 		uDef.energycost = math.floor(uDef.energycost *0.9)
@@ -98,19 +97,37 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = 60
 	end
 
-
-
 	--if name == "armvp" or name == "corvp" then
-	--	uDef.metalcost = uDef.metalcost - 30
 	--end
-	if name == "corgator" then
-		uDef.speed = 84
+	
+	if name == "armcom" or name == "corcom" then
+		uDef.energymake = 30
 	end
-	if name == "armpw" then
-		uDef.speed = 85
+
+	if (uDef.customparams.subfolder == "ArmBuildings/LandFactories" 
+	or uDef.customparams.subfolder == "CorBuildings/LandFactories" 
+	or uDef.customparams.subfolder == "ArmBuildings/SeaFactories" 
+	or uDef.customparams.subfolder == "CorBuildings/SeaFactories" )
+	and uDef.customparams.techlevel == 1 then
+		uDef.metalcost = uDef.metalcost - 150
+		uDef.buildtime = uDef.buildtime - 1500
+		uDef.energycost = uDef.energycost - 250
+		uDef.workertime = 150
 	end
+
+
+
+	if name == "corak" then
+		uDef.metalcost = 42
+		uDef.energycost = 820
+		uDef.buildtime = 1250
+	end
+	if name == "armflash" then
+		uDef.speed = 101
+	end
+
 	if name == "armmanni" then
-		uDef.energycost = 17000
+		uDef.energycost = 18500
 	end
 	if name == "armbull" then
 		uDef.speed = 60
@@ -120,22 +137,18 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.lightning.reloadtime = 1.5
 		uDef.weapondefs.lightning.range = 300
 	end
-	--if name == "armmart" then
-	--	uDef.energycost = 6000
-	--end
-	--	if name == "cormart" then
-	--	uDef.energycost = 5500
-	--	uDef.buildtime = 8000
-	--end
-
+	if name == "corgol" then
+		uDef.energycost = 28000
+	end
+	
 	if name == "corspy" then
 		uDef.buildtime = 15000
 		uDef.energycost = 10000
 	end
-
 	if name == "armspy" then
 	uDef.script = "Units/ARMSPY2.cob"
 	uDef.selfdestructas = "smallExplosionGeneric"
+	uDef.metalcost = 250
 	uDef.weapondefs.crawl_dummy = {
 		areaofeffect = 32,
 		avoidfeature = false,
@@ -199,7 +212,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 				model = "cormissile.s3o",
 				name = "Missiles",
 				noselfdamage = true,
-				range = 1400,
+				range = 1300,
 				reloadtime = 1.6,
 				smokecolor = 0.5,
 				smokeperiod = 6,
@@ -212,7 +225,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				soundstartvolume = 7.5,
-				startvelocity = 650,
+				startvelocity = 640,
 				texture1 = "null",
 				texture2 = "smoketrailaa",
 				tolerance = 15000,
@@ -301,7 +314,7 @@ if name == "armaak" then
 				name = "Long-Range Anti-Air Missile Launcher",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 1300,
+				range = 1200,
 				reloadtime = 1.5,
 				smokecolor = 1,
 				smokeperiod = 6,
@@ -314,7 +327,7 @@ if name == "armaak" then
 				soundhitwet = "splssml",
 				soundstart = "rocklit1",
 				soundstartvolume = 7.5,
-				startvelocity = 600,
+				startvelocity = 590,
 				texture1 = "null",
 				texture2 = "smoketrailaa3",
 				tolerance = 15000,
