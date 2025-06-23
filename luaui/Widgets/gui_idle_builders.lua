@@ -91,9 +91,9 @@ local function refreshUnitDefs()
 			if unitDef.translatedHumanName then
 				unitHumanName[unitDefID] = unitDef.translatedHumanName
 			end
-			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
+			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
 				unitConf[unitDefID] = unitDef.isFactory
-			end
+		end
 		end
 	end
 end
