@@ -6263,21 +6263,20 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armdecom"].id] = false,
-		[UnitDefNames["cordecom"].id] = false,
-		[UnitDefNames["armferret"].id] = false,
-		[UnitDefNames["armamb"].id] = false,
-		[UnitDefNames["armpb"].id] = false,
-		[UnitDefNames["armsnipe"].id] = false,
-		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = true,
-		[UnitDefNames["armamex"].id] = true,
-		[UnitDefNames["armshockwave"].id] = true,
-		[UnitDefNames["armckfus"].id] = true,
-		[UnitDefNames["armspy"].id] = true,
-		[UnitDefNames["corspy"].id] = true,
-		[UnitDefNames["legaspy"].id] = true,
-		[UnitDefNames["corphantom"].id] = true,
+		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id] = false,
+		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id] = false,
+		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id] = false,
+		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id] = false,
+		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id] = false,
+		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id] = false,
+		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id] = false,
+		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id] = true,
+		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id] = true,
+		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id] = true,
+		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id] = true,
+		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id] = true,
+		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
