@@ -1025,6 +1025,45 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
+
+	['legavrad'] ={
+		greenbloba = {
+			lightType = 'point',
+			pieceName = 'radarlight1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobb = {
+			lightType = 'point',
+			pieceName = 'radarlight2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobc = {
+			lightType = 'point',
+			pieceName = 'radarlight3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobd = {
+			lightType = 'point',
+			pieceName = 'radarlight4',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['corvoyr'] = {
 		greenblob = {
 			lightType = 'point',
