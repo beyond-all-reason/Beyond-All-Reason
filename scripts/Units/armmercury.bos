@@ -1,20 +1,20 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flarel, flarer, base, turret, gunl,gunr;
        
 static-var gun_1, last_fire, firstaim;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define DELAY_UNIT_VAR 1024
 
 //lua_TargetCheck() { return 0; }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -22,8 +22,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn gunl to x-axis <-11> speed <25.00000>;
-    turn gunr to x-axis <-11> speed <25.00000>;
+    turn gunl to x-axis <-11> speed <25.0>;
+    turn gunr to x-axis <-11> speed <25.0>;
     spin turret around y-axis speed <20.0>;
     firstaim = 1;
 }
@@ -47,24 +47,21 @@ Create()
 
 	gun_1 = 1;
 	firstaim = 1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 //	call-script lua_TargetCheck();
 //	if ((get DELAY_UNIT_VAR) == 0) {
 //	  return(0);
 //	}
-	turn turret to y-axis heading speed <125.000000>;
-	turn gunr to x-axis <0.000000> - pitch speed <100.000000>;
-	turn gunl to x-axis <0.000000> - pitch speed <100.000000>;
+	turn turret to y-axis heading speed <125.0>;
+	turn gunr to x-axis <0.0> - pitch speed <100.0>;
+	turn gunl to x-axis <0.0> - pitch speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gunl around x-axis;
 	wait-for-turn gunr around x-axis;
@@ -72,7 +69,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{
@@ -87,27 +84,24 @@ FirePrimary()
 	set DELAY_UNIT_VAR to 0;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flarel;
+		pieceIndex = flarel;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flarer;
+		pieceIndex = flarer;
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

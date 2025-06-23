@@ -39,7 +39,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMouseState = Spring.GetMouseState
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local myTeamID = Spring.GetMyTeamID()
 
@@ -86,11 +86,14 @@ local unitConf = {}
 local function refreshUnitDefs()
 	unitHumanName = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.translatedHumanName then
-			unitHumanName[unitDefID] = unitDef.translatedHumanName
+		local cp = unitDef.customParams
+		if not (cp.virtualunit == "1") then
+			if unitDef.translatedHumanName then
+				unitHumanName[unitDefID] = unitDef.translatedHumanName
+			end
+			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
+				unitConf[unitDefID] = unitDef.isFactory
 		end
-		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
-			unitConf[unitDefID] = unitDef.isFactory
 		end
 	end
 end
@@ -292,7 +295,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
