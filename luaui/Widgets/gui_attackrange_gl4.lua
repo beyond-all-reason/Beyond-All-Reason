@@ -457,6 +457,7 @@ local GL_REPLACE            = GL.REPLACE --GL.KEEP
 
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
+local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
 local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
@@ -682,8 +683,7 @@ local function AddSelectedUnit(unitID, mouseover)
 			-- This is quite important to pass in as posscale.y!
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
-			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
 			--Spring.Echo("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 			
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -1129,12 +1129,12 @@ function widget:DrawWorld(inMiniMap)
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
 	end
 
-	if chobbyInterface then return end
+	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-		glTexture(2, '$normals')
+		-- glTexture(2, '$normals')
 		-- Stencil Setup
 		-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then

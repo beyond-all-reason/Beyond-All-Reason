@@ -401,7 +401,7 @@ local function SpawnUnit(spawnData)
 							energyCost = subUnitDef.energyCost
 						end
 						---
-						if stockpilecount > 0 then
+						if carrierMetaList[spawnData.ownerID].usestockpile and stockpilecount > 0 then
 							if stockpiledMetal >= metalCost and stockpiledEnergy >= energyCost then
 								subUnitID = spCreateUnit(dronename, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 								stockpiledMetal = stockpiledMetal - metalCost
@@ -801,7 +801,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					carrierMetaList[carrierUnitID].availableSections[dronetypeIndex].availablePieces[carrierMetaList[carrierUnitID].subUnitsList[unitID].dockingPieceIndex].dockingPieceAvailable = true
 				end
 				carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] = carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] - 1
-				if carrierMetaList[carrierUnitID].stockpilecount > 0 then
+				if carrierMetaList[carrierUnitID].usestockpile and carrierMetaList[carrierUnitID].stockpilecount > 0 then
 					local stockpile,_,stockpilepercentage = Spring.GetUnitStockpile(carrierUnitID)
 					if stockpile > 0 then
 						stockpile = stockpile - 1

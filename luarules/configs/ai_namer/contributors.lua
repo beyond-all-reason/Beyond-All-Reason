@@ -111,6 +111,7 @@ local ContributorAINames = {
     "mupersega",
     "neb_",
     "pandaro",
+	"Qbansky",
     "resopmok",
     "robert the pie",
     "rossco",
@@ -126,7 +127,8 @@ local ContributorAINames = {
     "wilkubyk",
     "Whocanitbnow",
     "SuperKitowiec",
-
+	"Rippsy",
+	"Flameink",
 }
 
 return ContributorAINames
