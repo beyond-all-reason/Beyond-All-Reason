@@ -45,7 +45,7 @@ currentSpeed, inwater, oldsteerheading, firetime, lastfired, gameframe, moving;
 #define SIGNAL_RESTORE	8
 
 #define HOVER_BASE body
-#define HOVER_BANKSPEED <7>
+#define HOVER_BANKSPEED <0>
 // #define HOVER_ROCKBASE body
 #define HOVER_WOBBLE_PERIOD 80
 #define HOVER_WOBBLE_AMPLITUDE [0.7]
