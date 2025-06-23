@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Sensor Ranges LOS",
@@ -18,13 +20,10 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 
 local circleSegments = 64
 local rangecorrectionelmos = 16 -- how much smaller they are drawn than truth due to LOS mipping
-
-local debugmode = false
 --------- End configurables ------
 
 local minSightDistance = 100
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local olduseteamcolors = false -- needs re-init when teamcolor prefs are changed
 
 ------- GL4 NOTES -----
 --only update every 15th frame, and interpolate pos in shader!
@@ -40,11 +39,13 @@ local olduseteamcolors = false -- needs re-init when teamcolor prefs are changed
 	-- X remove debug code
 	-- X validate options!
 	-- X The only actual param needed per unit is its los range :D
-	-- X refactor the opacity 
+	-- X refactor the opacity
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -56,8 +57,8 @@ local shaderConfig = {
 
 local shaderSourceCache = {
 	shaderName = 'LOS Ranges GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/sensor_ranges_los.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/sensor_ranges_los.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		heightmapTex = 0,
@@ -78,32 +79,28 @@ local function initgl4()
 		circleShader:Finalize()
 	end
 	if circleInstanceVBO then
-		clearInstanceTable(circleInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	end
 	circleShader = LuaShader.CheckShaderUpdates(shaderSourceCache,0)
 
 	if not circleShader then
 		goodbye("Failed to compile losrange shader GL4 ")
 	end
-	local circleVBO, numVertices = makeCircleVBO(circleSegments)
+	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
 		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
 	}
-	circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
+	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "losrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
-local glColor = gl.Color
 local glColorMask = gl.ColorMask
 local glDepthTest = gl.DepthTest
 local glLineWidth = gl.LineWidth
@@ -119,7 +116,6 @@ local GL_REPLACE = GL.REPLACE
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
 -- Globals
-local vsx, vsy = Spring.GetViewGeometry()
 local lineScale = 1
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
@@ -135,7 +131,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function widget:ViewResize(newX, newY)
-	vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = Spring.GetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
 end
 
@@ -144,14 +140,14 @@ local instanceCache = {0,0,0,0,0,0,0,0}
 
 local function InitializeUnits()
 	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
-	clearInstanceTable(circleInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
 	end
-	uploadAllElements(circleInstanceVBO)
+	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
 end
 
 
@@ -171,21 +167,21 @@ local function CalculateOverlapping()
 	local totaloverlapping = 0
 	local inviewcircles = 0
 	local inviewoverlapping = 0
-	
-	for index, unitID in ipairs(allcircles) do 
+
+	for index, unitID in ipairs(allcircles) do
 		local px,py,pz = Spring.GetUnitPosition(unitID)
 		--Spring.Echo(px,py,pz)
-		if px then 
+		if px then
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local losrange = unitRange[unitDefID]
 			totalcircles = totalcircles + 1
 			-- check for overlap
 			local overlaps = False
-			for index2, unitID2 in ipairs(allcircles) do 
+			for index2, unitID2 in ipairs(allcircles) do
 				local unitDefID2 = Spring.GetUnitDefID(unitID2)
 				local losrange2 = unitRange[unitDefID2]
 				--Spring.Echo(losrange2, losrange)
-				if losrange2 > losrange then 
+				if losrange2 > losrange then
 					local px2, py2, pz2 = Spring.GetUnitPosition(unitID2)
 					--Spring.Echo(px-px2, pz-pz2, losrange2, losrange)
 					if px2 and (math.diag(px-px2, pz-pz2) < losrange2 - losrange) then
@@ -193,13 +189,13 @@ local function CalculateOverlapping()
 					end
 				end
 			end
-			
-			
-			
+
+
+
 			if Spring.IsSphereInView(px,py,pz,losrange) then
 				inviewcircles =inviewcircles + 1
 				if overlaps then inviewoverlapping = inviewoverlapping + 1 end
-			end	
+			end
 			if overlaps then totaloverlapping = totaloverlapping + 1 end
 		end
 	end
@@ -208,12 +204,16 @@ end
 
 function widget:TextCommand(command)
 	if string.find(command, "loscircleoverlap", nil, true) then
-			Spring.Echo("CalculateOverlapping", CalculateOverlapping())
+		Spring.Echo("CalculateOverlapping", CalculateOverlapping())
 	end
 end
 
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
+	if Spring.GetModOptions().disable_fogofwar then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -244,14 +244,14 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
 	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
-	
+
 	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
 		return
 	end -- display mode for specs
 
 	if Spring.GetUnitIsBeingBuilt(unitID) then return end
 
-	instanceCache[1] =  unitRange[unitDefID] 
+	instanceCache[1] =  unitRange[unitDefID]
 	pushElementInstance(circleInstanceVBO,
 		instanceCache,
 		unitID, --key
@@ -274,7 +274,6 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	
 	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	if circleInstanceVBO.usedElements == 0 then return end
 	if opacity < 0.01 then return end
@@ -285,7 +284,7 @@ function widget:DrawWorld()
 	glDepthTest(false)  -- Dont do depth tests, as we are still pre-unit
 
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
-	circleShader:Activate() 
+	circleShader:Activate()
 	circleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	circleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
 
@@ -319,6 +318,7 @@ function widget:DrawWorld()
 	--glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
 	gl.Clear(GL.STENCIL_BUFFER_BIT)
+	
 
 end
 

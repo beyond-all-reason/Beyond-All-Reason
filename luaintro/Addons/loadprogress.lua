@@ -25,7 +25,7 @@ function SG.GetLoadProgress()
 	if startTime < 0 then startTime = os.clock() end
 
 	if cachedTotalTime > 0 then
-		return math.max(0.0, math.min(1.0, (os.clock() - startTime) / cachedTotalTime))
+		return math.clamp((os.clock() - startTime) / cachedTotalTime, 0, 1)
 	else
 		return -1
 	end

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Commander Name Tags",
@@ -29,9 +31,6 @@ local showSkillValue = true
 local playerRankSize = fontSize * 1.05
 local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 
-local comLevelSize = fontSize * 2.5
-local comLevelImages = "luaui\\images\\Ranks\\rank"
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -46,8 +45,9 @@ local IsUnitVisible = Spring.IsUnitVisible
 local IsUnitIcon = Spring.IsUnitIcon
 local GetCameraPosition = Spring.GetCameraPosition
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitExperience = Spring.GetUnitExperience
-local GetUnitRulesParam = Spring.GetUnitRulesParam
+
+
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -68,8 +68,6 @@ local diag = math.diag
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -111,12 +109,11 @@ local CheckedForSpec = false
 
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
 local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
-	if defs.customParams.iscommander then
+	if defs.customParams.iscommander or defs.customParams.isdecoycommander or defs.customParams.isscavcommander or defs.customParams.isscavdecoycommander then
 		comHeight[unitDefID] = defs.height
 	end
 end
@@ -145,29 +142,43 @@ local function GetCommAttributes(unitID, unitDefID)
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
-
+		--name = "Scav Commander" -- todo: i18n this thing
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.scavDecoyCommanderNameTag')
+		else
+			name = Spring.I18N('units.scavCommanderNameTag')
+		end
 	elseif Spring.GetGameRulesParam('ainame_' .. team) then
-		name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
-	else
-		local players = GetPlayerList(team)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
-		if players[1] then
-			playerRank = select(9, GetPlayerInfo(players[1], false))
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
 		end
 
-		for _, pID in ipairs(players) do
-			local pname, active, isspec = GetPlayerInfo(pID, false)
-			playerRank = select(9, GetPlayerInfo(pID, false))
-			if active and not isspec then
-				name = pname
-				break
+	else
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			local players = GetPlayerList(team)
+			name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+			if players[1] then
+				playerRank = select(9, GetPlayerInfo(players[1], false))
+			end
+
+			for _, pID in ipairs(players) do
+				local pname, active, isspec = GetPlayerInfo(pID, false)
+				playerRank = select(9, GetPlayerInfo(pID, false))
+				if active and not isspec then
+					name = pname
+					break
+				end
 			end
 		end
 	end
 
 	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
-	if (r + g * 1.2 + b * 0.4) < 0.65 then
+	if ColorIsDark(r, g, b) then
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
@@ -209,7 +220,7 @@ local function createComnameList(attributes)
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
+		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
 			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
 		end
 		local name = attributes[1]
@@ -261,7 +272,7 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] then
+	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
 		if unitTeam ~= GaiaTeam then
 			comms[unitID] = GetCommAttributes(unitID, unitDefID)
 		end
@@ -295,11 +306,7 @@ local function CheckAllComs()
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local unitTeam = GetUnitTeam(unitID)
-		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
-		end
+		CheckCom(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 
@@ -328,7 +335,6 @@ function widget:Update(dt)
 			end
 			-- new
 			myTeamID = Spring.GetMyTeamID()
-			myPlayerID = Spring.GetMyPlayerID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
@@ -383,7 +389,7 @@ local function createComnameIconList(unitID, attributes)
 		x, z = Spring.WorldToScreenCoords(x, y, z)
 
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
+		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
@@ -487,20 +493,23 @@ end
 function widget:PlayerChanged(playerID)
 	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
-	if spec and prevSpec ~= spec then
-		CheckTeamColors()
-		RemoveLists()
-	end
+	myTeamID = Spring.GetMyTeamID()
+
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
-	CheckAllComs() -- handle substitutions, etc
+	sec = 99
+
+	if spec and prevSpec ~= spec then
+		CheckedForSpec = true
+		CheckAllComs()
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	CheckCom(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	comms[unitID] = nil
 end
 

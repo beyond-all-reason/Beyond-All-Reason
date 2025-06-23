@@ -33,11 +33,13 @@ function EngineerBST:Update()
 
 		local myBuilder = self:GetBuilder()
 		self:EchoDebug('myBuilder',myBuilder)
-		if myBuilder then
-			self.unit:Internal():Guard(myBuilder)
+		if myBuilder  and self.ai.engineerhst.Builders[myBuilder] then
+			--self.unit:Internal():Guard(myBuilder)
+			self.ai.tool:GiveOrder(self.id,CMD.GUARD,myBuilder,0,'1-1')
 			self:EchoDebug('guarding')
 			self.ai.engineerhst.Engineers[self.id] = myBuilder
 			self.builder = myBuilder
+			self:EchoDebug('engineers 42 ',self.ai.engineerhst.Builders,self.ai.engineerhst.Builders[myBuilder])
 			self.ai.engineerhst.Builders[myBuilder][self.id] = true
 		end
 	end
@@ -46,7 +48,7 @@ end
 
 function EngineerBST:NumberCheck(id)
 	local count = 0
-	for enginerID,builderID in pairs(self.ai.engineerhst.Engineers) do
+	for _,builderID in pairs(self.ai.engineerhst.Engineers) do
 
 		if builderID == id then
 			count = count + 1
@@ -89,7 +91,7 @@ function EngineerBST:checkBuilder()
 	end
 
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	self:EchoDebug('currentOrder',self.name,currentOrder.id,self.builder)
+	self:EchoDebug(self.name,'currentOrder',currentOrder,self.builder)
 	if not currentOrder or not  currentOrder.id  then
 		self.ai.engineerhst.Engineers[self.id] = nil
 		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id]then

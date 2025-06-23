@@ -1,96 +1,43 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, turret, dish;
+piece  base, turret, dish, jam;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
-
-Go()
-{
-	spin dish around y-axis speed <60.010989>;
-	spin turret around y-axis speed <120.027473>;
-	return (0);
-}
-Stop()
-{
-	spin dish around y-axis speed <0.000000>;
-	spin turret around y-axis speed <0.000000>;
-	return (0);
-}
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
 }
 
 Create()
 {
-	call-script InitState();
-	return (0);
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	show jam;
+	spin dish around y-axis speed <60.010989> accelerate <1>;
+	spin turret around y-axis speed <120.027473> accelerate <2>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	hide jam;
+	stop-spin dish around y-axis decelerate <4>;
+	stop-spin turret around y-axis decelerate <5>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

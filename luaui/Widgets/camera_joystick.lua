@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name			= "Camera Joystick",
@@ -203,7 +205,6 @@ local buttonCommands = { -- key is button number, value is command like you woul
 
 --------------------------------------------------------------------------------
 local spGetCameraState	 = Spring.GetCameraState
-local spGetCameraVectors = Spring.GetCameraVectors
 local spSetCameraState	 = Spring.SetCameraState
 
 --------------------------------------------------------------------------------
@@ -211,7 +212,6 @@ local host = "127.0.0.1"
 local port = "51234"
 local client
 local set
-local isConnected = false
 local mincameraheight = 32 -- min camera Y in elmos
 local movemult = 3.0 -- move speed multiplier
 local rotmult = 0.2	-- rotation speed multiplier
@@ -313,7 +313,8 @@ local function SocketConnect(host, port)
 	client=socket.tcp()
 	client:settimeout(0)
 	res, err = client:connect(host, port)
-	if not res and not res=="timeout" then
+	if not res and err ~= "timeout" then
+		client:close()
 		Spring.Echo("Unable to connect to joystick server: ",res, err, "Restart widget after server is started")
 		return false
 	end
@@ -357,6 +358,8 @@ function widget:Initialize()
 	local connected = SocketConnect(host, port)
 	if connected then
 		Spring.SetConfigInt("RotOverheadClampMap",0)
+	else
+		widgetHandler:RemoveWidget()
 	end
 end
 
@@ -378,7 +381,6 @@ end
 local Json = Json or VFS.Include('common/luaUtilities/json.lua')
 
 local buttonorder = { LeftXAxis, LeftYAxis, RightXAxis, RightYAxis, RightTrigger, LeftTrigger, DpadUp, DpadDown, DpadRight, DpadLeft, Abutton, Bbutton, Xbutton,Ybutton, LShoulderbutton ,RShoulderbutton, RStickButton , LStickButton }
-local oldjoystate = nil
 local function SocketDataReceived(sock, str)
 	--Spring.Echo(str)
 
@@ -504,7 +506,6 @@ function widget:Update(dt) -- dt in seconds
 	local cs = spGetCameraState()
 
 	if cs.name == "rot" and joystate.axes then
-		--Spring.Utilities.TableEcho(cs)
 		if joystate[Ybutton[1]][Ybutton[2]] and joystate[Ybutton[1]][Ybutton[2]] == 1 then -- A button dumps debug
 			Spring.Echo(joystatetostr(joystate))
 		end

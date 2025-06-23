@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Experimental Bots Steps Damages",
@@ -14,34 +16,29 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Exhaustive list of all units that will take damages from krog's footsteps (must be completed)
-local isStompedUnit = {}
+local stompable = {
+	armfav = true,
+	corfav = true,
+	armflea = true,
+	corak = true,
+	armpw = true,
+	leggob = true
+}
+local stompableCopy = table.copy(stompable)
+for name,v in pairs(stompableCopy) do
+	stompable[name..'_scav'] = true
+end
+local stompableDefs = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'armfav') then       -- using string.find to _scav units are included aswell
-		isStompedUnit[udid] = true
-	end
-	if string.find(ud.name, 'corfav') then
-		isStompedUnit[udid] = true
-	end
-	if string.find(ud.name, 'corak') then
-		isStompedUnit[udid] = true
-	end
-	if string.find(ud.name, 'armpw') then
-		isStompedUnit[udid] = true
-	end
-	if string.find(ud.name, 'armflea') then
-		isStompedUnit[udid] = true
+	if stompable[ud.name] then
+		stompableDefs[udid] = v
 	end
 end
 
 local krogkickWeapon = {}
-local kargkickWeapon = {}
 for weaponDefID, def in pairs(WeaponDefs) do
 	if string.find(def.name, 'krogkick') then
 		krogkickWeapon[weaponDefID] = true
-	end
-	if string.find(def.name, 'kargkick') then
-		kargkickWeapon[weaponDefID] = true
 	end
 end
 
@@ -49,7 +46,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if krogkickWeapon[weaponDefID] then
 		if unitTeam and attackerTeam then
 			if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
-				if isStompedUnit[unitDefID] then
+				if stompableDefs[unitDefID] then
 					return 2000, 0
 				else
 					return 0, 0
@@ -58,8 +55,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 				return 0, 0
 			end
 		end
-	elseif kargkickWeapon[weaponDefID] then
-		return 0, 0
 	end
 	return damage, 1
 end

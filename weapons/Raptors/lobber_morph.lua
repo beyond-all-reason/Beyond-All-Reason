@@ -4,7 +4,6 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:genericshellexplosion-large-lightning",
-		impulseboost = 0,
 		impulsefactor = 0,
 		name = "lobberMorph",
 		range = 450,

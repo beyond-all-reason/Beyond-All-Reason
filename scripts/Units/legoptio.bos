@@ -1,0 +1,253 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, door1, door2, neck, boom, nano, wake, turret, sleeve, barrelA, barrelB, flareA1, flareA2, flareA3, flareA4, flareA5, flareA6, flareB1, flareB2, flareB3, flareB4, flareB5, flareB6;
+
+
+static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, notBuilding, Stunned, restore_delay, shoot, barrel;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_BUILD			4
+#define SIG_AIM				8
+
+
+#define BASEPIECE base
+#define HITSPEED <35.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 2
+#define MAXTILT 100
+
+#define SMOKEPIECE base
+#include "unit_hitbyweaponid_and_smoke.h"
+
+RockOnWaves()
+{
+	while(1)
+	{
+		turn Base to x-axis <1.0> speed <1.5>;
+		move Base to y-axis [0.0] speed [0.15];
+		wait-for-turn Base around x-axis;
+		turn Base to x-axis <-1.0> speed <1.5>;
+		move Base to y-axis [-0.1] speed [0.15];
+		wait-for-move Base along y-axis;
+		move Base to y-axis [0.0] speed [0.15];
+		wait-for-turn Base around x-axis;
+		turn Base to x-axis <1.0> speed <1.5>;
+		move Base to y-axis [-0.1] speed [0.15];
+		wait-for-move Base along y-axis;
+	}
+}
+
+
+
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.23] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
+	}
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from wake;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 15000 / waketime;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
+}
+
+
+
+
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	stop-spin barrelA around z-axis decelerate <30>;
+	stop-spin barrelB around z-axis decelerate <30>;
+	turn sleeve to x-axis <-30> speed <50>;
+	spin turret around y-axis speed <30>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+
+Create()
+{
+	start-script RockOnWaves();
+	hide flareA1;
+	hide flareA2;
+	hide flareA3;
+	hide flareA4;
+	hide flareA5;
+	hide flareA6;
+	hide flareB1;
+	hide flareB2;
+	hide flareB3;
+	hide flareB4;
+	hide flareB5;
+	hide flareB6;
+
+	shoot = 1;
+	barrel = 0;
+
+	restore_delay = 3000;
+	set-signal-mask SIG_AIM;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	start-script RestoreAfterDelay();
+}
+
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	stop-spin turret around y-axis;
+	turn turret to y-axis heading speed <200.000000>;
+	turn sleeve to x-axis 0 - pitch speed <200.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+QueryPrimary(piecenum)
+{
+	if(shoot==1) piecenum = flareB1;
+	if(shoot==2) piecenum = flareA1;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = sleeve;
+}
+
+
+
+FirePrimary()
+{
+	//looks like intentionally no visual flares on rocket type AA?
+	//spin barrelA around z-axis speed <600.000000>;
+	//shoot++;
+	//if (shoot>10) shoot = 5;
+
+	
+	if(shoot==1){
+		spin barrelA around z-axis speed <900.000000>;
+		stop-spin barrelB around z-axis decelerate <50>;
+		stop-spin barrelA around z-axis decelerate <30>;
+		//++shoot;
+	}
+	if(shoot==2){
+		spin barrelB around z-axis speed <-900.000000>;
+		stop-spin barrelA around z-axis decelerate <50>;
+		stop-spin barrelB around z-axis decelerate <30>;
+		//++shoot;
+	}
+	++shoot;
+	if(shoot==3){
+		shoot = 1;
+	}
+}
+
+
+
+
+
+SweetSpot(piecenum)
+{
+	piecenum = Base;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door1 type BITMAPONLY | NOHEATCLOUD;
+		//explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode neck type BITMAPONLY | NOHEATCLOUD;
+		//explode boom type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
+		//explode wake type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type FALL | NOHEATCLOUD;
+		explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode boom type FALL | NOHEATCLOUD;
+		explode nano type FALL | NOHEATCLOUD;
+		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode neck type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode boom type SMOKE | FALL | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode boom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

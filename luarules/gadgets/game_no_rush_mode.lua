@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "No Rush Mode",
@@ -66,12 +68,29 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
+	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+	end
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
 		local frame = Spring.GetGameFrame()
 
 		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
+			if cmdID == CMD.INSERT then
+			  -- CMD.INSERT wraps another command, so we need to extract it
+			  cmdID = cmdParams[2]
+			  -- Area commands have an extra radius parameter, so they shift by 4 instead of 3
+			  local paramCountToShift = #cmdParams - 3
+			  -- Shift the parameters to remove the CMD.INSERT wrapper and match normal command format
+			  for i = 1, paramCountToShift do
+			    cmdParams[i] = cmdParams[i + 3]
+			  end
+			  -- Clear any unused parameters after the shift
+			  for i = paramCountToShift + 1, #cmdParams do
+			    cmdParams[i] = nil
+			  end
+			end
 			if cmdID < 0 then
 				if cmdParams[1] and cmdParams[2] and cmdParams[3] then
 					if not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then

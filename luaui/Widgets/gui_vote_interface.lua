@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Vote interface",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
+local L_DEPRECATED = LOG.DEPRECATED
 
 local titlecolor = "\255\190\190\190"
 
@@ -22,17 +26,15 @@ local voteEndDelay = 4
 local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
 local vsx, vsy = Spring.GetViewGeometry()
-local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local myPlayerID = Spring.GetMyPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 
 local isreplay = Spring.IsReplay()
 
+local ColorString = Spring.Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -287,7 +289,6 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -298,7 +299,7 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 end
 
 function widget:PlayerChanged(playerID)
@@ -364,35 +365,19 @@ function widget:GameFrame(n)
 	end
 end
 
-local function colourNames(teamID, returnRgbToo)
+local function colourNames(teamID)
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
 	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	--end
-	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-	local G255 = math.floor(nameColourG * 255)
-	local B255 = math.floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	if returnRgbToo then
-		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255), R255, G255, B255 --works thanks to zwzsg
-	else
-		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
-	end
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
 function widget:AddConsoleLine(lines, priority)
-
+	if priority and priority == L_DEPRECATED then return end
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
-		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 
 			-- system message
@@ -444,8 +429,7 @@ function widget:AddConsoleLine(lines, priority)
 					local isTeamResignVote = teamResignTarget ~= nil
 
 					local isResignVote = isIndividualResignVote or isTeamResignVote
-					local isResignVoteMyTeam = (isIndividualResignVote and isTeamPlayer(individualResignTarget))
-						or (isTeamResignVote and isTeamPlayer(teamResignTarget))
+					local isResignVoteMyTeam = mySpec or (isIndividualResignVote and isTeamPlayer(individualResignTarget)) or (isTeamResignVote and isTeamPlayer(teamResignTarget))
 
 					-- colorize playername
 					if isResignVote or isResignVoteMyTeam then

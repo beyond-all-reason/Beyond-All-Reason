@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Controller Test",
@@ -25,7 +27,7 @@ function widget:Initialize()
 	end
 
 	Spring.Echo("ControllerTest: Found controllers")
-	Spring.Debug.TableEcho(availableControllers)
+	Spring.Echo(availableControllers)
 
 	-- Find already connected controllers and disconnect if more than 1 already connected
 	for _, controller in pairs(availableControllers) do
@@ -55,7 +57,7 @@ function widget:Update(dt)
 		uiSec = 0
 
 		Spring.Echo("ControllerTest: Controller State")
-		Spring.Debug.TableEcho(Spring.GetControllerState(connectedController))
+		Spring.Echo(Spring.GetControllerState(connectedController))
 	end
 end
 

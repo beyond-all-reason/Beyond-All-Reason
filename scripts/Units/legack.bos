@@ -1,11 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD 4	
-#define BASEPIECE pelvis
-#define MOVESCALE 5
+#define SIGNAL_BUILD 2
 #define SIGNAL_MOVE 1
 
 piece pelvis, aimy1, torso, shell, arm, nanogun, cagelight, cagelight_emit, nano, 
@@ -14,8 +10,9 @@ leg1_FL, leg2_FL, foot_FL,
 leg1_BR, leg2_BR, foot_BR,
 leg1_BL, leg2_BL, foot_BL;
 
-static-var  isMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+static-var  isMoving, readyToBuild, animSpeed, maxSpeed, animFramesPerKeyframe;
             
+			
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {// For C:\Users\logst\Downloads\BAR\LegAdvBotFab.blend1 Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -198,33 +195,54 @@ Walk() {// For C:\Users\logst\Downloads\BAR\LegAdvBotFab.blend1 Created by https
 	}
 }
 
+// REMEMBER TO animspeed = 4 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 7/2) / animSpeed; // Zecrus please stop changing the unit speed or it will start skating again :/
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<1) animSpeed=1;
+		if (animspeed>7) animSpeed = 7;
+		sleep 98;
+	}
+}
+
+StartMoving(reversing)
+{
+	isMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script UnitSpeed();
+	start-script Walk();
+}
+
 // Call this from StopMoving()!
 StopWalking() {
 	set-signal-mask SIGNAL_MOVE;
 
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	
+	move pelvis to x-axis [0] speed [500] / animSpeed;
+	move pelvis to y-axis [0] speed [500] / animSpeed;
+	move pelvis to z-axis [0] speed [500] / animSpeed;
+	
 	turn leg1_FR to z-axis <-30> speed <200>;
 	turn leg2_FR to z-axis <45> speed <200>;
 	turn foot_FR to z-axis <-15> speed <200>;
-	
 	turn leg1_BL to z-axis <30> speed <200>;
 	turn leg2_BL to z-axis <-45> speed <200>;
 	turn foot_BL to z-axis <15> speed <200>;
-	
 	turn leg1_FL to z-axis <30> speed <200>;
 	turn leg2_FL to z-axis <-45> speed <200>;
 	turn foot_FL to z-axis <15> speed <200>;
-	
 	turn leg1_BR to z-axis <-30> speed <200>;
 	turn leg2_BR to z-axis <45> speed <200>;
 	turn foot_BR to z-axis <-15> speed <200>;
-	
 	sleep (2000);
-	
-	move pelvis to x-axis [0] speed (([500]*MOVESCALE)/100) / animSpeed;
-	move pelvis to y-axis [0] speed (([500]*MOVESCALE)/100) / animSpeed;
-	move pelvis to z-axis [0] speed (([500]*MOVESCALE)/100) / animSpeed;
 	
 	turn leg1_FR to y-axis <45> speed <100>;
 	turn leg1_FR to z-axis <0> speed <200>;
@@ -235,7 +253,6 @@ StopWalking() {
 	turn leg1_FR to z-axis <-30> speed <100>;
 	turn leg2_FR to z-axis <45> speed <100>;
 	turn foot_FR to z-axis <-15> speed <100>;
-	
 	turn leg1_BL to y-axis <45> speed <100>;
 	turn leg1_BL to z-axis <0> speed <200>;
 	turn leg2_BL to z-axis <-45> speed <200>;
@@ -245,7 +262,6 @@ StopWalking() {
 	turn leg1_BL to z-axis <30> speed <100>;
 	turn leg2_BL to z-axis <-45> speed <100>;
 	turn foot_BL to z-axis <15> speed <100>;
-	
 	turn leg1_FL to y-axis <-45> speed <100>;
 	turn leg1_FL to z-axis <0> speed <200>;
 	turn leg2_FL to z-axis <-45> speed <200>;
@@ -255,8 +271,6 @@ StopWalking() {
 	turn leg1_FL to z-axis <30> speed <100>;
 	turn leg2_FL to z-axis <-45> speed <100>;
 	turn foot_FL to z-axis <15> speed <100>;
-
-	
 	turn leg1_BR to y-axis <-45> speed <100>;
 	turn leg1_BR to z-axis <-0> speed <200>;
 	turn leg2_BR to z-axis <45> speed <200>;
@@ -269,23 +283,7 @@ StopWalking() {
 	
 }
 
-// REMEMBER TO animspeed = 4 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<3) animSpeed=3;
-		if (animspeed>10) animSpeed = 10;
-		sleep 131;
-	}
-}
-
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
@@ -299,41 +297,7 @@ StopMoving(){
 }
 
 
-Go()
-{
-	show cagelight_emit;
-	
-	turn nanogun to x-axis <-15> speed <180>;
-	
-	sleep(100);
-	
-	turn arm to x-axis <15> speed <180>;
-	
-	move cagelight to y-axis [2] speed [20];
-	
-	sleep 320;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	
-	hide cagelight_emit;
-	
-	move cagelight to y-axis [0] speed [20];
-	
-	turn arm to x-axis <-50> speed <180>;	
-
-	turn nanogun to x-axis <65> speed <180>;
-	
-	wait-for-turn nanogun around y-axis;
-	
-	turn torso to y-axis <0.000000> speed <160.000000>;
-	
-	wait-for-turn torso around y-axis;
-}
-
-#define pelvisPIECE pelvis
+#define BASEPIECE pelvis
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
@@ -341,128 +305,89 @@ Stop()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
 Create()
 {
-	hide nano;
-	hide aimy1;
 	hide cagelight_emit;
+	hide nano;
 	isMoving = FALSE;
-	nanoNozzle = 0;
-	notBuilding = 1;
 	animSpeed = 4;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	
-	turn arm to x-axis <-50> speed <2000>;	
-	turn nanogun to x-axis <65> speed <2000>;
-	
-	move pelvis to x-axis [0] speed <2000>;
-	move pelvis to y-axis [0] speed <2000>;
-	move pelvis to z-axis [0] speed <2000>;
-	
-	turn leg1_FR to y-axis <45> speed <2000>;
-	turn leg1_FR to z-axis <-30> speed <2000>;
-	turn leg2_FR to z-axis <45> speed <2000>;
-	turn foot_FR to z-axis <-15> speed <2000>;
-	
-	turn leg1_BL to y-axis <45> speed <2000>;
-	turn leg1_BL to z-axis <30> speed <2000>;
-	turn leg2_BL to z-axis <-45> speed <2000>;
-	turn foot_BL to z-axis <15> speed <2000>;
-	
-	turn leg1_FL to y-axis <-45> speed <2000>;
-	turn leg1_FL to z-axis <30> speed <2000>;
-	turn leg2_FL to z-axis <-45> speed <2000>;
-	turn foot_FL to z-axis <15> speed <2000>;
-
-	turn leg1_BR to y-axis <-45> speed <2000>;
-	turn leg1_BR to z-axis <-30> speed <2000>;
-	turn leg2_BR to z-axis <45> speed <2000>;
-	turn foot_BR to z-axis <-15> speed <2000>;
+	turn arm to x-axis <-50> now;	
+	turn nanogun to x-axis <65> now;
+	turn leg1_FR to y-axis <45> now;
+	turn leg1_FR to z-axis <-30> now;
+	turn leg2_FR to z-axis <45> now;
+	turn foot_FR to z-axis <-15> now;
+	turn leg1_BL to y-axis <45> now;
+	turn leg1_BL to z-axis <30> now;
+	turn leg2_BL to z-axis <-45> now;
+	turn foot_BL to z-axis <15> now;
+	turn leg1_FL to y-axis <-45> now;
+	turn leg1_FL to z-axis <30> now;
+	turn leg2_FL to z-axis <-45> now;
+	turn foot_FL to z-axis <15> now;
+	turn leg1_BR to y-axis <-45> now;
+	turn leg1_BR to z-axis <-30> now;
+	turn leg2_BR to z-axis <45> now;
+	turn foot_BR to z-axis <-15> now;
 }
 
-Activate()
+StartBuilding(heading, pitch)
 {
-	start-script RequestState(0);
-}
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
-StartBuilding(torsoing, pitch)
-{
-	show nano;
-	turn aimy1 to y-axis torsoing speed <160>;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	if(!readyToBuild)
+	{
+		turn nanogun to x-axis <-15> speed <180>;
+		sleep(100);
+		turn arm to x-axis <15> speed <180>;
+		move cagelight to y-axis [2] speed [20];
+		sleep 320;
+		readyToBuild = TRUE;
+	}
+	
+	turn aimy1 to y-axis heading speed <160.0>;
 	wait-for-turn aimy1 around y-axis;
+	
 	set INBUILDSTANCE to 1;
+	readyToBuild = TRUE;
+	show nano;
+
 	show cagelight_emit;
-	spin cagelight_emit around y-axis speed <450>;
+	spin cagelight_emit around y-axis speed <150>;
 }
 
 StopBuilding()
 {
-	hide nano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
-	hide cagelight_emit;
-	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	
-	turn aimy1 to y-axis <0> speed <160.000000>;
-	start-script RequestState(1);
+	hide cagelight_emit;
+	turn cagelight_emit to z-axis <0> speed <1000>;
+	hide nano;
+	move cagelight to y-axis [0] speed [20];
+
+	sleep 6000;
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+	
+	turn arm to x-axis <-50> speed <180>;	
+	turn nanogun to x-axis <65> speed <180>;
+	wait-for-turn nanogun around y-axis;
+	turn aimy1 to y-axis <0.0> speed <160.0>;
+	wait-for-turn aimy1 around y-axis;
+	
 }
 
-
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 }
-
-/*
-Targettorsoing(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
 
 SweetSpot(piecenum)
 {
-	piecenum = torso;
+	piecenum = nanogun;
 }
 
 Killed(severity, corpsetype)

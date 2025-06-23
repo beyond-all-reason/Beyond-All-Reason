@@ -9,7 +9,6 @@ return {
 		buildpic = "armdecadet3.DDS",
 		buildtime = 90000,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "52 52 153",
 		collisionvolumetype = "CylZ",
@@ -39,7 +38,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			techlevel = 3,
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {
@@ -118,7 +117,6 @@ return {
 				energypershot = 1000,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.1,
 				impulsefactor = 0.1,
 				name = "Mini Rapid-fire long-range plasma cannon",
 				noselfdamage = true,
@@ -132,6 +130,9 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 660,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 210,
 					shields = 105,

@@ -1,5 +1,118 @@
-﻿# June 2024
-• [Proposed Units Rework Modoption] Whistler and Lasher speeds increased by 10 (45->55, 42->52), ground range reduced by 50 (575->525, 600->550), and ground dps increased by 15% (22->25).  Script improvements should have them no longer try to aim at ground targets outside of ground range but within air range.  The goal of the speed change is to allow the units to more easily follow your main forces and provide support, with the reduced range to offset the improvement to kiting.  
+# May 2025
+• [Legion changes] 
+   - 2 new units added: Aquilon T2 aa bot, Chimera T2 pop-up turret
+   - Cluster plasma was rebalanced and is overall stronger than before
+   - Wildfire removed from T2 air lab, Skuttle removed from t2 bot lab, Behemoth removed from T3 gantry
+   - Script improvements to allow several units to reliably fire while turning: Alaris, Decurion, Quickshot, Phobos
+   - Mosquito stockpile count reduced 8->4, stockpile rate increased slightly
+   - Gladiator projectile speed increased 320->360 to improve accuracy
+   - Lance cost reduced 260->240m, speed increased slightly
+• [Tiger, Turtle, Sumo] Mass 750, to make them transportable by light transports.
+• [Spybot] Emp immune again. Max stuntime vs units 8 -> 10
+• [Banisher] Energycost 17000 -> 23000, Turnrate 300 -> 250, Acceleration 0.2269 -> 0.2
+• [Tzar] Buildcost 26100 -> 30000
+• [Lava]: Units in lava slow down up to 5x depending on their submersion level
+
+# April 2025
+• [Pawn] 1420 -> 1650 buildtime
+• [Pawn] 52m 870e -> 54m 900e
+• [Grunt] 210 -> 215 range
+• [Spybots] Can paralyze buildings up to 20s
+• [Antinuke buildings] Health 3650 -> 3300 (facilitating a full-length stun from spybot)
+• [Shuriken + Abductor] Regain targetmoveerror, revert Shuriken reloadtime 1.3s -> 1.2s
+
+# March 2025
+• [Armada solar] Buildtime 2800 -> 2600 
+• [Armada wind] Metalcost 37 -> 40
+• [Cortex wind] Metalcost 45 -> 43, Health 199 -> 220
+• [Armada tidal] Energycost 250 -> 200
+• [Armada asolar] Metalcost 370 -> 350
+• [Cortex cons] +5% BP
+• [Exploiter] Buildtime 2720 -> 2900
+• [T2 radars] Metalcost 560 -> 400, Energycost 19000 -> 14000, Buildtime 11800 -> 8000
+• [Sneaky Pete] Cloaking removed
+• [Jammer ships] Costs +130%, Health +130%, Speed 61 -> 40
+• [Spybots] Cloaking cost 100/50 -> 40/15, EMP immunity removed, Attack command for self-destruct added, Damage 56000 -> 5000, Paralyzetime 35/20 -> 8s
+• [Banisher] Can now fire in all directions, Sightdistance 550 -> 650, Energycost 23000 -> 17000, Improved aim/tracking
+• [Tremor] Damage 150 -> 200, AoE 200 -> 210, Weapon hits a wider area
+• [Poison Arrow] Energycost 29000 -> 21000, Buildtime 22200 -> 19000, Sightdistance 385 -> 500
+• [Turtle] Sightdistance 372 -> 500
+• [Garpike/Pincer] Sightdistance 305 -> 500, Faster turning turrets
+• [Hound] Lost gauss weapon switch, Metalcost 300 -> 285
+• [Recluse] Range 600 -> 575, Speed 52 -> 47
+• [Grunt] Metalcost 36 --> 43, Energycost 880 -> 840, Range 230 -> 210, Turnrate 1391 -> 1200
+• [Tick] Metalcost 17 -> 21, Energycost 340 -> 300,  Health 61 -> 60
+• [Pawn] Metalcost 48 -> 52, Energycost 960 -> 870, Health 335 -> 370
+• [Rover] Health 89 -> 105 
+• [Rascal] Health 75 -> 90
+• [Blitz] Health 690 -> 750, Ellipsoid hitbox, Sightrange 299 -> 350
+• [Incisor] Buildtime 1761 -> 2200, Sightrange 273 -> 330
+• [Shuriken] Reloadtime 1.2s -> 1.3s
+• [Stormbringer] Drops bombs 17% closer together
+• [Banshee] Health 485 -> 560, Turnrate increased, New weapon graphics with functionally similar stats
+• Inaccuracy removed from all T1 laser weapons
+
+# January 2025
+• [Artillery] The High/Low Trajectory toggle has been removed and been automated. Both modes now share the same damage and AOE. Aiming low is preferred, but if there's no low trajectory targets in range  or the manually selected target cannot be shot with low trajectory, high trajectory will be used instead for a short time.
+    The following units are affected:
+    - [Gauntlet] (T1 Plasma Artillery Turret)
+    - [Agitator] (T1 Plasma Artillery Turret)
+    - [Rattlesnake] (T2 Plasma Popup Artillery)
+    - [Persecutor] (T2 Plasma Popup Artillery)
+    - [Vanguard] (T3 Mobile All-Terrain Artillery)
+• [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe  
+• [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
+• [Kraken] The Cor T2 battlesub's torpedo aoe increased
+
+# December 2024
+• [Impulse] Nukes + Plasma Cannons + Shiva + Catapult + Vanguard + Tzar + Fatboy + Banisher + Poison Arrow + Gunslinger + Ballistic Missile Launchers got impulse added to their weapon. High-HP units with low mass got a mass increase.
+• [Tremor] Impulse 140% -> 80%, EdgeEffectiveness 90% -> 15%
+• [Calamity + Raghnarok] +10% E/M cost, energycost and damage of individual shot increased, reloadtime increased (same dps as before), AoE lowered
+• [Light Mine] Cloakcost 0.5 -> 1e/s, metalcost 5 -> 7, buildtime 50 -> 100
+• [Medium Mine] Cloakcost 1 -> 2e/s, metalcost 16 -> 25, buildtime 100 -> 300, EdgeEffectiveness 0.7 -> 0.5, Impulse 1 -> 0.8
+• [Heavy Mine] Cloakcost 1.5 -> 6e/s, metalcost 21 -> 50, buildtime 125 -> 700, EdgeEffectiveness 0.7 -> 0.5, Impulse 1 -> 0.8, damage 1390 -> 3000, AoE 300 -> 330
+• [Crawling Bombs] Use bigger (self-d) explosion on attack command. Dying to enemy fire still results in small blast (including while being transported). Transportable.
+• [Crawling Bombs death explosions] AoE 432 -> 400, damage 3350 -> 2700, damage vs Crawlling Bombs 220 -> 400 (chain easier)
+• [Roach] Speed 81 -> 76
+• [Skuttle] Metalcost 540 -> 755, energycost 26 000 -> 27 000, cloakcost 150 -> 15, cloakcost moving 400 -> 40
+• [Destroyers] Depthcharge turnrate increased -> hits crawling bombs reliably
+
+# October 2024
+• [All units] EMP resist for units is standardized, and units that had low emp resists now take full emp damage.  Units that had between 50-95% emp resist now all have 80% emp resist.  Units that had 95+% emp resist are now fully emp immune.  
+• [New units] Heavy T1 air transport for arm (Osprey) and for cor (Hephastus) moved to the basegame.  These transports can carry the same weight as T2 transports but at a lower movespeed, and are able to transport the commander.  Osprey costs 190m 4000E, has 110 speed, and 630 health.  Hephaestus costs 190m 4000E, has 100 speed, and 800 health.  
+• [Stork/Hercules] T1 light air transports no longer able to transport the commander, and can now only carry units below 750 metal.  Energy/metal/buildcost reverted to earlier values (68m 1300E 3850bp for Stork and 74m 1450E 4120bp for Hercules)
+• [Shuriken] emp damage per shot reduced from 800-600, weapon can no longer fire at air units
+• [Abductor] emp damage per shot reduced 22500->10500, beam duration 0.5->0.2s (improves accuracy), stuntime reduced from 15->6s
+• [Liche] weapon no longer has an extra impulse multiplier
+• [Skyhook] T2 cor air transport speed increased 210->235, health increased 1830->2200.  Line of sight increased 260->500
+• [Webber] No longer able to target air units
+
+# September 2024
+• [All units] Gravity standardized for all projectiles to 130, so weapons will behave the same way across all maps.  
+• [Rocketeer + Aggravator] Reverted the last 2 balance changes: damage per shot 173->157, reloadtime 4->3.8s, speed/acceleration 5% higher
+• [Lazarus + Graverobber] Metal cost increased 110->130, E cost unchanged, buildtime increased 2400->2800
+• [Mace] Health increased 900->1000
+• [Thug] Health increased 1000->1100, buildtime increased from 1970->2100 so it doesn't get repaired too quickly
+• [Tremor] Reloadtime reverted to 0.5s, impulse reduced 30%
+• [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defences (Rattlesnake, Persecutor, Pulsar)
+
+# August 2024
+• [Tremor] firemodes unified to remove the toggle, and effective DPS in target area increased. Wasp bugfixed, and now has mild tracking on rockets, so will miss shots less often.
+• [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
+
+# July 2024
+• [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
+• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
+• [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.  
+• [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
+• [Centurion] Unit script improved so the unit should keep firing while turning
+• [T2 Cruisers] Reloadtime of depthcharges reduced by 10%
+• [T2 Lightning/Flamethrower Ships] Cost reduced 25%, health reduced 20%, speed increased 6%, dps reduced 20%.  Flamethrower ship model size scaled down by 10%
+
+# June 2024
+• [Rocketeer + Aggravator] Speed and acceleration reduced by 5%
+• [Whistler + Lasher] Changes from proposed units rework modoption moved to base game. {Whistler and Lasher weapon switches from ground and anti-air modes.  Anti-air has 700 range and tracking missiles, while ground has 525/550 range and no tracking.  Ground speeds increased by 10 (45->55, 42->52), ground dps increased by 40% (17->25)}
+• [T1 Air Transports] E costs increased by 70%, buildtime increased by 20%.  This change is to increase the time it takes to rush transports and share them to the team.
 • [Herring] unit now switches between ground missiles and longer range tracking aa missiles (750 range).  No change to ground missile stats.  Unit now takes 50% damage from emp instead of 30%.
 • [Dragon Claw/Maw] Damage taken while closed increased from 25%->33%.  Dragon Claw range reduced 440->430
 
@@ -38,14 +151,14 @@
 • [Release Candidate Modoption] Dragon rework is added to the list of units in the release candidates modoption.  This updates the dragon model and changes its weapons.  An anti-air turret is added so that the unit can deal with small amounts of T1 fighters, the front weapon is changed from a laser to a flamethrower, and the side turrets have been split from 2 medium to 4 smaller laser turrets.  
 • [Consul] Recluse removed from build list, Webber added to build list.
 • [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
-	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
-	- T1 fighters will kill T2 fighters in 3 shots instead of 2
-	- Flak will kill T2 fighters in 2 shots instead of 1
-	- To make up for the extra durability, the cost of T2 fighters is increased
-	- Nighthawk (Cor T2 fighter) cost increased from 105m3700E -> 135m4750E, and weapon damage set to 500/shot
-	- Highwind (Arm T2 fighter) cost increased from 120m4900E -> 140m5700E, and weapon damage set to 750/shot
-	- The commander no longer deals extra damage against bombers
-	- Chainsaw and Eradicator damage per shot against fighters and gunships increased to match with previous damage against bombers
+   - T1 fighters will kill other T1 fighters in 2 shots instead of 1
+   - T1 fighters will kill T2 fighters in 3 shots instead of 2
+   - Flak will kill T2 fighters in 2 shots instead of 1
+   - To make up for the extra durability, the cost of T2 fighters is increased
+   - Nighthawk (Cor T2 fighter) cost increased from 105m3700E -> 135m4750E, and weapon damage set to 500/shot
+   - Highwind (Arm T2 fighter) cost increased from 120m4900E -> 140m5700E, and weapon damage set to 750/shot
+   - The commander no longer deals extra damage against bombers
+   - Chainsaw and Eradicator damage per shot against fighters and gunships increased to match with previous damage against bombers
 • [Quaker] Reworked to be larger with a heavier weapon, so that the T2 veh artillery has a similar asymmetry to the T1 veh artillery.  Cost changed from 280m 3300E -> 360m 4000E, health increased 830 -> 1000, max speed reduced 54 -> 48, Damage per shot increased 300 -> 420, aoe increased 129 -> 144, reloadtime increased 4.25s -> 5s
 • [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
 • [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
@@ -65,10 +178,10 @@
 • [Rocketeer] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
 • [Aggravator] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
 • [Laser/Lightning Weapons] targetmovererror set to zero for T2+ units. 
-    - Hitscan weapons no longer randomly miss small fast moving targets.
-    - Affected Armada Units: Platypus, Welder, Titan blue laser, Thor side EMP lasers, Starlight.
-    - Affected Cortex Units: Duck, Sumo, Mammoth, Termite, Behemoth red lasers, Juggernaut heat ray.
-    - This matches existing behavior of Jaguar, Razorback, Thor main cannon, and Cataphract.
+   - Hitscan weapons no longer randomly miss small fast moving targets.
+   - Affected Armada Units: Platypus, Welder, Titan blue laser, Thor side EMP lasers, Starlight.
+   - Affected Cortex Units: Duck, Sumo, Mammoth, Termite, Behemoth red lasers, Juggernaut heat ray.
+   - This matches existing behavior of Jaguar, Razorback, Thor main cannon, and Cataphract.
 
 # July 2023
 • [Whistler] Range decreased from 600 -> 575

@@ -4,10 +4,9 @@ return {
 		maxdec = 0.04415,
 		energycost = 3100,
 		metalcost = 190,
-		buildpic = "legmh.DDS",
+		buildpic = "LEGMH.DDS",
 		buildtime = 3300,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 18 44",
 		collisionvolumetype = "Box",
@@ -36,7 +35,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -122,7 +121,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "leglargerocket.s3o",
@@ -152,6 +150,10 @@ return {
 				damage = {
 					default = 400,
 					subs = 175,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 805,
 				},
 			},
 		},

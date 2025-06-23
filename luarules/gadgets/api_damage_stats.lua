@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
   return {
     name      = "Stats",
@@ -93,7 +95,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     info[unitDefID].dmg_rec = info[unitDefID].dmg_rec + damage
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if not attackerDefID then return end
     if not unitDefID then return end
     if not info[attackerDefID] then return end

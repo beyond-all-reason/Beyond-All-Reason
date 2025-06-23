@@ -2,6 +2,8 @@
 -- but can run out of fuel when they dont traight fly to maxrange
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Starburst Missile Liftoff",
@@ -11,7 +13,7 @@ function gadget:GetInfo()
 		date = "February 2018",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 

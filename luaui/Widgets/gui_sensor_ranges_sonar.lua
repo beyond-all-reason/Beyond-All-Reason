@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Sensor Ranges Sonar",
@@ -29,9 +31,12 @@ local circleSegments = 64
 -- TODO: draw ally ranges in diff color!
 -- Dont even do anything if the map does not natively have water.
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -127,8 +132,8 @@ void main() {
 
 
 local function goodbye(reason)
-  Spring.Echo("Sensor Ranges Sonar widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget()
+	Spring.Echo("Sensor Ranges Sonar widget exiting with reason: "..reason)
+	widgetHandler:RemoveWidget()
 end
 
 local function initgl4()
@@ -137,30 +142,30 @@ local function initgl4()
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	circleShader =  LuaShader(
     {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-	  fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(usestipple) ),
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0,
-        },
-      uniformFloat = {
-        circleopacity = {1},
-      },
+		vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
+		fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(usestipple) ),
+		--geometry = gsSrc, no geom shader for now
+		uniformInt = {
+			heightmapTex = 0,
+		},
+		uniformFloat = {
+			circleopacity = {1},
+		},
     },
     "sonarrange shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile sonarrange shader GL4 ") end
-  local circleVBO,numVertices = makeCircleVBO(circleSegments)
+  local circleVBO,numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
   local circleInstanceVBOLayout = {
 		  {id = 1, name = 'startposrad', size = 4}, -- the start pos + radius
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "sonarrangeVBO")
+  circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,32, "sonarrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
-  circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+  circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts
@@ -238,7 +243,6 @@ local function processUnit(unitID, unitDefID, noUpload)
 	if (not (spec and fullview )) and ( not spIsUnitAllied(unitID)) then return end -- display mode for specs
 
 	local unitDefID = spGetUnitDefID(unitID)
-
     if not unitRange[unitDefID] then
         return
     end
@@ -246,25 +250,19 @@ local function processUnit(unitID, unitDefID, noUpload)
 	local teamID = Spring.GetUnitTeam(unitID)
 	if teamID == gaiaTeamID then return end -- no gaia units
 
-	local x, y, z = spGetUnitPosition(unitID)
-
-    local range = unitRange[unitDefID]['range']
-    local height = unitRange[unitDefID]['height']
-
     unitList[unitID] = unitDefID
 	activeUnits[unitID] = false
-	-- shall we jam it straight into the table?
+	local x, y, z = spGetUnitPosition(unitID)
 	pushElementInstance(circleInstanceVBO,{x,y,z,0, x,y,z,0,rangeColor[1],rangeColor[2],rangeColor[3],rangeColor[4] },unitID, true, noUpload)
-
 end
 
 
 function widget:Initialize()
-	if Spring.GetGroundExtremes() > 50 then 
+	if Spring.GetGroundExtremes() > 50 then
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -292,12 +290,12 @@ function widget:Shutdown()
 	WG.sonarrange = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  if 	unitList[unitID] then
-    unitList[unitID] = nil
-	activeUnits[unitID] = nil
-    popElementInstance(circleInstanceVBO,unitID)
-  end
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if unitList[unitID] then
+		unitList[unitID] = nil
+		activeUnits[unitID] = nil
+		popElementInstance(circleInstanceVBO,unitID)
+	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
@@ -312,8 +310,6 @@ function widget:UnitFinished( unitID,  unitDefID,  unitTeam)
 	processUnit( unitID, unitDefID )
 end
 
-
-
 function widget:GameFrame(n)
 	if spec and fullview then return end
 	if n % 15 == 0 then -- this 15 frames is important, as the vertex shader is interpolating at this rate too!
@@ -323,31 +319,19 @@ function widget:GameFrame(n)
 			if not isBuilding[unitDefID] then
 				local x, y, z = spGetUnitPosition(unitID)
 
-
 				for i=instanceDataOffset + 1, instanceDataOffset+4 do
 					instanceData[i] = instanceData[i+4]
 				end
 				instanceData[instanceDataOffset+5] = x
 				instanceData[instanceDataOffset+6] = y
 				instanceData[instanceDataOffset+7] = z
-
 			end
-
 
 			local range = unitRange[unitDefID]['range']
 			local active = spGetUnitIsActive(unitID)
-			if active then
-				instanceData[instanceDataOffset+8] = range
-			else
-				instanceData[instanceDataOffset+8] = 0
-			end
-			if activeUnits[unitID] then
-				instanceData[instanceDataOffset+4] = range
-			else
-				instanceData[instanceDataOffset+4] = 0
-			end
+			instanceData[instanceDataOffset+8] = active and range or 0
+			instanceData[instanceDataOffset+4] = activeUnits[unitID] and range or 0
 			activeUnits[unitID] = active
-
 
 			--pushElementInstance(circleInstanceVBO,instanceData,unitID, true, true) -- overwrite data and dont upload!, but i am scum and am directly modifying the table
 		end
@@ -361,7 +345,6 @@ function widget:DrawWorld()
     if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 
 	if circleInstanceVBO.usedElements == 0 then return end
-
 
 	if opacity < 0.01 then return end
 	glColorMask(false, false, false, false)
@@ -393,7 +376,7 @@ function widget:DrawWorld()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
-	
+
 	--gl.DepthMask(false)
 	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)

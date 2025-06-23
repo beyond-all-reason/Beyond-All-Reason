@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Team Death Effect",
@@ -88,7 +90,7 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 		local units = Spring.GetTeamUnits(teamID)
 		totalUnits = totalUnits + #units
 	end
-	periodMult = (periodMult or 1) * math.max(0.33, math.min(1, totalUnits / 300))	-- make low unitcount blow up faster
+	periodMult = (periodMult or 1) * math.clamp(totalUnits / 300, 0.33, 1)	-- make low unitcount blow up faster
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do

@@ -1,28 +1,26 @@
 return {
 	corsent = {
-		maxacc = 0.05823,
 		airsightdistance = 900,
-		maxdec = 0.11647,
-		energycost = 10500,
-		metalcost = 470,
 		buildpic = "CORSENT.DDS",
 		buildtime = 12000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
+		energycost = 10500,
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
+		health = 2700,
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 2700,
+		maxacc = 0.05823,
+		maxdec = 0.11647,
 		maxslope = 14,
-		speed = 69.0,
 		maxwaterdepth = 12,
+		metalcost = 470,
 		movementclass = "TANK3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
@@ -31,6 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 338,
+		speed = 69,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",
@@ -40,11 +39,11 @@ return {
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {
-			unitgroup = 'aa',
 			model_author = "Mr Bob, remodelled by PtaQ",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles/t2",
+			subfolder = "CorVehicles/T2",
 			techlevel = 2,
+			unitgroup = "aa",
 		},
 		featuredefs = {
 			dead = {
@@ -117,7 +116,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Missiles",
@@ -132,12 +130,12 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			mobileflak = {
 				accuracy = 1000,
@@ -153,7 +151,6 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flak",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "FlakCannon",

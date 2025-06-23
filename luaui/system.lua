@@ -17,14 +17,14 @@ if (System == nil) then
 	if tracy == nil then
 		Spring.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
 		tracy = {}
-		tracy.ZoneBeginN = function () return end 
-		tracy.ZoneBegin = function () return end 
-		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end 
-		tracy.Message = function () return end 
-		tracy.ZoneName = function () return end 
-		tracy.ZoneText = function () return end 
+		tracy.ZoneBeginN = function () return end
+		tracy.ZoneBegin = function () return end
+		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end
+		tracy.Message = function () return end
+		tracy.ZoneName = function () return end
+		tracy.ZoneText = function () return end
 	end
-	
+
 	System = {
 		--
 		--  Custom LuaUI variables
@@ -42,6 +42,7 @@ if (System == nil) then
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = Game.CustomCommands.GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,
@@ -71,6 +72,7 @@ if (System == nil) then
 		-- Custom libraries
 
 		Json = Json,
+		RmlUi = RmlUi,
 
 		-- luasocket
 		socket          = socket,

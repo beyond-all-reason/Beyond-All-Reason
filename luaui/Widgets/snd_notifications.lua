@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Notifications",
@@ -14,7 +16,6 @@ end
 local defaultVoiceSet = 'en/allison'
 
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
-local useDefaultVoiceFallbackCustom = true    -- only used for dynamicly added notifications like scavengers do
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
@@ -26,6 +27,7 @@ local spoken = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local lowpowerThreshold = 7        -- if there is X secs a low power situation
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
+local updateCommandersFrames = Game.gameSpeed * 5
 
 --------------------------------------------------------------------------------
 
@@ -35,6 +37,13 @@ VFS.Include('common/wav.lua')
 local language = Spring.GetConfigString('language', 'en')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
+-- fix old config
+if not string.find(voiceSet, '/', nil, true)	then
+	Spring.SetConfigString("voiceset", defaultVoiceSet)
+	voiceSet = defaultVoiceSet
+end
+
 if string.sub(voiceSet, 1, 2) ~= language then
 	local languageDirs = VFS.SubDirs('sounds/voice', '*')
 	for k, f in ipairs(languageDirs) do
@@ -48,50 +57,20 @@ if string.sub(voiceSet, 1, 2) ~= language then
 	end
 end
 
+
 local LastPlay = {}
 local notification = {}
-local customNotifications = {}
 local notificationList = {}
 local notificationOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
+local gameover = false
 
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
-
-local function addNotification(name, soundFiles, minDelay, i18nTextID, unlisted)
-	notification[name] = {
-		delay = minDelay,
-		textID = i18nTextID,
-		voiceFiles = soundFiles,
-	}
-	notificationList[name] = true
-	if not unlisted then
-		notificationOrder[#notificationOrder + 1] = name
-	end
-end
-
--- only used by scavenger gadget atm
-local function AddCustomNotification(name, files, minDelay, i18nTextID, unlisted)
-	customNotifications[name] = { files, minDelay, i18nTextID, unlisted }
-	local newFiles = {}
-	for i, file in pairs(files) do
-		if VFS.FileExists(soundFolder .. file) then
-			newFiles[#newFiles + 1] = soundFolder .. file
-		elseif useDefaultVoiceFallbackCustom and VFS.FileExists(defaultSoundFolder .. file) then
-			newFiles[#newFiles + 1] = defaultSoundFolder .. file
-			--Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..'),  using default voiceset instead ('..defaultVoiceSet..')')
-		else
-			Spring.Echo('missing custom voice notification file: "' .. soundFolder .. file .. '"   (' .. name .. ')')
-		end
-	end
-	if newFiles[1] then
-		addNotification(name, newFiles, minDelay, i18nTextID, unlisted)
-	end
-end
 
 local voiceSetFound = false
 local files = VFS.SubDirs('sounds/voice/' .. language, '*')
@@ -104,6 +83,19 @@ for k, file in ipairs(files) do
 end
 if not voiceSetFound then
 	voiceSet = defaultVoiceSet
+end
+
+local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial)
+	notification[name] = {
+		delay = minDelay,
+		textID = i18nTextID,
+		voiceFiles = soundFiles,
+		tutorial = tutorial
+	}
+	notificationList[name] = true
+	if not tutorial then
+		notificationOrder[#notificationOrder + 1] = name
+	end
 end
 
 -- load and parse sound files/notifications
@@ -131,7 +123,7 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
 		end
 	end
-	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.unlisted) -- bandaid, picking text from first variation always.
+	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial) -- bandaid, picking text from first variation always.
 end
 
 local unitsOfInterestNames = {
@@ -141,22 +133,28 @@ local unitsOfInterestNames = {
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
+	leglrpc = 'LrpcDetected',
 	corbuzz = 'LrpcDetected',
 	armvulc = 'LrpcDetected',
+	legstarfall = 'LrpcDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	cormando = 'CommandoDetected',
 	armthovr = 'TransportDetected',
 	corthovr = 'TransportDetected',
 	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
+	leglts = 'AirTransportDetected',
+	armhvytrans = 'AirTransportDetected',
+	corhvytrans = 'AirTransportDetected',
+	legatrans = 'AirTransportDetected',
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
+	legstronghold = 'AirTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
 }
@@ -205,7 +203,6 @@ local isSpec = Spring.GetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -221,13 +218,13 @@ local vulcanDefID = UnitDefNames['armvulc'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
 
 local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
-local isFactoryAirSea = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
+local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
 local isFactoryVeh = { [UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true }
 local isFactoryBot = { [UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true }
 local isFactoryHover = { [UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true }
 local isFactoryShip = { [UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true }
 local numFactoryAir = 0
-local numFactoryAirSea = 0
+local numFactorySeaplanes = 0
 local numFactoryVeh = 0
 local numFactoryBot = 0
 local numFactoryHover = 0
@@ -250,7 +247,7 @@ for udefID, def in ipairs(UnitDefs) do
 			isAircraft[udefID] = true
 		end
 		if def.customParams.techlevel then
-			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
+			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander) then
 				isT2[udefID] = true
 			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
@@ -260,7 +257,7 @@ for udefID, def in ipairs(UnitDefs) do
 		if def.modCategories.mine then
 			isMine[udefID] = true
 		end
-		if def.customParams.iscommander then
+		if def.customParams.iscommander or def.customParams.isscavcommander then
 			isCommander[udefID] = true
 		end
 		if def.isBuilder and def.canAssist then
@@ -322,7 +319,6 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -333,26 +329,20 @@ local function gadgetNotificationEvent(msg)
 		return
 	end
 
-	if string.find(msg, "SoundEvents", nil, true) then
-		msg = string.sub(msg, 13)
-		local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-			local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
-			local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-			if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-				queueNotification(event, forceplay)
-			end
+	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
+		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
+		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+			queueNotification(event, forceplay)
 		end
 	end
 end
 
 function widget:Initialize()
-	if isReplay or spGetGameFrame() > 0 then
-		widget:PlayerChanged()
-	end
+	widget:PlayerChanged()
 
 	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
-	widgetHandler:RegisterGlobal('AddNotification', AddCustomNotification)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(notification) do
@@ -404,9 +394,6 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	--WG['notifications'].addNotification = function(name, soundFiles, minDelay, i18nTextID, unlisted)
-	--	addNotification(name, soundFiles, minDelay, i18nTextID, unlisted)
-	--end
 	WG['notifications'].addEvent = function(value, force)
 		if notification[value] then
 			queueNotification(value, force)
@@ -428,10 +415,6 @@ function widget:Initialize()
 		end
 	end
 
-	for name, params in pairs(customNotifications) do
-		AddCustomNotification(name, params[1], params[2], params[3], params[4])
-	end
-
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
 		queueNotification('RaptorsAndScavsMixed')
 	end
@@ -440,7 +423,6 @@ end
 function widget:Shutdown()
 	WG['notifications'] = nil
 	widgetHandler:DeregisterGlobal('NotificationEvent')
-	widgetHandler:DeregisterGlobal('AddNotification')
 end
 
 function widget:GameFrame(gf)
@@ -450,7 +432,7 @@ function widget:GameFrame(gf)
 	end
 
 	if gameframe == 70 and doTutorialMode then
-		queueTutorialNotification('t_welcome')
+		queueTutorialNotification('Welcome')
 	end
 	if gameframe % 30 == 15 then
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID, 'energy')
@@ -459,16 +441,16 @@ function widget:GameFrame(gf)
 		-- tutorial
 		if doTutorialMode then
 			if gameframe > 300 and not hasBuildMex then
-				queueTutorialNotification('t_buildmex')
+				queueTutorialNotification('BuildMetal')
 			end
 			if not hasBuildEnergy and hasBuildMex then
-				queueTutorialNotification('t_buildenergy')
+				queueTutorialNotification('BuildEnergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('t_makefactory')
+				queueTutorialNotification('BuildFactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
-				queueTutorialNotification('t_readyfortech2')
+				queueTutorialNotification('ReadyForTech2')
 			end
 		end
 
@@ -498,6 +480,10 @@ function widget:GameFrame(gf)
 				idleBuilder[unitID] = nil    -- do not repeat
 			end
 		end
+	end
+
+	if gameframe % updateCommandersFrames == 0 then
+		updateCommanders()
 	end
 end
 
@@ -536,17 +522,17 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 		elseif doTutorialMode then
 			if isFactoryAir[unitDefID] then
-				queueTutorialNotification('t_factoryair')
-			elseif isFactoryAirSea[unitDefID] then
-				queueTutorialNotification('t_factoryairsea')
+				queueTutorialNotification('FactoryAir')
+			elseif isFactorySeaplanes[unitDefID] then
+				queueTutorialNotification('FactorySeaplanes')
 			elseif isFactoryBot[unitDefID] then
-				queueTutorialNotification('t_factorybots')
+				queueTutorialNotification('FactoryBots')
 			elseif isFactoryHover[unitDefID] then
-				queueTutorialNotification('t_factoryhovercraft')
+				queueTutorialNotification('FactoryHovercraft')
 			elseif isFactoryVeh[unitDefID] then
-				queueTutorialNotification('t_factoryvehicles')
+				queueTutorialNotification('FactoryVehicles')
 			elseif isFactoryShip[unitDefID] then
-				queueTutorialNotification('t_factoryships')
+				queueTutorialNotification('FactoryShips')
 			end
 		end
 	end
@@ -556,7 +542,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then
 		return
 	end
-
+	if gameover then
+		return
+	end
 	if spIsUnitAllied(unitID) or unitTeam == gaiaTeamID then
 		return
 	end
@@ -635,37 +623,37 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 				if isFactoryAir[unitDefID] then
 					numFactoryAir = numFactoryAir + 1
 					if numFactoryAir > 1 then
-						queueNotification('t_duplicatefactory')
+						queueNotification('DuplicateFactory')
 					end
 				end
-				if isFactoryAirSea[unitDefID] then
-					numFactoryAirSea = numFactoryAirSea + 1
-					if numFactoryAirSea > 1 then
-						queueNotification('t_duplicatefactory')
+				if isFactorySeaplanes[unitDefID] then
+					numFactorySeaplanes = numFactorySeaplanes + 1
+					if numFactorySeaplanes > 1 then
+						queueNotification('DuplicateFactory')
 					end
 				end
 				if isFactoryVeh[unitDefID] then
 					numFactoryVeh = numFactoryVeh + 1
 					if numFactoryVeh > 1 then
-						queueNotification('t_duplicatefactory')
+						queueNotification('DuplicateFactory')
 					end
 				end
 				if isFactoryBot[unitDefID] then
 					numFactoryBot = numFactoryBot + 1
 					if numFactoryBot > 1 then
-						queueNotification('t_duplicatefactory')
+						queueNotification('DuplicateFactory')
 					end
 				end
 				if isFactoryHover[unitDefID] then
 					numFactoryHover = numFactoryHover + 1
 					if numFactoryHover > 1 then
-						queueNotification('t_duplicatefactory')
+						queueNotification('DuplicateFactory')
 					end
 				end
 				if isFactoryShip[unitDefID] then
 					numFactoryShip = numFactoryShip + 1
 					if numFactoryShip > 1 then
-						queueNotification('t_duplicatefactory')
+						queueNotification('DuplicateFactory')
 					end
 				end
 			end
@@ -679,7 +667,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	if unitTeam == myTeamID then
 		if paralyzer then
-			queueTutorialNotification('t_paralyzer')
+			queueTutorialNotification('Paralyzer')
 		end
 
 		-- notify when commander gets damaged
@@ -703,7 +691,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 						commandersDamages[unitID][gf] = nil
 					end
 				end
-				if totalDamage >= commanders[unitID] * 0.2 then
+				if totalDamage >= commanders[unitID] * 0.2 and spGetUnitHealth(unitID)/commanders[unitID] <= 0.85 then
 					queueNotification('ComHeavyDamage')
 				end
 			end
@@ -719,8 +707,8 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 		if isFactoryAir[unitDefID] then
 			numFactoryAir = numFactoryAir - 1
 		end
-		if isFactoryAirSea[unitDefID] then
-			numFactoryAirSea = numFactoryAirSea - 1
+		if isFactorySeaplanes[unitDefID] then
+			numFactorySeaplanes = numFactorySeaplanes - 1
 		end
 		if isFactoryVeh[unitDefID] then
 			numFactoryVeh = numFactoryVeh - 1
@@ -740,8 +728,7 @@ end
 local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
-		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
-		if not muteWhenIdle or not isIdle or isTutorialNotification then
+		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			local m = 1
 			if spoken and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
@@ -764,7 +751,7 @@ local function playNextSound()
 		LastPlay[event] = spGetGameFrame()
 
 		-- for tutorial event: log number of plays
-		if isTutorialNotification then
+		if notification[event].tutorial then
 			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
 			tutorialPlayedThisGame[event] = true
 		end
@@ -790,8 +777,8 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+		if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
 		-- process sound queue
@@ -834,15 +821,18 @@ function widget:GameStart()
 end
 
 function widget:GameOver()
+	gameover = true
 	queueNotification('BattleEnded',true)
 	--widgetHandler:RemoveWidget()
 end
 
 function widget:GamePaused(playerID, isGamePaused)
-	if isGamePaused then
-		queueNotification('GamePaused',true)
-	else
-		queueNotification('GameUnpaused', true)
+	if not gameover then
+		if isGamePaused then
+			queueNotification('GamePaused',true)
+		else
+			queueNotification('GameUnpaused', true)
+		end
 	end
 end
 
@@ -862,9 +852,6 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.customNotifications ~= nil and Spring.GetGameFrame() > 0 then
-		customNotifications = data.customNotifications
-	end
 	if data.notificationList ~= nil and type(data.notificationList) == 'table' then
 		for sound, enabled in pairs(data.notificationList) do
 			if notification[sound] then
@@ -889,6 +876,7 @@ function widget:SetConfigData(data)
 	end
 	if data.tutorialMode ~= nil then
 		tutorialMode = data.tutorialMode
+		doTutorialMode = tutorialMode
 	end
 	if spGetGameFrame() > 0 then
 		if data.LastPlay then

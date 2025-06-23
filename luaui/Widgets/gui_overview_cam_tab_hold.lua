@@ -3,6 +3,8 @@
 -- Release 'tab' to go back to original view instead zooming into cursor
 -- Short 'tab' are ignored
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Overview Camera TAB hold & release",

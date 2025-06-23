@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "resurrected param",
@@ -22,7 +24,9 @@ if (gadgetHandler:IsSyncedCode()) then
     -- detect resurrected units here
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
-			Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+			if not Spring.Utilities.Gametype.IsScavengers() then
+				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+			end
 			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
 		end
 		-- See: https://github.com/beyond-all-reason/spring/pull/471

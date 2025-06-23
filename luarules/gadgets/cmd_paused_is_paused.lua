@@ -6,6 +6,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name 	= "Paused is paused",
@@ -30,4 +32,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	else
 		return true
 	end
+end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 end

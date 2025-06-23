@@ -7,7 +7,7 @@
 
 piece base, flare1, flare2, shell, 
 sleeve, aimx1, launcher, 
-thruster, blades, thrust,
+thruster, blades, thrust, blur,
 wing_bl, wing_br, wing_fl, wing_fr;
 
 static-var gun_1, speedwings, bMoving, statechg_DesiredState, statechg_StateChanging, restore_delay;
@@ -68,12 +68,14 @@ activatescr()
 	turn wing_fl to x-axis <0> speed <100>;
 	wait-for-turn wing_fr around x-axis;
 	bMoving = 1;
+	show blur;
 	return (0);
 }
 
 deactivatescr()
 {
 	bMoving = 0;
+	hide blur;
 	turn wing_bl to z-axis <-5> speed <100>;
 	turn wing_br to z-axis <-5> speed <100>;
 	turn wing_fl to z-axis <0> speed <100>;
@@ -103,56 +105,86 @@ IdleHover()
 {
 	while(TRUE){
 		if(bMoving == 1){
-			turn wing_bl to z-axis <-40> now;
-			turn wing_br to z-axis <40> now;
-			turn wing_fl to z-axis <40> now;
-			turn wing_fr to z-axis <-40> now;
-			sleep 5;
-			turn wing_bl to z-axis <8> now;
-			turn wing_br to z-axis <-8> now;
-			turn wing_fl to z-axis <-8> now;
-			turn wing_fr to z-axis <8> now;
-			sleep 5;
-			turn wing_bl to z-axis <24> now;
-			turn wing_br to z-axis <-24> now;
-			turn wing_fl to z-axis <-24> now;
-			turn wing_fr to z-axis <24> now;
-			sleep 5;
-			turn wing_bl to z-axis <-24> now;
-			turn wing_br to z-axis <24> now;
-			turn wing_fl to z-axis <24> now;
-			turn wing_fr to z-axis <-24> now;
-			sleep 5;
-			turn wing_bl to z-axis <-8> now;
-			turn wing_br to z-axis <8> now;
-			turn wing_fl to z-axis <8> now;
-			turn wing_fr to z-axis <-8> now;
-			sleep 5;
-			turn wing_bl to z-axis <40> now;
-			turn wing_br to z-axis <-40> now;
-			turn wing_fl to z-axis <-40> now;
-			turn wing_fr to z-axis <40> now;
-			sleep 5;
-			turn wing_bl to z-axis <-8> now;
-			turn wing_br to z-axis <8> now;
-			turn wing_fl to z-axis <8> now;
-			turn wing_fr to z-axis <-8> now;
-			sleep 5;
-			turn wing_bl to z-axis <-24> now;
-			turn wing_br to z-axis <24> now;
-			turn wing_fl to z-axis <24> now;
-			turn wing_fr to z-axis <-24> now;
-			sleep 5;
-			turn wing_bl to z-axis <24> now;
-			turn wing_br to z-axis <-24> now;
-			turn wing_fl to z-axis <-24> now;
-			turn wing_fr to z-axis <24> now;
-			sleep 5;
-			turn wing_bl to z-axis <8> now;
-			turn wing_br to z-axis <-8> now;
-			turn wing_fl to z-axis <-8> now;
-			turn wing_fr to z-axis <8> now;
-			sleep 5;
+			// spin wing_bl around x-axis speed <1000> accelerate <50>;
+			// spin wing_br around x-axis speed <1000> accelerate <50>;
+			// spin wing_fl around x-axis speed <1000> accelerate <50>;
+			// spin wing_fr around x-axis speed <1000> accelerate <50>;
+			turn wing_bl to z-axis <-45> speed <350>;
+			turn wing_br to z-axis <18> speed <550>;
+			turn wing_fl to z-axis <18> speed <550>;
+			turn wing_fr to z-axis <-35> speed <350>;
+			sleep 55;
+			turn wing_bl to z-axis <0> speed <550>;
+			turn wing_br to z-axis <-30> speed <350>;
+			turn wing_fl to z-axis <-30> speed <350>;
+			turn wing_fr to z-axis <10> speed <550>;
+			sleep 60;
+			turn wing_bl to z-axis <-28> speed <350>;
+			turn wing_br to z-axis <22> speed <550>;
+			turn wing_fl to z-axis <22> speed <550>;
+			turn wing_fr to z-axis <-37> speed <350>;
+			sleep 57;
+			turn wing_bl to z-axis <6> speed <550>;
+			turn wing_br to z-axis <-36> speed <350>;
+			turn wing_fl to z-axis <-42> speed <350>;
+			turn wing_fr to z-axis <6> speed <550>;
+			sleep 62;
+			//wait-for-turn wing_fr around z-axis;
+			//sleep 5;
+			// turn wing_bl to z-axis <8> speed <2000>;
+			// turn wing_br to z-axis <-8> speed <2000>;
+			// turn wing_fl to z-axis <-8> speed <2000>;
+			// turn wing_fr to z-axis <8> speed <2000>;
+			//wait-for-turn wing_fr around z-axis;
+			//sleep 1;
+			// turn wing_bl to z-axis <24> speed <600>;
+			// turn wing_br to z-axis <-24> speed <600>;
+			// turn wing_fl to z-axis <-24> speed <600>;
+			// turn wing_fr to z-axis <24> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <-24> speed <600>;
+			// turn wing_br to z-axis <24> speed <600>;
+			// turn wing_fl to z-axis <24> speed <600>;
+			// turn wing_fr to z-axis <-24> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <-8> speed <600>;
+			// turn wing_br to z-axis <8> speed <600>;
+			// turn wing_fl to z-axis <8> speed <600>;
+			// turn wing_fr to z-axis <-8> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <40> speed <600>;
+			// turn wing_br to z-axis <-40> speed <600>;
+			// turn wing_fl to z-axis <-40> speed <600>;
+			// turn wing_fr to z-axis <40> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <-8> speed <600>;
+			// turn wing_br to z-axis <8> speed <600>;
+			// turn wing_fl to z-axis <8> speed <600>;
+			// turn wing_fr to z-axis <-8> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <-24> speed <600>;
+			// turn wing_br to z-axis <24> speed <600>;
+			// turn wing_fl to z-axis <24> speed <600>;
+			// turn wing_fr to z-axis <-24> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <24> speed <600>;
+			// turn wing_br to z-axis <-24> speed <600>;
+			// turn wing_fl to z-axis <-24> speed <600>;
+			// turn wing_fr to z-axis <24> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
+			// turn wing_bl to z-axis <8> speed <600>;
+			// turn wing_br to z-axis <-8> speed <600>;
+			// turn wing_fl to z-axis <-8> speed <600>;
+			// turn wing_fr to z-axis <8> speed <600>;
+			// wait-for-turn wing_fr around z-axis;
+			// //sleep 5;
 		}
 		else sleep 200;
 	}
@@ -164,6 +196,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide thrust;
+	hide blur;
 
 	turn wing_bl to z-axis <-5> now;
 	turn wing_br to z-axis <5> now;
@@ -193,7 +226,7 @@ Create()
 Activate()
 {
 	show thrust;
-	spin blades around z-axis speed <720> accelerate <5>;
+	spin blades around z-axis speed <120> accelerate <5>;
 	start-script RequestState(0);
 }
 

@@ -1,0 +1,105 @@
+
+#include "../exptype.h"
+
+piece  base, aim, emitnano;
+
+static-var  buildHeading;
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 4
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide emitnano;
+	buildHeading = 0;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn aim to y-axis <0.0> speed <100.0>;
+	wait-for-turn aim around y-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 5000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+Activate()
+{
+	turn aim to y-axis buildHeading speed <320.0>;
+	wait-for-turn aim around y-axis;
+	set INBUILDSTANCE to 1;
+}
+
+Deactivate()
+{
+	set INBUILDSTANCE to 0;
+}
+
+StartBuilding(heading)
+{
+	buildHeading = heading;
+	turn aim to y-axis buildHeading speed <320.0>;
+}
+
+StopBuilding()
+{
+
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = emitnano;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode aim type SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode aim type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emitnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

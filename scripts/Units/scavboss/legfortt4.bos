@@ -1,0 +1,614 @@
+
+#include "../../recoil_common_includes.h"
+
+piece  	leftplasmaflare1, leftplasmaflare2, leftplasmaflare3, rightplasmaflare1, rightplasmaflare2, rightplasmaflare3, 
+		rocketflare1, rocketflare2, rocketflare3, rocketflare4, rocketflare5, rocketflare6, 
+		rgunflare1, rgunflare2, lgunflare1, lgunflare2, fgunflare1, fgunflare2, 
+		thrust1, thrust2, thrust3, thrust4, thrust5, thrust6, thrust7, thrust8, thrust9, thrust10,
+		base, armor, gearsf, gearsb, bljet, brjet, fljet1, fljet2, frjet1, frjet2, rearengine, 
+		lgunturret, lgunsleeve, lgunbarrel1, lgunbarrel2, rgunturret, rgunsleeve, rgunbarrel1, rgunbarrel2, fgunturret, fgunsleeve, fgunbarrel1, fgunbarrel2,
+		leftplasmarail, leftplasmaturret, leftplasmasleeve, leftplasmabarrel1, leftplasmabarrel2, leftplasmabarrel3,
+		rightplasmarail, rightplasmaturret, rightplasmasleeve, rightplasmabarrel1, rightplasmabarrel2, rightplasmabarrel3;
+       
+
+static-var  restore_delay, gun_1, gun_2, gun_3, gun_4, gun_5, gun_6;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+#define SIGNAL_AIM4 2048
+#define SIGNAL_AIM5 4096
+#define SIGNAL_AIM6 8192
+
+#define BASEPIECE base
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 100
+
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+
+Create()
+{
+	gun_1 = 1;
+	gun_2 = 1;
+	gun_3 = 1;
+	gun_4 = 1;
+	gun_5 = 1;
+	gun_6 = 1;
+	
+	hide leftplasmaflare1;
+	hide leftplasmaflare2;
+	hide leftplasmaflare3;
+	hide rightplasmaflare1;
+	hide rightplasmaflare2;
+	hide rightplasmaflare3;
+	hide fgunflare1;
+	hide fgunflare2;
+	hide lgunflare1;
+	hide lgunflare2;
+	hide rgunflare1;
+	hide rgunflare2;
+	hide rocketflare1;
+	hide rocketflare2;
+	hide rocketflare3;
+	hide rocketflare4;
+	hide rocketflare5;
+	hide rocketflare6;
+	
+	
+	turn leftplasmaflare1 to y-axis <90> now;
+	turn leftplasmaflare2 to y-axis <90> now;
+	turn leftplasmaflare3 to y-axis <90> now;
+	turn rightplasmaflare1 to y-axis <-90> now;
+	turn rightplasmaflare2 to y-axis <-90> now;
+	turn rightplasmaflare3 to y-axis <-90> now;
+	turn rocketflare1 to y-axis <-90> now;
+	turn rocketflare2 to y-axis <-90> now;
+	turn rocketflare3 to y-axis <-90> now;
+	turn rocketflare4 to y-axis <-90> now;
+	turn rocketflare5 to y-axis <-90> now;
+	turn rocketflare6 to y-axis <-90> now;
+	turn rocketflare1 to x-axis <-45> now;
+	turn rocketflare2 to x-axis <-45> now;
+	turn rocketflare3 to x-axis <-45> now;
+	turn rocketflare4 to x-axis <-135> now;
+	turn rocketflare5 to x-axis <-135> now;
+	turn rocketflare6 to x-axis <-135> now;
+	
+	turn thrust1 to x-axis <-90> now;
+	turn thrust2 to x-axis <-90> now;
+	turn thrust3 to x-axis <-90> now;
+	turn thrust4 to x-axis <-90> now;
+	turn thrust5 to x-axis <-90> now;
+	turn thrust6 to x-axis <-90> now;
+	turn thrust7 to x-axis <-90> now;
+	turn thrust8 to x-axis <-90> now;
+	turn thrust9 to x-axis <-90> now;
+	turn thrust10 to x-axis <-90> now;
+	
+	turn bljet to y-axis <35> now;
+	turn brjet to y-axis <-35> now;
+	turn fljet1 to z-axis <-10> now;
+	turn fljet2 to z-axis <-15> now;
+	turn frjet1 to z-axis <10> now;
+	turn frjet2 to z-axis <15> now;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+}
+
+Activate()
+{
+	show thrust1;
+	show thrust2;
+	show thrust3;
+	show thrust4;
+	show thrust5;
+	show thrust6;
+	show thrust7;
+	show thrust8;
+	show thrust9;
+	show thrust10;
+	
+	move gearsf to y-axis [5.0] speed [15];
+	move gearsf to z-axis [-5.0] speed [15];
+	move gearsb to y-axis [5.0] speed [15];
+	move gearsb to z-axis [5.0] speed [15];
+}
+
+Deactivate()
+{
+	hide thrust1;
+	hide thrust2;
+	hide thrust3;
+	hide thrust4;
+	hide thrust5;
+	hide thrust6;
+	hide thrust7;
+	hide thrust8;
+	hide thrust9;
+	hide thrust10;
+	
+	move gearsf to y-axis [0.0] speed [15];
+	move gearsf to z-axis [0.0] speed [15];
+	move gearsb to y-axis [0.0] speed [15];
+	move gearsb to z-axis [0.0] speed [15];
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	
+	move leftplasmarail to x-axis [0] speed [2];
+	turn leftplasmaturret to y-axis 0 speed <30>;
+	turn leftplasmasleeve to z-axis 0 speed <30.0>;
+	move leftplasmabarrel1 to x-axis [0] speed [2];
+	move leftplasmabarrel2 to x-axis [0] speed [2];
+	move leftplasmabarrel3 to x-axis [0] speed [2];
+	
+	move rightplasmarail to x-axis [0] speed [2];
+	turn rightplasmaturret to y-axis 0 speed <30>;
+	turn rightplasmasleeve to z-axis 0 speed <30.0>;
+	move rightplasmabarrel1 to x-axis [0] speed [2];
+	move rightplasmabarrel2 to x-axis [0] speed [2];
+	move rightplasmabarrel3 to x-axis [0] speed [2];
+	
+	turn fgunturret to y-axis 0 speed <30>;
+	turn lgunturret to y-axis 0 speed <30>;
+	turn rgunturret to y-axis 0 speed <30>;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+StartMoving(reversing)
+{
+	
+}
+
+StopMoving()
+{	
+	
+}
+
+MoveRate0()
+{
+	turn bljet to x-axis <0.0> speed <80.0>;
+	turn brjet to x-axis <0.0> speed <80.0>;
+	turn fljet1 to x-axis <0.0> speed <80.0>;
+	turn frjet1 to x-axis <0.0> speed <80.0>;
+	turn fljet2 to x-axis <0.0> speed <80.0>;
+	turn frjet2 to x-axis <0.0> speed <80.0>;
+	turn rearengine to x-axis <0.0> speed <80.0>;
+}
+
+MoveRate1()
+{
+	turn bljet to x-axis <20.0> speed <60.0>;
+	turn brjet to x-axis <20.0> speed <60.0>;
+	turn fljet1 to x-axis <15.0> speed <60.0>;
+	turn frjet1 to x-axis <15.0> speed <60.0>;
+	turn fljet2 to x-axis <25.0> speed <60.0>;
+	turn frjet2 to x-axis <25.0> speed <60.0>;
+	turn rearengine to x-axis <45.0> speed <60.0>;
+}
+
+MoveRate2()
+{
+	turn bljet to x-axis <45.0> speed <45.0>;
+	turn brjet to x-axis <45.0> speed <45.0>;
+	turn fljet1 to x-axis <18.0> speed <45.0>;
+	turn frjet1 to x-axis <18.0> speed <45.0>;
+	turn fljet2 to x-axis <30.0> speed <45.0>;
+	turn frjet2 to x-axis <30.0> speed <45.0>;
+	turn rearengine to x-axis <80.0> speed <45.0>;
+}
+
+MoveRate3()
+{
+	turn bljet to x-axis <0.0> speed <70.0>;
+	turn brjet to x-axis <0.0> speed <70.0>;
+	turn fljet1 to x-axis <0.0> speed <70.0>;
+	turn frjet1 to x-axis <0.0> speed <70.0>;
+	turn fljet2 to x-axis <0.0> speed <70.0>;
+	turn frjet2 to x-axis <0.0> speed <70.0>;
+	turn rearengine to x-axis <0.0> speed <70.0>;
+}
+
+// Left Plasma Cannon
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = leftplasmasleeve;
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	
+	move leftplasmarail to x-axis [-10] speed [10];
+	
+	turn leftplasmaturret to y-axis heading + <-90> speed <70>;
+	turn leftplasmasleeve to z-axis 0-pitch speed <50.0>;
+	
+	wait-for-turn leftplasmaturret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+	if( gun_1 == 1 )
+	{
+	    emit-sfx 1024 + 0 from leftplasmaflare1;
+		move leftplasmabarrel1 to x-axis [0] now;
+		move leftplasmabarrel1 to x-axis [-6] speed [2];
+	}
+	if( gun_1 == 2 )
+	{
+	    emit-sfx 1024 + 0 from leftplasmaflare2;
+		move leftplasmabarrel2 to x-axis [0] now;
+		move leftplasmabarrel2 to x-axis [-6] speed [2];
+	}
+	if( gun_1 == 3 )
+	{
+		emit-sfx 1024 + 0 from leftplasmaflare3;
+		move leftplasmabarrel3 to x-axis [0] now;
+		move leftplasmabarrel3 to x-axis [-6] speed [2];
+	    gun_1 = 0;
+	}
+	++gun_1;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	if( gun_1 == 1 )
+	{
+		pieceIndex = leftplasmaflare1;
+	}
+	if( gun_1 == 2 )
+	{
+		pieceIndex = leftplasmaflare2;
+	}
+	if( gun_1 == 3 )
+	{
+		pieceIndex = leftplasmaflare3;
+	}
+}
+
+// Right Plasma Cannon
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = rightplasmasleeve;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	
+	move rightplasmarail to x-axis [10] speed [10];
+	
+	turn rightplasmaturret to y-axis heading + <90> speed <70>;
+	turn rightplasmasleeve to z-axis pitch speed <50.0>;
+	
+	wait-for-turn rightplasmaturret around y-axis;
+	return (1);
+}
+
+FireWeapon2()
+{
+	if( gun_2 == 1 )
+	{
+	    emit-sfx 1024 + 0 from rightplasmaflare1;
+		move rightplasmabarrel1 to x-axis [0] now;
+		move rightplasmabarrel1 to x-axis [6] speed [2];
+	}
+	if( gun_2 == 2 )
+	{
+	    emit-sfx 1024 + 0 from rightplasmaflare2;
+		move rightplasmabarrel2 to x-axis [0] now;
+		move rightplasmabarrel2 to x-axis [6] speed [2];
+	}
+	if( gun_2 == 3 )
+	{
+		emit-sfx 1024 + 0 from rightplasmaflare3;
+		move rightplasmabarrel3 to x-axis [0] now;
+		move rightplasmabarrel3 to x-axis [6] speed [2];
+	    gun_2 = 0;
+	}
+	++gun_2;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	if( gun_2 == 1 )
+	{
+		pieceIndex = rightplasmaflare1;
+	}
+	if( gun_2 == 2 )
+	{
+		pieceIndex = rightplasmaflare2;
+	}
+	if( gun_2 == 3 )
+	{
+		pieceIndex = rightplasmaflare3;
+	}
+}
+
+// Nose Machine Gun
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = fgunsleeve;
+}
+
+AimWeapon3(heading, pitch)
+{
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	
+	turn fgunturret to y-axis heading speed <240.0>;
+	turn fgunsleeve to x-axis 0-pitch speed <120.0>;
+	
+	wait-for-turn fgunturret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon3()
+{
+	if( gun_3 == 1 )
+	{
+		move fgunbarrel1 to z-axis [-3] now;
+		move fgunbarrel1 to z-axis [0] speed [6];
+	}
+	if( gun_3 == 2 )
+	{
+		move fgunbarrel2 to z-axis [-3] now;
+		move fgunbarrel2 to z-axis [0] speed [6];
+	    gun_3 = 0;
+	}
+	++gun_3;
+}
+
+QueryWeapon3(pieceIndex)
+{
+	if( gun_3 == 1 )
+	{
+		pieceIndex = fgunflare1;
+	}
+	if( gun_3 == 2 )
+	{
+		pieceIndex = fgunflare2;
+	}
+}
+
+// Left Machine Gun
+
+AimFromWeapon4(pieceIndex)
+{
+	pieceIndex = lgunsleeve;
+}
+
+AimWeapon4(heading, pitch)
+{
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
+	
+	turn lgunturret to y-axis heading+<-90> speed <240.0>;
+	turn lgunsleeve to z-axis 0-pitch speed <120.0>;
+	
+	wait-for-turn lgunturret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon4()
+{
+	if( gun_4 == 1 )
+	{
+		move lgunbarrel1 to x-axis [3] now;
+		move lgunbarrel1 to x-axis [0] speed [6];
+	}
+	if( gun_4 == 2 )
+	{
+		move lgunbarrel2 to x-axis [3] now;
+		move lgunbarrel2 to x-axis [0] speed [6];
+	    gun_4 = 0;
+	}
+	++gun_4;
+}
+
+QueryWeapon4(pieceIndex)
+{
+	if( gun_4 == 1 )
+	{
+		pieceIndex = lgunflare1;
+	}
+	if( gun_4 == 2 )
+	{
+		pieceIndex = lgunflare2;
+	}
+}
+
+// Right Machine Gun
+
+AimFromWeapon5(pieceIndex)
+{
+	pieceIndex = rgunsleeve;
+}
+
+AimWeapon5(heading, pitch)
+{
+	signal SIGNAL_AIM5;
+	set-signal-mask SIGNAL_AIM5;
+	
+	turn rgunturret to y-axis heading+<90> speed <240.0>;
+	turn rgunsleeve to z-axis pitch speed <120.0>;
+	
+	wait-for-turn rgunturret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon5()
+{
+	if( gun_5 == 1 )
+	{
+		move rgunbarrel1 to x-axis [-3] now;
+		move rgunbarrel1 to x-axis [0] speed [6];
+	}
+	if( gun_5 == 2 )
+	{
+		move rgunbarrel2 to x-axis [-3] now;
+		move rgunbarrel2 to x-axis [0] speed [6];
+	    gun_5 = 0;
+	}
+	++gun_5;
+}
+
+QueryWeapon5(pieceIndex)
+{
+	if( gun_5 == 1 )
+	{
+		pieceIndex = rgunflare1;
+	}
+	if( gun_5 == 2 )
+	{
+		pieceIndex = rgunflare2;
+	}
+}
+
+// AA Rocket Launcher
+
+AimFromWeapon6(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimWeapon6(heading, pitch)
+{
+	signal SIGNAL_AIM6;
+	set-signal-mask SIGNAL_AIM6;
+	return (1);
+}
+
+FireWeapon6()
+{
+	if( gun_6 == 1 )
+	{
+	    emit-sfx 1024 + 0 from rocketflare1;
+	}
+	if( gun_6 == 2 )
+	{
+	    emit-sfx 1024 + 0 from rocketflare2;
+	}
+	if( gun_6 == 3 )
+	{
+		emit-sfx 1024 + 0 from rocketflare3;
+	}
+	if( gun_6 == 4 )
+	{
+	    emit-sfx 1024 + 0 from rocketflare4;
+	}
+	if( gun_6 == 5 )
+	{
+	    emit-sfx 1024 + 0 from rocketflare5;
+	}
+	if( gun_6 == 6 )
+	{
+		emit-sfx 1024 + 0 from rocketflare6;
+	    gun_6 = 0;
+	}
+	++gun_6;
+}
+
+QueryWeapon6(pieceIndex)
+{
+	if( gun_6 == 1 )
+	{
+		pieceIndex = rocketflare1;
+	}
+	if( gun_6 == 2 )
+	{
+		pieceIndex = rocketflare2;
+	}
+	if( gun_6 == 3 )
+	{
+		pieceIndex = rocketflare3;
+	}
+	if( gun_6 == 4 )
+	{
+		pieceIndex = rocketflare4;
+	}
+	if( gun_6 == 5 )
+	{
+		pieceIndex = rocketflare5;
+	}
+	if( gun_6 == 6 )
+	{
+		pieceIndex = rocketflare6;
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode leftplasmasleeve type BITMAPONLY | NOHEATCLOUD;
+		explode leftplasmabarrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode leftplasmasleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftplasmabarrel1 type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode leftplasmasleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftplasmabarrel1 type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode leftplasmasleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftplasmabarrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return(corpsetype);
+}

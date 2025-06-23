@@ -229,7 +229,7 @@
 			"customOnOff": {
 				"lowTrajectory": "Direktes Feuer",
 				"highTrajectory": "Indirektes Feuer",
-				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um",
+				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um"
 			}
 		},
 		"idleBuilders": {
@@ -849,8 +849,6 @@
 				"cus_descr": "Aktiviert: Tiefentextur, beschädigtes Aussehen, flackernder Lichter, Umgebungsbeleuchtung, animierte Panzerketten",
 				"darkenmap": "Karte verdunkeln",
 				"darkenmap_descr": "Dunkelt die gesamte Karte ab (außer die Einheiten)",
-				"darkenmap_darkenfeatures": "Besonderheiten verdunkeln",
-				"darkenmap_darkenfeatures_descr": "Verdunkelt Besonderheiten (Bäume, Wracks, etc.) auf Basis des Kartenverdunklungs-Reglers\n\nHINWEIS: Kann sehr CPU-intensiv sein: Es wird durch alle sichtbaren Features iteriert und individuell gerendert",
 				"advmapshading": "Erweiterterte Kartenschattierung",
 				"advmapshading_descr": "Aktiviert: Tiefentextur, Detailtextur, verbesserte Beleuchtung, Schatten.",
 				"shadowslider": "Schatten",
@@ -976,9 +974,6 @@
 				"sndvolmusic": "Musik",
 				"loadscreen_music": "Im Ladebildschirm anfangen",
 				"loadscreen_music_descr": "Musik während des Ladebildschirms beim Spielstart abspielen",
-				"scav_messages": "Plünderer-Textbenachrichtigung",
-				"scav_voicenotifs": "Plünderer-Sprachbenachrichtigung",
-				"scav_voicenotifs_descr": "Plünderer-Ansagerstimme umschalten",
 				"notifications_tutorial": "Tutorialmodus",
 				"notifications_tutorial_descr": "Zusätzliche Tutorial-Benachrichtigungen mit Spielhinweisen\n\nDas Spiel merkt sich, welche Benachrichtigungen bereits vorkamen\n(Erneute) Aktivierung setzt den Fortschritt zurück",
 				"notifications_messages": "Textbenachrichtigungen",

@@ -2,6 +2,8 @@ if not Spring.GetModOptions().xmas then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -46,7 +48,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 -------------------------------------------------------------------------------
 
-local maxDecorations = 350
+local maxDecorations = 400
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
 local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
@@ -86,16 +88,8 @@ local costSettings = {
 	{12000, 8, 6},
 	{20000, 9, 6},
 }
-local isBuilder = {}
-local unitSize = {}
-local unitRadius = {}
 local hasDecoration = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.isBuilder then
-		isBuilder[udefID] = true
-	end
-	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
-	unitRadius[udefID] = def.radius
 	if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] and not def.modCategories["object"] then
 		if def.mass >= 35 then
 			local balls = math.floor(((def.radius-13) / 7.5))
@@ -126,7 +120,6 @@ local decorations = {}
 local decorationsTerminal = {}
 local createDecorations = {}
 local createdDecorations = {}
-local candycanes = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local random = math.random
 local GetGroundHeight = Spring.GetGroundHeight
@@ -169,30 +162,10 @@ function initiateXmas()
 						local caneType = math.ceil(random(1,7))
 						local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
 						Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-						candycanes[featureID] = caneType
 					end
 				end
 			end
 		end
-	end
-end
-
-_G.xmasDecorations = {}
-
-local function setGaiaUnitSpecifics(unitID)
-	Spring.SetUnitNeutral(unitID, true)
-	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
-	Spring.SetUnitNoMinimap(unitID, true)
-	--Spring.SetUnitMaxHealth(unitID, 2)
-	Spring.UnitIconSetDraw(unitID, false)
-	Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
-	Spring.SetUnitSensorRadius(unitID, 'los', 0)
-	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-	for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-		Spring.UnitWeaponHoldFire(unitID, weaponID)
 	end
 end
 
@@ -216,9 +189,7 @@ function gadget:GameFrame(n)
 		end
 	end
 	if n % 90 == 1 then
-
 		for unitID, frame in pairs(decorationsTerminal) do
-
 			if frame < n then
 				decorationsTerminal[unitID] = nil
 				if Spring.GetUnitIsDead(unitID) == false then
@@ -239,7 +210,7 @@ function gadget:GameFrame(n)
 				if addGaiaBalls and random() > 0.5 then
 					teamID = gaiaTeamID
 				end
-				local size = math.max(1, math.min(#decorationSizes, math.floor((hasDecoration[data[5]][4]))))	-- retrieve max size
+				local size = math.clamp(math.floor((hasDecoration[data[5]][4])), 1, #decorationSizes)	-- retrieve max size
 				size = math.min(size, (math.ceil((size*0.35) + (math.random() * (size*0.65)))))	-- pick a size
 				local decorationDefID = decorationSizes[size][math.floor(1 + (math.random() * (#decorationSizes[size]-0.001)))]	-- pick one of 2 variants/textured baubles
 				uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)
@@ -261,7 +232,6 @@ function gadget:GameFrame(n)
 		if not decorations[unitID] then
 			decorationCount = decorationCount + 1
 			decorations[unitID] = Spring.GetGameFrame() + 2000 + (random()*1000)
-			setGaiaUnitSpecifics(unitID)
 			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
 			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
 			local impulseMult = 80
@@ -291,11 +261,8 @@ function gadget:FeatureCreated(featureID, allyTeam)
 		if xmasFeatureID then
 			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
 			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-			local comtype = 'armcom'
-			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
-				comtype = 'corcom'
-			end
-			Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+			local featureResurrect = Spring.GetFeatureResurrect(featureID)
+			Spring.SetFeatureResurrect(xmasFeatureID, featureResurrect, "s", 0)
 		end
 	end
 end
@@ -319,43 +286,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 			end
 		end
 	end
-end
-
-
-function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-	if decorationUdefIDs[unitDefID] then
-		setGaiaUnitSpecifics(unitID)
-	end
-end
-
--- prevents area targetting xmasballs
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if decorationUdefIDs[unitDefID] then
-		setGaiaUnitSpecifics(unitID)
-	end
-	if cmdID and cmdID == CMD.ATTACK then
-		if cmdParams and #cmdParams == 1 then
-			if decorationUdefIDs[Spring.GetUnitDefID(cmdParams[1])] then
-				return false
-			end
-		end
-	end
-	-- remove any xmasball that is blocking queued build order
-	if cmdID < 0 and cmdParams[3] and isBuilder[Spring.GetUnitDefID(unitID)] then
-		local udefid = math.abs(cmdID)
-		local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
-		for i=1, #units do
-			if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
-				if Spring.GetUnitIsDead(units[i]) == false then
-					Spring.DestroyUnit(units[i], false, true)
-					decorations[units[i]] = nil
-					decorationsTerminal[units[i]] = nil
-					createdDecorations[units[i]] = nil
-				end
-			end
-		end
-	end
-	return true
 end
 
 function gadget:GameStart()

@@ -10,7 +10,6 @@ return {
 		buildtime = 500,
 		cancapture = true,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "17 11 21",
 		collisionvolumetype = "Box",
@@ -58,7 +57,6 @@ return {
 			[16] = "armtide",
 			[17] = "armuwms",
 			[18] = "armuwes",
-			--[19] = "armuwmex",
 			[20] = "armfmkr",
 			[21] = "armsy",
 			[22] = "armfdrag",
@@ -73,7 +71,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

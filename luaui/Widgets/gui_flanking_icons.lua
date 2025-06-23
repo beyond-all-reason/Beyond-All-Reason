@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Flanking Icons GL4",
@@ -15,9 +17,15 @@ local texture = "luaui/images/flank_icon.tga"
 local fadespeed = 0.005
 
 ---- GL4 Backend Stuff----
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local flankingVBO = nil
 local flankingShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local glTexture             = gl.Texture
 
 local udefHasFlankingIcon = {}
@@ -103,14 +111,14 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 local function init()
-	clearInstanceTable(flankingVBO)
+	InstanceVBOTable.clearInstanceTable(flankingVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
 	end
-	uploadAllElements(flankingVBO)
+	InstanceVBOTable.uploadAllElements(flankingVBO)
 end
 
 function widget:Initialize()
@@ -142,7 +150,7 @@ function widget:PlayerChanged()
 	spec, fullview = Spring.GetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
-		clearInstanceTable(flankingVBO)
+		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()
 	end
 end

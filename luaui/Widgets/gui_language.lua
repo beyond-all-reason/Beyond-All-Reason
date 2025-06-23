@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Language",
@@ -12,7 +14,6 @@ local i18nHelper = VFS.Include('luaui/i18nhelpers.lua')
 
 local customMessageProxies = {
 	['ui.chickens.queenResistant'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
-	['scav.messages.reinforcements'] = function (data) return { player = data.player, unit = UnitDefNames[data.unitDefName].translatedHumanName } end,
 }
 
 local function getMessageProxy(messageKey, parameters)
@@ -28,6 +29,8 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
+	i18nHelper.RefreshDefs()
+
 	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
 	WG['language'] = {}
@@ -35,6 +38,14 @@ function widget:Initialize()
 	WG['language'].setLanguage = function(language)
 		Spring.SetConfigString('language', language)
 		Spring.I18N.setLanguage(language)
+
+		if Script.LuaUI('LanguageChanged') then
+			Script.LuaUI.LanguageChanged()
+		end
+	end
+
+	WG['language'].setEnglishUnitNames = function(value)
+		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
 
 		if Script.LuaUI('LanguageChanged') then
 			Script.LuaUI.LanguageChanged()

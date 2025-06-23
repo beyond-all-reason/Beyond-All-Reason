@@ -7,9 +7,8 @@ return {
 		buildpic = "LEGBAL.DDS",
 		buildtime = 2400,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 4 -2",
-		collisionvolumescales = "26 36 18",
+		collisionvolumeoffsets = "0 -2 -1",
+		collisionvolumescales = "26 36 20",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric",
@@ -17,7 +16,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 1000,
+		health = 900,
 		maxslope = 14,
 		speed = 43.5,
 		maxwaterdepth = 21,
@@ -35,16 +34,16 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "CorBots",
 		},
 		featuredefs = {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-0.258720397949 -5.34902047119 6.00907897949",
-				collisionvolumescales = "22.6238861084 13.1411590576 35.857635498",
+				collisionvolumeoffsets = "0 -4 2",
+				collisionvolumescales = "22 13 30",
 				collisionvolumetype = "Box",
 				damage = 600,
 				featuredead = "HEAP",
@@ -101,7 +100,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_bot_rocket = {
+			leg_bot_rocket = {
 				areaofeffect = 70,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -111,11 +110,10 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
-				model = "cormissile3.s3o",
+				model = "leglargerocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
 				range = 460,
@@ -141,12 +139,16 @@ return {
 				damage = {
 					default = 250,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 529,
+				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BOT_ROCKET",
+				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

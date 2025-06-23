@@ -135,6 +135,11 @@ function i18n.translate(key, data)
   data = data or {}
   local usedLocale = data.locale or locale
 
+  -- if user elected to use English unit names, force `en` locale when translating a unit name
+  if (Spring.GetConfigInt("language_english_unit_names", 1) == 1) and key:sub(1, #'units.names.') == 'units.names.' then
+    usedLocale = "en"
+  end
+
   local fallbacks = variants.fallbacks(usedLocale, fallbackLocale)
   for i=1, #fallbacks do
     local fallback = fallbacks[i]

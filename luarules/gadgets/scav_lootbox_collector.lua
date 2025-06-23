@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Scav Lootbox Collector",
@@ -50,16 +52,8 @@ if UnitDefNames["scavbeacon_t1_scav"] then
     spawnerList[UnitDefNames["scavbeacon_t4_scav"].id] = true
 end
 
-local teams = Spring.GetTeamList()
-for _, teamID in ipairs(teams) do
-    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-    if (teamLuaAI and string.find(teamLuaAI, "Scavengers")) then
-        scavTeamID = teamID
-        scavAllyTeamID = select(6, Spring.GetTeamInfo(scavTeamID))
-        break
-    end
-end
-
+local scavTeamID = Spring.Utilities.GetScavTeamID()
+local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 local aliveLootboxes = {}
 local aliveLootboxesCount = 0
 local aliveSpawners = {}
@@ -82,7 +76,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if aliveLootboxes[unitID] then
         aliveLootboxes[unitID] = nil
         aliveLootboxesCount = aliveLootboxesCount - 1

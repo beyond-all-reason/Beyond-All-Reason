@@ -11,7 +11,6 @@ return {
 		buildpic = "armpshipt3.DDS",
 		buildtime = 70000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "52 52 152",
 		collisionvolumetype = "CylZ",
@@ -39,7 +38,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -120,13 +119,12 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-red",
 				firestarter = 10,
-				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
 				laserflaresize = 8.8,
 				name = "Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
-				proximitypriority = 1.3,
+				proximitypriority = 1,
 				pulsespeed = 8,
 				range = 475,
 				reloadtime = 0.63333,
@@ -142,6 +140,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 116,
 					vtol = 87,

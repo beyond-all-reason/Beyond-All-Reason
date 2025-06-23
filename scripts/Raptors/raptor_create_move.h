@@ -15,17 +15,17 @@ UnitSpeed(){
 }
 
 
-StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
   start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	if (!isDying){
 		call-script StopWalking();
 		start-script Idle();
@@ -57,10 +57,7 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum=body;	
-}	
+	
 
 	
 RestoreAfterDelay()

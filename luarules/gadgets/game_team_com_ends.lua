@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Team Com Ends",
@@ -26,7 +28,7 @@ local teamCount = 0
 local teamList = Spring.GetTeamList()
 for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
-	if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) then
+	if luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers")) then
 		ignoredTeams[teamList[i]] = true
 
 		-- ignore all other teams in this allyteam as well
@@ -49,12 +51,10 @@ local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.customParams.iscommander) or (Spring.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (Spring.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
 		isCommander[unitDefID] = true
 	end
 end
-
-
 
 local function commanderDeath(teamID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
@@ -76,7 +76,6 @@ local function commanderDeath(teamID, originX, originZ) -- optional: attackerUni
 end
 
 function gadget:GameFrame(gf)
-
 	-- execute 1 frame delayed destroyedunit (because a unit can be taken before its given which could make the game end)
 	-- untested if this actually is the case
 	for unitID, params in pairs(commanderDeathQueue) do
@@ -93,7 +92,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, x, z}

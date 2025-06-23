@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = 'Stockpile control',
@@ -14,86 +16,36 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local defaultStockpileLimit = 99
+
 	local CMD_STOCKPILE = CMD.STOCKPILE
 	local CMD_INSERT = CMD.INSERT
 	local StockpileDesiredTarget = {}
 
-	local defaultStockpileLimit = 99
-	local isStockpilingUnitNames = { -- number represents maximum stockpile. You can also use stockpileLimit customParam which overwrites whatever is set in this table
-		['armmercury'] = 5,
-		['corscreamer'] = 5,
-
-		['armthor'] = 2,
-
-		['legmos'] = 8,
-		['legmineb'] = 1,
-
-		['armsilo'] = 10,
-		['corsilo'] = 10,
-		['legsilo'] = 10,
-
-		['armamd'] = 20,
-		['corfmd'] = 20,
-		['raptor_turret_antinuke_t2_v1'] = 5,
-		['raptor_turret_antinuke_t3_v1'] = 10,
-
-		['armjuno'] = 20,
-		['corjuno'] = 20,
-
-		['armcarry'] = 20,
-		['corcarry'] = 20,
-
-		['armantiship'] = 20,
-		['corantiship'] = 20,
-
-		['armscab'] = 20,
-		['cormabm'] = 20,
-
-		['armemp'] = 10,
-		['cortron'] = 10,
-		['legperdition'] = 10,
-
-		['armbotrail'] = 50,
-
-		['legcom'] = 2,
-		['legcomlvl2'] = 2,
-		['legcomlvl3'] = 3,
-		['legcomlvl4'] = 4,
-
-		['legstarfall'] = 1,
-	}
-	-- convert unitname -> unitDefID + add scavengers
-	local isStockpilingUnit = {}
-	for name, params in pairs(isStockpilingUnitNames) do
-		if UnitDefNames[name] then
-			isStockpilingUnit[UnitDefNames[name].id] = params
-			if UnitDefNames[name..'_scav'] then
-				isStockpilingUnit[UnitDefNames[name..'_scav'].id] = params
-			end
-		end
-	end
-	isStockpilingUnitNames = nil
-
-	----------------------------------------------------------------------------
-	----------------------------------------------------------------------------
+	local unitStockpileLimit = {}
 
 	local GetUnitStockpile	= Spring.GetUnitStockpile
 	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
-	local canStockpile = {}
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
-			canStockpile[udid] = true
-		end
-		if ud.customParams and ud.customParams.stockpileLimit then
-			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpileLimit)
-		elseif ud.customParams and ud.customParams.stockpilelimit then
-			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpilelimit)
+			unitStockpileLimit[udid] = defaultStockpileLimit
+			if ud.weapons then
+				for i = 1, #ud.weapons do
+					local weaponDef = WeaponDefs[ud.weapons[i].weaponDef]
+					if weaponDef.stockpile and weaponDef.customParams and weaponDef.customParams.stockpilelimit then
+						unitStockpileLimit[udid] = tonumber(weaponDef.customParams.stockpilelimit)
+					end
+				end
+			end
 		end
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		local MaxStockpile = math.max(math.min(isStockpilingUnit[unitDefID] or defaultStockpileLimit, StockpileDesiredTarget[unitID]), 0)
+		if not unitID then
+			return
+		end
+		local MaxStockpile = math.clamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
 
 		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
@@ -133,8 +85,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 		if unitID then
-			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
-				local stock, _ = Spring.GetUnitStockpile(unitID)
+			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2] == CMD_STOCKPILE) then
+				local stock, _ = GetUnitStockpile(unitID)
 				if stock == nil then
 					return true
 				end
@@ -154,8 +106,10 @@ if gadgetHandler:IsSyncedCode() then
 				if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
 					return true
 				else
-					StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, isStockpilingUnit[unitDefID] or defaultStockpileLimit), 0) -- let's make sure desired target doesn't go above maximum of this unit, and doesn't go below 0
-					UpdateStockpile(unitID, unitDefID)
+					if StockpileDesiredTarget[unitID] then
+						StockpileDesiredTarget[unitID] = math.clamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
+						UpdateStockpile(unitID, unitDefID)
+					end
 					return false
 				end
 			end
@@ -164,28 +118,24 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
+		if unitStockpileLimit[unitDefID] then
+			StockpileDesiredTarget[unitID] = unitStockpileLimit[unitDefID]
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
+	gadget.UnitGiven = gadget.UnitCreated
 
-	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = isStockpilingUnit[unitDefID] or defaultStockpileLimit
-			UpdateStockpile(unitID, unitDefID)
-		end
-	end
-
-	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
+	function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 		UpdateStockpile(unitID, unitDefID)
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		StockpileDesiredTarget[unitID] = nil
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
+		gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
 			local unitDefID = Spring.GetUnitDefID(units[i])

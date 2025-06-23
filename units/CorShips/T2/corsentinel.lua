@@ -11,7 +11,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 5 0",
 		collisionvolumescales = "48 48 102",
 		collisionvolumetype = "CylZ",
@@ -43,7 +42,7 @@ return {
 			maxrange = 600,
 			model_author = "Odin, Hornet",
 			normaltex = "unittextures/Cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
@@ -130,16 +129,19 @@ return {
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 1.9,
 				impulsefactor = 0.123,
 				name = "Depth Charge Drones",
 				noselfdamage = true,
+				metalpershot = 40,
+				energypershot = 1000,
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",--"xplomed2",
 				soundhitwet = "",--"splssml",
 				soundstart = "",--"cannhvy1",
+				stockpile = true,
+				stockpiletime = 6,
 				turret = true,
 				waterweapon = true,
 				weapontype = "Cannon",
@@ -166,10 +168,12 @@ return {
 					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 4,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 10,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "4 5 6 7 8 9 10",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 5,
+					stockpilemetal = 40,
+					stockpileenergy = 1000,
+					dronesusestockpile = true,
 				}
 			},
 			
@@ -187,7 +191,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.75,
 				groundbounce = true,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cordepthcharge.s3o",
 				name = "Depthcharge launcher",

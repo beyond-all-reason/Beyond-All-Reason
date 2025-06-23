@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Game info",
@@ -9,8 +11,6 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
@@ -84,9 +84,9 @@ local function stringifyDefTable(t, path, pathAddition)
 	end
 	for k, v in pairs(t) do
 		if type(v) == "table" then
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = \{'
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = {'
 			text = text .. stringifyDefTable(v, path, k)
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '\}'
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '}'
 		else
 			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
 		end
@@ -109,9 +109,9 @@ for key, value in pairs(modoptions) do
 					local text = ''
 					for name, ud in pairs(tweaks) do
 						if UnitDefNames[name] then
-							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = {'
 							text = text..stringifyDefTable(ud, {}, name)
-							text = text .. '\n' .. '\}'
+							text = text .. '\n' .. '}'
 						end
 					end
 					changedModoptions[key] = text
@@ -187,7 +187,7 @@ function widget:ViewResize()
 	screenY = math.floor((vsy * 0.5) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 

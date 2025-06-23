@@ -1,5 +1,7 @@
 include("keysym.h.lua")
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Blast Radius",
@@ -12,13 +14,10 @@ function widget:GetInfo()
 	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
-
 --These can be modified if needed
 local blastCircleDivs = 96
 local blastLineWidth = 1.0
 local blastAlphaValue = 0.5
-local updateInt = 1 --seconds for the ::update loop
 
 --------------------------------------------------------------------------------
 local blastColor = { 1.0, 0.0, 0.0 }
@@ -28,12 +27,10 @@ local explodeTag = "deathExplosion"
 local selfdTag = "selfDExplosion"
 local aoeTag = "damageAreaOfEffect"
 
-local lastTimeUpdate = 0
 local lastColorChangeTime = 0.0
 local selfdCycleDir = false
 local selfdCycleTime = 0.3
 local expCycleTime = 0.5
-local mapSquareSize = 16
 
 -------------------------------------------------------------------------------
 
@@ -41,19 +38,14 @@ local udefTab				= UnitDefs
 local weapNamTab			= WeaponDefNames
 local weapTab				= WeaponDefs
 
-local spGetActiveCommand 	= Spring.GetActiveCommand
 local spGetKeyState         = Spring.GetKeyState
 local spGetModKeyState      = Spring.GetModKeyState
-local spGetSelectedUnits    = Spring.GetSelectedUnits
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetGameSeconds      = Spring.GetGameSeconds
 local spGetActiveCommand 	= Spring.GetActiveCommand
-local spGetActiveCmdDesc 	= Spring.GetActiveCmdDesc
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
-local spGetMyPlayerID       = Spring.GetMyPlayerID
-local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spEcho                = Spring.Echo
 
 local glColor               = gl.Color
@@ -65,7 +57,6 @@ local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
 local glBillboard           = gl.Billboard
-local glText                = gl.Text
 
 local sqrt					= math.sqrt
 local lower                 = string.lower
@@ -79,9 +70,7 @@ function widget:Initialize()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
@@ -151,30 +140,20 @@ function ChangeBlastColor()
 end
 
 function DrawBuildMenuBlastRange()
-	--check if valid command
-	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 
-	if not cmd_id then return end
-	--printDebug("Cmds: idx: " .. idx .. " cmd_id: " .. cmd_id .. " cmd_type: " .. cmd_type .. " cmd_name: " .. cmd_name )
+	--check if build command
+	local _, cmd_id, cmd_type, _ = spGetActiveCommand()
+	if not cmd_id or cmd_type ~= 20 then
+		return
+	end
 
 	--check if META is pressed
-	--local keyPressed = spGetKeyState(KEYSYMS.X )
-	local alt,ctrl,meta,shift = spGetModKeyState()
-
+	local _,_,meta,_ = spGetModKeyState()
 	if not meta then --and keyPressed) then
 		return
 	end
 
-	--check if build command
-	local cmdDesc = spGetActiveCmdDesc( idx )
-
-	if cmdDesc["type"] ~= 20 then
-		--quit here if not a build command
-		return
-	end
-
 	local unitDefID = -cmd_id
-
 	local udef = udefTab[unitDefID]
 	if weapNamTab[lower(udef[explodeTag])] == nil then
 		return

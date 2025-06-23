@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "Undo Self Destruction Havoc",
@@ -7,7 +9,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= true
+		enabled	= false
 	}
 end
 
@@ -38,8 +40,37 @@ if gadgetHandler:IsSyncedCode() then
 	local lastSelfdTeamID = 0
 	local sceduledRestoreHeightmap = {}
 
+	local dgunDef = {}
+	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+		if weaponDef.type == 'DGun' then
+			dgunDef[weaponDefID] = true
+		end
+	end
+
+	local safeguardedUnits = {}
+	local weaponUnitSelfd = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams and tonumber(unitDef.customParams.techlevel) > 1 then
+			if unitDef.isBuilding then
+				safeguardedUnits[unitDefID] = true
+			end
+			if unitDef.metalMake > 0.5 or unitDef.energyMake > 5 or unitDef.energyUpkeep < 0 or unitDef.windGenerator > 0 or unitDef.customParams.solar or unitDef.tidalGenerator > 0 or unitDef.customParams.energyconv_capacity then
+				safeguardedUnits[unitDefID] = true
+			end
+		end
+		if unitDef.customParams.energyconv_capacity then
+			safeguardedUnits[unitDefID] = true
+		end
+		if unitDef.selfDExplosion then
+			local wDef = WeaponDefNames[unitDef.selfDExplosion]
+			if wDef then
+				weaponUnitSelfd[wDef.id] = unitDefID
+			end
+		end
+	end
+
 	local startPlayers = {}
-	function checkStartPlayers()
+	local function checkStartPlayers()
 		for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
 			local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
 			if not spec then
@@ -158,14 +189,14 @@ if gadgetHandler:IsSyncedCode() then
 					--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
 					return
 				end
-				if authorized and not spec then
-					Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
-					return
-				end
-				if startPlayers[playername] ~= nil then
-					Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
-					return
-				end
+				--if authorized and not spec then
+				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
+				--	return
+				--end
+				--if startPlayers[playername] ~= nil then
+				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
+				--	return
+				--end
 			end
 			local params = string.split(msg, ':')
 			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
@@ -173,10 +204,25 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
+			if dgunDef[weaponID] then
+				-- TODO: moderator echo/log playername tried to dgun playername's unit
+				return 0, 0
+			elseif weaponUnitSelfd[weaponID] then
+				-- TODO: moderator echo/log playername tried to selfd playername's unit(s)
+				return 0, 0
+			elseif not Spring.GetUnitNearestEnemy(unitID, 1000) then
+				-- TODO: moderator echo/log playername damaged playername's unit(s) without nearby enemy
+				return 0, 0
+			end
+		end
+		return damage, 1
+	end
 
 	-- log selfd units and all the deaths they caused
-	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID])  then -- attackerID == nil -> selfd/reclaim
+	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID]) then -- attackerID == nil -> selfd/reclaim
 			local ux,uy,uz = Spring.GetUnitPosition(unitID)
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
@@ -201,7 +247,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- check for queued selfd (to check if queue gets cancelled)
 		if selfdCmdUnits[unitID] then
 			local foundSelfdCmd = false
-			local unitQueue = Spring.GetCommandQueue(unitID,20) or {}
+			local unitQueue = Spring.GetUnitCommands(unitID,20) or {}
 			if #unitQueue > 0 then
 				for i=1, #unitQueue do
 					local cmd = unitQueue[i]

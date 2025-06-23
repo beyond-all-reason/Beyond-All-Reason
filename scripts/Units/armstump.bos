@@ -1,68 +1,76 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, turret, barrel, sleeve, smoke2, smoke1;
 
 static-var  restore_delay;
 
+#define DEBUG
+#include "../debug.h"
+
 // Signal definitions
-#define SIG_AIM				2
-
-
-
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
-#define HITSPEED <65.0>
+#define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
+#define RECOIL_POWER 50000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.10>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
 
 
+static-var prevheading, prevpitch;
 Create()
 {
+	prevheading = 0;
+	prevpitch = 0;
+	turn turret to y-axis <0.0> speed <90.021978>;
+	turn sleeve to x-axis <0.0> speed <50.010989>;
 	hide smoke2;
 	hide smoke1;
 	hide flare;
 	restore_delay = 3000;
-}
-StartMoving()
-{
-	turn base to x-axis <-7> speed <7>;
-	move base to y-axis [1] speed [1];
-	sleep 1000;
-	turn base to x-axis <0> speed <14>;
-	move base to y-axis [0] speed [2];
-
+	call-script TB_Init();
 }
 
-
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn sleeve to x-axis <0.000000> speed <50.010989>;
+	turn turret to y-axis <0.0> speed <90.021978>;
+	turn sleeve to x-axis <0.0> speed <50.010989>;
+
 }
 SetStunned(State)
 {
@@ -77,40 +85,62 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <90.0>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+
+/*
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	var gf;
+	gf = get GAME_FRAME;
+	turn turret to y-axis heading speed <90.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
+	var sleepx, sleepy;
+	sleepy = get ABS(WRAPDELTA(heading- prevheading))/ <90.0> ;
+	sleepx = get ABS(WRAPDELTA(pitch- prevpitch))/ <90.0> ;
+
+	dbg(1, sleepy, (get GAME_FRAME) - gf);
+	wait-for-turn turret around y-axis;
+	dbg(2, sleepx, (get (GAME_FRAME) - gf));
+	wait-for-turn sleeve around x-axis;
+	dbg(3, get (GAME_FRAME) - gf);
+	prevheading = heading;
+	prevpitch = pitch;
+	start-script RestoreAfterDelay();
+	return (1);
+}*/
+
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-2.400000] speed [500.000000];
+	move barrel to z-axis [-2.400000] speed [500.0];
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	move barrel to z-axis [0.0] speed [3.0];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -121,7 +151,7 @@ Killed(severity, corpsetype)
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -131,7 +161,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -141,7 +171,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -149,6 +179,6 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
 	return corpsetype;
 }

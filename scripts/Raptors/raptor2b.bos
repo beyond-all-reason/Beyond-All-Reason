@@ -1,11 +1,10 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1;
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
+static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 60 //Higher values are bigger, 100 is default
@@ -15,7 +14,7 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 #define RUHAND rupperarm  
 #define LLHAND lupperarm  //define these as the left and right head thingies
 #define RLHAND rupperarm  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 #define IDLEMOVESCALE 60
@@ -46,23 +45,23 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 #include "raptor_create_move_swim.h"
 
 
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryPrimary(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;	
 	
 	if (heading > <60> ) heading = <60>;
 	if (heading < <-60> ) heading = <-60>;
 	if (pitch > <60> ) pitch = <60>;
 	if (pitch < <-60> ) pitch = <-60>;
-	turn aimy1 to y-axis heading speed <250.000000>;
-	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed <250.0>;
+	turn aimy1 to x-axis <0.0> - pitch speed <200.0>;
 		
 	wait-for-turn head around y-axis;
 	start-script RestoreAfterDelay();

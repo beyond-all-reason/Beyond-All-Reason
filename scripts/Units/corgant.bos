@@ -1,162 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+piece  base,pad,arm1,arm2,arm3,gatel1,gatel2,gater1,gater2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
+static-var  buildAnimPiece;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		move door1 to x-axis [-33] speed [33];
-		move door2 to x-axis [33] speed [33];
-		wait-for-move door1 along x-axis;
-	}	
-	if( TRUE )
-	{
-		turn arm1 to x-axis <-90> speed <90>;
-		wait-for-turn arm1 around x-axis;
-		
-	}
-	if( TRUE )
-	{
-		move arm2 to z-axis [14] speed [14.000000];
-		move arm3 to z-axis [14] speed [14.000000];
-		wait-for-move arm2 along z-axis;
-	}
-	if( TRUE )
-	{
-		turn nano1 to y-axis <-60> speed <60.000000>;
-		turn nano2 to y-axis <60> speed <60.000000>;
-		turn nano3 to y-axis <-60> speed <60.000000>;
-		turn nano4 to y-axis <60> speed <60.000000>;
-		wait-for-turn nano1 around y-axis;
-	}	
-	sleep 300;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{	
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	hide cagelight_emit3;
-	turn cagelight to y-axis <0> speed <1000>;
-	turn cagelight2 to y-axis <0> speed <1000>;
-	turn cagelight_emit3 to y-axis <0> speed <1000>;
-	if( TRUE )
-	{
-		turn arm1 to x-axis <0> speed <90>;
-		wait-for-turn arm1 around x-axis;
-		
-	}
-
-	if( TRUE )
-	{
-		move arm2 to z-axis [0] speed [14.000000];
-		move arm3 to z-axis [0] speed [14.000000];
-		wait-for-move arm2 along z-axis;
-	}	
-	if( TRUE )
-	{
-		turn nano1 to y-axis <0> speed <60.000000>;
-		turn nano2 to y-axis <0> speed <60.000000>;
-		turn nano3 to y-axis <0> speed <60.000000>;
-		turn nano4 to y-axis <0> speed <60.000000>;
-		wait-for-turn nano1 around y-axis;
-	}
-	if( TRUE )
-	{
-		move door1 to x-axis [0] speed [33];
-		move door2 to x-axis [0] speed [33];
-		wait-for-move door1 along x-axis;
-	}
-	sleep 300;
-}
-
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-			show cagelight_emit;
-			show cagelight_emit2;
-			show cagelight_emit3;
-			spin cagelight around y-axis speed <200>;
-			spin cagelight2 around y-axis speed <-200>;
-			spin cagelight_emit3 around y-axis speed <200>;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -176,93 +27,80 @@ Create()
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	hide cagelight_emit3;
-	Static_Var_1 = 1;
-	call-script InitState();
+	buildAnimPiece = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( Static_Var_1 == 1 )
-	{
-		piecenum = n1;
-	}
-	if( Static_Var_1 == 1 )
-	{
-		piecenum = n1;
-	}
-	if( Static_Var_1 == 1 )
-	{
-		piecenum = n1;
-	}
-	if( Static_Var_1 == 2 )
-	{
-		piecenum = n2;
-	}
-	if( Static_Var_1 == 3 )
-	{
-		piecenum = n3;
-	}
-	if( Static_Var_1 == 4 )
-	{
-		piecenum = n4;
-	}
-	if( Static_Var_1 == 5 )
-	{
-		piecenum = n5;
-	}
-	if( Static_Var_1 == 6 )
-	{
-		piecenum = n6;
-	}
-	if( Static_Var_1 == 7 )
-	{
-		piecenum = n7;
-	}
-	if( Static_Var_1 == 8 )
-	{
-		piecenum = n8;
-	}
-	if( Static_Var_1 == 9 )
-	{
-		piecenum = n9;
-	}
-	if( Static_Var_1 == 10 )
-	{
-		piecenum = n10;
-		
-	}
-	
-	if( Static_Var_1 == 11 )
-	{
-		piecenum = n11;
-	}
-	if( Static_Var_1 == 12 )
-	{
-		piecenum = n12;
-	}
-	++Static_Var_1;
-	if( Static_Var_1 == 13 )
-	{
-		Static_Var_1 = 1;
-	}
+	buildAnimPiece = (buildAnimPiece + 1) % 12;
+	pieceIndex = n1 + buildAnimPiece;
 }
+
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move gatel2 to x-axis [-40] speed [40];
+	move gater2 to x-axis [40] speed [40];
+	wait-for-move gatel1 along x-axis;
+
+	turn arm1 to x-axis <-90> speed <90>;
+	
+	wait-for-turn arm1 around x-axis;
+	move gatel1 to x-axis [-14] speed [30];
+	move gater1 to x-axis [14] speed [30];
+	
+
+	move arm2 to z-axis [14] speed [14.0];
+	move arm3 to z-axis [14] speed [14.0];
+	wait-for-move arm2 along z-axis;
+
+	turn nano1 to y-axis <-60> speed <60.0>;
+	turn nano2 to y-axis <60> speed <60.0>;
+	turn nano3 to y-axis <-60> speed <60.0>;
+	turn nano4 to y-axis <60> speed <60.0>;
+	turn nano5 to x-axis <45> speed <60.0>;
+	turn nano6 to x-axis <45> speed <60.0>;
+	wait-for-turn nano1 around y-axis;
+	
+	FACTORY_OPEN_BUILD;	
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+
+	turn arm1 to x-axis <0> speed <90>;
+	wait-for-turn arm1 around x-axis;
+
+	move arm2 to z-axis [0] speed [14.0];
+	move arm3 to z-axis [0] speed [14.0];
+	wait-for-move arm2 along z-axis;
+
+	turn nano1 to y-axis <0> speed <60.0>;
+	turn nano2 to y-axis <0> speed <60.0>;
+	turn nano3 to y-axis <0> speed <60.0>;
+	turn nano4 to y-axis <0> speed <60.0>;
+	turn nano5 to x-axis <0> speed <60.0>;
+	turn nano6 to x-axis <0> speed <60.0>;
+
+	move gatel1 to x-axis [0] speed [30];
+	move gater1 to x-axis [0] speed [30];
+	wait-for-turn nano1 around y-axis;
+
+	move gatel2 to x-axis [0] speed [40];
+	move gater2 to x-axis [0] speed [40];
+	wait-for-move gatel1 along x-axis;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -279,7 +117,13 @@ StartBuilding()
 	show n10;
 	show n11;
 	show n12;
-	sleep 50;
+	
+	show cagelight_emit;
+	show cagelight_emit2;
+	show cagelight_emit3;
+	spin cagelight around y-axis speed <200> accelerate <4>;
+	spin cagelight2 around y-axis speed <-200> accelerate <4>;
+	spin cagelight_emit3 around y-axis speed <200> accelerate <4>;
 }
 
 StopBuilding() // give the gantry a 1 second breathing room
@@ -296,22 +140,19 @@ StopBuilding() // give the gantry a 1 second breathing room
 	hide n10;
 	hide n11;
 	hide n12;
-	set BUGGER_OFF to 1; // tell units to get out of here
-	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
-	sleep 1000;   // then we wait for 2 sec
-	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
-	set BUGGER_OFF to 0; // ok now we dont mind if they are here
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	stop-spin cagelight around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
+	stop-spin cagelight_emit3 around y-axis decelerate <1>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -328,8 +169,8 @@ Killed(severity, corpsetype)
 		explode nano3 type BITMAPONLY | NOHEATCLOUD;
 		explode n5 type BITMAPONLY | NOHEATCLOUD;
 		explode n6 type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode gatel1 type BITMAPONLY | NOHEATCLOUD;
+		explode gater1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm2 type BITMAPONLY | NOHEATCLOUD;
 		explode arm3 type BITMAPONLY | NOHEATCLOUD;
@@ -391,8 +232,8 @@ Killed(severity, corpsetype)
 		explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode gatel1 type BITMAPONLY | NOHEATCLOUD;
+		explode gater1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode arm3 type SMOKE | FALL | NOHEATCLOUD;
@@ -422,8 +263,8 @@ Killed(severity, corpsetype)
 		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n5 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode n6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode gatel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode gater1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode arm1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode arm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

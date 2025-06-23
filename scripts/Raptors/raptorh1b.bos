@@ -1,11 +1,10 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1;
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
+static-var maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,isDying,gun_1;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 30 //Higher values are bigger, 100 is default
@@ -15,7 +14,7 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 #define RUHAND rupperarm  
 #define LLHAND lupperarm  //define these as the left and right head thingies
 #define RLHAND rupperarm  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 #define IDLEMOVESCALE 30
@@ -68,8 +67,8 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = head;
+	pieceIndex = head;
 }
 

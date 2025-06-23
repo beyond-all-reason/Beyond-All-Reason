@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, armbase, arm1, arm2, arm3, arm4, arm5, flare1, flare2, flare3, flare4, flare5, topflare;
 
 static-var  restore_delay, shootflare;
 // Signal definitions
-#define SIG_AIM1				1 
-#define SIG_AIM2				2 
-#define SIG_AIM3			    4 
+#define SIGNAL_AIM1 256 
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3	1024		    4 
 //------------------------------- Worm Options --------------------------------------------------
 #define HIVESIZE 100 // This is for scaling move animations, as percent 
 
@@ -122,28 +120,38 @@ Create()
 {
 	shootflare = flare1;
 	move base to y-axis [-1] * HIVESIZE now;
+	hide base;
+	hide arm1;
+	hide arm2;
+	hide arm3;
+	hide arm4;
+	hide arm5;
+	sleep 30;
+	show base;
+	show arm1;
+	show arm2;
+	show arm3;
+	show arm4;
+	show arm5;
 	
-	move topflare to y-axis [3000.000000] speed [10000.000000];
-	move topflare to x-axis [0.000000] speed [10000.000000];
-	move topflare to z-axis [0.000000] speed [10000.000000];
-	turn topflare to y-axis <90.000000> speed <10000.000000>;
-	turn topflare to x-axis <90.000000> speed <10000.000000>;
-	turn topflare to z-axis <90.000000> speed <10000.000000>;
+	move topflare to y-axis [3000.0] speed [10000.0];
+	move topflare to x-axis [0.0] speed [10000.0];
+	move topflare to z-axis [0.0] speed [10000.0];
+	turn topflare to y-axis <90.0> speed <10000.0>;
+	turn topflare to x-axis <90.0> speed <10000.0>;
+	turn topflare to z-axis <90.0> speed <10000.0>;
 	sleep 100;
 	emit-sfx 2048 + 2 from topflare;
 	move base to y-axis [0] speed [0.2] * HIVESIZE;
 	sleep 100;
 	
-	move topflare to y-axis [0] speed [10000.000000];
-	turn topflare to y-axis <0> speed <10000.000000>;
-	turn topflare to x-axis <0> speed <10000.000000>;
-	turn topflare to z-axis <0> speed <10000.000000>;
+	move topflare to y-axis [0] speed [10000.0];
+	turn topflare to y-axis <0> speed <10000.0>;
+	turn topflare to x-axis <0> speed <10000.0>;
+	turn topflare to z-axis <0> speed <10000.0>;
 	
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
  	start-script Motion();
 }
 
@@ -176,8 +184,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch) // ground weapon
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	
 	var deg;
 	deg = heading / 182;
@@ -191,21 +199,21 @@ AimWeapon1(heading, pitch) // ground weapon
 	return (1);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = shootflare;
+	pieceIndex = shootflare;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 
 AimWeapon2(heading, pitch) // anti air weapon
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	
 	//get PRINT(heading, pitch)
 	turn topflare to y-axis heading now;
@@ -213,31 +221,31 @@ AimWeapon2(heading, pitch) // anti air weapon
 	return (1);
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = topflare;
+	pieceIndex = topflare;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = topflare;
+	pieceIndex = topflare;
 }
 
 
 AimWeapon3(heading, pitch) // meteor
 {
-	signal SIG_AIM1;
-	set-signal-mask SIG_AIM1;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	return (0); // always return false?
 }
-QueryWeapon3(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon3(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 
@@ -311,13 +319,15 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 }
 
 static-var isSmoking;
-SmokeUnit(healthpercent, randpiece) // ah yes, clever use of stack variables 
+DamagedSmoke() // ah yes, clever use of stack variables 
 {
+	var healthpercent;
+	var randpiece;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		
-		if( healthpercent < 66 )
+		if( healthpercent < 65 )
 		{
 			randpiece = RAND(1, 5);
 			if (randpiece == 1) emit-sfx 1024 from arm1;
@@ -343,7 +353,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	if( get BUILD_PERCENT_LEFT) return (100);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
-		start-script SmokeUnit();
+		start-script DamagedSmoke();
 	}
 	//get PRINT(anglex, anglez, weaponid, dmg);
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
@@ -352,19 +362,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 
 
-SweetSpot(piecenum)
+
+
+QueryLandingPad(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = armbase;
 }
 
-QueryLandingPad(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = armbase;
-}
-
-QueryNanoPiece(piecenum)
-{
-	piecenum = base;
+	pieceIndex = base;
 }
 
 

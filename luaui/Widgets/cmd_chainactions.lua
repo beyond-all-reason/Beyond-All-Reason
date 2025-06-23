@@ -18,6 +18,8 @@
 --
 --   bind u chain force select PrevSelection++_ClearSelection_SelectOne+ | group unset
 --
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Chain Actions",
@@ -26,7 +28,7 @@ function widget:GetInfo()
 		date = "April 2024",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 		handler = true,
 	}
 end

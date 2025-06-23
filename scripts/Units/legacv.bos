@@ -1,0 +1,227 @@
+
+#include "../recoil_common_includes.h"
+
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
+
+piece  
+chassis, 
+cannisterL, 
+cannisterR, 
+nanoOpeningArm, 
+nanoHeadingPivot, 
+nanoTurret, 
+nanoSleeve, 
+nano, 
+nanoFlareL, 
+nanoFlareR, 
+nanoLightPivot, 
+conLightA, 
+conLightB, 
+rearCoverLeft, 
+rearCoverRight,
+frontCoverLeft,
+frontCoverRight, 
+solarA, 
+solarB, 
+wheelLeft, 
+wheelRight,
+coverLeft,
+coverRight;
+
+static-var  nanob, oldHeading;
+
+
+#define VD_PIECE1 wheelLeft//smoke1
+#define VD_PIECE2 wheelRight//smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 0
+#include "../vehicle_dirt_cegs.h"
+
+#define BASEPIECE chassis
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+#define TB_BASE chassis 
+#define TB_TURNRATE <12.0> 
+#define TB_TILT_X <0.10>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+Create()
+{
+	//hide smoke2;
+	//hide smoke1;
+	hide nanoFlareL;
+	hide nanoFlareR;
+	hide conLightA;
+	hide conLightB;
+	turn nanoOpeningArm to x-axis <6> now;
+	call-script TB_Init();
+}
+
+StartMoving(reversing, heading, steery, currentSpeed)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	// spin wheelLeft around x-axis speed <140.0> accelerate <5.0>;
+	// spin wheelRight around x-axis speed <140.0> accelerate <5.0>;
+
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*3;
+		turn wheelLeft to y-axis steery speed <180>;
+		turn coverLeft to y-axis steery speed <180>;
+		//turn flCover to y-axis steery speed <180>;	
+		turn wheelRight to y-axis steery speed <180>;
+		turn coverRight to y-axis steery speed <180>;
+		//turn frCover to y-axis steery speed <180>;		
+		currentSpeed = <2.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
+		if (currentSpeed < <100>) currentSpeed = <100>;
+		spin wheelLeft around x-axis speed (currentSpeed*4.0);
+		spin wheelRight around x-axis speed (currentSpeed*4.0);
+		sleep 66;
+		oldheading = heading;
+	}
+
+	START_TILTBANK;
+}
+
+
+StopMoving()
+{
+	stop-spin wheelLeft around x-axis;
+    stop-spin wheelRight around x-axis;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+Activate()
+{
+}
+
+Deactivate()
+{
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	move frontCoverLeft to y-axis [2] speed [10];
+	move frontCoverLeft to x-axis [-2] speed [10];
+	move frontCoverRight to y-axis [2] speed [10];
+	move frontCoverRight to x-axis [2] speed [10];
+	wait-for-move frontCoverRight along x-axis;
+	turn frontCoverLeft to x-axis <-15> speed <20>;
+	turn frontCoverRight to x-axis <-15> speed <20>;
+	wait-for-turn frontCoverLeft around x-axis;
+	turn rearCoverLeft to x-axis <-10> speed <20>;
+	turn rearCoverRight to x-axis <-10> speed <20>;
+	// wait-for-turn rearCoverLeft around x-axis;
+	sleep 100;
+	turn nanoOpeningArm to x-axis <0> speed <10>;
+	wait-for-turn nanoOpeningArm around x-axis;
+	turn nanoHeadingPivot to y-axis heading speed <90>;
+	move nanoSleeve to z-axis [3] speed [6];
+	wait-for-move nanoSleeve along z-axis;
+	move nano to z-axis [3] speed [6];
+
+	wait-for-turn nanoHeadingPivot around y-axis;
+	
+
+	// turn gun to y-axis heading speed <160>;
+	// wait-for-turn gun around y-axis;
+
+	set INBUILDSTANCE to 1;
+	show nanoFlareL;
+	show nanoFlareR;
+	show conLightA;
+	show conLightB;
+	move nanoLightPivot to y-axis [2] speed [2];
+	spin nanoLightPivot around y-axis speed <300> accelerate <2>;
+}
+
+StopBuilding()
+{
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
+	hide nanoFlareL;
+	hide nanoFlareR;
+	hide conLightA;
+	hide conLightB;
+	stop-spin nanoLightPivot around y-axis decelerate <2>;
+
+	sleep 6000;
+
+	move nano to z-axis [0] speed [6];
+	move nanoLightPivot to y-axis [0] speed [2];
+	move nanoSleeve to z-axis [0] speed [6];
+	turn nanoHeadingPivot to y-axis <0> speed <65>;
+	wait-for-turn nanoHeadingPivot around y-axis;
+	turn nanoOpeningArm to x-axis <6> speed <6>;
+	turn rearCoverLeft to x-axis <0> speed <20>;
+	turn rearCoverRight to x-axis <0> speed <20>;
+	wait-for-turn rearCoverLeft around x-axis;
+	turn frontCoverLeft to x-axis <0> speed <20>;
+	turn frontCoverRight to x-axis <0> speed <20>;
+	wait-for-turn frontCoverLeft around x-axis;
+	move frontCoverLeft to y-axis [0] speed [4];
+	move frontCoverLeft to x-axis [0] speed [4];
+	move frontCoverRight to y-axis [0] speed [4];
+	move frontCoverRight to x-axis [0] speed [4];
+
+	set INBUILDSTANCE to 0;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = nanoFlareL + nanob;
+	nanob= !nanob;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode nanoTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoSleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode nanoTurret type FALL | NOHEATCLOUD;
+		explode nanoSleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode nanoTurret type SMOKE | FALL | NOHEATCLOUD;
+		explode nanoSleeve type SMOKE | FALL | NOHEATCLOUD;
+		
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode nanoTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoSleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+	return corpsetype;
+}

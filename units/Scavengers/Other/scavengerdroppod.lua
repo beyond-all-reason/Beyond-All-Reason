@@ -10,7 +10,6 @@ return {
 		--builder = true,
 		buildpic = "scavengers/scavengerdroppod.DDS",
 		buildtime = 10,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,
 		capturable = false,
 		collisionvolumeoffsets = "0 0 0",
@@ -40,7 +39,7 @@ return {
 		waterline = 0,
 		yardmap = "",
 		customparams = {
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
 			normaltex = "unittextures/cor_normal.dds",
 		},
 		featuredefs = {},
@@ -77,8 +76,8 @@ return {
 				smokecolor = 0.9,
 				smokeTrailCastShadow = true,
 				castshadow = true, --projectile
-				soundstart = "voice/allison/scavengers/scavspawn",
-				soundhit = "voice/allison/scavengers/scavdropspawn",
+				soundstart = "scavspawn",
+				soundhit = "scavdropspawn",
 				startvelocity = 1,
 				targetborder = 0.75,
 				texture1 = "null",

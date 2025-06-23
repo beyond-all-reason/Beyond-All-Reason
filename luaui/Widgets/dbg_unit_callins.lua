@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "UnitCallinsWidget",
@@ -135,7 +137,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if enabledcallins.UnitDestroyed == nil then return end
 	if printcallins then Spring.Echo("w:UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
 	if showcallins then addEvent(unitID, "UnitDestroyed") end 
@@ -164,9 +166,9 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 	if showcallins then addEvent(unitID, "UnitCommand") end 
 end
 
-function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if enabledcallins.UnitCmdDone == nil then return end
-	if printcallins then Spring.Echo("w:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts) end
+	if printcallins then Spring.Echo("w:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag) end
 	if showcallins then addEvent(unitID, "UnitCmdDone") end 
 end
 

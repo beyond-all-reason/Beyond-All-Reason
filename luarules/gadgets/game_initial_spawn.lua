@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Initial Spawn',
@@ -41,18 +43,127 @@ if gadgetHandler:IsSyncedCode() then
 	-- Vars
 	----------------------------------------------------------------
 	local validStartUnits = {}
-	local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
-	if armcomDefID then
-		validStartUnits[armcomDefID] = true
+
+	local RANDOM_DUMMY = UnitDefNames.dummycom and UnitDefNames.dummycom.id
+
+	local getValidRandom, isUnitValid
+
+	do
+		local modoptions = Spring.GetModOptions()
+		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
+		if factionlimiter > 0 then
+			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+			local ARM_MASK = 2^0
+			local COR_MASK = 2^1
+			local LEG_MASK = 2^2
+			local FULL_BITMASK = math.bit_or(ARM_MASK, COR_MASK, LEG_MASK)
+
+			local allyTeams = Spring.GetAllyTeamList()
+			for i = 1, #allyTeams do
+				local allyTeam = allyTeams[i]
+				local allyStartUnits = {}
+				local unitsCount = 1
+
+				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
+				allyTeamBitmask = allyTeamBitmask == 0 and FULL_BITMASK or allyTeamBitmask
+
+				if legcomDefID then
+					if math.bit_and(allyTeamBitmask, LEG_MASK) ~= 0 then
+						allyStartUnits[unitsCount] = legcomDefID
+						unitsCount = unitsCount + 1
+					end
+				elseif allyTeamBitmask == LEG_MASK then
+					allyTeamBitmask = FULL_BITMASK
+				end
+
+				if armcomDefID and math.bit_and(allyTeamBitmask, ARM_MASK) ~= 0 then
+					allyStartUnits[unitsCount] = armcomDefID
+					unitsCount = unitsCount + 1
+				end
+				if corcomDefID and math.bit_and(allyTeamBitmask, COR_MASK) ~= 0 then
+					allyStartUnits[unitsCount] = corcomDefID
+					unitsCount = unitsCount + 1
+				end
+
+				local packedOptions = allyStartUnits[1]
+				if unitsCount > 1 then
+					for j = 2, #allyStartUnits do
+						packedOptions = packedOptions.."|"..allyStartUnits[j]
+					end
+					packedOptions = packedOptions.."|"..RANDOM_DUMMY
+				end
+
+				validStartUnits[allyTeam] = allyStartUnits
+
+				local allyTeamList = Spring.GetTeamList(allyTeam)
+				---@diagnostic disable-next-line: param-type-mismatch
+				for _, teamID in ipairs(allyTeamList) do
+					Spring.SetTeamRulesParam(teamID, "validStartUnits", packedOptions)
+				end
+			end
+
+			getValidRandom = function(allyTeamID)
+				local roll = math.random(#validStartUnits[allyTeamID])
+				return validStartUnits[allyTeamID][roll]
+			end
+
+			isUnitValid = function(unitDefID, allyTeamID)
+				if not unitDefID then
+					return false
+				end
+				if table.contains(validStartUnits[allyTeamID], unitDefID) then
+					return true
+				end
+				if unitDefID == RANDOM_DUMMY then
+					return true
+				end
+			end
+
+		else
+			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
+			if armcomDefID then
+				validStartUnits[#validStartUnits+1] = armcomDefID
+			end
+			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
+			if corcomDefID then
+				validStartUnits[#validStartUnits+1] = corcomDefID
+			end
+			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			if legcomDefID then
+				validStartUnits[#validStartUnits+1] = legcomDefID
+			end
+
+			getValidRandom = function(allyTeamID)
+				local roll = math.random(#validStartUnits)
+				return validStartUnits[roll]
+			end
+
+			isUnitValid = function(unitDefID, allyTeamID)
+				if not unitDefID then
+					return false
+				end
+				if table.contains(validStartUnits, unitDefID) then
+					return true
+				end
+				if unitDefID == RANDOM_DUMMY then
+					return true
+				end
+			end
+
+			local packedOptions = validStartUnits[1]
+			if #validStartUnits > 1 then
+				for j = 2, #validStartUnits do
+					packedOptions = packedOptions.."|"..validStartUnits[j]
+				end
+				packedOptions = packedOptions.."|"..RANDOM_DUMMY
+			end
+			Spring.SetGameRulesParam("validStartUnits", packedOptions)
+
+		end
 	end
-	local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
-	if corcomDefID then
-		validStartUnits[corcomDefID] = true
-	end
-	local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
-	if legcomDefID then
-		validStartUnits[legcomDefID] = true
-	end
+
 	local teams = {} -- teams[teamID] = allyID
 	local teamsCount
 
@@ -64,44 +175,6 @@ if gadgetHandler:IsSyncedCode() then
 	local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
-
-	---------------------------------------------------------------------------------------------------
-	-- the faction limiter attemtps to group strings seperated by comma and turn any faction names it finds in that into a team limiter.
-	-- any groups that are not found to have a valid faction do not expand the pool.
-	-- if the pool is insufficent for the number of teams, then the list is read looping back from the start
-	local factionStrings = include("gamedata/sidedata.lua")
-	if Spring.GetModOptions().experimentallegionfaction then
-		factionStrings[#factionStrings + 1] = {
-			name = "Legion",
-			startunit = 'legcom'
-		}
-	end
-	for _,factionData in pairs(factionStrings) do
-		factionData.name = string.lower(factionData.name)
-	end
-	local faction_limiter = Spring.GetModOptions().faction_limiter
-	local faction_limiter_valid = false
-	local faction_limited_options = {}
-	if faction_limiter then
-		faction_limiter = string.lower(faction_limiter)
-		local teamGroupID = 1
-		local teamLists = string.split(faction_limiter, ',')
-		for i = 1, #teamLists do
-			local team = teamLists[i]
-			for _, faction in pairs(factionStrings) do
-				if string.find(team, faction.name) then
-					if faction_limited_options[teamGroupID] == nil then
-						faction_limited_options[teamGroupID] = {}
-					end
-					faction_limited_options[teamGroupID][UnitDefNames[faction.startunit].id] = true
-					faction_limiter_valid = true
-				end
-			end
-			if faction_limited_options[teamGroupID] ~= nil then
-				teamGroupID = teamGroupID + 1
-			end
-		end
-	end
 
 	----------------------------------------------------------------
 	-- Start Point Guesser
@@ -136,31 +209,14 @@ if gadgetHandler:IsSyncedCode() then
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
-				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				local comDefID = armcomDefID
-				-- we try to give you your faction, if we can't, we find the first available faction, loops around if the list isn't long enough to include current team
-				if faction_limiter_valid then
-					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
-						comDefID = corcomDefID
-					elseif teamSide == 'legion' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][legcomDefID] then
-						comDefID = legcomDefID
-					elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][armcomDefID] ~= true then
-						if faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
-							comDefID = corcomDefID
-						elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][legcomDefID] then
-							comDefID = legcomDefID
-						else
-							Spring.Echo("gadget/game_initial_spawn - how did we get here?")
-						end
-					end
-				-- otherwise default behaviour
-				else
-					if teamSide == 'cortex' then
-						comDefID = corcomDefID
-					elseif teamSide == 'legion' then
-						comDefID = legcomDefID
-					end
+				local _, _, _, isAI, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
+				local comName = Spring.GetSideData(teamSide)
+				local comDefID = UnitDefNames[comName] and UnitDefNames[comName].id
+
+				if not isUnitValid(comDefID, teamAllyID) then
+					comDefID = getValidRandom(teamAllyID)
 				end
+
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				teams[teamID] = teamAllyID
 			end
@@ -204,7 +260,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
+		if isUnitValid(startUnit, allyTeamID) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
@@ -251,10 +307,36 @@ if gadgetHandler:IsSyncedCode() then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
 	end
-	
+
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local _unitType = {}
+	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
+	local function isFootingUntraversable(x, y, z, unitDefID)
+		-- type: 1|2|3 : air | ground mobile | building
+		local type = _unitType[unitDefID]
+		if not type then
+			local unitDef = UnitDefs[unitDefID]
+			type = unitDef.canFly and 1 or (unitDef.moveDef and unitDef.moveDef.id) and 2 or 3
+			_unitType[unitDefID] = type
+		end
+
+		if type == 1 then
+			return false
+		end
+
+		if type == 2 then
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
+		end
+
+		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
+	end
+
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
@@ -307,6 +389,10 @@ if gadgetHandler:IsSyncedCode() then
 			if isOutsideStartbox then
 				return false
 			end
+		end
+
+		if isFootingUntraversable(x,y,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+			return false
 		end
 
 		-- don't allow player to place if locked
@@ -381,13 +467,9 @@ if gadgetHandler:IsSyncedCode() then
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
-		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
-		if sideName == "random" then
-			if math.random() > 0.5 then
-				startUnit = corcomDefID
-			else
-				startUnit = armcomDefID
-			end
+		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID)
+		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
+			startUnit = getValidRandom(allyTeadID)
 		end
 
 		-- spawn starting unit
@@ -404,7 +486,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI")) then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }
@@ -504,11 +586,14 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
             if n == 60 then
+
                 for i = 1, #startUnitList do
                     local x = startUnitList[i].x
                     local y = startUnitList[i].y
                     local z = startUnitList[i].z
                     Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+					GG.ComSpawnDefoliate(x, y, z)
+
                 end
             end
             if n == 90 then
@@ -550,5 +635,6 @@ else -- UNSYNCED
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
+
 	end
 end

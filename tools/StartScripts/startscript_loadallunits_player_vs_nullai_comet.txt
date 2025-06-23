@@ -1,0 +1,50 @@
+[game]
+{
+[allyteam1]
+{
+numallies=0;
+}
+[team0]
+{
+allyteam=0;
+teamleader=0;
+}
+[allyteam0]
+{
+numallies=0;
+}
+[modoptions]
+{
+maxspeed=20;
+}
+[player0]
+{
+team=0;
+name=UnnamedPlayer;
+}
+[ai0]
+{
+team=1;
+host=0;
+version=0.1;
+name=Enemy;
+shortname=NullAI;
+}
+[team1]
+{
+allyteam=1;
+teamleader=0;
+}
+
+
+	[modoptions]
+	{
+		forceallunits = 1;
+	}
+	
+gametype=Beyond All Reason $VERSION;
+ishost=1;
+mapname=Comet Catcher Remake 1.8;
+myplayername=UnnamedPlayer;
+nohelperais=0;
+}

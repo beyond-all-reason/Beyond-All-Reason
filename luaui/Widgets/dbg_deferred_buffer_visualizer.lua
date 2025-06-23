@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	  = "Deferred Buffer visualizer",
@@ -218,7 +220,11 @@ function widget:DrawWorld()
 	local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	
 	gl.CopyToTexture(depthCopyTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- https://www.andersriggelsen.dk/glblendfunc.php
+
+end
+
+function widget:DrawScreenPost()
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- https://www.andersriggelsen.dk/glblendfunc.php
 	gl.UseShader(myshader)
 	for i=1, 12 do
 		gl.Texture(i-1, deferredbuffers[i])
@@ -233,6 +239,4 @@ function widget:DrawWorld()
 	gl.UseShader(0)
 	gl.Blending("reset")
 end
-
-
 

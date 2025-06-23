@@ -5,6 +5,8 @@ for word in msg:gmatch("[%-_%w]+") do
 end
 ]]--
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Dev Helper Cmds",
@@ -29,9 +31,6 @@ function isAuthorized(playerID)
 		return true
 	else
 		local playername = Spring.GetPlayerInfo(playerID, false)
-		local authorized = false
-
-		local authorized = false
 		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
@@ -389,7 +388,7 @@ if gadgetHandler:IsSyncedCode() then
 		local function sampleMode(pos)
 			if pos == nil then return modeArray[1][2] end
 			if pos == -1 then return modeArray[#modeArray][2] end
-			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
+			return modeArray[math.clamp(pos, 1, #modeArray)][2] or 0
 		end
 		-- end of mode height related sampling
 
@@ -553,12 +552,16 @@ if gadgetHandler:IsSyncedCode() then
 			ExecuteSelUnits(words, playerID)
 		elseif words[1] == "removeunits" then
 			ExecuteSelUnits(words, playerID, 'remove')
+		elseif words[1] == "removenearbyunits" then
+			ExecuteSelUnits(words, playerID, 'removenearbyunits')
 		elseif words[1] == "reclaimunits" then
 			ExecuteSelUnits(words, playerID, 'reclaim')
 		elseif words[1] == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
 			spawnceg(words)
+		elseif words[1] == "spawnunitexplosion" then
+			spawnunitexplosion(words, playerID)
 		elseif words[1] == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
 		elseif words[1] == "clearwrecks" then
@@ -743,6 +746,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif action == 'remove' then
 				Spring.DestroyUnit(unitID, false, true)
+			elseif action == 'removenearbyunits' then
+				Spring.DestroyUnit(unitID, false, true)
 			elseif action == 'reclaim' then
 				local teamID = Spring.GetUnitTeam(unitID)
 				local unitDefID = Spring.GetUnitDefID(unitID)
@@ -769,6 +774,31 @@ if gadgetHandler:IsSyncedCode() then
 			0, 0, 0, --dir
 			0 --radius
 		)
+	end
+
+	function spawnunitexplosion(words, playerID)
+		Spring.Echo("SYNCED spawnunitexplosion", words[1], words[2], words[3], words[4], words[5], words[6])
+		Spring.SpawnCEG(words[2], --cegname
+			tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), --pos
+			0, 0, 0, --dir
+			0 --radius
+		)
+		local unitDefID = UnitDefNames[words[2]] and UnitDefNames[words[2]].id or false
+		if unitDefID then
+			local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+			local unitID = Spring.CreateUnit(unitDefID, tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), "n", teamID)
+			if unitID then
+				Spring.DestroyUnit(unitID, words[6] == '1' and true or false, false)
+
+				--if words[6] ~= '1' then
+				-- this wont clear up the wreck of the above destroyed unit, but its maybe even bettter this way :)
+					local featuresInRange = Spring.GetFeaturesInSphere(tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), 220)
+					for j = 1, #featuresInRange do
+						Spring.DestroyFeature(featuresInRange[j])
+					end
+				--end
+			end
+		end
 	end
 
 	function ExecuteRemoveUnitDefName(unitdefname)
@@ -838,10 +868,12 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
+		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 
 		gadgetHandler:AddChatAction('xp', xpUnits, "")
 
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
+		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
 
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
@@ -857,8 +889,10 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('destroyunits')
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
+		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
+		gadgetHandler:RemoveChatAction('spawnunitexplosion')
 
 		gadgetHandler:RemoveChatAction('dumpunits')
 		gadgetHandler:RemoveChatAction('dumpfeatures')
@@ -883,6 +917,9 @@ else	-- UNSYNCED
 	end
 	function removeUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removeunits')
+	end
+	function removenearbyunits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'removenearbyunits')
 	end
 
 	function removeUnitDef(_, line, words, playerID)
@@ -909,15 +946,24 @@ else	-- UNSYNCED
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-		local selUnits = Spring.GetSelectedUnits()
-		local msg = action
-		for _, unitID in ipairs(selUnits) do
+		local msg = ''
+		local units = {}
+		if action == 'removenearbyunits' then
+			local mx,my = Spring.GetMouseState()
+			local targetType, pos = Spring.TraceScreenRay(mx,my)
+			if type(pos) == 'table' then
+				units = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], words[1] and words[1] or 24, words[2] and words[2] or nil)
+			end
+		else
+			units = Spring.GetSelectedUnits()
+		end
+		for _, unitID in ipairs(units) do
 			msg = msg .. " " .. tostring(unitID)
 		end
 		if words[1] then
 			msg = msg .. ':'.. words[1]
 		end
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. action .. msg)
 	end
 
 	function dumpFeatures(_)
@@ -958,7 +1004,7 @@ else	-- UNSYNCED
 			local mapcx = Game.mapSizeX/2
 			local mapcz = Game.mapSizeZ/2
 			local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-			--Spring.Debug.TableEcho(camState)
+
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
@@ -1154,8 +1200,7 @@ else	-- UNSYNCED
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")
-				Spring.Debug.TableEcho(stats)
-
+				Spring.Echo(stats)
 
 				if Spring.GetMenuName then
 					local message = Json.encode(stats)
@@ -1172,7 +1217,7 @@ else	-- UNSYNCED
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Debug.TableEcho(scenariooptions)
+				Spring.Echo(scenariooptions)
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!
@@ -1210,7 +1255,6 @@ else	-- UNSYNCED
 
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:
-		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
 		if not isAuthorized(Spring.GetMyPlayerID()) then
@@ -1222,12 +1266,30 @@ else	-- UNSYNCED
 		end
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
-		local n = 0
-		local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
-		local x, y, z = ox, oy, oz
-		local msg = "spawnceg " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
+		if type(pos) == 'table' then
+			local n = 0
+			local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
+			local x, y, z = ox, oy, oz
+			local msg = "spawnceg " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
 
-		Spring.Echo('Spawning CEG:', line, playerID, msg)
+			Spring.Echo('Spawning CEG:', line, playerID, msg)
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+		end
+	end
+
+	function spawnunitexplosion(_, line, words, playerID)
+		--spawnunitexplosion usage:
+		--/luarules spawnunitexplosion armbull --spawns at cursor
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		local mx, my = Spring.GetMouseState()
+		local t, pos = Spring.TraceScreenRay(mx, my, true)
+		local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2]), math.floor(pos[3])
+		local x, y, z = ox, oy, oz
+		local msg = "spawnunitexplosion " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z) .. ((words[2] and words[2] == '1' ) and ' 1' or ' 0')
+
+		--Spring.Echo('Spawning unit explosion:', line, playerID, msg)
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
 
@@ -1429,16 +1491,18 @@ else	-- UNSYNCED
 
 		local mx, my = Spring.GetMouseState()
 		local t, pos = Spring.TraceScreenRay(mx, my, true)
-		local n = 0
-		local ox, oz = math.floor(pos[1]), math.floor(pos[3])
-		local x, z = ox, oz
+		if type(pos) == 'table' then
+			local n = 0
+			local ox, oz = math.floor(pos[1]), math.floor(pos[3])
+			local x, z = ox, oz
 
-		local msg = "givecat " .. x .. " " .. z .. " " .. teamID
-		for _, uDID in ipairs(giveUnits) do
-			msg = msg .. " " .. uDID
+			local msg = "givecat " .. x .. " " .. z .. " " .. teamID
+			for _, uDID in ipairs(giveUnits) do
+				msg = msg .. " " .. uDID
+			end
+
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 		end
-
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
 
 end

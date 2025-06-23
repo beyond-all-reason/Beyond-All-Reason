@@ -1,29 +1,31 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  hull, lankle, lwheel, rankle, rwheel, turret, gun, barrel,
-       flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater;
+piece  base, lankle, lwheel, rankle, rwheel, turret, gun, barrel, aimbit,
+       flare, aaturret, aagun, aabarrel, aaflare, smoke, fwater, lknee, rknee;
 
-static-var  restore_delay, oldheading, bAiming, Stunned, moving;
+static-var  restore_delay, oldheading, bAiming, Stunned, moving, Wobble_status, inwater, tur_rot;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
+#define SIG_MOVE			8
 
 
 Steering(heading, steery, currentspeed)
 {
-	signal 8;
-	set-signal-mask 8;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > 0 )
 		{
-			move hull to y-axis [0] speed [8];
+			inwater = 0;
+			move base to y-axis [0] speed [8];
 			turn rankle to x-axis <0.000000> speed <100.000000>;
 			turn lankle to x-axis <0.000000> speed <100.000000>;
+			turn rknee to x-axis <0.000000> speed <100.000000>;
+			turn lknee to x-axis <0.000000> speed <100.000000>;
 			heading = get HEADING;
 			steery = ( heading - oldheading ) * 3;
 			turn rankle to y-axis steery speed <75.000000>;
@@ -40,15 +42,44 @@ Steering(heading, steery, currentspeed)
 		}
 		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) <= 0 )
 		{
-			move hull to y-axis [-8] speed [2.5000000];
+			move base to y-axis [-11] speed [5.0000000];
 			turn rankle to y-axis <0.000000> speed <75.000000>;
 			turn lankle to y-axis <0.000000> speed <75.000000>;
 			stop-spin rwheel around x-axis decelerate <5.000000>;
 			stop-spin lwheel around x-axis decelerate <5.000000>;
 			sleep 50;
-			turn rankle to x-axis <-30.000000> speed <50.000000>;
-			turn lankle to x-axis <-30.000000> speed <50.000000>;
+			turn rknee to x-axis <-24.000000> speed <50.000000>;
+			turn lknee to x-axis <-24.000000> speed <50.000000>;
+			turn rankle to x-axis <-45.000000> speed <50.000000>;
+			turn lankle to x-axis <-45.000000> speed <50.000000>;
+			wait-for-move base along y-axis;
+			inwater = 1;
 		}
+	}
+}
+
+WobbleUnit()
+{
+	while( TRUE )
+	{
+		if( Wobble_status )
+		{
+			if( inwater ) //Over Water
+			{
+				move base to y-axis [-10.250000] speed [0.50000];
+				wait-for-move base along y-axis;
+			}
+		}
+		else
+		{
+			if( inwater ) //Over Water
+			{
+				move base to y-axis [-11.00000] speed [0.50000];
+				wait-for-move base along y-axis;
+			}
+		}
+		Wobble_status = !Wobble_status;
+		sleep 260;
 	}
 }
 
@@ -62,7 +93,7 @@ Wake()
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 )
 		{
         	emit-sfx 1024 + 1 from smoke;
-        	if (bowtime AND moving) emit-sfx 1024 + 2 from hull;
+        	if (bowtime AND moving) emit-sfx 1024 + 2 from base;
         	bowtime = !bowtime;
         	waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
         	if( waketime < 20 ) waketime = 20;
@@ -113,12 +144,12 @@ HitByWeapon(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
 	{
 		Func_Var_4 = 100;
 	}
-	turn hull to z-axis Func_Var_2 * Func_Var_4 / <0.549451> speed <85.000000>;
-	turn hull to x-axis <0.000000> - Func_Var_1 * Func_Var_4 / <0.549451> speed <85.000000>;
-	wait-for-turn hull around z-axis;
-	wait-for-turn hull around x-axis;
-	turn hull to z-axis <0.000000> speed <85.000000> / <0.021978>;
-	turn hull to x-axis <0.000000> speed <85.000000> / <0.021978>;
+	turn base to z-axis Func_Var_2 * Func_Var_4 / <0.549451> speed <85.000000>;
+	turn base to x-axis <0.000000> - Func_Var_1 * Func_Var_4 / <0.549451> speed <85.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <85.000000> / <0.021978>;
+	turn base to x-axis <0.000000> speed <85.000000> / <0.021978>;
 }
 
 HitByWeaponId(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
@@ -131,17 +162,17 @@ StartMoving()
 {
 	start-script Steering();
 	moving = 1;
-	turn hull to x-axis <-7.000000> speed <11.000000>;
-	wait-for-turn hull around x-axis;
-	turn hull to x-axis <0.000000> speed <11.000000>;
+	turn base to x-axis <-7.000000> speed <11.000000>;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.000000> speed <11.000000>;
 }
 
 StopMoving()
 {
 	moving = 0;
-	turn hull to x-axis <1.000000> speed <5.000000>;
-	wait-for-turn hull around x-axis;
-	turn hull to x-axis <0.000000> speed <5.000000>;
+	turn base to x-axis <1.000000> speed <5.000000>;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.000000> speed <5.000000>;
 	signal 8;
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
@@ -151,10 +182,15 @@ Create()
 {
 	hide flare;
 	hide fwater;
-	moving= 0;
+	hide smoke;
+	hide aimbit;
+	
+	moving = 0;
+	tur_rot = 0;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	start-script Wake();
+	start-script WobbleUnit();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -196,11 +232,16 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <60.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <30.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn gun around x-axis;
+	tur_rot = heading;
+	
+	turn turret to y-axis heading speed <120.0>;
+	turn gun to x-axis <0.0> - pitch speed <90.0>;
+	
+    wait-for-turn turret around y-axis;
+    wait-for-turn gun around x-axis;
+	
 	bAiming = heading;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -209,79 +250,32 @@ Rock_Main_Cannon()
 {
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) >= 0 )
 	{
-		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 / 2 speed <125.000000>;
-		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 10 speed <75.000000>;
-		wait-for-turn hull around z-axis;
-		wait-for-turn hull around x-axis;
-		turn hull to z-axis <0.000000> speed <45.000000>;
-		turn hull to x-axis <0.000000> speed <27.000000>;
+		turn base to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 / 3 speed <125.000000>;
+		turn base to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 15 speed <75.000000>;
+		wait-for-turn base around z-axis;
+		wait-for-turn base around x-axis;
+		turn base to z-axis <0.000000> speed <45.000000>;
+		turn base to x-axis <0.000000> speed <27.000000>;
 	}
 	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 )
 	{
-		turn hull to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 speed <125.000000>;
-		turn hull to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 5 speed <75.000000>;
-		wait-for-turn hull around z-axis;
-		wait-for-turn hull around x-axis;
-		turn hull to z-axis <0.000000> speed <15.000000>;
-		turn hull to x-axis <0.000000> speed <9.000000>;
+		turn base to z-axis <0.000000> - (GET KSIN(bAiming)) * 3 / 2 speed <125.000000>;
+		turn base to x-axis <0.000000> - (GET KCOS(bAiming)) * 9 / 10 speed <75.000000>;
+		wait-for-turn base around z-axis;
+		wait-for-turn base around x-axis;
+		turn base to z-axis <0.000000> speed <15.000000>;
+		turn base to x-axis <0.000000> speed <9.000000>;
 	}
 }
 
 AimSecondary(heading, pitch)
 { 
-    var gun_xz;
-    gun_xz = get PIECE_XZ(gun);                                //get packed gun coordinates
-    var gun_x;
-    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
-    var gun_z;
-    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
-    
-    var turret_xz;
-    turret_xz = get PIECE_XZ(turret);                        //get packed turret coordinates
-    var turret_x;
-    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
-    var turret_z;
-    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
-    
-    var aim_x;
-    var aim_z;
-    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
-    aim_z = gun_z - turret_z;
-    
-    
-    var hull_xz;
-    hull_xz = get PIECE_XZ(hull);                            //get packed hull coordinates
-    var hull_x;
-    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
-    var hull_z;
-    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
-    
-    var smoke_xz;
-    smoke_xz = get PIECE_XZ(smoke);                            //get packed smoke coordinates
-    var smoke_x;
-    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
-    var smoke_z;
-    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
-    
-    var face_x;
-    var face_z;
-    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
-    face_z = hull_z - smoke_z;
-	
-	var cauaim;
-    var cauface;
-    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
-    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
-    
-    var trueaim;
-    trueaim = cauaim - cauface;                                //calculate angle of turret relative to the hull
-    
     signal SIG_AIM_2;
     set-signal-mask SIG_AIM_2;
-    turn aaturret to y-axis heading + trueaim speed <300.000000>;    //add the result to the y axis heading
-    turn aagun to x-axis <0.000000> - pitch speed <65.000000>;        //the rest of the AimSecondary script
-    wait-for-turn aaturret around y-axis;
-    wait-for-turn aagun around x-axis;
+	
+    turn aaturret to y-axis heading - tur_rot speed <300.0>;
+    turn aagun to x-axis <0.0> - pitch speed <65.0>;
+	
     start-script RestoreAfterDelay();
     return (1);
 }
@@ -300,6 +294,12 @@ FireSecondary()
 {
 	spin aabarrel around z-axis speed <900.000000>;
 	return (1);
+}
+
+Shot2(zero)
+{
+	emit-sfx 1024 + 4 from aaflare;
+	return(1);
 }
 
 AimFromPrimary(piecenum)
@@ -324,7 +324,7 @@ QuerySecondary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = hull;
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)
@@ -332,7 +332,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode hull type BITMAPONLY | 128;
+		explode base type BITMAPONLY | 128;
 		explode turret type BITMAPONLY | 128;
 		explode barrel type FIRE | SMOKE | FALL | 128;
 		return (corpsetype);
@@ -340,7 +340,7 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode hull type BITMAPONLY | 128;
+		explode base type BITMAPONLY | 128;
 		explode turret type FALL | 128;
 		explode gun type FALL | 128;
 		explode barrel type FIRE | SMOKE | FALL | 128;
@@ -349,14 +349,14 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode hull type FIRE | SMOKE | FALL | 128;
+		explode base type FIRE | SMOKE | FALL | 128;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | 128;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | 128;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | 128;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode hull type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | 128;
+	explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | 128;
 	explode turret type EXPLODE_ON_HIT | FIRE | FALL | 128;
 	explode gun type EXPLODE_ON_HIT | FIRE | FALL | 128;
 	explode barrel type EXPLODE_ON_HIT | FIRE | FALL | 128;

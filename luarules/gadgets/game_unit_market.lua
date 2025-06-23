@@ -3,6 +3,8 @@ if not Spring.GetModOptions().unit_market then
 end
 -- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name    = "Unit Market - Backend",
@@ -15,8 +17,6 @@ function gadget:GetInfo()
     }
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
-
 if gadgetHandler:IsSyncedCode() then
 
 -- We just have a state which holds unit price. (zero or nil - can't trade it)
@@ -27,6 +27,8 @@ if gadgetHandler:IsSyncedCode() then
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
 
+local CMD_SELL_UNIT = GameCMD.SELL_UNIT
+
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetTeamInfo         = Spring.GetTeamInfo
@@ -36,17 +38,13 @@ local ShareTeamResource     = Spring.ShareTeamResource
 local spGetTeamResources    = Spring.GetTeamResources
 local TransferUnit          = Spring.TransferUnit
 local spAreTeamsAllied      = Spring.AreTeamsAllied
-local spSendLuaUIMsg        = Spring.SendLuaUIMsg
-local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
 local spValidUnitID         = Spring.ValidUnitID
 local spGetUnitHealth       = Spring.GetUnitHealth
-local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spIsCheatingEnabled   = Spring.IsCheatingEnabled
 local spEditUnitCmdDesc     = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc     = Spring.FindUnitCmdDesc
 local spInsertUnitCmdDesc   = Spring.InsertUnitCmdDesc
-local spGetUnitCmdDescs     = Spring.GetUnitCmdDescs
 local spGetTeamList         = Spring.GetTeamList
 local spSetUnitBuildSpeed   = Spring.SetUnitBuildSpeed
 local RPAccess = {allied = true}
@@ -297,12 +295,11 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_SELL_UNIT) then
-        local unitDef = UnitDefs[unitDefID]
-        if unitDef then
-            local price = unitDef.metalCost
-            setUnitOnSale(unitID, price, true)
-        end
+	-- accepts: CMD_SELL_UNIT
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef then
+		local price = unitDef.metalCost
+		setUnitOnSale(unitID, price, true)
 	end
 	return true
 end
@@ -312,6 +309,7 @@ local function isTeamSaving(teamID)
 end
 
 function gadget:Initialize()
+    gadgetHandler:RegisterAllowCommand(CMD_SELL_UNIT)
     local teamList = spGetTeamList()
 	for _, teamID in ipairs(teamList) do
         TeamIsSaving[teamID] = false
@@ -354,18 +352,11 @@ else -- unsynced
 
     -- lets only broadcast these trades to allies and spectators
 	local spGetSpectatingState = Spring.GetSpectatingState
-	local spec, _ = spGetSpectatingState()
-    local spGetPlayerInfo = Spring.GetPlayerInfo
-	local myPlayerID = Spring.GetMyPlayerID()
-    local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
     local spAreTeamsAllied = Spring.AreTeamsAllied
     local myTeamID = Spring.GetMyTeamID()
-    local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:PlayerChanged(playerID)
-        myPlayerID = Spring.GetMyPlayerID()
         myTeamID = Spring.GetMyTeamID()
-        myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()

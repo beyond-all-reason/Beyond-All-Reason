@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Sensor Ranges Radar",
@@ -29,9 +31,12 @@ local circleSegments = 64
 	-- color
 -- TODO: draw ally ranges in diff color!
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local circleShader = nil
 local circleInstanceVBO = nil
@@ -147,16 +152,16 @@ local function initgl4()
   )
   shaderCompiled = circleShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile radarrange shader GL4 ") end
-  local circleVBO,numVertices = makeCircleVBO(circleSegments)
+  local circleVBO,numVertices = InstanceVBOTable.makeCircleVBO(circleSegments)
   local circleInstanceVBOLayout = {
 		  {id = 1, name = 'startposrad', size = 4}, -- the start pos + radius
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "radarrangeVBO")
+  circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,32, "radarrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
-  circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+  circleInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
 end
 
 -- Functions shortcuts
@@ -279,7 +284,7 @@ function widget:Shutdown()
 	WG.radarrange = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   if 	unitList[unitID] then
     unitList[unitID] = nil
 	activeUnits[unitID] = nil

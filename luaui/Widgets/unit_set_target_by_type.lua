@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Set Target by Unit Type",
@@ -9,11 +11,9 @@ function widget:GetInfo()
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local CMD_SET_TARGET = 34923
 
-local allyTeam = Spring.GetMyAllyTeamID()
 local gameStarted
 
 function maybeRemoveSelf()
@@ -54,12 +54,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local cmdRadius = cmdParams[4]
 
 	local filterUnitDefID = spGetUnitDefID(targetId)
-	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius)
+	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, -4)
 
 	local newCmds = {}
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
-		if spGetUnitAllyTeam(unitID) ~= allyTeam and spGetUnitDefID(unitID) == filterUnitDefID then
+		if spGetUnitDefID(unitID) == filterUnitDefID then
 			local newCmdOpts = {}
 			if #newCmds ~= 0 or cmdOpts.shift then
 				newCmdOpts = { "shift" }

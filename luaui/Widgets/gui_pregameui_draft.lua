@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pregame UI - Draft Spawn Order",
@@ -237,19 +239,7 @@ local function colourNames(teamID, blink)
 	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	local R255 = math.floor(nameColourR * mult * 255)
-	local G255 = math.floor(nameColourG * mult * 255)
-	local B255 = math.floor(nameColourB * mult * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+	return Spring.Utilities.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
 end
 
 local function canPlayerPlaceNow(playerID)
@@ -373,7 +363,7 @@ local function buttonTextRefresh()
 end
 
 local function PlayChooseStartLocSound()
-	if not startPointChosen and WG['notifications'] then
+	if not mySpec and not startPointChosen and WG['notifications'] then
 		WG['notifications'].addEvent('ChooseStartLoc', true)
 	end
 end
@@ -602,7 +592,7 @@ local function drawButton()
 				uiElementRect[2],
 				uiElementRect[3],
 				uiElementRect[4],
-				'pregameui'
+				'pregameui_draft'
 			)
 		end
 
@@ -877,10 +867,6 @@ function widget:DrawScreen()
 		checkStartPointChosen()
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
-	end
-
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
@@ -891,6 +877,7 @@ function widget:DrawScreen()
 	end
 
 	-- DraftOrder mod start
+	local showingTeamplacementUI = false
 	if draftModeLoaded then
 		-- "Victory" condition was at y: 0.155 (now at 0.68) -- gui_game_type_info.lua
 		-- "Pick a startspot within..." is probably at ~0.08 -- I have no idea how map_startbox.lua decids where to draw it, so if this mod is enabled, that widget won't draw it, instead we do it here
@@ -898,6 +885,7 @@ function widget:DrawScreen()
 			if draftMode ~= "fair" and myTeamPlayersOrder and (moreThanOneAlly or devUItestMode) then
 				if (TeamPlacementUIshown) then
 					glCallList(TeamPlacementUI)
+					showingTeamplacementUI = true
 				end
 			end
 			if draftMode == "fair" or myAllyTeamJoined then
@@ -929,6 +917,12 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	if not showingTeamplacementUI then
+		if WG['guishader'] then
+			WG['guishader'].RemoveRect('pregameui_draft')
+		end
+	end
+
 	if not mySpec and draftMode ~= "disabled" then
 		if not myAllyTeamJoined then
 			local text = DMWarnColor .. Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
@@ -1054,7 +1048,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam
 			end
-			if devUItestMode then -- dev UI testing mode		
+			if devUItestMode then -- dev UI testing mode
 				currentPlayerIndex = 1 -- simulating queue progress on local end only
 				progressQueueLocally(0)
 			end
@@ -1080,7 +1074,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				else
 					next_playerID = -1
 				end
-				
+
 				if current_playerID == myPlayerID then
 					myTurn = true
 					PlayChooseStartLocSound()
@@ -1122,7 +1116,7 @@ function widget:Shutdown()
 	glDeleteList(TeamPlacementUI)
 	gl.DeleteFont(font)
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+		WG['guishader'].RemoveRect('pregameui_draft')
 	end
 	if WG.StopDrawUnitShapeGL4 then
 		for id, _ in pairs(unitshapes) do

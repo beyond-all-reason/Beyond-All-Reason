@@ -1,0 +1,166 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
+
+static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_MOVE 			4
+
+
+#define BASEPIECE body
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide flare;
+
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+
+	restore_delay = 1500;
+	start-script RestoreAfterDelay();
+
+}
+
+Steering(heading, steery, currentSpeed)
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*3/2;
+		turn body to y-axis steery speed <120>;
+		turn body to z-axis steery speed <15>;		
+		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
+		if (currentSpeed < <100>) currentSpeed = <100>;
+		spin rTyre around x-axis speed currentSpeed;
+		spin lTyre around x-axis speed currentSpeed;
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+StopMoving()
+{
+    signal SIG_MOVE;
+	turn body to z-axis <0> speed <30>;
+    stop-spin rTyre around x-axis;
+    stop-spin lTyre around x-axis;
+} 
+
+StartMoving()
+{
+    start-script Steering();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn mount to y-axis <0> speed <150.000000>;
+	turn gun to x-axis <0> speed <150.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn mount to y-axis heading speed <300.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
+	wait-for-turn mount around y-axis;
+	wait-for-turn gun around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+	move barrel to z-axis [-2.00000] speed [500.000000];
+	sleep 400;
+	move barrel to z-axis [0.000000] speed [3.000000];
+}
+
+Shot1() 
+{
+	emit-sfx 1024 + 0 from flare;
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = flare;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = barrel;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode mount type BITMAPONLY | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | SHATTER | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode mount type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | SHATTER | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gun type EXPLODE_ON_HIT | SMOKE | FALL | SHATTER | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mount type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | SHATTER | NOHEATCLOUD;
+	return corpsetype;
+}

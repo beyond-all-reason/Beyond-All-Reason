@@ -1,6 +1,5 @@
 
 local base = piece("base")
-local GetUnitPosition 	= Spring.GetUnitPosition
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 
@@ -53,7 +52,8 @@ function EnemyDetect()
 	while true do
 		local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
 		local firestate = Spring.GetUnitStates(unitID, false)
-		if not inProgress and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange then
+		local stunned = Spring.GetUnitIsStunned (unitID) 
+		if not inProgress and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange and not stunned then
 			StartThread(Detonate)
 			break
 		else

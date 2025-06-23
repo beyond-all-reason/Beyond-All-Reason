@@ -3,6 +3,8 @@ if not (Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsSca
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name = "PvE Boss Drones",
@@ -19,24 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
+local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
@@ -524,269 +509,6 @@ local unitListNames = {
             spawnTimer = 10,
         },
     },
-    ["armscavengerbossv2_veryeasy_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 2,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 1,
-            spawnTimer = 4,
-        },
-    },
-    ["armscavengerbossv2_easy_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 5,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 3,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 2,
-            spawnTimer = 4,
-        },
-    },
-    ["armscavengerbossv2_normal_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 6,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 3,
-            spawnTimer = 4,
-        },
-    },
-    ["armscavengerbossv2_hard_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 7,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 5,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 4,
-        },
-    },
-    ["armscavengerbossv2_veryhard_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 8,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 6,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 4,
-        },
-    },
-    ["armscavengerbossv2_epic_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 9,
-            spawnTimer = 1,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 7,
-            spawnTimer = 2,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 500,
-            fightRadius = 500,
-            spawnedPerWave = 1,
-            maxAllowed = 5,
-            spawnTimer = 4,
-        },
-    },
-    ["scavbeacon_t1_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 40,
-        },
-    },
-    ["scavbeacon_t2_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 2,
-            spawnTimer = 20,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 40,
-        },
-    },
-    ["scavbeacon_t3_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 1,
-            spawnTimer = 10,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 2,
-            spawnTimer = 20,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 40,
-        },
-    },
-    ["scavbeacon_t4_scav"] = {
-        [1] = {
-            name = "scavmist_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 2,
-            spawnTimer = 10,
-        },
-        [2] = {
-            name = "scavmistxl_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 4,
-            spawnTimer = 20,
-        },
-        [3] = {
-            name = "scavmistxxl_scav",
-            type = "ground",
-            spawnRadius = 100,
-            fightRadius = 750,
-            spawnedPerWave = 1,
-            maxAllowed = 8,
-            spawnTimer = 40,
-        },
-    },
 }
 -- convert unitname -> unitDefID
 local unitList = {}
@@ -801,7 +523,7 @@ unitListNames = nil
 local aliveCarriers = {}
 local aliveDrones = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if unitList[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if unitList[unitDefID] and (unitTeam == pveTeamID) then
         aliveCarriers[unitID] = {}
         for i = 1,#unitList[unitDefID] do
             aliveCarriers[unitID][i] = {
@@ -812,7 +534,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if aliveCarriers[unitID] then
         aliveCarriers[unitID] = nil
         for droneID, stats in pairs(aliveDrones) do

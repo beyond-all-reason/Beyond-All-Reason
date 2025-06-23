@@ -1,0 +1,182 @@
+// Mono-space font required
+{
+
+"building": {
+	"class_land": {
+		"fac_veh": {
+			// "type": [<blocker_shape>, <structure_type>]
+			// Available blocker_shape: rectangle, circle.
+			// Available structure_type: factory, mex, geo, pylon, convert, engy_low, engy_mid, engy_high, def_low, def_mid, def_high, special, nano, terra, unknown
+			"type": ["rectangle", "factory"],
+
+			// Unit of measurement: 1 size/yard/radius = SQUARE_SIZE * 2 = 16 elmos, integer.
+			// Offset in South facing
+			"offset": [0, 1],  // default: [0, 0]
+
+			// Size of a blocker without yard
+//			"size": [7, 7],  // default: size of a unit
+
+			// Spacer, blocker_size = size + yard
+			"yard": [8, 10],  // default: [0, 0]
+
+			// Integer radius of a blocker or description string.
+			// Available string values: explosion, expl_ally = [radius ~ 1 player .. radius/2 ~ 4+ players]
+//			"radius": "expl_ally",  // default: "explosion"
+
+			// "ignore": [<structure_type>, <structure_type>, ...]
+			// Ignore specified structures.
+			// Additional values: none, all
+			"ignore": ["def_low"]  // default: ["none"]
+//			"not_ignore": ["all"]  // default: ["all"]
+		},
+		"fac_bot": {
+			"type": ["rectangle", "factory"],
+			"offset": [0, 1],
+			"yard": [6, 8]
+		},
+		"fac_bot_pass": {
+			"type": ["rectangle", "factory"],
+			"offset": [0, 2],
+			"yard": [-2, 8]
+		},
+		"fac_air": {
+			"type": ["rectangle", "factory"],
+			"yard": [-4, 42]
+		},
+		"fac_water": {
+			"type": ["rectangle", "factory"],
+			"offset": [0, 4],
+			"yard": [10, 12]
+		},
+		"fac_strider": {
+			"type": ["rectangle", "factory"],
+			"offset": [0, 24],
+			"yard": [16, 16],
+			"size": [16, 16]
+		},
+		"solar": {
+			"type": ["rectangle", "engy_low"],
+			"ignore": ["engy_low", "def_low", "nano"]
+		},
+		"wind": {
+//			"type": ["circle", "engy_low"],
+//			"radius": 4,  // default: "explosion"
+//			"not_ignore": ["factory", "engy_low", "convert", "nano", "terra"]
+			"type": ["rectangle", "engy_low"],
+			"yard": [6, 6],
+			"ignore": ["engy_low"]
+		},
+		"geo": {
+			"type": ["rectangle", "geo"],
+			"yard": [2, 2],
+			"ignore": ["all"]
+		},
+		"geo2": {
+			"type": ["rectangle", "geo"],
+			"ignore": ["all"]
+		},
+		"fusion": {
+			"type": ["circle", "engy_mid"],
+			"radius": 6,
+			"ignore": ["mex", "engy_mid", "def_low"]
+		},
+		"singu": {
+			"type": ["circle", "engy_high"],
+			"radius": 8,
+			"ignore": ["mex", "engy_high", "def_low"]
+		},
+		"pylon": {
+			"type": ["circle", "pylon"],
+			"not_ignore": ["factory", "pylon", "terra"]  // default: ["all"]
+		},
+		"store": {
+			"type": ["rectangle", "mex"],
+			"not_ignore": ["factory", "terra"]
+		},
+		"mex": {
+			"type": ["rectangle", "mex"],
+//			"offset": [0, -5],
+//			"yard": [2, 2],
+			"ignore": ["all"]
+		},
+		"mex2": {
+			"type": ["rectangle", "mex"],
+			"ignore": ["all"]
+		},
+		"converter": {
+			"type": ["rectangle", "convert"],
+			"yard": [8, 8],
+			"ignore": ["convert"]
+		},
+		"def_low": {
+			"type": ["circle", "def_low"],
+			"radius": 5,  // 80 / (SQUARE_SIZE * 2)
+			"ignore": ["engy_mid", "engy_high", "engy_low", "nano"]
+		},
+		"caretaker": {
+			"type": ["rectangle", "nano"],
+			"ignore": ["mex", "def_low", "engy_mid", "engy_high"]
+		},
+		"superweapon": {
+			"type": ["circle", "special"],
+			"ignore": ["mex", "def_low", "engy_high"]
+		},
+		"protector": {
+			"type": ["circle", "special"],
+			"ignore": ["mex", "def_low", "engy_mid", "engy_high"]
+		},
+//		"terraform": {
+//			"type": ["rectangle", "special"],
+//			"size": [7, 7]  // int2(3 + 4, 3 + 4)
+//		},
+		"strider": {
+			"type": ["rectangle", "special"],
+			"yard": [4, 4],
+			"ignore": ["all"]
+		},
+		"small": {
+			"type": ["rectangle", "unknown"],
+			"yard": [4, 4],
+			"not_ignore": ["factory", "def_low", "terra"]
+		},
+		"wall": {
+			"type": ["rectangle", "def_low"],
+			"not_ignore": ["factory", "mex", "geo", "terra"]
+		},
+		"_default_": {
+			"type": ["rectangle", "unknown"],
+			"yard": [6, 6],
+			"ignore": ["engy_high"]
+		}
+	},
+	// Water overrides land. Map considered as water if amount of land < 40%
+	"class_water" : {
+		"wind": {
+			"type": ["rectangle", "engy_low"],
+			"ignore": ["engy_low"]
+		}
+	},
+	"instance": {
+		"fac_veh": ["armvp", "armavp", "corvp", "coravp", "legvp", "legavp"],
+		"fac_bot": ["armlab", "armalab", "coralab", "legalab"],
+		"fac_bot_pass": ["corlab", "armhp", "armfhp", "corhp", "corfhp", "leglab", "leghp", "legfhp"],
+		"fac_air": ["armap", "corap", "armaap", "coraap", "legap", "legaap"],
+		"fac_water": ["armsy", "armasy", "armamsub", "armplat", "corsy", "corasy", "coramsub", "corplat", "legamsub", "legplat"],
+		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw", "leggant"],
+		"solar": ["armsolar", "corsolar", "legsolar"],
+		"wind": ["armwin", "corwin", "armtide", "cortide", "legwin"],
+		"geo": ["armgeo", "corgeo", "leggeo"],
+		"geo2": ["armageo", "corageo", "legageo"],
+		"fusion": ["armadvsol", "coradvsol", "legadvsol"],
+		"singu": ["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus", "legfus", "legafus"],
+		"store": ["armmstor", "armestor", "cormstor", "corestor", "legmstor", "legestor"],
+		"mex": ["armmex", "cormex", "armuwmex", "coruwmex", "legmex"],
+		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho", "legmohoconct"],
+		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
+		"def_low": ["armllt", "armclaw", "corllt", "cormaw", "leglht", "legdtr"],
+		"caretaker": ["armnanotc", "armnanotcplat", "cornanotc", "cornanotcplat", "legnanotc", "legnanotcplat"],
+		"small": ["armrad", "corrad", "armfrad", "corfrad", "legrad"],
+		"wall": ["armdrag", "cordrag", "legdrag"]
+	}
+}
+}

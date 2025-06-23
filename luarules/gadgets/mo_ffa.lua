@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "ffa",
@@ -16,9 +18,14 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
+	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- after this gameframe: lateDropGrace is used instead of earlyDropGrace
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
-	local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
+	local lateDropGrace = Game.gameSpeed * 60 * 2 -- in frames
+
+	local isTeamFFA = Spring.Utilities.Gametype.IsTeams()
+	if isTeamFFA then
+		lateDropGrace = Game.gameSpeed * 8
+	end
 
 	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
 	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 3
@@ -61,7 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 			destroyTeam(teamID)
 			teamsWithUnitsToKill[teamID] = nil
 		end
-		
+
 		local allResigned, noneControlling
 		for i=1, #teamList do
 			local teamID = teamList[i]

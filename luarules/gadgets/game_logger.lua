@@ -3,6 +3,8 @@ if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Logger",
@@ -71,7 +73,7 @@ else
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		--Spring.Echo("gadget:UnitDestroyed", unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		-- Only send a message from the attacker, when attacking a different team
 		if (not mySpec and attackerTeam == myTeamID) and (unitTeam ~= attackerTeam) then 

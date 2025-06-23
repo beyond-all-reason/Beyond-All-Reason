@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
+//piece  flare, turret, base, sleeve, barrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
+piece body, bars, tracks, turret, sleeve, barrel, flare, smoke1, smoke2;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, wpn1_lasthead;
 
@@ -39,9 +40,7 @@ Smoke()
 	}
 }
 
-
-
-#define BASEPIECE base
+#define BASEPIECE body
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
@@ -49,19 +48,17 @@ Smoke()
 
 RockUnit(anglex, anglez)
 {
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn body to x-axis anglex speed <50.000000>;
+	turn body to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn body around z-axis;
+	wait-for-turn body around x-axis;
+	turn body to z-axis <0.000000> speed <20.000000>;
+	turn body to x-axis <0.000000> speed <20.000000>;
 }
 
 Create()
 {
-	hide smoke1;
 	hide flare;
-	hide smoke2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
@@ -81,12 +78,11 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	bMoving = TRUE;
-	spin lwheel around x-axis speed <110> accelerate <5>;
-	spin rwheel around x-axis speed <110> accelerate <5>;
-  
-  signal SIG_MOVE;
-  set-signal-mask SIG_MOVE;
-  start-script UnitSpeed();
+	// spin lwheel around x-axis speed <110> accelerate <5>;
+	// spin rwheel around x-axis speed <110> accelerate <5>;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	start-script UnitSpeed();
 	start-script Smoke();
 }
 
@@ -95,8 +91,8 @@ StopMoving()
 {
 	bMoving = FALSE;
 	signal SIG_MOVE;
-	stop-spin lwheel around x-axis;
-	stop-spin rwheel around x-axis;
+	// stop-spin lwheel around x-axis;
+	// stop-spin rwheel around x-axis;
 }
 
 static-var  Stunned;
@@ -108,12 +104,12 @@ ExecuteRestoreAfterDelay()
 	turn turret to y-axis <0.000000> speed <50.000000>;
 	turn sleeve to x-axis <0.000000> speed <25.000000>;
 	spin barrel around z-axis speed <600.000000>;
-	sleep restore_delay;
-	spin barrel around z-axis speed <300.000000>;
-	sleep (restore_delay / 2);
-	spin barrel around z-axis speed <150.000000>;
-	sleep (restore_delay / 4);
-	stop-spin barrel around z-axis;
+	// sleep restore_delay;
+	// spin barrel around z-axis speed <300.000000>;
+	// sleep (restore_delay / 2);
+	// spin barrel around z-axis speed <150.000000>;
+	// sleep (restore_delay / 4);
+	stop-spin barrel around z-axis decelerate <5>;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
@@ -136,9 +132,8 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <120.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <65.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
-		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}
@@ -149,7 +144,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	spin barrel around z-axis speed <900.000000>;
+	spin barrel around z-axis speed <900.000000> accelerate <30>;
 	return (1);
 }
 
@@ -163,7 +158,7 @@ Shot1(zero)
 
 QueryPrimary(piecenum)
 {
-		piecenum = flare;
+	piecenum = flare;
 }
 
 AimFromPrimary(piecenum)
@@ -173,7 +168,7 @@ AimFromPrimary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = body;
 }
 
 Killed(severity, corpsetype)
@@ -181,9 +176,9 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode raxle type BITMAPONLY | NOHEATCLOUD;
-		explode rwheel type BITMAPONLY | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		//explode turret type BITMAPONLY | NOHEATCLOUD;
 		//explode rsleeve type BITMAPONLY | NOHEATCLOUD;
 		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -198,9 +193,9 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode raxle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rsleeve type FALL | NOHEATCLOUD;
 		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -215,9 +210,9 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode raxle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rwheel type SMOKE | FALL | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rsleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
@@ -230,9 +225,9 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode raxle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode raxle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

@@ -7,7 +7,6 @@ return {
 		buildpic = "CORSCAVDTM.DDS",
 		buildtime = 4400,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",
@@ -121,7 +120,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
@@ -145,6 +143,10 @@ return {
 				damage = {
 					default = 550,
 					subs = 200,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 575,
 				},
 			},
 		},

@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name		= "Tombstones",
@@ -18,7 +20,13 @@ end
 local isCommander = {}
 for defID, def in ipairs(UnitDefs) do
 	if def.customParams.iscommander ~= nil and not string.find(def.name, "scav") then
-		isCommander[defID] = def.name == 'corcom' and FeatureDefNames.corstone.id or FeatureDefNames.armstone.id
+		if string.sub(def.name, 1, 6) == 'corcom' and FeatureDefNames.corstone then
+			isCommander[defID] = FeatureDefNames.corstone.id
+		elseif string.sub(def.name, 1, 6) == 'armcom' and FeatureDefNames.armstone then
+			isCommander[defID] = FeatureDefNames.armstone.id
+		elseif string.sub(def.name, 1, 6) == 'legcom' and FeatureDefNames.legstone then
+			isCommander[defID] = FeatureDefNames.legstone.id
+		end
 	end
 end
 

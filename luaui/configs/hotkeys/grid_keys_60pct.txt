@@ -35,7 +35,7 @@ bind               sc_e  reclaim
 bind         Shift+sc_e  reclaim
 bind               sc_f  fight
 bind         Shift+sc_f  fight
-bind           Alt+sc_f  forcestart
+bind           Alt+sc_f  chain force forcestart | say !cv forcestart
 bind               sc_g  stopproduction
 bind         Shift+sc_g  stopproduction
 bind               sc_g  stop
@@ -61,6 +61,9 @@ bind         Shift+sc_o  guard
 bind               sc_r  repair
 bind         Shift+sc_r  repair
 bind               sc_s  settarget
+bind         Shift+sc_s  settarget
+bind           Alt+sc_s  settargetnoground
+bind     Shift+Alt+sc_s  settargetnoground
 bind          Ctrl+sc_s  canceltarget
 bind               sc_u  unloadunits
 bind         Shift+sc_u  unloadunits
@@ -75,6 +78,13 @@ bind          sc_b,sc_b  onoff 0
 bind               sc_b  onoff 1
 bind Shift+sc_b,Shift+sc_b  onoff 0
 bind         Shift+sc_b  onoff 1
+
+bind     sc_b,sc_b,sc_b  trajectory_toggle 1
+bind          sc_b,sc_b  trajectory_toggle 0
+bind     sc_b trajectory_toggle 2
+bind Shift+sc_b,Shift+sc_b,Shift+sc_b  trajectory_toggle 1
+bind Shift+sc_b,Shift+sc_b trajectory_toggle 0
+bind         Shift+sc_b  trajectory_toggle 2
 
 bind     sc_l,sc_l,sc_l  firestate 1
 bind          sc_l,sc_l  firestate 0
@@ -122,7 +132,8 @@ bind          meta+sc_q  drawinmap
 
 bind          Ctrl+sc_e  select AllMap++_ClearSelection_SelectAll+
 bind           Ctrl+tab  select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
-bind                tab  select AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+
+bind          Shift+tab  selectcomm append
+bind                tab  selectcomm focus
 bind               sc_q  select Visible+_InPrevSel+_ClearSelection_SelectAll+
 bind          Ctrl+sc_q  select PrevSelection++_ClearSelection_SelectPart_50+
 bind          Ctrl+sc_w  select AllMap+_InPrevSel+_ClearSelection_SelectAll+
@@ -157,3 +168,10 @@ bind             meta+1  focus_camera_anchor 1
 bind             meta+2  focus_camera_anchor 2
 bind             meta+3  focus_camera_anchor 3
 bind             meta+4  focus_camera_anchor 4
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

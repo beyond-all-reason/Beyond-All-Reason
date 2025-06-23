@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGSTARFALL.DDS",
 		buildtime = 65000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "52 65 52",
 		collisionvolumetype = "CylY",
@@ -34,7 +33,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "armbuildings/landdefenceoffence",
+			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -118,7 +117,6 @@ return {
 
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				name = "Starfire Barrage Launcher",
 				noselfdamage = true,

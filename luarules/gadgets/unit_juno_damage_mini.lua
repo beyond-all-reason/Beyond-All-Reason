@@ -2,6 +2,8 @@ if not WeaponDefNames.legcib_juno_pulse_mini then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage Mini',
@@ -52,10 +54,13 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
 
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
@@ -75,6 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,

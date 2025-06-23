@@ -1,3 +1,9 @@
+local playerCountScale = 1
+if Spring.Utilities.Gametype.IsRaptors() then
+	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+end
+
+
 return {
 	raptor_queen_veryhard = {
 		maxacc = 0.1,
@@ -16,7 +22,7 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionspherescale = 1.75,
 		collisionvolumeoffsets = "0 30 15",
 		collisionvolumescales = "110 180 190",
@@ -35,9 +41,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/epic_raptorq.s3o",
-		pushresistant = true,
 		script = "Raptors/epic_raptorq.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
@@ -87,14 +92,13 @@ return {
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.7,
 				interceptedbyshieldtype = 1,
 				model = "Raptors/SGreyRock1.S3O",
 				name = "Blob",
 				noselfdamage = true,
-				proximitypriority = -4,
+				proximitypriority = -1,
 				range = 1500,
 				reloadtime = 10,
 				rgbcolor = "0.1 0.6 1",
@@ -108,7 +112,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 1500,
+					default = 1500*playerCountScale,
 				},
 			},
 			melee = {
@@ -122,13 +126,12 @@ return {
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:raptorspike-large-sparks-burn",
 				firesubmersed = true,
-				impulseboost = 1.5,
 				impulsefactor = 1.5,
 				interceptedbyshieldtype = 4,
 				model = "Raptors/spike.s3o",
 				name = "RaptorClaws",
 				noselfdamage = true,
-				proximitypriority = -3,
+				proximitypriority = -1,
 				range = 600,
 				reloadtime = 1,
 				soundstart = "bigraptorbreath",
@@ -138,7 +141,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 7500,
+					default = 7500*playerCountScale,
 				},
 			},
 			yellow_missile = {
@@ -155,7 +158,6 @@ return {
 				firestarter = 0,
 				flighttime = 5,
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
@@ -187,7 +189,7 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1,
-					vtol = 1000,
+					vtol = 1000*playerCountScale,
 				},
 			},
 		},

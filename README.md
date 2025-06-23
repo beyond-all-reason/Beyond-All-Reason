@@ -33,7 +33,7 @@ Once you have a working install of BAR you need a local development copy of the 
 3. In the BAR install directory in the `data` folder in the `games` sub-directory (create `games` if it doesn't exist) clone the code for this repository into a directory with a name ending in `.sdd`. For example:
 
 ```
-git clone https://github.com/beyond-all-reason/Beyond-All-Reason.git BAR.sdd
+git clone --recurse-submodules https://github.com/beyond-all-reason/Beyond-All-Reason.git BAR.sdd
 ```
 Ensure that you have the correct path by looking for the file `Beyond-All-Reason/data/games/BAR.sdd/modinfo.lua`
 

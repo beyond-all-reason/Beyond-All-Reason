@@ -1,0 +1,301 @@
+
+#include "../exptype.h"
+
+piece  base, L6, L5, L4, L3, L2, L1, J2,
+       spot1, spot2, J1;
+
+static-var  isMoving, gun_1, waterSpeed;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+
+AmphSpeed()
+{
+	waterSpeed = get MAX_SPEED;
+	while( TRUE )
+	{
+		if( get IN_WATER )
+		{
+			set MAX_SPEED to waterSpeed * 2 / 3;
+		}
+		else
+		{
+			set MAX_SPEED to waterSpeed;
+		}
+		sleep 30;
+	}
+	return (0);
+}
+
+AmphWalk()
+{
+	while( TRUE )
+	{
+		if( get IN_WATER )
+		{
+			move base to y-axis [-17.50000] speed [2.50000];
+			set UPRIGHT to 1;
+		}
+		else
+		{
+			move base to y-axis [0.0] speed [12.50000];
+			set UPRIGHT to 0;
+		}
+		sleep 200;
+	}
+	return (0);
+}
+
+walk2()
+{
+	while( isMoving )
+	{
+		if( isMoving )
+		{
+			turn L6 to y-axis <43.00549> now;
+			turn L6 to y-axis <0.0> speed <148.0>;
+			turn L6 to z-axis <0.0> now;
+			turn L6 to z-axis <0.0> speed <3.0>;
+			turn L5 to z-axis <0.0> now;
+			turn L5 to z-axis <31.00549> speed <155.0>;
+			turn L4 to y-axis <34.00549> now;
+			turn L4 to y-axis <34.00549> speed <3.0>;
+			turn L4 to z-axis <31.00549> now;
+			turn L4 to z-axis <0.0> speed <155.0>;
+			turn L3 to y-axis <-40.00549> now;
+			turn L3 to y-axis <-40.00549> speed <0.0>;
+			turn L3 to z-axis <-31.00549> now;
+			turn L3 to z-axis <0.0> speed <152.0>;
+			turn L2 to y-axis <-37.00549> now;
+			turn L2 to y-axis <0.0> speed <185.0>;
+			turn L2 to z-axis <0.0> now;
+			turn L2 to z-axis <0.0> speed <0.0>;
+			turn L1 to y-axis <0.0> now;
+			turn L1 to y-axis <-30.00549> speed <152.0>;
+			turn L1 to z-axis <-45.00549> now;
+			turn J2 to z-axis <5.0> speed <50.0>;
+			turn J2 to y-axis <5.0> speed <50.0>;
+			turn J2 to x-axis <5.0> speed <50.0>;
+			turn J1 to z-axis <-5.0> speed <50.0>;
+			turn J1 to y-axis <-5.0> speed <50.0>;
+			turn J1 to x-axis <-5.0> speed <50.0>;
+			sleep 200;
+		}
+		if( isMoving )
+		{
+			turn L6 to z-axis <31.00549> speed <158.0>;
+			turn L5 to y-axis <34.00549> speed <163.0>;
+			turn L5 to z-axis <31.00549> speed <0.0>;
+			turn L4 to y-axis <0.0> speed <160.0>;
+			turn L4 to z-axis <0.0> speed <3.0>;
+			turn L3 to y-axis <0.0> speed <200.0>;
+			turn L2 to z-axis <-31.00549> speed <155.0>;
+			turn L1 to z-axis <2.0> speed <237.0>;
+			turn J2 to z-axis <-5.0> speed <50.0>;
+			turn J2 to y-axis <-5.0> speed <50.0>;
+			turn J2 to x-axis <-5.0> speed <50.0>;
+			turn J1 to z-axis <5.0> speed <50.0>;
+			turn J1 to y-axis <5.0> speed <50.0>;
+			turn J1 to x-axis <5.0> speed <50.0>;
+			sleep 200;
+		}
+		if( isMoving )
+		{
+			turn L6 to y-axis <55.00549> speed <269.0>;
+			turn L6 to z-axis <31.00549> speed <3.0>;
+			turn L5 to y-axis <34.00549> speed <0.0>;
+			turn L5 to z-axis <0.0> speed <152.0>;
+			turn L4 to z-axis <31.00549> speed <158.0>;
+			turn L3 to y-axis <0.0> speed <3.0>;
+			turn L3 to z-axis <-31.00549> speed <152.0>;
+			turn L2 to y-axis <-31.00549> speed <158.0>;
+			turn L2 to z-axis <-31.00549> speed <0.0>;
+			turn L1 to y-axis <3.0> speed <167.0>;
+			turn J2 to z-axis <5.0> speed <50.0>;
+			turn J2 to y-axis <5.0> speed <50.0>;
+			turn J2 to x-axis <5.0> speed <50.0>;
+			turn J1 to z-axis <-5.0> speed <50.0>;
+			turn J1 to y-axis <-5.0> speed <50.0>;
+			turn J1 to x-axis <-5.0> speed <50.0>;
+			sleep 200;
+		}
+		turn L6 to y-axis <43.00549> speed <80.0>;
+		turn L6 to z-axis <0.0> speed <162.0>;
+		turn L5 to y-axis <0.0> speed <163.0>;
+		turn L5 to z-axis <0.0> speed <3.0>;
+		turn L4 to y-axis <34.00549> speed <163.0>;
+		turn L4 to z-axis <31.00549> speed <0.0>;
+		turn L3 to y-axis <-40.00549> speed <197.0>;
+		turn L3 to z-axis <-31.00549> speed <0.0>;
+		turn L2 to y-axis <-37.00549> speed <27.0>;
+		turn L2 to z-axis <0.0> speed <155.0>;
+		turn L1 to y-axis <0.0> speed <15.0>;
+		turn L1 to z-axis <-45.00549> speed <237.0>;
+		turn J2 to z-axis <-5.0> speed <50.0>;
+		turn J2 to y-axis <-5.0> speed <50.0>;
+		turn J2 to x-axis <-5.0> speed <50.0>;
+		turn J1 to z-axis <5.0> speed <50.0>;
+		turn J1 to y-axis <5.0> speed <50.0>;
+		turn J1 to x-axis <5.0> speed <50.0>;
+		sleep 200;
+	}
+	return (0);
+}
+
+Movement(myMoving)
+{
+	while( TRUE )
+	{
+		myMoving = isMoving;
+		if( myMoving )
+		{
+			call-script walk2();
+		}
+		if( !myMoving )
+		{
+			sleep 100;
+			turn L6 to y-axis <0.0> speed <100.0>;
+			turn L6 to z-axis <0.0> speed <100.0>;
+			turn L5 to y-axis <0.0> speed <100.0>;
+			turn L5 to z-axis <0.0> speed <100.0>;
+			turn L4 to y-axis <0.0> speed <100.0>;
+			turn L4 to z-axis <0.0> speed <100.0>;
+			turn L3 to y-axis <0.0> speed <100.0>;
+			turn L3 to z-axis <0.0> speed <100.0>;
+			turn L2 to y-axis <0.0> speed <100.0>;
+			turn L2 to z-axis <0.0> speed <100.0>;
+			turn L1 to y-axis <0.0> speed <100.0>;
+			turn L1 to z-axis <0.0> speed <100.0>;
+			turn J2 to x-axis <0.0> speed <200.0>;
+			turn J2 to z-axis <0.0> speed <200.0>;
+			turn J2 to y-axis <0.0> speed <200.0>;
+			turn J1 to z-axis <0.0> speed <200.0>;
+			turn J1 to y-axis <0.0> speed <200.0>;
+			turn J1 to x-axis <0.0> speed <200.0>;
+		}
+	}
+	return (0);
+}
+
+Create()
+{
+	isMoving = FALSE;
+	gun_1 = base;
+	start-script Movement();
+	start-script AmphWalk();
+	start-script AmphSpeed();
+	return (0);
+}
+
+StartMoving(reversing)
+{
+	isMoving = TRUE;
+	return (0);
+}
+
+StopMoving()
+{
+	isMoving = FALSE;
+	return (0);
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	return (1);
+}
+
+FireWeapon1()
+{
+	move base to z-axis [5.0] speed [50.0];
+	if( gun_1 == 0 )
+	{
+		turn J2 to x-axis <70.01648> speed <900.0>;
+		turn J2 to z-axis <-15.0> speed <800.0>;
+		turn J2 to y-axis <30.00549> speed <500.0>;
+		sleep 175;
+		turn J2 to x-axis <0.0> speed <900.0>;
+		turn J2 to z-axis <0.0> speed <800.0>;
+		turn J2 to y-axis <0.0> speed <500.0>;
+	}
+	if( gun_1 == 1 )
+	{
+		turn J1 to x-axis <70.01648> speed <900.0>;
+		turn J1 to z-axis <15.0> speed <800.0>;
+		turn J1 to y-axis <-30.00549> speed <500.0>;
+		sleep 175;
+		turn J1 to x-axis <0.0> speed <900.0>;
+		turn J1 to z-axis <0.0> speed <800.0>;
+		turn J1 to y-axis <0.0> speed <500.0>;
+	}
+	move base to z-axis [0.0] speed [25.0];
+	gun_1 = !gun_1;
+	return (0);
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+	return (0);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = spot2 + gun_1;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode J2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode J1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L6 type FALL | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode J2 type FALL | NOHEATCLOUD;
+		explode J1 type FALL | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode spot2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L2 type FALL | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode J2 type FALL | NOHEATCLOUD;
+		explode J1 type FALL | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode spot2 type FALL | NOHEATCLOUD;
+		explode spot1 type FALL | NOHEATCLOUD;
+		explode L6 type FALL | NOHEATCLOUD;
+		explode L5 type FALL | NOHEATCLOUD;
+		explode L4 type FALL | NOHEATCLOUD;
+		explode L3 type FALL | NOHEATCLOUD;
+		explode L2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode J2 type FALL | NOHEATCLOUD;
+	explode J1 type FALL | NOHEATCLOUD;
+	explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode spot2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode spot1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode L6 type FALL | NOHEATCLOUD;
+	explode L5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode L4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode L3 type FALL | NOHEATCLOUD;
+	explode L2 type FALL | NOHEATCLOUD;
+	explode L1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return (corpsetype);
+}

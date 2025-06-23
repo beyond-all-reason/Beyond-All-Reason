@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Screen Mode/Resolution Switcher",
@@ -7,11 +9,8 @@ function widget:GetInfo()
 	}
 end
 
-local screenModes = {}
-local screenGeometries = {}
-local displays = {}
-local firstPassDrawFrame
-local screenModeIndex = 0
+-- these are set in widget:Initialize()
+local screenModes, screenGeometries, displays, firstPassDrawFrame, screenModeIndex
 
 local windowType = {
 	fullscreen   = 1,
@@ -107,7 +106,7 @@ local function refreshScreenModes()
 			local fullscreen = {
 				display = display,
 				displayName = videoMode.displayName,
-				name = "Fullscreen",
+				name = Spring.I18N('ui.resolutionswitcher.fullscreen'),
 				type = windowType.fullscreen,
 				width = videoMode.w,
 				height = videoMode.h,
@@ -115,7 +114,7 @@ local function refreshScreenModes()
 
 			local borderless = {
 				display = display,
-				name = "Borderless",
+				name = Spring.I18N('ui.resolutionswitcher.borderless'),
 				displayName = videoMode.displayName,
 				type = windowType.borderless,
 				width = videoMode.w,
@@ -130,7 +129,7 @@ local function refreshScreenModes()
 			local windowed = {
 				display = display,
 				displayName = videoMode.displayName,
-				name = "Window " .. videoMode.w .. " × " .. videoMode.h.."  (" .. videoMode.hz.."hz)",
+				name = Spring.I18N('ui.resolutionswitcher.window').." " .. videoMode.w .. " × " .. videoMode.h.."  (" .. videoMode.hz.."hz)",
 				type = windowType.windowed,
 				width = videoMode.w,
 				height = videoMode.h,
@@ -163,7 +162,7 @@ local function refreshScreenModes()
 								table.insert(screenModes, {
 									display = #displays+1,	-- not actual display number
 									actualDisplay = (x < x2 and display or display2),
-									name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.min(h, h2)..")",
+									name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.min(h, h2)..")",
 									displayName = "",
 									type = windowType.multimonitor,
 									x = math.min(x, x2),
@@ -176,7 +175,7 @@ local function refreshScreenModes()
 									table.insert(screenModes, {
 										display = #displays+1,	-- not actual display number
 										actualDisplay = (x < x2 and display or display2),
-										name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.max(h, h2)..")",
+										name = Spring.I18N('ui.resolutionswitcher.displays').." " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.max(h, h2)..")",
 										displayName = "",
 										type = windowType.multimonitor,
 										x = math.min(x, x2),
@@ -195,7 +194,7 @@ local function refreshScreenModes()
 		-- only add the "Multi Display" option when there are valid display combos to choose from
 		for k,v in pairs(addedDisplayCombo) do
 			displays[#displays+1] = {
-				name = "Multi Display",
+				name = Spring.I18N('ui.resolutionswitcher.multidisplay'),
 				width = 0,
 				height = 0,
 				hz = 0,
@@ -243,6 +242,12 @@ function widget:Update()
 end
 
 function widget:Initialize()
+	screenModes = {}
+	screenGeometries = {}
+	displays = {}
+	firstPassDrawFrame = nil
+	screenModeIndex = 0
+	
 	refreshScreenModes()
 
 	WG['screenMode'] = { }
@@ -262,4 +267,8 @@ function widget:Initialize()
 			changeScreenMode(screenModeIndex)
 		end
 	end
+end
+
+function widget:LanguageChanged()
+	widget:Initialize()
 end

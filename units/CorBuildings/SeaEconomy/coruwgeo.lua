@@ -9,7 +9,6 @@ return {
 		buildpic = "CORUWGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 45 63",
 		collisionvolumetype = "cylY",
@@ -21,10 +20,10 @@ return {
 		footprintz = 5,
 		idleautoheal = 5,
 		idletime = 1800,
-		minwaterdepth = 6,
 		maxdamage = 2050,
 		maxslope = 15,
 		maxwaterdepth = 99999,
+		minwaterdepth = 6,
 		objectname = "Units/CORUWGEO.s3o",
 		script = "Units/CORUWGEO.cob",
 		seismicsignature = 0,
@@ -32,19 +31,19 @@ return {
 		sightdistance = 273,
 		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			buildinggrounddecalsizex = 6,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/SeaEconomy",
+			unitgroup = "energy",
+			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
 			dead = {
@@ -78,13 +77,13 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:geobubbles",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
-			},
-			explosiongenerators = {
-				[1] = "custom:geobubbles",
 			},
 		},
 		sounds = {

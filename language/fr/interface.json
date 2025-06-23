@@ -682,7 +682,7 @@
 			"reconnected": "Mode sans propriétaire : équipe %{team} reconnectée"
 		},
 		"unitTotals": {
-			"totals": "%{titleColor} Unités %{textColor}%{units}/%{maxUnits}%{titleColor}Total %{textColor}%{totalUnits}"
+			"totals": "%{titleColor}Unités  %{textColor}%{units} / %{maxUnits}     %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
 		"resolutionswitcher": {
 			"multidisplay": "Multi-affichage",
@@ -910,8 +910,6 @@
 				"cus_descr": "Permet : texture en profondeur, marques de bataille sur les unités, lumières clignotantes, luminosité d'environnement, traces de chenilles au sol",
 				"darkenmap": "Assombrir la carte",
 				"darkenmap_descr": "Assombrit toute la carte (pas les unités)",
-				"darkenmap_darkenfeatures": "assombrissement",
-				"darkenmap_darkenfeatures_descr": "Permet d'assombrir les éléments (arbres, épaves, etc) avec \nle curseur au-dessus\n\nNB : Peut demander beaucoup du processeur, cette technique recharge tous les éléments visibles\npour les afficher de nouveau.",
 				"advmapshading": "Ombrage de la carte avancé",
 				"advmapshading_descr": "Permet : texture en profondeur, textures en détails, luminosité améliorée, ombres.",
 				"shadowslider": "Ombres",
@@ -1038,9 +1036,6 @@
 				"sndvolmusic": "musique",
 				"loadscreen_music": "commence à l'écran de chargement",
 				"loadscreen_music_descr": "Musique lors de l'affichage de l'écran de chargement",
-				"scav_messages": "Notifications écrites des charognards",
-				"scav_voicenotifs": "Notifications vocales des charognards",
-				"scav_voicenotifs_descr": "Activer/désactiver la voix de l'annonceur Charognard",
 				"notifications_set": "Voix",
 				"notifications_tutorial": "Mode tutoriel",
 				"notifications_tutorial_descr": "Affiche des messages d'aide sur comment jouer\nNe répète pas les conseils déjà prodigués\nRéactiver ce paramètre réinitialisera le tutoriel",
@@ -1495,6 +1490,7 @@
 				"green": "vert",
 				"blue": "bleu",
 				"language": "Langage",
+				"language_english_unit_names": "Afficher noms d'unités en anglais",
 				"reclaimfieldhighlight": "Surbrillance des épaves",
 				"reclaimfieldhighlight_descr": "Permet d'automatiquement mettre en valeur les concentrations d'épaves recyclables.",
 				"reclaimfieldhighlight_always": "Toujours actif",

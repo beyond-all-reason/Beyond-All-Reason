@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Prevent Load Hax",
@@ -24,7 +26,7 @@ local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GetGameFrame = Spring.GetGameFrame
-local GetCommandQueue = Spring.GetCommandQueue
+local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitTeam = Spring.GetUnitTeam
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_INSERT = CMD.INSERT
@@ -36,6 +38,12 @@ local CMD_REMOVE = CMD.REMOVE
 
 local watchList = {}
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
+	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   if fromSynced then return true end
   if (cmdID == CMD_INSERT) then
@@ -45,7 +53,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      if (CMD_LOAD_UNITS == cmdParams[2]) then
        return gadget:AllowCommand(unitID, unitDefID, teamID, CMD_LOAD_UNITS, {cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7]}, cmdOptions, "nr", playerID, false, false)
      end
-     local cQueue = GetCommandQueue(unitID,20)
+     local cQueue = GetUnitCommands(unitID,20)
      if (#cQueue > 0) then
        for i=1,#cQueue do
          local command = cQueue[i]
@@ -59,7 +67,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      if watchList[unitID] then
        return false
      end
-     local cQueue = GetCommandQueue(unitID,20)
+     local cQueue = GetUnitCommands(unitID,20)
      if (#cQueue > 0) then
        for i=1,#cQueue do
          local command = cQueue[i]

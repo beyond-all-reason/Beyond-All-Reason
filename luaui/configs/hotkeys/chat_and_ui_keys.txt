@@ -15,13 +15,16 @@ bind      Alt+backspace  fullscreen
 // common selectbox keys
 bind           Any+sc_z  selectbox_same     // select only units that share type with current selection modifier | Smart Select Widget
 bind          Any+space  selectbox_idle     // select only idle units modifier | Smart Select Widget
-bind          Any+shift  selectbox_all      // select all units modifier | Smart Select Widget
+bind          Any+shift  selectbox_append   // append to selection modifier | Smart Select Widget
+bind          Any+shift  selectbox_any      // select all units modifier | Smart Select Widget
 bind           Any+ctrl  selectbox_deselect // remove units from current selection modifier | Smart Select Widget
 bind            Any+alt  selectbox_mobile   // select only mobile units modifier | Smart Select Widget
 
 bind          Any+space  selectloop         // activate select shape | Loop Select Widget
 bind           Any+ctrl  selectloop_invert  // select units not present in current selection modifier | Loop Select Widget
 bind          Any+shift  selectloop_add     // add to selection modifier | Loop Select Widget
+
+bind          Any+space  buildsplit         // activate build split mode (distribute orders between selected builders) | Build Split Widget
 
 // commandinsert keys
 bind          Any+space  commandinsert prepend_between // prepend command into the queue between 2 commands close to cursor

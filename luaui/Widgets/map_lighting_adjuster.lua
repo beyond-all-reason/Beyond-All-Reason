@@ -140,6 +140,8 @@ local mapSun = {
 }
 
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Map Lighting Adjuster",
@@ -181,10 +183,9 @@ end
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
-	--Spring.Echo("widget:SunChanged", df)
+
 	if df == lastSunChanged then return end
 	lastSunChanged = df
-	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 function widget:Shutdown()

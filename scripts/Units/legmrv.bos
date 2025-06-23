@@ -3,10 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
-		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
+// piece  base, steer, turret, fwheel, bwheel, gunr, sleever, barrelr, flarer, gunr2, sleever2, barrelr2, flarer2,
+// 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_1, gun_2, statechg_DesiredState, 
+piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
+static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, whichGun, statechg_DesiredState, 
 			statechg_StateChanging, oldHeading;
 
 // Signal definitions
@@ -33,11 +34,14 @@ Steering(heading, steery, currentSpeed)
 	{
 		heading = get HEADING;
 		steery = (heading - oldheading)*3;
-		turn steer to y-axis steery speed <180>;		
+		turn flWheel to y-axis steery speed <180>;
+		//turn flCover to y-axis steery speed <180>;	
+		turn frWheel to y-axis steery speed <180>;
+		//turn frCover to y-axis steery speed <180>;		
 		currentSpeed = <2.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		spin fwheel around x-axis speed currentSpeed;
-		spin bwheel around x-axis speed currentSpeed;
+		spin flTyre around x-axis speed (currentSpeed*4.0);
+		spin frTyre around x-axis speed (currentSpeed*4.0);
 		sleep 66;
 		oldheading = heading;
 	}
@@ -53,13 +57,10 @@ Steering(heading, steery, currentSpeed)
 
 Create()
 {
-	hide flarer;
-	hide flarer2;
-	hide flarel;
-	hide flarel2;
+	hide flareTop;
+	hide flareBottom;
 	Static_Var_1 = 0;
-	gun_1 = 0;
-	gun_2 = 0;
+	whichGun = 9;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -73,15 +74,15 @@ StartMoving()
 StopMoving()
 {
     signal SIG_MOVE;
-    stop-spin fwheel around x-axis;
-    stop-spin bwheel around x-axis;
+    stop-spin flTyre around x-axis;
+    stop-spin frTyre around x-axis;
 }
 
 //following block returns weapon in straight position after firing
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = 4000;
+	restore_delay = 2000;
 	return (0);
 }
 
@@ -91,11 +92,10 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	gun_1 = 0;
-	gun_2 = 0;
+	whichGun = 9;
 	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn gunr to x-axis <0.000000> speed <50.000000>;
-	turn gunl to x-axis <0.000000> speed <50.000000>;
+	turn sleeveTop to x-axis <0.000000> speed <50.000000>;
+	turn sleeveBottom to x-axis <0.000000> speed <50.000000>;
  }
  
 SetStunned(State)
@@ -117,85 +117,105 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <200.000000>;
-	turn gunr to x-axis <0.000000> - pitch speed <200.000000>;
-	turn gunl to x-axis <0.000000> - pitch speed <200.000000>;
+	turn sleeveTop to x-axis <0.000000> - pitch speed <200.000000>;
+	turn sleeveBottom to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn gunr around x-axis;
+	wait-for-turn sleeveBottom around x-axis;
 	start-script RestoreAfterDelay();
-	//while( gun_2 )
-	//{
-	//	wait-for-move barrelr along z-axis;
-	//	wait-for-move barrelr2 along z-axis;
-	//	wait-for-move barrell along z-axis;
-	//	wait-for-move barrell2 along z-axis;
-	//	gun_2 = 0;
-	//	gun_1 = 0;
-	//	return (0);
-	//}
 	return (1);
+}
+
+Shot1(zero) {
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
+	if (whichGun == 9){
+		emit-sfx 1024 + 0 from flareTop;
+		move barrelTop to z-axis [-5] now;
+		move barrelTop to z-axis [0] speed [10];
+		whichGun = 10;
+		sleep 150;
+	}
+	if (whichGun == 10){
+		emit-sfx 1024 + 0 from flareBottom;
+		move barrelBottom to z-axis [-5] now;
+		move barrelBottom to z-axis [0] speed [10];
+		whichGun = 9;
+		sleep 150;
+	}
+	return(0);
 }
 
 FirePrimary()
 {
-	return (1);
-}
+	
+	// if (whichGun == 0){
 
-Shot1(zero)
-{
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
-	if (gun_1 == 0){
-		move barrelr to z-axis [-3] now;
-		move barrelr to z-axis [0] speed [1];
-	}
-	if (gun_1 == 1){
-		move barrelr2 to z-axis [-3] now;
-		move barrelr2 to z-axis [0] speed [1];
-	}
-	if (gun_1 == 2){
-		move barrell to z-axis [-3] now;
-		move barrell to z-axis [0] speed [1];
-	}
-	if (gun_1 == 3){
-		gun_2 = 1;
-		move barrell2 to z-axis [-3] now;
-		move barrell2 to z-axis [0] speed [1];
-	}
-	++gun_1;
-	if(gun_1>=4)
-	{
-		gun_1=0;
-	}
-	return(1);
+	// 	whichGun = 1;
+	// 	return(0);
+	// }
+
+	// if (whichGun == 1){
+
+	// 	whichGun = 0;
+	// 	return(0);
+	// }
+	//sleep 150;
+	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	if (gun_1 == 0 or gun_1 == 1){
-		piecenum = gunr;
-	}
-	if (gun_1 >= 2){
-		piecenum = gunl;
-	}
+	piecenum = aimfrom;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	if (gun_1 <= 1){
-		piecenum = flarer;
-	}
-	if (gun_1 == 2){
-		piecenum = flarer2;
-	}
-	if (gun_1 == 3){
-		piecenum = flarel;
-	}
-	if (gun_1 >= 4){
-		piecenum = flarel2;
-	}
+	piecenum = whichGun;
 	return (0);
 }
+
+
+// FirePrimary()
+// {
+// 	return (1);
+// }
+
+// Shot1(zero)
+// {
+// 	signal SIG_FIRE1;
+// 	set-signal-mask SIG_FIRE1;
+// 	if (whichGun == 0){
+// 		move barrelr to z-axis [-3] now;
+// 		move barrelr to z-axis [0] speed [1];
+// 	}
+// 	if (whichGun == 1){
+// 		move barrelr2 to z-axis [-3] now;
+// 		move barrelr2 to z-axis [0] speed [1];
+// 	++whichGun;
+// 	if(whichGun>=4)
+// 	{
+// 		whichGun=0;
+// 	}
+// 	return(1);
+// }
+
+// QueryPrimary(piecenum)
+// {
+// 	if (whichGun <= 1){
+// 		piecenum = flarer;
+// 	}
+// 	if (whichGun == 2){
+// 		piecenum = flarer2;
+// 	}
+// 	if (whichGun == 3){
+// 		piecenum = flarel;
+// 	}
+// 	if (whichGun >= 4){
+// 		piecenum = flarel2;
+// 	}
+// 	return (0);
+// }
 
 SweetSpot(piecenum)
 {
@@ -209,37 +229,41 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gunr type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bwheel type BITMAPONLY | NOHEATCLOUD;
+		explode frWheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flWheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrTrack type BITMAPONLY | NOHEATCLOUD;
+		explode rlTrack type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gunr type FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode frWheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flWheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rlTrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gunr type SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode fwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode frWheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flWheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrTrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rlTrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gunr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode fwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode frWheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flWheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrTrack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rlTrack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

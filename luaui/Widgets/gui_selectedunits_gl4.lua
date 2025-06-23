@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Selected Units GL4",
@@ -16,10 +18,23 @@ local texture = "luaui/images/solid.png"
 local opacity = 0.19
 local teamcolorOpacity = 0.6
 
+local selectionHighlight = true
+local mouseoverHighlight = true
+
 ---- GL4 Backend Stuff----
-local selectionVBO = nil
+local selectionVBOGround = nil
+local selectionVBOAir = nil
+
+local mapHasWater = (Spring.GetGroundExtremes() < 0)
+
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
@@ -59,7 +74,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		}
 	end
 end
-
+local unitBufferUniformCache = {0}
 local function AddPrimitiveAtUnit(unitID)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
@@ -94,10 +109,13 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
-
+	if selectionHighlight then
+		unitBufferUniformCache[1] = 1
+		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+	end
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		(unitCanFly[unitDefID] and selectionVBOAir) or selectionVBOGround, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
@@ -113,19 +131,18 @@ local function AddPrimitiveAtUnit(unitID)
 	)
 end
 
-local drawFrame = 0
-function widget:DrawWorldPreUnit()
-	drawFrame = drawFrame + 1
+
+local function DrawSelections(selectionVBO, isAir)
 	if selectionVBO.usedElements > 0 then
-		if hasBadCulling then 
+		if hasBadCulling then
 			gl.Culling(false)
 		end
-		
+
 		glTexture(0, texture)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		glDepthTest(true)
+		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
@@ -148,8 +165,8 @@ function widget:DrawWorldPreUnit()
 
 		selectShader:Deactivate()
 		glTexture(0, false)
-		
-				
+
+
 		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 		glStencilTest(false)
 		glStencilMask(255)
@@ -159,8 +176,28 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
+if mapHasWater then
+	function widget:DrawWorld()
+		DrawSelections(selectionVBOAir, true)
+	end
+end
+
+function widget:DrawWorldPreUnit()
+	DrawSelections(selectionVBOGround, false)
+end
+
 local function RemovePrimitive(unitID)
-	if selectionVBO.instanceIDtoIndex[unitID] then
+	local selectionVBO
+	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
+	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
+
+	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
+		if selectionHighlight then
+			unitBufferUniformCache[1] = 0
+			if Spring.ValidUnitID(unitID) then
+				gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+			end
+		end
 		popElementInstance(selectionVBO, unitID)
 	end
 end
@@ -168,6 +205,27 @@ end
 function widget:SelectionChanged(sel)
 	updateSelection = true
 end
+
+
+local lastMouseOverUnitID = nil
+local lastMouseOverFeatureID = nil
+
+local function ClearLastMouseOver()
+	if lastMouseOverUnitID then
+		if Spring.ValidUnitID(lastMouseOverUnitID) then
+			gl.SetUnitBufferUniforms(lastMouseOverUnitID, {selUnits[lastMouseOverUnitID] and 1 or 0}, 6)
+		end
+		lastMouseOverUnitID = nil
+	end
+	if lastMouseOverFeatureID then
+		if Spring.ValidFeatureID(lastMouseOverFeatureID) then
+			gl.SetFeatureBufferUniforms(lastMouseOverFeatureID, {0}, 6)
+		end
+		lastMouseOverFeatureID = nil
+	end
+end
+
+
 
 function widget:Update(dt)
 	if updateSelection then
@@ -190,6 +248,40 @@ function widget:Update(dt)
 		end
 		selUnits = newSelUnits
 	end
+
+	-- We move the check for mouseovered units here,
+	-- as this widget is the ground truth for our unitbufferuniform[2].z (#6)
+	-- 0 means unit is un selected
+	-- +1 means unit is selected
+	-- +0.5 means ally also selected unit
+	-- +2 means its mouseovered
+	if mouseoverHighlight then
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+		if mouseOffScreen or cameraPanMode or mmb or p1 then
+			ClearLastMouseOver()
+		else
+			local result, data = Spring.TraceScreenRay(mx, my)
+			--Spring.Echo(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
+			if result == 'unit' and not Spring.IsGUIHidden() then
+				local unitID = data
+				if lastMouseOverUnitID ~= unitID then
+					ClearLastMouseOver()
+					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
+					gl.SetUnitBufferUniforms(unitID, {newUniform}, 6)
+					lastMouseOverUnitID = unitID
+				end
+			elseif result == 'feature' and not Spring.IsGUIHidden() then
+				local featureID = data
+				if lastMouseOverFeatureID ~= featureID then
+					ClearLastMouseOver()
+					gl.SetFeatureBufferUniforms(featureID, {2}, 6)
+					lastMouseOverFeatureID = featureID
+				end
+			else
+				ClearLastMouseOver()
+			end
+		end
+	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
@@ -209,7 +301,7 @@ end
 
 local function init()
 	updateSelection = true
-	selUnits = {}	
+	selUnits = {}
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
@@ -220,8 +312,18 @@ local function init()
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
-	if selectionVBO == nil then 
+	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
+	if mapHasWater then 
+		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
+	else
+		selectionVBOAir = selectionVBOGround
+	end
+	ClearLastMouseOver()
+	if selectionVBOGround == nil then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	if selectionVBOAir == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end
@@ -249,6 +351,23 @@ function widget:Initialize()
 		teamcolorOpacity = value
 		init()
 	end
+
+	WG.selectedunits.setSelectionHighlight = function(value)
+		selectionHighlight = value
+		init()
+	end
+	WG.selectedunits.getSelectionHighlight = function()
+		return selectionHighlight
+	end
+
+	WG.selectedunits.setMouseoverHighlight = function(value)
+		mouseoverHighlight = value
+		init()
+	end
+	WG.selectedunits.getMouseoverHighlight = function()
+		return selectimouseoverHighlightonHighlight
+	end
+
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 end
 
@@ -262,11 +381,23 @@ end
 function widget:GetConfigData(data)
 	return {
 		opacity = opacity,
-		teamcolorOpacity = teamcolorOpacity
+		teamcolorOpacity = teamcolorOpacity,
+		selectionHighlight = selectionHighlight,
+		mouseoverHighlight = mouseoverHighlight,
 	}
 end
 
 function widget:SetConfigData(data)
-	opacity = data.opacity or opacity
-	teamcolorOpacity = data.teamcolorOpacity or teamcolorOpacity
+	if data.opacity ~= nil then
+		opacity = data.opacity
+	end
+	if data.teamcolorOpacity ~= nil then
+		teamcolorOpacity = data.teamcolorOpacity
+	end
+	if data.selectionHighlight ~= nil then
+		selectionHighlight = data.selectionHighlight
+	end
+	if data.mouseoverHighlight ~= nil then
+		mouseoverHighlight = data.mouseoverHighlight
+	end
 end

@@ -1,0 +1,98 @@
+
+#include "../recoil_common_includes.h"
+
+//#define DEBUG
+#include "../debug.h"
+#define SIGNAL_SMOKE 2;
+piece  base, turbine, blades1, blades2, vent1, vent2;
+
+static-var  resourceRate, Stunned;
+
+SetStunned(State)
+{
+	Stunned = State;
+	if (State) {
+	    call-script Deactivate();
+	}else{
+	    call-script Activate();
+	}
+}
+
+Create()
+{
+	turn blades1 to z-axis <45> now;
+	turn blades2 to z-axis <45> now;
+	turn vent1 to z-axis <-45> now;
+	turn vent2 to z-axis <-45> now;
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	if (Stunned){
+		return (0);
+	}
+	
+	spin blades1 around y-axis speed <150> accelerate <5>;
+	spin blades2 around y-axis speed <150> accelerate <5>;
+	spin turbine around z-axis speed <50> accelerate <1>;
+	
+	signal SIGNAL_SMOKE;
+	start-script repeatsmoke();
+}
+
+Deactivate()
+{
+	stop-spin blades1 around y-axis decelerate <5>;
+	stop-spin blades2 around y-axis decelerate <5>;
+	stop-spin turbine around z-axis decelerate <1>;
+	signal SIGNAL_SMOKE;
+}
+
+repeatsmoke()
+{
+	set-signal-mask SIGNAL_SMOKE;
+	while (TRUE)
+	{
+		sleep(150);
+		emit-sfx 257 from vent1;
+		emit-sfx 257 from vent2;
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode blades1 type BITMAPONLY | NOHEATCLOUD;
+		explode blades2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode blades1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blades2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode blades1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blades2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode blades1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode blades2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

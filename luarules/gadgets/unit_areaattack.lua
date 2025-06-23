@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Area Attack",
@@ -56,14 +58,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if cmdID == CMD_AREAATTACK then
-			if canAreaAttack[unitDefID] then
-				return true
-			else
-				return false
-			end
-		else
+		-- accepts: CMD_AREAATTACK
+		if canAreaAttack[unitDefID] then
 			return true
+		else
+			return false
 		end
 	end
 
@@ -90,6 +89,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_AREAATTACK)
+		gadgetHandler:RegisterAllowCommand(CMD_AREAATTACK)
 	end
 
 else	-- UNSYNCED

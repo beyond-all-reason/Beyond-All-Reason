@@ -21,9 +21,11 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 		return
 	end
 
+	local prefix = unitDefName .. "_"
+
 	-- add this unitDef's weaponDefs
 	for weaponDefName, weaponDef in pairs(unitWeaponDefs) do
-		local fullName = unitDefName .. '_' .. weaponDefName
+		local fullName = prefix .. weaponDefName
 		WeaponDefs[fullName] = weaponDef
 
 		if SaveDefsToCustomParams then
@@ -34,7 +36,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	-- convert the weapon names
 	local weapons = unitDef.weapons
 		for _, weapon in pairs(weapons) do
-			local fullName = unitDefName .. '_' .. weapon.def:lower()
+			local fullName = prefix .. weapon.def:lower()
 			local weaponDef = WeaponDefs[fullName]
 
 			if weaponDef then
@@ -46,7 +48,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 
 	-- convert the death explosions
 	if unitDef.explodeas then
-		local fullName = unitDefName .. '_' .. unitDef.explodeas
+		local fullName = prefix .. unitDef.explodeas
 
 		if (WeaponDefs[fullName]) then
 			unitDef.explodeas = fullName
@@ -54,7 +56,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	end
 
 	if unitDef.selfdestructas then
-		local fullName = unitDefName .. '_' .. unitDef.selfdestructas
+		local fullName = prefix .. unitDef.selfdestructas
 
 		if (WeaponDefs[fullName]) then
 			unitDef.selfdestructas = fullName

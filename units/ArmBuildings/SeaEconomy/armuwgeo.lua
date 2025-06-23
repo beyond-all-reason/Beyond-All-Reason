@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMUWGEO.DDS",
 		buildtime = 13100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "60 70 60",
 		collisionvolumetype = "Box",
@@ -31,19 +30,19 @@ return {
 		sightdistance = 273,
 		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			buildinggrounddecalsizex = 7,
+			buildinggrounddecalsizey = 7,
+			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seaeconomy",
+			subfolder = "ArmBuildings/SeaEconomy",
+			unitgroup = "energy",
+			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
 			dead = {
@@ -77,13 +76,13 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:geobubbles",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
-			},
-			explosiongenerators = {
-				[1] = "custom:geobubbles",
 			},
 		},
 		sounds = {

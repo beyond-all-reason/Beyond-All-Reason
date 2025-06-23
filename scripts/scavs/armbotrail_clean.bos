@@ -1,0 +1,117 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, turret, rail, flare, round, door;
+
+static-var   restore_delay;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide flare;
+	restore_delay = 2000;
+}
+
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 3;
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <5.0>;
+	turn rail to x-axis <0> - pitch speed <3.5>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn rail around x-axis;
+	return (1);
+}
+
+Shot1()
+{
+	hide round;
+	emit-sfx 1024 + 0 from flare;
+	move door to z-axis [-15] speed [440];//-52.5
+	move round to z-axis [-15] now;
+	//sleep 25;
+	show round;
+	wait-for-move door along z-axis;
+	move round to z-axis [0] speed [125] ;
+	wait-for-move round along z-axis;
+	move door to z-axis [0] speed [125];
+}
+
+FireWeapon1()
+{
+//	hide round;
+//	sleep 200;
+//	move door to z-axis [-30] speed [180];//-52.5
+//	move round to z-axis [-30] now;
+//	show round;
+//	wait-for-move door along z-axis;
+//	move round to z-axis [0] speed [180];
+//	wait-for-move round along z-axis;
+//	move door to z-axis [0] speed [180];
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode rail type BITMAPONLY | NOHEATCLOUD;
+		explode round type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rail type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode round type FALL | NOHEATCLOUD;
+		explode flare type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rail type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode round type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rail type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode round type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

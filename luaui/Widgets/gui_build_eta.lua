@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "BuildETA",
@@ -40,7 +42,7 @@ end
 
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 13.0)
+	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
 end
 
 local function makeETA(unitID, unitDefID)
@@ -126,9 +128,9 @@ function widget:Update(dt)
 							bi.timeLeft = (1 - buildProgress) / rate
 						end
 					elseif rate < 0 then
-						local newTime = buildProgress / rate
+						local newTime = buildProgress / bi.rate -- use smooth rate
 						if bi.timeLeft and bi.timeLeft < 0 then
-							bi.timeLeft = ((1 - tf) * bi.timeLeft) + (tf * newTime)
+							bi.timeLeft = newTime -- we don't need to smoothen the time if the rate is smooth
 						else
 							bi.timeLeft = buildProgress / rate
 						end
@@ -159,7 +161,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	etaTable[unitID] = nil
 end
 

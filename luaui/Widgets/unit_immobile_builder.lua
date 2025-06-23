@@ -1,14 +1,4 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  brief:   sets immobile builders to MANEUVERING, and gives them a FIGHT order
---  author:  Dave Rodgers
---
---  Copyright (C) 2007.
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local widget = widget ---@type Widget
 
 function widget:GetInfo()
   return {
@@ -22,9 +12,6 @@ function widget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local CMD_MOVE_STATE		= CMD.MOVE_STATE
 local CMD_FIGHT				= CMD.FIGHT
 local spGetMyTeamID			= Spring.GetMyTeamID
@@ -32,21 +19,18 @@ local spGetTeamUnits		= Spring.GetTeamUnits
 local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
-local spGetSpectatingState	= Spring.GetSpectatingState
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
-local hmsx = Game.mapSizeX/2
-local hmsz = Game.mapSizeZ/2
+local halfMapSizeX = Game.mapSizeX / 2
+local halfMapSizeZ = Game.mapSizeZ / 2
 
 local myTeamID = spGetMyTeamID()
 
 local gameStarted
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- set immobile builders (nanotowers?) to the MANEUVER movestate,
--- and give them a FIGHT order, too close to the unit will drop the order so we add 50 distance
+-- Set immobile builders to the MANEUVER movestate, and give them a FIGHT order
+-- Too close to the unit will drop the order so we add 50 distance
 
 local isImmobileBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -55,26 +39,25 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
-local function SetupUnit(unitID)
+local function setupUnit(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	if x and y and z then
-	    if (x > hmsx) then -- avoid to issue commands outside map
+	    if (x > halfMapSizeX) then -- Avoid issuing commands outside map
 	      x = x - 50
 	    else
 	      x = x + 50
 	    end
-	    if (z > hmsz) then
+	    if (z > halfMapSizeZ) then
 	      z = z - 50
 	    else
 	      z = z + 50
 	    end
-		-- meta enables reclaim enemy units, alt autoresurrect ( if available )
+		-- Meta enables reclaim enemy units, alt autoresurrect (if available)
 		spGiveOrderToUnit(unitID, CMD_FIGHT, { x, y, z }, {"meta"})
 	end
 end
 
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -97,48 +80,44 @@ function widget:Initialize()
 	for _,unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isImmobileBuilder[unitDefID] then
-			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
-			SetupUnit(unitID)
+			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 1, 0)
+			setupUnit(unitID)
 		end
 	end
 end
-
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam ~= spGetMyTeamID() then
 		return
 	end
 	if isImmobileBuilder[unitDefID] then
-		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
-		SetupUnit(unitID)
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 1, 0)
+		setupUnit(unitID)
 	end
 end
-
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
-
-
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeamID then
 		return
 	end
 	if isImmobileBuilder[unitDefID] then
-		SetupUnit(unitID)
+		setupUnit(unitID)
 	end
 end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
-		local firstCmdID, _, cmdTag = spGetUnitCurrentCommand(unitID, 1)
-		if firstCmdID == CMD_FIGHT then
-			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag }, 0)
+		local count = spGetUnitCommandCount(unitID)
+		if count == 0 then
+			return
+		end
+		local cmdID, opts, tag = spGetUnitCurrentCommand(unitID, count)
+		if cmdID and cmdID == CMD_FIGHT then
+			spGiveOrderToUnit(unitID, CMD.REMOVE, tag, 0)
 		end
 	end
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

@@ -10,6 +10,8 @@ situation, including replays and singleplayer games where the player is alone
 but there are AIs.
 ]]
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name = "FFA start points picker",
@@ -383,7 +385,7 @@ local function removeStartPoint(unitID, unitDefID)
   end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   removeStartPoint(unitID, unitDefID)
 end
 

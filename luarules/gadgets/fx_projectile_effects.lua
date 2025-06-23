@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Projectile Effects",
@@ -7,7 +9,7 @@ function gadget:GetInfo()
         date      = "2023.11.13",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
-        enabled   = false,
+        enabled   = true,
     }
 end
 
@@ -16,7 +18,7 @@ end
 -- luarules\gadgets\fx_missile_smoke.lua
 -- luarules\gadgets\fx_missile_starburst_liftoff.lua
 -- luarules\gadgets\fx_submissile_splash.lua -- which was off anyway
---
+-- Also, it should check wether water is even possibly present on the map, and not even check for those
 
 if not gadgetHandler:IsSyncedCode() then
     return false
@@ -27,26 +29,19 @@ local GetProjectileDirection = Spring.GetProjectileDirection
 local GetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGameFrame = Spring.GetGameFrame
+
 local SpawnCEG = Spring.SpawnCEG
-local random = math.random
+-- Helpful debug wrapper:
+-- SpawnCEG = function(ceg,x,y,z,dx,dy,dz) Spring.Echo(ceg,x,y,z); Spring.SpawnCEG(ceg,x,y,z,dx,dy,dz) end
+
 
 local gameFrame = 0
+local mapHasWater = true
 
 -----------------------------------------------------------------------------------------
 local depthCharges = {} --Depthcharges that are above the surface still
-local depthChargeWeapons = {}
-for weaponID, weaponDef in pairs(WeaponDefs) do
-    if weaponDef.type == 'TorpedoLauncher' then
-        if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
-        or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
-            depthChargeWeapons[weaponID] = 'splash-torpedo'
-        elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
-            depthChargeWeapons[weaponID] = 'splash-tiny'
-        else
-            depthChargeWeapons[weaponID] = 'splash-torpedo'
-        end
-    end
-end
+local depthChargeWeapons = {} -- initialized conditionally on mapHasWater
+
 -----------------------------------------------------------------------------------------
 
 local missileIDtoProjType = {}
@@ -81,7 +76,7 @@ end
 
 -----------------------------------------------------------------------------------------
 local starbursts = {} 
-local starburstWeapons = {}
+local starburstWeapons = {} -- {wDID = {startHeight, cegName, nofueltime, maxtime,  }}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == 'StarburstLauncher' then
@@ -144,14 +139,34 @@ local allWatchedProjectileIDs = {}
 
 
 function gadget:Initialize()
-    for wDID,_ in pairs(depthChargeWeapons) do
-        Script.SetWatchProjectile(wDID, true)
-		allWatchedWeaponDefIDs[wDID] = "depthCharge"
-    end
+	local minheight, maxheight = Spring.GetGroundExtremes()
+	if minheight > 100 then 
+		mapHasWater = false
+	end
+	if mapHasWater then 
+		for weaponID, weaponDef in pairs(WeaponDefs) do
+			if weaponDef.type == 'TorpedoLauncher' then
+				if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
+				or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
+					depthChargeWeapons[weaponID] = 'splash-torpedo'
+				elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+					depthChargeWeapons[weaponID] = 'splash-tiny'
+				else
+					depthChargeWeapons[weaponID] = 'splash-torpedo'
+				end
+			end
+		end
+		for wDID,_ in pairs(depthChargeWeapons) do
+			Script.SetWatchProjectile(wDID, true)
+			allWatchedWeaponDefIDs[wDID] = "depthCharge"
+		end
+	end
 	
+		
 	for wDID,_ in pairs(missileWeapons) do
         Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "missile"
+		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
     end
 	
 	for wDID, _ in pairs(starburstWeapons) do
@@ -162,10 +177,11 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
+	--Spring.Echo("gadget:ProjectileCreated",proID, proOwnerID, weaponDefID)
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
 	if watchedWeaponType == nil then return end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
-	if watchedWeaponType == "depthCharge" then 
+	if mapHasWater and watchedWeaponType == "depthCharge" then 
         local _,y,_ = GetProjectilePosition(proID)
         if y > 0 then
             depthCharges[proID] = depthChargeWeapons[weaponDefID]
@@ -181,9 +197,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 		end
 		local gf = GetGameFrame()
 		starbursts[proID] = {
-			weaponDefID,
 			groundHeight + starburstWeapons[weaponDefID][1],
-			gf,
 			starburstWeapons[weaponDefID][2],
 			gf + starburstWeapons[weaponDefID][3],
 			gf + starburstWeapons[weaponDefID][4],
@@ -203,7 +217,7 @@ function gadget:ProjectileDestroyed(proID) --pre-opt mean 14 us
 	local watchedWeaponType = allWatchedProjectileIDs[proID]
 	if watchedWeaponType then 
 		allWatchedProjectileIDs[proID] = nil
-		if watchedWeaponType == "depthCharge" then 
+		if mapHasWater and watchedWeaponType == "depthCharge" then 
 			depthCharges[proID] = nil
 		elseif watchedWeaponType == "missile" then
 			missileIDtoProjType[proID] = nil
@@ -217,19 +231,21 @@ end
 
 function gadget:GameFrame(gf)
 	gameFrame = gf
-    for proID, CEG in pairs(depthCharges) do
-        local x,y,z = GetProjectilePosition(proID)
-        if y then
-            if y < 0 then
-                SpawnCEG(CEG,x,0,z)
-                depthCharges[proID] = nil
+	if mapHasWater then 
+		for proID, CEG in pairs(depthCharges) do
+			local x,y,z = GetProjectilePosition(proID)
+			if y then
+				if y < 0 then
+					SpawnCEG(CEG,x,0,z)
+					depthCharges[proID] = nil
+					allWatchedProjectileIDs[proID] = nil
+				end
+			else
+				depthCharges[proID] = nil
 				allWatchedProjectileIDs[proID] = nil
-            end
-        else
-            depthCharges[proID] = nil
-			allWatchedProjectileIDs[proID] = nil
-        end
-    end
+			end
+		end
+	end
 	
 	for proID, missile in pairs(missileIDtoProjType) do
         if gf > missileIDtoLifeEnd[proID] then
@@ -246,20 +262,20 @@ function gadget:GameFrame(gf)
     end	
 	
 	for proID, missile in pairs(starbursts) do
-		if gf <= missile[6] then
+		if gf <= missile[4] then
 			local x, y, z = GetProjectilePosition(proID)
 			if y and y > 0 then
 				local dirX, dirY, dirZ = GetProjectileDirection(proID)
-				if gf <= missile[5] or gf % 2 == 1 then
+				if gf <= missile[3] or gf % 2 == 1 then
 					-- add extra missiletrail
-					SpawnCEG(missile[4], x, y, z, dirX, dirY, dirZ)
-					if y <= missile[8] or (y <= missile[9] and gf % 2 == 1) then
+					SpawnCEG(missile[2], x, y, z, dirX, dirY, dirZ)
+					if y <= missile[6] or (y <= missile[7] and gf % 2 == 1) then
 						-- add ground dust
-						SpawnCEG(missile[7], x, missile[2], z, dirX, dirY, dirZ)
+						SpawnCEG(missile[5], x, missile[1], z, dirX, dirY, dirZ)
 					end
-					if y <= missile[11] or (y <= missile[12] and gf % 2 == 1) then
+					if y <= missile[9] or (y <= missile[10] and gf % 2 == 1) then
 						--add ground fire
-						SpawnCEG(missile[10], x, missile[2], z, dirX, dirY, dirZ)
+						SpawnCEG(missile[8], x, missile[1], z, dirX, dirY, dirZ)
 					end
 				end
 			else
@@ -271,7 +287,6 @@ function gadget:GameFrame(gf)
 			allWatchedProjectileIDs[proID] = nil
 		end
 	end
-
 end
 
 

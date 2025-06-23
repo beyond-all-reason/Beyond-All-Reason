@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Unit glass pieces",
@@ -24,7 +26,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
 local glassUnitDefs = {}
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
 end
 
@@ -86,7 +88,7 @@ else -- Unsynced
 -- Includes
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 -----------------------------------------------------------------
 -- Acceleration
@@ -99,9 +101,7 @@ local glGetSun = gl.GetSun
 
 local glDepthTest = gl.DepthTest
 local glCulling = gl.Culling
-local glBlending = gl.Blending
 
-local glPushPopMatrix = gl.PushPopMatrix
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glUnitMultMatrix = gl.UnitMultMatrix
@@ -280,7 +280,6 @@ local teamColors = {}
 local glassUnits = {}
 
 local pieceList
-local allUnits
 
 local sunChanged = true
 local glassShader

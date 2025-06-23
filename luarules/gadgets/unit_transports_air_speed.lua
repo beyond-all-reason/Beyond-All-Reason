@@ -1,8 +1,10 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Air Transports Speed",
 		desc = "Slows down transport depending on loaded mass",
-		author = "raaar",
+		author = "raaar, Hornet",--added com mod 13/06/24
 		date = "2015",
 		license = "PD",
 		layer = 0,
@@ -47,15 +49,33 @@ local function updateAllowedSpeed(transportId)
 	-- get sum of mass and size for all transported units
 	currentMassUsage = 0
 	local units = spGetUnitIsTransporting(transportId)
-	if units then
-		for _,tUnitId in pairs(units) do
-			currentMassUsage = currentMassUsage + unitMass[spGetUnitDefID(tUnitId)]
-		end
-		massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
-		allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-		--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
+	local tunitdefid
+	local tunitdefcustom
+	local iscom = false
+	local transportspeedmult = 0.0
+	if 1 == 2 then --stops the gadget from doing anything. CHANGE TO GET ACTUAL SLOWDOWN
+		if units then
+			for _,tUnitId in pairs(units) do
+				tunitdefid = spGetUnitDefID(tUnitId)
+				tunitdefcustom = UnitDefs[tunitdefid].customParams		
+				if (tunitdefcustom ~=nil) then
+					transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
+					iscom = tunitdefcustom.iscommander=='1'
+				end
+				
+				currentMassUsage = currentMassUsage + unitMass[tunitdefid]
+			end
+			massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
 
-		airTransportMaxSpeeds[transportId] = allowedSpeed
+			if (iscom) then
+
+				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
+			else
+				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
+				--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
+			end
+			airTransportMaxSpeeds[transportId] = allowedSpeed
+		end
 	end
 end
 

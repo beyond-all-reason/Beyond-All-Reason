@@ -1,0 +1,165 @@
+
+#include "../recoil_common_includes.h"	
+#include "../factories_common.h"
+
+piece  flare1, flare2, flare3, flare4, pad, base, nanob, nanos, exhaust, ventsmoke, cagelight1, cagelight1_emit, cagelight2, cagelight2_emit;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+Create()
+{
+	hide pad;
+	hide ventsmoke;
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	spray = 0;
+}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = spray + 1;
+	if (spray >= 4) 
+	{
+		spray = 0;
+	}
+	pieceIndex = flare1 + spray;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	FACTORY_OPEN_BUILD;
+	
+	move exhaust to y-axis [0] speed [8];
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn nanos to x-axis 0 speed <30>;
+	turn nanob to z-axis 0 speed <30>;
+	wait-for-turn nanos around x-axis;
+	
+	move exhaust to y-axis [-8] speed [8];
+
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn nanos to x-axis rand(-3000, 11000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		
+		turn nanob to z-axis rand(-11000, 3000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+	}
+}
+
+
+StartBuilding()
+{
+	show flare1;
+	show flare2;
+	show flare3;
+	show flare4;
+	
+	show cagelight1_emit;
+	show cagelight2_emit;
+	move cagelight1 to x-axis [-1.7] speed [8];
+	move cagelight2 to x-axis [-1.7] speed [8];
+	spin cagelight1 around x-axis speed <200> accelerate <1>;
+	spin cagelight2 around x-axis speed <-200> accelerate <1>;
+	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	start-script MoveCranes();
+}
+
+StopBuilding()
+{
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	move cagelight1 to x-axis [0] speed [8];
+	move cagelight2 to x-axis [0] speed [8];
+	stop-spin cagelight1 around x-axis decelerate <1>;
+	stop-spin cagelight2 around x-axis decelerate <1>;
+	
+	signal SIGNAL_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type BITMAPONLY | NOHEATCLOUD;
+		explode nanos type BITMAPONLY | NOHEATCLOUD;
+		explode nanob type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanos type FALL | NOHEATCLOUD;
+		explode nanob type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nanos type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanob type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanos type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanob type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

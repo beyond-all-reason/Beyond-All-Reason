@@ -1,7 +1,9 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Workertime Multiplier Boost",
-		desc = "Allows units with added UnitDefs to build gadget-defined types of units faster.",
+		desc = "Allows units with added UnitDefs to build and repair gadget-defined types of units faster.",
 		author = "SethDGamre",
 		date = "April 2024",
 		license = "Public domain",
@@ -15,54 +17,77 @@ end
 -- synced only
 if not gadgetHandler:IsSyncedCode() then return false end
 
-
-local boosttriggers = {} -- stores what words parsed from the wtboostunittype "trigger" boost
-local mobileunits = {} -- stores the names of units that can move
-local boostedworkertimes = {}-- stores the values of builders who have defined workertimeboost definitions.
-local originalworkertimes = {} 
 -- workertimeboost = number -- in the unitdefs of the builder. This is the mulitplier by which workertime is boosted.
--- wtboostunittype = defined in unitdef of builder, it's a table of strings such as "MOBILE" which defines what units boost buildpower for the builder.
+-- wtboostunittype = "MOBILE TURRET" defined in unitdef of builder which defines what units trigger workertime boost for that builder.
+
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local boostableUnits = {}
+local builderWatchDefs = {}
+local builderWatch = {}
 	
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed then
-		if def.customParams.workertimeboost then
-			originalworkertimes[id] = def.buildSpeed
-			boostedworkertimes[id] = def.buildSpeed * def.customParams.workertimeboost--adds the key "id" unitname to the list. Boostable builders represented the boosted workertime.
+		if def.customParams.workertimeboost and def.customParams.wtboostunittype then
+			builderWatchDefs[id] = {buildspeed = def.buildSpeed, boost = def.customParams.workertimeboost*def.buildSpeed, trigger = def.customParams.wtboostunittype, timestamp = 0}
 		end
 	end
+	boostableUnits[id] = {}
 	if def.speed and def.speed ~= 0 then
-		mobileunits[id] = true
+		table.insert(boostableUnits[id], "MOBILE")
 	end
-	if def.customParams.wtboostunittype then
-		boosttriggers[id] = def.customParams.wtboostunittype --stores the string of the builder that defines unit categories
+	if def.speed == 0 and def.weapons[1] then
+		table.insert(boostableUnits[id], "TURRET")
+	end
+	if def.speed == 0 and not def.weapons[1] and def.buildSpeed < 1 then
+		table.insert(boostableUnits[id], "PASSIVE")
+	end
+	if def.buildSpeed and def.buildSpeed > 0 then
+		table.insert(boostableUnits[id], "BUILDER")
 	end
 end
 
-if table.count(originalworkertimes) <= 0 then -- this enables or disables the gadget
+if table.count(builderWatchDefs) <= 0 then -- this enables or disables the gadget
 	return false
 end
 
-local boostedtofinish = {}-- going to store the key of unitID equal to the builderID
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if  builderID ~= nil then
-		local boost = boostedworkertimes[Spring.GetUnitDefID(builderID) or -1]
-		local trigger = boosttriggers[Spring.GetUnitDefID(builderID) or -1]
-		if boost and trigger and builderID then
-			if string.find(trigger, "MOBILE") and mobileunits[unitDefID] then
-				Spring.SetUnitBuildSpeed(builderID, boost)
-				boostedtofinish[builderID] = builderID
-			elseif boostedtofinish[builderID] then
-				Spring.SetUnitBuildSpeed(builderID, originalworkertimes[Spring.GetUnitDefID(builderID)]) -- if another unit is created by a boosted builder that isn't a trigger, revert to normal workertime
-				boostedtofinish[builderID] = nil
-			end
-		end
+	if builderWatchDefs[unitDefID] then
+		builderWatch[unitID] = builderWatchDefs[unitDefID]
 	end
 end
 
-function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if boostedtofinish[unitID] then
-		Spring.SetUnitBuildSpeed(unitID, originalworkertimes[unitDefID])
-		boostedtofinish[unitID] = nil
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	builderWatch[unitID] = nil
+end
+
+function gadget:GameFrame(frame)
+	if frame % 16 == 0 then
+		for id, data in pairs(builderWatch) do
+			if data.timestamp < frame then
+				local project = spGetUnitIsBuilding(id) or nil
+				if project then
+					local projectStrings = boostableUnits[spGetUnitDefID(project)] or {" "}
+					local enableBoost = false
+					for _, string in pairs(projectStrings) do
+						if projectStrings and string.find(data.trigger, string) then
+							enableBoost = true
+							break
+						end
+					end
+					if enableBoost == true then
+						Spring.SetUnitBuildSpeed(id, data.boost)
+						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
+					else
+						Spring.SetUnitBuildSpeed(id, data.buildspeed)
+						data.timestamp = frame+60
+						spSetUnitRulesParam(id, "workertimeBoosted", 0)
+					end
+				else
+					Spring.SetUnitBuildSpeed(id, data.buildspeed)
+				end
+			end
+		end
 	end
 end

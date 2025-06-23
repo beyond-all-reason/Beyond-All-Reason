@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Unit Groups",
@@ -9,6 +11,8 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -24,11 +28,10 @@ local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local spec = Spring.GetSpectatingState()
 
-local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiButton, UiUnit
+local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
 local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
@@ -52,24 +55,26 @@ local iconMargin = 0
 local groupSize = 0
 local usedWidth = 0
 local usedHeight = 0
+local uiTexWidth = 1
 local hovered = false
 local numGroups = 0
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
+local doUpdate = true
 
 local groupButtons = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
-local buildmenuAlwaysShow, ordermenuAlwaysShow = false, false
+local buildmenuAlwaysShow = false
 local buildmenuShowingPosY = 0
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
+	font2 = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -77,7 +82,6 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
 	UiUnit = WG.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
@@ -88,7 +92,6 @@ function widget:ViewResize()
 	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
 	if WG['ordermenu'] then
 		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
-		ordermenuAlwaysShow = WG['ordermenu'].getAlwaysShow()
 	end
 	ordermenuPosY = omPosY
 
@@ -114,6 +117,13 @@ function widget:ViewResize()
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
 	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
 	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
+
+	if uiTex then
+		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
+		gl.DeleteTexture(uiTex)
+		uiTex = nil
+	end
 end
 
 function widget:PlayerChanged(playerID)
@@ -125,6 +135,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if not showWhenSpec and spec then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['unitgroups'] = {}
@@ -136,6 +150,12 @@ end
 function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
+	end
+	if uiBgTex then
+		gl.DeleteTexture(uiBgTex)
+	end
+	if uiTex then
+		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('unitgroups')
@@ -179,6 +199,213 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 	end
 end
 
+local function drawBackground()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
+end
+
+local function drawContent()
+	local existingGroups = spGetGroupList()
+	numGroups = 0
+	for group, _ in pairs(existingGroups) do
+		numGroups = numGroups + 1
+	end
+
+	local groupWidth = groupSize - backgroundPadding
+	local startOffsetX = 0
+	if numGroups > 0 and alwaysShowLabel then
+		startOffsetX = groupWidth
+	end
+
+	if numGroups == 0 or alwaysShowLabel then
+		local groupRect = {
+			floor(posX * vsx),
+			floor(posY * vsy),
+			floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
+			floor(posY * vsy) + usedHeight
+		}
+		local fontSize = height*vsy*0.25
+		local offset = ((groupRect[3]-groupRect[1])/4.2)
+		local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
+		local style = 'co'
+		font2:Begin(useRenderToTexture)
+		font2:SetOutlineColor(0, 0, 0, 0.2)
+		font2:SetTextColor(0.45, 0.45, 0.45, 1)
+		font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+		font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+		font2:Print(3, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+
+		font2:Print(4, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+		font2:Print(5, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+		font2:Print(6, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+
+		font2:Print(7, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+		font2:Print(8, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, "c")
+		font2:Print(9, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+		font2:End()
+	end
+
+	if numGroups > 0 then
+		local hoveredGroup = -1
+		local x, y, b, b2, b3 = spGetMouseState()
+		if groupButtons then
+			for i,v in pairs(groupButtons) do
+				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+					hoveredGroup = groupButtons[i][5]
+					break
+				end
+			end
+		end
+
+		local groupCounter = 0
+		groupButtons = {}
+		for group=0, 9 do
+			if existingGroups[group] then
+				local groupRect = {
+					backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+					backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
+					backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+					backgroundRect[4]-backgroundPadding
+				}
+
+				local unitdefCounts = spGetGroupUnitsCounts(group)
+				local unitdefCount = 0
+				local udefID_1
+				local udefID_2
+				local udefID_3
+				local udefID_4
+				local udefID_5
+				local largestCount_1 = 0
+				local largestCount_2 = 0
+				local largestCount_3 = 0
+				local largestCount_4 = 0
+				local largestCount_5 = 0
+				for uDefID, count in pairs(unitdefCounts) do
+					if count > largestCount_1 then
+						udefID_1 = uDefID
+						largestCount_1 = count
+					end
+					unitdefCount = unitdefCount + 1
+				end
+				if unitdefCount > 1 then
+					for uDefID, count in pairs(unitdefCounts) do
+						if uDefID ~= udefID_1 and count > largestCount_2 then
+							udefID_2 = uDefID
+							largestCount_2 = count
+						end
+					end
+					if unitdefCount > 2 then
+						for uDefID, count in pairs(unitdefCounts) do
+							if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
+								udefID_3 = uDefID
+								largestCount_3 = count
+							end
+						end
+						if unitdefCount > 3 then
+							for uDefID, count in pairs(unitdefCounts) do
+								if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
+									udefID_4 = uDefID
+									largestCount_4 = count
+								end
+							end
+							if unitdefCount > 3 then
+								for uDefID, count in pairs(unitdefCounts) do
+									if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and uDefID ~= udefID_4 and count > largestCount_5 then
+										udefID_5 = uDefID
+										largestCount_5 = count
+									end
+								end
+							end
+						end
+					end
+				end
+
+				gl.Color(1,1,1,1)
+				groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
+				local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
+				local iconSize = groupSize * iconSizeMult
+				local offset = 0
+				if showStack then
+					if udefID_5 then
+						iconSize = floor(iconSize*0.78)
+						offset = floor((groupSize - iconSize) / 4)
+					elseif udefID_4 then
+						iconSize = floor(iconSize*0.83)
+						offset = floor((groupSize - iconSize) / 3)
+					elseif udefID_3 then
+						iconSize = floor(iconSize*0.86)
+						offset = floor((groupSize - iconSize) / 2)
+					elseif udefID_2 then
+						iconSize = floor(iconSize*0.88)
+						offset = groupSize - (iconSize*1.06)
+					else
+						iconSize = floor(iconSize*0.94)
+						offset = groupSize - iconSize
+					end
+				end
+
+				local texSize = floor(groupSize*1.33)
+				local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
+				local highlightOpacity = 0
+				if selectedGroups[group] then
+					highlightOpacity = 0.17
+					zoom = zoom + 0.08
+				elseif group == hoveredGroup then
+					highlightOpacity = 0.22
+				end
+				if showStack then
+					if udefID_5 then
+						drawIcon(
+							udefID_5,
+							{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
+							0.33, zoom, texSize, highlightOpacity
+						)
+					end
+					if udefID_4 then
+						drawIcon(
+							udefID_4,
+							{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
+							0.45, zoom, texSize, highlightOpacity
+						)
+					end
+					if udefID_3 then
+						drawIcon(
+							udefID_3,
+							{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
+							0.55, zoom, texSize, highlightOpacity
+						)
+					end
+					if udefID_2 then
+						drawIcon(
+							udefID_2,
+							{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
+							0.7, zoom, texSize, highlightOpacity
+						)
+					end
+				end
+				drawIcon(
+					udefID_1,
+					{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
+					1, zoom, texSize, highlightOpacity
+				)
+
+				local fontSize = height*vsy*0.4
+				font2:Begin(useRenderToTexture)
+				font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
+				font2:End()
+				local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
+				if amount > 1 then
+					fontSize = height*vsy*0.3
+					font:Begin(useRenderToTexture)
+					font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+					font:End()
+				end
+
+				groupCounter = groupCounter + 1
+			end
+		end
+	end
+end
+
 local function updateList()
 	if dlist then
 		dlist = gl.DeleteList(dlist)
@@ -195,223 +422,102 @@ local function updateList()
 			checkGuishader(true)
 		end
 	else
-		dlist = gl.CreateList(function()
-			local mult = numGroups
-			if numGroups == 0 then
-				mult = 1
+
+		local mult = numGroups
+		if numGroups == 0 then
+			mult = 1
+		end
+
+		local groupWidth = groupSize - backgroundPadding
+		local startOffsetX = 0
+		if numGroups > 0 and alwaysShowLabel then
+			startOffsetX = groupWidth
+		end
+		usedWidth = (groupWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+		if usedWidth > uiTexWidth then
+			uiTexWidth = usedWidth
+			if uiTex then
+				gl.DeleteTexture(uiTex)
+				uiTex = nil
 			end
+		end
 
-			local groupWidth = groupSize - backgroundPadding
-			local startOffsetX = 0
-			if numGroups > 0 and alwaysShowLabel then
-				startOffsetX = groupWidth
+		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		backgroundRect = {
+			floor(posX * vsx),
+			floor(posY * vsy),
+			floor(posX * vsx) + usedWidth,
+			floor(posY * vsy) + usedHeight
+		}
+		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			if uiBgTex then
+				gl.DeleteTexture(uiBgTex)
+				uiBgTex = nil
 			end
-			usedWidth = (groupWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+			checkGuishader(true)
+		end
 
-			backgroundRect = {
-				floor(posX * vsx),
-				floor(posY * vsy),
-				floor(posX * vsx) + usedWidth,
-				floor(posY * vsy) + usedHeight
-			}
-
-			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-
-			if numGroups == 0 or alwaysShowLabel then
-				local groupRect = {
-					floor(posX * vsx),
-					floor(posY * vsy),
-					floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
-					floor(posY * vsy) + usedHeight
-				}
-				local fontSize = height*vsy*0.24
-				local offset = ((groupRect[3]-groupRect[1])/4.2)
-				local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
-				local style = 'c'
-				font2:Begin()
-				font2:SetTextColor(1,1,1,0.2)
-				font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
-				font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
-				font2:Print(3, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
-
-				font2:Print(4, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
-				font2:Print(5, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
-				font2:Print(6, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
-
-				font2:Print(7, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
-				font2:Print(8, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, "c")
-				font2:Print(9, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
-				font2:End()
+		if useRenderToTexture then
+			if not uiBgTex then
+				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
-
-			if numGroups > 0 then
-				local hoveredGroup = -1
-				local x, y, b, b2, b3 = spGetMouseState()
-				if groupButtons then
-					for i,v in pairs(groupButtons) do
-						if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-							hoveredGroup = groupButtons[i][5]
-							break
-						end
-					end
-				end
-
-				local groupCounter = 0
-				groupButtons = {}
-				for group=0, 9 do
-					if existingGroups[group] then
-						local groupRect = {
-							backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
-							backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
-							backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
-							backgroundRect[4]-backgroundPadding
-						}
-
-						local unitdefCounts = spGetGroupUnitsCounts(group)
-						local unitdefCount = 0
-						local udefID_1
-						local udefID_2
-						local udefID_3
-						local udefID_4
-						local udefID_5
-						local largestCount_1 = 0
-						local largestCount_2 = 0
-						local largestCount_3 = 0
-						local largestCount_4 = 0
-						local largestCount_5 = 0
-						for uDefID, count in pairs(unitdefCounts) do
-							if count > largestCount_1 then
-								udefID_1 = uDefID
-								largestCount_1 = count
-							end
-							unitdefCount = unitdefCount + 1
-						end
-						if unitdefCount > 1 then
-							for uDefID, count in pairs(unitdefCounts) do
-								if uDefID ~= udefID_1 and count > largestCount_2 then
-									udefID_2 = uDefID
-									largestCount_2 = count
-								end
-							end
-							if unitdefCount > 2 then
-								for uDefID, count in pairs(unitdefCounts) do
-									if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
-										udefID_3 = uDefID
-										largestCount_3 = count
-									end
-								end
-								if unitdefCount > 3 then
-									for uDefID, count in pairs(unitdefCounts) do
-										if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
-											udefID_4 = uDefID
-											largestCount_4 = count
-										end
-									end
-									if unitdefCount > 3 then
-										for uDefID, count in pairs(unitdefCounts) do
-											if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and uDefID ~= udefID_4 and count > largestCount_5 then
-												udefID_5 = uDefID
-												largestCount_5 = count
-											end
-										end
-									end
-								end
-							end
-						end
-
-						gl.Color(1,1,1,1)
-						groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
-						local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
-						local iconSize = groupSize * iconSizeMult
-						local offset = 0
-						if showStack then
-							if udefID_5 then
-								iconSize = floor(iconSize*0.78)
-								offset = floor((groupSize - iconSize) / 4)
-							elseif udefID_4 then
-								iconSize = floor(iconSize*0.83)
-								offset = floor((groupSize - iconSize) / 3)
-							elseif udefID_3 then
-								iconSize = floor(iconSize*0.86)
-								offset = floor((groupSize - iconSize) / 2)
-							elseif udefID_2 then
-								iconSize = floor(iconSize*0.88)
-								offset = groupSize - (iconSize*1.06)
-							else
-								iconSize = floor(iconSize*0.94)
-								offset = groupSize - iconSize
-							end
-						end
-
-						local texSize = floor(groupSize*1.33)
-						local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
-						local highlightOpacity = 0
-						if selectedGroups[group] then
-							highlightOpacity = 0.17
-							zoom = zoom + 0.08
-						elseif group == hoveredGroup then
-							highlightOpacity = 0.22
-						end
-						if showStack then
-							if udefID_5 then
-								drawIcon(
-									udefID_5,
-									{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
-									0.33, zoom, texSize, highlightOpacity
-								)
-							end
-							if udefID_4 then
-								drawIcon(
-									udefID_4,
-									{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
-									0.45, zoom, texSize, highlightOpacity
-								)
-							end
-							if udefID_3 then
-								drawIcon(
-									udefID_3,
-									{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
-									0.55, zoom, texSize, highlightOpacity
-								)
-							end
-							if udefID_2 then
-								drawIcon(
-									udefID_2,
-									{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
-									0.7, zoom, texSize, highlightOpacity
-								)
-							end
-						end
-						drawIcon(
-							udefID_1,
-							{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
-							1, zoom, texSize, highlightOpacity
-						)
-
-						local fontSize = height*vsy*0.4
-						font2:Begin()
-						font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
-						font2:End()
-						local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
-						if amount > 1 then
-							fontSize = height*vsy*0.3
-							font:Begin()
-							font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
-							font:End()
-						end
-
-						groupCounter = groupCounter + 1
-					end
-				end
+			if not uiTex then
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
 			end
-		end)
-		checkGuishader(true)
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
+		else
+			dlist = gl.CreateList(function()
+				drawBackground()
+				drawContent()
+			end)
+		end
 	end
 end
 
 function widget:DrawScreen()
-	if (not spec or showWhenSpec) and dlist then
-		gl.CallList(dlist)
+	if not spec or showWhenSpec then
+		if doUpdate then
+			doUpdate = false
+			updateList()
+		end
+		if dlist or uiBgTex then
+			if uiBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
+			if not useRenderToTexture then
+				gl.CallList(dlist)
+			end
+			if uiTex then
+				-- content
+				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
+			end
+		end
 	end
 end
 
@@ -426,7 +532,7 @@ function widget:Update(dt)
 		return
 	end
 
-	local doUpdate = false
+	doUpdate = false
 	sec = sec + dt
 	sec2 = sec2 + dt
 
@@ -450,7 +556,7 @@ function widget:Update(dt)
 		end
 	end
 
-	local x, y, b, b2, b3 = spGetMouseState()
+	local x, y, b = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 		local tooltipAddition = ''
@@ -461,7 +567,9 @@ function widget:Update(dt)
 		if WG['autogroup'] ~= nil then
 			tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n\n' or '') .. "\255\200\255\200" .. Spring.I18N('ui.unitGroups.autogroupTooltip')
 		end
-		WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
+		if WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
+		end
 		Spring.SetMouseCursor('cursornormal')
 		if b then
 			sec = sec + 0.4
@@ -540,9 +648,6 @@ function widget:Update(dt)
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true
-	end
-	if doUpdate then
-		updateList()
 	end
 end
 

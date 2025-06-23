@@ -8,7 +8,8 @@
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare, sleeve, barrelr, flare;  
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, wpn1_lasthead;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, wpn1_lasthead,
+			isAimingBotCannon;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -519,6 +520,7 @@ RestoreAfterDelay(){
 	stop-spin barrelr around y-axis;
 	isAiming = 0;
 	isAimingDgun = 0;
+	isAimingBotCannon = 0;
 	rightarm = 1;
 	leftarm = 1;
 	wpn1_lasthead = 1000000;
@@ -562,6 +564,9 @@ AimFromPrimary(piecenum)
 AimPrimary(heading, pitch) //pew pew
 {
 	if (isAimingDgun){
+		return (0);
+	}
+	if (isAimingBotCannon == 1){
 		return (0);
 	}
 	rightarm = 0;
@@ -626,7 +631,8 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	if (isAimingDgun){
+	if (isAimingBotCannon == 1)
+	{
 		return (0);
 	}
 	rightarm = 0;
@@ -726,6 +732,58 @@ AimWeapon4(heading, pitch)
 	wait-for-turn misbox around x-axis;
 	return (1);
 }
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = biggun;
+	return (0);
+}
+
+QueryWeapon5(piecenum)
+{
+	piecenum = lflare;
+	return (0);
+}
+
+AimWeapon5(heading, pitch)
+{
+	if (isAimingDgun == 1){
+		return (0);
+	}
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(5));
+	if( reloading ){
+		return(0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isAimingBotCannon = 1;
+	isAiming = 1;
+	leftArm = 0;
+	//call-script FixArms(1, 0);
+	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn biggun to  x-axis <-85> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
+	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	wait-for-turn torso around y-axis;
+	//wait-for-turn biggun around x-axis;
+	return (1);
+}
+
+FireWeapon5()
+{
+	isAimingBotCannon = 0;
+	turn luparm to x-axis <20> now;
+	turn biggun to x-axis <-100> now;
+	move barrel to y-axis [-1.5] now;
+	
+	turn luparm to x-axis <5> speed <100>;
+	turn biggun to x-axis <-85> speed <100>;
+	move barrel to y-axis [0] speed [5];
+	
+	//call-script bigfire();
+	return (0);
+}
+
 
 SprayNano(heading, pitch){
 	set-signal-mask SIG_AIM;

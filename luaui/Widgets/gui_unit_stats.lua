@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Unit Stats",
@@ -26,7 +28,7 @@ end
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > rate then
 				highestUnitDef = k
@@ -36,7 +38,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	end
 	local scndRate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > scndRate and k ~= highestUnitDef then
 				scndhighestUnitDef = k
@@ -47,7 +49,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local thirdRate = 0
 	--local thirdhighestUnitDef
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > thirdRate and k ~= highestUnitDef and k ~= scndhighestUnitDef then
 				--thirdhighestUnitDef = k
@@ -97,8 +99,6 @@ include("keysym.h.lua")
 -- Globals
 ------------------------------------------------------------------------------------
 local useSelection = true
-
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 
 local customFontSize = 14
 local fontSize = customFontSize
@@ -318,7 +318,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(fontfile)
+	font = WG['fonts'].getFont()
 
 	init()
 end
@@ -386,7 +386,6 @@ local function drawStats(uDefID, uID)
 	cY = cY - (bgpadding/2)
 
 	local titleFontSize = fontSize*1.07
-	local cornersize = ceil(bgpadding*0.2)
 	cY = cY - 2 * titleFontSize
 	textBuffer = {}
 	textBufferCount = 0
@@ -403,8 +402,8 @@ local function drawStats(uDefID, uID)
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost
 		local buildRem = 1 - buildProg
-		local mRem = mTotal * buildRem
-		local eRem = eTotal * buildRem
+		local mRem = math.floor(mTotal * buildRem)
+		local eRem = math.floor(eTotal * buildRem)
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 
@@ -496,13 +495,14 @@ local function drawStats(uDefID, uID)
 	-- Transportable
 	------------------------------------------------------------------------------------
 
-	if transportable and mass > 0 and size > 0 then
-		if mass < 5000 and size < 3 then -- 3 is t1 transport max size
-			DrawText(texts.transportable..':', blue .. texts.transportable_light)
-		elseif mass < 100000 and size < 4 then
-			DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+		if transportable and mass > 0 and size > 0 then
+			if mass < 751 and size < 4 then -- 3 is t1 transport max size
+				DrawText(texts.transportable..':', blue .. texts.transportable_light)
+			elseif mass < 100000 and size < 5 then
+				DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+			end
 		end
-	end
+
 	cY = cY - fontSize
 
 	------------------------------------------------------------------------------------
@@ -592,11 +592,11 @@ local function drawStats(uDefID, uID)
 				defaultDamage = defaultDamage + spDamage * spCount
 			elseif uWep.customParams.speceffect == "split" then
 				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.def] or uWep
+				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
 				defaultDamage = uWep.damages[0]
 			elseif uWep.customParams.cluster then
-				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
-				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
+				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
+				local cmNumber = uWep.customParams.cluster_number
 				local cmDamage = WeaponDefNames[munition].damages[0]
 				defaultDamage = defaultDamage + cmDamage * cmNumber
 			end
@@ -641,8 +641,8 @@ local function drawStats(uDefID, uID)
 			if uWep.damages.paralyzeDamageTime > 0 then
 				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
 			end
-			if uWep.damages.impulseBoost > 0 then
-				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
+			if uWep.damages.impulseFactor > 0.123 then
+				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseFactor*100)
 			end
 			if uWep.damages.craterBoost > 0 then
 				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
@@ -680,7 +680,6 @@ local function drawStats(uDefID, uID)
 				end
 				DrawText(texts.dmg..":", dmgString)
 
-				local modString = ""
 				-- Group armor types by the damage they take.
 				local modifiers = {}
 				local defaultRate = uWep.damages[0] or 0
@@ -704,23 +703,24 @@ local function drawStats(uDefID, uID)
 				local sorted = {}
 				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
 				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-				local maxDamage = sorted[1]
 
-				modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
-				local count = 0
-				for _ in pairs(modifiers) do count = count + 1 end
-				if count > 1 then
-					for _, rate in pairs(sorted) do
-						if rate ~= defaultRate then
-							local armors = table.concat(modifiers[rate], ", ")
-							local percent = format("%d", floor(100 * rate / maxDamage))
-							if armors and percent then
-								modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
+				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
+					local modString = "default = "..yellow.."100%"
+					local count = 0
+					for _ in pairs(modifiers) do count = count + 1 end
+					if count > 1 then
+						for _, rate in pairs(sorted) do
+							if rate ~= defaultRate then
+								local armors = table.concat(modifiers[rate], ", ")
+								local percent = format("%d", floor(100 * rate / defaultRate))
+								if armors and percent then
+									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
+								end
 							end
 						end
 					end
+					DrawText(texts.modifiers..":", modString..'.')
 				end
-				DrawText(texts.modifiers..":", modString..'.')
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "BAR Hotkeys",
@@ -17,7 +19,7 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 
 local function reloadWidgetsBindings()
-	local reloadableWidgets = {'buildmenu', 'ordermenu', 'keybinds'}
+	local reloadableWidgets = {'buildmenu', 'ordermenu', 'keybinds', 'cmd_blueprint'}
 
 	for _, w in pairs(reloadableWidgets) do
 		if WG[w] and WG[w].reloadBindings then

@@ -1,0 +1,496 @@
+
+#include "../recoil_common_includes.h"
+
+#define SIGNAL_BUILD 2
+#define SIGNAL_MOVE 1
+
+piece 	pelvis, aimy1, torso, aimx1, nanol, nanor, flare1, flare2, armor,
+		hingefl, hingeml, hingebl, hingefr, hingemr, hingebr, legfl, legml, legbl, legfr, legmr, legbr, footfl, footml, footbl, footfr, footmr, footbr;
+
+static-var  isMoving, building, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, nanonozzle;
+
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+#define SIGNAL_MOVE 1
+Walk() {
+	set-signal-mask SIGNAL_MOVE;
+	while(isMoving) {
+	if (isMoving) { //Frame:3
+			turn footbl to z-axis <10.794942> speed <417.442985> / animSpeed; 
+			turn footbr to z-axis <-26.757199> speed <1136.294278> / animSpeed; 
+			turn footfl to z-axis <2.503427> speed <600.990362> / animSpeed; 
+			turn footfr to z-axis <-23.186189> speed <335.058328> / animSpeed; 
+			turn footml to z-axis <12.149624> speed <369.566224> / animSpeed; 
+			turn footmr to z-axis <3.822305> speed <55.276572> / animSpeed; 
+			turn hingebl to z-axis <14.213960> speed <106.851650> / animSpeed; 
+			turn hingebl to y-axis <34.099900> speed <919.799958> / animSpeed; 
+			turn hingebr to z-axis <5.181452> speed <373.456550> / animSpeed; 
+			turn hingebr to y-axis <-24.972213> speed <919.094775> / animSpeed; 
+			turn hingefl to z-axis <11.951053> speed <1088.750424> / animSpeed; 
+			turn hingefl to y-axis <-27.531010> speed <877.347805> / animSpeed; 
+			turn hingefr to z-axis <2.551141> speed <280.568255> / animSpeed; 
+			turn hingefr to y-axis <34.221731> speed <876.591037> / animSpeed; 
+			turn hingeml to z-axis <-12.395351> speed <10.567780> / animSpeed; 
+			turn hingeml to y-axis <1.182775> speed <602.664125> / animSpeed; 
+			turn hingemr to z-axis <-2.301232> speed <423.412886> / animSpeed; 
+			turn hingemr to y-axis <1.224402> speed <642.487222> / animSpeed; 
+			turn legbl to z-axis <-24.865034> speed <517.605464> / animSpeed; 
+			turn legbr to z-axis <21.556268> speed <1574.412835> / animSpeed; 
+			turn legfl to z-axis <-14.461944> speed <1614.500223> / animSpeed; 
+			turn legfr to z-axis <20.663132> speed <635.562080> / animSpeed; 
+			turn legml to z-axis <0.236817> speed <405.091711> / animSpeed; 
+			turn legmr to z-axis <-1.507925> speed <443.435350> / animSpeed; 
+			move pelvis to y-axis [0.600282] speed [29.792367] / animSpeed; 
+			turn pelvis to x-axis <0.078850> speed <80.891762> / animSpeed; 
+			turn torso to y-axis <-0.338420> speed <87.688586> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+		if (isMoving) { //Frame:6
+			turn footbl to z-axis <-14.061320> speed <745.687866> / animSpeed; 
+			turn footbr to z-axis <-37.046680> speed <308.684406> / animSpeed; 
+			turn footfl to z-axis <25.108945> speed <678.165536> / animSpeed; 
+			turn footfr to z-axis <0.358907> speed <706.352873> / animSpeed; 
+			turn footml to z-axis <5.575545> speed <197.222365> / animSpeed; 
+			turn footmr to z-axis <5.125102> speed <39.083913> / animSpeed; 
+			turn hingebl to z-axis <-11.634696> speed <775.459688> / animSpeed; 
+			turn hingebl to y-axis <55.600704> speed <645.024111> / animSpeed; 
+			turn hingebr to z-axis <-3.601908> speed <263.500822> / animSpeed; 
+			turn hingebr to y-axis <-3.439904> speed <645.969290> / animSpeed; 
+			turn hingefl to z-axis <15.786695> speed <115.069239> / animSpeed; 
+			turn hingefl to y-axis <-7.137940> speed <611.792099> / animSpeed; 
+			turn hingefr to z-axis <24.109326> speed <646.745569> / animSpeed; 
+			turn hingefr to y-axis <54.539819> speed <609.542645> / animSpeed; 
+			turn hingeml to z-axis <-18.058414> speed <169.891880> / animSpeed; 
+			turn hingeml to y-axis <-18.992128> speed <605.247095> / animSpeed; 
+			turn hingemr to z-axis <6.867097> speed <275.049857> / animSpeed; 
+			turn hingemr to y-axis <-20.227487> speed <643.556683> / animSpeed; 
+			turn legbl to z-axis <27.422443> speed <1568.624301> / animSpeed; 
+			turn legbr to z-axis <40.215382> speed <559.773413> / animSpeed; 
+			turn legfl to z-axis <-41.348541> speed <806.597922> / animSpeed; 
+			turn legfr to z-axis <-22.690254> speed <1300.601582> / animSpeed; 
+			turn legml to z-axis <11.674357> speed <343.126212> / animSpeed; 
+			turn legmr to z-axis <-12.665864> speed <334.738191> / animSpeed; 
+			move pelvis to y-axis [-0.148891] speed [22.475183] / animSpeed; 
+			turn pelvis to x-axis <2.258788> speed <65.398165> / animSpeed; 
+			turn torso to y-axis <-2.811935> speed <74.205441> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:9
+			turn footbl to z-axis <11.347406> speed <762.261790> / animSpeed; 
+			turn footbr to z-axis <-18.163817> speed <566.485866> / animSpeed; 
+			turn footfl to z-axis <32.584818> speed <224.276177> / animSpeed; 
+			turn footfr to z-axis <3.086142> speed <81.817050> / animSpeed; 
+			turn footml to z-axis <-3.209252> speed <263.543923> / animSpeed; 
+			turn footmr to z-axis <-9.100261> speed <426.760892> / animSpeed; 
+			turn hingebl to z-axis <-9.403261> speed <66.943043> / animSpeed; 
+			turn hingebl to y-axis <50.668461> speed <147.967306> / animSpeed; 
+			turn hingebr to z-axis <-18.508551> speed <447.199272> / animSpeed; 
+			turn hingebr to y-axis <-8.429456> speed <149.686567> / animSpeed; 
+			turn hingefl to z-axis <1.624866> speed <424.854862> / animSpeed; 
+			turn hingefl to y-axis <-11.644639> speed <135.200965> / animSpeed; 
+			turn hingefr to z-axis <2.444139> speed <649.955621> / animSpeed; 
+			turn hingefr to y-axis <50.085183> speed <133.639071> / animSpeed; 
+			turn hingeml to z-axis <-2.462717> speed <467.870899> / animSpeed; 
+			turn hingeml to y-axis <-11.935727> speed <211.692049> / animSpeed; 
+			turn hingemr to z-axis <12.335420> speed <164.049686> / animSpeed; 
+			turn hingemr to y-axis <-12.743660> speed <224.514815> / animSpeed; 
+			turn legbl to z-axis <-0.921130> speed <850.307184> / animSpeed; 
+			turn legbr to z-axis <36.065444> speed <124.498127> / animSpeed; 
+			turn legfl to z-axis <-34.760076> speed <197.653961> / animSpeed; 
+			turn legfr to z-axis <-4.507576> speed <545.480333> / animSpeed; 
+			turn legml to z-axis <5.342904> speed <189.943604> / animSpeed; 
+			turn legmr to z-axis <-3.538940> speed <273.807738> / animSpeed; 
+			move pelvis to y-axis [0.236159] speed [11.551495] / animSpeed; 
+			turn pelvis to x-axis <1.441223> speed <24.526976> / animSpeed; 
+			turn torso to y-axis <-1.381455> speed <42.914391> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			turn footbl to z-axis <36.183856> speed <745.093486> / animSpeed; 
+			turn footbr to z-axis <-2.612232> speed <466.547567> / animSpeed; 
+			turn footfl to z-axis <12.893042> speed <590.753281> / animSpeed; 
+			turn footfr to z-axis <-13.511861> speed <497.940090> / animSpeed; 
+			turn footml to z-axis <-2.552461> speed <19.703743> / animSpeed; 
+			turn footmr to z-axis <-11.075106> speed <59.245377> / animSpeed; 
+			turn hingebl to z-axis <-2.386068> speed <210.515813> / animSpeed; 
+			turn hingebl to y-axis <22.369122> speed <848.980151> / animSpeed; 
+			turn hingebr to z-axis <-4.305447> speed <426.093117> / animSpeed; 
+			turn hingebr to y-axis <-36.629304> speed <845.995444> / animSpeed; 
+			turn hingefl to z-axis <-12.814932> speed <433.193928> / animSpeed; 
+			turn hingefl to y-axis <-38.462018> speed <804.521357> / animSpeed; 
+			turn hingefr to z-axis <-17.363447> speed <594.227591> / animSpeed; 
+			turn hingefr to y-axis <23.274839> speed <804.310304> / animSpeed; 
+			turn hingeml to z-axis <0.171410> speed <79.023807> / animSpeed; 
+			turn hingeml to y-axis <9.504335> speed <643.201834> / animSpeed; 
+			turn hingemr to z-axis <15.672289> speed <100.106078> / animSpeed; 
+			turn hingemr to y-axis <10.084869> speed <684.855879> / animSpeed; 
+			turn legbl to z-axis <-33.556409> speed <979.058359> / animSpeed; 
+			turn legbr to z-axis <6.517956> speed <886.424653> / animSpeed; 
+			turn legfl to z-axis <-0.489053> speed <1028.130694> / animSpeed; 
+			turn legfr to z-axis <30.898079> speed <1062.169638> / animSpeed; 
+			turn legml to z-axis <2.486315> speed <85.697681> / animSpeed; 
+			turn legmr to z-axis <-4.491480> speed <28.576216> / animSpeed; 
+			turn pelvis to x-axis <0.590568> speed <25.519646> / animSpeed; 
+			turn torso to y-axis <1.966990> speed <100.453352> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:15
+			turn footbl to z-axis <24.899337> speed <338.535577> / animSpeed; 
+			turn footbr to z-axis <11.134793> speed <412.410745> / animSpeed; 
+			turn footfl to z-axis <-17.416238> speed <909.278385> / animSpeed; 
+			turn footfr to z-axis <-34.427599> speed <627.472147> / animSpeed; 
+			turn footml to z-axis <-0.148101> speed <72.130784> / animSpeed; 
+			turn footmr to z-axis <5.598949> speed <500.221664> / animSpeed; 
+			turn hingebl to z-axis <17.824130> speed <606.305929> / animSpeed; 
+			turn hingebl to y-axis <3.450721> speed <567.552042> / animSpeed; 
+			turn hingebr to z-axis <17.591893> speed <656.920205> / animSpeed; 
+			turn hingebr to y-axis <-55.619521> speed <569.706523> / animSpeed; 
+			turn hingefl to z-axis <-24.313930> speed <344.969948> / animSpeed; 
+			turn hingefl to y-axis <-56.765764> speed <549.112375> / animSpeed; 
+			turn hingefr to z-axis <-6.878458> speed <314.549690> / animSpeed; 
+			turn hingefr to y-axis <4.975964> speed <548.966278> / animSpeed; 
+			turn hingeml to z-axis <-12.706063> speed <386.324165> / animSpeed; 
+			turn hingeml to y-axis <21.284630> speed <353.408860> / animSpeed; 
+			turn hingemr to z-axis <11.773171> speed <116.973529> / animSpeed; 
+			turn hingemr to y-axis <22.630000> speed <376.353916> / animSpeed; 
+			turn legbl to z-axis <-42.113727> speed <256.719558> / animSpeed; 
+			turn legbr to z-axis <-30.863064> speed <1121.430587> / animSpeed; 
+			turn legfl to z-axis <39.444100> speed <1197.994579> / animSpeed; 
+			turn legfr to z-axis <41.851970> speed <328.616759> / animSpeed; 
+			turn legml to z-axis <13.766697> speed <338.411475> / animSpeed; 
+			turn legmr to z-axis <-16.257940> speed <352.993798> / animSpeed; 
+			move pelvis to y-axis [-0.322686] speed [16.571354] / animSpeed; 
+			turn pelvis to x-axis <2.791217> speed <66.019480> / animSpeed; 
+			turn torso to y-axis <2.604945> speed <19.138651> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:18
+			turn footbl to z-axis <10.796575> speed <423.082860> / animSpeed; 
+			turn footbr to z-axis <-26.766946> speed <1137.052173> / animSpeed; 
+			turn footfl to z-axis <2.585766> speed <600.060129> / animSpeed; 
+			turn footfr to z-axis <-23.139964> speed <338.629065> / animSpeed; 
+			turn footml to z-axis <12.134265> speed <368.470980> / animSpeed; 
+			turn footmr to z-axis <3.847679> speed <52.538097> / animSpeed; 
+			turn hingebl to z-axis <14.216964> speed <108.214990> / animSpeed; 
+			turn hingebl to y-axis <34.087213> speed <919.094775> / animSpeed; 
+			turn hingebr to z-axis <5.178059> speed <372.415027> / animSpeed; 
+			turn hingebr to y-axis <-24.959523> speed <919.799958> / animSpeed; 
+			turn hingefl to z-axis <11.980631> speed <1088.836818> / animSpeed; 
+			turn hingefl to y-axis <-27.546079> speed <876.590525> / animSpeed; 
+			turn hingefr to z-axis <2.509335> speed <281.633777> / animSpeed; 
+			turn hingefr to y-axis <34.237536> speed <877.847160> / animSpeed; 
+			turn hingeml to z-axis <-12.374448> speed <9.948427> / animSpeed; 
+			turn hingeml to y-axis <1.180223> speed <603.132200> / animSpeed; 
+			turn hingemr to z-axis <-2.315571> speed <422.662272> / animSpeed; 
+			turn hingemr to y-axis <1.221685> speed <642.249445> / animSpeed; 
+			turn legbl to z-axis <-24.877161> speed <517.096991> / animSpeed; 
+			turn legbr to z-axis <21.578653> speed <1573.251481> / animSpeed; 
+			turn legfl to z-axis <-14.427484> speed <1616.147511> / animSpeed; 
+			turn legfr to z-axis <20.650136> speed <636.055031> / animSpeed; 
+			turn legml to z-axis <0.230770> speed <406.077822> / animSpeed; 
+			turn legmr to z-axis <-1.519175> speed <442.162956> / animSpeed; 
+			move pelvis to y-axis [0.460059] speed [23.482338] / animSpeed; 
+			turn pelvis to x-axis <0.063827> speed <81.821685> / animSpeed; 
+			turn torso to y-axis <-0.338420> speed <88.300953> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:21
+			turn footbl to z-axis <-14.107458> speed <747.120977> / animSpeed; 
+			turn footbr to z-axis <-37.088873> speed <309.657810> / animSpeed; 
+			turn footfl to z-axis <25.254665> speed <680.066971> / animSpeed; 
+			turn footfr to z-axis <0.202761> speed <700.281743> / animSpeed; 
+			turn footml to z-axis <5.661732> speed <194.175994> / animSpeed; 
+			turn footmr to z-axis <5.087595> speed <37.197475> / animSpeed; 
+			turn hingebl to z-axis <-11.679191> speed <776.884627> / animSpeed; 
+			turn hingebl to y-axis <55.619521> speed <645.969239> / animSpeed; 
+			turn hingebr to z-axis <-3.533602> speed <261.349818> / animSpeed; 
+			turn hingebr to y-axis <-3.458721> speed <645.024060> / animSpeed; 
+			turn hingefl to z-axis <15.656704> speed <110.282207> / animSpeed; 
+			turn hingefl to y-axis <-7.060589> speed <614.564729> / animSpeed; 
+			turn hingefr to z-axis <24.220459> speed <651.333714> / animSpeed; 
+			turn hingefr to y-axis <54.513044> speed <608.265263> / animSpeed; 
+			turn hingeml to z-axis <-18.148101> speed <173.209585> / animSpeed; 
+			turn hingeml to y-axis <-18.954227> speed <604.033522> / animSpeed; 
+			turn hingemr to z-axis <6.921829> speed <277.121997> / animSpeed; 
+			turn hingemr to y-axis <-20.257037> speed <644.361639> / animSpeed; 
+			turn legbl to z-axis <27.542156> speed <1572.579493> / animSpeed; 
+			turn legbr to z-axis <40.182505> speed <558.115572> / animSpeed; 
+			turn legfl to z-axis <-41.379257> speed <808.553184> / animSpeed; 
+			turn legfr to z-axis <-22.614369> speed <1297.935145> / animSpeed; 
+			turn legml to z-axis <11.663030> speed <342.967822> / animSpeed; 
+			turn legmr to z-axis <-12.694055> speed <335.246402> / animSpeed; 
+			move pelvis to y-axis [-0.208987] speed [20.071363] / animSpeed; 
+			turn pelvis to x-axis <2.297651> speed <67.014708> / animSpeed; 
+			turn torso to y-axis <-2.811935> speed <74.205441> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:24
+			turn footbl to z-axis <11.367881> speed <764.260158> / animSpeed; 
+			turn footbr to z-axis <-18.072141> speed <570.501966> / animSpeed; 
+			turn footfl to z-axis <32.398500> speed <214.315046> / animSpeed; 
+			turn footfr to z-axis <3.320697> speed <93.538088> / animSpeed; 
+			turn footml to z-axis <-3.358226> speed <270.598723> / animSpeed; 
+			turn footmr to z-axis <-9.044158> speed <423.952595> / animSpeed; 
+			turn hingebl to z-axis <-9.345018> speed <70.025183> / animSpeed; 
+			turn hingebl to y-axis <48.138982> speed <224.416179> / animSpeed; 
+			turn hingebr to z-axis <-18.583570> speed <451.499058> / animSpeed; 
+			turn hingebr to y-axis <-10.881955> speed <222.697020> / animSpeed; 
+			turn hingefl to z-axis <1.823874> speed <414.984918> / animSpeed; 
+			turn hingefl to y-axis <-14.080052> speed <210.583919> / animSpeed; 
+			turn hingefr to z-axis <2.322202> speed <656.947714> / animSpeed; 
+			turn hingefr to y-axis <47.615892> speed <206.914570> / animSpeed; 
+			turn hingeml to z-axis <-2.373920> speed <473.225424> / animSpeed; 
+			turn hingeml to y-axis <-11.930456> speed <210.713137> / animSpeed; 
+			turn hingemr to z-axis <12.230521> speed <159.260759> / animSpeed; 
+			turn hingemr to y-axis <-12.738048> speed <225.569670> / animSpeed; 
+			turn legbl to z-axis <-1.034689> speed <857.305338> / animSpeed; 
+			turn legbr to z-axis <36.070799> speed <123.351167> / animSpeed; 
+			turn legfl to z-axis <-34.754714> speed <198.736273> / animSpeed; 
+			turn legfr to z-axis <-4.656795> speed <538.727218> / animSpeed; 
+			turn legml to z-axis <5.412914> speed <187.503497> / animSpeed; 
+			turn legmr to z-axis <-3.480827> speed <276.396836> / animSpeed; 
+			move pelvis to y-axis [0.226143] speed [13.053883] / animSpeed; 
+			turn pelvis to x-axis <1.393056> speed <27.137839> / animSpeed; 
+			turn torso to y-axis <-1.381455> speed <42.914391> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:27
+			turn footbl to z-axis <36.222447> speed <745.636973> / animSpeed; 
+			turn footbr to z-axis <-2.644272> speed <462.836072> / animSpeed; 
+			turn footfl to z-axis <13.050717> speed <580.433514> / animSpeed; 
+			turn footfr to z-axis <-13.703203> speed <510.717003> / animSpeed; 
+			turn footml to z-axis <-2.456855> speed <27.041114> / animSpeed; 
+			turn footmr to z-axis <-11.161086> speed <63.507825> / animSpeed; 
+			turn hingebl to z-axis <-2.468265> speed <206.302594> / animSpeed; 
+			turn hingebl to y-axis <22.430123> speed <771.265781> / animSpeed; 
+			turn hingebr to z-axis <-4.263833> speed <429.592112> / animSpeed; 
+			turn hingebr to y-axis <-36.690304> speed <774.250488> / animSpeed; 
+			turn hingefl to z-axis <-12.970418> speed <443.828759> / animSpeed; 
+			turn hingefl to y-axis <-38.711576> speed <738.945701> / animSpeed; 
+			turn hingefr to z-axis <-17.224335> speed <586.396103> / animSpeed; 
+			turn hingefr to y-axis <23.070781> speed <736.353337> / animSpeed; 
+			turn hingeml to z-axis <0.101458> speed <74.261360> / animSpeed; 
+			turn hingeml to y-axis <9.500663> speed <642.933587> / animSpeed; 
+			turn hingemr to z-axis <15.786869> speed <106.690441> / animSpeed; 
+			turn hingemr to y-axis <10.080960> speed <684.570215> / animSpeed; 
+			turn legbl to z-axis <-33.496037> speed <973.840426> / animSpeed; 
+			turn legbr to z-axis <6.479580> speed <887.736587> / animSpeed; 
+			turn legfl to z-axis <-0.519222> speed <1027.064767> / animSpeed; 
+			turn legfr to z-axis <30.977005> speed <1069.013987> / animSpeed; 
+			turn legml to z-axis <2.465279> speed <88.429048> / animSpeed; 
+			turn legmr to z-axis <-4.512766> speed <30.958168> / animSpeed; 
+			turn pelvis to x-axis <0.630015> speed <22.891236> / animSpeed; 
+			turn torso to y-axis <1.966990> speed <100.453352> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:30
+			turn footbl to z-axis <24.709709> speed <345.382142> / animSpeed; 
+			turn footbr to z-axis <11.119278> speed <412.906502> / animSpeed; 
+			turn footfl to z-axis <-17.529585> speed <917.409042> / animSpeed; 
+			turn footfr to z-axis <-34.354800> speed <619.547907> / animSpeed; 
+			turn footml to z-axis <-0.169250> speed <68.628158> / animSpeed; 
+			turn footmr to z-axis <5.664858> speed <504.778305> / animSpeed; 
+			turn hingebl to z-axis <17.875464> speed <610.311861> / animSpeed; 
+			turn hingebl to y-axis <3.439904> speed <569.706574> / animSpeed; 
+			turn hingebr to z-axis <17.551300> speed <654.453986> / animSpeed; 
+			turn hingebr to y-axis <-55.608706> speed <567.552042> / animSpeed; 
+			turn hingefl to z-axis <-24.286023> speed <339.468154> / animSpeed; 
+			turn hingefl to y-axis <-56.775937> speed <541.930841> / animSpeed; 
+			turn hingefr to z-axis <-6.961573> speed <307.882853> / animSpeed; 
+			turn hingefr to y-axis <5.002029> speed <542.062544> / animSpeed; 
+			turn hingeml to z-axis <-12.661742> speed <382.895993> / animSpeed; 
+			turn hingeml to y-axis <21.271579> speed <353.127474> / animSpeed; 
+			turn hingemr to z-axis <11.731105> speed <121.672913> / animSpeed; 
+			turn hingemr to y-axis <22.640644> speed <376.790545> / animSpeed; 
+			turn legbl to z-axis <-42.108656> speed <258.378577> / animSpeed; 
+			turn legbr to z-axis <-30.795749> speed <1118.259851> / animSpeed; 
+			turn legfl to z-axis <39.543408> speed <1201.878881> / animSpeed; 
+			turn legfr to z-axis <41.855355> speed <326.350503> / animSpeed; 
+			turn legml to z-axis <13.739874> speed <338.237856> / animSpeed; 
+			turn legmr to z-axis <-16.289103> speed <353.290105> / animSpeed; 
+			move pelvis to y-axis [-0.392797] speed [18.374221] / animSpeed; 
+			turn pelvis to x-axis <2.775242> speed <64.356790> / animSpeed; 
+			turn torso to y-axis <2.584533> speed <18.526284> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 20; // tune restore speed here, higher values are slower restore speeds
+	
+	turn footbl to z-axis <0> speed <2547.533860> / animSpeed;
+	turn footbr to z-axis <0> speed <3790.173954> / animSpeed;
+	turn footfl to z-axis <0> speed <3058.030481> / animSpeed;
+	turn footfr to z-axis <0> speed <2354.509641> / animSpeed;
+	turn footml to z-axis <0> speed <1228.236665> / animSpeed;
+	turn footmr to z-axis <0> speed <1682.594349> / animSpeed;
+	turn hingebl to z-axis <0> speed <2589.615467> / animSpeed;
+	turn hingebr to z-axis <0> speed <2189.734038> / animSpeed;
+	turn hingefl to z-axis <0> speed <3629.456059> / animSpeed;
+	turn hingefr to z-axis <0> speed <2189.825797> / animSpeed;
+	turn hingeml to z-axis <0> speed <1577.418123> / animSpeed;
+	turn hingemr to z-axis <0> speed <1411.376331> / animSpeed;
+	turn legbl to z-axis <0> speed <5241.931814> / animSpeed;
+	turn legbr to z-axis <0> speed <5248.042870> / animSpeed;
+	turn legfl to z-axis <0> speed <5387.158455> / animSpeed;
+	turn legfr to z-axis <0> speed <4335.338949> / animSpeed;
+	turn legml to z-axis <0> speed <1355.446198> / animSpeed;
+	turn legmr to z-axis <0> speed <1473.876644> / animSpeed;
+	
+	turn pelvis to x-axis <0> speed <272.738961> / animSpeed;
+	move pelvis to y-axis [0] speed [224.751833] / animSpeed;
+	turn torso to y-axis <0> speed <334.844528> / animSpeed;
+	
+	turn nanol to x-axis <0> speed <1484.981139> / animSpeed;
+	turn nanor to x-axis <0> speed <1484.981267> / animSpeed;
+	
+	turn hingefl to y-axis <-60> speed <2000.0> / animSpeed;
+	turn hingefr to y-axis <60> speed <2000.0> / animSpeed;
+	turn hingeml to y-axis <0> speed <2000.0> / animSpeed;
+	turn hingemr to y-axis <0> speed <2000.0> / animSpeed;
+	turn hingebl to y-axis <60> speed <2000.0> / animSpeed;
+	turn hingebr to y-axis <-60> speed <2000.0> / animSpeed;
+}
+
+// REMEMBER TO animspeed = 3 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 2) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<1) animSpeed=1;
+		if (animspeed>6) animSpeed = 6;
+		sleep 98;
+	}
+}
+
+#define BASEPIECE torso
+#define HITSPEED <65.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+BuildAnim(){
+	set-signal-mask SIGNAL_BUILD;
+	while (TRUE){
+		turn nanol to x-axis rand(-3000, 3000) speed <30>;
+		sleep (400);
+		turn nanor to x-axis rand(-3000, 3000) speed <30>;
+		sleep (400);
+	}
+}
+
+
+Create()
+{
+	hide aimx1;
+	hide aimy1;
+	hide flare1;
+	hide flare2;
+	nanonozzle = 0;
+	isMoving = FALSE;
+	building = 0;
+	moveSpeed = get MAX_SPEED;
+	currentSpeed = 100;
+	animSpeed = 4;
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIGNAL_BUILD;
+	building = 1;	
+	turn aimy1 to y-axis heading speed <250.0>;
+	turn aimx1 to x-axis 0-pitch speed <150.0>;
+	wait-for-turn aimy1 around y-axis;
+	set INBUILDSTANCE to 1;
+	show flare1;
+	show flare2;
+	start-script BuildAnim();
+}
+
+StopBuilding()
+{
+	hide flare1;
+	hide flare2;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;	
+	set INBUILDSTANCE to 0;
+	building = 0;	
+	
+	turn aimy1 to y-axis <0.0> speed <250.0>;
+	turn aimx1 to x-axis <0.0> speed <50.0>;
+	turn nanol to x-axis <0> speed <1484.981139> / animSpeed;
+	turn nanor to x-axis <0> speed <1484.981267> / animSpeed;
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
+	start-script UnitSpeed();
+	start-script walk();
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	isMoving = FALSE;
+	call-script StopWalking();
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = nanonozzle + flare1;
+	nanonozzle = !nanonozzle;
+}
+
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode hingebl type BITMAPONLY | NOHEATCLOUD;
+		explode legbl type BITMAPONLY | NOHEATCLOUD;
+		explode footbr type BITMAPONLY | NOHEATCLOUD;
+		explode torso type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode hingebl type FALL | NOHEATCLOUD;
+		explode legbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode footbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode hingebl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode footbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torso type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nanol type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode hingebl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode footbr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode footfr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanol type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

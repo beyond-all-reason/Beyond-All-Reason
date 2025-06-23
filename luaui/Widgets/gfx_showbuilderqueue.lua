@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Show Builder Queue",
@@ -12,6 +14,7 @@ function widget:GetInfo()
 end
 
 local shapeOpacity = 0.26
+local maxUnitShapes = 4096
 local maxQueueDepth = 2000	-- not literal depth
 
 --Changelog
@@ -25,10 +28,10 @@ local maxQueueDepth = 2000	-- not literal depth
 -- v8 Floris - GL4 unit shape rendering
 
 local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local spec,fullview,_ = Spring.GetSpectatingState()
+local _,fullview,_ = Spring.GetSpectatingState()
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -40,15 +43,14 @@ local sec = 0
 local lastUpdate = 0
 local reinit
 
+local numUnitShapes = 0
 local unitshapes = {}
 local removedUnitshapes = {}
-local numunitshapes = 0
-local maxunitshapes = 4096
 local command = {}
 local builderCommands = {}
-local createdUnit = {}
+local createdUnitLocDefID = {}
 local createdUnitID = {}
-local newBuilderCmd = {}
+local newBuildCmdUnits = {}
 
 local isBuilder = {}
 local unitWaterline = {}
@@ -65,9 +67,9 @@ local function addUnitShape(shapeID, unitDefID, px, py, pz, rotationY, teamID)
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
 	else
-		if numunitshapes < maxunitshapes and not removedUnitshapes[shapeID] then
+		if numUnitShapes < maxUnitShapes and not removedUnitshapes[shapeID] then
 			unitshapes[shapeID] = WG.DrawUnitShapeGL4(unitDefID, px, py-0.01, pz, rotationY, shapeOpacity, teamID)
-			numunitshapes = numunitshapes + 1
+			numUnitShapes = numUnitShapes + 1
 			return unitshapes[shapeID]
 		else
 			return nil
@@ -80,7 +82,7 @@ local function removeUnitShape(shapeID)
 		widget:Shutdown()
 	elseif shapeID and unitshapes[shapeID] then
 		WG.StopDrawUnitShapeGL4(unitshapes[shapeID])
-		numunitshapes = numunitshapes - 1
+		numUnitShapes = numUnitShapes - 1
 		unitshapes[shapeID] = nil
 		removedUnitshapes[shapeID] = true	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 	end
@@ -102,11 +104,10 @@ local function clearbuilderCommands(unitID)
 	end
 end
 
-
 local function checkBuilder(unitID)
-	local queueDepth = spGetCommandQueue(unitID, 0)
+	local queueDepth = spGetUnitCommandCount(unitID)
 	if queueDepth and queueDepth > 0 then
-		local queue = spGetCommandQueue(unitID, math.min(queueDepth, maxQueueDepth))
+		local queue = spGetUnitCommands(unitID, math.min(queueDepth, maxQueueDepth))
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
@@ -116,7 +117,7 @@ local function checkBuilder(unitID)
 					params = cmd.params
 				}
 				local id = math.abs(cmd.id)..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
-				if createdUnit[id] == nil then
+				if createdUnitLocDefID[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
 						local unitDefID = math.abs(cmd.id)
@@ -127,8 +128,10 @@ local function checkBuilder(unitID)
 						end
 						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
 					end
-					command[id][unitID] = true
-					command[id].builders = command[id].builders + 1
+					if not command[id][unitID] then
+						command[id][unitID] = true
+						command[id].builders = command[id].builders + 1
+					end
 					if builderCommands[unitID] == nil then
 						builderCommands[unitID] = {}
 					end
@@ -136,6 +139,8 @@ local function checkBuilder(unitID)
 				end
 			end
 		end
+	else
+		clearbuilderCommands(unitID)
 	end
 end
 
@@ -148,11 +153,11 @@ function widget:Initialize()
 
 	unitshapes = {}
 	removedUnitshapes = {}
-	numunitshapes = 0
+	numUnitShapes = 0
 	builderCommands = {}
-	createdUnit = {}
+	createdUnitLocDefID = {}
 	createdUnitID = {}
-	newBuilderCmd = {}
+	newBuildCmdUnits = {}
 	command = {}
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
@@ -173,9 +178,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
-	local prevMyAllyTeamID = myAllyTeamID
-	spec, fullview,_ = Spring.GetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	_, fullview,_ = Spring.GetSpectatingState()
 	if playerID == myPlayerID and prevFullview ~= fullview then
 		for _, unitID in pairs(builderCommands) do
 			clearbuilderCommands(unitID)
@@ -188,12 +191,14 @@ end
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if isBuilder[unitDefID] then
 		clearbuilderCommands(unitID)
-		newBuilderCmd[unitID] = os.clock() + 0.13
+		newBuildCmdUnits[unitID] = os.clock() + 0.13
 	end
 end
 
 
+
 local prevGuiHidden = Spring.IsGUIHidden()
+local checkCount = 1
 function widget:Update(dt)
 	sec = sec + dt
 	if reinit then
@@ -202,12 +207,21 @@ function widget:Update(dt)
 	elseif sec > lastUpdate + 0.12 then
 		lastUpdate = sec
 
+		-- sometimes build commands are dropped because the building cant be placed anymore and are skipped (due to terrain height changes)
+		-- there is no engine feedback/callin as far as I know of that can detect this, so we'd have to check up periodically on all builders with a buildqueue
+		checkCount = checkCount + 1
+		for unitID, _ in pairs(builderCommands) do
+			if (unitID+checkCount) % 30 == 1 and not newBuildCmdUnits[unitID] then
+				checkBuilder(unitID)
+			end
+		end
+
 		-- process newly given commands (not done in widget:UnitCommand() because with huge build queue it eats memory and can crash lua)
 		local clock = os.clock()
-		for unitID, cmdClock in pairs(newBuilderCmd) do
+		for unitID, cmdClock in pairs(newBuildCmdUnits) do
 			if clock > cmdClock then
 				checkBuilder(unitID)
-				newBuilderCmd[unitID] = nil
+				newBuildCmdUnits[unitID] = nil
 			end
 		end
 		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
@@ -226,38 +240,39 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,_,z = spGetUnitPosition(unitID)
 	if x then
-		local id = unitDefID..'_'..floor(x)..'_'..floor(z)
+		local udefLocID = unitDefID..'_'..floor(x)..'_'..floor(z)
 
-		if unitshapes[id] then
-			removeUnitShape(id)
+		if unitshapes[udefLocID] then
+			removeUnitShape(udefLocID)
 		end
-		command[id] = nil
+		command[udefLocID] = nil
 		-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
-		createdUnit[id] = unitID
-		createdUnitID[unitID] = id
+		createdUnitLocDefID[udefLocID] = unitID
+		createdUnitID[unitID] = udefLocID
 	end
 end
 
-local function clearCommandUnit(unitID)
+local function clearUnit(unitID)
 	if createdUnitID[unitID] then
-		if unitshapes[createdUnitID[unitID]] then
-			removeUnitShape(createdUnitID[unitID])
+		local udefLocID = createdUnitID[unitID]
+		if unitshapes[udefLocID] then
+			removeUnitShape(udefLocID)
 		end
-		removedUnitshapes[createdUnitID[unitID]] = true		-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
-		command[createdUnitID[unitID]] = nil
-		createdUnit[createdUnitID[unitID]] = nil
+		removedUnitshapes[udefLocID] = true		-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
+		command[udefLocID] = nil
+		createdUnitLocDefID[udefLocID] = nil
 		createdUnitID[unitID] = nil
 	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	clearCommandUnit(unitID)
+	clearUnit(unitID)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if isBuilder[unitDefID] then
-		newBuilderCmd[unitID] = nil
+		newBuildCmdUnits[unitID] = nil
 		clearbuilderCommands(unitID)
 	end
-	clearCommandUnit(unitID)
+	clearUnit(unitID)
 end

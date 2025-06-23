@@ -9,13 +9,13 @@ return {
 		buildpic = "LEGSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 -18.0 1.0",
 		collisionvolumescales = "50.0 76.0 50.0",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energystorage = 50,
+		-- negative energyupkeep means it's conditional so when unit is off won't produce
 		energyupkeep = -20,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 5,
@@ -40,11 +40,11 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "legion/economy",
+			subfolder = "Legion/economy",
 		},
 		featuredefs = {
 			dead = {

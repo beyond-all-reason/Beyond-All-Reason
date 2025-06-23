@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGWIN.DDS",
 		buildtime = 17000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "68 178 68",
 		collisionvolumetype = "CylY",
@@ -38,10 +37,11 @@ return {
 			unitgroup = 'energy',
 			energymultiplier = 10, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
 			model_author = "Yzch",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

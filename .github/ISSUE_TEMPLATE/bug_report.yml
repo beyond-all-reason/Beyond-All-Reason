@@ -3,6 +3,18 @@ description: Raise a game-related bug report
 labels: ["Bug"]
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! This template will help you create a report we can use to understand the bug.
+        
+        - Volunteers maintain this repository, it may take a while for them to come back to you.
+        - Please make sure to include enough details and context.
+        - If you have multiple questions, suggestions, or bugs, please submit them in separate issues.
+        - We accept pull requests. If you know how to fix it - go ahead!
+        
+        Please provide the following details about the issue you encountered.
+
   - type: textarea
     id: description
     attributes:
@@ -38,3 +50,7 @@ body:
     attributes:
       label: Other
       description: Note any additional info here
+  - type: markdown
+    attributes:
+      value: _This bug report will be read by people who have not experienced the bug themselves - this report is all they have to investigate. The more precise your report, the easier it becomes for us to help you._
+

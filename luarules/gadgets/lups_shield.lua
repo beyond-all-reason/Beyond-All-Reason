@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "Lups Shield",
@@ -23,6 +25,7 @@ end
 local GAMESPEED = Game.gameSpeed
 local SHIELDARMORID = 4
 local SHIELDARMORIDALT = 0
+local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 
 -----------------------------------------------------------------
 -- Small vector math lib
@@ -57,7 +60,13 @@ end
 
 -- presumes normalized vectors
 local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
-	return math.acos(DotProduct(x1, y1, z1, x2, y2, z2))
+	-- Note: this function oftern returns nan, cause numerical instability causes the dot product to be greater than 1!
+	local rawDot = DotProduct(x1, y1, z1, x2, y2, z2)
+
+	-- protection from numerical instability
+	local dot = math.clamp(rawDot, -1, 1)
+
+	return math.acos(dot)
 end
 
 -- presumes normalized vectors
@@ -169,6 +178,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				dx, dy, dz = hitX - x, hitY - y, hitZ - z
 			end
+			-- We are reasonably fast, about 1us up to here
 			SendToUnsynced("AddShieldHitDataHandler", gameFrame, shieldCarrierUnitID, dmg * dmgMod, dx, dy, dz, onlyMove)
 		end
 
@@ -221,6 +231,19 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
+	local unitIsActive = Spring.GetUnitIsActive(unitID)
+	if unitIsActive ~= unitData.isActive then
+		forceUpdate = true
+		unitData.isActive = unitIsActive
+	end
+
+	local shieldEnabled = Spring.GetUnitRulesParam (unitID, SHIELDONRULESPARAMINDEX)
+	if shieldEnabled == 1 then
+		unitVisible = true
+	elseif shieldEnabled == 0 then
+		unitVisible = false
+	end
+
 	if unitVisible == unitData.unitVisible and not forceUpdate then
 		return
 	end
@@ -230,7 +253,7 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		local fxID = unitData.fxTable[i]
 		local fx = Lups.GetParticles(fxID)
 		if fx then
-			fx.visibleToMyAllyTeam = unitVisible
+			fx.visibleToMyAllyTeam = unitIsActive and unitVisible
 		end
 	end
 end
@@ -282,7 +305,7 @@ local function RemoveUnit(unitID)
 	end
 end
 
-local AOE_MAX = math.pi / 8.0
+local AOE_MAX = math.pi / 8.0 -- ~0.4
 
 local LOG10 = math.log(10)
 
@@ -295,33 +318,33 @@ local function CalcAoE(dmg, capacity)
 	return (aoe > 0 and aoe or 0)
 end
 
-local AOE_SAME_SPOT = AOE_MAX / 3
+local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians. 
+
+local AOE_SAME_SPOT_COS = math.cos(AOE_SAME_SPOT) -- about 0.99
 
 local HIT_POINT_FOLLOWS_PROJECTILE = false
 
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
-	local radius = unitData.radius
 
 	local found = false
 
 	for _, hitInfo in ipairs(hitData) do
 		if hitInfo then
 
-			-- Great Circle Distance in radians
-			local dist = AngleBetweenVectors(hitInfo.x, hitInfo.y, hitInfo.z, x, y, z)
-
+			local dist = hitInfo.x * x +  hitInfo.y * y + hitInfo.z *  z -- take dot product of normed vectors to get the cosine of their angle
 			-- AoE radius in radians
-			if dist <= AOE_SAME_SPOT then
+
+			if dist >= AOE_SAME_SPOT_COS then
 				found = true
 
-				if onlyMove then
+				if onlyMove then -- usually true when we are bouncing a projectile
 					if HIT_POINT_FOLLOWS_PROJECTILE then
 						hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
 					end
 					hitInfo.dmg = dmg
-				else
+				else -- this is not a bounced projectile, 
 					--this vector is very likely normalized :)
 					hitInfo.x, hitInfo.y, hitInfo.z = GetSLerpedPoint(x, y, z, hitInfo.x, hitInfo.y, hitInfo.z, dmg, hitInfo.dmg)
 					hitInfo.dmg = dmg + hitInfo.dmg
@@ -329,7 +352,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 
 				hitInfo.aoe = CalcAoE(hitInfo.dmg, unitData.capacity)
 
-				--break
+				break
 			end
 		end
 	end
@@ -398,6 +421,7 @@ local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz, onlyMove)
 		local norm = Norm(rdx, rdy, rdz)
 		if math.abs(norm - unitData.radius) <= unitData.radius * 0.05 then --only animate projectiles nearby the shield surface
 			rdx, rdy, rdz = rdx / norm, rdy / norm, rdz / norm
+			-- This seems reasonably fast up to here still
 			DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
 		end
 	end
@@ -406,7 +430,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	RemoveUnit(unitID)
 end
 

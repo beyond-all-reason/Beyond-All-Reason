@@ -1,14 +1,13 @@
-#define TA			// This is a TA script
+#include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
 
-piece  base, turret, flare, barrel;
+piece 		base, tracks, turret, barrel, flare;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, shotcount, lastpitch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM		1
+#define SIGNAL_MOVE		2
 
 
 #define BASEPIECE base
@@ -17,11 +16,35 @@ static-var  restore_delay, gun_1;
 #define UNITSIZE 2
 #define MAXTILT 100
 
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 Create()
 {
+	shotcount = 0;
+	lastpitch = 0;
 	hide flare;
-	gun_1 = 0;
 	restore_delay = 3000;
+	
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	
+	STOP_TILTBANK;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -36,6 +59,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn barrel to x-axis <0> speed <60>;
 }
 SetStunned(State)
 {
@@ -52,60 +76,51 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <200.000000>;
-	turn barrel to x-axis -1*pitch speed <200.000000>;
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+	
+	lastpitch = pitch;
+
+	turn turret to y-axis heading speed <180.0>;
+	turn barrel to x-axis <0.0> - pitch speed <30.0>;
 	
 	wait-for-turn turret around y-axis;
-		
-	wait-for-turn barrel around x-axis;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 FirePrimary()
 {
-	gun_1 = !gun_1;
-	if( gun_1 == 0 )
-	{
-		emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-1.000000] speed [400.000000];
-		wait-for-move barrel along z-axis;
-		move barrel to z-axis [0.000000] speed [1.000000];
-	}
-	if( gun_1 == 1 )
-	{
-		emit-sfx 1024 + 0 from flare;
-		move barrel to z-axis [-1.000000] speed [400.000000];
-		wait-for-move barrel along z-axis;
-		move barrel to z-axis [0.000000] speed [1.000000];
-	}
-	return (0);
+	++shotcount;
+	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
+	
+	move barrel to z-axis [-1.5] now;
+	turn barrel to x-axis <-5> - lastpitch now;
+	
+	move barrel to z-axis [0.0] speed [6];
+	sleep 33;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = barrel;
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare;
-		return (0);
-	}
+	piecenum = flare;
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = turret;
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)
@@ -116,7 +131,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY;
 		explode turret type BITMAPONLY;
 		explode barrel type FIRE | SMOKE | FALL;
-		return(0);
+		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -124,7 +139,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY;
 		explode turret type FIRE | SMOKE | FALL;
 		explode barrel type FIRE | SMOKE | FALL;
-		return(0);
+		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -132,10 +147,11 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL;
 		explode turret type SMOKE | FALL;
 		explode barrel type FIRE | SMOKE | FALL;
-		return(0);
+		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL;
+		return(corpsetype);
 }

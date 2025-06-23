@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "Anti Stacking Hax",
@@ -40,7 +42,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isAffectedUnit[unitDefID] then
 		for i = 1, #affectedUnits do
 			if affectedUnits[i][1] and affectedUnits[i][1] == unitID then

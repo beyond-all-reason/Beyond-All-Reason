@@ -4,6 +4,7 @@ local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
 local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
 local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
+local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
 
 local utilities = {
 	LoadTGA = tga.LoadTGA,
@@ -16,6 +17,10 @@ local utilities = {
 	GetAllyTeamList = team.GetAllyTeamList,
 	GetPlayerCount = team.GetPlayerCount,
 	Gametype = team.Gametype,
+	GetScavAllyTeamID = team.GetScavAllyTeamID,
+	GetRaptorTeamID = team.GetRaptorTeamID,
+	GetScavTeamID = team.GetScavTeamID,
+	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
 
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam('isDevMode')
@@ -28,13 +33,14 @@ local utilities = {
 	end,
 
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
+
+	Color = colorFunctions,
 }
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
 local debugFuncs = {
 	ParamsEcho = debugUtilities.ParamsEcho,
-	TableEcho = debugUtilities.TableEcho,
 	TraceEcho = debugUtilities.TraceEcho,
 	TraceFullEcho = debugUtilities.TraceFullEcho,
 }

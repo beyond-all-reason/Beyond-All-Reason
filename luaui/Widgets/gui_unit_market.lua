@@ -2,6 +2,8 @@ if not Spring.GetModOptions().unit_market then
     return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo() return {
     name    = "Unit Market",
     desc    = "Allows players to trade units with each other. Allies only. Fair price!",
@@ -47,7 +49,6 @@ function widget:GetInfo() return {
 -- develop UI so that you can browse units that are for sale with a buy button maybe?
 
 --------------------------------
-VFS.Include("luarules/configs/customcmds.h.lua")
 
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState  = Spring.GetSpectatingState
@@ -59,34 +60,26 @@ local spAreTeamsAllied      = Spring.AreTeamsAllied
 local spGetAllyTeamList     = Spring.GetAllyTeamList
 local spGetTeamList         = Spring.GetTeamList
 local spGetUnitPosition     = Spring.GetUnitPosition
-local spSendLuaUIMsg        = Spring.SendLuaUIMsg
 local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
 local spValidUnitID         = Spring.ValidUnitID
 local spGetCameraState      = Spring.GetCameraState
 local spGetGameSeconds      = Spring.GetGameSeconds
 local spEcho                = Spring.Echo
-local spLog                 = Spring.Log
 local spIsUnitInView        = Spring.IsUnitInView
 local spGetPlayerList       = Spring.GetPlayerList
 local spGetAIInfo           = Spring.GetAIInfo
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spTraceScreenRay      = Spring.TraceScreenRay
 local spGetUnitsInCylinder  = Spring.GetUnitsInCylinder
 local spGetModKeyState      = Spring.GetModKeyState
 local spGetMouseState       = Spring.GetMouseState
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
-local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spGetGameRulesParam   = Spring.GetGameRulesParam
 local spMarkerAddPoint      = Spring.MarkerAddPoint
-local spGetTeamColor		= Spring.GetTeamColor
 local spGetTeamResources    = Spring.GetTeamResources
 local spGetGameFrame        = Spring.GetGameFrame
 local spGetUnitHealth       = Spring.GetUnitHealth
 
 local myTeamID              = Spring.GetMyTeamID()
-local myAllyTeamID          = Spring.GetMyAllyTeamID()
-local gaiaTeamID            = Spring.GetGaiaTeamID()
-local myPlayerID            = Spring.GetMyPlayerID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -95,14 +88,7 @@ local glPushMatrix = gl.PushMatrix
 local glBillboard = gl.Billboard
 local glTranslate = gl.Translate
 local glColor = gl.Color
-local glBeginText = gl.BeginText
-local glText = gl.Text
-local glEndText = gl.EndText
-local glVertex = gl.Vertex
 local glPopMatrix = gl.PopMatrix
-local glTRIANGLE_FAN = GL.TRIANGLE_FAN
-local glDrawGroundCircle = gl.DrawGroundCircle
-local glBeginEnd = gl.BeginEnd
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
 local glCallList = gl.CallList
@@ -112,18 +98,10 @@ local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 
 local unitMarket = Spring.GetModOptions().unit_market
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local math_sqrt = math.sqrt
 local math_floor = math.floor
-local math_round = math.round
-local math_ceil = math.ceil
-local math_sin = math.sin
-local math_cos = math.cos
-local math_pi = math.pi
 local math_max = math.max
-local math_min = math.min
 local math_isInRect = math.isInRect
 
 --
@@ -135,7 +113,6 @@ local notEnoughForUnit = nil
 local unitsForSale = {} -- Array to store units offered for sale {UnitID => metalCost}
 local T2consForSale = {} -- Array of t2 cons that are currently for sale
 local t2consFormatted = {} -- Array of t2 cons defs that are on sale
-local loneTeamPlayer = false
 local ignoreTeam = {} -- Ignore teams that do not have human allies
 local triedToManullyBuyUnitID = nil
 local triedToBuyTime = 0
@@ -150,23 +127,15 @@ local buyWithoutHoldingAlt = true -- flip to true to buy with just a double-clic
 -- non-customizable yet or never
 local see_sales  = true  -- Set to false to never see console trade messages
 local spec_sale_offers = false -- Whether spectators see sale offers
-local buy_request_cooldown = 2 -- 2 seconds for each team
 -- ^ you have NO guarantee that the seller will see it though, the way it works seller gets UI Window showing that someone wants some unit to be set for sale
 -- they are only shown ONE window per team, so you can't really abuse it, and they CAN ban you for sending too many requests
 
 -- UI
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 4.5
-local fontfileOutlineStrength = 9
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local uiScale = (0.7 + (vsx * vsy / 6500000))
 
-local fontSize = fontfileSize * 0.4
+local fontSize = 18
 
-local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiPadding, uiScale
+local UiElement, UiUnit, UiButton, uiScale
 
 local uiElementRect = {0,0,0,0}
 local buyButtons = {}
@@ -179,7 +148,6 @@ local dot_count = 0
 local T2ConDef = {}
 local unitDefInfo = {}
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local folder = "LuaUI/Images/groupicons/"
 local groups, unitGroup
 --
 local drawLists = {}
@@ -188,7 +156,6 @@ local t2conDock, t2conDockShown = nil, false
 local buyRequestDock, buyRequestDockShown = nil, false
 local DrawIcon, DrawHoverIcon
 local buyPriceBoldColor = '\255\230\230\230'
-local normalColor = '\255\255\255\255'
 local DrawUnitTradeInfo = function() end
 local t2conShopText = Spring.I18N('ui.unitMarket.t2conShop')
 local shopTitle = Spring.I18N('ui.unitMarket.shopTitle')
@@ -213,7 +180,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.customParams.unitgroup == "buildert2" and not unitDef.isFactory and unitDef.isBuilder then
         T2ConDef[unitDefID] = true
     end
-    
+
     unitDefInfo[unitDefID] = {}
     if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
         unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
@@ -323,7 +290,6 @@ local function InitFindSales()
     for _, unitID in ipairs(Spring.GetAllUnits()) do
         if spValidUnitID(unitID) then
             local teamID = spGetUnitTeam(unitID)
-            local _, _, _, isAITeam = spGetTeamInfo(teamID)
             local price = spGetUnitRulesParam(unitID, "unitPrice")
             if not ignoreTeam[teamID] and (fullview or spAreTeamsAllied(teamID, myTeamID)) and (price > 0) then
                 addUnitToSale(unitID, price, spGetUnitDefID(unitID))
@@ -421,29 +387,6 @@ function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
         spMarkerAddPoint(x, y, z, "", true)
     end
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
-end
-
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = 0.9, 0.9, 0.9
-	if teamID ~= nil then
-	    nameColourR, nameColourG, nameColourB = spGetTeamColor(teamID)
-    end
-	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	local R255 = math_floor(nameColourR * 255)
-	local G255 = math_floor(nameColourG * 255)
-	local B255 = math_floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
 local function OfferToBuy(unitID)
@@ -677,16 +620,6 @@ local function DrawT2TradeDock()
     t2conDockShown = true
 end
 
-local function DoIhaveAllies()
-    local alliedTeams = spGetTeamList(myAllyTeamID)
-    for i = 1, #alliedTeams do
-        if myTeamID ~= alliedTeams[i] then
-            return true
-        end
-    end
-    return false
-end
-
 local function updatedSeePrices(value)
     if value then
         DrawUnitTradeInfo = function()
@@ -730,7 +663,7 @@ local function updatedSeePrices(value)
                 end
             end
         end
-    end 
+    end
     if seePrices ~= value then
         for k,_ in pairs(drawLists) do
             glDeleteList(drawLists[k])
@@ -746,7 +679,6 @@ local function getIgnoreList()
         ignoreTeam[teamID] = false
 	end
     -- if you are debugging, comment this section
-    loneTeamPlayer = not DoIhaveAllies()
     for _, allyTeamID in ipairs(spGetAllyTeamList()) do
         local allyTeamTeams = spGetTeamList(allyTeamID)
         local hasHumanPlayers = false
@@ -801,7 +733,7 @@ function widget:Initialize()
 		return buyWithoutHoldingAlt
 	end
     updatedSeePrices(seePrices)
-    
+
     if WG['buildmenu'] and WG['buildmenu'].getGroups then
         groups, unitGroup = WG['buildmenu'].getGroups()
     end
@@ -820,11 +752,8 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged(playerID)
-    myPlayerID = Spring.GetMyPlayerID()
 	myTeamID = Spring.GetMyTeamID()
-    myAllyTeamID = Spring.GetMyAllyTeamID()
     isSpectating, fullview = spGetSpectatingState()
-    loneTeamPlayer = not DoIhaveAllies()
     InitFindSales()
 end
 
@@ -834,7 +763,7 @@ function widget:TextCommand(command)
     end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	ClearUnitData(unitID)
 end
 
@@ -988,18 +917,13 @@ end
 function widget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
+
+	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
+
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiButton = WG.FlowUI.Draw.Button
-	RectRound = WG.FlowUI.Draw.RectRound
-	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math_floor(elementPadding * 4.5)
-    
+
     -- I'll dynamically resize it before showing it...
 	uiElementRect = {
 		(vsx * 0.7), vsy * 0.959 - 80,
@@ -1019,6 +943,7 @@ function widget:DrawWorld()
     DrawUnitTradeInfo()
 	glDepthTest(true)
 end
+
 function widget:DrawScreen()
     if notEnoughForUnit then
         local text = Spring.I18N('ui.unitMarket.notEnoughMetal')
@@ -1056,6 +981,7 @@ function widget:DrawScreen()
         end
     end
 end
+
 function widget:Shutdown()
     spSendLuaRulesMsg("stopSaving")
 	for k,_ in pairs(drawLists) do
@@ -1065,6 +991,7 @@ function widget:Shutdown()
     glDeleteList(buyRequestDock)
 	WG['unit_market'] = nil
 end
+
 local sec, sec2, sec3, updatePeriod = 0, 0, 0, 0.25
 local prevCam = {spGetCameraDirection()}
 function widget:Update(dt)

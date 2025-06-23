@@ -2,7 +2,7 @@
 local definitions = {
   ["blob_trail_blue"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -141,7 +141,7 @@ local definitions = {
 
  ["blob_trail_red"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -280,7 +280,7 @@ local definitions = {
 
 ["blob_trail_green"] = {
     usedefaultexplosions = false,
-    
+
     splashes = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -422,10 +422,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -568,7 +568,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 3,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -623,10 +623,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -769,7 +769,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 3,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -840,11 +840,11 @@ local definitions = {
   ["acid-area"] = {
     usedefaultexplosions = false,
     acid_groundpuddle = {
-      air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
+      air                = true,
       ground             = true,
-      underwater         = 1,
+      underwater         = true,
       water              = true,
       properties = {
         --colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
@@ -863,9 +863,9 @@ local definitions = {
       },
     },
     acidrandomsmoke = {
-            air                = true,
             class              = [[CExpGenSpawner]],
             count              = 10,
+            air                = true,
             ground             = true,
             water              = true,
             underwater         = true,
@@ -873,7 +873,6 @@ local definitions = {
                 delay              = [[i30]],
                 explosiongenerator = [[custom:acid-area-smoke]],
                 pos                = [[-128 r256, 0 r20, -128 r256]],
-                --alwaysvisible      = true,
             },
         },
   },
@@ -1053,7 +1052,7 @@ local definitions = {
   --     },
   --   },
   -- },
-  
+
   ["fire-area-75-old"] = {
      usedefaultexplosions = false,
      acid_area = {
@@ -1249,7 +1248,7 @@ local definitions = {
    --          },
    --      },
    --},
-  
+
 -- ["acid-area-192"] = {
 --     usedefaultexplosions = false,
 --     acid_area = {
@@ -1379,7 +1378,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -1439,10 +1438,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -1614,7 +1613,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 2,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.94,
@@ -1669,10 +1668,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 15,
@@ -1770,7 +1769,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -1802,10 +1801,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 10,
@@ -1902,7 +1901,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -1934,10 +1933,10 @@ local definitions = {
     usedefaultexplosions = false,
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         heat               = 10,
@@ -2034,7 +2033,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
     underwater         = true,
       properties = {
         airdrag            = 0.95,
@@ -2341,21 +2340,153 @@ local definitions = {
       },
     },
   },
+
+  -- CEGs for revision of unit_area_timed_damage -------------------------------
+
+  ["acid-area-smoke-repeat"] = {
+    usedefaultexplosions = false,
+    acid_clouddust = {
+      class      = [[CSimpleParticleSystem]],
+      count      = 1,
+      air        = true,
+      ground     = true,
+      properties = {
+        airdrag             = 0.92,
+        colormap            = [[0.05 0.10 0.05 0.03  0.33 0.40 0.33 0.2  0.3 0.34 0.3 0.1  0.22 0.22 0.22 0.07   0 0 0 0.01]],
+        directional         = false,
+        emitrot             = 6,
+        emitrotspread       = 4,
+        emitvector          = [[-0.1 r0.2, 1, -0.1 r0.2]],
+        gravity             = [[0, 0.055, 0]],
+        numparticles        = [[0.18 r1]],
+        particlelife        = 30,
+        particlelifespread  = 90,
+        particlesize        = 64,
+        particlesizespread  = 64,
+        particlespeed       = 2.3,
+        particlespeedspread = 2.3,
+        rotParams           = [[-10 r20, -5 r10, -120 r60]],
+        pos                 = [[0, 48, 0]],
+        sizegrowth          = 1,
+        sizemod             = 0.985,
+        texture             = [[cloudmist]],
+        drawOrder           = 1,
+      },
+    },
+  },
+
+  ["acid-area-repeat"] = {
+    usedefaultexplosions = false,
+    acid_groundpuddle = {
+      class      = [[CBitmapMuzzleFlame]],
+      count      = 1,
+      air        = true,
+      ground     = true,
+      underwater = true,
+      water      = true,
+      properties = {
+        colormap      = [[0.045 0.045 0.045 0.06   0.14 0.08 0.043 0.067   0.12 0.12 0.04 0.08    0.11 0.15 0.05 0.10   0.11 0.18 0.06 0.12    0.10 0.18 0.06 0.12    0.10 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.042 0.09 0.028 0.06   0 0 0 0.01]],
+        dir           = [[dir]],
+        frontoffset   = 0,
+        fronttexture  = [[bloodcentersplatshwhite]],
+        length        = 0,
+        sidetexture   = [[none]],
+        size          = [[230 r60]],
+        sizegrowth    = 0.10,
+        ttl           = 64,
+        pos           = [[0, 8, 0]],
+        rotParams     = [[0, 0, -180 r360]],
+        alwaysvisible = true,
+        drawOrder     = 1,
+      },
+    },
+    acid_randomsmoke = {
+      class      = [[CExpGenSpawner]],
+      count      = 1,
+      air        = true,
+      ground     = true,
+      water      = true,
+      underwater = true,
+      properties = {
+        delay              = [[r18]],
+        explosiongenerator = [[custom:acid-area-smoke-repeat]],
+        pos                = [[-128 r256, 0 r20, -128 r256]],
+      },
+    },
+  },
 }
 
-definitions['acid-area-192'] = table.copy(definitions['acid-area'])
-definitions['acid-area-192'].acid_groundpuddle.properties.size = [[185 r50]]
-definitions['acid-area-192'].acidrandomsmoke.count = 4
-definitions['acid-area-192'].acidrandomsmoke.properties.pos = [[-96 r192, 0 r20, -96 r192]]
+local areaSizesUnitTimedDamage = { 37.5, 46, 54, 63, 75, 88, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
+local areaSizesUnitDefinitions = { 75, 150, 192 } -- from raptor defs
 
-definitions['acid-area-150'] = table.copy(definitions['acid-area'])
-definitions['acid-area-150'].acid_groundpuddle.properties.size = [[145 r40]]
-definitions['acid-area-150'].acidrandomsmoke.count = 3
-definitions['acid-area-150'].acidrandomsmoke.properties.pos = [[-75 r150, 0 r20, -75 r150]]
+local debugEffects = false
+local debugCircle = {
+  class      = [[CBitmapMuzzleFlame]],
+  count      = 1,
+  air        = true,
+  ground     = true,
+  underwater = true,
+  water      = true,
+  properties = {
+    colormap     = [[0 0 0.1 0.05   0 0 0.1 0.01   0 0 0 0]],
+    dir          = [[0, 1, 0]],
+    drawOrder    = 2,
+    frontoffset  = 0,
+    fronttexture = [[blastwave]],
+    length       = 0,
+    pos          = [[0, 0, 0]],
+    rotParams    = [[0, 0, 0]],
+    sidetexture  = [[none]],
+    size         = 75,
+    sizegrowth   = [[0]],
+    ttl          = 30,
+  },
+}
 
-definitions['acid-area-75'] = table.copy(definitions['acid-area'])
-definitions['acid-area-75'].acid_groundpuddle.properties.size = [[72 r32]]
-definitions['acid-area-75'].acidrandomsmoke.count = 2
-definitions['acid-area-75'].acidrandomsmoke.properties.pos = [[-37 r75, 0 r20, -38 r75]]
+-- apparently math.round doesnt exist here yet
+if not math.round then
+	function math.round(num, idp)
+		return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
+	end
+end
+local function count(radius)
+  return math.round(2 + (radius - 75) / 84)
+end
+
+local function size(radius)
+  return string.format([[%.0f r%.0f]], radius * 0.9, radius * 0.2 + 8)
+end
+
+local function pos(radius, ypos)
+  local xz = string.format([[%.0f r%.0f]], radius * -0.4, radius * 0.8)
+  return xz .. ", " .. (ypos or [[0]]) .. ", " .. xz
+end
+
+local areaSizePresets = {}
+for _, array in pairs({areaSizesUnitTimedDamage, areaSizesUnitDefinitions}) do
+  for _, radius in ipairs(array) do
+    local key = tostring(radius)
+    if not areaSizePresets[key] then
+      areaSizePresets[key] = true
+      areaSizePresets[#areaSizePresets+1] = radius
+    end
+  end
+end
+
+for ii = 1, #areaSizePresets do
+  local radius = areaSizePresets[ii]
+  local expgen = table.copy(definitions['acid-area-repeat'])
+  expgen.acid_groundpuddle.properties.size = size(radius)
+  expgen.acid_randomsmoke.count = count(radius)
+  expgen.acid_randomsmoke.properties.pos = pos(radius, [[r20]])
+  if debugEffects then
+    expgen.debugcircle = table.copy(debugCircle)
+    expgen.debugcircle.properties.size = radius
+  end
+  local name = 'acid-area-' .. math.floor(radius) .. '-repeat'
+  definitions[name] = expgen
+end
+
+definitions['acid-area-repeat'] = nil
 
 return definitions

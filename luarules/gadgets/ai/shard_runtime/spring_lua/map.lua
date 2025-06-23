@@ -60,6 +60,150 @@ function map:CanBuildHere(unittype,position) -- returns boolean
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
 end
 
+function map:TestMoveOrder(UnitDefID, p) -- returns boolean
+	return Spring.TestMoveOrder(UnitDefID, p.x, p.z, p.y )
+end
+
+
+function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
+
+	radius = radius or 8
+	if not moveClass then
+		--Spring.Echo('RequestPath receive a nil moveClass',moveClass)
+		return
+	end
+	if not POS1 or not POS2 then
+		--Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
+		return
+	end
+	local metapath = Spring.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+	if not metapath then
+		--Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+	if not waypoints then
+		--Spring.Echo(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	if #waypoints == 0 then
+		--Spring.Echo(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end	
+	return waypoints, pathStartIdx
+
+end
+
+function map:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not moveID or not start_x or not start_y or not start_z or not end_x or not end_y or not end_z then
+		return
+	end
+	radius = radius or 8
+	return Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+end
+
+
+
+
+
+function map:TestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius,uname)
+	local pathObject = self:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not pathObject then return end
+	radius = radius or 64
+	local nextPositionX,nextPositionY,nextPositionZ = self:NextPath(pathObject,end_x, end_y, end_z,radius)
+	if not nextPositionX then return end
+	if nextPositionX and nextPositionY and nextPositionZ then
+		nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+		local x = end_x - nextPositionX
+		local y = end_y - nextPositionY
+		local z = end_z - nextPositionZ
+		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+		--Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'$: '..uname)
+		--Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+		if dist <= radius * 1.1 then
+			return dist,nextPositionX,nextPositionY,nextPositionZ
+		end
+	end
+	--[[local tx = end_x - start_x
+	local tz = end_z - start_z
+	local tDist = math.sqrt( (tx*tx) + (tz*tz) )
+	tDist = tDist - 64
+	local reversPathObject = self:GetPathObject(moveID,  end_x, end_y, end_z,start_x, start_y, start_z,tDist)
+	local nextPositionX,nextPositionY,nextPositionZ = self:NextPath(reversPathObject,start_x, start_y, start_z)
+	if nextPositionX and nextPositionY and nextPositionZ then
+		nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+		local x = end_x - nextPositionX
+		local y = end_y - nextPositionY
+		local z = end_z - nextPositionZ
+		
+		local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+		Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'revers: '..uname)
+		Spring.Echo(dist,'revers to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+		if dist <= radius * 1.1 then
+			return dist,nextPositionX,nextPositionY,nextPositionZ
+		end
+	end
+	local wp = self:GetPathWaypoints(reversPathObject)
+
+	Spring.Echo('revpathway:',wp)]]
+
+
+
+	--[[local blocking = Spring.GetUnitsInCylinder(end_x, end_z, 10)
+	if blocking then
+		print('blocking units:',#blocking)
+		for i=1, 4 do
+			nextPositionX,nextPositionY,nextPositionZ = self:NextPath(pathObject,end_x+math.random(-10,10), end_y, end_z+math.random(-10,10),radius)
+			if not nextPositionX then return end
+			if nextPositionX and nextPositionY and nextPositionZ then
+				nextPositionY = self:GetGroundHeight(nextPositionX,nextPositionZ)
+				local x = end_x - nextPositionX
+				local y = end_y - nextPositionY
+				local z = end_z - nextPositionZ
+				local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+				Spring.MarkerAddPoint(nextPositionX, nextPositionY, nextPositionZ,'random: '..uname)
+				Spring.Echo(dist,'next to target position:',start_x, start_y, start_z, end_x, end_y, end_z,nextPositionX,nextPositionY,nextPositionZ)
+				if dist <= radius * 1.1 then
+					return dist,nextPositionX,nextPositionY,nextPositionZ
+				end
+			end
+		end
+	end]]
+	local wp = self:GetPathWaypoints(pathObject)
+	wp = wp[#wp]
+	wp[2] = Spring.GetGroundHeight(wp[1],wp[3])
+	local x = end_x - wp[1]
+	local y = end_y - wp[2]
+	local z = end_z - wp[3]
+	local dist = math.sqrt( (x*x) + (y*y)+ (z*z) )
+	--Spring.MarkerAddPoint(wp[1],wp[2],wp[3],'& '..uname)
+	--Spring.Echo(dist,'last in complete path:',start_x, start_y, start_z, end_x, end_y, end_z,wp[1],wp[2],wp[3])
+	return dist,wp[1],wp[2],wp[3]
+end
+
+function map:NextPath(pathObject,posx,posy,posz,radius)
+	if not pathObject or not posx or not posy or not posz then
+		return
+	end
+	radius = radius or 64
+	local nextPositionX,nextPositionY,nextPositionZ = pathObject:Next(posx,posy,posz,radius)
+	return nextPositionX,nextPositionY,nextPositionZ
+end
+
+function map:PathTest(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not moveID or not start_x or not start_y or not start_z or not end_x or not end_y or not end_z then
+		return
+	end
+	radius = radius or 8
+	if Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius) then
+		return true
+	end
+end
+
+function map:GetPathWaypoints(pathObject)
+	if not pathObject then return end
+	return pathObject:GetPathWayPoints()
+end
 function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end
@@ -141,6 +285,12 @@ end
 
 function map:MapName() -- returns the name of this map
 	return Game.mapName
+end
+
+function map:GetWind()
+	local _,_,_,strenght =Spring.GetWind()
+	return strenght 
+
 end
 
 function map:AverageWind() -- returns (minwind+maxwind)/2

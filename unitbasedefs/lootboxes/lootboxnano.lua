@@ -1,8 +1,3 @@
--- Workaround for engine bug https://github.com/beyond-all-reason/spring/issues/45
-local math_random = function(x, y)
-	return x + math.floor( y * math.random() )
-end
-
 local tiers = {
 	T1 = 1,
 	T2 = 2,
@@ -23,7 +18,7 @@ local createCustomBuildList = function(tier)
 	local buildList = {}
 
 	for i = 1, buildListSize do
-		local buildOption = buildOptions[tier][math_random(1, #buildOptions[tier])]
+		local buildOption = buildOptions[tier][math.random(1, #buildOptions[tier])]
 		buildList[i] = buildOption
 	end
 
@@ -77,7 +72,7 @@ local function getRandomModel(tier)
 		},
 	}
 
-	local randomModel = math_random(1, 2)
+	local randomModel = math.random(1, 2)
 
 	return models[tier][randomModel].objectName, models[tier][randomModel].script
 end
@@ -165,7 +160,6 @@ local createNanoUnitDef = function(tier)
 		cantbetransported = false,
 		capturable = true,
 		canhover = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = parameters.collisionVolumeScales,
 		collisionvolumetype = "CylY",
@@ -233,6 +227,7 @@ local createNanoUnitDef = function(tier)
 			subfolder = "armbuildings/landutil",
 			i18nfromunit = parameters.i18nFromUnit,
 			unitgroup = 'builder',
+			paratrooper = true,
 		},
 	}
 end

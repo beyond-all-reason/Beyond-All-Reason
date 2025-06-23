@@ -1,11 +1,13 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "State Prefs V2",
-		desc = "Sets pre-defined units states. CTRL-click on a unit's state commands to define states for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
-		author = "Errrrrrr, quantum + Doo",
+		desc = "Sets pre-defined units states. Hold bindable action 'stateprefs_record' while clicking a unit's state commands to define the preferred state for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
+		author = "Errrrrrr, quantum + Doo, sneyed",
 		date = "April 21, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1000,
@@ -13,8 +15,14 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+--[[------------------------------------------------------------------------------
+
+Usage:
+Bind stateprefs_record to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
+
+e.g. bind  Ctrl  stateprefs_record
+
+--]]------------------------------------------------------------------------------
 local unitArray = {}
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -30,6 +38,7 @@ if chunk then
 end
 
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
+local isActionPressed = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -71,13 +80,21 @@ function widget:Initialize()
 	if Spring.IsReplay() then
 		widget:GameOver()
 	end
+
+	widgetHandler:AddAction("stateprefs_record", onActionPress, nil, "p")
+	widgetHandler:AddAction("stateprefs_record", onActionRelease, nil, "r")
+end
+
+function onActionPress()
+  isActionPressed = true
+end
+
+function onActionRelease()
+  isActionPressed = false
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	if not ctrl then
-		return false
-	end
+	if not isActionPressed then return false end
 
 	local index = Spring.GetCmdDescIndex(cmdID)
 	local command = Spring.GetActiveCmdDesc(index)
@@ -121,6 +138,10 @@ function widget:GameOver()
 	Spring.Echo("Recorded States Prefs")
 	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
 	widgetHandler:RemoveWidget()
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("stateprefs_record")
 end
 
 --------------------------------------------------------------------------------

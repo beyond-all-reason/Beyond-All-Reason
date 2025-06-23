@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 	name	= "Spy move/reclaim defaults",
@@ -13,6 +15,7 @@ end
 local spies  = {
 	[UnitDefNames.armspy.id] = true,
 	[UnitDefNames.corspy.id] = true,
+	[UnitDefNames.legaspy.id] = true,
 }
 
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted

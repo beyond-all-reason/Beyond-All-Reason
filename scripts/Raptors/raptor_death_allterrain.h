@@ -8,7 +8,7 @@
 static-var death_speed;
 DeathAnim() {// For N:\animations\raptor_allterrain_death_V1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 
-	signal SIG_WALK;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 	//turn aimy1 to y-axis <0> speed <120>;
 	//turn aimx1 to x-axis <0> speed <120>;

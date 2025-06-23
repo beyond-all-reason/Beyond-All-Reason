@@ -1,0 +1,333 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
+ turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
+
+static-var  gun_3, restore_delay, isOpen;
+static-var Stunned;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+
+#include "../opencloseanim.h"
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+#define CATT1_PIECE_X turretb
+#define CATT1_PIECE_Y body2
+
+#define CATT1_MAX_VELOCITY <3.0>
+#define CATT1_ACCELERATION <0.16>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <1.2>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_PITCH_SPEED <85>
+
+#include "../constant_acceleration_turret_turning_1.h"
+
+
+#define CATT2_PIECE_X turretg
+#define CATT2_PIECE_Y body1
+
+#define CATT2_MAX_VELOCITY <6.0>
+#define CATT2_ACCELERATION <0.4>
+#define CATT2_JERK <1.5>
+#define CATT2_PRECISION <1.2>
+#define CATT2_RESTORE_SPEED <1.0>
+#define CATT2_PITCH_SPEED <150>
+
+#include "../constant_acceleration_turret_turning_2.h"
+
+Open()
+{
+	set ARMORED to 0;
+
+	move body1 to y-axis [0] speed [90];
+	move body2 to y-axis [0] speed [90];
+	wait-for-move body1 along y-axis;
+
+	move body2 to y-axis [0] speed [90];
+	wait-for-move body2 along y-axis;
+
+	move borer to z-axis [0] speed [30];
+	move barrelr to z-axis [0] speed [20];
+
+	turn turretg to x-axis <0> speed <180>;
+	
+	move boreg to z-axis [0] speed [24];
+	move barrelg to z-axis [0] speed [10];
+
+		turn turretb to x-axis <0> speed <180>;
+
+		move boreb to z-axis [0] speed [14];
+		move barrelb to z-axis [0] speed [10];
+		wait-for-turn turretb around x-axis;
+		wait-for-move borer along y-axis;
+		wait-for-turn turretg around x-axis;
+
+	sleep 22;
+	isOpen = TRUE;
+}
+
+Close()
+{
+	isOpen = FALSE;
+	
+		turn turretb to x-axis <0> speed <180>;
+		turn turretg to x-axis <0> speed <180>;
+		turn turretr to y-axis <0> speed <180>;	
+		turn body1 to y-axis <0> speed <180>;	
+		turn body2 to y-axis <0> speed <180>;	
+		wait-for-turn turretb around x-axis;
+		wait-for-turn turretg around x-axis;
+		wait-for-turn turretr around x-axis;
+
+		turn turretb to x-axis <180> speed <180>;
+		
+		move boreb to z-axis [-9] speed [14];
+		move barrelb to z-axis [-10] speed [10];
+
+		turn turretg to x-axis <180> speed <180>;
+		
+		move boreg to z-axis [-12] speed [24];
+		move barrelg to z-axis [-4] speed [10];
+
+		move borer to z-axis [-15] speed [30];
+		move barrelr to z-axis [-10] speed [20];
+		wait-for-turn turretb around x-axis;
+		wait-for-move borer along y-axis;
+		wait-for-turn turretg around x-axis;
+
+		move body2 to y-axis [-7] speed [90];
+		wait-for-move body2 along y-axis;
+
+		move body1 to y-axis [-14] speed [90];
+		move body2 to y-axis [-24] speed [90];
+		wait-for-move body1 along y-axis;
+	
+	wait-for-turn body1 around x-axis;
+	wait-for-turn body2 around x-axis;
+	sleep 22;
+
+	set ARMORED to 1;
+	
+	start-script CATT1_Init();
+	start-script CATT2_Init();
+}
+
+
+Create()
+{
+	hide flareb;
+	hide flareg;
+	hide aimpoint;
+	hide flarer2;
+	hide flarer1;
+    hide flarer1;
+    hide flarer2;
+    hide flareb;
+    hide flareg;
+	gun_3 = 0;
+	isOpen = TRUE;
+	restore_delay = 2000;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script OpenCloseAnim(1);
+	start-script CATT1_Init();
+	start-script CATT2_Init();
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	start-script OpenCloseAnim(1);
+}
+
+Deactivate()
+{
+	signal SIGNAL_AIM1;
+	signal SIGNAL_AIM2;
+	signal SIGNAL_AIM3;
+	
+	start-script OpenCloseAnim(0);
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 4;
+}
+
+AimWeapon1(heading, pitch)
+{
+	if (!isOpen)
+	{
+		return (0);
+	}	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	
+	call-script CATT1_Aim(heading,pitch);
+
+	return (1);
+}
+
+
+AimWeapon2(heading, pitch)
+{
+	if (!isOpen)
+	{
+		return (0);
+	}	
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	
+	call-script CATT2_Aim(heading,pitch);
+	return (1);
+}
+
+AimWeapon3(heading, pitch)
+{
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	if (!isOpen)
+	{
+		return (0);
+	}	
+	turn turretr to y-axis heading speed <500.0>;
+	wait-for-turn turretr around y-axis;
+
+	return (1);
+}
+
+FireWeapon3()
+{
+	gun_3 = !gun_3;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = aimpoint;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = body1;
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = turretr;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flareb;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = flareg;
+}
+
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = flarer1 + gun_3;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode body1 type BITMAPONLY | NOHEATCLOUD;
+		explode turretg type BITMAPONLY | NOHEATCLOUD;
+		explode boreg type BITMAPONLY | NOHEATCLOUD;
+		explode barrelg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flareg type BITMAPONLY | NOHEATCLOUD;
+		explode neck type BITMAPONLY | NOHEATCLOUD;
+		explode turretr type BITMAPONLY | NOHEATCLOUD;
+		explode borer type BITMAPONLY | NOHEATCLOUD;
+		explode barrelr type BITMAPONLY | NOHEATCLOUD;
+		explode flarer1 type BITMAPONLY | NOHEATCLOUD;
+		explode flarer2 type BITMAPONLY | NOHEATCLOUD;
+		explode body2 type BITMAPONLY | NOHEATCLOUD;
+		explode turretb type BITMAPONLY | NOHEATCLOUD;
+		explode boreb type BITMAPONLY | NOHEATCLOUD;
+		explode barrelb type BITMAPONLY | NOHEATCLOUD;
+		explode flareb type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretg type FALL | NOHEATCLOUD;
+		explode boreg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flareg type FALL | NOHEATCLOUD;
+		explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode borer type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flarer1 type FALL | NOHEATCLOUD;
+		explode flarer2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode boreb type FALL | NOHEATCLOUD;
+		explode barrelb type FALL | NOHEATCLOUD;
+		explode flareb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode body1 type BITMAPONLY | NOHEATCLOUD;
+		explode turretg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode boreg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flareg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode neck type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turretr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode borer type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flarer1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flarer2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode body2 type BITMAPONLY | NOHEATCLOUD;
+		explode turretb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode boreb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flareb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode body1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode boreg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flareg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode borer type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrelr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flarer1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flarer2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode body2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode boreb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode barrelb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flareb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

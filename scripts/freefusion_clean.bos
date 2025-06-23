@@ -1,0 +1,87 @@
+#include "recoil_common_includes.h"
+
+piece  base, column1,column2,column3,column4,fusionsphere, emit;
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	spin fusionsphere around y-axis speed <80> accelerate <1>;
+	
+	while(TRUE){
+		move column1 to y-axis [13] speed [10];
+		move column2 to y-axis [13] speed [10];
+		move column3 to y-axis [13] speed [10];
+		move column4 to y-axis [13] speed [10];
+		wait-for-move column1 along y-axis;
+		
+		move column1 to y-axis [0] speed [10];
+		wait-for-move column1 along y-axis;
+		move column1 to y-axis [13] speed [10];
+		wait-for-move column1 along y-axis;
+		
+		move column2 to y-axis [0] speed [10];
+		wait-for-move column2 along y-axis;
+		move column2 to y-axis [13] speed [10];
+		wait-for-move column2 along y-axis;
+		
+		move column3 to y-axis [0] speed [10];
+		wait-for-move column3 along y-axis;
+		move column3 to y-axis [13] speed [10];
+		wait-for-move column3 along y-axis;
+		
+		move column4 to y-axis [0] speed [10];
+		wait-for-move column4 along y-axis;
+		move column4 to y-axis [13] speed [10];
+		wait-for-move column4 along y-axis;
+		
+	
+	}
+}
+
+
+Create()
+{
+	hide emit;
+	start-script Activate();
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column1 type BITMAPONLY | NOHEATCLOUD ;
+		explode column2 type BITMAPONLY | NOHEATCLOUD ;
+		explode column3 type BITMAPONLY | NOHEATCLOUD ;
+		explode column4 type BITMAPONLY | NOHEATCLOUD ;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column1 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column2 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column3 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column4 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		return (0);
+	}
+
+	corpsetype = 3;		
+	explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+	explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column1 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column2 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column3 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column4 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	return (0);
+}

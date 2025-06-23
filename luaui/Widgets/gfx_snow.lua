@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Snow",
@@ -272,6 +274,21 @@ local function getWindSpeed()
 	end
 end
 
+local function snowCmd(_, _, params)
+	if (params[1] and params[1] == '1') or (not params[1] and (snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false)) then
+		snowMaps[currentMapname] = true
+		enabled = true
+		Spring.Echo("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
+		init()
+	else
+		snowMaps[currentMapname] = false
+		enabled = false
+		Spring.Echo("Snow widget: snow disabled for this map.")
+		removeSnow()
+	end
+end
+
+
 function widget:Initialize()
 	widget:ViewResize()
 
@@ -334,6 +351,8 @@ function widget:Initialize()
 
 	getWindSpeed()
 	init()
+
+	widgetHandler:AddAction("snow", snowCmd, nil, 't')
 end
 
 --------------------------------------------------------------------------------
@@ -380,6 +399,7 @@ end
 
 function widget:Shutdown()
 	enabled = false
+	widgetHandler:RemoveAction("snow")
 end
 
 local pausedTime = 0
@@ -472,22 +492,6 @@ function widget:SetConfigData(data)
 			particleStep = data.particleStep
 			if particleStep < 1 then particleStep = 1 end
 			if particleStep > particleSteps then particleStep = particleSteps end
-		end
-	end
-end
-
-function widget:TextCommand(command)
-    if string.find(command, "snow", nil, true) == 1  and  string.len(command) == 4 then
-		if snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false then
-			snowMaps[currentMapname] = true
-			enabled = true
-			Spring.Echo("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
-			init()
-		else
-			snowMaps[currentMapname] = false
-			enabled = false
-			Spring.Echo("Snow widget: snow disabled for this map.")
-			removeSnow()
 		end
 	end
 end

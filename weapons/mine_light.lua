@@ -5,7 +5,6 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:genericunitexplosion-small-dirty",
-		impulseboost = 0,
 		impulsefactor = 0,
 		name = "LightMine",
 		range = 480,

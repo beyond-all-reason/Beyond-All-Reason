@@ -2,6 +2,8 @@
 -- but can run out of fuel when they dont traight fly to maxrange
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Missile smoke",
@@ -11,7 +13,7 @@ function gadget:GetInfo()
         date      = "October 2017",
 		license   = "GNU GPL, v2 or later",
         layer     = 0,
-        enabled   = true,
+        enabled   = false,
     }
 end
 
@@ -19,11 +21,9 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local totalTime = 0
 
 local GetProjectilePosition = Spring.GetProjectilePosition
 local GetProjectileDirection = Spring.GetProjectileDirection
-local random = math.random
 
 local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}

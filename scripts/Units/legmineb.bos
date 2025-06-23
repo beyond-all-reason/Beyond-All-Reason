@@ -1,28 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, door1, door2, flare, thrusta, thrustb ;
+piece  base, factorydeco, lthruster, rthruster, lwing, rwing, lpivot, rpivot, lthrusttrail, rthrusttrail, flare, mine1, mine2, mine3, mine4, mine5, mine6;
 
-static-var  Static_Var_1, bMoving, statechg_DesiredState, statechg_StateChanging;
-
-Go()
-{
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-Stop()
-{
-}
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
+static-var  isMoving, mineCounter;
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -32,75 +13,152 @@ InitState()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
 Create()
 {
-	hide thrustb;
-	hide thrusta;
-	hide flare;
-	Static_Var_1 = 0;
-	bMoving = FALSE;
-	call-script InitState();
+	hide lthrusttrail;
+	hide rthrusttrail;
+	hide lpivot;
+	hide rpivot;
+	
+	spin factorydeco around z-axis speed <120> accelerate 60;
+	turn rpivot to x-axis <6> now;
+	turn rpivot to y-axis <-5> now;
+	turn lpivot to x-axis <6> now;
+	turn lpivot to y-axis <5> now;
+	
+	mineCounter = 0;
+	isMoving = FALSE;
 }
 
 Activate()
 {
-	show thrustb;
-	show thrusta;
-	start-script RequestState(0);
+	show lthrusttrail;
+	show rthrusttrail;
+	turn lwing to z-axis <0> speed <60>;
+	turn rwing to z-axis <0> speed <60>;
+	
+	sleep 150;
+	
+	move base to y-axis [0] speed [2];
+	turn lthruster to x-axis <0> speed <30>;
+	turn rthruster to x-axis <0> speed <30>;
 }
 
 Deactivate()
 {
-	hide thrustb;
-	hide thrusta;
-	start-script RequestState(1);
-}
-
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
+	turn lthruster to x-axis <-90> speed <90>;
+	turn rthruster to x-axis <-90> speed <90>;
+	move base to y-axis [8] speed [21];
+	
+	sleep 150;
+	
+	hide lthrusttrail;
+	hide rthrusttrail;
+	turn lwing to z-axis <-120> speed <60>;
+	turn rwing to z-axis <120> speed <60>;
 }
 
 StartMoving()
 {
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
-QueryPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
+	return (0);
+}
+
+Shot1(zero) // Animate mines droping one by one
+{
+	++mineCounter;
+	if(mineCounter == 1)
+	{
+		move mine1 to z-axis [20] now;
+		hide mine1;
+	}
+	else if(mineCounter == 2)
+	{
+		move mine2 to z-axis [16.5] now;
+		hide mine2;
+	}
+	else if(mineCounter == 3)
+	{
+		move mine3 to z-axis [13] now;
+		hide mine3;
+	}
+	else if(mineCounter == 4)
+	{
+		move mine4 to z-axis [9.5] now;
+		hide mine4;
+	}
+	else if(mineCounter == 5)
+	{
+		move mine5 to z-axis [6] now;
+		hide mine5;
+	}
+	else if(mineCounter == 6)
+	{
+		move mine6 to z-axis [2.5] now;
+		hide mine6;
+		
+		mineCounter = 0;
+	}
+	return(1);
+}
+
+AimWeapon1(heading, pitch)
+{
+	return (1);
+}
+
+FireWeapon1()
+{
+	move flare to z-axis [20] speed [15];
+	start-script RebuildMines();
+	return (0);
+}
+
+RebuildMines()
+{
+	sleep 5000;
+	
+	// Animate mines reloading
+	move flare to z-axis [0] now;
+	
+	move mine1 to z-axis [0] speed [9.5];
+	show mine1;
+	sleep 400;
+	
+	move mine2 to z-axis [0] speed [9.5];
+	show mine2;
+	sleep 400;
+	
+	move mine3 to z-axis [0] speed [9.5];
+	show mine3;
+	sleep 400;
+	
+	move mine4 to z-axis [0] speed [9.5];
+	show mine4;
+	sleep 400;
+	
+	move mine5 to z-axis [0] speed [9.5];
+	show mine5;
+	sleep 400;
+	
+	move mine6 to z-axis [0] speed [9.5];
+	show mine6;
+	
 }
 
 SweetSpot(piecenum)
@@ -114,41 +172,41 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode mine2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mine1 type BITMAPONLY | NOHEATCLOUD;
+		explode mine3 type BITMAPONLY | NOHEATCLOUD;
+		explode rthrusttrail type BITMAPONLY | NOHEATCLOUD;
+		explode lthrusttrail type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type FALL | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta type FALL | NOHEATCLOUD;
-		explode thrustb type FALL | NOHEATCLOUD;
+		explode mine2 type FALL | NOHEATCLOUD;
+		explode mine1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mine3 type BITMAPONLY | NOHEATCLOUD;
+		explode rthrusttrail type FALL | NOHEATCLOUD;
+		explode lthrusttrail type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta type SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type SMOKE | FALL | NOHEATCLOUD;
+		explode mine3 type BITMAPONLY | NOHEATCLOUD;
+		explode mine2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mine1 type BITMAPONLY | NOHEATCLOUD;
+		explode rthrusttrail type SMOKE | FALL | NOHEATCLOUD;
+		explode lthrusttrail type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode mine2 type BITMAPONLY | NOHEATCLOUD;
+		explode mine1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode mine3 type BITMAPONLY | NOHEATCLOUD;
+		explode rthrusttrail type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lthrusttrail type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -755,9 +755,9 @@ local function ShieldedLRPC_Outpost14()
 			{ unitDefID = UnitDefNames.armgate_scav.id, xOffset = -232, zOffset = -9, direction = 2},
 			{ unitDefID = UnitDefNames.armbrtha_scav.id, xOffset = -104, zOffset = 103, direction = 3},
 			{ unitDefID = UnitDefNames.armbrtha_scav.id, xOffset = 104, zOffset = 103, direction = 1},
-			{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = 0, zOffset = -113, direction = 2},
-			{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = 112, zOffset = -1, direction = 2},
-			{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = -112, zOffset = -1, direction = 2},
+			--{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = 0, zOffset = -113, direction = 2},
+			--{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = 112, zOffset = -1, direction = 2},
+			--{ unitDefID = UnitDefNames.armsilo_scav.id, xOffset = -112, zOffset = -1, direction = 2},
 		},
 	}
 end
@@ -836,9 +836,9 @@ local function ShieldedLRPC_Outpost15()
 			{ unitDefID = UnitDefNames.corgate_scav.id, xOffset = -232, zOffset = -9, direction = 2},
 			{ unitDefID = UnitDefNames.corint_scav.id, xOffset = -112, zOffset = 111, direction = 3},
 			{ unitDefID = UnitDefNames.corint_scav.id, xOffset = 112, zOffset = 111, direction = 1},
-			{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = 112, zOffset = -1, direction = 3},
-			{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = -112, zOffset = -1, direction = 3},
-			{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = 0, zOffset = -113, direction = 3},
+			--{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = 112, zOffset = -1, direction = 3},
+			--{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = -112, zOffset = -1, direction = 3},
+			--{ unitDefID = UnitDefNames.corsilo_scav.id, xOffset = 0, zOffset = -113, direction = 3},
 		},
 	}
 end

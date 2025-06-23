@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "Only Target onlytargetcategory",
@@ -28,8 +30,6 @@ for udid, unitDef in pairs(UnitDefs) do
 				if not unitOnlyTargetsCategory[udid] then
 					unitOnlyTargetsCategory[udid] = category
 					if category == 'vtol' then
-						--Spring.Echo(UnitDefs[udid].name, 'has category', category, 'unitDontAttackGround')
-						--Spring.Debug.TableEcho(weapon.onlyTargets)
 						unitDontAttackGround[udid] = true
 					end
 				elseif unitOnlyTargetsCategory[udid] ~= category then	-- multiple different onlytargetcategory used: disregard
@@ -42,37 +42,19 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
---[[
 function gadget:Initialize()
-	Spring.Echo("unitCategories")
-	for udid, categories in pairs(unitCategories) do 
-		Spring.Echo(UnitDefs[udid].name)
-		Spring.Debug.TableEcho(categories)
-	end
-	
-	Spring.Echo("unitOnlyTargetsCategory")
-	for udid, onlycat in pairs(unitOnlyTargetsCategory) do 
-		Spring.Echo(UnitDefs[udid].name,"=", onlycat)
-	end
-	
-	Spring.Echo("unitDontAttackGround")
-	for udid, noground in pairs(unitDontAttackGround) do 
-			Spring.Echo(UnitDefs[udid].name,"=", noground)
-	end
-	
+	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
-]]-- 
--- debug output
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if cmdID == CMD.ATTACK
-	and cmdParams[2] == nil
+	-- accepts: CMD.ATTACK
+	if cmdParams[2] == nil
 	and unitOnlyTargetsCategory[unitDefID]
 	and type(cmdParams[1]) == 'number'
 	and not (unitCategories[Spring.GetUnitDefID(cmdParams[1])] and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
 		return false
 	else
-		if cmdID == CMD.ATTACK and cmdParams[2] and unitDontAttackGround[unitDefID] then
+		if cmdParams[2] and unitDontAttackGround[unitDefID] then
 			return false
 		else
 			return true

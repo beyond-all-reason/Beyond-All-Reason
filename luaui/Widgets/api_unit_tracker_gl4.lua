@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "API Unit Tracker DEVMODE GL4",
@@ -7,7 +9,8 @@ function widget:GetInfo()
       license   = "GNU GPL, v2 or later",
       layer     = -828888,
 	  handler   = true,
-      enabled   = true
+      enabled   = true,
+      depends   = {'gl4'}
    }
 end
 
@@ -18,6 +21,7 @@ local debuglevel = 0
 -- debuglevel 3 is super verbose mode
 
 local debugdrawvisible = false
+local L_DEPRECATED = LOG.DEPRECATED
 -- This widget's job is to provide a common interface for GL4 drawing widgets, that rely on having visible units present
 -- Widget draw classes:
 -- widgets that draw stuff for all visible units (trivial case)
@@ -72,9 +76,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 --- GL4 STUFF ---
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local texture = "luaui/images/solid.png"
 
 local function initGL4()
@@ -97,6 +108,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -247,7 +259,7 @@ local function visibleUnitsRemove(unitID, reason)
 		end
 		-- call all listeners
 		if Script.LuaUI('VisibleUnitRemoved') then
-			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 		end
 	else
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
@@ -354,9 +366,15 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	-- So, to prevent zero build progress from further turning into problematic things
 	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
 	-- So we are relying on UnitFinished to be called right after this one
-	-- Stash it for now
-	-- local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
-	-- if health == maxhealth and buildProgress == 0 then return end
+	-- Sensibly enough, this is not a problem for players, as they see the units only after their LOS status is checked, later in the same gameframe.
+	-- So spectators, and 'own team' suffers this hit only
+	local health,maxhealth, paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
+	if health == maxhealth and buildProgress == 0 then
+		if debuglevel >= 3 then
+			Spring.Echo("Skipping visibleUnitsAdd for CreateUnit'ed unit", UnitDefs[unitDefID].name, unitID, unitDefID, unitTeam, builderID, reason, silent)
+		end
+		return
+	end
 
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
@@ -369,13 +387,13 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID, reason)
 	if debuglevel >= 3 then
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
-		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason)
+		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
-	visibleUnitsRemove(unitID, reason or "destroyed")
-	alliedUnitsRemove(unitID, reason or "destroyed")
+	visibleUnitsRemove(unitID, reason or "UnitDestroyed")
+	alliedUnitsRemove(unitID, reason or "UnitDestroyed")
 end
 
 --function widget:CrashingAircraft(unitID, unitDefID, teamID)
@@ -389,7 +407,7 @@ end
 --end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
-	widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
+	widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
 	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then
 		widgetHandler:AddSpadsMessage("UnitFinished:"..tostring(factoryUnitDefIDs[unitDefID]))
@@ -397,7 +415,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should p
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, "UnitTaken")
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitTaken")
 	-- not needed, as the unit will call enemyenteredlos, but what if we are spec?
 	if not fullview then
 		-- todo, look at this real closely if its even needed!
@@ -406,7 +424,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is onl
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam) --2.  this is only called when my team captures a unit
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, "UnitGiven") -- to ensure that team changes will trigger from this!
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitGiven") -- to ensure that team changes will trigger from this!
 	widget:UnitCreated(unitID, unitDefID, newTeam, nil, "UnitGiven")
 end
 
@@ -442,7 +460,7 @@ end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if not fullview then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitLeftLos")
+		widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitLeftLos")
 	end
 end
 
@@ -488,7 +506,7 @@ function widget:GameFrame()
 		end
 
 		if drawdebugvisible then
-			locateInvalidUnits(unitTrackerVBO)
+			InstanceVBOTable.locateInvalidUnits(unitTrackerVBO)
 		end
 
 		local cntalliedunits = 0
@@ -555,7 +573,7 @@ local function initializeAllUnits()
 	end
 
 	if debugdrawvisible then
-		clearInstanceTable(unitTrackerVBO)
+		InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	end
 
 	local allunits = Spring.GetAllUnits()
@@ -578,7 +596,7 @@ function widget:TextCommand(command)
 		if param and param == 'draw' then
 			Spring.Echo("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
 			if debugdrawvisible then
-				clearInstanceTable(unitTrackerVBO)
+				InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 				debugdrawvisible = false
 			else
 				debugdrawvisible = true
@@ -611,7 +629,7 @@ function widget:TextCommand(command)
 					elseif #data == 0 then
 						Spring.Echo("nil")
 					else
-						Spring.Debug.TableEcho(data)
+						Spring.Echo(data)
 					end
 				else
 					Spring.Echo(data)
@@ -636,7 +654,7 @@ function widget:TextCommand(command)
 					elseif #data == 0 then
 						Spring.Echo("nil")
 					else
-						Spring.Debug.TableEcho(data)
+						Spring.Echo(data)
 					end
 				else
 					Spring.Echo(data)
@@ -719,13 +737,13 @@ function widget:GameStart()
 
 		local client=socket.tcp()
 		local res, err = client:connect("server4.beyondallreason.info", 8200)
-		if not res and not res=="timeout" then
+		if not res and err ~= "timeout" then
 			--Spring.Echo("Failure",res,err)
 		else
 			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
 			client:send(message)
 		end
-		if client ~= nil then client:close() end
+		client:close()
 	end
 	--local succes, res = pcall(LobbyInfo)
 end
@@ -758,6 +776,50 @@ function widget:Initialize()
 	initializeAllUnits()
 	widgetHandler:RegisterGlobal('GadgetCrashingAircraft1', GadgetCrashingAircraft)
 end
+
+
+local iHaveDesynced = false
+-- Example console line:
+-- [t=00:01:41.862230][f=0011049] Sync error for UnnamedPlayer in frame 11044 (got 5537e3ca, correct is cc130165)
+local syncerrorpattern = "Sync error for ([%w%[%]_]+) in frame (%d+) %(got (%x+), correct is (%x+)%)"
+
+function widget:AddConsoleLine(lines, priority)
+	if priority and priority == L_DEPRECATED then return end
+	--Spring.Echo(lines)
+	if iHaveDesynced then return end
+    local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)
+    if username and frameNumber and gotChecksum and correctChecksum  then
+        local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+        if myPlayerName == username then
+            -- Yes, we have desynced, time to send a LuaUIMsg to notify the server
+            -- desyncee, gameID, frame, gameversion, engine version, map, chobby version?
+            local jsondict = {
+                eventtype = "syncerror",
+                username = username, -- desyncee
+                lobbyName = tostring(Spring.GetMenuName and Spring.GetMenuName()), -- this returns rapid://byar-chobby:test, which is completely useless
+                gameVersion = tostring(Game.gameVersion), -- this better not be the rapid tag
+                engineVersion = tostring(Engine.versionFull), -- full complete engine version string
+                mapName = tostring(Game.mapName), -- full map name
+                gameID = tostring(Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")), -- gameID parameter, not the same as server_match_id, we will match that in teiserver
+                frame = frameNumber, -- the frame where it happened.
+                gotChecksum = gotChecksum,
+                correctChecksum = correctChecksum,
+            }
+			--Spring.Echo(jsondict)
+
+			local complex_match_event = string.format("complex-match-event:%s", string.base64Encode(Json.encode(jsondict)))
+
+            -- We will be forwarding this as a complex event:
+            -- sayPrivate  complex-match-event <Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>
+            -- !sendLobby SAYPRIVATE AutohostMonitor 'complex-match-event <[teh]Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>'
+            Spring.SendLuaUIMsg(complex_match_event)
+
+			-- then remove ourselves, no point to keep running after the first desync is detected
+			iHaveDesynced = true
+        end
+    end
+end
+
 
 function widget:Shutdown()
 	-- ok this is quite sensitive, in order to prevent taking down the rest of the world with it

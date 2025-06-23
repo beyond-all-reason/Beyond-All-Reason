@@ -7,10 +7,6 @@ return {
 		buildpic = "LEGDTR.DDS",
 		buildtime = 4420,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "32 22 32",
-		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
 		decoyfor = "legdrag",
@@ -30,6 +26,7 @@ return {
 		radardistancejam = 8,
 		script = "Units/LEGDTR.cob",
 		seismicsignature = 0,
+		usepiececollisionvolumes = 1,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 440,
 		stealth = true,
@@ -39,7 +36,7 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legdtr_aoplane.dds",
+			buildinggrounddecaltype = "decals/legdrag_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
@@ -126,7 +123,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				impulsefactor = 2.0,
-				impulseboost = 2.0,
 				name = "Area Control Riot Cannon",
 				noselfdamage = true,
 				range = 400,
@@ -151,6 +147,9 @@ return {
 					subs = 90,
 					vtol = 35,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

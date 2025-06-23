@@ -10,6 +10,12 @@ return {
 	FriendlyCommanderSelfD = {
 		delay = 1,
 	},
+	SpectatorCommanderDied = {
+		delay = 1,
+	},
+	SpectatorCommanderSelfD = {
+		delay = 1,
+	},
 	ComHeavyDamage = {
 		delay = 12,
 	},
@@ -167,64 +173,62 @@ return {
 	-- Lava
 	LavaRising = {
 		delay = 25,
-		unlisted = true,
 	},
 	LavaDropping = {
 		delay = 25,
-		unlisted = true,
 	},
 
 	-- Tutorial / tips
-	t_welcome = {
+	Welcome = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_buildmex = {
+	BuildMetal = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_buildenergy = {
+	BuildEnergy = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_makefactory = {
+	BuildFactory = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factoryair = {
+	FactoryAir = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factoryairsea = {
+	FactoryAirplanes = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factorybots = {
+	FactoryBots = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factoryhovercraft = {
+	FactoryHovercraft = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factoryvehicles = {
+	FactoryVehicles = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_factoryships = {
+	FactoryShips = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_readyfortech2 = {
+	ReadyForTech2 = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_duplicatefactory = {
+	DuplicateFactory = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
-	t_paralyzer = {
+	Paralyzer = {
 		delay = 9999999,
-		unlisted = true,
+		tutorial = true,
 	},
 }

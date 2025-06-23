@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "CameraFlip",
@@ -27,18 +29,20 @@ local function cameraFlipHandler()
 
 	-- camera is spring cam
 	-- CardinalLock messes up rotation
-	local previousLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
-
-	if previousLock == 1 then
-		Spring.SetConfigInt("CamSpringLockCardinalDirections", 0)
+	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
+	local lockCorrection = 0
+	if cardinalLock == 1 then
+		-- This value must be larger than the cardinal lock width of 0.2
+		lockCorrection = 1/3
 	end
 
-	camState.ry = camState.ry + math.pi
+	if camState.ry > 0 then
+		camState.ry = camState.ry - math.pi - lockCorrection
+	else
+		camState.ry = camState.ry + math.pi + lockCorrection
+	end
+
 	Spring.SetCameraState(camState, 0)
-
-	if previousLock == 1 then
-		Spring.SetConfigInt("CamSpringLockCardinalDirections", previousLock)
-	end
 
 	return true
 end

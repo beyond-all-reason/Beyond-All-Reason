@@ -2,14 +2,13 @@ piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lf
 
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
-static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,aaheading, aapitch,isDying;
+static-var gun_1,maxSpeed, animFramesPerKeyframe, isMoving, animSpeed,aaheading, aapitch,isDying;
 
 // For N:\animations\Raptors\raptor_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
@@ -19,7 +18,7 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,aaheading, 
 #define RUHAND rforearmu  
 #define LLHAND lforearml  //define these as the left and right head thingies
 #define RLHAND rforearml  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 
@@ -52,31 +51,31 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,aaheading, 
 #include "raptor_create_move_swim.h"
 
 
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
 
-QueryPrimary(piecenum)
-	{	piecenum=head; }
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
 	
 		
-AimFromSecondary(piecenum)
-	{	piecenum=head;	}
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=head;	}
 
-QuerySecondary(piecenum)
-	{	piecenum=head; }
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=head; }
 
 
-AimPrimary(heading,pitch)
+AimWeapon1(heading,pitch)
 	{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;	
 	
 	if (heading > <60> ) heading = <60>;
 	if (heading < <-60> ) heading = <-60>;
 	if (pitch > <60> ) pitch = <60>;
 	if (pitch < <-60> ) pitch = <-60>;
-	turn aimy1 to y-axis heading speed <250.000000>;
-	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed <250.0>;
+	turn aimy1 to x-axis <0.0> - pitch speed <200.0>;
 		
 	//wait-for-turn head around y-axis;
 	start-script RestoreAfterDelay();
@@ -84,7 +83,7 @@ AimPrimary(heading,pitch)
 	return(TRUE);
 	}
 	
-AimSecondary(heading,pitch)
+AimWeapon2(heading,pitch)
 	{
 	aapitch = pitch;
 	aaheading = heading;

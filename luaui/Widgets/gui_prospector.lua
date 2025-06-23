@@ -5,6 +5,8 @@
 -- On metal maps, there is no spot value at all, so this is required to see how much mexes will produce
 -----------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Prospector",
@@ -30,16 +32,10 @@ local GetGroundInfo = Spring.GetGroundInfo
 local GetGameFrame = Spring.GetGameFrame
 local GetMapDrawMode = Spring.GetMapDrawMode
 
-local glLineWidth = gl.LineWidth
 local glColor = gl.Color
 local glRect = gl.Rect
 local glPolygonMode = gl.PolygonMode
-local glDrawGroundCircle = gl.DrawGroundCircle
-local glUnitShape = gl.UnitShape
 
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
 
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL
@@ -65,7 +61,6 @@ local lastUnitDefID
 
 local TEXT_CORRECT_Y = 1.25
 
-local myTeamID
 local metalMap = false
 local METAL_MAP_SQUARE_SIZE = 16
 local MEX_RADIUS = Game.extractorRadius
@@ -193,7 +188,6 @@ end
 
 function widget:Initialize()
 	SetupMexDefInfos()
-	myTeamID = Spring.GetMyTeamID()
 	once = true
 	metalMap = WG["resource_spot_finder"].isMetalMap
 end
@@ -248,6 +242,5 @@ function widget:DrawScreen()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 end

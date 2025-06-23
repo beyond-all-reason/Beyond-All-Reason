@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "Block ventless geo",
@@ -25,6 +27,10 @@ local function isNearGeo(x, z)
 	end
 
 	return false
+end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 end
 
 local CMD_INSERT = CMD.INSERT

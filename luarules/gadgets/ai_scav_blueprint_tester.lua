@@ -4,14 +4,12 @@ local blueprintspath = "luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/"
 local enabled = Spring.Utilities.IsDevMode() -- only enable in test environment
 local queue = {}
 local mapsizeX = Game.mapSizeX
-local mapsizeZ = Game.mapSizeZ
-local lastposX = 0
-local lastposZ = 0
 local blueprintpositions = {}
 
 local radius
-local high_radius = 0
 local line = 1
+
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
@@ -97,7 +95,6 @@ if gadgetHandler:IsSyncedCode() then
 				if UnitDefNames[nonscavname] then
 					local nonscavDefID = UnitDefNames[nonscavname].id
 					Spring.CreateUnit(nonscavDefID, basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, direction, 0)
-					Spring.SpawnCEG("scav-spawnexplo", basePosX+xOffset, Spring.GetGroundHeight(basePosX+xOffset, basePosZ+zOffset), basePosZ+zOffset, 0,0,0)
 				end
             end
             table.remove(queue, 1)

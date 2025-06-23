@@ -12,7 +12,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOTSHIP VTOL NOTHOVER EMPABLE",
 		collide = true,
 		collisionvolumeoffsets = "-1 5 2",
 		collisionvolumescales = "48 48 136",
@@ -49,7 +48,7 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "scavengers/air",
+			subfolder = "Scavengers/air",
 			techlevel = 3,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
@@ -128,16 +127,19 @@ return {
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
+				metalpershot = 40,
+				energypershot = 1000,
 				range = 1200,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",--"xplomed2",
 				soundhitwet = "",--"splssml",
 				soundstart = "",--"cannhvy1",
+				stockpile = true,
+				stockpiletime = 6,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
@@ -149,7 +151,7 @@ return {
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200,
 					--spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 10, 				--Spawnrate roughly in seconds.
+					spawnrate = 6, 				--Spawnrate roughly in seconds.
 					maxunits = 10,				--Will spawn units until this amount has been reached.
 					energycost = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
@@ -163,10 +165,12 @@ return {
 					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 9,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 19,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "9 10 11 12 13 14 15 16 17 18 19",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 10,
+					stockpilemetal = 40,
+					stockpileenergy = 1000,
+					dronesusestockpile = true,
 				}
 			},
 		},

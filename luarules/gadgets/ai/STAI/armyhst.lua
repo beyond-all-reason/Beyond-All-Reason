@@ -190,6 +190,7 @@ function ArmyHST:Init()
 		corcrus = true,
 		armcrus = true,
 		armbanth = true,--t3a
+		cordemon = true,
 
 
 
@@ -232,7 +233,12 @@ function ArmyHST:Init()
 		corshiva = true,
 
 		}
+	self.heavyAmphibious = {
+	
+		corparrow = true,
+		armcroc = true,
 
+		}
 	self.spiders = {
 		cortermite = true,
 		armsptk = true,
@@ -279,7 +285,6 @@ function ArmyHST:Init()
 
 	self.airgun = {
 		armkam = true,
-		corcrw = true,
 		corcrwh = true,
 		corape = true,
 		armbrawl = true,
@@ -360,8 +365,6 @@ function ArmyHST:Init()
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
-		-- 		armuwmex = 'armuwmme' ,
-		-- 		coruwmex = 'coruwmme' ,
 		cormexp = true ,
 		armmex = "armmoho" ,
 		armamex = 'armmoho' ,
@@ -535,8 +538,6 @@ function ArmyHST:Init()
 	self._torpedo1_ = {
 		cortl = true ,
 		armtl = true ,
-		armptl = true ,
-		corptl = true ,
 		}
 
 	self._torpedo2_ = {
@@ -730,8 +731,6 @@ ArmyHST.factoryExitSides = {
 --[[ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
-	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
-	armuwmex = "armuwmme",--ex armuwmex
 	armamex = "armmoho",
 	corexp = "cormexp",
 
@@ -869,7 +868,7 @@ ArmyHST.baseBomberCounter = 10
 -- Taskqueuebehaviour was modified to skip this name
 -- ArmyHST.DummyUnitName = "skipthisorder"
 -- this unit is used to check for underwater metal spots
-ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
+ArmyHST.UWMetalSpotCheckUnit = "cormex"
 
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
@@ -919,7 +918,6 @@ local function getDPS(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
 	end
-	----Spring.Echo('dps',dps)
 	return dps
 end
 
@@ -936,7 +934,6 @@ local function getInterceptor(unitDefID)
 			interceptor  =  weaponDef['interceptor'] == 1
 		end
 	end
-	----Spring.Echo('interceptor',interceptor)
 	return interceptor
 end
 
@@ -951,7 +948,7 @@ local function getTargetableWeapon(unitDefID)
 			targetable  =  weaponDef['targetable'] == 1
 		end
 	end
-	----Spring.Echo('targetable',targetable)
+	--('targetable',targetable)
 	return targetable
 end
 
@@ -964,7 +961,6 @@ local function getParalyzer(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		paralyzer  =  weaponDef['paralyzer']
 	end
-	----Spring.Echo('paralyzer',paralyzer)
 	return paralyzer
 end
 
@@ -990,11 +986,9 @@ local function getBadTargets(weapons)
 				local  weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
-				----Spring.Echo('defbadtargets', targets[name])
 			end
 		end
 	end
-	----Spring.Echo('badtargets',targets)
 	return targets
 end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -1005,11 +999,11 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		-- --Spring.Echo(weaponDefID)
-		-- --Spring.Echo(weaponDef["canAttackGround"])
-		-- --Spring.Echo(weaponDef["waterWeapon"])
-		----Spring.Echo(weaponDef["range"])
-		----Spring.Echo(weaponDef["type"])
+		--print(weaponDefID)
+		--print(weaponDef["canAttackGround"])
+		--print(weaponDef["waterWeapon"])
+		--print(weaponDef["range"])
+		--print(weaponDef["type"])
 		local wType = 0
 		if weaponDef["canAttackGround"] == false then
 			wType = 1
@@ -1018,7 +1012,7 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 		else
 			wType = 0
 		end
-		-- --Spring.Echo(wType)
+		-- --print(wType)
 		if wType == GroundAirSubmerged then
 			if weaponDef["range"] > weaponRange then
 				weaponRange = weaponDef["range"]
@@ -1120,18 +1114,16 @@ function ArmyHST:getThreatRange(unitName)
 end
 
 function ArmyHST:GetUnitTable()
-	local builtBy = GetBuiltBy()
-	local unitTable = {}
-	local wrecks = {}
+	--local builtBy = GetBuiltBy()
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
 
 
 
-		-- --Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+		-- --print(unitDef.name, "build slope", unitDef.maxHeightDif)
 		-- if unitDef.moveDef.maxSlope then
-		-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+		-- --print(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
 		-- end
 		self.unitTable[unitDef.name] = {}
 		-- 			Spring:Echo(unitDef.name)
@@ -1142,7 +1134,7 @@ function ArmyHST:GetUnitTable()
 		utable.defId = unitDefID
 		utable.radarDistance = unitDef["radarDistance"]
 		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["sightDistance"]
+		utable.sightDistance = unitDef["losRadius"]
 		utable.sonarDistance = unitDef["sonarDistance"]
 		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth
@@ -1230,10 +1222,10 @@ function ArmyHST:GetUnitTable()
 			table.insert(utable.weaponMtype, "shp")
 			table.insert(utable.weaponMtype, "amp")
 		end
-		if longRange then
+		if utable.longRange then
 			utable.threat = utable.metalCost
 		end
-		if self.antinukes[unitName] or self.nukeList[unitName] or self.bigPlasmaList[unitName] or self._shield_[unitName] or self._juno_ then
+		if self.antinukes[utable.name] or self.nukeList[utable.name] or self.bigPlasmaList[utable.name] or self._shield_[utable.name] or self._juno_ then
 			utable.threat = 0
 			utable.maxRange = 0
 		end
@@ -1265,7 +1257,7 @@ function ArmyHST:GetUnitTable()
 			end
 			utable.onlyTg = ''
 			if defWepon1.onlyTargets then
-				for ii,vv in pairs(defWepon1.onlyTargets) do
+				for ii,_ in pairs(defWepon1.onlyTargets) do
 					utable.onlyTg = utable.onlyTg .. ii
 				end
 			end
@@ -1399,7 +1391,7 @@ end
 function ArmyHST:GetFeatureTable()
 	local featureTable = {}
 	-- feature defs
-	for featureDefID, featureDef in pairs(FeatureDefs) do
+	for _, featureDef in pairs(FeatureDefs) do
 		local ftable = {}
 		for i, k in pairs(featureKeysToGet) do
 			local v = featureDef[k]

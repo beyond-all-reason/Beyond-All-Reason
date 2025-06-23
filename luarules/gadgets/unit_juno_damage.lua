@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage',
@@ -48,6 +50,11 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
+		['legavrad'] = true,
+		['legavjam'] = true,
+		['legfrad'] = true,
 		
 		['armmine1'] = true,
 		['armmine2'] = true,
@@ -57,16 +64,23 @@ if gadgetHandler:IsSyncedCode() then
 		['cormine2'] = true,
 		['cormine3'] = true,		
 		['cormine4'] = true,		
-		['corfmine3'] = true,		
+		['corfmine3'] = true,	
+		['legmine1'] = true,
+		['legmine2'] = true,
+		['legmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -81,11 +95,15 @@ if gadgetHandler:IsSyncedCode() then
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
@@ -132,8 +150,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local junoWeaponsNames = {
 		["armjuno_juno_pulse"] = true,
+		["legjuno_juno_pulse"] = true,
 		["corjuno_juno_pulse"] = true,
 		["armjuno_scav_juno_pulse"] = true,
+		["legjuno_scav_juno_pulse"] = true,
 		["corjuno_scav_juno_pulse"] = true,
 	}
 	-- convert unitname -> unitDefID
@@ -168,6 +188,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		if WeaponDefNames.armjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
+		end
+		if WeaponDefNames.legjuno_juno_pulse then
+			Script.SetWatchExplosion(WeaponDefNames.legjuno_juno_pulse.id, true)
 		end
 		if WeaponDefNames.corjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)

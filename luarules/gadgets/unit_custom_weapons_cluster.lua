@@ -1,325 +1,297 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
-    return {
-        name    = 'Cluster Munitions',
-        desc    = 'Custom behavior for projectiles that explode and split on impact.',
-        author  = 'efrec',
-        version = '1.0',
-        date    = '2024-05',
-        license = 'GNU GPL, v2 or later',
-        layer   = 0,
-        enabled = true
-    }
+	return {
+		name    = 'Cluster Munitions',
+		desc    = 'Projectiles split and scatter on impact.',
+		author  = 'efrec',
+		version = '1.1',
+		date    = '2024-06-07',
+		license = 'GNU GPL, v2 or later',
+		layer   = 10, -- before fx_watersplash; Explosion is reverse iterated
+		enabled = true
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
---------------------------------------------------------------------------------------------------------------
--- Configuration ---------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Configuration ---------------------------------------------------------------
 
--- Default settings -----------------------------------------------------------------------------------------
+-- Default settings ------------------------------------------------------------
 
-local defaultSpawnDef = "cluster_munition"         -- def used, by default
-local defaultSpawnNum = 5                          -- number of spawned projectiles, by default
-local defaultTtl      = 300                        -- detonate projectiles after time = ttl, by default
-local defaultVelocity = 240                        -- speed of spawned projectiles, by default
-local defaultBouncing = false                      -- whether sub-munitions 'bounce' off of units, by default
+local defaultSpawnTtl = 5					-- detonate projectiles after time = ttl, by default
 
--- General settings ------------------------------------------------------------------------------------------
+-- General settings ------------------------------------------------------------
 
-local customParamName = "cluster"                  -- in the weapondef, the parameter name to set to `true`
-local maxSplitNumber  = 20                         -- protect game performance against stupid ideas
-local minBulkReflect  = 80000                      -- smallest unit bulk that causes reflection as if terrain
+local minSpawnNumber = 3					-- minimum number of spawned projectiles
+local maxSpawnNumber = 24					-- protect game performance against stupid ideas
+local minUnitBounces = "armpw"				-- smallest unit (name) that bounces projectiles at all
+local minBulkReflect = 64000				-- smallest unit bulk that causes reflection as if terrain
 
--- CustomParams setup ---------------------------------------------------------------------------------------
+-- CustomParams setup ----------------------------------------------------------
+--
+	-- weapon = {
+	-- 	type := "Cannon" | "EMGCannon"
+	-- 	customparams = {
+	-- 		cluster_def    := <string> | nil (see defaults)
+	-- 		cluster_number := <number> | nil (see defaults)
+	-- 	},
+	-- },
+    --
+    -- <cluster_def> = {
+	-- 	weaponvelocity := <number> -- Will be ignored in favor of range if possible.
+	-- 	range          := <number> -- Preferred over and replaces weaponvelocity.
+	-- }
 
---    primary_weapon = {
---        customparams = {
---            cluster  = true,
---           [def      = <string>,]
---           [number   = <integer>,]
---           [bouncing = true | false,]
---        },
---    },
---    cluster_munition = {
---       [maxvelocity = <number>,]
---       [range       = <number>,]
---    }
+--------------------------------------------------------------------------------
+-- Localize --------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------------------
--- Localize --------------------------------------------------------------------------------------------------
+local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
 
-local abs    = math.abs
-local sign   = math.sgn
-local max    = math.max
-local min    = math.min
-local rand   = math.random
-local sqrt   = math.sqrt
-local cos    = math.cos
-local sin    = math.sin
+local max   = math.max
+local min   = math.min
+local rand  = math.random
+local sqrt  = math.sqrt
+local cos   = math.cos
+local sin   = math.sin
+local atan2 = math.atan2
 
-local spGetGroundHeight  = Spring.GetGroundHeight
-local spGetGroundNormal  = Spring.GetGroundNormal
-local spGetUnitDefID     = Spring.GetUnitDefID
-local spGetUnitPosition  = Spring.GetUnitPosition
-local spGetUnitRadius    = Spring.GetUnitRadius
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spSpawnProjectile  = Spring.SpawnProjectile
+local spGetGroundHeight       = Spring.GetGroundHeight
+local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetUnitDefID          = Spring.GetUnitDefID
+local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitRadius         = Spring.GetUnitRadius
+local spGetUnitsInSphere      = Spring.GetUnitsInSphere
+local spSpawnProjectile       = Spring.SpawnProjectile
 
-local GAME_SPEED         = Game.gameSpeed
-local mapGravity         = Game.gravity / GAME_SPEED / GAME_SPEED * -1
+local gameSpeed  = Game.gameSpeed
+local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
+local maxUnitRadius = 0
 
-local SetWatchExplosion  = Script.SetWatchExplosion
+for _, unitDef in pairs(UnitDefs) do
+	maxUnitRadius = max(maxUnitRadius, unitDef.radius)
+end
 
---------------------------------------------------------------------------------------------------------------
--- Initialize ------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Initialize ------------------------------------------------------------------
 
--- Reusable tables for reducing garbage
-
-local weaponCache = {
-    explVel = 0,
-    explAoe = 0,
-    def     = defaultSpawnDef,
-    number  = defaultSpawnNum,
-    projDef = 0,
-    projVel = defaultVelocity / GAME_SPEED,
-    projTtl = defaultTtl,
-    check   = 0
-}
-
-local spawnCache  = {
-    pos     = { 0, 0, 0 },
-    speed   = { 0, 0, 0 },
-    owner   = 0,
-    ttl     = defaultTtl,
-    gravity = mapGravity,
-}
-
--- Information table for cluster weapons
+defaultSpawnTtl = defaultSpawnTtl * gameSpeed
 
 local spawnableTypes = {
-    Cannon            = true  ,
-    EMGCannon         = true  ,
-    Fire              = false , -- but possible
-    LightningCannon   = false , -- but possible
-    MissileLauncher   = false , -- but possible
+	Cannon          = true  ,
+	EMGCannon       = true  ,
 }
 
-local dataTable      = {} -- Info on each cluster weapon.
-local wDefNamesToIDs = {} -- Says it on the tin
+local clusterWeaponDefs = {}
 
-for wdid, wdef in pairs(WeaponDefs) do
-    wDefNamesToIDs[wdef.name] = wdid
+for unitDefName, unitDef in pairs(UnitDefNames) do
+	for _, weapon in pairs(unitDef.weapons) do
+		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
+		local clusterDefName = weaponDef.customParams.cluster_def
 
-    if wdef.customParams and wdef.customParams[customParamName] then
-        dataTable[wdid] = {}
-        dataTable[wdid].explAoe  = wdef.damageAreaOfEffect            or 12
-        dataTable[wdid].explVel  = wdef.explosionSpeed                or (8 + max(30, wdef.damages[0] / 20)) / (9 + sqrt(max(30, wdef.damages[0] / 20)) * 0.7) * 0.5
-        dataTable[wdid].bouncing = wdef.customParams.bouncing         or defaultBouncing
-        dataTable[wdid].number   = tonumber(wdef.customParams.number) or defaultSpawnNum
-        dataTable[wdid].def      = wdef.customParams.def              or (string.split(wdef.name, "_"))[1] .. '_' .. defaultSpawnDef
+		if clusterDefName then
+			local clusterDef = WeaponDefNames[clusterDefName]
+			local clusterCount = tonumber(weaponDef.customParams.cluster_number)
 
-        dataTable[wdid].projDef  = -1
-        dataTable[wdid].projTtl  = defaultTtl
-        dataTable[wdid].projVel  = defaultVelocity / GAME_SPEED
-        dataTable[wdid].colDist  = max(12, sqrt(dataTable[wdid].explAoe))
-    end
+			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
+				clusterCount = math.clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
+			end
+
+			if clusterDef then
+				if spawnableTypes[clusterDef.type] then
+					local clusterRange = clusterDef.range or 0
+					local clusterSpeed
+					if clusterRange > 0 then
+						clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
+					else
+						clusterSpeed = clusterDef.projectilespeed
+					end
+
+					clusterWeaponDefs[weaponDefID] = {
+						number      = clusterCount,
+						weaponID    = clusterDef.id,
+						weaponSpeed = clusterSpeed,
+						weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
+					}
+				else
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
+				end
+			else
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Could not find weapon def matching cluster_def: ' .. clusterDefName)
+			end
+		end
+	end
 end
 
--- Information for cluster munitions
-
-for wdid, data in pairs(dataTable) do
-    local cmdid = wDefNamesToIDs[data.def]
-    local cmdef = WeaponDefs[cmdid]
-
-    dataTable[wdid].projDef = cmdid
-    dataTable[wdid].projTtl = cmdef.ttl or defaultTtl
-
-    -- Range and velocity are closely related so may be in disagreement. Average them (more or less):
-    local projVel = cmdef.projectileSpeed or cmdef.startvelocity
-    projVel = projVel and projVel * GAME_SPEED or defaultVelocity
-    if cmdef.range > 10 then
-        local rangeVel = sqrt(cmdef.range * abs(mapGravity)) -- inverse range calc for launch @ 45deg
-        dataTable[wdid].projVel = (projVel + rangeVel) / 2
-    else
-        dataTable[wdid].projVel = projVel
-    end
-
-    -- We check for collisions within a radius:
-    dataTable[wdid].colDist = max(dataTable[wdid].colDist, dataTable[wdid].projVel / 120)
-
-    -- Prevent the grenade apocalypse:
-    if dataTable[cmdid] ~= nil then
-        Spring.Echo('[clustermun] [warn] Preventing recursive explosions: ' .. cmdid)
-        dataTable[cmdid] = nil
-    end
-
-    -- Remove unspawnable projectiles:
-    if spawnableTypes[cmdef.type] ~= true then
-        Spring.Echo('[clustermun] [warn] Invalid spawned weapon type: ' ..
-            dataTable[wdid].def .. ' is not spawnable (' .. (cmdef.type or 'nil!') .. ')')
-        dataTable[wdid] = nil
-    end
+local removeIDs = {}
+for weaponDefID, weaponData in pairs(clusterWeaponDefs) do
+	if clusterWeaponDefs[weaponData.weaponID] and clusterWeaponDefs[clusterWeaponDefs[weaponData.weaponID].weaponID] then
+		removeIDs[weaponData.weaponID] = true
+	end
+end
+for weaponDefID in pairs(removeIDs) do
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Preventing nested explosions: ' .. WeaponDefs[weaponDefID].name)
+	clusterWeaponDefs[weaponDefID] = nil
 end
 
--- Information on how sturdy units are, basically
+local unitBulks = {} -- How sturdy the unit is. Projectiles scatter less with lower bulk values.
 
-local unitBulk = {}
-for udid, udef in pairs(UnitDefs) do
-    unitBulk[udid] = min(
-        (   sqrt(udef.health) +
-            sqrt(udef.metalCost) * udef.xsize * udef.zsize * sqrt(udef.radius)
-        ) / minBulkReflect,
-        1.0
-    )
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local bulkiness = (
+		unitDef.health ^ 0.5 +                               -- HP is log2-ish but that feels too tryhard
+		unitDef.metalCost ^ 0.5 *                            -- Steel (metal) is heavier than feathers (energy)
+		unitDef.xsize * unitDef.zsize * unitDef.radius ^ 0.5 -- We see 'bigger' as 'more solid' not 'less dense'
+	) / minBulkReflect                                       -- Scaled against some large-ish bulk rating
+
+	if unitDef.armorType == Game.armorTypes.wall or unitDef.armorType == Game.armorTypes.indestructable then
+		bulkiness = bulkiness * 2
+	elseif unitDef.customParams.neutral_when_closed then
+		bulkiness = bulkiness * 1.5
+	end
+
+	unitBulks[unitDefID] = min(bulkiness, 1) ^ 0.39 -- Scale bulks to [0,1] and curve them upward towards 1.
 end
 
---------------------------------------------------------------------------------------------------------------
--- Functions -------------------------------------------------------------------------------------------------
-
-local function RandomVector3()
-    local m1, m2, m3, m4       -- Marsaglia procedure:
-    repeat                     -- The method begins by sampling & rejecting points.
-        m1 = 2 * rand() - 1    -- The result can be transformed into radial coords.
-        m2 = 2 * rand() - 1    -- Rand floats are expensive, though. Might replace.
-        m3 = m1 * m1 + m2 * m2
-    until (m3 < 1)
-    m4 = sqrt(1 - m3)
-    return 2 * m1 * m4 , -- x
-           2 * m2 * m4 , -- y
-           1 -  2 * m3   -- z
+local bulkMin = unitBulks[UnitDefNames[minUnitBounces].id] or 0.1
+for unitDefID in pairs(UnitDefs) do
+	if unitBulks[unitDefID] < bulkMin then
+		unitBulks[unitDefID] = nil
+	end
 end
 
--- Randomness produces clumping at small sample sizes, so we scatter evenly-spaced vectors instead.
--- Credit to Hardin, Sloane, & Smith (and contribs).
-local packedSpheres = {
-    [1] = 0,
-    [2] = {  1, 0, 0,   -1, 0, 0  },
-    [3] = {  1, 0, 0,   -0.5, 0, 0.866025403784439,   -0.5, 0, -0.866025403784438  },
-    [4] = { -0.577350269072,  0.577350269072, -0.577350269072,  0.577350269072,  0.577350269072,  0.577350269072, -0.577350269072, -0.577350269072,  0.577350269072,  0.577350269072, -0.577350269072, -0.577350269072 },
-    [5] = { -1.478255937088018300e-01,  8.557801392177640800e-01,  4.957700547280610200e-01,  9.298520676823500700e-01, -3.330452755499895800e-01, -1.563840677968503200e-01, -7.820264758448114400e-01, -5.227348665222011400e-01, -3.393859902820995400e-01, -3.612306945786420600e-02, -5.056147808319168000e-01,  8.620027942282061400e-01,  3.612306958303366400e-02,  5.056147801034870400e-01, -8.620027946502272200e-01 },
-    [6] = {  0.212548255920, -0.977150570601,  0.000000000000, -0.977150570601, -0.212548255920,  0.000000000000, -0.212548255920,  0.977150570601,  0.000000000000,  0.977150570601,  0.212548255920,  0.000000000000,  0.000000000000,  0.000000000000,  1.000000000000,  0.000000000000,  0.000000000000, -1.000000000000 },
-    [7] = { -9.476914051796328000e-01, -2.052179514558175300e-01,  2.444720698749264500e-01,  8.503710682661692600e-01,  4.830848344829018500e-01,  2.085619547004717300e-01, -4.995609516538522300e-01,  3.276811928816584800e-01, -8.019126457503652500e-01, -3.344875986220292000e-01,  8.899589445240678700e-01,  3.099856826204648300e-01,  2.420381484495352800e-02, -9.924430055046316000e-01,  1.202957030483007100e-01,  5.426485704335360500e-02, -8.987314180840469400e-02,  9.944738024058507000e-01,  5.948684088498340500e-01, -2.881863468134767100e-01, -7.503867040818149600e-01 },
-    [8] = { -7.941044876934105800e-01,  3.289288487526511000e-01,  5.110810846464987100e-01,  3.289288487526511000e-01, -7.941044876934105800e-01, -5.110810846464987100e-01,  7.941044876934105800e-01,  3.289288487526511000e-01, -5.110810846464987100e-01, -3.289288487526511000e-01, -7.941044876934105800e-01,  5.110810846464987100e-01, -7.941044876934105800e-01, -3.289288487526511000e-01, -5.110810846464987100e-01,  3.289288487526511000e-01,  7.941044876934105800e-01,  5.110810846464987100e-01,  7.941044876934105800e-01, -3.289288487526511000e-01,  5.110810846464987100e-01, -3.289288487526511000e-01,  7.941044876934105800e-01, -5.110810846464987100e-01 },
+local spawnCache  = {
+	pos     = { 0, 0, 0 },
+	speed   = { 0, 0, 0 },
+	owner   = 0,
+	ttl     = defaultSpawnTtl,
+	gravity = mapGravity,
 }
 
-local function DistributedVectorSet(n)
-    if n == nil or n < 1 then return end
-    local vectors = packedSpheres[n] or {}
-    if vectors == {} and n <= maxSplitNumber then
-        -- Random samples are likely enough to look distributed for n > 8. Source: I made it up.
-        for ii = 1, 3*(n-1)+1, 3 do
-            vectors[ii], vectors[ii + 1], vectors[ii + 2] = RandomVector3()
-        end
-    end
-    return vectors
+local directions = DirectionsUtil.Directions
+local maxDataNum = 2
+for _, data in pairs(clusterWeaponDefs) do
+	if data.number > maxDataNum then maxDataNum = data.number end
+end
+DirectionsUtil.ProvisionDirections(maxDataNum)
+
+--------------------------------------------------------------------------------
+-- Functions -------------------------------------------------------------------
+
+local function getSurfaceDeflection(x, y, z)
+	-- Deflection from deep water, shallow water, and solid terrain.
+	local elevation = spGetGroundHeight(x, z)
+	local separation
+	local dx, dy, dz
+	local slope
+
+	separation = y - elevation
+	dx, dy, dz, slope = spGetGroundNormal(x, z, true)
+
+	if slope > 0.1 or slope * separation > 10 then
+		separation = separation * cos(slope)
+		local shift = separation * sin(slope) / sqrt(dx*dx + dz*dz)
+		local shiftX = x - dx * shift -- Next surface x, z
+		local shiftZ = z - dz * shift
+		elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
+		separation = y - elevation
+		dx, dy, dz = spGetGroundNormal(shiftX, shiftZ, true)
+	end
+
+	separation = 1.3 / sqrt(max(1, separation))
+	dx = dx * separation
+	dy = dy * separation
+	dz = dz * separation
+
+	-- Additional deflection from units, from none to solid-terrain-like.
+	local unitsNearby = spGetUnitsInSphere(x, y, z, maxUnitRadius)
+	local bounce, unitX, unitY, unitZ, radius
+
+	for _, unitID in ipairs(unitsNearby) do
+		bounce = unitBulks[spGetUnitDefID(unitID)]
+		if bounce then
+			_,_,_,unitX,unitY,unitZ = spGetUnitPosition(unitID, true)
+			radius         = spGetUnitRadius(unitID)
+			if unitY + radius > 0 then
+				unitX, unitY, unitZ = x - unitX, y - unitY, z - unitZ
+				separation = sqrt(unitX*unitX + unitY*unitY + unitZ*unitZ) / radius
+				if separation < 1.24 then
+					bounce = bounce / max(1, separation)
+					local theta_z = atan2(unitX, unitZ)
+					local phi_y = atan2(unitY, sqrt(unitX*unitX + unitZ*unitZ))
+					local cosy = cos(phi_y)
+					dx = dx + bounce * sin(theta_z) * cosy
+					dy = dy + bounce * sin(phi_y)
+					dz = dz + bounce * cos(theta_z) * cosy
+				end
+			end
+		end
+	end
+
+	return dx, dy, dz
 end
 
-local function GetSurfaceDeflection(explArea, projSpeed, nearCheck, ex, ey, ez, bouncing)
-    local distSurface = ey - spGetGroundHeight(ex, ez)
-    local x, y, z, s  = spGetGroundNormal(ex, ez, false)
+local function spawnClusterProjectiles(data, attackerID, x, y, z)
+	local clusterDefID = data.weaponID
+	local projectileCount = data.number
+	local projectileSpeed = data.weaponSpeed
 
-    -- If not in close contact with the surface, get a better guess.
-    -- This uses naive geometry, but it's cheap on ops and not too bad.
-    if distSurface > 12 then
-        local n     = cos(s) * sin(s) * distSurface
-        distSurface = ey - spGetGroundHeight(ex+x*n, ez+z*n)
-        x, y, z, _  = spGetGroundNormal(ex+x*n, ez+z*n, false)
-        distSurface = abs(x*ex + y*ey + z*ez)
-        x, y, z     = x / distSurface, y / distSurface, z / distSurface
-    end
+	spawnCache.owner = attackerID or -1
+	spawnCache.ttl = data.weaponTtl
+	local speed = spawnCache.speed
+	local position = spawnCache.pos
 
-    if not bouncing then
-        local scale = sqrt(projSpeed) / max(12, distSurface) -- idk, seems to work
-        return { x * scale, y * scale, z * scale }
-    else
-        -- No easy way to get units by collider distance; I believe this is by midpoint:
-        local collisions = spGetUnitsInSphere(ex, ey, ez, max(nearCheck, 80)) -- 80 is a fairly wide net.
-        -- When hitting a unit directly, we can determine how much to "bounce" off it.
-        -- This is used to keep grenades-of-grenades from detonating on contact instead of spreading out.
-        local bounce, radius, ux, uy, uz, cx, cy, cz, cw
-        for _, uid in pairs(collisions) do
-            bounce = unitBulk[spGetUnitDefID(uid)]
-            -- Arbitrary cutoff to ignore cheap, spammy units.
-            if bounce > 0.05 then
-                radius = spGetUnitRadius(uid)
-                ux, uy, uz = spGetUnitPosition(uid, true)
+	local directionVectors = directions[projectileCount]
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
+	local randomness = 1 / sqrt(projectileCount - 2)
 
-                cx = ex - ux
-                cy = ey - uy
-                cz = ez - uz
-                cw = cx * cx + cy * cy + cz * cz
-                cw = cw * max(1.0, cw - radius * radius)
+	for i = 0, projectileCount - 1 do
+		local velocityX = directionVectors[3 * i + 1] + deflectX
+		local velocityY = directionVectors[3 * i + 2] + deflectY
+		local velocityZ = directionVectors[3 * i + 3] + deflectZ
 
-                x = x + bounce * (1 - abs(cx) / cw) * sign(cx)
-                y = y + bounce * (1 - abs(cy) / cw) * sign(cy)
-                z = z + bounce * (1 - abs(cz) / cw) * sign(cz)
-            end
-        end
-        return { x, y, z }
-    end
+		velocityX = velocityX + (rand() - 0.5) * randomness * 2
+		velocityY = velocityY + (rand() - 0.5) * randomness * 2
+		velocityZ = velocityZ + (rand() - 0.5) * randomness * 2
+
+		-- Higher projectile counts will have less variation in projectile speed.
+		local normalization = (1 + rand() * randomness) / (1 + randomness)
+		normalization = normalization * projectileSpeed / sqrt(velocityX*velocityX + velocityY*velocityY + velocityZ*velocityZ)
+		velocityX = velocityX * normalization
+		velocityY = velocityY * normalization
+		velocityZ = velocityZ * normalization
+
+		speed[1] = velocityX
+		speed[2] = velocityY
+		speed[3] = velocityZ
+
+		position[1] = x + velocityX * gameSpeed / 2
+		position[2] = y + velocityY * gameSpeed / 2
+		position[3] = z + velocityZ * gameSpeed / 2
+
+		spSpawnProjectile(clusterDefID, spawnCache)
+	end
 end
 
-local function SpawnClusterProjectiles(data, attackerID, projID, ex, ey, ez, deflect)
-    local projNum = data.number
-    local projVel = data.projVel
-
-    spawnCache.owner = attackerID or -1
-    spawnCache.ttl   = data.projTtl
-
-    -- Initial direction vectors are evenly spaced.
-    local distribute = DistributedVectorSet(projNum)
-
-    local vx, vy, vz, dist, norm
-    for ii = 0, (projNum-1) do
-        -- Avoid shooting into terrain by adding deflection.
-        dist = min(1, (data.explVel + data.projVel) / 12) * (data.bouncing and 4 or 1)
-        vx = distribute[(3*ii+1)] + deflect[1] * dist
-        vy = distribute[(3*ii+2)] + deflect[2] * dist
-        vz = distribute[(3*ii+3)] + deflect[3] * dist
-
-        -- When the initial directions are not random, add jitter.
-        if projNum <= #packedSpheres then
-            vx = vx + rand(-projNum, projNum) / projNum * 0.86
-            vy = vy + rand(-projNum, projNum) / projNum * 0.42
-            vz = vz + rand(-projNum, projNum) / projNum * 0.86
-        end
-
-        -- Adjust vector length to the speed/magnitude.
-        norm = sqrt(vx*vx + vy*vy + vz*vz) or 1
-        vx = vx * projVel / norm
-        vy = vy * projVel / norm
-        vz = vz * projVel / norm
-        spawnCache.speed = { vx, vy, vz }
-
-        -- Pre-scatter projectiles.
-        spawnCache.pos = { ex + vx*4, ey + vy*2*min(4, max(1, projVel / (abs(vx) + abs(vz)))), ez + vz*4 }
-
-        spSpawnProjectile(data.projDef, spawnCache)
-    end
-end
-
---------------------------------------------------------------------------------------------------------------
--- Gadget callins --------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-    for wdid, _ in pairs(dataTable) do
-        SetWatchExplosion(wdid, true)
-    end
+	if not next(clusterWeaponDefs) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+
+	for weaponDefID in pairs(clusterWeaponDefs) do
+		Script.SetWatchExplosion(weaponDefID, true)
+	end
 end
 
-function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projID)
-    if not dataTable[weaponDefID] then return end
-
-    weaponCache = dataTable[weaponDefID]
-
-    -- Scatter munitions away from terrain (and heavy units) as appropriate.
-    local deflect = GetSurfaceDeflection(
-        weaponCache.explAoe,
-        weaponCache.projVel,
-        weaponCache.colDist,
-        ex, ey, ez,
-        weaponCache.bouncing
-    )
-
-    SpawnClusterProjectiles(weaponCache, attackerID, projID, ex, ey, ez, deflect)
+function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
+	local weaponData = clusterWeaponDefs[weaponDefID]
+	if weaponData then
+		spawnClusterProjectiles(weaponData, attackerID, x, y, z)
+	end
 end

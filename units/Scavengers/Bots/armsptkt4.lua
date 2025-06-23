@@ -7,7 +7,6 @@ return {
 		buildpic = "scavengers/armsptkt4.DDS",
 		buildtime = 75000,
 		canmove = true,
-		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "75 50 75",
 		collisionvolumetype = "CylY",
@@ -38,7 +37,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -115,7 +114,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
 				flighttime = 4,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "catapultmissile.s3o",	--catapultmissile.s3o
 				movingaccuracy = 450,
@@ -143,6 +141,10 @@ return {
 				damage = {
 					default = 500,
 					subs = 200,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1150,
 				},
 			},
 		},

@@ -15,6 +15,8 @@
 --AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same frame as the trans dies results in a crash.
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "transport_dies_load_dies",
@@ -29,13 +31,13 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local isCommando = {}
+local isParatrooper = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'cormando') or string.find(ud.name, 'legcomt2off') or string.find(ud.name, 'lootbox') or string.find(ud.name, 'scavbeacon') then
-		isCommando[udid] = true
+	if ud.customParams.paratrooper then
+		isParatrooper[udid] = true
 	end
-  if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
-		isCommando[udid] = true
+  	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
+		isParatrooper[udid] = true
 	end
 end
 
@@ -49,7 +51,11 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
 
-	if not isCommando[unitDefID] then
+	if not isParatrooper[unitDefID] then
+		--don't destroy units with effigies. Spring.SetUnitPosition cannot move a unit mid-fall.
+		if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
+			return
+		end
 		currentFrame = Spring.GetGameFrame()
 		if not toKill[currentFrame+1] then
 			toKill[currentFrame+1] = {}

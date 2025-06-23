@@ -1,0 +1,118 @@
+// Mono-space font required
+{
+// Build special units when enemy_metal*ratio > response_metal*eps; eps=teamSize*eps_step+(1-eps_step)
+// AA condition for 3v3: (enemy_air_metal*0.75 > (aa_metal+aa_cost)*2.6) and (aa_metal+aa_cost < army_metal*0.5)
+//
+// Probability of UnitDef for AA role depends on income tier: (tierN[UnitDef]+_weight_)*enemy_air_metal/aa_metal*importance
+// armjeth probability for tier 1: (0.00+30.00)*enemy_air_metal*150.0
+"response": {
+	"_weight_": 30.0,  // base weight of response probability, default=0.5
+	"_importance_mod_": 1.0,  // global importance multiplier, default=1.0
+
+	"assault": {
+		"vs":         ["riot", "static", "assault", "commander", "heavy", "anti_heavy", "transport"],
+		"ratio":      [ 1.00,   5.00,     0.00,      0.00,        0.00,    0.00,         1.50],
+		"importance": [ 15.00,  25.00,    25.00,     25.00,       0.00,    0.00,         150.00],
+		"max_percent": 1.00,
+		"eps_step": 0.075
+	},
+	"skirmish": {
+		"vs":         ["riot", "static", "assault", "commander", "heavy", "anti_heavy", "transport"],
+		"ratio":      [ 1.00,   1.00,     1.00,      0.35,        0.00,    0.00,         1.50],
+		"importance": [ 35.00,  25.00,    25.00,     25.00,       0.00,    0.00,         150.00],
+		"max_percent": 0.50,
+		"eps_step": 0.075
+	},
+	"raider": {
+		"vs":         ["anti_air", "scout", "raider", "anti_heavy", "mine", "skirmish", "artillery"],
+		"ratio":      [ 0.00,       1.00,    1.00,     0.10,         0.65,   0.25,       0.10],
+		"importance": [ 15.00,      100.00,  85.00,    15.00,        30.00,  10.00,      10.00],
+		"max_percent": 1.00,
+		"eps_step": 0.12
+	},
+	"riot": {
+		"vs":         ["raider", "scout"],
+		"ratio":      [ 0.85,     0.85],
+		"importance": [ 100.00,   25.00],
+		"max_percent": 1.00,
+		"eps_step": 0.02
+	},
+	"transport": {
+		"vs":         ["super", "support"],
+		"ratio":      [ 1.00,    1.00],
+		"importance": [ 50.00,   50.00],
+		"max_percent": 0.50,
+		"eps_step": 0.01
+	},
+	"scout": {
+		"vs":         ["mine", "artillery", "anti_air", "scout", "static", "heavy", "anti_heavy"],
+		"ratio":      [ 0.15,   0.05,        0.10,       0.15,    0.00,     0.00,    0.05],
+		"importance": [ 50.00,  0.10,        0.10,       15.00,   0.00,     0.00,    10.00],
+		"max_percent": 0.09,
+		"eps_step": 0.02
+	},
+	"artillery": {
+		"vs":         ["static", "artillery", "super"],
+		"ratio":      [ 0.70,     0.00,        0.70],
+		"importance": [ 15.00,    0.00,        40.00],
+		"max_percent": 0.66,
+		"eps_step": 0.00
+	},
+	"anti_air": {
+		"vs":         ["air"],
+		"ratio":      [ 0.75],
+		"importance": [ 950.0],
+		"max_percent": 0.5,
+		"eps_step": 0.6
+	},
+	"anti_sub": {
+		"vs":         ["sub"],
+		"ratio":      [ 0.0],
+		"importance": [ 0.0],
+		"max_percent": 0.00,
+		"eps_step": 0.00
+	},
+	"anti_heavy": {
+		"vs":         ["heavy", "artillery", "support", "anti_heavy", "commander", "super"],
+		"ratio":      [ 1.00,    0.00,        0.00,      0.00,         0.4,         0.50],
+		"importance": [ 85.00,   0.00,        0.00,      0.00,         50.00,       0.50],
+		"max_percent": 0.66,
+		"eps_step": 0.00
+	},
+	"heavy": {
+		"vs":         ["heavy", "static", "support", "skirmish", "super"],
+		"ratio":      [ 2.00,    5.00,     0.00,      1.00,       2.00],
+		"importance": [ 100.00,  25.00,    0.00,      25.00,      100.00],
+		"max_percent": 0.66,
+		"eps_step": 0.00
+	},
+	"bomber": {
+		"vs":         ["heavy", "anti_heavy", "artillery", "super"],
+		"ratio":      [ 0.00,    0.50,         0.50,        0.50],
+		"importance": [ 0.00,    50.00,        50.00,       50.00],
+		"max_percent": 0.5,
+		"eps_step": 0.00
+	},
+	"super": {
+		"vs":         ["heavy", "static", "support", "skirmish", "artillery", "super"],
+		"ratio":      [ 1.00,    1.00,     0.00,      0.00,       0.00,        0.00],
+		"importance": [ 25.00,   25.00,    0.00,      0.00,       0.00,        0.00],
+		"max_percent": 0.66,
+		"eps_step": 0.00
+	},
+	"support": {
+		"vs":         ["anti_sub"],
+		"ratio":      [ 0.00],
+		"importance": [ 0.00],
+		"max_percent": 0.00,
+		"eps_step": 0.00
+	},
+	"rezzer": {
+		"vs":         ["static", "builder", "assault"],
+		"ratio":      [ 1.00,     1.00,      1.00],
+		"importance": [ 1000.00,  1000.00,   1000.00],
+		"max_percent": 0.1,
+		"eps_step": 0.1
+	}
+}
+}

@@ -11,10 +11,10 @@ local homeGridPos = { }
 
 local unitCategories = {}
 
-local BUILDCAT_ECONOMY = "Economy"
-local BUILDCAT_COMBAT = "Combat"
-local BUILDCAT_UTILITY = "Utility"
-local BUILDCAT_PRODUCTION = "Build"
+local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
 
 local categories = {
 	BUILDCAT_ECONOMY,
@@ -174,12 +174,13 @@ local function getGridForCategory(builderId, buildOptions, currentCategory)
 		end
 
 		-- everything that doesn't have a defined position (i.e. scav units) gets placed into the grid in any empty spots.
-		for i = 1, 24 do
-			if #undefinedOpts < 1 then break end
+		local i = 1
+		while #undefinedOpts > 0 do
 			if not options[i] then
 				local opt = table.remove(undefinedOpts, 1)
 				options[i] = constructBuildOption(opt)
 			end
+			i = i + 1
 		end
 
 		return options
@@ -276,12 +277,13 @@ local function getSortedGridForLab(builderId, cmds)
 		end
 	end
 	-- go through the cmds with undefined positions (i.e. scav units) and put them in the next available empty spot
-	for i = 1, 24 do
-		if #undefinedCmds < 1 then break end
+	local i = 1
+	while #undefinedCmds > 0 do
 		if not options[i] then
 			local cmd = table.remove(undefinedCmds, 1)
 			options[i] = constructBuildOption(-cmd.id, cmd)
 		end
+		i = i + 1
 	end
 	return options
 end

@@ -1,15 +1,14 @@
 piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack, aimy1;
 
-static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
+static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			16
-#define SIG_RESTORE			32
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 
 // For N:\animations\raptor_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
@@ -20,7 +19,7 @@ static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #define RUHAND rsack  
 #define LLHAND lsack  //define these as the left and right head thingies
 #define RLHAND rsack  
-#define SIG_WALK 64 //these defines are needed before includes!
+#define SIGNAL_MOVE 1
 #include "raptor_walk_2legged_v2.h"
 
 #define IDLEMOVESCALE 100
@@ -48,50 +47,32 @@ static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
+
+AimFromWeapon1(pieceIndex)
+	{	pieceIndex=head;	}
+
+QueryWeapon1(pieceIndex)
+	{	pieceIndex=head; }
+
+AimFromWeapon2(pieceIndex)
+	{	pieceIndex=head;	}
+
+QueryWeapon2(pieceIndex)
+	{	pieceIndex=head; }
+
+AimFromWeapon3(pieceIndex)
+	{	pieceIndex=head;	}
+
+QueryWeapon3(pieceIndex)
+	{	pieceIndex=head; }
+
+
+
+AimWeapon1(heading,pitch)
 {
-  return 0;
-}
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
-
-AimFromPrimary(piecenum)
-	{	piecenum=head;	}
-
-QueryPrimary(piecenum)
-	{	piecenum=head; }
-
-AimFromSecondary(piecenum)
-	{	piecenum=head;	}
-
-QuerySecondary(piecenum)
-	{	piecenum=head; }
-
-AimFromTertiary(piecenum)
-	{	piecenum=head;	}
-
-QueryTertiary(piecenum)
-	{	piecenum=head; }
-
-
-
-AimPrimary(heading,pitch)
-{
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	//nasty stuff here
-	/* 	while( 255 > heading )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading + 1000;
-			sleep 1;
-		}
-		while( heading > 255 )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading - 1000;
-			sleep 1;
-		}	
-		*/
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
 	turn aimy1 to y-axis heading speed <175>;
@@ -102,10 +83,10 @@ AimPrimary(heading,pitch)
 	return (1);
 }
 
-AimSecondary(heading,pitch)
+AimWeapon2(heading,pitch)
 	{
-  	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+  	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
@@ -117,10 +98,10 @@ AimSecondary(heading,pitch)
 	return(1);
 	}
 
-AimTertiary(heading,pitch)
+AimWeapon3(heading,pitch)
 	{
-  	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+  	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	if (heading > <60>) heading = <60>;
 	if (heading < <-60>) heading = <-60>;
@@ -141,7 +122,6 @@ Shot2()
 	wait-for-turn lsack around y-axis;
 	turn lsack to y-axis <0> speed [0.3];
 	turn rsack to y-axis <0> speed [0.3];
-	//call-script lua_FlameShot(2);
 	return (head);
 	}
 Shot3()
