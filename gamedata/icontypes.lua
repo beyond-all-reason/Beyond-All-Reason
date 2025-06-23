@@ -2035,6 +2035,10 @@ local icontypes = {
 		bitmap = "icons/bot_t2_jammer.png",
 		size = 1.34399986
 	},
+	legajamk = {
+		bitmap = "icons/bot_t2_jammer.png",
+		size = 1.34399986
+	},
 	corspy = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
@@ -2192,6 +2196,10 @@ local icontypes = {
 		size = 1.46999991
 	},
 	corvoyr = {
+		bitmap = "icons/bot_t2_radar.png",
+		size = 1.34399986
+	},
+	legaradk = {
 		bitmap = "icons/bot_t2_radar.png",
 		size = 1.34399986
 	},
