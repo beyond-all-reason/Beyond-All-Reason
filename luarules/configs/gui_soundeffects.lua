@@ -2987,6 +2987,16 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-small-ok",
 		BaseSoundWeaponType = "cloak",
 	},
+	legajamk = {
+		BaseSoundSelectType = "leg-bot-small-sel",
+		BaseSoundMovementType = "leg-bot-small-ok",
+		BaseSoundWeaponType = "jammer",
+	},
+	legaradk = {
+		BaseSoundSelectType = "leg-bot-small-sel",
+		BaseSoundMovementType = "leg-bot-small-ok",
+		BaseSoundWeaponType = "radar-t2",
+	},
 
 	-- LEGION T3 BOTS
 	legpede = {
