@@ -30,7 +30,7 @@ local labGrids = {
 	},
 	legalab = {
 		-- page1
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, hoplite, spy
+		"legack", "legaceb", "legstr", "legaspy",               -- T2 con, proteus, hoplite, spy
 		"corvoyr", "corspec", "legshot", "leghrk",             -- radar bot, jammer bot, phalanx, Thanatos
 		"legbart", "legsrail", "legadvaabot", "leginc",        -- belcher, railgun, AA bot, incinerator
 		-- page2
@@ -202,8 +202,8 @@ local labGrids = {
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
-		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
+		"legelrpcmech", "legeallterrainmech", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
+		"corjugg", "legehovertank", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
 		"legkeres","legerailtank","" -- keres, daedalus
 	},
 	-- T3 underwater labs

@@ -26508,6 +26508,45 @@ local unitLights = {
 
 	},
 
+	['legehovertank'] = {
+		bigtoroid = {
+			lightType = 'point',
+			pieceName = 'outter_ring',
+			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 78,
+							color2r = 0.9, color2g = 0.7, color2b = 0.45, colortime = -1,
+							r = 0.9, g = 0.7, b = 0.7, a = 0.2,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		smalltoroid = {
+			lightType = 'point',
+			pieceName = 'vertical_ring',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+							color2r = 0.9, color2g = 0.7, color2b = 0.45, colortime = -1,
+							r = 0.9, g = 0.7, b = 0.7, a = 0.1,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		body = {
+			lightType = 'point',
+			pieceName = 'body',
+			lightConfig = { posx = 0, posy = 0, posz = 16, radius = 24,
+							color2r = 0.025, color2g = 0.2, color2b = 0.05, colortime = -1,
+							r = 0.1, g = 0.8, b = 0.2, a = 0.3,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		exhaust = {
+			lightType = 'point',
+			pieceName = 'rear_engine',
+			lightConfig = { posx = 0, posy = -10, posz = 0, radius = 24,
+							color2r = 0.2, color2g = 0.125, color2b = 0.05, colortime = 30,
+							r = 0.8, g = 0.5, b = 0.2, a = 0.6,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
+
 
 	['armvader'] = {
 		-- redlight = {

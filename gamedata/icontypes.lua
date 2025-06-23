@@ -2019,6 +2019,10 @@ local icontypes = {
 		bitmap = "icons/corsok_1.8.png",
 		size = 1.88999987
 	},
+	legehovertank = {
+		bitmap = "icons/corsok_1.8.png",
+		size = 1.88999987
+	},
 	corsolar = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
@@ -2032,6 +2036,10 @@ local icontypes = {
 		size = 1.34399986
 	},
 	corspy = {
+		bitmap = "icons/spy.png",
+		size = 1.17999995
+	},
+	legaspy = {
 		bitmap = "icons/spy.png",
 		size = 1.17999995
 	},
@@ -2519,6 +2527,10 @@ local icontypes = {
 		bitmap = "icons/heavyheatraydrone.png",
 		size = 0.9
 	},
+	legheavydronesmall = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.9
+	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -2832,7 +2844,7 @@ local icontypes = {
 		size = 1.29999995
 	},
 	legstronghold = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t2_transport_shotgun.png",
 		size = 1.83749986
 	},
 	legjim = {
@@ -2870,6 +2882,10 @@ local icontypes = {
 	legvcarry = {
 		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
+	},
+	legeallterrainmech = {
+		bitmap = "icons/t3_allterrain_drone_cluster_bot.png",
+		size = 2.61999998
 	},
 	legvelite = {
 		bitmap = "icons/ship_raid.png",
