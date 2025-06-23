@@ -8,7 +8,7 @@ return {
 		canrepeat = false,
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "70 50 70",
+		collisionvolumescales = "70 38 60",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 1500,

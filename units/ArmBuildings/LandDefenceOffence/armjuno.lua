@@ -141,9 +141,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					lups_noshockwave = 1,
 					nofire = true,
 					stockpilelimit = 20,
+					water_splash = 0, -- juno can explode on water
 				},
 				damage = {
 					default = 1,

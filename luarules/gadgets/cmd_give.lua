@@ -52,7 +52,9 @@ if gadgetHandler:IsSyncedCode() then
 		for udid, unitDef in pairs(UnitDefs) do
 			if unitDef.name == unitName then  unitDefID = udid break end
 		end
-		if unitDefID == nil then
+		if not Spring.GetTeamInfo(teamID,false) then
+			Spring.SendMessageToPlayer(playerID, "TeamID '"..teamID.."' isnt valid")
+		elseif unitDefID == nil then
 			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
 		else
 			local succesfullyCreated = 0

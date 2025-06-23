@@ -10,7 +10,7 @@ local conf = {
 	coastLightBoost = 1.3,
 	tideAmplitude = 1.5,
 	tidePeriod = 150,
-	tideRhym = { { 0, 0.3, 5*6000 } },
+	tideRhythm = { { 0, 0.3, 5*6000 } },
 }
 
 return conf

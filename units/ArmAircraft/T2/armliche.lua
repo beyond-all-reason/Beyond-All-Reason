@@ -114,6 +114,9 @@ return {
 				weaponacceleration = 40,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					commanders = 3150,
 					default = 5625,

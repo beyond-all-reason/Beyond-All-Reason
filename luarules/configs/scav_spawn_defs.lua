@@ -383,6 +383,7 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 4,
 			["corkarg_scav"] = 4,
+			["legeallterrainmech_scav"] = 4,
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
@@ -390,6 +391,7 @@ local LandUnitsList = {
 			["legkeres_scav"] = 4,
 			["legeshotgunmech_scav"] = 2,
 			["legbunk_scav"] = 2,
+			["legehovertank_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -991,6 +993,7 @@ local AirUnitsList = {
 			["legstronghold_scav"] = 2,
 			["legvenator_scav"] = 3,
 			["legionnaire_scav"] = 3,
+			["legafigdef_scav"] = 3,
 			["legnap_scav"] = 3,
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
@@ -1201,6 +1204,7 @@ local Turrets = {
 		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["legjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legjam_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
@@ -2254,7 +2258,7 @@ addNewSquad({
 	maxAnger = tierConfiguration[5].maxAnger,
 	minAnger = tierConfiguration[5].minAnger,
 	units = {
-		{coun = 3, unit = "armmart_scav"},
+		{count = 3, unit = "armmart_scav"},
 		{count = 1, unit = "armmerl_scav"},
 		{count = 1, unit = "armyork_scav"},
 		{count = 3, unit = "cormart_scav"},

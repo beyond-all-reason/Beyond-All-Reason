@@ -28,9 +28,9 @@ return {
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 2,
-			buildinggrounddecalsizey = 2,
-			buildinggrounddecaltype = "decals/coruwadves_aoplane.dds",
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecaltype = "decals/legadvestore_aoplane.dds",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

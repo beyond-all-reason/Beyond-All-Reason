@@ -122,12 +122,18 @@ bind sc_z buildunit_armamex
 bind Shift+sc_z buildunit_armamex
 bind sc_z buildunit_cormex
 bind Shift+sc_z buildunit_cormex
+bind sc_z buildunit_legmex
+bind Shift+sc_z buildunit_legmex
+bind sc_z buildunit_legmext15
+bind Shift+sc_z buildunit_legmext15
 bind sc_z buildunit_corexp
 bind Shift+sc_z buildunit_corexp
 bind sc_z buildunit_armmoho
 bind Shift+sc_z buildunit_armmoho
 bind sc_z buildunit_cormoho
 bind Shift+sc_z buildunit_cormoho
+bind sc_z buildunit_legmoho
+bind Shift+sc_z buildunit_legmoho
 bind sc_z buildunit_cormexp
 bind Shift+sc_z buildunit_cormexp
 bind sc_z buildunit_coruwmme
@@ -145,20 +151,28 @@ bind sc_x buildunit_corsolar
 bind Shift+sc_x buildunit_corsolar
 bind sc_x buildunit_corwin
 bind Shift+sc_x buildunit_corwin
+bind sc_x buildunit_legsolar
+bind Shift+sc_x buildunit_legsolar
+bind sc_x buildunit_legwin
+bind Shift+sc_x buildunit_legwin
 bind sc_x buildunit_armadvsol
 bind Shift+sc_x buildunit_armadvsol
 bind sc_x buildunit_coradvsol
 bind Shift+sc_x buildunit_coradvsol
+bind sc_x buildunit_legadvsol
+bind Shift+sc_x buildunit_legadvsol
 bind sc_x buildunit_armfus
 bind Shift+sc_x buildunit_armfus
 bind sc_x buildunit_armmmkr
 bind Shift+sc_x buildunit_armmmkr
 bind sc_x buildunit_corfus
 bind Shift+sc_x buildunit_corfus
-bind sc_x buildunit_legfus
-bind Shift+sc_x buildunit_legfus
 bind sc_x buildunit_cormmkr
 bind Shift+sc_x buildunit_cormmkr
+bind sc_x buildunit_legfus
+bind Shift+sc_x buildunit_legfus
+bind sc_x buildunit_legadveconv
+bind Shift+sc_x buildunit_legadveconv
 bind sc_x buildunit_armtide
 bind Shift+sc_x buildunit_armtide
 bind sc_x buildunit_cortide
@@ -177,6 +191,8 @@ bind sc_c buildunit_armrad
 bind Shift+sc_c buildunit_armrad
 bind sc_c buildunit_corllt
 bind Shift+sc_c buildunit_corllt
+bind sc_c buildunit_leglht
+bind Shift+sc_c buildunit_leglht
 bind sc_c buildunit_corrad
 bind Shift+sc_c buildunit_corrad
 bind sc_c buildunit_legrad
@@ -195,6 +211,10 @@ bind sc_c buildunit_corvipe
 bind Shift+sc_c buildunit_corvipe
 bind sc_c buildunit_corflak
 bind Shift+sc_c buildunit_corflak
+bind sc_c buildunit_legapopupdef
+bind Shift+sc_c buildunit_legapopupdef
+bind sc_c buildunit_legflak
+bind Shift+sc_c buildunit_legflak
 bind sc_c buildunit_armgplat
 bind Shift+sc_c buildunit_armgplat
 bind sc_c buildunit_corgplat
@@ -235,6 +255,14 @@ bind sc_v buildunit_corvp
 bind Shift+sc_v buildunit_corvp
 bind sc_v buildunit_corap
 bind Shift+sc_v buildunit_corap
+bind sc_v buildunit_legnanotc
+bind Shift+sc_v buildunit_legnanotc
+bind sc_v buildunit_leglab
+bind Shift+sc_v buildunit_leglab
+bind sc_v buildunit_legvp
+bind Shift+sc_v buildunit_legvp
+bind sc_v buildunit_legap
+bind Shift+sc_v buildunit_legap
 bind sc_v buildunit_armsy
 bind Shift+sc_v buildunit_armsy
 bind sc_v buildunit_corsy
@@ -266,7 +294,9 @@ bind Ctrl+Shift+sc_o cameraflip
 
 //if not WG[bind Set target default ] then
 bind Alt+sc_y settarget
+bind Shift+Alt+sc_y settarget
 bind sc_y settargetnoground
+bind Shift+sc_y settargetnoground
 
 bind Ctrl+meta+sc_q group unset
 // if WG[bind Auto Group ] then

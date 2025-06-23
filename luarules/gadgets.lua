@@ -19,7 +19,7 @@
 
 local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
 if Spring.IsDevLuaEnabled() then
-	VFSMODE = VFS.RAW_ONLY
+	VFSMODE = VFS.RAW_FIRST
 end
 
 VFS.Include('init.lua', nil, VFSMODE)

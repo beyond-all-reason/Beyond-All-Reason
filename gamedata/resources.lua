@@ -16,8 +16,9 @@ local resources = {
 			radarfx2ground   = 'ui/radarping2.png',
 			scar50glow		 = 'projectiletextures/decal_scar_50_glow.tga',
 			centersplatsh    = 'default/centersplatsh_white.tga',
+			barshockwave     = 'default/BARshockwave1.tga',
 		 },
-		 projectiletextures = {
+		 projectiletextures  = {
 			circularthingy    = 'default/circularthingy.tga',
 			circles           = 'default/circles.tga',
 			gfxtexture        = 'projectiletextures/nanopart.tga',

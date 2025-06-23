@@ -25,9 +25,6 @@ local alwaysDisplayName = true
 local playerChangeDelay = 40
 local widgetHeight = 22
 
-
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local parentPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
@@ -60,6 +57,8 @@ local math_isInRect = math.isInRect
 local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
+
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local aiTeams = {}
 local teamColorKeys = {}
@@ -144,7 +143,7 @@ local function createCountdownLists()
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
+			font:SetTextColor(0, 0, 0, 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
@@ -160,8 +159,8 @@ local function refreshUiDrawing()
 		gl.DeleteList(drawlist[i])
 	end
 
-	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
-	local mult = useRenderToTexture and 1.33 or 1
+	local buttonOpacity = 0.66
+	local mult = 1
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
@@ -582,7 +581,7 @@ local function drawContent()
 						end
 						font2:Begin()
 						font2:SetTextColor(r, g, b, 1)
-						if (r + g * 1.2 + b * 0.4) < 0.65 then
+						if ColorIsDark(r, g, b) then
 							font2:SetOutlineColor(1, 1, 1, 1)
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
@@ -610,33 +609,30 @@ function widget:DrawScreen()
 		if useRenderToTexture then
 			if right-left >= 1 and top-bottom >= 1 then
 				uiTexTopExtra = math.floor(vsy*0.06)
-				uiTexLeftExtra = math.floor(vsy*0.06)
+				uiTexLeftExtra = math.floor(vsy*0.08)
 				if not uiTex then
-					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
 					})
 				end
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-					gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
-					drawContent()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+						gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+						drawContent()
+					end,
+					useRenderToTexture
+				)
 			end
 		end
 	end
 
 	if useRenderToTexture then
 		if uiTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, useRenderToTexture)
 		end
 	else
 		drawContent()
@@ -705,6 +701,36 @@ local function togglePlayerView(state)
 	updateDrawing = true
 end
 
+local function playerviewCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID then
+			Spring.SendCommands("specteam " .. teamID)
+		end
+	end
+	togglePlayerView()
+end
+
+local function playercameraCmd(_, _, params)
+	togglePlayerCamera()
+end
+
+local function playertvCmd(_, _, params)
+	if params[1] then
+		local playerID = tonumber(params[1])
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
+			Spring.SendCommands("specteam " .. teamID)
+			WG.lockcamera.SetPlayerID(playerID)
+		else
+			togglePlayerTV()
+		end
+	else
+		togglePlayerTV()
+	end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	isSpec, fullview = Spring.GetSpectatingState()
@@ -755,6 +781,10 @@ function widget:Initialize()
 	WG['playertv'].SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
+
+	widgetHandler:AddAction("playerview", playerviewCmd, nil, 't')
+	widgetHandler:AddAction("playercamera", playercameraCmd, nil, 't')
+	widgetHandler:AddAction("playertv", playertvCmd, nil, 't')
 end
 
 function widget:MousePress(mx, my, mb)
@@ -792,9 +822,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 2)
-	font = WG['fonts'].getFont(nil, 1.4, 0.4 * (useRenderToTexture and outlineMult or 1), 1+(outlineMult*0.2))
-	font2 = WG['fonts'].getFont(fontfile2, 2.5, 0.4 * (useRenderToTexture and 1.2*outlineMult or 1), 1+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2, 2)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
@@ -815,7 +844,7 @@ function widget:ViewResize()
 	end
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 
@@ -824,43 +853,6 @@ function widget:ViewResize()
 	createCountdownLists()
 end
 
-function widget:TextCommand(command)
-	if string.sub(command, 1, 10) == 'playerview' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID then
-				Spring.SendCommands("specteam " .. teamID)
-			end
-		end
-		togglePlayerView()
-	end
-	if string.sub(command, 1, 12) == 'playercamera' then
-		togglePlayerCamera()
-	end
-	if string.sub(command, 1, 8) == 'playertv' then
-		local words = {}
-		for w in command:gmatch("%S+") do
-			words[#words+1] = w
-		end
-		if #words > 1 then
-			local playerID = tonumber(words[#words])
-			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
-				Spring.SendCommands("specteam " .. teamID)
-				WG.lockcamera.SetPlayerID(playerID)
-			else
-				togglePlayerTV()
-			end
-		else
-			togglePlayerTV()
-		end
-	end
-end
 
 function widget:Shutdown()
 	for i = 1, #drawlistsCountdown do
@@ -879,12 +871,16 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	if toggled and WG.lockcamera then
 		WG.lockcamera.SetPlayerID()
 	end
+
+	widgetHandler:RemoveAction("playerview")
+	widgetHandler:RemoveAction("playercamera")
+	widgetHandler:RemoveAction("playertv")
 end
 
 function widget:GetConfigData(data)

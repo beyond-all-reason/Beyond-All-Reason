@@ -16,7 +16,7 @@ local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
 
-local LuaShader = VFS.Include("LuaUI/Include/LuaShader.lua")
+local LuaShader = gl.LuaShader
 local shieldShader
 local checkStunned = true
 
@@ -143,10 +143,6 @@ function ShieldSphereColorParticle:EndDraw()
 		shieldShader:SetUniformFloat("gameFrame", gf)
 		shieldShader:SetUniformMatrix("viewMat", "view")
 		shieldShader:SetUniformMatrix("projMat", "projection")
-		
-		local shieldShader_SetUniformInt = shieldShader.SetUniformInt		
-		local shieldShader_SetUniformFloat = shieldShader.SetUniformFloat
-		
 
 		for _, rb in pairs(renderBuckets) do
 			
@@ -161,8 +157,6 @@ function ShieldSphereColorParticle:EndDraw()
 				glUniform(uniformLocations["translationScale"], posx, posy, posz, info.radius)
 				glUniform(uniformLocations["rotMargin"], pitch, yaw, roll, info.margin)
 
-				local optionX = info.optionX -- bitmask field
-				
 				if not info.optionX then 
 					local optionX = 0
 					optionX = EncodeBitmaskField(optionX, info.terrainOutline and canOutline, 1)

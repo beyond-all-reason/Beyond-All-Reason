@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
 		desc      = "lava",
-		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
+		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
 		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -3,
@@ -23,10 +23,13 @@ if gadgetHandler:IsSyncedCode() then
 	local tideIndex = 1
 	local tideContinueFrame = 0
 	local gameframe = 0
-	local tideRhym = {}
+	local tideRhythm = {}
+	local lavaUnits = {}
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
+
+	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -53,43 +56,118 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
+	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
+	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
-	local min = math.min
+	local clamp = math.clamp
 
-	local function addTideRhym (targetLevel, speed, remainTime)
+	local unitMoveDef = {}
+	local canFly = {}
+	local unitHeight = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
+		if unitDef.canFly then
+			canFly[unitDefID] = true
+		end
+		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
+	end
+	local geoThermal = {}
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		if featureDef.geoThermal then
+			geoThermal[featureDefID] = true
+		end
+	end
+
+	local function addTideRhythm (targetLevel, speed, remainTime)
 		local newTide = {}
 		newTide.targetLevel = targetLevel
 		newTide.speed = speed
 		newTide.remainTime = remainTime
-		table.insert (tideRhym, newTide)
+		table.insert (tideRhythm, newTide)
 	end
 
-	for _, rhym in ipairs(lava.tideRhym) do
-		addTideRhym(unpack(rhym))
+	for _, rhythm in ipairs(lava.tideRhythm) do
+		addTideRhythm(unpack(rhythm))
 	end
 
 	function updateLava()
-		if (lavaGrow < 0 and lavaLevel < tideRhym[tideIndex].targetLevel)
-			or (lavaGrow > 0 and lavaLevel > tideRhym[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhym[tideIndex].remainTime*30
+		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
+			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
+			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*30
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
 
 		if gameframe == tideContinueFrame then
 			tideIndex = tideIndex + 1
-			if tideIndex > table.getn(tideRhym) then
+			if tideIndex > table.getn(tideRhythm) then
 				tideIndex = 1
 			end
-			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhym[tideIndex].targetLevel )
-			if lavaLevel < tideRhym[tideIndex].targetLevel then
-				lavaGrow = tideRhym[tideIndex].speed
+			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
+			if lavaLevel < tideRhythm[tideIndex].targetLevel then
+				lavaGrow = tideRhythm[tideIndex].speed
 			else
-				lavaGrow = -tideRhym[tideIndex].speed
+				lavaGrow = -tideRhythm[tideIndex].speed
 			end
 		end
 		_G.lavaGrow = lavaGrow
+	end
+
+	-- slow down and damage unit+features in lava
+	function lavaObjectsCheck()
+		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local all_units = spGetAllUnits()
+		for _, unitID in ipairs(all_units) do
+			local UnitDefID = spGetUnitDefID(unitID)
+			if not canFly[UnitDefID] then
+				local x,y,z = spGetUnitBasePosition(unitID)
+				if y and y < lavaLevel then
+					local us = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
+						local ms = UnitDefs[UnitDefID].speed
+						local tr = UnitDefs[UnitDefID].turnRate
+						local ar = UnitDefs[UnitDefID].maxAcc
+						lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+					else -- Already in lava just update slow factor
+						lavaUnits[unitID].unitSlow = us
+					end
+					if lavaUnits[unitID].slowed and lavaUnits[unitID].slowed == true then
+						local unitSlow = lavaUnits[unitID].unitSlow
+						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
+						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow
+						local slowedAccRate = lavaUnits[unitID].orgAccRate * unitSlow
+						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+					end
+				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+				spSpawnCEG(lavaEffectDamage, x, y+5, z)
+				elseif lavaUnits[unitID] then 
+					if lavaUnits[unitID].slowed then
+						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
+					end
+				lavaUnits[unitID] = nil
+				end
+			end
+		end
+		if lavaDamageFeatures then
+			local all_features = Spring.GetAllFeatures()
+			for _, featureID in ipairs(all_features) do
+				local FeatureDefID = spGetFeatureDefID(featureID)
+				if not geoThermal[FeatureDefID] then
+					x,y,z = spGetFeaturePosition(featureID)
+					if (y and y < lavaLevel) then
+						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
+						reclaimLeft = reclaimLeft - lavaDamageFeatures
+						if reclaimLeft <= 0 then
+							spDestroyFeature(featureID)
+						else
+							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
+						end
+						spSpawnCEG(lavaEffectDamage, x, y+5, z)
+					end
+				end
+			end
+		end
 	end
 
 	function gadget:Initialize()
@@ -102,13 +180,13 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetGameRulesParam("lavaLevel", -99999)
 	end
 
-	function gadget:GameFrame (f)
+	function gadget:GameFrame(f)
 		gameframe = f
 		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
-		--_G.lavaLevel = lavaLevel + math.clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 --clamp to avoid jittering when sin(x) is around +-1
+		--_G.lavaLevel = lavaLevel + clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 -- clamp to avoid jittering when sin(x) is around +-1
 
 		if f % DAMAGE_RATE == 0 then
-			lavaDeathCheck()
+			lavaObjectsCheck()
 		end
 
 		updateLava()
@@ -123,7 +201,7 @@ if gadgetHandler:IsSyncedCode() then
 			if lavaEffectBurst then
 				local x = random(1, mapSizeX)
 				local z = random(1, mapSizeY)
-				local y = Spring.GetGroundHeight(x, z)
+				local y = spGetGroundHeight(x, z)
 
 				if y < lavaLevel then
 					spSpawnCEG(lavaEffectBurst, x, lavaLevel+5, z)
@@ -143,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 					if random(1, 3) == 1 then
 						local x = random(1, mapSizeX)
 						local z = random(1, mapSizeY)
-						local y = Spring.GetGroundHeight(x,z)
+						local y = spGetGroundHeight(x,z)
 						if y < lavaLevel then
 							local soundIndex = random(1, #lavaAmbientSounds)
 							local sound = lavaAmbientSounds[soundIndex]
@@ -176,40 +254,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- end
 	end
 
-	function lavaDeathCheck ()
-		local gaiaTeamID = Spring.GetGaiaTeamID()
-		local all_units = spGetAllUnits()
-		for _, unitID in ipairs(all_units) do
-			local UnitDefID = spGetUnitDefID(unitID)
-			if not UnitDefs[UnitDefID].canFly then
-				x,y,z = spGetUnitBasePosition(unitID)
-				if y and y < lavaLevel then
-					spAddUnitDamage (unitID, lavaDamage, 0, gaiaTeamID, 1)
-					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-				end
-			end
-		end
-		if lavaDamageFeatures then
-			local all_features = Spring.GetAllFeatures()
-			for _, featureID in ipairs(all_features) do
-				local FeatureDefID = spGetFeatureDefID(featureID)
-				if not FeatureDefs[FeatureDefID].geoThermal then
-					x,y,z = spGetFeaturePosition(featureID)
-					if (y and y < lavaLevel) then
-						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
-						reclaimLeft = reclaimLeft - lavaDamageFeatures
-						if reclaimLeft <= 0 then
-							spDestroyFeature(featureID)
-						else
-							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
-						end
-						spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					end
-				end
-			end
-		end
-	end
-
 	local DAMAGE_EXTSOURCE_WATER = -5
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
@@ -217,15 +261,17 @@ if gadgetHandler:IsSyncedCode() then
 			   -- not water damage, do not modify
 			   return damage, 1.0
 		end
-		local unitDef = UnitDefs[unitDefID]
-		local moveDef = unitDef.moveDef
-		if moveDef == nil or moveDef.family ~= "hover" then
-			  -- not a hovercraft, do not modify
-			  return damage, 1.0
+		local moveDef = unitMoveDef[unitDefID]
+		if moveDef == nil or moveDef.family ~= "hover" then -- Out of date use of family to be removed post GDT discussion
+			-- not a hovercraft, do not modify
+			return damage, 1.0
 		end
 		return 0.0, 1.0
 	end
 
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
+		lavaUnits[unitID] = nil
+	end
 
 else  -- UNSYCNED
 
@@ -255,10 +301,9 @@ else  -- UNSYCNED
 
 
 	local autoreload = false -- set to true to reload the shader every time it is edited
-	local luaShaderDir = "LuaUI/Include/"
-	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-	VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the plane maker func of this
 
+	local LuaShader = gl.LuaShader
+	local InstanceVBOTable = gl.InstanceVBOTable
 
 	local unifiedShaderConfig = {
 		-- for lavaplane
@@ -376,8 +421,8 @@ else  -- UNSYCNED
 		-- numverts = 128 * 384 * 384 *2 tris then we will get 280k tris ....
 		local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 		local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-		local vertexBuffer, vertexBufferSize = makePlaneVBO(1, 1,  xsquares, zsquares)
-		local indexBuffer, indexBufferSize = makePlaneIndexVBO(xsquares, zsquares)
+		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1,  xsquares, zsquares)
+		local indexBuffer, indexBufferSize = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)

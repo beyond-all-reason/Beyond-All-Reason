@@ -1,0 +1,506 @@
+
+#include "../recoil_common_includes.h"
+
+piece 
+uplegr,
+uplegl,
+tubesr,
+tubesl,
+torso,
+Rotatingtorus,
+railtop,
+railgun,
+railbot,
+railarmbase,
+railarm,
+pelvis,
+gunBase,
+gunBarrel,
+footr,
+footl,
+botlegr,
+botlegl,
+pelvisFlare,
+torsoFlare,
+minigunBaseFlare,
+railArmFlare,
+radarDish,
+radarFlare,
+gunFlare,
+railFlare;
+
+static-var  isMoving;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+
+#define SIGNAL_MOVE 1
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:1
+			turn botlegl to x-axis <-2.509704> speed <21.621605> / animSpeed; 
+			turn botlegr to x-axis <15.135908> speed <16.362179> / animSpeed; 
+			turn footl to x-axis <25.560064> speed <38.556332> / animSpeed; 
+			turn footr to x-axis <-20.985275> speed <48.114055> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-9.212510> speed <16.508559> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-5.600146> speed <4.282439> / animSpeed; 
+			move pelvisFlare to y-axis [0.587442] speed [5.718976] / animSpeed; 
+			turn railArmFlare to x-axis <-9.212510> speed <16.508559> / animSpeed; 
+			turn railArmFlare to y-axis <-5.600146> speed <4.282439> / animSpeed; 
+			turn torsoFlare to x-axis <7.315086> speed <6.267245> / animSpeed; 
+			turn torsoFlare to y-axis <5.589323> speed <4.379564> / animSpeed; 
+			turn tubesl to x-axis <-14.429739> speed <53.242230> / animSpeed; 
+			turn tubesr to x-axis <-5.506127> speed <9.743739> / animSpeed; 
+			turn uplegl to x-axis <-8.620202> speed <6.934264> / animSpeed; 
+			turn uplegr to x-axis <11.355952> speed <22.011019> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:6
+			turn botlegl to x-axis <-6.113305> speed <108.108023> / animSpeed; 
+			turn botlegr to x-axis <17.862936> speed <81.810845> / animSpeed; 
+			turn footl to x-axis <19.134007> speed <192.781714> / animSpeed; 
+			turn footr to x-axis <-29.004282> speed <240.570225> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-11.963935> speed <82.542768> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-4.886405> speed <21.412220> / animSpeed; 
+			move pelvisFlare to y-axis [-0.365721] speed [28.594875] / animSpeed; 
+			turn railArmFlare to x-axis <-11.963935> speed <82.542768> / animSpeed; 
+			turn railArmFlare to y-axis <-4.886405> speed <21.412220> / animSpeed; 
+			turn torsoFlare to x-axis <6.270545> speed <31.336251> / animSpeed; 
+			turn torsoFlare to y-axis <4.859394> speed <21.897860> / animSpeed; 
+			turn tubesl to x-axis <-5.556038> speed <266.211033> / animSpeed; 
+			turn tubesl to z-axis <0.137091> speed <3.236736> / animSpeed; 
+			turn tubesr to x-axis <-3.882170> speed <48.718719> / animSpeed; 
+			turn uplegl to x-axis <-7.464491> speed <34.671321> / animSpeed; 
+			turn uplegr to x-axis <15.024454> speed <110.055069> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			turn botlegl to x-axis <-5.977785> speed <4.065598> / animSpeed; 
+			turn botlegr to x-axis <-10.323688> speed <845.598721> / animSpeed; 
+			turn botlegr to z-axis <-0.026841> speed <5.050745> / animSpeed; 
+			turn footl to x-axis <9.339340> speed <293.839989> / animSpeed; 
+			turn footr to x-axis <-22.153213> speed <205.532072> / animSpeed; 
+			turn footr to y-axis <0.046502> speed <8.572213> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-14.491797> speed <75.835846> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-2.135184> speed <82.536621> / animSpeed; 
+			move pelvisFlare to y-axis [-0.997578] speed [18.955708] / animSpeed; 
+			turn railArmFlare to x-axis <-14.491797> speed <75.835846> / animSpeed; 
+			turn railArmFlare to y-axis <-2.135184> speed <82.536621> / animSpeed; 
+			turn torsoFlare to x-axis <12.210394> speed <178.195478> / animSpeed; 
+			turn torsoFlare to y-axis <2.125834> speed <82.006805> / animSpeed; 
+			turn tubesl to x-axis <1.400105> speed <208.684286> / animSpeed; 
+			turn tubesl to z-axis <0.033499> speed <3.107770> / animSpeed; 
+			turn tubesr to x-axis <31.344687> speed <1056.805719> / animSpeed; 
+			turn tubesr to z-axis <0.378277> speed <5.371005> / animSpeed; 
+			turn tubesr to y-axis <-0.192239> speed <10.962076> / animSpeed; 
+			turn uplegl to x-axis <-4.761619> speed <81.086145> / animSpeed; 
+			turn uplegr to x-axis <1.131673> speed <416.783423> / animSpeed; 
+			turn uplegr to z-axis <-0.102954> speed <6.091817> / animSpeed; 
+			turn uplegr to y-axis <-0.007971> speed <3.524542> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:18
+			turn botlegl to x-axis <0.313200> speed <188.729547> / animSpeed; 
+			turn botlegr to x-axis <-32.715722> speed <671.760998> / animSpeed; 
+			turn botlegr to z-axis <-0.266945> speed <7.203123> / animSpeed; 
+			turn botlegr to y-axis <-0.288392> speed <7.447608> / animSpeed; 
+			turn footl to x-axis <-0.857277> speed <305.898513> / animSpeed; 
+			turn footr to x-axis <5.460932> speed <828.424347> / animSpeed; 
+			turn footr to z-axis <-0.374469> speed <5.259899> / animSpeed; 
+			turn footr to y-axis <0.283384> speed <7.106450> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-12.656632> speed <55.054953> / animSpeed; 
+			turn minigunBaseFlare to z-axis <0.218329> speed <13.436865> / animSpeed; 
+			turn minigunBaseFlare to y-axis <1.474556> speed <108.292204> / animSpeed; 
+			move pelvisFlare to y-axis [-0.233025] speed [22.936592] / animSpeed; 
+			turn railArmFlare to x-axis <-12.656632> speed <55.054953> / animSpeed; 
+			turn railArmFlare to z-axis <0.218329> speed <13.436865> / animSpeed; 
+			turn railArmFlare to y-axis <1.474556> speed <108.292204> / animSpeed; 
+			turn torsoFlare to x-axis <16.983202> speed <143.184244> / animSpeed; 
+			turn torsoFlare to z-axis <0.222736> speed <13.504298> / animSpeed; 
+			turn torsoFlare to y-axis <-1.491778> speed <108.528371> / animSpeed; 
+			turn tubesl to x-axis <0.178683> speed <36.642633> / animSpeed; 
+			turn tubesr to x-axis <40.457280> speed <273.377775> / animSpeed; 
+			turn uplegl to x-axis <0.365394> speed <153.810390> / animSpeed; 
+			turn uplegl to z-axis <0.009544> speed <3.475112> / animSpeed; 
+			turn uplegr to x-axis <-13.202393> speed <430.021988> / animSpeed; 
+			turn uplegr to z-axis <0.174436> speed <8.321696> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:24
+			turn botlegl to x-axis <9.034044> speed <261.625311> / animSpeed; 
+			turn botlegr to x-axis <-28.646362> speed <122.080803> / animSpeed; 
+			turn botlegr to y-axis <-0.074797> speed <6.407853> / animSpeed; 
+			turn footl to x-axis <-10.636666> speed <293.381687> / animSpeed; 
+			turn footr to x-axis <36.675695> speed <936.442884> / animSpeed; 
+			turn footr to z-axis <0.005767> speed <11.407090> / animSpeed; 
+			turn footr to y-axis <-0.051180> speed <10.036907> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-9.082259> speed <107.231187> / animSpeed; 
+			turn minigunBaseFlare to z-axis <0.544009> speed <9.770406> / animSpeed; 
+			turn minigunBaseFlare to y-axis <4.471631> speed <89.912236> / animSpeed; 
+			move pelvisFlare to y-axis [0.857718] speed [32.722263] / animSpeed; 
+			turn railArmFlare to x-axis <-9.082259> speed <107.231187> / animSpeed; 
+			turn railArmFlare to z-axis <0.544009> speed <9.770406> / animSpeed; 
+			turn railArmFlare to y-axis <4.471631> speed <89.912236> / animSpeed; 
+			turn torsoFlare to x-axis <13.958866> speed <90.730081> / animSpeed; 
+			turn torsoFlare to z-axis <0.553534> speed <9.923937> / animSpeed; 
+			turn torsoFlare to y-axis <-4.519285> speed <90.825199> / animSpeed; 
+			turn tubesl to x-axis <-4.575960> speed <142.639302> / animSpeed; 
+			turn tubesr to x-axis <10.379150> speed <902.343890> / animSpeed; 
+			turn tubesr to z-axis <-0.074397> speed <14.507163> / animSpeed; 
+			turn tubesr to y-axis <-0.085640> speed <4.314914> / animSpeed; 
+			turn uplegl to x-axis <6.178653> speed <174.397774> / animSpeed; 
+			turn uplegl to z-axis <0.117097> speed <3.226577> / animSpeed; 
+			turn uplegr to x-axis <-18.407785> speed <156.161765> / animSpeed; 
+			turn uplegr to z-axis <0.341300> speed <5.005924> / animSpeed; 
+			turn uplegr to y-axis <0.153840> speed <3.873201> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:30
+			turn botlegl to x-axis <15.051758> speed <180.531428> / animSpeed; 
+			turn botlegr to x-axis <-1.990027> speed <799.690027> / animSpeed; 
+			turn botlegr to z-axis <-0.055360> speed <5.366716> / animSpeed; 
+			turn footl to x-axis <-20.164561> speed <285.836834> / animSpeed; 
+			turn footr to x-axis <26.183247> speed <314.773434> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-8.733054> speed <10.476136> / animSpeed; 
+			turn minigunBaseFlare to z-axis <0.369542> speed <5.234006> / animSpeed; 
+			turn minigunBaseFlare to y-axis <5.751095> speed <38.383930> / animSpeed; 
+			move pelvisFlare to y-axis [0.747824] speed [3.296814] / animSpeed; 
+			turn railArmFlare to x-axis <-8.733054> speed <10.476136> / animSpeed; 
+			turn railArmFlare to z-axis <0.369542> speed <5.234006> / animSpeed; 
+			turn railArmFlare to y-axis <5.751095> speed <38.383930> / animSpeed; 
+			turn torsoFlare to x-axis <7.333324> speed <198.766266> / animSpeed; 
+			turn torsoFlare to z-axis <0.368270> speed <5.557927> / animSpeed; 
+			turn torsoFlare to y-axis <-5.741993> speed <36.681253> / animSpeed; 
+			turn tubesl to x-axis <-5.935379> speed <40.782569> / animSpeed; 
+			turn tubesr to x-axis <-15.525512> speed <777.139863> / animSpeed; 
+			turn tubesr to z-axis <-0.256641> speed <5.467317> / animSpeed; 
+			turn uplegl to x-axis <11.048575> speed <146.097657> / animSpeed; 
+			turn uplegr to x-axis <-8.667271> speed <292.215420> / animSpeed; 
+			turn uplegr to z-axis <0.236743> speed <3.136718> / animSpeed; 
+			turn uplegr to y-axis <0.041581> speed <3.367750> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:36
+			turn botlegl to x-axis <15.503375> speed <13.548517> / animSpeed; 
+			turn botlegr to x-axis <-6.109468> speed <123.583223> / animSpeed; 
+			turn footl to x-axis <-29.255179> speed <272.718542> / animSpeed; 
+			turn footr to x-axis <18.303531> speed <236.391481> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-12.106573> speed <101.205551> / animSpeed; 
+			turn minigunBaseFlare to y-axis <4.814292> speed <28.104094> / animSpeed; 
+			move pelvisFlare to y-axis [-0.408875] speed [34.700947] / animSpeed; 
+			turn railArmFlare to x-axis <-12.106573> speed <101.205551> / animSpeed; 
+			turn railArmFlare to y-axis <4.814292> speed <28.104094> / animSpeed; 
+			turn torsoFlare to x-axis <6.391431> speed <28.256774> / animSpeed; 
+			turn torsoFlare to z-axis <0.267434> speed <3.025083> / animSpeed; 
+			turn torsoFlare to y-axis <-4.787055> speed <28.648157> / animSpeed; 
+			turn tubesl to x-axis <-0.527196> speed <162.245474> / animSpeed; 
+			turn tubesr to x-axis <-4.921399> speed <318.123373> / animSpeed; 
+			turn tubesr to z-axis <-0.126622> speed <3.900566> / animSpeed; 
+			turn uplegl to x-axis <14.279787> speed <96.936367> / animSpeed; 
+			turn uplegl to z-axis <0.309382> speed <3.133113> / animSpeed; 
+			turn uplegr to x-axis <-7.272509> speed <41.842866> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:42
+			turn botlegl to x-axis <-12.348595> speed <835.559111> / animSpeed; 
+			turn botlegl to z-axis <0.039525> speed <4.917242> / animSpeed; 
+			turn botlegr to x-axis <-5.694990> speed <12.434355> / animSpeed; 
+			turn footl to x-axis <-20.737429> speed <255.532489> / animSpeed; 
+			turn footl to z-axis <0.238184> speed <4.124636> / animSpeed; 
+			turn footl to y-axis <-0.064193> speed <8.504446> / animSpeed; 
+			turn footr to x-axis <8.469388> speed <295.024292> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-14.505387> speed <71.964436> / animSpeed; 
+			turn minigunBaseFlare to y-axis <2.008117> speed <84.185240> / animSpeed; 
+			move pelvisFlare to y-axis [-0.993231] speed [17.530689] / animSpeed; 
+			turn railArmFlare to x-axis <-14.505387> speed <71.964436> / animSpeed; 
+			turn railArmFlare to y-axis <2.008117> speed <84.185240> / animSpeed; 
+			turn torsoFlare to x-axis <12.472342> speed <182.427318> / animSpeed; 
+			turn torsoFlare to y-axis <-2.000107> speed <83.608425> / animSpeed; 
+			turn tubesl to x-axis <33.354177> speed <1016.441202> / animSpeed; 
+			turn tubesl to z-axis <-0.398338> speed <5.795109> / animSpeed; 
+			turn tubesl to y-axis <0.201585> speed <10.167963> / animSpeed; 
+			turn tubesr to x-axis <1.644555> speed <196.978630> / animSpeed; 
+			turn uplegl to x-axis <-0.268716> speed <436.455085> / animSpeed; 
+			turn uplegl to z-axis <0.067055> speed <7.269814> / animSpeed; 
+			turn uplegl to y-axis <0.012911> speed <3.517534> / animSpeed; 
+			turn uplegr to x-axis <-4.418921> speed <85.607644> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:48
+			turn botlegl to x-axis <-34.272957> speed <657.730850> / animSpeed; 
+			turn botlegl to z-axis <0.289633> speed <7.503252> / animSpeed; 
+			turn botlegl to y-axis <0.302817> speed <7.318863> / animSpeed; 
+			turn botlegr to x-axis <0.829950> speed <195.748181> / animSpeed; 
+			turn footl to x-axis <8.754259> speed <884.750637> / animSpeed; 
+			turn footl to z-axis <0.372287> speed <4.023086> / animSpeed; 
+			turn footl to y-axis <-0.281872> speed <6.530368> / animSpeed; 
+			turn footr to x-axis <-1.690710> speed <304.802939> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-12.522309> speed <59.492339> / animSpeed; 
+			turn minigunBaseFlare to z-axis <-0.238049> speed <13.754949> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-1.604629> speed <108.382372> / animSpeed; 
+			move pelvisFlare to y-axis [-0.187258] speed [24.179192] / animSpeed; 
+			turn railArmFlare to x-axis <-12.522309> speed <59.492339> / animSpeed; 
+			turn railArmFlare to z-axis <-0.238049> speed <13.754949> / animSpeed; 
+			turn railArmFlare to y-axis <-1.604629> speed <108.382372> / animSpeed; 
+			turn torsoFlare to x-axis <17.019546> speed <136.416107> / animSpeed; 
+			turn torsoFlare to z-axis <-0.243030> speed <13.848312> / animSpeed; 
+			turn torsoFlare to y-axis <1.624149> speed <108.727690> / animSpeed; 
+			turn tubesl to x-axis <39.781269> speed <192.812757> / animSpeed; 
+			turn tubesr to x-axis <0.057580> speed <47.609241> / animSpeed; 
+			turn uplegl to x-axis <-14.262255> speed <419.806185> / animSpeed; 
+			turn uplegl to z-axis <-0.195319> speed <7.871230> / animSpeed; 
+			turn uplegr to x-axis <0.803181> speed <156.663056> / animSpeed; 
+			turn uplegr to z-axis <-0.020130> speed <3.536179> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:54
+			turn botlegl to x-axis <-26.042401> speed <246.916666> / animSpeed; 
+			turn botlegl to y-axis <0.050252> speed <7.576948> / animSpeed; 
+			turn botlegr to x-axis <9.586197> speed <262.687414> / animSpeed; 
+			turn footl to x-axis <36.214107> speed <823.795451> / animSpeed; 
+			turn footl to z-axis <-0.024158> speed <11.893349> / animSpeed; 
+			turn footl to y-axis <0.059483> speed <10.240676> / animSpeed; 
+			turn footr to x-axis <-11.437679> speed <292.409046> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-8.988972> speed <106.000113> / animSpeed; 
+			turn minigunBaseFlare to z-axis <-0.544722> speed <9.200196> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-4.554917> speed <88.508648> / animSpeed; 
+			move pelvisFlare to y-axis [0.880838] speed [32.042885] / animSpeed; 
+			turn railArmFlare to x-axis <-8.988972> speed <106.000113> / animSpeed; 
+			turn railArmFlare to z-axis <-0.544722> speed <9.200196> / animSpeed; 
+			turn railArmFlare to y-axis <-4.554917> speed <88.508648> / animSpeed; 
+			turn torsoFlare to x-axis <13.719977> speed <98.987063> / animSpeed; 
+			turn torsoFlare to z-axis <-0.553835> speed <9.324170> / animSpeed; 
+			turn torsoFlare to y-axis <4.601165> speed <89.310476> / animSpeed; 
+			turn tubesl to x-axis <7.426385> speed <970.646507> / animSpeed; 
+			turn tubesl to z-axis <0.100877> speed <14.610490> / animSpeed; 
+			turn tubesl to y-axis <0.091896> speed <3.645707> / animSpeed; 
+			turn tubesr to x-axis <-4.765396> speed <144.689280> / animSpeed; 
+			turn uplegl to x-axis <-17.597479> speed <100.056696> / animSpeed; 
+			turn uplegl to z-axis <-0.332569> speed <4.117503> / animSpeed; 
+			turn uplegl to y-axis <-0.143244> speed <3.120957> / animSpeed; 
+			turn uplegr to x-axis <6.616957> speed <174.413289> / animSpeed; 
+			turn uplegr to z-axis <-0.126235> speed <3.183141> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:60
+			turn botlegl to x-axis <-2.180953> speed <715.843438> / animSpeed; 
+			turn botlegl to z-axis <0.054528> speed <4.687959> / animSpeed; 
+			turn botlegr to x-axis <15.509620> speed <177.702679> / animSpeed; 
+			turn footl to x-axis <25.512903> speed <321.036120> / animSpeed; 
+			turn footr to x-axis <-20.941927> speed <285.127451> / animSpeed; 
+			turn minigunBaseFlare to x-axis <-8.809703> speed <5.378082> / animSpeed; 
+			turn minigunBaseFlare to z-axis <-0.360807> speed <5.517467> / animSpeed; 
+			turn minigunBaseFlare to y-axis <-5.756145> speed <36.036851> / animSpeed; 
+			move pelvisFlare to y-axis [0.715935] speed [4.947109] / animSpeed; 
+			turn railArmFlare to x-axis <-8.809703> speed <5.378082> / animSpeed; 
+			turn railArmFlare to z-axis <-0.360807> speed <5.517467> / animSpeed; 
+			turn railArmFlare to y-axis <-5.756145> speed <36.036851> / animSpeed; 
+			turn torsoFlare to x-axis <7.151553> speed <197.052729> / animSpeed; 
+			turn torsoFlare to z-axis <-0.359345> speed <5.834712> / animSpeed; 
+			turn torsoFlare to y-axis <5.745622> speed <34.333713> / animSpeed; 
+			turn tubesl to x-axis <-14.850081> speed <668.293994> / animSpeed; 
+			turn tubesl to z-axis <0.246847> speed <4.379083> / animSpeed; 
+			turn tubesr to x-axis <-6.048022> speed <38.478801> / animSpeed; 
+			turn uplegl to x-axis <-8.481463> speed <273.480458> / animSpeed; 
+			turn uplegl to z-axis <-0.230284> speed <3.068571> / animSpeed; 
+			turn uplegl to y-axis <-0.039750> speed <3.104805> / animSpeed; 
+			turn uplegr to x-axis <11.480761> speed <145.914100> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+    move pelvisFlare to y-axis [0.778074] speed [57.834911] / animSpeed;
+    turn botlegl to x-axis <0> speed <1392.598519> / animSpeed;
+    turn botlegl to y-axis <0> speed <12.628247> / animSpeed;
+    turn botlegl to z-axis <0> speed <12.505420> / animSpeed;
+    turn botlegr to x-axis <0> speed <1409.331202> / animSpeed;
+    turn botlegr to y-axis <0> speed <12.412680> / animSpeed;
+    turn botlegr to z-axis <0> speed <12.005204> / animSpeed;
+    turn footl to x-axis <0> speed <1474.584396> / animSpeed;
+    turn footl to y-axis <0> speed <17.067793> / animSpeed;
+    turn footl to z-axis <0> speed <19.822248> / animSpeed;
+    turn footr to x-axis <0> speed <1560.738139> / animSpeed;
+    turn footr to y-axis <0> speed <16.728178> / animSpeed;
+    turn footr to z-axis <0> speed <19.011817> / animSpeed;
+    turn minigunBaseFlare to x-axis <0> speed <178.718644> / animSpeed;
+    turn minigunBaseFlare to y-axis <0> speed <180.637287> / animSpeed;
+    turn minigunBaseFlare to z-axis <0> speed <22.924915> / animSpeed;
+    turn railArmFlare to x-axis <0> speed <178.718644> / animSpeed;
+    turn railArmFlare to y-axis <0> speed <180.637287> / animSpeed;
+    turn railArmFlare to z-axis <0> speed <22.924915> / animSpeed;
+    turn torsoFlare to x-axis <0> speed <331.277109> / animSpeed;
+    turn torsoFlare to y-axis <0> speed <181.212816> / animSpeed;
+    turn torsoFlare to z-axis <0> speed <23.080519> / animSpeed;
+    turn tubesl to x-axis <0> speed <1694.068669> / animSpeed;
+    turn tubesl to y-axis <0> speed <16.946604> / animSpeed;
+    turn tubesl to z-axis <0> speed <24.350817> / animSpeed;
+    turn tubesr to x-axis <0> speed <1761.342866> / animSpeed;
+    turn tubesr to y-axis <0> speed <18.270126> / animSpeed;
+    turn tubesr to z-axis <0> speed <24.178605> / animSpeed;
+    turn uplegl to x-axis <0> speed <727.425141> / animSpeed;
+    turn uplegl to y-axis <0> speed <5.862556> / animSpeed;
+    turn uplegl to z-axis <0> speed <13.118716> / animSpeed;
+    turn uplegr to x-axis <0> speed <716.703313> / animSpeed;
+    turn uplegr to y-axis <0> speed <6.455335> / animSpeed;
+    turn uplegr to z-axis <0> speed <13.869494> / animSpeed;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed>11) animSpeed = 11;
+		sleep 193;
+	}
+}
+StartMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+    animSpeed = 3;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
+}
+
+
+Create()
+{
+	animSpeed = 3;
+	isMoving = FALSE;
+    turn radarFlare to x-axis <17> now;
+    turn railgun to x-axis <-70> now;
+    turn gunBase to x-axis <-35> now;
+    SLEEP_UNTIL_UNITFINISHED;
+    spin radarDish around y-axis speed <100> accelerate <5>;
+}
+
+
+#define BASEPIECE pelvis
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2;
+	sleep 5000;
+	set-signal-mask 0;
+	turn torso to y-axis <0.000000> speed <90>;
+
+	turn gunBase to x-axis <-35> speed <50>;
+    turn railarmbase to x-axis <0> speed <225>;
+    turn railarm to x-axis <0> speed <225>;
+    turn railgun to x-axis <-70> speed <225>;
+}
+
+AimWeapon1(heading, pitch){
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+    turn torso to y-axis heading speed <225>;
+	turn gunBase to x-axis <0> - pitch speed <225>;
+
+    turn railarmbase to x-axis <45> speed <225>;
+    turn railarm to x-axis <-45> speed <225>;
+	turn railgun to x-axis (<0> - pitch) speed <225>;
+    return (1);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = gunFlare;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = gunBarrel;
+}
+
+FireWeapon1(){
+    spin gunBarrel around z-axis speed <1200>;
+    
+    emit-sfx 1024 from gunFlare;
+    //wait-for-turn gunBarrel around z-axis;
+    stop-spin gunBarrel around z-axis decelerate <120>;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = railFlare;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = railgun;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+
+	turn torso to y-axis heading speed <225>;
+	turn gunBase to x-axis <0> - pitch speed <225>;
+
+    turn railarmbase to x-axis <45> speed <225>;
+    turn railarm to x-axis <-45> speed <225>;
+	turn railgun to x-axis (<0> - pitch) speed <225>;
+	//wait-for-turn torsoFlare around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon2()
+{
+    move railtop to y-axis [1] speed [200];
+    move railbot to y-axis [-1] speed [200];
+    //move railgun to z-axis [-5] speed [200];
+    emit-sfx 1024 + 1 from railFlare;
+    wait-for-move railtop along y-axis;
+    move railtop to y-axis [0] speed [2];
+    move railbot to y-axis [0] speed [2];
+    //move railgun to z-axis [0] speed [5];
+
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode uplegr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode pelvis type FALL | BITMAP2 | NOHEATCLOUD;
+		explode uplegr type FALL | BITMAP3 | NOHEATCLOUD;
+		explode uplegl type FALL | BITMAP4 | NOHEATCLOUD;
+		explode torso type FALL | BITMAP5 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode uplegr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode uplegl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode uplegr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode uplegl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	return corpsetype;
+}
