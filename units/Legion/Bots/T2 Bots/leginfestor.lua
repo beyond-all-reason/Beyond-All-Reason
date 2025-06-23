@@ -44,7 +44,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Hornet, Zath :3",
+			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
 			subfolder = "CorBots/T2",
@@ -123,7 +123,7 @@ return {
 				firestarter = 90,
 				impulsefactor = 0,
 				laserflaresize = 3.95,
-				name = "Qlose-Quarters g2g Heat Ray",
+				name = "Close-Quarters Light Heat Ray",
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 1,
