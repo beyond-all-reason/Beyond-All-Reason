@@ -114,12 +114,12 @@ local parameters = {
 		[4] = {
 			name = 'position',
 			required = true,
-			type = 'Vec2'
+			type = 'table'
 		},
 		[5] = {
 			name = 'facing',
 			required = true,
-			type = 'Direction'
+			type = 'string'
 		},
 		[6] = {
 			name = 'construction',
@@ -160,12 +160,12 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'Vec3'
+			type = 'table'
 		},
 		[2] = {
 			name = 'direction',
 			required = true,
-			type = 'Vec3'
+			type = 'table'
 		},
 		[3] = {
 			name = 'params',

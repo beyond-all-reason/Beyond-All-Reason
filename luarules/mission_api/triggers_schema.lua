@@ -107,7 +107,7 @@ local parameters = {
 		[2] = {
 			name = 'position',
 			required = true,
-			type = 'Vec2',
+			type = 'string',
 		},
 		[3] = {
 			name = 'width',
