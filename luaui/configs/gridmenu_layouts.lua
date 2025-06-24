@@ -202,9 +202,8 @@ local labGrids = {
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"legelrpcmech", "legeallterrainmech", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
-		"corjugg", "legehovertank", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
-		"legkeres","legerailtank","" -- keres, daedalus
+		"legjav", "legkeres", "legeallterrainmech", "legeheatraymech",        -- javelin, keres, myrmidon, sol invictus
+		"legelrpcmech", "legehovertank", "legeshotgunmech", "legerailtank",   -- astraeus, charybdis, praetorian, daedalus
 	},
 	-- T3 underwater labs
 	armshltxuw = {
