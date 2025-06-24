@@ -349,6 +349,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			sendTargetsToUnsynced(unitID)
+			SendToUnsynced("targetList", unitID, #unitTargets[unitID].targets + 1) -- ask to clear the last element since we made the table smaller
 		end
 	end
 
@@ -800,6 +801,10 @@ else	-- UNSYNCED
 		targetList[unitID] = targetList[unitID] or {}
 		if index == 1 then
 			targetList[unitID].targets = {}
+		end
+		if targetA == nil then
+			table.remove(targetList[unitID].targets, index)
+			return
 		end
 		targetList[unitID].targets[index] = {
 			alwaysSeen = alwaysSeen,
