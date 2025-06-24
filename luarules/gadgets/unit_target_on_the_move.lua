@@ -479,7 +479,7 @@ if gadgetHandler:IsSyncedCode() then
 							local target = targets[i]
 							orders[i+base] = {
 								CMD_UNIT_SET_TARGET,
-								{ target },
+								target,
 								optionKeys
 							}
 
