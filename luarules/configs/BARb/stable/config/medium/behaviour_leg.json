@@ -540,6 +540,13 @@
 				"role": ["artillery", "heavy"],
 				"power": 2.0
 			},
+			"legeallterrainmech": {
+				"role": ["artillery", "heavy"],
+				"attribute": ["siege"]
+			},
+			"legehovertank": {
+				"role": ["assault", "heavy"]
+			},
 
 			// LEGION T1 VEHICLE - legvp
 	

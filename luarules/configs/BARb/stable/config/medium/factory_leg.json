@@ -82,7 +82,7 @@
 		"require_energy": true,
 		"income_tier": [100, 150, 200, 250, 300],
 //Metal Cost		   	1200		2500		11000			2600		8000			7000				23500				20000		950
-		"unit":      [ 	"legjav", 	"corkarg", "legelrpcmech", 	"legkeres", "legerailtank", "legeshotgunmech", 	"legeheatraymech", 	"corsok"],
+		"unit":      [ 	"legjav", 	"legeallterrainmech", "legelrpcmech", 	"legkeres", "legerailtank", "legeshotgunmech", 	"legeheatraymech", 	"legehovertank"],
 		"land": {
 			"tier0": [ 	0.80, 		0.10,      0.00,      		0.10,     	0.00,      		0.00,				0.00,				0.00],
 			"tier1": [ 	0.50,		0.20,      0.00,      		0.30,     	0.00,      		0.00,				0.00,				0.00],
