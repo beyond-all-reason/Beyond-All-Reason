@@ -556,7 +556,7 @@
 				"role": ["skirmish", "heavy"]
 			},
 			"legehovertank": {
-				"role": ["assault", "heavy"]
+				"role": ["raider"]
 			},
 
 			// LEGION T1 VEHICLE - legvp
