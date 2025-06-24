@@ -799,27 +799,6 @@
 				"power": 1.0
 			},
 
-			"legaspy": {
-				"role": ["scout"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
-			},
-
-			"legaradk": {
-				"role": ["assault"],
-				"attribute": ["support"],
-				"limit": 1,
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
-			},
-			"legajamk": {
-				"role": ["assault"],
-				"attribute": ["support"],
-				"limit": 1,
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
-			},
-
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -858,17 +837,6 @@
 			"legelrpcmech": {
 				"role": ["artillery", "heavy"],
 				"attribute": ["siege"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
-			},
-			"legeallterrainmech": {
-				"role": ["artillery", "heavy"],
-				"attribute": ["siege"],
-				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
-			},
-			"legehovertank": {
-				"role": ["assault", "heavy"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
