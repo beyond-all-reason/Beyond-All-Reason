@@ -509,6 +509,10 @@
 				"role": ["anti_air"]
 			},
 
+			"legaspy": {
+				"role": ["scout"]
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {

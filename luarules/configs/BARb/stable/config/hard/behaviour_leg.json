@@ -704,6 +704,11 @@
 				"limit": 10
 			},
 
+			"legaspy": {
+				"role": ["scout"],
+				"limit": 3
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
