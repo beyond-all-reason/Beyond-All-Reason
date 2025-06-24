@@ -519,6 +519,11 @@
 			"legaspy": {
 				"role": ["scout"]
 			},
+			"legaradk": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1
+			},
 
 			// T3 LEGION EXPERIMENTAL - leggant
 			
