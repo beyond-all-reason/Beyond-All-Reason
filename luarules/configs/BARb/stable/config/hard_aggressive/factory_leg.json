@@ -193,7 +193,7 @@
 		"caretaker": 3
 	},	
 	"legfhp": {
-		"importance": [0.2, 0.0],	
+		"importance": [0.1, 0.0],	
 		"require_energy": false,	
 		"income_tier": [20, 30, 40],	
 		"unit":      ["legch", 	"legsh", "legner", "legmh", "legah", "legcar"],	
