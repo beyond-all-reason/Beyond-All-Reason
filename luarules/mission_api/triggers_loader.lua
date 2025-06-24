@@ -1,8 +1,9 @@
 local schema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local parameters = schema.Parameters
 
+-- Example trigger
 --[[
-	triggerID = {
+	myTriggerName = {
 		type = triggerTypes.TimeElapsed,
 		settings = { -- all individual settings, and settings table itself, are optional
 			prerequisites = {},
