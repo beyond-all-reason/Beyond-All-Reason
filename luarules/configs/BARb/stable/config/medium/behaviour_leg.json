@@ -547,8 +547,7 @@
 				"power": 2.0
 			},
 			"legeallterrainmech": {
-				"role": ["artillery", "heavy"],
-				"attribute": ["siege"]
+				"role": ["skirmish", "heavy"]
 			},
 			"legehovertank": {
 				"role": ["assault", "heavy"]

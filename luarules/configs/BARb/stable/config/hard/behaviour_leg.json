@@ -751,8 +751,7 @@
 				"threat": {"air": 0.0, "water": 0.0}
 			},
 			"legeallterrainmech": {
-				"role": ["artillery", "heavy"],
-				"attribute": ["siege"]
+				"role": ["skirmish", "heavy"]
 			},
 			"legehovertank": {
 				"role": ["assault", "heavy"]
