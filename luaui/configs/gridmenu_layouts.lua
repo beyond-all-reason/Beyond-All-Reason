@@ -194,12 +194,12 @@ local labGrids = {
 	},
 	-- T3 labs
 	armshltx = {
-		"armmar", "armraz", "armvang", "armthor",
-		"armbanth", "armlun"
+		"armmar", "armraz", "armvang", "armthor",        -- marauder, razorback, vanguard, thor
+		"armbanth", "armlun",                            -- titan, lunkhead
 	},
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok"
+		"corcat", "corkarg", "corshiva", "corkorg",      -- catapult, Karganeth, shiva, juggernaut
+		"corjugg", "corsok",                             -- behemoth, cataphract
 	},
 	leggant = {
 		"legjav", "legkeres", "legeallterrainmech", "legeheatraymech",        -- javelin, keres, myrmidon, sol invictus
