@@ -108,6 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local unitTargets = {} -- data holds all unitID data
+	local targetsCache = {} -- temporary cache to quickly test unit being in targets list
 	local pausedTargets = {}
 	--local needSend = {}
 	--------------------------------------------------------------------------------
@@ -282,6 +283,17 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
+	local function initUnitTargetList(unitID)
+		local currentTargets = {}
+		local data = unitTargets[unitID]
+		if data then
+			for i, targetData in ipairs(data.targets) do
+				currentTargets[targetData.target] = true
+			end
+		end
+		return currentTargets
+	end
+
 	local function addUnitTargets(unitID, unitDefID, targets, append, reason)
 		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
@@ -298,16 +310,15 @@ if gadgetHandler:IsSyncedCode() then
 			if not append then
 				data.targets = {}
 			end
-			local currentTargets = {}
-			for i, targetData in ipairs(data.targets) do
-				currentTargets[targetData.target] = true
-			end
+			local currentTargets = targetsCache[unitID] or initUnitTargetList(unitID)
+
 			for _, targetData in ipairs(targets) do
 				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
 					if checkTarget(unitID, targetData.target) then
 						targetData.sent = nil
 						data.targets[#data.targets + 1] = targetData
 					end
+					currentTargets[targetData.target] = true
 				end
 			end
 			if #data.targets == 0 then
@@ -489,7 +500,11 @@ if gadgetHandler:IsSyncedCode() then
 						-- This will re-call Gadget:AllowCommand for each order
 						-- At this point, we dont yet know how many orders will be allowed out of these
 						-- Its hard to tell which is going to be the last one, which is when we should be sending to unsynced. 
+						targetsCache[unitID] = initUnitTargetList(unitID)
+
 						spGiveOrderArrayToUnit(unitID, orders)
+
+						targetsCache[unitID] = nil
 						-- oh wait we DO know, we just need to wait here for the return. 
 						-- if we are coming from lua, then we are already 
 					end
