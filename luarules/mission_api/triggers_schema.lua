@@ -107,7 +107,7 @@ local parameters = {
 		[2] = {
 			name = 'position',
 			required = true,
-			type = 'string',
+			type = 'table',
 		},
 		[3] = {
 			name = 'width',
