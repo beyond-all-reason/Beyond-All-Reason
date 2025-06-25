@@ -221,9 +221,9 @@ local titanDefID = UnitDefNames['armbanth'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
 local juggernautDefID = UnitDefNames['corkorg'].id
 
-local starfallDefID = UnitDefNames['legstarfall'].id
-local astraeusDefID = UnitDefNames['legelrpcmech'].id
-local solinvictusDefID = UnitDefNames['legeheatraymech'].id
+local starfallDefID = UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id
+local astraeusDefID = UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id
+local solinvictusDefID = UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id
 
 local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
 local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
@@ -539,11 +539,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('RagnarokIsReady')
 		elseif unitDefID == buzzsawDefID then
 			queueNotification('CalamityIsReady')
-		elseif unitDefID == starfallDefID then
+		elseif UnitDefNames['legstarfall'] and unitDefID == starfallDefID then
 			queueNotification('StarfallIsReady')
-		elseif unitDefID == astraeusDefID then
+		elseif UnitDefNames['legelrpcmech'] and unitDefID == astraeusDefID then
 			queueNotification('AstraeusIsReady')
-		elseif unitDefID == solinvictusDefID then
+		elseif UnitDefNames['legeheatraymech'] and unitDefID == solinvictusDefID then
 			queueNotification('SolinvictusIsReady')
 		elseif unitDefID == juggernautDefID then
 			queueNotification('JuggernautIsReady')
