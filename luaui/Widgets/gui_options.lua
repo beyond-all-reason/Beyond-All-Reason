@@ -2487,7 +2487,7 @@ function init()
 		{ id = "label_gfx_environment", group = "gfx", name = Spring.I18N('ui.settings.option.label_environment'), category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
-		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 40000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
