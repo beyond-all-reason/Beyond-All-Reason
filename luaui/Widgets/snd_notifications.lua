@@ -141,6 +141,7 @@ local unitsOfInterestNames = {
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
+	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
 	armthovr = 'TransportDetected',
@@ -215,7 +216,14 @@ local tutorialPlayed = {}        -- store the number of times a tutorial event h
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
 local vulcanDefID = UnitDefNames['armvulc'].id
+local titanDefID = UnitDefNames['armbanth'].id
+
 local buzzsawDefID = UnitDefNames['corbuzz'].id
+local juggernautDefID = UnitDefNames['corkorg'].id
+
+local starfallDefID = UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id
+local astraeusDefID = UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id
+local solinvictusDefID = UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id
 
 local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
 local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
@@ -240,6 +248,7 @@ local isWind = {}
 local isAircraft = {}
 local isT2 = {}
 local isT3mobile = {}
+local isT4mobile = {}
 local isMine = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
@@ -252,6 +261,9 @@ for udefID, def in ipairs(UnitDefs) do
 			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
 				isT3mobile[udefID] = true
+			end
+			if def.customParams.techlevel == '4' and not def.isBuilding then
+				isT4mobile[udefID] = true --there are no units with this techlevel assigned, need to see which ones
 			end
 		end
 		if def.modCategories.mine then
@@ -449,8 +461,17 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				queueTutorialNotification('BuildFactory')
 			end
+			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
+				queueTutorialNotification('BuildRadar')
+			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')
+			end
+			if hasMadeT2 then
+				local udefIDTemp = spGetUnitDefID(unitID)
+				if isT2[udefIDTemp] then
+					queueNotification('BuildIntrusionCounterMeasure')
+				end
 			end
 		end
 
@@ -517,6 +538,16 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('RagnarokIsReady')
 		elseif unitDefID == buzzsawDefID then
 			queueNotification('CalamityIsReady')
+		elseif unitDefID == starfallDefID then
+			queueNotification('StarfallIsReady')
+		elseif unitDefID == astraeusDefID then
+			queueNotification('AstraeusIsReady')
+		elseif unitDefID == solinvictusDefID then
+			queueNotification('SolinvictusIsReady')
+		elseif unitDefID == juggernautDefID then
+			queueNotification('JuggernautIsReady')
+		-- elseif unitDefID == titanDefID then
+		-- 	queueNotification('TitanIsReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
 
@@ -560,6 +591,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	end
 	if isT3mobile[udefID] then
 		queueNotification('T3Detected')
+	end
+	if isT4mobile[udefID] then
+		queueNotification('T4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
