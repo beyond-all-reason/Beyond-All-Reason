@@ -53,9 +53,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitDefID = spGetUnitDefID(unitID)
 
 		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET)
+			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
 		elseif not spGetUnitNeutral(unitID) then	
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET)
+			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
 		else
 			somethingWasExcluded = true
 		end
