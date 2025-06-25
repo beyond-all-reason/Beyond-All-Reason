@@ -539,11 +539,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('RagnarokIsReady')
 		elseif unitDefID == buzzsawDefID then
 			queueNotification('CalamityIsReady')
-		elseif UnitDefNames['legstarfall'] and unitDefID == starfallDefID then
+		elseif unitDefID == starfallDefID then
 			queueNotification('StarfallIsReady')
-		elseif UnitDefNames['legelrpcmech'] and unitDefID == astraeusDefID then
+		elseif unitDefID == astraeusDefID then
 			queueNotification('AstraeusIsReady')
-		elseif UnitDefNames['legeheatraymech'] and unitDefID == solinvictusDefID then
+		elseif unitDefID == solinvictusDefID then
 			queueNotification('SolinvictusIsReady')
 		elseif unitDefID == juggernautDefID then
 			queueNotification('JuggernautIsReady')
