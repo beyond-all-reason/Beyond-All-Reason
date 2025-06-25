@@ -576,6 +576,8 @@ if gadgetHandler:IsSyncedCode() then
 			ClearWrecks()
 		elseif words[1] == "fightertest" then
 			fightertest(words)
+		elseif words[1] == "globallos" then
+			globallos(words)
 		end
 	end
 
@@ -584,6 +586,14 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('halfhealth')
 	end
 	local featuredefstoremove = {}
+
+	function globallos(words)
+		local allyteams = Spring.GetAllyTeamList()
+        for i = 1,#allyteams do
+            local allyTeamID = allyteams[i]
+            Spring.SetGlobalLos(allyTeamID, words[2] == '1')
+        end
+	end
 
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
@@ -883,7 +893,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
 
-		gadgetHandler:AddChatAction('xp', xpUnits, "")
+		gadgetHandler:AddChatAction('xp', xpUnits, "")	-- gives the selected units experience, /luarules xp [int]
 
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
 		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
@@ -894,7 +904,8 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
-		gadgetHandler:AddChatAction('desync', desync) -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos 1|0 -- sets global los for all teams, 1 = on, 0 = off
+		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
 	end
 
 	function gadget:Shutdown()
@@ -913,8 +924,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('fightertest')
-		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
-
+		gadgetHandler:RemoveChatAction('globallos')
+		gadgetHandler:RemoveChatAction('desync')
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -1271,10 +1282,21 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(msg)
 	end
 
+	function globallos(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		local globallos = (not words[1] or words[1] ~= '0') or false
+		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0'))
+	end
+
 	function desync()
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
 		Spring.Echo("Unsynced: Attempting to trigger a /desync")
-		local msg = PACKET_HEADER .. ':desync'
-		Spring.SendLuaRulesMsg(msg)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':desync')
 	end
 
 	function spawnceg(_, line, words, playerID)
