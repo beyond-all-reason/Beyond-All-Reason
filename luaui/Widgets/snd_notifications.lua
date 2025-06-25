@@ -461,11 +461,18 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				queueTutorialNotification('BuildFactory')
 			end
-			if e_income >= 65 and m_income >= 5 and gameframe > 500 then
-				queueTutorialNotification('BuildRadar2')
+			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
+					if numFactoryAir > 1 or numFactoryHover > 1 or numFactoryBot > 1 or numFactoryVeh > 1
+				queueTutorialNotification('BuildRadar')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')
+			end
+			if hasMadeT2 then
+				local udefIDTemp = spGetUnitDefID(unitID)
+				if isT2[udefIDTemp] then
+					queueNotification('BuildIntrusionCounterMeasure')
+				end
 			end
 		end
 
