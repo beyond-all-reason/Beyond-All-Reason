@@ -2914,7 +2914,7 @@ function AllyTip(mouseX, playerID)
 end
 
 function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome, name, teamID)
-    if mouseX >= widgetPosX + (m_resources.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
+    if mouseX >= widgetPosX + (m_resources.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + (m_resources.width*playerScale)) * widgetScale then
         if energy > 1000 then
             energy = math.floor(energy / 100) * 100
         else
@@ -3182,7 +3182,7 @@ function widget:MousePress(x, y, button)
                             end
                         end
                         if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share units button
                                 if release ~= nil then
                                     if release >= now then
@@ -3200,12 +3200,12 @@ function widget:MousePress(x, y, button)
                                 end
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + (playerOffset*playerScale)) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share energy button (initiates the slider)
                                 energyPlayer = clickedPlayer
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + (playerOffset*playerScale)) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share metal button (initiates the slider)
                                 metalPlayer = clickedPlayer
                                 return true

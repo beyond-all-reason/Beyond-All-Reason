@@ -917,7 +917,9 @@
 			"legrwall": "Dragon's Constitution",
 			"legjav": "Javelin",
 			"legamph": "Telchine",
-			"legfdrag": "Shark's Teeth"
+			"legfdrag": "Shark's Teeth",
+			"legajamk": "Tiresias",
+			"legaradk": "Euclid"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1527,6 +1529,8 @@
 			"corsolar": "Produces 20 Energy",
 			"corsonar": "Locates Water Units",
 			"corspec": "Radar Jammer Bot",
+			"legajamk": "Mobile Jammer Bot",
+			"legaradk": "Mobile Radar Bot",
 			"corspy": "Radar-Invisible Spy Bot",
 			"legaspy": "Stealthy Invisible Spy Bot",
 			"corssub": "Long-Range Battle Submarine",
@@ -1741,8 +1745,8 @@
 			"legaheattank": "Heavy Assault Heatray Tank",
 			"legaskirmtank": "Medium Burst-Fire Skirmisher Tank",
 			"legavroc": "Stealthy Mobile Rocket Launcher",
-			"legavjam": "Radar Jammer Vehicle",
-			"legavrad": "Radar Vehicle",
+			"legavjam": "Mobile Radar Jammer Vehicle",
+			"legavrad": "Mobile Radar Vehicle",
 			"legshot": "Shielded Riot Defence Bot",
 			"legsrail": "All-Terrain Heavy Railgun",
 			"legsrailt4": "All-Terrain Amphibious Heavy Sniper Railgun",

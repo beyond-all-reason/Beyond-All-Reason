@@ -1692,6 +1692,30 @@ local unitDistortions = {
 		},
 	},
 
+	['legajamk'] = {
+		legdistortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'blob',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = 0, pos2y = 0, pos2z = 2, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legavjam'] = {
+		legdistortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'cloaklight',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = 0, pos2y = 0, pos2z = 2, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
 	['corjuno'] = {
 		distortion = {
 			distortionType = 'point',
