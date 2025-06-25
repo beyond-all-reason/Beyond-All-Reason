@@ -555,7 +555,15 @@ if gadgetHandler:IsSyncedCode() then
 		elseif words[1] == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
 		elseif words[1] == "reclaimunits" then
-			ExecuteSelUnits(words, playerID, 'reclaim')
+			ExecuteSelUnits(words, playerID)
+		elseif words[1] == "transferunits" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
 		elseif words[1] == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
@@ -748,6 +756,10 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.DestroyUnit(unitID, false, true)
 			elseif action == 'removenearbyunits' then
 				Spring.DestroyUnit(unitID, false, true)
+			elseif action == 'transfer' then
+				if type(tonumber(params)) == 'number' then
+					Spring.TransferUnit(unitID, tonumber(params), true)
+				end
 			elseif action == 'reclaim' then
 				local teamID = Spring.GetUnitTeam(unitID)
 				local unitDefID = Spring.GetUnitDefID(unitID)
@@ -869,6 +881,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
+		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
 
 		gadgetHandler:AddChatAction('xp', xpUnits, "")
 
@@ -890,6 +903,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
+		gadgetHandler:RemoveChatAction('transferunits')
 		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
 		gadgetHandler:RemoveChatAction('spawnunitexplosion')
@@ -918,18 +932,21 @@ else	-- UNSYNCED
 	function removeUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removeunits')
 	end
-	function removenearbyunits(_, line, words, playerID)
+	function removeNearbyUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removenearbyunits')
+	end
+	function transferUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'transferunits')
 	end
 
 	function removeUnitDef(_, line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-		Spring.Echo(line)
-		Spring.Echo(words[1])
-		Spring.Echo(words[2])
-		Spring.Echo(words[3])
+		-- Spring.Echo(line)
+		-- Spring.Echo(words[1])
+		-- Spring.Echo(words[2])
+		-- Spring.Echo(words[3])
 		if words[1] and UnitDefNames[words[1]] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeunitdef '.. words[1])
 		end
@@ -955,6 +972,13 @@ else	-- UNSYNCED
 				units = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], words[1] and words[1] or 24, words[2] and words[2] or nil)
 			end
 		else
+			if not words[1] and action == 'transferunits' then
+				local mx,my = Spring.GetMouseState()
+				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				if targetType == 'unit' then
+					words[1] = Spring.GetUnitTeam(unitID)
+				end
+			end
 			units = Spring.GetSelectedUnits()
 		end
 		for _, unitID in ipairs(units) do
