@@ -462,7 +462,6 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('BuildFactory')
 			end
 			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
-					if numFactoryAir > 1 or numFactoryHover > 1 or numFactoryBot > 1 or numFactoryVeh > 1
 				queueTutorialNotification('BuildRadar')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
