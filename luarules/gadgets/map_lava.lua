@@ -56,6 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
+	local spGetMoveData =Spring.GetUnitMoveTypeData
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
@@ -125,14 +126,19 @@ if gadgetHandler:IsSyncedCode() then
 				if y and y < lavaLevel then
 					local us = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , .9)
 					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
+						local mt = spGetMoveData(unitID)
 						local ms = UnitDefs[UnitDefID].speed
 						local tr = UnitDefs[UnitDefID].turnRate
 						local ar = UnitDefs[UnitDefID].maxAcc
-						lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+						if (mt.name == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ar and ar ~= 0) then
+							lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+						else
+							lavaUnits[unitID] = {slowed = false}
+						end
 					else -- Already in lava just update slow factor
 						lavaUnits[unitID].unitSlow = us
 					end
-					if lavaUnits[unitID].slowed and lavaUnits[unitID].slowed == true then
+					if lavaUnits[unitID].slowed then
 						local unitSlow = lavaUnits[unitID].unitSlow
 						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
 						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow

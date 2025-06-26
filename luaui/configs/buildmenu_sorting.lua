@@ -95,8 +95,10 @@ local unitOrderTable = {
 	-- SCOUTS/UTILITY LAND
 	['armmark']        = 004100,
 	['corvoyr']        = 004110,
+	['legaradk']       = 004115,
 	['armaser']        = 004120,
 	['corspec']        = 004130,
+	['legajamk']       = 004135,
 
 	['armseer']        = 004200,
 	['corvrad']        = 004210,

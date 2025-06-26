@@ -704,6 +704,21 @@
 				"limit": 10
 			},
 
+			"legaspy": {
+				"role": ["scout"],
+				"limit": 3
+			},
+
+			"legaradk": {
+				"role": ["support"],
+				"retreat": 0.6,
+				"limit": 3
+			},
+			"legajamk": {
+				"role": ["support"],
+				"limit": 3
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -734,6 +749,12 @@
 				"role": ["artillery"],
 				//"attribute": ["siege", "support"],
 				"threat": {"air": 0.0, "water": 0.0}
+			},
+			"legeallterrainmech": {
+				"role": ["skirmish", "heavy"]
+			},
+			"legehovertank": {
+				"role": ["raider"]
 			},
 
 			// LEGION T1 VEHICLE - legvp
