@@ -2201,7 +2201,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     end
 
 	if onlyMainList then
-		if not ai then
+		if m_playerID.active and not ai and playerID < 255 then
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
@@ -2243,9 +2243,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 end
             end
             if onlyMainList then
-                if not ai then
-                    DrawPlayerID(playerID, posY, dark, dead)
-                end
                 if m_ID.active and not dead then
                     DrawID(team, posY, dark, dead)
                 end
