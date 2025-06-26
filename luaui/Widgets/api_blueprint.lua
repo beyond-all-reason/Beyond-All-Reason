@@ -726,7 +726,7 @@ local function setActiveBlueprint(bp)
 	end
 
 	if substitutionNeeded then 
-		Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
+		Spring.Log("BlueprintAPI", LOG.WARNING, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
 			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
 		
 		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
@@ -734,7 +734,17 @@ local function setActiveBlueprint(bp)
 		if resultTable.substitutionFailed then
 			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
 		else
-			Spring.Log("BlueprintAPI", LOG.INFO, "[Blueprint API] " .. resultTable.summaryMessage)
+			Spring.Log("BlueprintAPI", LOG.WARNING, "[Blueprint API] " .. resultTable.summaryMessage)
+		end
+		
+		-- This allows partial substitutions to work even when some units fail to map
+		for _, unit in ipairs(blueprintToProcess.units) do
+			if unit.originalName then
+				local substitutedUnitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				if substitutedUnitDefID then
+					unit.unitDefID = substitutedUnitDefID
+				end
+			end
 		end
 	end
 	
@@ -787,19 +797,82 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
-local function getBuildableUnits(blueprint)
-	local buildable = 0
-	local unbuildable = 0
+local function createBlueprintFromSerialized(serializedBlueprint)
+	-- HACK: This function contains temporary logic to handle blueprints with units
+	-- that are not in the base game (e.g., Legion). It attempts to substitute
+	-- those units to a default faction (ARM) so that the blueprints can still
+	-- be used. This can be removed once all factions are part of the base game.
+	if not serializedBlueprint or not serializedBlueprint.units then
+		return nil
+	end
 
-	for _, unit in ipairs(blueprint.units) do
-		if activeBuilderBuildOptions[unit.unitDefID] then
-			buildable = buildable + 1
+	local result = table.copy(serializedBlueprint)
+	result.units = {}
+
+	local hasMissingUnits = false
+	for _, serializedUnit in ipairs(serializedBlueprint.units) do
+		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
+		if not unitDefID then
+			hasMissingUnits = true
+		end
+		table.insert(result.units, {
+			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			position = serializedUnit.position,
+			facing = serializedUnit.facing,
+			unitDefID = unitDefID,
+			originalName = serializedUnit.unitName
+		})
+	end
+
+	if hasMissingUnits then
+		local missingUnitSides = {}
+		for _, unit in ipairs(result.units) do
+			if not unit.unitDefID then
+				local unitSide = SubLogic.getSideFromUnitName(unit.originalName)
+				if unitSide then
+					missingUnitSides[unitSide] = true
+				end
+			end
+		end
+
+		local sides = {}
+		for side in pairs(missingUnitSides) do
+			table.insert(sides, side)
+		end
+
+		local sourceSide
+		if #sides == 1 then
+			sourceSide = sides[1]
+		end
+
+		if sourceSide then
+			result.sourceInfo = {
+				primarySourceSide = sourceSide,
+				numSourceSides = 1,
+				sourceSides = { [sourceSide] = true },
+				sideCounts = { [sourceSide] = #result.units }
+			}
+
+			local targetSide = BpDefs.SIDES.ARM
+			local resultTable = SubLogic.processBlueprintSubstitution(result, targetSide)
+			
+			if not resultTable.substitutionFailed then
+				for _, unit in ipairs(result.units) do
+					unit.unitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				end
+			else
+				result.units = {}
+			end
 		else
-			unbuildable = unbuildable + 1
+			result.units = {}
 		end
 	end
 
-	return buildable, unbuildable
+	result.units = table.filterArray(result.units, function(unit)
+		return unit.unitDefID ~= nil
+	end)
+
+	return result
 end
 
 function widget:Initialize()
@@ -836,12 +909,12 @@ function widget:Initialize()
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
+		createBlueprintFromSerialized = createBlueprintFromSerialized,
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
-		getBuildableUnits = getBuildableUnits,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
