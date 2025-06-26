@@ -529,13 +529,13 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
+		if not isAuthorized(playerID) then
+			return
+		end
+
 		if words[1] == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
-		end
-
-		if not isAuthorized(playerID) then
-			return
 		end
 
 		if words[1] == "givecat" then
@@ -580,6 +580,8 @@ if gadgetHandler:IsSyncedCode() then
 			globallos(words)
 		elseif words[1] == "playertoteam" then
 			playertoteam(words)
+		elseif words[1] == "killteam" then
+			killteam(words)
 		end
 	end
 
@@ -601,6 +603,9 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.AssignPlayerToTeam(tonumber(words[2]), tonumber(words[3]))
 	end
 
+	function killteam(words)
+		Spring.KillTeam(tonumber(words[2]))
+	end
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
 		if not fightertestenabled then
@@ -912,6 +917,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos 1|0 -- sets global los for all teams, 1 = on, 0 = off
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
+		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
 	end
 
@@ -933,6 +939,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
+		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
 	end
 
@@ -1319,7 +1326,19 @@ else	-- UNSYNCED
 			words[2] = words[1]
 			words[1] = Spring.GetMyPlayerID()
 		end
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
+		if tonumber(words[2]) < #Spring.GetTeamList()-1 then
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
+		end
+	end
+
+	function killteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':killteam:' .. words[1])
 	end
 
 	function desync()
