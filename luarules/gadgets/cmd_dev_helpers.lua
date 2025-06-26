@@ -578,6 +578,8 @@ if gadgetHandler:IsSyncedCode() then
 			fightertest(words)
 		elseif words[1] == "globallos" then
 			globallos(words)
+		elseif words[1] == "playertoteam" then
+			playertoteam(words)
 		end
 	end
 
@@ -593,6 +595,10 @@ if gadgetHandler:IsSyncedCode() then
             local allyTeamID = allyteams[i]
             Spring.SetGlobalLos(allyTeamID, words[2] == '1')
         end
+	end
+
+	function playertoteam(words)
+		Spring.AssignPlayerToTeam(tonumber(words[2]), tonumber(words[3]))
 	end
 
 	function fightertest(words)
@@ -905,6 +911,7 @@ else	-- UNSYNCED
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos 1|0 -- sets global los for all teams, 1 = on, 0 = off
+		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
 	end
 
@@ -925,6 +932,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('globallos')
+		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('desync')
 	end
 
@@ -1289,6 +1297,29 @@ else	-- UNSYNCED
 		local globallos = (not words[1] or words[1] ~= '0') or false
 		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0'))
+	end
+
+	function playertoteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			units = Spring.GetSelectedUnits()
+			if #units > 0 then
+				words[1] = Spring.GetUnitTeam(units[1])
+			else
+				local mx,my = Spring.GetMouseState()
+				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				if targetType == 'unit' then
+					words[1] = Spring.GetUnitTeam(unitID)
+				end
+			end
+		end
+		if not words[2] then
+			words[2] = words[1]
+			words[1] = Spring.GetMyPlayerID()
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
 	end
 
 	function desync()
