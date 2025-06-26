@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
 		if factionlimiter > 0 then
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 			local ARM_MASK = 2^0
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 			if corcomDefID then
 				validStartUnits[#validStartUnits+1] = corcomDefID
 			end
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			if legcomDefID then
 				validStartUnits[#validStartUnits+1] = legcomDefID
 			end
