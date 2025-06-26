@@ -55,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 		if def.customParams.iscommander then
 			isCommander[udefID] = true
 		end
-		if def.customParams.decoration then
+		if def.customParams.decoration == true then
 			unitDecoration[udefID] = true
 		end
 	end
