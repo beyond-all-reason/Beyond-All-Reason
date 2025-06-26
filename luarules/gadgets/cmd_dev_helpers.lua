@@ -595,8 +595,10 @@ if gadgetHandler:IsSyncedCode() then
 		local allyteams = Spring.GetAllyTeamList()
         for i = 1,#allyteams do
             local allyTeamID = allyteams[i]
-            Spring.SetGlobalLos(allyTeamID, words[2] == '1')
-        end
+			if not words[3] or allyTeamID == tonumber(words[3]) then
+				Spring.SetGlobalLos(allyTeamID, words[2] == '1')
+			end
+		end
 	end
 
 	function playertoteam(words)
@@ -915,7 +917,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
-		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos 1|0 -- sets global los for all teams, 1 = on, 0 = off
+		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
@@ -1301,9 +1303,12 @@ else	-- UNSYNCED
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
+		if words[2] then
+
+		end
 		local globallos = (not words[1] or words[1] ~= '0') or false
 		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0')..(words[2] and ':'..words[2] or ''))
 	end
 
 	function playertoteam(_, line, words, playerID, action)
