@@ -1369,6 +1369,8 @@
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
+				"advplayerlist_showplayerid": "show Player ID",
+				"advplayerlist_showplayerid_descr": "show player ID",
 				"advplayerlist_showid": "show Team ID",
 				"advplayerlist_showid_descr": "show team ID",
 				"advplayerlist_country": "country flag",
