@@ -12,13 +12,18 @@ function widget:GetInfo()
 	}
 end
 
-local spies  = {
-	[UnitDefNames.armspy.id] = true,
-	[UnitDefNames.corspy.id] = true
+local spies  = {}
+
+local spynames = {
+	'armspy',
+	'corspy',
+	'legaspy',
 }
 
-if UnitDefNames.legaspy then
-	spies[UnitDefNames.legaspy.id] = true
+for _, spyname in ipairs(spynames) do
+	if UnitDefNames[spyname] then
+		spies[UnitDefNames[spyname].id] = true
+	end
 end
 
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
@@ -45,6 +50,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+    if #spies == 0 then
+	    widgetHandler:RemoveWidget()
+	    return
+    end
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
