@@ -209,6 +209,7 @@ if gadgetHandler:IsSyncedCode() then
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
 				end
+				name = name or '---'
 				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
 				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
 				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
@@ -227,6 +228,7 @@ if gadgetHandler:IsSyncedCode() then
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
 				end
+				name = name or '---'
 				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
 				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
 				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
@@ -245,6 +247,7 @@ if gadgetHandler:IsSyncedCode() then
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
 				end
+				name = name or '---'
 				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
 				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
 				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
