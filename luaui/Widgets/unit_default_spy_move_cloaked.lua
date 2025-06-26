@@ -14,15 +14,15 @@ end
 
 local spies  = {}
 
-local spynames = {
+local spyNames = {
 	'armspy',
 	'corspy',
 	'legaspy',
 }
 
-for _, spyname in ipairs(spynames) do
-	if UnitDefNames[spyname] then
-		spies[UnitDefNames[spyname].id] = true
+for _, spyName in ipairs(spyNames) do
+	if UnitDefNames[spyName] then
+		spies[UnitDefNames[spyName].id] = true
 	end
 end
 
