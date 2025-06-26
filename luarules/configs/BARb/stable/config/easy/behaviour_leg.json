@@ -516,6 +516,14 @@
 			"legadvaabot": {
 				"role": ["anti_air"]
 			},
+			"legaspy": {
+				"role": ["scout"]
+			},
+			"legaradk": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1
+			},
 
 			// T3 LEGION EXPERIMENTAL - leggant
 			
@@ -543,6 +551,12 @@
 			"legelrpcmech": {
 				"role": ["artillery", "heavy"],
 				"power": 2.0
+			},
+			"legeallterrainmech": {
+				"role": ["skirmish", "heavy"]
+			},
+			"legehovertank": {
+				"role": ["raider"]
 			},
 
 			// LEGION T1 VEHICLE - legvp
