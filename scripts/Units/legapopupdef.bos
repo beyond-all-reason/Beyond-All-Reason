@@ -142,10 +142,24 @@ Create()
 
     wpn1_lasthead = -1000000;
 	
+	///close immediately
 
+    move backStruts to y-axis [0] now;
+    turn minigunHousingL to z-axis <45> now;
+    turn minigunHousingR to z-axis <-45> now;
+    
+    turn turretPivotPitch to x-axis <-130> now;
+    turn turretPivotBottom to x-axis <40> now;
+
+    move platform to y-axis [-48] now;
+
+	turn doorA to x-axis <120> now;
+    turn doorB to x-axis <120> now;
+    turn doorC to x-axis <120> now;
 
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script OpenCloseAnim(0);
+
+
 }
 
 AimWeapon1(heading, pitch)

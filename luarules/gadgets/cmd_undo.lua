@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= false
+		enabled	= true
 	}
 end
 
@@ -184,37 +184,79 @@ if gadgetHandler:IsSyncedCode() then
 			if _G.permissions.undo[playername] then
 				authorized = true
 			end
-			if playername ~= "UnnamedPlayer" then
-				if not authorized then
-					--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
-					return
-				end
-				--if authorized and not spec then
-				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
-				--	return
-				--end
-				--if startPlayers[playername] ~= nil then
-				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
-				--	return
-				--end
+			if authorized then
+				local params = string.split(msg, ':')
+				restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
+				return true
 			end
-			local params = string.split(msg, ':')
-			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
-			return true
+		end
+	end
+
+	local function notifyModerator(message)
+		for _,playerID in pairs(Spring.GetPlayerList()) do
+			local playername, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID,false)
+			if _G.permissions.undo[playername] then
+				Spring.SendMessageToPlayer(playerID, message)
+			end
 		end
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			if dgunDef[weaponID] then
-				-- TODO: moderator echo/log playername tried to dgun playername's unit
-				return 0, 0
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local name = Spring.GetPlayerInfo(playerID,false)
+				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
+					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
+				end
+				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
+				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
+					attackerName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)..' (AI)'
+				end
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				local unitName = UnitDefs[unitDefID].name
+				local atPosition = not x and '' or "   (pos: "..math.floor(math.floor(x/100)*100)..", "..math.floor(math.floor(z/100)*100)..")"
+				--if not attackerIsAi then
+					notifyModerator("\255\255\100\100 -- ALERT --   "..attackerName.." tried to DGUN "..name.."'s "..unitName..atPosition)
+					return 0, 0
+				--end
 			elseif weaponUnitSelfd[weaponID] then
-				-- TODO: moderator echo/log playername tried to selfd playername's unit(s)
-				return 0, 0
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local name = Spring.GetPlayerInfo(playerID,false)
+				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
+					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
+				end
+				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
+				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
+					attackerName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)..' (AI)'
+				end
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				local unitName = UnitDefs[unitDefID].name
+				local atPosition = not x and '' or "   (pos: "..math.floor(math.floor(x/100)*100)..", "..math.floor(math.floor(z/100)*100)..")"
+				--if not attackerIsAi then
+					notifyModerator("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." (via a SELFD)"..atPosition)
+					return 0, 0
+				--end
 			elseif not Spring.GetUnitNearestEnemy(unitID, 1000) then
-				-- TODO: moderator echo/log playername damaged playername's unit(s) without nearby enemy
-				return 0, 0
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local name = Spring.GetPlayerInfo(playerID,false)
+				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
+					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
+				end
+				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
+				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
+					attackerName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)..' (AI)'
+				end
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				local unitName = UnitDefs[unitDefID].name
+				local atPosition = not x and '' or "   (pos: "..math.floor(math.floor(x/100)*100)..", "..math.floor(math.floor(z/100)*100)..")"
+				--if not attackerIsAi then
+					notifyModerator("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." without nearby enemy"..atPosition)
+					return 0, 0
+				--end
 			end
 		end
 		return damage, 1

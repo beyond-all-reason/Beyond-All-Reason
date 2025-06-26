@@ -194,17 +194,16 @@ local labGrids = {
 	},
 	-- T3 labs
 	armshltx = {
-		"armmar", "armraz", "armvang", "armthor",
-		"armbanth", "armlun"
+		"armmar", "armraz", "armvang", "armthor",        -- marauder, razorback, vanguard, thor
+		"armbanth", "armlun",                            -- titan, lunkhead
 	},
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok"
+		"corcat", "corkarg", "corshiva", "corkorg",      -- catapult, Karganeth, shiva, juggernaut
+		"corjugg", "corsok",                             -- behemoth, cataphract
 	},
 	leggant = {
-		"legelrpcmech", "legeallterrainmech", "legjav", "legeheatraymech", --astraeus, kargneth, javelin, juggernaut
-		"corjugg", "legehovertank", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
-		"legkeres","legerailtank","" -- keres, daedalus
+		"legjav", "legkeres", "legeallterrainmech", "legeheatraymech",        -- javelin, keres, myrmidon, sol invictus
+		"legelrpcmech", "legehovertank", "legeshotgunmech", "legerailtank",   -- astraeus, charybdis, praetorian, daedalus
 	},
 	-- T3 underwater labs
 	armshltxuw = {
@@ -2080,9 +2079,6 @@ if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavu
 	unitGrids["armacsub"][4][1][3] = "armnanotc2plat"
 	unitGrids["coracsub"][4][1][3] = "cornanotc2plat"
 	
-	-- Adds the Pilum to the slot before the Javelin, moving the Karganeth to end of the list
-	labGrids["leggant"][11] = labGrids["leggant"][2]
-	labGrids["leggant"][2] = "legbunk" 
 end
 
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
