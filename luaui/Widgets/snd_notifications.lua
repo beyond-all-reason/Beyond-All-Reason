@@ -468,10 +468,11 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('ReadyForTech2')
 			end
 			if hasMadeT2 then
-				local udefIDTemp = spGetUnitDefID(unitID)
-				if isT2[udefIDTemp] then
-					queueNotification('BuildIntrusionCounterMeasure')
-				end
+				-- FIXME
+				--local udefIDTemp = spGetUnitDefID(unitID)
+				--if isT2[udefIDTemp] then
+				--	queueNotification('BuildIntrusionCounterMeasure')
+				--end
 			end
 		end
 
