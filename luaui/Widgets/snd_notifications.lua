@@ -282,7 +282,7 @@ for udefID, def in ipairs(UnitDefs) do
 		if def.extractsMetal > 0 then
 			isMex[udefID] = true
 		end
-		if def.isBuilding and def.radarDistance > 2000 then
+		if def.isBuilding and def.radarDistance > 1900 then
 			isRadar[udefID] = true
 		end
 		if def.energyMake > 10 then
