@@ -537,7 +537,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			if isEnergyProducer[unitDefID] then
 				hasBuildEnergy = true
 			end
-			if isRadar[unitDefID] then
+			if isRadar[unitDefID] and not tutorialPlayedThisGame['BuildRadar'] then
 				tutorialPlayed['BuildRadar'] = tutorialPlayLimit
 			end
 		end
