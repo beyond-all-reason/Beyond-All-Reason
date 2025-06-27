@@ -1,5 +1,5 @@
 return {
-	coracsub = {
+	corsacvsub = {
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
