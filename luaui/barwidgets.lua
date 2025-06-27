@@ -634,7 +634,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	wh.allowUnitControlWidgets = controlWidgetsEnabled
+	widget.allowUnitControlWidgets = controlWidgetsEnabled
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -967,7 +967,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		return
 	end
 	-- Gracefully ignore good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
-	if widget.GetInfo and widget:GetInfo().control and not widget.widgetHandler.allowUnitControlWidgets then
+	if widget.GetInfo and widget:GetInfo().control and not widget.allowUnitControlWidgets then
 		local name = widget.whInfo.name
 		Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
 		return
