@@ -1,6 +1,0 @@
-
-frame  anims/icexuick_166/cursordwatch_0.png  0.100
-frame  anims/icexuick_166/cursordwatch_1.png  0.100
-frame  anims/icexuick_166/cursordwatch_0.png  0.100
-frame  anims/icexuick_166/cursordwatch_2.png  0.100
-

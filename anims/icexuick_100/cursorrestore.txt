@@ -1,7 +1,0 @@
-
-frame  anims/icexuick_100/cursorrestore_4.png  0.200
-frame  anims/icexuick_100/cursorrestore_3.png  0.200
-frame  anims/icexuick_100/cursorrestore_2.png  0.200
-frame  anims/icexuick_100/cursorrestore_1.png  0.200
-frame  anims/icexuick_100/cursorrestore_0.png  0.400
-

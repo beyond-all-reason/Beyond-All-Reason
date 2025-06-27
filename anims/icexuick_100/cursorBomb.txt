@@ -1,2 +1,0 @@
-hotspot topleft
-frame  anims/icexuick_100/cursorBomb.png  5

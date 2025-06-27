@@ -1,5 +1,0 @@
-All cor_* textures in this directory are licensed to Beherith (mysterme@gmail.com) (c) CC-BY-NC-ND 4.0
-
-All Arm_*  textures in this directory are licenced to Cremuss (C) CC-BY-SA 4.0
-
-All textures matching /decals/*_aoplane* are licensed to Beherith (mysterme@gmail.com) (c) CC-BY-NC-ND 4.0

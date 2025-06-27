@@ -1,6 +1,0 @@
-policy:
-  - section:
-    - id: ['feature_type']
-      label:
-        - name: 'Awaiting GDT Approval'
-          keys: ['Gameplay']

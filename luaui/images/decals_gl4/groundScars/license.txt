@@ -1,6 +1,0 @@
-The files named T_GroundCrack_[01-20]_* are from https://www.artstation.com/marketplace/p/2dJy9/ground-cracks-vol-1 and https://www.artstation.com/marketplace/p/oVYW2/ground-cracks-vol-2
-Licensed to IceXuick. Reproduction or redistrubition outside of BAR is not permitted. 
-
-The files named T_GroundCrack_[21+]_* are (c) IceXuick
-
-T_GroundCrack_22.tmd (c) Beherith

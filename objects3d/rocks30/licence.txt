@@ -1,6 +1,0 @@
-The rock model files named rocks30_*_*.s3o, and their correspoding textures in /unittextures/rocks30*.dds are from https://blendermarket.com/products/30-stylized-rock-asset-pack-with-4-texture-biomes-and-lods
-
-They are licensed to Beherith (mysterme@gmail.com) under the Royalty-Free Blender Market license to be included in BAR. 
-
-
-

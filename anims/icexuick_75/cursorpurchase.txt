@@ -1,2 +1,0 @@
-hotspot topleft
-frame  anims/icexuick_75/cursorpurchase_0.png  0.100 

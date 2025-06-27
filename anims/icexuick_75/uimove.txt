@@ -1,2 +1,0 @@
-hotspot center
-frame anims/uimove_0.png 5 

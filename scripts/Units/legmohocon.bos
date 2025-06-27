@@ -1,8 +1,0 @@
-
-#include "../recoil_common_includes.h"
-
-piece  base, aim, nano1, nano2, rotor, attach;
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"

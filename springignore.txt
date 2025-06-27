@@ -1,9 +1,0 @@
-# Author: Tobi Vollebregt
-# License: GNU General Public License v2
-#
-# This file makes Spring ignore .git directory when calculating checksum.
-# This should allow to play multiplayer directly using a clone of the repo.
-#
-/.git
-/.svn
-/recoil-lua-library

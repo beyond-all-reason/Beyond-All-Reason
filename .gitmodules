@@ -1,4 +1,0 @@
-[submodule "recoil-lua-library"]
-	path = recoil-lua-library
-	url = https://github.com/beyond-all-reason/recoil-lua-library.git
-	branch = main
