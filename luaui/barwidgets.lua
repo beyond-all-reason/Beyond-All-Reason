@@ -42,7 +42,7 @@ Spring.SendCommands({
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 
-local TrimmedSystem = {}
+local SandboxedSystem = {}
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -348,19 +348,19 @@ local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error("User 'unit control' widgets disallowed on this game", 2)
 	end
-	local TrimmedSpring = {}
+	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
 		if string.find(k, '^GiveOrder') then
-			TrimmedSpring[k] = disabledOrder
+			SandboxedSpring[k] = disabledOrder
 		else
-			TrimmedSpring[k] = v
+			SandboxedSpring[k] = v
 		end
 	end
 	for k, v in pairs(System) do
 		if k == 'Spring' then
-			TrimmedSystem[k] = TrimmedSpring
+			SandboxedSystem[k] = SandboxedSpring
 		else
-			TrimmedSystem[k] = v
+			SandboxedSystem[k] = v
 		end
 	end
 end
@@ -607,7 +607,7 @@ local WidgetMeta =
 
 local SandboxedWidgetMeta =
 {
-	__index = TrimmedSystem,
+	__index = SandboxedSystem,
 	__metatable = true,
 }
 
@@ -617,7 +617,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	local controlWidgetsEnabled = fromZip or (self.allowUnitControlWidgets and allowunitcontrolwidgets)
 
 	if enableLocalsAccess then
-		local systemRef = controlWidgetsEnabled and System or TrimmedSystem
+		local systemRef = controlWidgetsEnabled and System or SandboxedSystem
 		-- copy the system calls into the widget table
 		for k, v in pairs(systemRef) do
 			widget[k] = v
