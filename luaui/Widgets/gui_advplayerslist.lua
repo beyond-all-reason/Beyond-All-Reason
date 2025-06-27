@@ -330,7 +330,7 @@ local forceMainListRefresh = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent, m_rank, m_side, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
+local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
@@ -351,8 +351,8 @@ m_indent = {
 }
 position = position + 1
 
-m_playerID = {
-    name = "playerid",
+m_allyID = {
+    name = "allyid",
     spec = true,
     play = true,
     active = false,
@@ -365,6 +365,18 @@ position = position + 1
 
 m_ID = {
     name = "id",
+    spec = true,
+    play = true,
+    active = false,
+    width = 17,
+    position = position,
+    posX = 0,
+    pic = pics["idPic"],
+}
+position = position + 1
+
+m_playerID = {
+    name = "playerid",
     spec = true,
     play = true,
     active = false,
@@ -525,8 +537,9 @@ modules = {
     m_indent,
     m_rank,
     m_country,
-    m_playerID,
+	m_allyID,
     m_ID,
+    m_playerID,
     --m_side,
     m_name,
     m_skill,
@@ -2201,6 +2214,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     end
 
 	if onlyMainList then
+		if m_allyID.active and not spec then
+			DrawAllyID(allyteam, posY, dark, dead)
+		end
 		if m_playerID.active and not ai and playerID < 255 then
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
@@ -2765,7 +2781,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
 
     local textindent = 4
-    if m_indent.active or m_rank.active or m_side.active or m_playerID.active or m_ID.active then
+    if m_indent.active or m_rank.active or m_side.active or m_allyID.active or m_playerID.active or m_ID.active then
         textindent = 0
     end
 
@@ -2792,17 +2808,31 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 
 end
 
+function DrawAllyID(allyID, posY, dark, dead)
+    local spacer = ""
+    if allyID < 10 then
+        spacer = " "
+    end
+    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    font:Begin(useRenderToTexture)
+	font:SetTextColor(0.9, 0.7, 0.9, 1)
+	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
+    font:Print(spacer .. allyID, m_allyID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
+    font:End()
+end
+
 function DrawPlayerID(playerID, posY, dark, spec)
     local spacer = ""
     if playerID < 10 then
         spacer = " "
     end
-    local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+	local usedScale = spec and specScale or playerScale
+    local fontsize = 9.5 * (usedScale + ((1-usedScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
 	fontsize = fontsize * (spec and 0.82 or 1)
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.9, 0.7, spec and 0.5 or 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
-    font:Print(spacer .. playerID, m_playerID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
+    font:Print(spacer .. playerID, m_playerID.posX + widgetPosX + (4.5*usedScale), posY + (5.3*usedScale), fontsize, "on")
     font:End()
 end
 
