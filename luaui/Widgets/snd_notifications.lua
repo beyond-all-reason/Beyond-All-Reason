@@ -461,6 +461,7 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				queueTutorialNotification('BuildFactory')
 			end
+			-- playing this line even when tutorial mode is off for players, but fixed when turned on and off again, why is doTutorialMode not respected for this block?
 			-- if e_income >= 125 and m_income >= 8 and gameframe > 600 then
 			-- 	queueTutorialNotification('BuildRadar')
 			-- end
