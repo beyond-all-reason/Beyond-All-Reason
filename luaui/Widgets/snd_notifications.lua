@@ -461,9 +461,9 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				queueTutorialNotification('BuildFactory')
 			end
-			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
-				queueTutorialNotification('BuildRadar')
-			end
+			-- if e_income >= 125 and m_income >= 8 and gameframe > 600 then
+			-- 	queueTutorialNotification('BuildRadar')
+			-- end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')
 			end
