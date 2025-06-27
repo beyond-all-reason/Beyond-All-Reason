@@ -243,6 +243,7 @@ local hasMadeT2 = false
 local isCommander = {}
 local isBuilder = {}
 local isMex = {}
+local isRadar = {}
 local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
@@ -280,6 +281,9 @@ for udefID, def in ipairs(UnitDefs) do
 		end
 		if def.extractsMetal > 0 then
 			isMex[udefID] = true
+		end
+		if def.isBuilding and def.radarDistance > 2000 then
+			isRadar[udefID] = true
 		end
 		if def.energyMake > 10 then
 			isEnergyProducer[udefID] = def.energyMake
@@ -532,6 +536,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 			if isEnergyProducer[unitDefID] then
 				hasBuildEnergy = true
+			end
+			if isRadar[unitDefID] then
+				tutorialPlayed['BuildRadar'] = tutorialPlayLimit
 			end
 		end
 
