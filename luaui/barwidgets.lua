@@ -40,6 +40,9 @@ Spring.SendCommands({
 })
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+
+local TrimmedSystem = {}
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -52,6 +55,7 @@ end
 
 if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowuserwidgets = true
+	allowunitcontrolwidgets = true
 end
 
 widgetHandler = {
@@ -69,6 +73,7 @@ widgetHandler = {
 	inCommandsChanged = false,
 
 	allowUserWidgets = true,
+	allowUnitControlWidgets = true,
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
@@ -270,6 +275,7 @@ function widgetHandler:LoadConfigData()
 	self.orderList = chunk().order
 	self.configData = chunk().data
 	self.allowUserWidgets = chunk().allowUserWidgets
+	self.allowUnitControlWidgets = chunk().allowUnitControlWidgets
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -289,6 +295,7 @@ function widgetHandler:SaveConfigData()
 	filetable.order = self.orderList
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
+	filetable.allowUnitControlWidgets = self.allowUnitControlWidgets
 	table.save(filetable, CONFIG_FILENAME, '-- Widget Custom data and order, order = 0 disabled widget')
 end
 
@@ -337,6 +344,27 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 end
 
+local function CreateSandboxedSystem()
+	local function disabledOrder()
+		error("User 'unit control' widgets disallowed on this game", 2)
+	end
+	local TrimmedSpring = {}
+	for k, v in pairs(Spring) do
+		if string.find(k, '^GiveOrder') then
+			TrimmedSpring[k] = disabledOrder
+		else
+			TrimmedSpring[k] = v
+		end
+	end
+	for k, v in pairs(System) do
+		if k == 'Spring' then
+			TrimmedSystem[k] = TrimmedSpring
+		else
+			TrimmedSystem[k] = v
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
@@ -345,12 +373,19 @@ function widgetHandler:Initialize()
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+	if self.allowUnitControlWidgets == nil then
+		self.allowUnitControlWidgets = true
+	end
 
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	unsortedWidgets = {}
 
 	if self.allowUserWidgets and allowuserwidgets then
+		if not (self.allowUnitControlWidgets and allowunitcontrolwidgets) then
+			CreateSandboxedSystem()
+		end
+
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
@@ -441,7 +476,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget(enableLocalsAccess)
+		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -463,7 +498,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget(enableLocalsAccess)
+	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -570,17 +605,27 @@ local WidgetMeta =
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget(enableLocalsAccess)
+local SandboxedWidgetMeta =
+{
+	__index = TrimmedSystem,
+	__metatable = true,
+}
+
+function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
+	local controlWidgetsEnabled = fromZip or (self.allowUnitControlWidgets and allowunitcontrolwidgets)
+
 	if enableLocalsAccess then
+		local systemRef = controlWidgetsEnabled and System or TrimmedSystem
 		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
+		for k, v in pairs(systemRef) do
 			widget[k] = v
 		end
 	else
+		local metaRef = controlWidgetsEnabled and WidgetMeta or SandboxedWidgetMeta
 		-- use metatable redirection
-		setmetatable(widget, WidgetMeta)
+		setmetatable(widget, metaRef)
 	end
 
 	widget.WG = self.WG    -- the shared table
@@ -589,6 +634,7 @@ function widgetHandler:NewWidget(enableLocalsAccess)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	wh.allowUnitControlWidgets = controlWidgetsEnabled
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -918,6 +964,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		return
+	end
+	-- Gracefully ignore good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
+	if widget.GetInfo and widget:GetInfo().control and not widget.widgetHandler.allowUnitControlWidgets then
+		local name = widget.whInfo.name
+		Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
 		return
 	end
 
@@ -1265,9 +1317,14 @@ function widgetHandler:Shutdown()
 		self.allowUserWidgets = self.__allowUserWidgets
 	end
 
+	if self.__allowUnitControlWidgets ~= nil then
+		self.allowUnitControlWidgets = self.__allowUnitControlWidgets
+	end
+
 	-- save config
 	if self.__blankOutConfig then
-		table.save({ ["allowUserWidgets"] = self.allowUserWidgets }, CONFIG_FILENAME, '-- Widget Custom data and order')
+		local saveData = { ["allowUserWidgets"] = self.allowUserWidgets, ["allowUnitControlWidgets"] = self.allowUnitControlWidgets }
+		table.save(saveData, CONFIG_FILENAME, '-- Widget Custom data and order')
 	else
 		self:SaveConfigData()
 	end

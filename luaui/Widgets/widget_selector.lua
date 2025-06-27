@@ -330,6 +330,17 @@ local function userwidgetsCmd(_, _, params)
 	Spring.SendCommands("luarules reloadluaui")
 end
 
+local function unitControlWidgetsCmd(_, _, params)
+	if widgetHandler.allowUnitControlWidgets then
+		widgetHandler.__allowUnitControlWidgets = false
+		Spring.Echo("Disallowed user 'unit control' widgets, reloading...")
+	else
+		widgetHandler.__allowUnitControlWidgets = true
+		Spring.Echo("Allowed user 'unit control' widgets, reloading...")
+	end
+	Spring.SendCommands("luarules reloadluaui")
+end
+
 function widget:Initialize()
 
 	buttons = { --see MouseRelease for which functions are called by which buttons
@@ -383,6 +394,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "widgetselector", widgetselectorCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "factoryreset", factoryresetCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "userwidgets", userwidgetsCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "unitcontrolwidgets", unitControlWidgetsCmd, nil, 't')
 end
 
 
