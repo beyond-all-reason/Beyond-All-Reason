@@ -137,12 +137,10 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if lavaUnits[unitID].slowed and (us ~= lavaUnits[unitID].currentSlow) then
-						--local unitSlow = lavaUnits[unitID].unitSlow
 						local originalStats = lavaUnits[unitID]
 						local slowedMaxSpeed = originalStats.orgSpeed * us
 						local slowedTurnRate = originalStats.orgTurnRate * us
 						local slowedAccRate = originalStats.orgAccRate * us
-						--Spring.Echo("Updating slow:", unitID, us)
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 						lavaUnits[unitID].currentSlow = us
 					end
