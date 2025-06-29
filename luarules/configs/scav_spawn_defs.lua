@@ -499,7 +499,7 @@ local LandUnitsList = {
 			--Armada
 
 			--Cortex
-
+			["CorPrince_scav"] = 2,
 			--Legion
 			["legsrailt4_scav"] = 2,
 		},
