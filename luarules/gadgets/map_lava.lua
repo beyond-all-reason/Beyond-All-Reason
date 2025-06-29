@@ -128,19 +128,17 @@ if gadgetHandler:IsSyncedCode() then
 					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
 						local mt = spGetMoveData(unitID).name
 						local ms = UnitDefs[unitDefID].speed
-						local tr = UnitDefs[unitDefID].turnRate
-						local ar = UnitDefs[unitDefID].maxAcc
-						if (mt == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ar and ar ~= 0) then
-							lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, currentSlow = 1, slowed = true} 
+						if (mt == "ground") and (ms and ms ~= 0) then
+							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
 					end
 					if lavaUnits[unitID].slowed and (us ~= lavaUnits[unitID].currentSlow) then
-						local originalStats = lavaUnits[unitID]
-						local slowedMaxSpeed = originalStats.orgSpeed * us
-						local slowedTurnRate = originalStats.orgTurnRate * us
-						local slowedAccRate = originalStats.orgAccRate * us
+						local originalStats = UnitDefs[unitDefID]
+						local slowedMaxSpeed = originalStats.speed * us
+						local slowedTurnRate = originalStats.turnRate * us
+						local slowedAccRate = originalStats.maxAcc * us
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 						lavaUnits[unitID].currentSlow = us
 					end
@@ -148,7 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then 
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
+						spSetMoveData(unitID, {UnitDefs[unitDefID].Speed, turnRate = UnitDefs[unitDefID].turnRate, accRate = UnitDefs[unitDefID].accRate})
 					end
 				lavaUnits[unitID] = nil
 				end
