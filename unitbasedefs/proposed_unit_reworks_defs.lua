@@ -42,7 +42,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = math.floor(uDef.energycost *1.15)
 		uDef.buildtime = math.floor(uDef.buildtime *1.15)
 		uDef.weapondefs.heavyplasma.damage.default = 500
-		uDef.weapondefs.heavyplasma.reloadtime = 5
+		uDef.weapondefs.heavyplasma.reloadtime = 3.5
 		uDef.weapondefs.heavyplasma.areaofeffect = 160
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
 		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
@@ -53,7 +53,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = math.floor(uDef.energycost *1.15)
 		uDef.buildtime = math.floor(uDef.buildtime *1.15)
 		uDef.weapondefs.heavyplasma.damage.default = 600
-		uDef.weapondefs.heavyplasma.reloadtime = 7
+		uDef.weapondefs.heavyplasma.reloadtime = 5.5
 		uDef.weapondefs.heavyplasma.areaofeffect = 240
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
 		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
