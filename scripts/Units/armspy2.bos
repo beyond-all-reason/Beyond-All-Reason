@@ -1,0 +1,338 @@
+
+#include "./recoil_common_includes.h"
+
+piece pelvis, lthigh, rthigh, rleg, rfoot, lleg, lfoot, body, lloarm, rloarm, ruparm, luparm, aimy1;
+
+static-var isMoving, buildDelay, isCloaked, animSpeed, maxSpeed, animFramesPerKeyframe;
+
+// Signal definitions
+#define SIGNAL_TURNON 4
+
+
+#define SIGNAL_MOVE 1
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armspy_anim_walk.blend 
+	//set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:6
+			turn lfoot to x-axis <5.075082> speed <152.252460> / animSpeed; //delta=-5.08 
+			turn lleg to x-axis <3.801859> speed <114.055762> / animSpeed; //delta=-3.80 
+			turn lloarm to x-axis <-20.127842> speed <603.835253> / animSpeed; //delta=20.13 
+			turn lthigh to x-axis <1.381165> speed <41.434963> / animSpeed; //delta=-1.38 
+			turn luparm to x-axis <-48.075567> speed <1442.267014> / animSpeed; //delta=48.08 
+			move pelvis to y-axis [1.0] speed [30.0] / animSpeed; //delta=1.00 
+			turn rfoot to x-axis <38.441937> speed <1153.258150> / animSpeed; //delta=-38.44 
+			turn rleg to x-axis <-20.403898> speed <612.116970> / animSpeed; //delta=20.40 
+			turn rloarm to x-axis <-20.127842> speed <603.835253> / animSpeed; //delta=20.13 
+			turn rthigh to x-axis <-23.620830> speed <708.624903> / animSpeed; //delta=23.62 
+			turn ruparm to x-axis <-48.075567> speed <1442.267014> / animSpeed; //delta=48.08 
+		sleep ((33*animSpeed) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:11
+			turn lfoot to x-axis <-26.802374> speed <956.323690> / animSpeed; //delta=31.88 
+			turn lleg to x-axis <30.649077> speed <805.416552> / animSpeed; //delta=-26.85 
+			turn lloarm to x-axis <-26.411187> speed <188.500363> / animSpeed; //delta=6.28 
+			turn lthigh to x-axis <8.823721> speed <223.276660> / animSpeed; //delta=-7.44 
+			turn luparm to x-axis <-37.178854> speed <326.901391> / animSpeed; //delta=-10.90 
+			move pelvis to y-axis [-2.641947] speed [109.258411] / animSpeed; //delta=-3.64 
+			turn rfoot to x-axis <42.048342> speed <108.192143> / animSpeed; //delta=-3.61 
+			turn rleg to x-axis <-33.401896> speed <389.939956> / animSpeed; //delta=13.00 
+			turn rthigh to x-axis <-15.593073> speed <240.832709> / animSpeed; //delta=-8.03 
+			turn ruparm to x-axis <-23.803551> speed <728.160491> / animSpeed; //delta=-24.27 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:16
+			turn lfoot to x-axis <-3.083141> speed <711.577014> / animSpeed; //delta=-23.72 
+			turn lleg to x-axis <39.252213> speed <258.094066> / animSpeed; //delta=-8.60 
+			turn lloarm to x-axis <-32.694531> speed <188.500312> / animSpeed; //delta=6.28 
+			turn lthigh to x-axis <17.473740> speed <259.500564> / animSpeed; //delta=-8.65 
+			turn luparm to x-axis <-26.282139> speed <326.901443> / animSpeed; //delta=-10.90 
+			move pelvis to y-axis [-3.0] speed [10.741589] / animSpeed; //delta=-0.36 
+			turn pelvis to x-axis <6.883710> speed <206.511303> / animSpeed; //delta=-6.88 
+			turn pelvis to y-axis <-3.0> speed <90.0> / animSpeed; //delta=-3.00 
+			turn rfoot to x-axis <59.960667> speed <537.369743> / animSpeed; //delta=-17.91 
+			turn rleg to x-axis <-35.068110> speed <49.986432> / animSpeed; //delta=1.67 
+			turn rthigh to x-axis <-22.842466> speed <217.481812> / animSpeed; //delta=7.25 
+			turn ruparm to x-axis <0.468467> speed <728.160542> / animSpeed; //delta=-24.27 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:21
+			turn lfoot to x-axis <-4.202834> speed <33.590789> / animSpeed; //delta=1.12 
+			turn lleg to x-axis <55.237533> speed <479.559603> / animSpeed; //delta=-15.99 
+			turn lloarm to x-axis <-26.411187> speed <188.500312> / animSpeed; //delta=-6.28 
+			turn lthigh to x-axis <-21.514502> speed <1169.647236> / animSpeed; //delta=38.99 
+			turn luparm to x-axis <-37.178854> speed <326.901443> / animSpeed; //delta=10.90 
+			move pelvis to y-axis [-2.0] speed [30.0] / animSpeed; //delta=1.00 
+			turn pelvis to x-axis <-0.0> speed <206.511303> / animSpeed; //delta=6.88 
+			turn pelvis to y-axis <0.0> speed <90.0> / animSpeed; //delta=3.00 
+			turn rfoot to x-axis <23.487142> speed <1094.205731> / animSpeed; //delta=36.47 
+			turn rleg to x-axis <-2.106186> speed <988.857742> / animSpeed; //delta=-32.96 
+			turn rthigh to x-axis <-17.530632> speed <159.355041> / animSpeed; //delta=-5.31 
+			turn ruparm to x-axis <-23.803549> speed <728.160491> / animSpeed; //delta=24.27 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:26
+			turn lfoot to x-axis <41.071276> speed <1358.223299> / animSpeed; //delta=-45.27 
+			turn lleg to x-axis <-21.227658> speed <2293.955711> / animSpeed; //delta=76.47 
+			turn lloarm to x-axis <-20.127842> speed <188.500363> / animSpeed; //delta=-6.28 
+			turn lthigh to x-axis <-23.298371> speed <53.516086> / animSpeed; //delta=1.78 
+			turn luparm to x-axis <-48.075567> speed <326.901391> / animSpeed; //delta=10.90 
+			move pelvis to y-axis [1.0] speed [90.0] / animSpeed; //delta=3.00 
+			turn rfoot to x-axis <5.149202> speed <550.138197> / animSpeed; //delta=18.34 
+			turn rleg to x-axis <3.566030> speed <170.166460> / animSpeed; //delta=-5.67 
+			turn rthigh to x-axis <1.540787> speed <572.142569> / animSpeed; //delta=-19.07 
+			turn ruparm to x-axis <-48.075567> speed <728.160542> / animSpeed; //delta=24.27 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:31
+			turn lfoot to x-axis <48.827018> speed <232.672238> / animSpeed; //delta=-7.76 
+			turn lleg to x-axis <-35.057274> speed <414.888503> / animSpeed; //delta=13.83 
+			turn lloarm to x-axis <-26.411187> speed <188.500363> / animSpeed; //delta=6.28 
+			turn lthigh to x-axis <-14.690403> speed <258.239036> / animSpeed; //delta=-8.61 
+			turn luparm to x-axis <-23.803551> speed <728.160491> / animSpeed; //delta=-24.27 
+			move pelvis to y-axis [-2.322541] speed [99.676216] / animSpeed; //delta=-3.32 
+			turn rfoot to x-axis <-23.352222> speed <855.042734> / animSpeed; //delta=28.50 
+			turn rleg to x-axis <28.741812> speed <755.273463> / animSpeed; //delta=-25.18 
+			turn rloarm to x-axis <-26.411187> speed <188.500363> / animSpeed; //delta=6.28 
+			turn rthigh to x-axis <9.908624> speed <251.035091> / animSpeed; //delta=-8.37 
+			turn ruparm to x-axis <-37.178854> speed <326.901391> / animSpeed; //delta=-10.90 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:36
+			turn lfoot to x-axis <64.560396> speed <472.001350> / animSpeed; //delta=-15.73 
+			turn lleg to x-axis <-36.735462> speed <50.345632> / animSpeed; //delta=1.68 
+			turn lloarm to x-axis <-32.694531> speed <188.500312> / animSpeed; //delta=6.28 
+			turn lthigh to x-axis <-22.219645> speed <225.877259> / animSpeed; //delta=7.53 
+			turn luparm to x-axis <0.468467> speed <728.160542> / animSpeed; //delta=-24.27 
+			move pelvis to y-axis [-3.0] speed [20.323784] / animSpeed; //delta=-0.68 
+			turn pelvis to x-axis <6.883710> speed <206.511303> / animSpeed; //delta=-6.88 
+			turn pelvis to y-axis <3.0> speed <90.0> / animSpeed; //delta=3.00 
+			turn rfoot to x-axis <-1.779679> speed <647.176306> / animSpeed; //delta=-21.57 
+			turn rleg to x-axis <37.875749> speed <274.018105> / animSpeed; //delta=-9.13 
+			turn rloarm to x-axis <-32.694531> speed <188.500312> / animSpeed; //delta=6.28 
+			turn rthigh to x-axis <18.493198> speed <257.537235> / animSpeed; //delta=-8.58 
+			turn ruparm to x-axis <-26.282139> speed <326.901443> / animSpeed; //delta=-10.90 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:41
+			turn lfoot to x-axis <24.477861> speed <1202.476045> / animSpeed; //delta=40.08 
+			turn lleg to x-axis <-2.148724> speed <1037.602132> / animSpeed; //delta=-34.59 
+			turn lloarm to x-axis <-26.411187> speed <188.500312> / animSpeed; //delta=-6.28 
+			turn lthigh to x-axis <-17.636732> speed <137.487405> / animSpeed; //delta=-4.58 
+			turn luparm to x-axis <-23.803549> speed <728.160491> / animSpeed; //delta=24.27 
+			move pelvis to y-axis [-2.0] speed [30.0] / animSpeed; //delta=1.00 
+			turn pelvis to x-axis <-0.0> speed <206.511303> / animSpeed; //delta=6.88 
+			turn pelvis to y-axis <0.0> speed <90.0> / animSpeed; //delta=-3.00 
+			turn rfoot to x-axis <-3.378524> speed <47.965377> / animSpeed; //delta=1.60 
+			turn rleg to x-axis <54.104647> speed <486.866949> / animSpeed; //delta=-16.23 
+			turn rloarm to x-axis <-26.411187> speed <188.500312> / animSpeed; //delta=-6.28 
+			turn rthigh to x-axis <-19.973348> speed <1153.996387> / animSpeed; //delta=38.47 
+			turn ruparm to x-axis <-37.178854> speed <326.901443> / animSpeed; //delta=10.90 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:46
+			turn lfoot to x-axis <5.075082> speed <582.083376> / animSpeed; //delta=19.40 
+			turn lleg to x-axis <3.801859> speed <178.517493> / animSpeed; //delta=-5.95 
+			turn lloarm to x-axis <-20.127842> speed <188.500363> / animSpeed; //delta=-6.28 
+			turn lthigh to x-axis <1.381165> speed <570.536916> / animSpeed; //delta=-19.02 
+			turn luparm to x-axis <-48.075567> speed <728.160542> / animSpeed; //delta=24.27 
+			move pelvis to y-axis [1.0] speed [90.0] / animSpeed; //delta=3.00 
+			turn rfoot to x-axis <38.441937> speed <1254.613846> / animSpeed; //delta=-41.82 
+			turn rleg to x-axis <-20.403898> speed <2235.256331> / animSpeed; //delta=74.51 
+			turn rloarm to x-axis <-20.127842> speed <188.500363> / animSpeed; //delta=-6.28 
+			turn rthigh to x-axis <-23.620830> speed <109.424446> / animSpeed; //delta=3.65 
+			turn ruparm to x-axis <-48.075567> speed <326.901391> / animSpeed; //delta=10.90 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	move pelvis to y-axis [0.0] speed [21.851682];
+	turn lfoot to x-axis <0.0> speed <271.644660>;
+	turn lleg to x-axis <0.0> speed <458.791142>;
+	turn lloarm to x-axis <0.0> speed <120.767051>;
+	turn lthigh to x-axis <0.0> speed <233.929447>;
+	turn luparm to x-axis <0.0> speed <288.453403>;
+	turn pelvis to x-axis <0.0> speed <41.302261>;
+	turn pelvis to y-axis <0.0> speed <18.0>;
+	turn rfoot to x-axis <0.0> speed <250.922769>;
+	turn rleg to x-axis <0.0> speed <447.051266>;
+	turn rloarm to x-axis <0.0> speed <120.767051>;
+	turn rthigh to x-axis <0.0> speed <230.799277>;
+	turn ruparm to x-axis <0.0> speed <288.453403>;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<2) animSpeed=2;
+		if (animSpeed>10) animSpeed = 10;
+		sleep 164;
+	}
+}
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
+	start-script Walk();
+	start-script UnitSpeed();
+}
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
+}
+
+#define SMOKE_PIECE pelvis
+
+
+Create()
+{
+	hide aimy1;
+	isMoving = FALSE;
+	buildDelay = 1;
+	animSpeed = 5;
+	isCloaked = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+
+}
+
+Activate()
+{
+	if( isCloaked )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	return (0);
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = body;
+}
+
+
+
+Reload()
+{
+	sleep 5000;
+	buildDelay = 1;
+}
+
+
+
+StartBuilding(heading)
+{
+	while( !buildDelay )
+	{
+		sleep 100;
+	}
+	buildDelay = 0;
+	set INBUILDSTANCE to 1;
+	start-script Reload();
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn pelvis to z-axis anglez speed <105.0>;
+	turn pelvis to x-axis <0> - anglex speed <105.0>;
+	wait-for-turn pelvis around z-axis;
+	wait-for-turn pelvis around x-axis;
+	turn pelvis to z-axis <0.0> speed <30.0>;
+	turn pelvis to x-axis <0.0> speed <30.0>;
+	if( get ACTIVATION )
+	{
+		isCloaked = 1;
+	}
+	if( isCloaked )
+	{
+		signal SIGNAL_TURNON;
+		set-signal-mask SIGNAL_TURNON;
+		set ACTIVATION to 0;
+		sleep 8000;
+		isCloaked = 0;
+		set ACTIVATION to 100;
+	}
+	return (0);
+}
+
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+FireWeapon1()
+{
+	
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = body;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = body;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		explode rleg type BITMAPONLY | NOHEATCLOUD;
+		explode rfoot type BITMAPONLY | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode pelvis type FALL | NOHEATCLOUD;
+		explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfoot type FALL | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rleg type SMOKE | FALL | NOHEATCLOUD;
+		explode rfoot type SMOKE | FALL | NOHEATCLOUD;
+		explode body type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
