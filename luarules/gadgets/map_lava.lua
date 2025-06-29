@@ -66,10 +66,17 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
+	local speedDefs = {}
+	local turnDefs = {}
+	local accDefs = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
+		else 
+			speedDefs[unitDefID] = unitDef.speed
+			turnDefs[unitDefID] = unitDef.turnRate
+			accDefs[unitDefID] = unitDef.maxAcc
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -127,18 +134,19 @@ if gadgetHandler:IsSyncedCode() then
 					local us = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
 					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
 						local mt = spGetMoveData(unitID).name
-						local ms = UnitDefs[unitDefID].speed
-						if (mt == "ground") and (ms and ms ~= 0) then
+						local ms = speedDefs[unitDefID]
+						local tr = turnDefs[unitDefID]
+						local ac = accDefs[unitDefID]
+						if (mt == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ac and ac ~= 0)then
 							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
 					end
 					if lavaUnits[unitID].slowed and (us ~= lavaUnits[unitID].currentSlow) then
-						local originalStats = UnitDefs[unitDefID]
-						local slowedMaxSpeed = originalStats.speed * us
-						local slowedTurnRate = originalStats.turnRate * us
-						local slowedAccRate = originalStats.maxAcc * us
+						local slowedMaxSpeed = speedDefs[unitDefID] * us
+						local slowedTurnRate = turnDefs[unitDefID] * us
+						local slowedAccRate = accDefs[unitDefID] * us
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 						lavaUnits[unitID].currentSlow = us
 					end
@@ -146,7 +154,7 @@ if gadgetHandler:IsSyncedCode() then
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then 
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {UnitDefs[unitDefID].Speed, turnRate = UnitDefs[unitDefID].turnRate, accRate = UnitDefs[unitDefID].accRate})
+						spSetMoveData(unitID, {speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
 					end
 				lavaUnits[unitID] = nil
 				end
