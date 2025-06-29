@@ -1,45 +1,15 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armsam" then
-		uDef.weapondefs.armtruck_missile.tracks = true
-		uDef.weapondefs.armtruck_missile.range = 525
-		uDef.weapondefs.armtruck_missile.turnrate = 21000
-		uDef.weapondefs.armtruck_missile.damage.default = 54
-		uDef.weapondefs.armtruck_missile.flighttime = 1.6
-		uDef.weapondefs.armtruck_missile.weaponvelocity = 550		
 		uDef.collisionvolumetype = "ellipsoid"
 		uDef.collisionvolumescales = "29 31 41"
 		uDef.collisionvolumeoffsets = "0 3 -1"
 	end
 	if name == "cormist" then
-		uDef.weapondefs.cortruck_missile.tracks = true
-		uDef.weapondefs.cortruck_missile.range = 550
-		uDef.weapondefs.cortruck_missile.turnrate = 21000
-		uDef.weapondefs.cortruck_missile.damage.default = 40
-		uDef.weapondefs.cortruck_missile.flighttime = 1.6
-		uDef.weapondefs.cortruck_missile.weaponvelocity = 550		
 		uDef.collisionvolumetype = "ellipsoid"
 		uDef.collisionvolumescales = "32 31 43"
 		uDef.collisionvolumeoffsets = "0 0 -2"
 	end
-	if name == "corstorm" then
-		uDef.speed = math.ceil(uDef.speed + 3)
-		uDef.turnrate = 1150
-		uDef.weapondefs.cor_bot_rocket.predictboost = 0.4
-	end
-	if name == "armrock" then
-		uDef.speed = math.ceil(uDef.speed + 3)
-		uDef.turnrate = 1150
-		uDef.weapondefs.arm_bot_rocket.predictboost = 0.4
-	end
-	if name == "corthud" or name == "armham" then
-		uDef.speed = math.ceil(uDef.speed + 3)
-		uDef.weapondefs.arm_ham.predictboost = 0.8
-		uDef.turnrate = 1150
-	end
-	if name == "armwar" then
-		uDef.speed = uDef.speed + 3
-		uDef.turnrate = 750
-	end
+
 	
 	if name == "armmex" or name == "cormex" then
 		uDef.health = uDef.health + 81
@@ -68,6 +38,10 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	if name == "armepoch" then
+		uDef.metalcost = math.floor(uDef.metalcost *1.15)
+		uDef.energycost = math.floor(uDef.energycost *1.15)
+		uDef.buildtime = math.floor(uDef.buildtime *1.15)
+		uDef.weapondefs.heavyplasma.damage.default = 500
 		uDef.weapondefs.heavyplasma.reloadtime = 5
 		uDef.weapondefs.heavyplasma.areaofeffect = 160
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
@@ -75,6 +49,10 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.heavyplasma.impulsefactor = 1
 	end
 	if name == "corblackhy" then
+		uDef.metalcost = math.floor(uDef.metalcost *1.15)
+		uDef.energycost = math.floor(uDef.energycost *1.15)
+		uDef.buildtime = math.floor(uDef.buildtime *1.15)
+		uDef.weapondefs.heavyplasma.damage.default = 600
 		uDef.weapondefs.heavyplasma.reloadtime = 7
 		uDef.weapondefs.heavyplasma.areaofeffect = 240
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
@@ -85,21 +63,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = 37
 	end
 
-	if name == "armrectr" or name == "cornecro" then
-		uDef.metalcost = 140
-		uDef.energycost = 1500
-		uDef.buildtime = 3000
-	end
-	if name == "armrecl" or name == "correcl" then
-		uDef.metalcost = 230
-		uDef.energycost = 3500
-		uDef.buildtime = 6500
-		uDef.speed = 60
-	end
-
-	--if name == "armvp" or name == "corvp" then
-	--end
-	
 	if name == "armcom" or name == "corcom" then
 		uDef.energymake = 30
 	end
@@ -114,8 +77,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = uDef.energycost - 250
 		uDef.workertime = 150
 	end
-
-
 
 	if name == "corak" then
 		uDef.metalcost = 42
@@ -139,53 +100,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "corgol" then
 		uDef.energycost = 28000
-	end
-	
-	if name == "corspy" then
-		uDef.buildtime = 15000
-		uDef.energycost = 10000
-	end
-	if name == "armspy" then
-	uDef.script = "Units/ARMSPY2.cob"
-	uDef.selfdestructas = "smallExplosionGeneric"
-	uDef.metalcost = 250
-	uDef.weapondefs.crawl_dummy = {
-		areaofeffect = 32,
-		avoidfeature = false,
-		beamdecay = 0.5,
-		beamtime = 1,
-		beamttl = 1,
-		collidefriendly = false,
-		corethickness = 0.4,
-		craterareaofeffect = 0,
-		craterboost = 0,
-		cratermult = 0,
-		duration = 0.01,
-		edgeeffectiveness = 0.15,
-		energypershot = 500,
-		explosiongenerator = "custom:laserhit-emp",
-		impulsefactor = 0,
-		laserflaresize = 6.05,
-		name = "Heavy EMP beam",
-		noselfdamage = true,
-		paralyzer = true,
-		paralyzetime = 10,
-		range = 210,
-		reloadtime = 20,
-		rgbcolor = "0.7 0.7 1",
-		soundhitdry = "",
-		soundhitwet = "sizzle",
-		soundstart = "hackshotxl3",
-		soundtrigger = 1,
-		thickness = 3.5,
-		tolerance = 6000,
-		turret = false,
-		weapontype = "BeamLaser",
-		weaponvelocity = 1000,
-		damage = {
-			default = 18000,
-		},
-		}
 	end
 
 	if name == "coraak" then
@@ -289,7 +203,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			},
 		}
 	end
-if name == "armaak" then
+	if name == "armaak" then
 		uDef.script = "Units/armaak_clean.cob"
 		uDef.health = 2200
 		uDef.weapondefs = {	
