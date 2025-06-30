@@ -71,8 +71,6 @@ local CORNER_MULTIPLIER = math.sqrt(2) -- for calculating how far from center to
 local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- you own it when the circle color fill of the grid square touches the edge.
 -- the ownership fill continues beyond touching the edge of the square, this gives you a little "buffer" before ownership is lost.
 
-local FINISHED_BUILDING = 1
-
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
@@ -87,7 +85,7 @@ local clamp = math.clamp
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -402,9 +400,8 @@ local function getAllyPowersInSquare(gridID)
 	
 	for i = 1, #units do
 		local unitID = units[i]
-		local buildProgress = select(5, spGetUnitHealth(unitID))
 		
-		if buildProgress == FINISHED_BUILDING then
+		if not spGetUnitIsBeingBuilt(unitID) then
 			local unitDefID = spGetUnitDefID(unitID)
 			local unitData = unitWatchDefs[unitDefID]
 			local allyTeam = spGetUnitAllyTeam(unitID)
