@@ -1,4 +1,4 @@
-
+armepocarmsup
 local difficulties = {
 	veryeasy = 1,
 	easy 	 = 2,
@@ -740,6 +740,7 @@ local SeaUnitsList = {
 			["armserpt3_scav"] = 2,
 			--Cortex
 			["coresuppt3_scav"] = 2,
+			["corprince_scav"] = 3,
 		},
 	},
 	Support = {
