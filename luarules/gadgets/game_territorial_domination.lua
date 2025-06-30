@@ -12,8 +12,8 @@ function gadget:GetInfo()
 end
 
 local modOptions = Spring.GetModOptions()
-local SYNCED = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not SYNCED then return false end
+local isSynced = gadgetHandler:IsSyncedCode()
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
 
 local territorialDominationConfig = {
 	short = {
@@ -37,11 +37,6 @@ local DEBUGMODE = false
 
 local GRID_SIZE = 1024
 local GRID_CHECK_INTERVAL = Game.gameSpeed
-local MAX_PROGRESS = 1.0
-local STARTING_PROGRESS = 0
-local FINISHED_BUILDING = 1
-local CORNER_MULTIPLIER = 1.4142135623730951
-local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER
 local MAJORITY_THRESHOLD = 0.5
 
 local PROGRESS_INCREMENT = 0.06
@@ -49,6 +44,8 @@ local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
 
+-- Scavengers/Raptors (called horde mode in this code) has to be treated differently because in appropriately difficult matches, you can't hold 50% of the map.
+-- Additionally, we must adjust the max territories required to hold according to map size and player counts so it isn't boringly easy or impossibly hard.
 local HORDE_MODE_PLAYER_CAP = 16
 local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP = 0.50 -- the maximum percentage of territory needed to be owned by HORDE_MODE_PLAYER_CAP players to avoid defeat.
 local HORDE_MODE_MIN_TERRITORY_PERCENTAGE = 0.10 -- the minimum percentage of territory needed to be owned by 16 players to avoid defeat.
@@ -67,6 +64,14 @@ local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2/3
 local MIN_THRESHOLD_DELAY = 1
 local DEFEAT_DELAY_SECONDS = 60
 local RESET_DEFEAT_FRAME = 0
+
+local MAX_PROGRESS = 1.0
+local STARTING_PROGRESS = 0
+local CORNER_MULTIPLIER = math.sqrt(2) -- for calculating how far from center to the corner of a square is, given the square's edge is 1 unit of distance away.
+local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- you own it when the circle color fill of the grid square touches the edge.
+-- the ownership fill continues beyond touching the edge of the square, this gives you a little "buffer" before ownership is lost.
+
+local FINISHED_BUILDING = 1
 
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
@@ -419,7 +424,7 @@ local function getAllyPowersInSquare(gridID)
 
 	for allyID, power in pairs(allyPowers) do
 		if allyPowers[allyID] > 0 then
-			power = power + random() -- randomize power to prevent ties where the last tied victor always wins
+			allyPowers[allyID] = power + random() -- randomize power to prevent ties where the last tied victor always wins
 			if allyID ~= data.allyOwnerID then
 				data.contested = true
 			end
@@ -618,6 +623,8 @@ local function createVisibilityArray(squareData)
 	end
 	
 	local visibilityArray = {}
+	-- we use strings instead because SendToUnsynced() doesn't support tables,
+	-- bitmasks have floating point errors with team sizes > 22, and booleans for multiple states would require crazy numbers of SendToUnsynced() calls.
 	for i = 0, maxAllyID do
 		visibilityArray[i + 1] = "0"
 	end

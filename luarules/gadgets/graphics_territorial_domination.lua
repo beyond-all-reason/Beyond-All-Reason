@@ -12,8 +12,8 @@ function gadget:GetInfo()
 end
 
 local modOptions = Spring.GetModOptions()
-local SYNCED = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or SYNCED then return false end
+local isSynced = gadgetHandler:IsSyncedCode()
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
 
 local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -25,7 +25,7 @@ local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
 local SQUARE_HEIGHT = 10
 local MAX_CAPTURE_CHANGE = 0.12
-local OWNERSHIP_THRESHOLD = 1 / 1.4142135623730951
+local OWNERSHIP_THRESHOLD = 1 / math.sqrt(2)
 local CAPTURE_SOUND_RESET_THRESHOLD = OWNERSHIP_THRESHOLD * 0.5
 local CAPTURE_SOUND_VOLUME = 1.0
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
