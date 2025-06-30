@@ -11,8 +11,7 @@ static-var  gun_1, gun_2, gun_3, aimDir1;
 static-var 	currentHeadMain, newHeadMain,
 			currentHeadBack, newHeadBack,
 			currentHeadFront, newHeadFront;
-static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_barrel_flak, Static_Var_4, Static_Var_5,
-            Static_Var_7, restore_delay, oldHead, aimy1target, aimy1position, Func_Var_1, Func_Var_2, Static_Var_8, aimDir;
+static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_barrel_flak, restore_delay, oldHead, aimy1target, aimy1position, Func_Var_1, Func_Var_2, Static_Var_8, aimDir;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -72,9 +71,6 @@ Create()
 	active_barrel_one = 0;
 	active_barrel_two = 0;
 	active_barrel_three = 0;
-	Static_Var_4 = 0;
-	Static_Var_5 = 0;
-	Static_Var_7 = 0;
 
 	newHeadMain = 0;
 	currentHeadMain = 0;
@@ -94,9 +90,9 @@ Create()
 	start-script BoatPhysics();
 
 	start-script ExecuteRestoreAfterDelay();
-	start-script ExecuteRestoreAfterDelay2();
-	start-script ExecuteRestoreAfterDelay3();
-	start-script ExecuteRestoreAfterDelay4();
+	call-script ExecuteRestoreAfterDelay2();
+	call-script ExecuteRestoreAfterDelay3();
+	call-script ExecuteRestoreAfterDelay4();
 	spin radar around y-axis speed <60.0> accelerate <2>;
 }
 
@@ -149,8 +145,7 @@ ExecuteRestoreAfterDelay2()
 	turn turret3 to y-axis <-180> speed <50.000000>;
 	turn cannon5 to x-axis <0.000000> speed <20.000000>;
 	turn cannon6 to x-axis <0.000000> speed <25.000000>;
-	sleep 30;
-;
+
 }
 RestoreAfterDelay2()
 {
@@ -174,7 +169,6 @@ ExecuteRestoreAfterDelay3()
 	turn cannon1 to x-axis <0.000000> speed <20.000000>;
 	turn cannon2 to x-axis <0.000000> speed <25.000000>;
 
-	sleep 30;
 }
 RestoreAfterDelay3()
 {
@@ -199,7 +193,6 @@ ExecuteRestoreAfterDelay4()
 	spin flakturreta around y-axis speed <60> accelerate <1>;
 	spin flakturretb around y-axis speed <-60> accelerate <1>;
 
-	sleep 30;
 }
 RestoreAfterDelay4()
 {
@@ -212,9 +205,9 @@ SetStunned(State)
     Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
-	    start-script ExecuteRestoreAfterDelay2();
-	    start-script ExecuteRestoreAfterDelay3();
-	    start-script ExecuteRestoreAfterDelay4();
+	    call-script ExecuteRestoreAfterDelay2();
+	    call-script ExecuteRestoreAfterDelay3();
+	    call-script ExecuteRestoreAfterDelay4();
 	}
 }
 
