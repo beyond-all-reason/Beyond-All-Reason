@@ -154,7 +154,7 @@ if gadgetHandler:IsSyncedCode() then
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then 
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
+						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
 					end
 				lavaUnits[unitID] = nil
 				end
