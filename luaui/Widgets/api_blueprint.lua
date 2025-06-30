@@ -289,6 +289,7 @@ local BUILD_MODES = enum(
 )
 
 local function getBuildingDimensions(unitDefID, facing)
+	if not unitDefID then return 0, 0 end
 	local unitDef = UnitDefs[unitDefID]
 	if (facing % 2 == 1) then
 		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
@@ -305,6 +306,7 @@ local function getUnitsBounds(units)
 	local r = table.reduce(
 		units,
 		function(acc, unit)
+			if not unit.unitDefID then return acc end
 			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 			local bxMin = unit.position[1] - bw / 2
 			local bxMax = unit.position[1] + bw / 2
@@ -326,6 +328,10 @@ end
 
 local function getBlueprintDimensions(blueprint, facing)
 	local xMin, xMax, zMin, zMax = getUnitsBounds(blueprint.units)
+
+	if not xMin then
+		return 0, 0
+	end
 
 	if not facing or facing % 2 == 0 then
 		return xMax - xMin, zMax - zMin
@@ -577,55 +583,58 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 	end
 
 	for _, unit in ipairs(effectiveBlueprint.units) do
-		local x = copyPosition[1] + unit.position[1]
-		local z = copyPosition[3] + unit.position[3]
+		if unit.unitDefID then
+			local x = copyPosition[1] + unit.position[1]
+			local z = copyPosition[3] + unit.position[3]
 
-		local y = SpringGetGroundHeight(x, z)
+			local y = SpringGetGroundHeight(x, z)
 
-		local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
+			local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
 
-		local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
+			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 
-		local blocking = SpringTestBuildOrder(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing
-		)
-
-		local color
-		if blocking == 0 then
-			color = blockingColor
-		elseif activeBuilderBuildOptions[unit.unitDefID] then
-			color = buildableColor
-		else
-			color = unbuildableColor
-		end
-
-		-- outline
-		table.insert(instanceIDs[positionKey].outline, pushElementInstance(
-			outlineInstanceVBO,
-			{
+			local blocking = SpringTestBuildOrder(
+				unit.unitDefID,
 				sx, sy, sz,
-				bw, bh,
-				unpack(color),
-			},
-			nil,
-			true,
-			true
-		))
+				unit.facing
+			)
 
-		-- building
-		table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing * (math.pi / 2),
-			UNIT_ALPHA,
-			teamID,
-			nil,
-			nil,
-			nil,
-			widget:GetInfo().name
-		))
+			local color
+			if blocking == 0 then
+				color = blockingColor
+			elseif activeBuilderBuildOptions[unit.unitDefID] then
+				color = buildableColor
+			else
+				color = unbuildableColor
+			end
+
+			-- outline
+			local outlineInstanceID = pushElementInstance(
+				outlineInstanceVBO,
+				{
+					sx, sy, sz,
+					bw, bh,
+					unpack(color),
+				},
+				nil,
+				true,
+				true
+			)
+			table.insert(instanceIDs[positionKey].outline, outlineInstanceID)
+
+			-- building
+			table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
+				unit.unitDefID,
+				sx, sy, sz,
+				unit.facing * (math.pi / 2),
+				UNIT_ALPHA,
+				teamID,
+				nil,
+				nil,
+				nil,
+				widget:GetInfo().name
+			))
+		end
 	end
 end
 
@@ -712,9 +721,9 @@ local function setActiveBlueprint(bp)
 		return
 	end
 
-	local blueprintToProcess = table.copy(bp) 
+	local blueprintToProcess = table.copy(bp)
 	local sourceInfo = SubLogic.analyzeBlueprintSides(blueprintToProcess)
-	blueprintToProcess.sourceInfo = sourceInfo 
+	blueprintToProcess.sourceInfo = sourceInfo
 
 	local determinedTargetSide = currentAPITargetSide
 	local substitutionNeeded = false
@@ -725,18 +734,15 @@ local function setActiveBlueprint(bp)
 		end
 	end
 
-	if substitutionNeeded then 
-		Spring.Log("BlueprintAPI", LOG.WARNING, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
-			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
-		
-		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
-		
+	if substitutionNeeded then
+		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide)
+
 		if resultTable.substitutionFailed then
-			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
+			Spring.Log("BlueprintAPI", LOG.WARNING, resultTable.summaryMessage)
 		else
-			Spring.Log("BlueprintAPI", LOG.WARNING, "[Blueprint API] " .. resultTable.summaryMessage)
+			Spring.Log("BlueprintAPI", LOG.INFO, resultTable.summaryMessage)
 		end
-		
+
 		-- This allows partial substitutions to work even when some units fail to map
 		for _, unit in ipairs(blueprintToProcess.units) do
 			if unit.originalName then
@@ -747,7 +753,7 @@ local function setActiveBlueprint(bp)
 			end
 		end
 	end
-	
+
 	activeBlueprint = rotateBlueprint(blueprintToProcess, blueprintToProcess.facing)
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
@@ -779,7 +785,7 @@ local function setActiveBuilders(unitIDs)
 		{}
 	)
 
-	currentAPITargetSide = nil 
+	currentAPITargetSide = nil
 	if unitIDs and #unitIDs > 0 then
 		local firstBuilderID = unitIDs[1]
 		local firstBuilderDefID = SpringGetUnitDefID(firstBuilderID)
@@ -798,7 +804,7 @@ local function setActiveBuilders(unitIDs)
 end
 
 local function createBlueprintFromSerialized(serializedBlueprint)
-	-- This function contains logic to handle blueprints with units that are not 
+	-- This function contains logic to handle blueprints with units that are not
 	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute
 	-- those units to a default faction (ARM) so that the blueprints can still be used.
 	if not serializedBlueprint or not serializedBlueprint.units then
@@ -808,12 +814,8 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	local result = table.copy(serializedBlueprint)
 	result.units = {}
 
-	local hasMissingUnits = false
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
-		if not unitDefID then
-			hasMissingUnits = true
-		end
 		table.insert(result.units, {
 			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
 			position = serializedUnit.position,
@@ -823,53 +825,9 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 		})
 	end
 
-	if hasMissingUnits then
-		local missingUnitSides = {}
-		for _, unit in ipairs(result.units) do
-			if not unit.unitDefID then
-				local unitSide = SubLogic.getSideFromUnitName(unit.originalName)
-				if unitSide then
-					missingUnitSides[unitSide] = true
-				end
-			end
-		end
-
-		local sides = {}
-		for side in pairs(missingUnitSides) do
-			table.insert(sides, side)
-		end
-
-		local sourceSide
-		if #sides == 1 then
-			sourceSide = sides[1]
-		end
-
-		if sourceSide then
-			result.sourceInfo = {
-				primarySourceSide = sourceSide,
-				numSourceSides = 1,
-				sourceSides = { [sourceSide] = true },
-				sideCounts = { [sourceSide] = #result.units }
-			}
-
-			local targetSide = BpDefs.SIDES.ARM
-			local resultTable = SubLogic.processBlueprintSubstitution(result, targetSide)
-			
-			if not resultTable.substitutionFailed then
-				for _, unit in ipairs(result.units) do
-					unit.unitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
-				end
-			else
-				result.units = {}
-			end
-		else
-			result.units = {}
-		end
+	if #result.units == 0 then
+		return nil
 	end
-
-	result.units = table.filterArray(result.units, function(unit)
-		return unit.unitDefID ~= nil
-	end)
 
 	return result
 end
@@ -950,3 +908,6 @@ function widget:Shutdown()
 	end
 	reportFunctions = nil
 end
+
+
+

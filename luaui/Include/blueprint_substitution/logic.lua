@@ -172,6 +172,29 @@ function BlueprintSubLogic.analyzeBlueprintSides(blueprint)
         end
     end
 
+    if not primarySourceSide then
+        local allUnitSideCounts = {}
+        local maxCountAll = 0
+        for _, unit in ipairs(blueprint.units) do
+            local unitNameLower = nil
+            if unit.originalName then
+                unitNameLower = unit.originalName:lower()
+            elseif unit.unitDefID and UnitDefs[unit.unitDefID] and UnitDefs[unit.unitDefID].name then
+                unitNameLower = UnitDefs[unit.unitDefID].name:lower()
+            end
+            if unitNameLower then
+                local unitSide = BlueprintSubLogic.getSideFromUnitName(unitNameLower)
+                if unitSide then
+                    allUnitSideCounts[unitSide] = (allUnitSideCounts[unitSide] or 0) + 1
+                    if allUnitSideCounts[unitSide] > maxCountAll then
+                        primarySourceSide = unitSide
+                        maxCountAll = allUnitSideCounts[unitSide]
+                    end
+                end
+            end
+        end
+    end
+
     return {
         unitCount = #blueprint.units,
         buildingUnitCount = buildingUnitCount,
@@ -261,25 +284,56 @@ local function _generateSubstitutionSummary(aggregatedStats, itemTypeString, sou
     local stats = aggregatedStats 
     local substitutionActuallyFailed = (stats.failedNoMapping > 0 or stats.failedInvalidEquivalent > 0)
     local numFailedToMap = stats.failedNoMapping + stats.failedInvalidEquivalent
+    
     stats.totalConsidered = stats.totalConsidered or 0
     stats.substituted = stats.substituted or 0
     stats.unchangedSameSide = stats.unchangedSameSide or 0
     stats.unchangedOther = stats.unchangedOther or 0
     stats.unchangedNotBuilding = stats.unchangedNotBuilding or 0
     local numSkippedOrUnchangedConsidered = stats.unchangedSameSide + stats.unchangedOther
-    local message = string.format("%s processed from %s to %s. Items considered (buildings): %d, Substituted: %d, Failed to map: %d, Skipped/Unchanged (buildings): %d, Not buildings/commands: %d.",
+
+    local verboseMessage = string.format(
+        "%s processed from %s to %s. Items considered (buildings): %d, Substituted: %d, Failed to map: %d, Skipped/Unchanged (buildings): %d, Not buildings/commands: %d.",
         itemTypeString, sourceSide, targetSide, stats.totalConsidered, stats.substituted, 
-        numFailedToMap, numSkippedOrUnchangedConsidered, stats.unchangedNotBuilding)
+        numFailedToMap, numSkippedOrUnchangedConsidered, stats.unchangedNotBuilding
+    )
     if substitutionActuallyFailed then
-        message = message .. string.format(" (FAIL - %d item(s) could not be mapped)", numFailedToMap)
+        verboseMessage = verboseMessage .. string.format(" (FAIL - %d item(s) could not be mapped)", numFailedToMap)
     elseif stats.substituted > 0 then
-        message = message .. " (OK)"
+        verboseMessage = verboseMessage .. " (OK)"
     elseif stats.totalConsidered > 0 then
-        message = message .. string.format(" (No %s items substituted)", itemTypeString:lower())
+        verboseMessage = verboseMessage .. string.format(" (No %s items substituted)", itemTypeString:lower())
     else
-        message = message .. string.format(" (No relevant %s items to process for substitution)", itemTypeString:lower())
+        verboseMessage = verboseMessage .. string.format(" (No relevant %s items to process for substitution)", itemTypeString:lower())
     end
-    return message, substitutionActuallyFailed
+    
+    Spring.Log("BlueprintSubLogic", LOG.INFO, verboseMessage)
+
+    local simpleMessage
+    if stats.totalConsidered > 0 then
+        local details
+        if substitutionActuallyFailed then
+            details = string.format("%d/%d substituted, %d failed",
+                stats.substituted, stats.totalConsidered, numFailedToMap)
+        else
+            if stats.substituted > 0 then
+                 details = string.format("%d/%d substituted successfully", stats.substituted, stats.totalConsidered)
+            else
+                details = "No units substituted"
+            end
+        end
+        simpleMessage = string.format("%s from %s to %s: %s.", itemTypeString, sourceSide, targetSide, details)
+    else
+        simpleMessage = string.format("%s from %s to %s: No relevant units to process.", itemTypeString, sourceSide, targetSide)
+    end
+    
+    if substitutionActuallyFailed then
+        simpleMessage = simpleMessage .. " (FAIL)"
+    elseif stats.substituted > 0 then
+        simpleMessage = simpleMessage .. " (OK)"
+    end
+
+    return simpleMessage, substitutionActuallyFailed
 end
 
 function BlueprintSubLogic.getEquivalentUnitDefID(originalUnitName, targetSide)
@@ -289,10 +343,16 @@ end
 function BlueprintSubLogic.processBlueprintSubstitution(originalBlueprint, targetSide)
     local sourceSide = originalBlueprint and originalBlueprint.sourceInfo and originalBlueprint.sourceInfo.primarySourceSide
 
-    if not (originalBlueprint and originalBlueprint.units and targetSide and sourceSide) then
-        Spring.Log("BlueprintSubLogic", LOG.ERROR, "processBlueprintSubstitution: Called with incomplete arguments (e.g., nil targetSide or sourceSide for a required substitution). Review caller logic.")
+    if not (originalBlueprint and originalBlueprint.units and targetSide) then
+        Spring.Log("BlueprintSubLogic", LOG.ERROR, "processBlueprintSubstitution: Called with invalid arguments (nil blueprint, units, or targetSide).")
         local errorStats = {totalConsidered = 0, substituted = 0, failedNoMapping = 0, failedInvalidEquivalent = 0, unchangedSameSide = 0, unchangedOther = 0, unchangedNotBuilding = 0, hadMappingFailures = true}
-        return { stats = errorStats, summaryMessage = "Internal error: Incomplete arguments for substitution.", substitutionFailed = true }
+        return { stats = errorStats, summaryMessage = "Internal error: Invalid arguments for substitution.", substitutionFailed = true }
+    end
+
+    if not sourceSide then
+        local summary = "Blueprint substitution failed: The original faction of the blueprint is unclear."
+        local errorStats = {totalConsidered = originalBlueprint.units and #originalBlueprint.units or 0, substituted = 0, failedNoMapping = originalBlueprint.units and #originalBlueprint.units or 0, failedInvalidEquivalent = 0, unchangedSameSide = 0, unchangedOther = 0, unchangedNotBuilding = 0, hadMappingFailures = true}
+        return { stats = errorStats, summaryMessage = summary, substitutionFailed = true }
     end
 
     Spring.Log("BlueprintSubLogic", LOG.DEBUG, string.format("Processing blueprint substitution (in-place) from %s to %s for %d units.",

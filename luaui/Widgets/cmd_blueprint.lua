@@ -214,6 +214,9 @@ local BLUEPRINT_FILE_PATH = "LuaUI/Config/blueprints.json"
 ---@type Blueprint[]
 local blueprints = {}
 
+---@type SerializedBlueprint[]
+local filteredOutSerializedBlueprints = {}
+
 local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
@@ -379,9 +382,12 @@ local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
-		return UnitDefs[u.unitDefID].floatOnWater
+		return u.unitDefID and UnitDefs[u.unitDefID] and UnitDefs[u.unitDefID].floatOnWater
 	end)
 	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
+		if not u.unitDefID then
+			return acc
+		end
 		local w, h = WG["api_blueprint"].getBuildingDimensions(
 			u.unitDefID,
 			0
@@ -1092,18 +1098,19 @@ end
 ---@param blueprint Blueprint
 ---@return SerializedBlueprint
 local function serializeBlueprint(blueprint)
-	if serializedInvalidBlueprints[blueprint] ~= nil then
-		return serializedInvalidBlueprints[blueprint]
-	end
-
 	return {
 		name = blueprint.name,
 		spacing = blueprint.spacing,
 		facing = blueprint.facing,
 		ordered = blueprint.ordered,
 		units = table.map(blueprint.units, function(blueprintUnit)
+			local unitDef = UnitDefs[blueprintUnit.unitDefID]
+			local unitName = (unitDef and unitDef.name) or "unknown"
+			if blueprintUnit.originalName then
+				unitName = blueprintUnit.originalName
+			end
 			return {
-				unitName = UnitDefs[blueprintUnit.unitDefID].name,
+				unitName = unitName,
 				position = blueprintUnit.position,
 				facing = blueprintUnit.facing
 			}
@@ -1113,21 +1120,16 @@ end
 
 ---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
-local function deserializeBlueprint(serializedBlueprint)
+local function deserializeBlueprint(serializedBlueprint, index)
 	local blueprint = WG["api_blueprint"].createBlueprintFromSerialized(serializedBlueprint)
 
-	if not blueprint then
-		return {
-			units = {},
-			spacing = serializedBlueprint.spacing or 0,
-			facing = serializedBlueprint.facing or 0,
-			name = serializedBlueprint.name or "Invalid Blueprint",
-			ordered = serializedBlueprint.ordered or false,
-		}
-	end
-
-	if #blueprint.units == 0 then
-		serializedInvalidBlueprints[blueprint] = serializedBlueprint
+	if not blueprint or not table.any(blueprint.units, function(u) return u.unitDefID ~= nil end) then
+		local name = serializedBlueprint.name
+		if not name or name == "" then
+			name = "#" .. tostring(index)
+		end
+		FeedbackForUser(string.format("[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.", name))
+		return nil
 	end
 
 	postProcessBlueprint(blueprint)
@@ -1154,9 +1156,14 @@ local function loadBlueprintsFromFile()
 	end
 
 	blueprints = {}
+	filteredOutSerializedBlueprints = {}
 	for i, serializedBlueprint in ipairs(decoded.savedBlueprints) do
-		local blueprint = deserializeBlueprint(serializedBlueprint)
-		table.insert(blueprints, blueprint)
+		local blueprint = deserializeBlueprint(serializedBlueprint, i)
+		if blueprint then
+			table.insert(blueprints, blueprint)
+		else
+			table.insert(filteredOutSerializedBlueprints, serializedBlueprint)
+		end
 	end
 
 	if #blueprints == 0 then
@@ -1174,15 +1181,17 @@ local function saveBlueprintsToFile()
 		return
 	end
 
-	local savedBlueprintsToWrite = blueprints
-	if #savedBlueprintsToWrite == 0 then
-		savedBlueprintsToWrite = 0
-	else
-		savedBlueprintsToWrite = table.map(savedBlueprintsToWrite, serializeBlueprint)
+	local activeSerializedBps = table.map(blueprints, serializeBlueprint)
+	local allSerializedBpsToSave = {}
+	table.append(allSerializedBpsToSave, activeSerializedBps)
+	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
+
+	if #allSerializedBpsToSave == 0 then
+		allSerializedBpsToSave = 0
 	end
 
 	local encoded = Json.encode({
-		savedBlueprints = savedBlueprintsToWrite
+		savedBlueprints = allSerializedBpsToSave
 	})
 
 	if encoded == nil then
@@ -1240,10 +1249,10 @@ function widget:Shutdown()
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
+	widgetHandler:RemoveAction(self, "blueprint_next", "p")
+	widgetHandler:RemoveAction(self, "blueprint_prev", "p")
+	widgetHandler:RemoveAction(self, "blueprint_delete", "p")
+	widgetHandler:RemoveAction(self, "buildfacing", "p")
+	widgetHandler:RemoveAction(self, "buildspacing", "p")
 end
 
