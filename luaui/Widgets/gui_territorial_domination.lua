@@ -63,6 +63,7 @@ local BLINK_INTERVAL = 1
 local DEFEAT_CHECK_INTERVAL = Game.gameSpeed
 local AFTER_GADGET_TIMER_UPDATE_MODULO = 3
 local TIMER_COOLDOWN = 120
+local LAYOUT_UPDATE_INTERVAL = 2.0
 
 local WINDUP_SOUND_DURATION = 2
 local CHARGE_SOUND_LOOP_DURATION = 4.7
@@ -264,12 +265,13 @@ local CACHE_TTL = {
 local fontCache = cache:getOrCompute(CACHE_KEYS.FONT_DATA, function()
 	local _, viewportSizeY = spGetViewGeometry()
 	local fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
+	local baseFontSize = floor(14 * fontSizeMultiplier)
 	return {
 		initialized = true,
 		fontSizeMultiplier = fontSizeMultiplier,
-		fontSize = floor(14 * fontSizeMultiplier),
-		paddingX = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER),
-		paddingY = floor(14 * fontSizeMultiplier * PADDING_MULTIPLIER)
+		fontSize = baseFontSize,
+		paddingX = floor(baseFontSize * PADDING_MULTIPLIER),
+		paddingY = floor(baseFontSize * PADDING_MULTIPLIER)
 	}
 end, CACHE_TTL.SLOW)
 
@@ -1539,7 +1541,7 @@ function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
 
-local layoutUpdateCounter = 0
+local layoutUpdateTimer = 0
 function widget:Update(deltaTime)
 	currentTime = os.clock()
 	
@@ -1578,9 +1580,9 @@ function widget:Update(deltaTime)
 		end
 	end
 	
-	layoutUpdateCounter = layoutUpdateCounter + 1
-	if layoutUpdateCounter >= 120 then
-		layoutUpdateCounter = 0
+	layoutUpdateTimer = layoutUpdateTimer + deltaTime
+	if layoutUpdateTimer >= LAYOUT_UPDATE_INTERVAL then
+		layoutUpdateTimer = 0
 		if updateLayoutCache() then
 			needsScoreBarUpdate = true
 		end
