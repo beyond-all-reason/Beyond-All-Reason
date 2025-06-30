@@ -18,8 +18,6 @@ function gadget:GetInfo()
 	}
 end
 
-Spring.Echo("hello world x1")
-
 local isAssistBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilder and unitDef.canAssist then
@@ -27,53 +25,35 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+-- If this builder unit is repairing the newly built unit when it should
+-- instead be guarding the factory, remove the repair command
+local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
+	local commands = Spring.GetUnitCommands(builderUnitID, 2)
+	if (#commands >= 2) then
+		local firstCmd = commands[1]
+		local secondCmd = commands[2]
+		if (firstCmd.id == CMD.REPAIR
+			and secondCmd.id == CMD.GUARD) then
+				local isRepairingBuiltUnit = firstCmd.params[1] == builtUnitID
+				local isGuardingFactory = secondCmd.params[1] == factID
+				if (isRepairingBuiltUnit and isGuardingFactory) then
+					Spring.GiveOrderToUnit(builderUnitID, CMD.REMOVE, {firstCmd.id}, CMD.OPT_ALT)
+				end
+		end
+	end
+end
 
-local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
-
-local CMD_REPAIR = CMD.REPAIR
-
-local CMD_MOVE = CMD.MOVE
-
---------------------------------------------------------------------------------
--- Unit Handling
-
-function gadget:UnitFromFactory(unitID, unitDefID, unitTeam,
-								factID, factDefID, userOrders)
+function gadget:UnitFromFactory(unitID, unitDefID, _,
+								factID, _, _)
 	local unitHealth, unitMaxHealth, _, _, _ = Spring.GetUnitHealth(unitID)
-	Spring.Echo(string.format("curr health: %d. max health: %d", unitHealth, unitMaxHealth))
 	if (unitHealth >= unitMaxHealth) then
-		return
+		return -- if unit comes out with full health, guard works just fine
 	end
 	
 	for _, otherUnitID in ipairs(Spring.GetAllUnits()) do
-		-- Spring.Echo("hello each")
-
 		local otherUnitDefID = Spring.GetUnitDefID(otherUnitID)
 		if (isAssistBuilder[otherUnitDefID]) then
-			local commands = Spring.GetUnitCommands(otherUnitID, 2)
-			if (#commands >= 2) then
-				local firstCmd = commands[1]
-				local secondCmd = commands[2]
-				if (firstCmd.id == CMD.REPAIR
-					and secondCmd.id == CMD.GUARD and commands) then
-						Spring.Echo("found something")
-						local isRepairingNewUnit = firstCmd.params[1] == unitID
-						local isGuardingFactory = secondCmd.params[1] == factID
-						Spring.Echo("i really found something :D")
-						Spring.GiveOrderToUnit(otherUnitID, CMD.REMOVE, {firstCmd.id}, CMD.OPT_ALT)
-						Spring.Echo("huh")
-				end
-			end
-			-- Spring.Echo("irrelevant builder")
+			maybeRemoveRepairCmd(otherUnitID, unitDefID, factID)
 		end
 	end
-	Spring.Echo("hello 3")
 end
-
-function gadget:Initialize()
-	Spring.Echo("hello 2")
-end
-
-
--- Spring.GetAllUnits
---------------------------------------------------------------------------------
