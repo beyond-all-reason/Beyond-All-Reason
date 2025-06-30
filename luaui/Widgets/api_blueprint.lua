@@ -798,10 +798,9 @@ local function setActiveBuilders(unitIDs)
 end
 
 local function createBlueprintFromSerialized(serializedBlueprint)
-	-- HACK: This function contains temporary logic to handle blueprints with units
-	-- that are not in the base game (e.g., Legion). It attempts to substitute
-	-- those units to a default faction (ARM) so that the blueprints can still
-	-- be used. This can be removed once all factions are part of the base game.
+	-- This function contains logic to handle blueprints with units that are not 
+	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute
+	-- those units to a default faction (ARM) so that the blueprints can still be used.
 	if not serializedBlueprint or not serializedBlueprint.units then
 		return nil
 	end
