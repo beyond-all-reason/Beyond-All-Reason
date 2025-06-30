@@ -32,9 +32,9 @@ static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_ba
 #define RB_RECOIL_ENERGY_2 100
 #define RB_WAKE_PIECE wake
 #define RB_WAKE_PIECE2 engine
-#define RB_WAKE_CEG 1024 + 1
+#define RB_WAKE_CEG 1024 + 4
 #define RB_BOWSPLASH_PIECE bow
-#define RB_BOWSPLASH_CEG 1024 + 2
+#define RB_BOWSPLASH_CEG 1024 + 5
 #define RB_IDLE_KICK 3000
 
 #include "../bar_ships_common.h"
