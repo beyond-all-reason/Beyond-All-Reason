@@ -2806,14 +2806,6 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshSettings then
-					WG['music'].RefreshSettings()
-				end
-			end
-		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
@@ -3541,12 +3533,12 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
 		  end,
 		},
-		{ id = "advplayerlist_showplayerid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showplayerid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showplayerid_descr'),
+		{ id = "advplayerlist_showallyid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showallyid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showallyid_descr'),
 		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'playerid' })
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'allyid' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'playerid' }, value, { 'playerid', value })
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'allyid' }, value, { 'allyid', value })
 		  end,
 		},
 		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showid_descr'),
@@ -3555,6 +3547,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
+		  end,
+		},
+		{ id = "advplayerlist_showplayerid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showplayerid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showplayerid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'playerid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'playerid' }, value, { 'playerid', value })
 		  end,
 		},
 		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_rank_descr'),
