@@ -761,7 +761,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function widgetFailure(w, funcName, arg)
+local function widgetFailure(w, funcName, error)
 	local name = w.whInfo.name
 	if funcName ~= 'Shutdown' then
 		widgetHandler:RemoveWidget(w)
@@ -771,7 +771,7 @@ local function widgetFailure(w, funcName, arg)
 	else
 		Spring.Echo('Error in Shutdown()')
 	end
-	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r2))
+	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(error))
 	Spring.Echo('Removed widget: ' .. name)
 	return nil
 end
