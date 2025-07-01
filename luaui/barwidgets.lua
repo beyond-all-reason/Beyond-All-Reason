@@ -43,6 +43,7 @@ local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 
 local SandboxedSystem = {}
+local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -346,7 +347,7 @@ end
 
 local function CreateSandboxedSystem()
 	local function disabledOrder()
-		error("User 'unit control' widgets disallowed on this game", 2)
+		error(SANDBOXED_ERROR_MSG, 2)
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
@@ -764,17 +765,17 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function widgetFailure(w, funcName, error)
+local function widgetFailure(w, funcName, msg)
 	local name = w.whInfo.name
 	if funcName ~= 'Shutdown' then
 		widgetHandler:RemoveWidget(w)
-		if not w.canControlUnits then
+		if not w.canControlUnits and msg:find(SANDBOXED_ERROR_MSG) then
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
 	else
 		Spring.Echo('Error in Shutdown()')
 	end
-	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(error))
+	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(msg))
 	Spring.Echo('Removed widget: ' .. name)
 	return nil
 end
