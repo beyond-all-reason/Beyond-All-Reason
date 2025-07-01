@@ -131,7 +131,7 @@
 			"factoryShips": "Ahora podrás fabricar navíos. Las unidades más pesadas con la armadura y rango de ataque más altos. Ten cuidado de los submarinos y de las aeronaves con torpedos que suelen crear cementerios de navíos.",
 			"readyForTech2": "Tu economía ya es lo suficientemente fuerte como para construir una fábrica T2 y sus unidades asociadas. También puedes centrarte en maximizar tu producción de unidades T1 e intentar ganar por cantidad de unidades.",
 			"buildIntrusionCounterMeasure":"Deberías construir el Sistema de Contramedidas contra Intrusos, que puede detectar la ubicación aproximada de unidades sigilosas, invisibles y con interferencia de radar.",
-			"duplicateFactory": "Es más eficiente actuar de apoyo a una fábrica que construir varias fábricas del mismo tipo.",
+			"duplicateFactory": "Es más eficiente apoyar fábricas existentes que construir varias.",
 			"paralyzer": "Te están atacando grupos de paralizadores. Las unidades paralizadas estará desactivadas y no podrán disparar o moverse hasta que se las restaure.",
 			"lavaRising": "¡El nivel de la lava está aumentando!",
 			"lavaDropping": "¡El nivel de la lava está disminuyendo!"
