@@ -25,7 +25,10 @@ if not (Spring.GetModOptions().disable_unit_sharing
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture, reason)
+	if toTeamID == fromTeamID then
+		return true
+	end
 	if (capture) then
 		return true
 	end

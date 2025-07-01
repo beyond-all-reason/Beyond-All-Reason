@@ -130,7 +130,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+		if oldTeam == newTeam or capture then
+			return true
+		end
 		return not deadTeam[newTeam]
 	end
 

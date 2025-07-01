@@ -1,4 +1,3 @@
-
 if Spring.GetModOptions().marketplace ~= "enabled" then
 	return
 end
@@ -45,7 +44,11 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+	if oldTeam == newTeam then
+		return true
+	end
+
     if (marketplaces[oldTeam] > 0 and marketplaces[newTeam] > 0) or spIsCheatingEnabled() then
         return true
     end

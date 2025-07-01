@@ -98,6 +98,12 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
+gadgetHandler.GG.CHANGETEAM_REASON = {
+    GIVEN = 0,
+    CAPTURED = 1,
+    TAKE = 2,
+}
+
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
@@ -1543,9 +1549,9 @@ function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDe
 end
 
 function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
-										 oldTeam, newTeam, capture)
+										 oldTeam, newTeam, capture, reason)
 	for _, g in ipairs(self.AllowUnitTransferList) do
-		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture) then
+		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason) then
 			return false
 		end
 	end

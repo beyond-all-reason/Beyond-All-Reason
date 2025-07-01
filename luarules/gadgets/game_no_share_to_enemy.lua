@@ -40,7 +40,7 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
     if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or capture or IsCheatingEnabled() then
         return true
     end

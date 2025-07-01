@@ -54,9 +54,12 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return true
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+	if oldTeam == newTeam or capture then
+		return true
+	end
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+	if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
 		return true
 	end
 	return false

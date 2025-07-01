@@ -20,7 +20,15 @@ end
 local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+	if not unitID or type(unitID) ~= "number" then
+		return true
+	end
+	
+	local success, cmdQueue = pcall(Spring.GetUnitCommands, unitID)
+	if not success or not cmdQueue or #cmdQueue == 0 then
+		return true
+	end
 	if Spring.GetUnitSelfDTime(unitID) > 0 then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
