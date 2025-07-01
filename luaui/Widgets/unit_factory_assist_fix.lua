@@ -12,15 +12,32 @@ function widget:GetInfo()
 	}
 end
 
+----------------------------------------------------------------
+-- Globals
+----------------------------------------------------------------
 local myTeam = Spring.GetMyTeamID()
 
 -- key: unit ID of an assist-capable builder that my team owns/owned.
--- value: True if my team still owns this unit, and it is still alive. False otherwise
+-- value: True if my team still owns this unit, and it's still alive. False otherwise
 local myAssistBuilders = {}
 
--- FIXME do speedups
-
 local isAssistBuilder = {}
+
+----------------------------------------------------------------
+-- Speedups
+----------------------------------------------------------------
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local CMD_REPAIR = CMD.REPAIR
+local CMD_GUARD = CMD.GUARD
+local CMD_REMOVE = CMD.REMOVE
+local CMD_OPT_ALT = CMD.OPT_ALT
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilder and unitDef.canAssist then
 		isAssistBuilder[unitDefID] = true
@@ -30,24 +47,23 @@ end
 -- If this builder unit is repairing the newly built unit when it should
 -- instead be guarding the factory, remove the repair command
 local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
-	local firstCmdID, _, _, firstCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 1)
-	local secondCmdID, _, _, secondCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 2)
-	-- TODO null checks needed here?
-	if (firstCmdID == CMD.REPAIR
-		and secondCmdID == CMD.GUARD) then
+	local firstCmdID, _, _, firstCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 1)
+	local secondCmdID, _, _, secondCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 2)
+	if (firstCmdID == CMD_REPAIR
+		and secondCmdID == CMD_GUARD) then
 			local isRepairingBuiltUnit = firstCmdParam_1 == builtUnitID
 			local isGuardingFactory = secondCmdParam_1 == factID
 			if (isRepairingBuiltUnit and isGuardingFactory) then
-				Spring.GiveOrderToUnit(builderUnitID, CMD.REMOVE, {firstCmdID}, CMD.OPT_ALT)
+				spGiveOrderToUnit(builderUnitID, CMD_REMOVE, {firstCmdID}, CMD_OPT_ALT)
 			end
 	end
 end
 
 function widget:UnitFromFactory(unitID, _, unitTeam, factID)
-	if (not Spring.AreTeamsAllied(myTeam, unitTeam)) then
+	if (not spAreTeamsAllied(myTeam, unitTeam)) then
 		return -- impossible to be assisting enemy factory
 	end
-	local unitHealth, unitMaxHealth = Spring.GetUnitHealth(unitID)
+	local unitHealth, unitMaxHealth = spGetUnitHealth(unitID)
 	if (unitHealth >= unitMaxHealth) then
 		return -- if unit comes out with full health, guard works just fine
 	end
@@ -96,7 +112,7 @@ function widget:Initialize()
 	myTeam = Spring.GetMyTeamID()
 	maybeRemoveSelf()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 end
 
