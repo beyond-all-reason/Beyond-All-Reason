@@ -14,7 +14,7 @@ end
 
 local myTeam = Spring.GetMyTeamID()
 
--- key: unit ID of an assist-capable builder that my team owns/owned
+-- key: unit ID of an assist-capable builder that my team owns/owned.
 -- value: True if my team still owns this unit, and it is still alive. False otherwise
 local myAssistBuilders = {}
 
@@ -30,8 +30,8 @@ end
 -- If this builder unit is repairing the newly built unit when it should
 -- instead be guarding the factory, remove the repair command
 local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
-	local firstCmdID, _, _, firstCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 0)
-	local secondCmdID, _, _, secondCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 1)
+	local firstCmdID, _, _, firstCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 1)
+	local secondCmdID, _, _, secondCmdParam_1 = Spring.GetUnitCurrentCommand(builderUnitID, 2)
 	-- TODO null checks needed here?
 	if (firstCmdID == CMD.REPAIR
 		and secondCmdID == CMD.GUARD) then
@@ -43,9 +43,8 @@ local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
 	end
 end
 
-function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
-								factID)
-	if (!Spring.AreTeamsAllied(myTeam, unitTeam)) then
+function widget:UnitFromFactory(unitID, _, unitTeam, factID)
+	if (not Spring.AreTeamsAllied(myTeam, unitTeam)) then
 		return -- impossible to be assisting enemy factory
 	end
 	local unitHealth, unitMaxHealth = Spring.GetUnitHealth(unitID)
@@ -55,7 +54,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
 	
 	for myBuilderID, stillMineAndAlive in pairs(myAssistBuilders) do
 		if stillMineAndAlive then
-			maybeRemoveRepairCmd(myBuilderID, unitDefID, factID)
+			maybeRemoveRepairCmd(myBuilderID, unitID, factID)
 		end
 	end
 end
