@@ -30,7 +30,7 @@
 			"queues": "Crea colas de acciones consecutivas para tus unidades manteniendo pulsado SHIFT.",
 			"reclaimWrecks": "Adelántate a tu enemigo desmontando las pilas de escombros al frente para conseguir metal.",
 			"resurrectFight": "Usa la orden Luchar (F) con tus robots de reensamblaje para que desmonten y reparen todo lo que tengan cerca.\nTambién podrás activar la función Repetir para que repitan esto indefinidamente.",
-			"screenBombers":"Cuando asignes un vuelo de bombardeo, manda primero a tus cazas para eliminar cualquier barrera de enemigos aéreos.\nUsa las órdenes Luchar o Patrullar para que tus enfrentamientos sean más efectivos.",
+			"screenBombers":"Cuando asignes un vuelo de bombardeo, manda primero a tus cazas para eliminar las aeronaves enemigas..\nUsa las órdenes Luchar o Patrullar para que tus enfrentamientos sean más efectivos.",
 			"selectCommander": "Presiona Tab para seleccionar o centrar la cámara rápidamente en tu Comandante.",
 			"selectSameType": "Selecciona todas las unidades del mismo tipo presionando Q",
 			"separateBuildings": "Dispersa tus edificios para evitar explosiones en cadena.\nPulsa ALT + Z y ALT + X para ajustar el autoespaciado.",
