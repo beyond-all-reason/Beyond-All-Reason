@@ -452,10 +452,20 @@ function widgetHandler:AddSpadsMessage(contents)
 end
 
 
+function widgetHandler:ReloadUserWidgetFromGameRaw(name)
+	local ki = self.knownWidgets[name]
+	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
+	if w then
+		widgetHandler:InsertWidgetRaw(w)
+		Spring.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+	end
+	return w
+end
 
-function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
+
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
+	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
@@ -537,7 +547,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	end
 
 	local knownInfo = self.knownWidgets[name]
-	if knownInfo then
+	if knownInfo and not reload then
 		if knownInfo.active then
 			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
 			return nil
@@ -555,6 +565,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		self.knownChanged = true
 	end
 	knownInfo.active = true
+	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
@@ -750,6 +761,21 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function widgetFailure(w, funcName, arg)
+	local name = w.whInfo.name
+	if funcName ~= 'Shutdown' then
+		widgetHandler:RemoveWidget(w)
+		if not w.canControlUnits then
+			widgetHandler:ReloadUserWidgetFromGame(name)
+		end
+	else
+		Spring.Echo('Error in Shutdown()')
+	end
+	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r2))
+	Spring.Echo('Removed widget: ' .. name)
+	return nil
+end
+
 local function SafeWrapFuncNoGL(func, funcName)
 	return function(w, ...)
 		-- New method avoids needless table creation, but is limited to at most 2 return values per callin!
@@ -757,15 +783,7 @@ local function SafeWrapFuncNoGL(func, funcName)
 		if r1 then
 			return r2, r3
 		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r2))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
+			return widgetFailure(w, funcName, r2)
 		end
 	end
 end
@@ -779,15 +797,7 @@ local function SafeWrapFuncGL(func, funcName)
 			table.remove(r, 1)
 			return unpack(r)
 		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r[2]))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
+			return widgetFailure(w, funcName, r[2])
 		end
 	end
 end
@@ -911,7 +921,7 @@ end
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
 	-- It will also create the widgetHandler usual api queing the calls.
-	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget',
+	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget', 'ReloadUserWidgetFromGame',
 		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
 	local queueReorder = widgetHandler.QueueReorder
 
@@ -969,7 +979,10 @@ function widgetHandler:InsertWidgetRaw(widget)
 	-- Gracefully ignore good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
-		Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		local ki = self.knownWidgets[name]
+		if not self:ReloadUserWidgetFromGameRaw(name) then
+			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		end
 		return
 	end
 
