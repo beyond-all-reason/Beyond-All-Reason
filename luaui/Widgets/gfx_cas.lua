@@ -202,7 +202,7 @@ function widget:Initialize()
 		uniformInt = {
 			screenCopyTex = 0,
 		},
-	}, ": Contrast Adaptive Sharpen")
+	}, "Contrast Adaptive Sharpen")
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then
