@@ -985,7 +985,6 @@ function widgetHandler:InsertWidgetRaw(widget)
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
-		local ki = self.knownWidgets[name]
 		if not self:ReloadUserWidgetFromGameRaw(name) then
 			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
 		end
