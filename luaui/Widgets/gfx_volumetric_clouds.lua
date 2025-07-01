@@ -104,14 +104,8 @@ local glBlending             = gl.Blending
 local glCopyToTexture        = gl.CopyToTexture
 local glCreateShader         = gl.CreateShader
 local glCreateTexture        = gl.CreateTexture
-local glDeleteShader         = gl.DeleteShader
 local glDeleteTexture        = gl.DeleteTexture
-local glGetShaderLog         = gl.GetShaderLog
-local glGetUniformLocation   = gl.GetUniformLocation
 local glTexture              = gl.Texture
-local glUniform              = gl.Uniform
-local glUniformMatrix        = gl.UniformMatrix
-local glUseShader            = gl.UseShader
 local LuaShader 			 = gl.LuaShader
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spGetWind              = Spring.GetWind
@@ -537,7 +531,7 @@ end
 local function init()
 
 	if depthShader then
-		glDeleteShader(depthShader)
+		depthShader:Finalize()
 	end
 
 	fragSrc = fragSrc:format(
