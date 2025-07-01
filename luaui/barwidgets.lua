@@ -976,7 +976,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
 		return
 	end
-	-- Gracefully ignore good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
+	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		local ki = self.knownWidgets[name]
