@@ -767,15 +767,17 @@ end
 
 local function widgetFailure(w, funcName, msg)
 	local name = w.whInfo.name
+	local errorBase = 'Error'
 	if funcName ~= 'Shutdown' then
 		widgetHandler:RemoveWidget(w)
 		if not w.canControlUnits and msg:find(SANDBOXED_ERROR_MSG) then
+			errorBase = 'Sandbox error'
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
 	else
 		Spring.Echo('Error in Shutdown()')
 	end
-	Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(msg))
+	Spring.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(msg))
 	Spring.Echo('Removed widget: ' .. name)
 	return nil
 end
