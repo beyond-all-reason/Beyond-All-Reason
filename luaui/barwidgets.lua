@@ -629,16 +629,16 @@ local SandboxedWidgetMeta =
 function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
-	local controlWidgetsEnabled = fromZip or (self.allowUnitControlWidgets and allowunitcontrolwidgets)
+	local canControlUnits = fromZip or (self.allowUnitControlWidgets and allowunitcontrolwidgets)
 
 	if enableLocalsAccess then
-		local systemRef = controlWidgetsEnabled and System or SandboxedSystem
+		local systemRef = canControlUnits and System or SandboxedSystem
 		-- copy the system calls into the widget table
 		for k, v in pairs(systemRef) do
 			widget[k] = v
 		end
 	else
-		local metaRef = controlWidgetsEnabled and WidgetMeta or SandboxedWidgetMeta
+		local metaRef = canControlUnits and WidgetMeta or SandboxedWidgetMeta
 		-- use metatable redirection
 		setmetatable(widget, metaRef)
 	end
@@ -649,7 +649,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	widget.canControlUnits = controlWidgetsEnabled
+	widget.canControlUnits = canControlUnits
 	widget.include = function(f)
 		return include(f, widget)
 	end
