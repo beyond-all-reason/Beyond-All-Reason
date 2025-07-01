@@ -89,19 +89,15 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
-
 function widget:UnitDestroyed(unitID)
 	if myAssistBuilders[unitID] then -- it's dead :(
 		myAssistBuilders[unitID] = false
 	end
 end
 
-
 ------------------------------------------------------------------------------------------------
 ---------------------------------- SETUP AND TEARDOWN ------------------------------------------
 ------------------------------------------------------------------------------------------------
-
-
 local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) or Spring.IsReplay() then
 		widgetHandler:RemoveWidget()
