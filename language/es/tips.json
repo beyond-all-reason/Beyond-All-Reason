@@ -34,7 +34,7 @@
 			"selectCommander": "Presiona Tab para seleccionar o centrar la cámara rápidamente en tu Comandante.",
 			"selectSameType": "Selecciona todas las unidades del mismo tipo presionando Q",
 			"separateBuildings": "Dispersa tus edificios para evitar explosiones en cadena.\nPulsa ALT + Z y ALT + X para ajustar el autoespaciado.",
-			"separateBuildings2": "No te olvides de separar tus edificios de mayor inestabilidad (como los convertidores de energía) del resto de tu base.",
+			"separateBuildings2": "No te olvides de separar tus edificios altamente explosivos(como los convertidores de energía) del resto de tu base.",
 			"shareResources":"Para compartir recursos con tus aliados:\nHaz clic y arrastra las barras de metal/energía junto al nombre del jugador en cuestión.",
 			"shareUnits":"Para compartir unidades con tus aliados:\nElige la unidad/unidades y haz clic en el icono con dos flechas junto al nombre del jugador.",
 			"showMetalSpots": "¿No encuentras nodos de metal o fuentes geotérmicas?\nPulsa F4 para cambiar al mapa de recursos.",
