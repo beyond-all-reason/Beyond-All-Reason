@@ -48,7 +48,7 @@
 			"useMines":"Las minas son muy baratas y rápidas de construir. Recuerda construirlas fuera de la línea de visión del enemigo.",
 			"usePause": "Puedes pausar la partida con la tecla PAUSA/RECESO, o escribiendo /pause.",
 			"useRadar": "Los radares son baratos. Constrúyelos lo antes posible para recibir avisos útiles sobre ataques.",
-			"useRadarJammers": "Usa bloqueadores de radar para esconder a tus unidades de los radares enemigos y para ocultar ataques de artillería.",
+			"useRadarJammers": "Usa bloqueadores de radar para esconder a tus unidades de los radares enemigos y para que la artillería enemiga sea menos precisa.",
 			"useReclaim": "Pulsa E y dibuja un círculo para desmontar rápidamente todos los recursos y escombros dentro del área marcada.",
 			"useRepair": "Pulsa R y dibuja un círculo para reparar rápidamente a todas las unidades dentro del área marcada.",
 			"useSelfDestruct": "Si estás seguro de perder una unidad en territorio enemigo, autodestrúyela (CTRL+B) para evitar dejar restos valiosos.",
