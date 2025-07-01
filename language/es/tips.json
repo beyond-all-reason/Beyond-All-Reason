@@ -8,7 +8,7 @@
 			"autogroups": "Pulsa ALT + (0-9) para asignar el tipo/tipos de unidad elegido a los autogrupos. Al construir nuevas unidades del mismo tipo, se asignarán automáticamente a su autogrupo. Pulsa ALT + ` para eliminar unidades de dichos grupos.",
 			"buildingHotkeys": "Dominar los atajos del teclado es la clave para ganar soltura.\nUsa Z,X,C,V para seleccionar categorías de estructuras y frecuentemente estructura existentes",
 			"completelyDisappear": "Combina el camuflaje con la interferencia de radares para ocultar tus unidades completamente.",
-			"destroyFighters":"Construye defensas antiaéreas de largo alcance a lo largo de una línea de frente amplia para eliminar poco a poco los grupos defensivos de cazas enemigos.",
+			"destroyFighters":"Construye defensas Anti-Aéreas de largo alcance en el frente de batalla para disminuir el número de naves enemigas",
 			"dGun": "Los comandantes tienen un cañón D, un arma manual que desintegra a cualquier unidad de un solo disparo.\nPulsa D para activar esta arma.",
 			"dGunAssassin":"El cañón D de tu comandante puede usarse para destruir unidades T3 de un solo disparo.\nNo olvides camuflarte (K) primero.",
 			"disableAntiNukes": "Puedes desactivar los sistemas antimisiles nucleares usando misiles PEM (disponibles para la facción Armada a nivel T2).",
