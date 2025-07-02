@@ -4,12 +4,9 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves, turretmidpoint;
 
-static-var  nextBarrel, trajectoryMode, lastHeading;
+static-var  nextBarrel, lastHeading;
 
-#define SIGNAL_AIM2			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
-
+#define SIGNAL_AIM		1
 
 Create()
 {
@@ -17,98 +14,94 @@ Create()
 	hide flare2;
 	hide flare1;
 	hide flare2;
+	dont-cache flare1;
+	dont-cache flare2;
+	dont-cache barrel1;
+	dont-cache barrel2;
+	dont-cache sleeves;
+	dont-cache turret;
+	dont-shade flare1;
+	dont-shade flare2;
+	dont-shade barrel1;
+	dont-shade barrel2;
+	dont-shade sleeves;
+	dont-shade turret;
 	nextBarrel = 0;
 }
 
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-Activate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = HIGH_TRAJECTORY;
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM2;
-	trajectoryMode = LOW_TRAJECTORY;
-}
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 restoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM;
 	sleep 3500;
-	if(lastHeading > <-180.0>)
+	if(lastHeading > <-180.000000>)
 	{
-		turn turret to y-axis <180.0> speed <30.0>;
+		turn turret to y-axis <180.000000> speed <30.000000>;
 	}
-	if(lastHeading > <-135.0>)
+	if(lastHeading > <-135.000000>)
 	{
-		turn turret to y-axis <270.0> speed <30.0>;
+		turn turret to y-axis <270.000000> speed <30.000000>;
 	}
-	if(lastHeading > <-45.0>)
+	if(lastHeading > <-45.000000>)
 	{
-		turn turret to y-axis <0.0> speed <30.0>;
+		turn turret to y-axis <0.000000> speed <30.000000>;
 	}
-	if(lastHeading > <45.0>)
+	if(lastHeading > <45.000000>)
 	{
-		turn turret to y-axis <90.0> speed <30.0>;
+		turn turret to y-axis <90.000000> speed <30.000000>;
 	}
-	if(lastHeading > <135.0>)
+	if(lastHeading > <135.000000>)
 	{
-		turn turret to y-axis <180.0> speed <30.0>;
+		turn turret to y-axis <180.000000> speed <30.000000>;
 	}
-	if (trajectoryMode == LOW_TRAJECTORY)
-	{
-		turn sleeves to x-axis <0.0> speed <45.0>;
-	}
+	turn sleeves to x-axis <0.000000> speed <45.000000>;
 }
 
 aimCommon(heading, pitch)
 {
-	turn turret to y-axis heading speed <30.0>;
-	turn sleeves to x-axis <0.0> - pitch speed <45.0>;
+	turn turret to y-axis heading speed <30.000000>;
+	turn sleeves to x-axis <0.000000> - pitch speed <45.000000>;
 	lastHeading = heading;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
 	start-script restoreAfterDelay();
 }
 
-AimWeapon1(heading, pitch)
+AimPrimary(heading, pitch)
 {
-	if (AimingState != AIMING_BACKUP)
+	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
 	}
 
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	call-script aimCommon(heading, pitch);
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	call-script aimCommon(heading, pitch);
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
 	{
 		return(0);
 	}
-
 	return (1);
 }
 
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
+	
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
 	call-script aimCommon(heading, pitch);
+
 	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
@@ -119,85 +112,79 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimWeapon3(pieceIndex)
+AimFromPrimary(piecenum)
 {
-	return (0);
+	piecenum = sleeves;
 }
 
-AimFromWeapon1(pieceIndex)
+AimFromSecondary(piecenum)
 {
-	pieceIndex = sleeves;
-}
-
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = sleeves;
-}
-
-AimFromWeapon3(pieceIndex)
-{
-	pieceIndex = turretmidpoint;
+	piecenum = sleeves;
 }
 
 fireCommon()
 {
-	if( nextBarrel == 0 )
+if( nextBarrel == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-6.250000] now;
 		sleep 100;
-		move barrel1 to z-axis [0.0] speed [2.500000];
+		move barrel1 to z-axis [0.000000] speed [2.500000];
 	}
 	if( nextBarrel == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-6.250000] now;
 		sleep 100;
-		move barrel2 to z-axis [0.0] speed [2.500000];
+		move barrel2 to z-axis [0.000000] speed [2.500000];
 	}
 	nextBarrel = !nextBarrel;
 }
 
-FireWeapon1()
+FirePrimary()
 {
 	call-script fireCommon();
 }
 
-FireWeapon2()
+FireSecondary()
 {
 	call-script fireCommon();
 }
 
-
-QueryWeapon1(pieceIndex)
+QueryPrimary(piecenum)
+{
+	if (nextBarrel == 0) {
+		piecenum = flare1;
+	} else {
+		piecenum = flare2;
+	}
+}
+QuerySecondary(piecenum)
 {
 	if( nextBarrel == 0 )
 	{
-		pieceIndex = flare1;
+		piecenum = flare1;
 	}
 	if( nextBarrel == 1 )
 	{
-		pieceIndex = flare2;
+		piecenum = flare2;
 	}
 }
 
-QueryWeapon2(pieceIndex)
+QueryTertiary(piecenum)
 {
-	if( nextBarrel == 0 )
-	{
-		pieceIndex = flare1;
-	}
-	if( nextBarrel == 1 )
-	{
-		pieceIndex = flare2;
-	}
+	piecenum = turretmidpoint;
 }
 
-QueryWeapon3(pieceIndex)
+AimTertiary(piecenum)
 {
-	pieceIndex = turretmidpoint;
+	return (0);
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
 
 Killed(severity, corpsetype)
 {

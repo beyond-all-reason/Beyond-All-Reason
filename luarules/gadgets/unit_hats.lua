@@ -85,6 +85,7 @@ local champion = { --   Fight Night 1v1 and Master's League winners
 	[975] = true, -- StarDoM
 	[2377] = true, -- Therxyy
 	[439] = true, -- Goopy
+	[70311] = true, -- PRO_BTCV
 }
  local vikings = { -- Omega Series 3: Winners
 	[59340] = true,  -- Austin

@@ -1402,6 +1402,483 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-----------------------------
+	-- Split T2 into two Tiers --
+	-----------------------------
+	
+	if modOptions.splittiers then
+		if name == "armlab" then
+			uDef.buildoptions = {
+			[1] = "armck",
+			[2] = "armpw",
+			[3] = "armrectr",
+			[4] = "armrock",
+			[5] = "armjeth",
+			[6] = "armwar",
+			[7] = "armflea",
+			}
+		elseif name == "armap" then
+			uDef.buildoptions = {
+			[1] = "armca",
+			[2] = "armpeep",
+			[3] = "armfig",
+			[4] = "armthund",
+			[5] = "armatlas",
+			[6] = "armkam",
+			}
+		elseif name == "armalab" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "armack",
+			[2] = "armfark",
+			[3] = "armfast",
+			[4] = "armamph",
+			[5] = "armzeus",
+			[6] = "armmav",
+			[7] = "armspid",
+			[8] = "armfido",
+			[9] = "armaak",
+			[10] = "armvader",
+			[11] = "armdecom",
+			[12] = "armspy",
+		}
+		elseif name == "armavp" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "armacv",
+			[2] = "armconsul",
+			[3] = "armcroc",
+			[4] = "armlatnk",
+			[5] = "armbull",
+			[6] = "armmart",
+			[7] = "armyork",
+		}
+		elseif name == "armaap" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "armaca",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armawac",
+			[6] = "armsaber",
+			[7] = "armhvytrans",
+		}
+		elseif name == "armplat" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "armaca",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armawac",
+			[6] = "armsaber",
+		}		
+		elseif name == "armasy" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "armacsub",
+			[2] = "armmls",
+			[3] = "armcrus",
+			[4] = "armsubk",
+			[5] = "armaas",
+			[6] = "armantiship",
+			[7] = "armlship",
+		}
+		elseif name == "armack" then
+			uDef.metalcost = 300
+			uDef.buildoptions = {
+			[1] = "armfus",
+			[2] = "armckfus",
+			[3] = "armgmm",
+			[4] = "armuwadves",
+			[5] = "armuwadvms",
+			[6] = "armarad",
+			[7] = "armveil",
+			[8] = "armfort",
+			[9] = "armasp",
+			[10] = "armtarg",
+			[11] = "armsd",
+			[12] = "armgate",
+			[13] = "armpb",
+			[14] = "armflak",
+			[15] = "armemp",
+			[16] = "armamd",
+			[17] = "armdf",
+			[18] = "armlab",
+			[19] = "armalab",
+			[20] = "armsalab",
+			[21] = "armmoho",			
+		}
+		elseif name == "armacv" then
+			uDef.metalcost = 350
+			uDef.buildoptions = {
+			[1] = "armfus",
+			[2] = "armckfus",
+			[3] = "armgmm",
+			[4] = "armuwadves",
+			[5] = "armuwadvms",
+			[6] = "armarad",
+			[7] = "armveil",
+			[8] = "armfort",
+			[9] = "armasp",
+			[10] = "armtarg",
+			[11] = "armsd",
+			[12] = "armgate",
+			[13] = "armpb",
+			[14] = "armflak",
+			[15] = "armemp",
+			[16] = "armamd",
+			[17] = "armdf",
+			[18] = "armvp",
+			[19] = "armavp",
+			[20] = "armsavp",
+			[21] = "armmoho",
+		}
+		elseif name == "armaca" then
+			uDef.metalcost = 350
+			uDef.buildoptions = {
+			[1] = "armfus",
+			[2] = "armckfus",
+			[3] = "armgmm",
+			[4] = "armuwadves",
+			[5] = "armuwadvms",
+			[6] = "armarad",
+			[7] = "armveil",
+			[8] = "armfort",
+			[9] = "armasp",
+			[10] = "armtarg",
+			[11] = "armsd",
+			[12] = "armgate",
+			[13] = "armpb",
+			[14] = "armflak",
+			[15] = "armemp",
+			[16] = "armamd",
+			[17] = "armdf",
+			[18] = "armap",
+			[19] = "armaap",
+			[20] = "armsaap",
+			[21] = "armmoho",
+		}
+		elseif name == "armacsub" then
+			uDef.metalcost = 400
+			uDef.buildoptions = {
+			[1] = "armuwfus",
+			[2] = "armuwadves",
+			[3] = "armuwadvms",
+			[4] = "armasy",
+			[5] = "armsy",
+			[6] = "armason",
+			[7] = "armfatf",
+			[8] = "armfflak",
+			[9] = "armkraken",
+			[10] = "armfasp",
+			[11] = "armsasy",
+			[12] = "armuwmme",
+		}
+		elseif name == "armcsa" then
+			uDef.metalcost = 450
+			uDef.buildoptions = {
+			[1] = "armafus",
+			[2] = "armageo",
+			[3] = "armuwageo",
+			[4] = "armmoho",
+			[5] = "armmmkr",
+			[6] = "armanni",
+			[7] = "armmercury",
+			[8] = "armsilo",
+			[9] = "armbrtha",
+			[10] = "armvulc",
+			[11] = "armap",
+			[12] = "armaap",
+			[13] = "armsaap",
+			[14] = "armplat",
+			[15] = "armshltx",
+		}
+		elseif name == "coralab" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "corack",
+			[2] = "corfast",
+			[3] = "corpyro",
+			[4] = "coramph",
+			[5] = "corcan",
+			[6] = "cortermite",
+			[7] = "cormort",
+			[8] = "coraak",
+			[9] = "cordecom",
+			[10] = "corspy",
+		}
+		elseif name == "coravp" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {
+			[1] = "coracv",
+			[2] = "corsala",
+			[3] = "correap",
+			[4] = "cormart",
+			[5] = "corsent",
+			[6] = "cormabm",
+		}
+		elseif name == "corap" then
+			uDef.buildoptions = {
+			[1] = "corca",
+			[2] = "corfink",
+			[3] = "corveng",
+			[4] = "corshad",
+			[5] = "corvalk",
+			[6] = "corbw",
+		}
+		elseif name == "coraap" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {		
+			[1] = "coraca",
+			[2] = "corawac",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+			[7] = "corhvytrans",
+		}
+		elseif name == "corplat" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {		
+			[1] = "coraca",
+			[2] = "corawac",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+		}
+		elseif name == "corasy" then
+			uDef.metalcost = 2000
+			uDef.buildoptions = {		
+			[1] = "coracsub",
+			[2] = "cormls",
+			[3] = "corcrus",
+			[4] = "corshark",
+			[5] = "corarch",
+			[6] = "corantiship",
+			[7] = "corfship",
+		}
+		elseif name == "corack" then
+			uDef.metalcost = 300
+			uDef.buildoptions = {
+			[1] = "corfus",
+			[2] = "corbhmth",
+			[3] = "coruwadves",
+			[4] = "coruwadvms",
+			[5] = "corarad",
+			[6] = "corshroud",
+			[7] = "corfort",
+			[8] = "corasp",
+			[9] = "cortarg",
+			[10] = "corsd",
+			[11] = "corgate",
+			[12] = "corvipe",
+			[13] = "corflak",
+			[14] = "cortron",
+			[15] = "corfmd",
+			[16] = "corlab",
+			[17] = "coralab",
+			[18] = "corsalab",
+			[19] = "cormoho",
+		}
+		elseif name == "coracv" then
+			uDef.metalcost = 350
+			uDef.buildoptions = {
+			[1] = "corfus",
+			[2] = "corbhmth",
+			[3] = "coruwadves",
+			[4] = "coruwadvms",
+			[5] = "corarad",
+			[6] = "corshroud",
+			[7] = "corfort",
+			[8] = "corasp",
+			[9] = "cortarg",
+			[10] = "corsd",
+			[11] = "corgate",
+			[12] = "corvipe",
+			[13] = "corflak",
+			[14] = "cortron",
+			[15] = "corfmd",
+			[16] = "corvp",
+			[17] = "coravp",
+			[18] = "corsavp",
+			[19] = "cormoho",
+		}
+		elseif name == "coraca" then
+			uDef.metalcost = 350
+			uDef.buildoptions = {
+			[1] = "corfus",
+			[2] = "corbhmth",
+			[3] = "coruwadves",
+			[4] = "coruwadvms",
+			[5] = "corarad",
+			[6] = "corshroud",
+			[7] = "corfort",
+			[8] = "corasp",
+			[9] = "cortarg",
+			[10] = "corsd",
+			[11] = "corgate",
+			[12] = "corvipe",
+			[13] = "corflak",
+			[14] = "cortron",
+			[15] = "corfmd",
+			[16] = "corap",
+			[17] = "coraap",
+			[18] = "corsaap",
+			[19] = "cormoho",
+		}
+		elseif name == "coracsub" then
+			uDef.metalcost = 400
+			uDef.buildoptions = {
+			[1] = "coruwfus",
+			[2] = "coruwadves",
+			[3] = "coruwadvms",
+			[4] = "corasy",
+			[5] = "corsy",
+			[6] = "corason",
+			[7] = "corfatf",
+			[8] = "corenaa",
+			[9] = "corfdoom",
+			[10] = "corfasp",
+			[11] = "corsasy",
+			[12] = "coruwmme",
+		}
+		elseif name == "corcsa" then
+			uDef.metalcost = 450
+			uDef.buildoptions = {
+			[1] = "corafus",
+			[2] = "corageo",
+			[3] = "coruwageo",
+			[4] = "cormexp",
+			[5] = "cormmkr",
+			[6] = "cortoast",
+			[7] = "cordoom",
+			[8] = "corscreamer",
+			[9] = "corsilo",
+			[10] = "corint",
+			[11] = "corbuzz",
+			[12] = "corap",
+			[13] = "coraap",
+			[14] = "corplat",
+			[15] = "corsaap",
+			[16] = "corgant",
+		}
+		elseif name == "armfido" then
+			uDef.weapondefs.bfido.range = 600
+			uDef.health = 800
+			uDef.speed = 58
+			uDef.weapondefs.bfido.weaponvelocity = 450
+			uDef.weapondefs.bfido.reloadtime = 4
+			uDef.weapondefs.bfido.damage.default = 350			
+		elseif name == "armsptk" then
+			uDef.weapondefs.adv_rocket.range = 700
+			uDef.speed = 42
+		elseif name == "armbull" then
+			uDef.speed = 50
+			uDef.weapondefs.arm_bull.areaofeffect = 150
+			uDef.weapondefs.arm_bull.damage.default = 240
+			uDef.health = 5100
+		elseif name == "armlatnk" then
+			uDef.weapondefs.lightning.range = 260
+			uDef.health = 1300
+		elseif name == "armmart" then
+			uDef.speed = 40
+			uDef.weapondefs.arm_artillery.range = 760
+			uDef.weapondefs.arm_artillery.areaofeffect = 160
+			uDef.weapondefs.arm_artillery.damage.default = 220
+			uDef.health = 750
+		elseif name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.range = 700
+			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
+			uDef.weapondefs.arm_laserh1.damage.default = 580
+		elseif name == "armart" then
+			uDef.weapondefs.tawf113_weapon.range = 740
+			uDef.health = 520
+		elseif name == "armrock" then
+			uDef.weapondefs.arm_bot_rocket.range = 600
+			uDef.weapondefs.arm_bot_rocket.damage.default = 95
+			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
+		elseif name == "armsehak" then
+			uDef.metalcost = 250
+			uDef.energycost = 9500
+			uDef.hoverattack = true
+			uDef.sightdistance = 1500
+			uDef.radardistance = 2700
+		elseif name == "armmoho" then
+			uDef.energyupkeep = 150
+			uDef.health = 850
+		elseif name == "armuwmme" then
+			uDef.energyupkeep = 150
+			uDef.health = 850
+		elseif name == "armmanni" then
+			uDef.weapondefs.atam.reloadtime = 9.2
+			uDef.weapondefs.atam.damage.default = 4600
+			uDef.weapondefs.atam.damage.commanders = 1500
+			uDef.weapondefs.atam.energypershot = 3000
+			uDef.speed = 35
+		elseif name == "cormort" then
+			uDef.weapondefs.cor_mort.damage.default = 78
+			uDef.weapondefs.cor_mort.reloadtime = 1.2
+			uDef.weapondefs.cor_mort.range = 780
+			uDef.weapondefs.cor_mort.weaponvelocity = 400
+			uDef.speed = 40
+			uDef.metalcost = 340
+			uDef.health = 700
+		elseif name == "corthud" then
+			uDef.speed = 55
+			uDef.energycost = 1600
+			uDef.metalcost = 160
+			uDef.weapondefs.arm_ham.range = 425
+		elseif name == "corstorm" then
+			uDef.weapondefs.cor_bot_rocket.range = 600
+			uDef.weapondefs.cor_bot_rocket.damage.default = 105
+			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 150
+		elseif name == "corwolv" then
+			uDef.weapondefs.corwolv_gun.range = 740
+			uDef.health = 550
+		elseif name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.range = 700
+			uDef.weapondefs.cor_laserh1.reloadtime = 2.4
+			uDef.weapondefs.cor_laserh1.damage.default = 392
+		elseif name == "correap" then
+			uDef.speed = 55
+			uDef.weapondefs.cor_reap.areaofeffect = 90
+			uDef.weapondefs.cor_reap.damage.default = 95
+			uDef.health = 6200
+		elseif name == "cormart" then
+			uDef.speed = 40
+			uDef.weapondefs.cor_artillery.range = 750
+			uDef.weapondefs.cor_artillery.areaofeffect = 170
+			uDef.weapondefs.cor_artillery.damage.default = 390
+			uDef.health = 850
+		elseif name == "cormoho" then
+			uDef.energyupkeep = 150
+			uDef.health = 1000
+		elseif name == "coruwmme" then
+			uDef.energyupkeep = 150
+			uDef.health = 1000
+		elseif name == "corhunt" then
+			uDef.metalcost = 250
+			uDef.energycost = 9500
+			uDef.hoverattack = true
+			uDef.sightdistance = 1500
+			uDef.radardistance = 2700
+		elseif name == "cormexp" then
+			uDef.energyupkeep = 150
+		elseif name == "cormando" then
+			uDef.weapons[1].badtargetcategory = "VTOL"
+			uDef.weapons[1].onlytargetcategory = "NOTSUB"
+			uDef.weapondefs.commando_blaster.damage.default = 150
+			uDef.weapondefs.commando_blaster.weaponvelocity = 600
+		end	
+	end
+	
+
+
+
+
 	-- Multipliers Modoptions
 
 	-- Max Speed

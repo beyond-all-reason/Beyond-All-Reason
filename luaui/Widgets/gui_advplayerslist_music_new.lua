@@ -68,7 +68,6 @@ local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
-local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
 local interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
 local gameFrame = 0
@@ -80,7 +79,6 @@ local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
@@ -368,8 +366,6 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local prevPlayedTime = playedTime
-
-local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
 if maxMusicVolume > 99 then
@@ -792,7 +788,6 @@ function widget:Initialize()
 		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
 	end
 	ReloadMusicPlaylists()
-	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
@@ -918,7 +913,6 @@ function widget:Initialize()
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-		silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	end
 	WG['music'].RefreshTrackList = function()
 		Spring.StopSoundStream()
@@ -1206,11 +1200,6 @@ function PlayNewTrack(paused)
 	end
 	Spring.StopSoundStream()
 	fadeOutSkipTrack = false
-	if #interludeTracks > 0 or warMeter > warHighLevel then
-		silenceTimer = math.random(1,5)
-	else
-		silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-	end
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
@@ -1379,10 +1368,6 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-		if totalTime == 0 and silenceTimer >= 0 and damage and damage > 0 then
-			silenceTimer = silenceTimer - damage*0.001
-			--Spring.Echo("silenceTimer: ", silenceTimer)
-		end
 	end
 end
 
@@ -1447,15 +1432,6 @@ function widget:GameFrame(n)
 		end
 
 		local musicVolume = getMusicVolume()
-		--if musicVolume > 0 then
-		--	playing = true
-		--else
-		--	playing = false
-		--	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-		--	--Spring.PauseSoundStream()
-		--	Spring.StopSoundStream()
-		--	return
-		--end
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
@@ -1478,16 +1454,7 @@ function widget:GameFrame(n)
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if silenceTimerEnabled and not bossHasSpawned then
-					--Spring.Echo("silenceTimer: ", silenceTimer)
-					if silenceTimer > 0 then
-						silenceTimer = silenceTimer - 1
-					elseif silenceTimer <= 0 then
-						PlayNewTrack()
-					end
-				else
-					PlayNewTrack()
-				end
+				PlayNewTrack()
 			end
 		end
 	end
@@ -1515,20 +1482,11 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:UnitCreated(_, _, _, builderID)
-	if builderID and warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 1
-	end
-end
+--function widget:UnitCreated(_, _, _, builderID)
+--end
 
-function widget:UnitFinished()
-	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 2
-	end
-end
+--function widget:UnitFinished()
+--end
 
 --function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
---
 --end

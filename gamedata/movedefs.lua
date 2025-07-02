@@ -98,7 +98,7 @@ local moveDatas = {
 		minwaterdepth = 10,
 	},
 
-	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -525,7 +525,7 @@ local moveDatas = {
 	},
 
 
-	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3
+	-- corslrpc armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
