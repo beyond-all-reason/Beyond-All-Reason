@@ -24,7 +24,7 @@ return {
 		name = "Mug",
 		nochasecategory = "VTOL",
 		objectname = "Units/SCAVMUG.s3o",
-		script = "Units/CORTHUD.cob",
+		script = "Units/CORMUG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 380,
@@ -53,7 +53,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 96,
-				object = "Units/corthud_dead.s3o",
+				object = "Units/scavmug_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
