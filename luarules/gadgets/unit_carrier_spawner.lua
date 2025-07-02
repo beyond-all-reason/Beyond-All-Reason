@@ -224,6 +224,7 @@ for weaponDefID = 1, #WeaponDefs do
 			energyperstockpile = wdcp.stockpileenergy,
 			cobdockparam = wdcp.cobdockparam,
 			cobundockparam = wdcp.cobundockparam,
+			droneundocksequence = wdcp.droneundocksequence,
 			
 		}
 
@@ -340,7 +341,7 @@ local function UnDockUnit(unitID, subUnitID)
 		return
 	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
 		return
-	elseif carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked and carrierMetaList[unitID].subUnitsList[subUnitID].dronetype ~= "infantry" then
+	elseif carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked and not carrierMetaList[unitID].subUnitsList[subUnitID].activeSpawnSequence and carrierMetaList[unitID].subUnitsList[subUnitID].dronetype ~= "infantry" then
 		Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 1)
 		spUnitDetach(subUnitID)
 		mcDisable(subUnitID)
@@ -350,12 +351,77 @@ local function UnDockUnit(unitID, subUnitID)
 		carrierMetaList[unitID].subUnitsList[subUnitID].docked = false
 		carrierMetaList[unitID].activeDocking = false
 		carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
-		unitUndocked = Spring.CallCOBScript(subUnitID, "Undocked", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
+		carrierMetaList[unitID].subUnitsList[subUnitID].activeUndockSequence = false
+		Spring.CallCOBScript(subUnitID, "Undocked", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
 		if carrierMetaList[unitID].dockArmor then
 			spSetUnitArmored(subUnitID, false, 1)
 		end
 	end
 end
+
+
+local function UnDockSequence(unitID, subUnitID) -- Initiates an undock sequence in COB
+	if not carrierMetaList[unitID] then
+		return
+	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+		return
+	elseif carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked then
+		if carrierMetaList[unitID].subUnitsList[subUnitID].activeUndockSequence == true then
+			return
+		elseif carrierMetaList[unitID].droneundocksequence then
+			Spring.CallCOBScript(unitID, "DroneUndockSequence", 0, subUnitID, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
+			Spring.CallCOBScript(subUnitID, "DroneUndockSequence", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
+			carrierMetaList[unitID].subUnitsList[subUnitID].activeUndockSequence = true
+		else
+			UnDockUnit(unitID, subUnitID)
+		end
+	end
+end
+
+
+local function UnDockSequenceFinished(unitID, unitDefID, team, subunitID) --Called from COB when undock sequence is finished
+	if not carrierMetaList[unitID] then
+		return
+	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+		return
+	else
+		UnDockUnit(unitID, subunitID)
+		return 1
+	end
+end
+
+
+local function DroneSpawnSequence(unitID, subUnitID) --Initiates a spawn sequence in COB
+	if not carrierMetaList[unitID] then
+		return
+	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+		return
+	elseif carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked then
+		if carrierMetaList[unitID].subUnitsList[subUnitID].activeUndockSequence == true then
+			return
+		elseif carrierMetaList[unitID].droneundocksequence then
+			Spring.CallCOBScript(unitID, "DroneSpawnSequence", 0, subUnitID, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
+			Spring.CallCOBScript(subUnitID, "DroneSpawnSequence", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
+			carrierMetaList[unitID].subUnitsList[subUnitID].activeUndockSequence = true
+		else
+			UnDockUnit(unitID, subUnitID)
+		end
+	end
+end
+
+
+local function DroneSpawnSequenceFinished(unitID, unitDefID, team, subunitID) --Called from COB when spawn sequence is finished
+	if not carrierMetaList[unitID] then
+		return
+	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+		return
+	else
+		local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(unitID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)			--Index nil value at unitcap destruction
+		Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
+		return 1
+	end
+end
+
 
 
 local function SpawnUnit(spawnData)
@@ -463,6 +529,8 @@ local function SpawnUnit(spawnData)
 								docked = false, --
 								stayDocked = false,
 								activeDocking = false,
+								activeUndockSequence = false,
+								activeSpawnSequence = false,
 								inFormation = false,
 								engaged = false,
 								bomberStage = 0,
@@ -510,9 +578,15 @@ local function SpawnUnit(spawnData)
 							if carrierMetaList[ownerID].dockArmor then
 								spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
 							end
-							local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(ownerID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
-							local unitDocked = Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[ownerID].cobdockparam, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
+							
 							Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
+							if carrierMetaList[ownerID].activeSpawnSequence then
+								DroneSpawnSequence(ownerID, subUnitID)
+								carrierMetaList[ownerID].subUnitsList[subUnitID].activeSpawnSequence = true
+							else
+								local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(ownerID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)			--Index nil value at unitcap destruction
+								Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[ownerID].cobdockparam, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
+							end
 						else
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
 						end
@@ -644,10 +718,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						controlRadius = tonumber(spawnDef.radius) or 65535,
 						subUnitsList = {}, -- list of subUnitIDs owned by this unit.
 						subUnitCount = {},
-						subUnitsCommand = {
-							cmdID = nil,
-							cmdParams = nil,
-						},
+						--subUnitsCommand = {
+						--	cmdID = nil,
+						--	cmdParams = nil,
+						--},
 						subInitialSpawnData = spawnData,
 						spawnRateFrames = tonumber(spawnDef.spawnRate) * 30 or 30,
 						lastSpawn = 0,
@@ -689,7 +763,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						metalperstockpile = tonumber(spawnDef.metalperstockpile) or 0,
 						energyperstockpile = tonumber(spawnDef.energyperstockpile) or 0,
 						cobdockparam = tonumber(spawnDef.cobdockparam) or 0,
-						cobundockparam = tonumber(spawnDef.cobundockparam) or 0
+						cobundockparam = tonumber(spawnDef.cobundockparam) or 0,
+						droneundocksequence = tonumber(spawnDef.droneundocksequence)
 					}
 					for dronetypeIndex, _ in pairs(carrierData.dronenames) do
 						carrierData.subUnitCount[dronetypeIndex] = 0
@@ -731,7 +806,7 @@ end
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 	if carrierUnitID then
-		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
+		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then		--Index nil value at unitcap destruction
 			if carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetype == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage > 0 then
 				if carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage == 1 then
 					--Spring.Echo(carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
@@ -815,7 +890,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 						Spring.SetUnitStockpile(carrierUnitID, stockpile, stockpilepercentage)
 						spGiveOrderToUnit(carrierUnitID, CMD.STOCKPILE, {}, 0)
 					end
-					carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
+					carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1		--Index nil value at unitcap destruction
 					
 				end
 			end
@@ -837,7 +912,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				local standalone = false
 				local wild = false
 				if evolvedCarrierID then
-					UnDockUnit(unitID, subUnitID)
+					UnDockSequence(unitID, subUnitID)
 					attachToNewCarrier(evolvedCarrierID, subUnitID)
 				elseif carrierMetaList[unitID].carrierDeaththroe == "death" then
 					spDestroyUnit(subUnitID, true)
@@ -1145,8 +1220,8 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						-- move drones to carrier when out of range
 						carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 						rx, rz = RandomPointInUnitCircle(5)
-						carrierMetaData.subUnitsCommand.cmdID = nil
-						carrierMetaData.subUnitsCommand.cmdParams = nil
+						--carrierMetaData.subUnitsCommand.cmdID = nil
+						--carrierMetaData.subUnitsCommand.cmdParams = nil
 						if carrierMetaData.docking and idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
@@ -1167,7 +1242,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								--Spring.Echo("bomberstage", carrierMetaData.subUnitsList[subUnitID].bomberStage)
 								local currenttime = spGetGameSeconds()
 								if carrierMetaData.subUnitsList[subUnitID].bomberStage == 0 and (currenttime - carrierMetaData.dronebombertimer) > carrierMetaData.dronebomberinterval and droneSendDistance > carrierMetaData.dronebomberminengagementrange then
-									UnDockUnit(carrierID, subUnitID)
+									UnDockSequence(carrierID, subUnitID)
 
 									local p2tvx, p2tvz = carrierMetaData.dronebombingside*carrierMetaData.dronebombingoffset*droneSendDistance*carrierMetaData.attackFormationSpread*perpendicularvectorx/magnitude, carrierMetaData.dronebombingside*carrierMetaData.dronebombingoffset*droneSendDistance*carrierMetaData.attackFormationSpread*perpendicularvectorz/magnitude
 
@@ -1200,7 +1275,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								if carrierMetaData.subUnitsList[subUnitID].docked and magnitude then
 
 									--if not stayDocked then
-									UnDockUnit(carrierID, subUnitID)
+									UnDockSequence(carrierID, subUnitID)
 									--end
 									carrierMetaData.subUnitsList[subUnitID].inFormation = true
 
@@ -1263,7 +1338,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							if carrierMetaData.docking and (idleRadius == 0 or carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber") then
 								DockUnitQueue(carrierID, subUnitID)
 							else
-								UnDockUnit(carrierID, subUnitID)
+								UnDockSequence(carrierID, subUnitID)
 								rx, rz = RandomPointInUnitCircle(5)
 								if carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber" then
 									spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius*0.2, carriery, carrierz + rz*idleRadius*0.2}, 0)
@@ -1309,7 +1384,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							else
 								carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 								rx, rz = RandomPointInUnitCircle(5)
-								UnDockUnit(carrierID, subUnitID)
+								UnDockSequence(carrierID, subUnitID)
 								if carrierMetaData.subUnitsList[subUnitID].dronetype == "nano" then
 									spGiveOrderToUnit(subUnitID, CMD.REPAIR, {carrierx, carriery, carrierz, carrierMetaData.radius}, 0)
 									local cQueue = GetUnitCommands(subUnitID, -1)
@@ -1357,8 +1432,8 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
      --   carrierMetaList[unitID].ignorenextcommand = false
 	--else
 	if carrierMetaList[unitID] and (cmdID == CMD.STOP) then
-		carrierMetaList[unitID].subUnitsCommand.cmdID = nil
-	 	carrierMetaList[unitID].subUnitsCommand.cmdParams = nil
+		--carrierMetaList[unitID].subUnitsCommand.cmdID = nil
+	 	--carrierMetaList[unitID].subUnitsCommand.cmdParams = nil
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
 			if unitID == Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id") then
 				spGiveOrderToUnit(subUnitID, cmdID, cmdParams, cmdOptions)
@@ -1366,11 +1441,12 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 				spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
 			end
 		end
-	elseif carrierMetaList[unitID] and (cmdID ~= CMD.MOVE or cmdID ~= CMD.FIRE_STATE) then
+	elseif carrierMetaList[unitID] and (cmdID == CMD.MOVE or cmdID == CMD.FIRE_STATE) then
+	elseif carrierMetaList[unitID] then
 		--Spring.Echo("hornetdebug unitID:", unitID, " command:", cmdID, " commandParam:", cmdParams)
 		carrierMetaList[unitID].activeRecall = false
-		carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
-		carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
+		--carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
+		--carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
 		local f = Spring.GetGameFrame()
 		UpdateCarrier(unitID, carrierMetaList[unitID], f)
 	end
@@ -1464,7 +1540,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
 								end
 								local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(unitID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
-								local unitDocked = Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
+								Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
 
 								if carrierMetaList[unitID].subUnitsList[subUnitID].dronetype == "turret" then
 								else
@@ -1579,6 +1655,9 @@ function gadget:Initialize()
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
+	gadgetHandler:RegisterGlobal("UnDockSequenceFinished", UnDockSequenceFinished)
+	gadgetHandler:RegisterGlobal("DroneSpawnSequenceFinished", DroneSpawnSequenceFinished)
+	
 end
 
 function gadget:Shutdown()
