@@ -14,6 +14,7 @@ end
 
 local prevSelection = {}   -- current selection except for start of widget:SelectionChanged
 local justSelected = false -- should we ignore the next selection change?
+local gridCommandCount = 0 -- number of commands in a grid when building grids
 
 local customActionTypes = {}
 
@@ -81,6 +82,13 @@ function History.redoAction(history)
     return actionToRedo.data
 end
 
+function History.currentAction(history)
+    if history.length == 0 or not history.endAction then
+        return nil
+    end
+    return history.endAction.data
+end
+
 function History.newHistory()
     return {length = 0}
 end
@@ -89,23 +97,39 @@ local actionHistory = History.newHistory()
 
 ----- populate history with commands
 function widget:CommandNotify(...)
-    local prevCommandQueue = {}
+    if gridCommandCount == 0 then
+        local prevCommandQueue = {}
 
-    for _, unitID in ipairs(spGetSelectedUnits()) do
-        local cmdQueue = {}
-        for _, command in ipairs(spGetUnitCommands(unitID, -1) or {}) do
-            cmdQueue[#cmdQueue + 1] = {command.id, command.params, command.options}
+        for _, unitID in ipairs(spGetSelectedUnits()) do
+            local cmdQueue = {}
+            for _, command in ipairs(spGetUnitCommands(unitID, -1) or {}) do
+                cmdQueue[#cmdQueue + 1] = {command.id, command.params, command.options}
+            end
+            prevCommandQueue[unitID] = cmdQueue
         end
-        prevCommandQueue[unitID] = cmdQueue
+
+        local data = {
+            type = "command",
+            newCommand = {...},
+            prevCommandQueue = prevCommandQueue,
+        }
+
+        History.addAction(actionHistory, data)
+    elseif gridCommandCount == 1 then
+        local prevCommand = History.currentAction(actionHistory)
+        if prevCommand then
+            prevCommand.type = "commandqueue"
+            prevCommand.newCommands = {prevCommand.newCommand, {...}}
+            prevCommand.newCommand = nil
+        end
+    else
+        local prevCommand = History.currentAction(actionHistory)
+        if prevCommand then
+            prevCommand.newCommands[gridCommandCount + 1] = {...}
+        end
     end
 
-    local data = {
-        type = "command",
-        newCommand = {...},
-        prevCommandQueue = prevCommandQueue,
-    }
-
-    History.addAction(actionHistory, data)
+    gridCommandCount = gridCommandCount + 1
 end
 
 function widget:SelectionChanged(newSelection)
@@ -132,7 +156,7 @@ local function undo()
         return
     end
 
-    if data.type == "command" then
+    if data.type == "command" or data.type == "commandqueue" then
         for unitID, cmdQueue in pairs(data.prevCommandQueue) do
             spGiveOrderToUnit(unitID, CMD_STOP, {}, 0)
             spGiveOrderArrayToUnit(unitID, cmdQueue)
@@ -150,12 +174,20 @@ local function redo()
     end
     if data.type == "command" then
         spGiveOrderToUnitArray(spGetSelectedUnits(), data.newCommand[1], data.newCommand[2], data.newCommand[3])
+    elseif data.type == "commandqueue" then
+        for _, cmd in ipairs(data.newCommands) do
+            spGiveOrderToUnitArray(spGetSelectedUnits(), cmd[1], cmd[2], cmd[3])
+        end
     elseif data.type == "selection" then
         justSelected = true
         spSelectUnitArray(data.newSelection)
     elseif customActionTypes[data.type] then
         customActionTypes[data.type].redo(data)
     end
+end
+
+function widget:UnitCommand() -- reset batchCommandCount when command batch gets through
+    gridCommandCount = 0
 end
 
 function widget:Initialize()
