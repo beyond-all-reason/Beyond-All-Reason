@@ -16,6 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local GG = gadgetHandler.GG
 
 local transferInstantly = true	-- false = transfer mex on completion
 
@@ -70,7 +71,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local mexTeamID = Spring.GetUnitTeam(mex)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
 					_G.transferredUnits[unitID] = Spring.GetGameFrame()
-					Spring.TransferUnit(unitID, mexTeamID)
+					Spring.TransferUnit(unitID, mexTeamID, false, GG.CHANGETEAM_REASON.UPGRADED)
 				end
 			end
 		end
@@ -99,7 +100,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			Spring.AddTeamResource(unitTeam, "metal", isMex[Spring.GetUnitDefID(mex)])
 			if not transferInstantly and mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, mexTeamID)
+				Spring.TransferUnit(unitID, mexTeamID, false, GG.CHANGETEAM_REASON.UPGRADED)
 			end
 		end
 	end

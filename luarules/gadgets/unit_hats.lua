@@ -1,4 +1,3 @@
-
 if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 	return
 end
@@ -43,6 +42,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local GG = gadgetHandler.GG
 local DEBUG = false
 
 local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
@@ -268,9 +268,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		unitsWearingHats[unitID] = nil
 		Hats[hatID] = -1
 		Spring.SetUnitNoSelect(hatID, false)
-		Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-		local px, py, pz = Spring.GetUnitPosition(unitID)
-		Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		local hatTeam = Spring.GetUnitTeam(hatID)
+		if (not Spring.GetUnitIsDead(hatID) or hatTeam ~= gaiaTeamID) then -- and hatTeam ~= gaiaTeamID
+			Spring.DestroyUnit(hatID, false, true)
+			Spring.TransferUnit(hatID, Spring.GetGaiaTeamID(), false, GG.CHANGETEAM_REASON.DECORATION) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+		end
 	end
 end
 

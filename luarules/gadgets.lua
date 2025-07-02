@@ -99,9 +99,16 @@ gadgetHandler = {
 }
 
 gadgetHandler.GG.CHANGETEAM_REASON = {
-    GIVEN = 0,
-    CAPTURED = 1,
-    TAKE = 2,
+	RECLAIMED            = 0, -- engine-side
+	GIVEN                = 1, -- engine-side
+	CAPTURED             = 2, -- engine-side
+	IDLE_PLAYER_TAKEOVER = 3, -- /take command for idle players
+	TAKEN                = 4, -- /take command
+	SOLD                 = 5, -- market sales
+	SCAVENGED            = 6, -- scavenger transfers
+	UPGRADED             = 7, -- unit upgrades
+	DECORATION           = 8, -- non-gameplay transfers (e.g., hats, wrecks)
+	DEV_TRANSFER         = 9, -- for developer/debug commands
 }
 
 
@@ -1851,21 +1858,24 @@ function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-	return
+
+	if carrierMetaList[unitID] then
+		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
+		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
+			spTransferUnit(subUnitID, newTeam, false, GG.CHANGETEAM_REASON.TAKEN)
+		end
+	end
+	GG.Metal.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
-function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-
+function gadgetHandler:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	for _, g in ipairs(self.UnitGivenList) do
-		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		g:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
-	return
+	GG.Metal.UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)

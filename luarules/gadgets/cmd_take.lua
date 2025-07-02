@@ -50,7 +50,7 @@ if gadgetHandler:IsSyncedCode() then
             local _, _, _, _, _, targetAllyTeamID = spGetTeamInfo(targetTeamID)
             if pAllyTeamID ~= targetAllyTeamID then
                 spSendToPlayer(playerID, "You can only take from allied teams.")
-                return
+              return
             end
             table.insert(takeableTeamIDs, targetTeamID)
         else
@@ -80,7 +80,7 @@ if gadgetHandler:IsSyncedCode() then
         for _, teamID in ipairs(takeableTeamIDs) do
             local teamUnits = spGetTeamUnits(teamID)
             for _, unitID in ipairs(teamUnits) do
-                spTransferUnit(unitID, pTeamID, false, 0)
+                spTransferUnit(unitID, pTeamID, false, GG.CHANGETEAM_REASON.TAKEN)
             end
 
             for _, resType in ipairs({ "metal", "energy" }) do
