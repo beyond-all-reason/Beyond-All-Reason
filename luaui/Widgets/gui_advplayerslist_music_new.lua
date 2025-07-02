@@ -74,6 +74,7 @@ local gameFrame = 0
 local serverFrame = 0
 local bossHasSpawned = false
 local playInterlude = false
+local isChangingTrack = false
 
 local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
@@ -1192,7 +1193,11 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
+	if isChangingTrack then return end
+	isChangingTrack = true
+	
 	if Spring.GetConfigInt('music', 1) ~= 1 then
+		isChangingTrack = false
 		return
 	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
@@ -1357,6 +1362,7 @@ function PlayNewTrack(paused)
 	end
 
 	updateDrawing = true
+	isChangingTrack = false
 end
 
 function widget:UnitDamaged(unitID, unitDefID, _, damage)
