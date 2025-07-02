@@ -17,8 +17,7 @@ end
 ----------------------------------------------------------------
 local myTeam = Spring.GetMyTeamID()
 
--- key: unit ID of an assist-capable builder that my team owns/owned.
--- value: True if my team still owns this unit, and it's still alive. False otherwise
+-- Tracks unit IDs of all assist-capable builders that I own and are alive
 local myAssistBuilders = {}
 
 local isAssistBuilder = {}
@@ -48,16 +47,15 @@ end
 -- instead be guarding the factory, remove the repair command
 local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
 	local firstCmdID, _, _, firstCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 1)
-	local secondCmdID, _, _, secondCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 2)
-	if (firstCmdID == CMD_REPAIR
-		and secondCmdID == CMD_GUARD) then
-			local isRepairingBuiltUnit = firstCmdParam_1 == builtUnitID
-			local isGuardingFactory = secondCmdParam_1 == factID
-			if (isRepairingBuiltUnit and isGuardingFactory) then
-				spGiveOrderToUnit(builderUnitID, CMD_REMOVE, {firstCmdID}, CMD_OPT_ALT)
-			end
-	end
-end
+   if firstCmdID ~= CMD_REPAIR or firstCmdParam_1 ~= builtUnitID then
+   	return -- there's no relevant repair command to remove
+   end
+   local secondCmdID, _, _, secondCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 2)
+   if secondCmdID ~= CMD_GUARD or secondCmdParam_1 ~= factID then
+   	return -- there's no relevant factory guard, so the repair command is intentional
+   end
+   spGiveOrderToUnit(builderUnitID, CMD_REMOVE, firstCmdID, CMD_OPT_ALT)
+   end
 
 function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 	if (not spAreTeamsAllied(myTeam, unitTeam)) then
@@ -68,10 +66,8 @@ function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 		return -- if unit comes out with full health, guard works just fine
 	end
 	
-	for myBuilderID, stillMineAndAlive in pairs(myAssistBuilders) do
-		if stillMineAndAlive then
-			maybeRemoveRepairCmd(myBuilderID, unitID, factID)
-		end
+	for myBuilderID in pairs(myAssistBuilders) do
+		maybeRemoveRepairCmd(myBuilderID, unitID, factID)
 	end
 end
 
@@ -80,7 +76,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == myTeam then -- i own it!
 			myAssistBuilders[unitID] = true
 		elseif myAssistBuilders[unitID] then -- formerly owned, but not anymore
-			myAssistBuilders[unitID] = false
+			myAssistBuilders[unitID] = nil
 		end
 	end
 end
@@ -91,22 +87,27 @@ end
 
 function widget:UnitDestroyed(unitID)
 	if myAssistBuilders[unitID] then -- it's dead :(
-		myAssistBuilders[unitID] = false
+		myAssistBuilders[unitID] = nil
 	end
 end
 
 ------------------------------------------------------------------------------------------------
 ---------------------------------- SETUP AND TEARDOWN ------------------------------------------
 ------------------------------------------------------------------------------------------------
+
+----- Returns true if the widget was actually removed
 local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) or Spring.IsReplay() then
 		widgetHandler:RemoveWidget()
+		return true
 	end
 end
 
 function widget:Initialize()
 	myTeam = Spring.GetMyTeamID()
-	maybeRemoveSelf()
+	if maybeRemoveSelf() then
+		return
+	end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
@@ -114,5 +115,7 @@ end
 
 function widget:PlayerChanged()
 	myTeam = Spring.GetMyTeamID()
-	maybeRemoveSelf()
+	if maybeRemoveSelf() then
+		return -- early-return, just in case any other logic is added below
+	end
 end
