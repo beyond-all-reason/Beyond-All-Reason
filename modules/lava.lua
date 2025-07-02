@@ -69,7 +69,7 @@ local tideRhythm = {}
 local function trimMapVersion(mapName)
 	-- Trims version from the end of the map name.
 	-- find last space before version (version is numbers with dots, possibly preceded by v or V)
-	local lastSpace = mapName:match'^.*()\ [vV]*[%d%.]+'
+    local lastSpace = mapName:match("^.*() [vV]*[%d%.]+")
 	if not lastSpace then return mapName end
 	return string.sub(mapName, 1, lastSpace - 1)
 end
