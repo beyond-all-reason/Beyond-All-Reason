@@ -1373,6 +1373,16 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
+
+    {
+        key     = "fightnight",
+        name    = "Fight Night Modpack",
+        desc    = "Modpack for Fight Night events",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+        hidden  = true,
+    },
 	
     {
         key    	= "shieldsrework",
