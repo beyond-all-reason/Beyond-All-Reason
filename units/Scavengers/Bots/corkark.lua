@@ -1,5 +1,5 @@
 return {
-	scavkark = {
+	corkark = {
 		maxacc = 0.0828,
 		maxdec = 0.8211,
 		energycost = 2400,
