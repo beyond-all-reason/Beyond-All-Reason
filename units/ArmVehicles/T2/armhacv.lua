@@ -54,9 +54,9 @@ return {
 				[10] = "armarad",
 				[11] = "armfus",
 				[12] = "armgmm",
-				[13] = "armhalab",
-				[14] = "armlab",
-				[15] = "armalab"
+				[13] = "armhavp",
+				[14] = "armvp",
+				[15] = "armavp"
 		},
 		customparams = {
 			model_author = "FireStorm",
