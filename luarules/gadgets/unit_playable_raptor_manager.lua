@@ -35,6 +35,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 		Spring.DestroyUnit(builderID, false, true)
 	end
 end
+
 else
 -- Unsynced Space
 
