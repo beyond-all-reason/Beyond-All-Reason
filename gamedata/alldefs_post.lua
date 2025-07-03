@@ -1999,9 +1999,217 @@ function UnitDef_Post(name, uDef)
 				[8] = "legavjam",
 				[9] = "legavrad",
 			}
+		-- Con Reworks
 
+		elseif name == "armck" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armalab",
+				[9] = "armhalab",
+				[10] = "armlab",
+				[11] = "armvp",
+				[12] = "armap",
+				[13] = "armhp",
+				[14] = "armnanotc",
+				[15] = "armeyes",
+				[16] = "armrad",
+				[17] = "armdrag",
+				[18] = "armllt",
+				[19] = "armrl",
+				[20] = "armdl",
+				[21] = "armjamt",
+				[22] = "armjuno",
+				[23] = "armsy",
+			}
+
+		elseif name == "corck" then
+			uDef.buildoptions = {
+
+			}
+
+		elseif name == "legck" then
+			uDef.buildoptions = {
+
+			}
+
+		elseif name == "armack" then
+			uDef.buildoptions = {
+				[1] = "armafus",
+				[2] = "armckfus",
+				[3] = "armshltx",
+				[4] = "armageo",
+				[5] = "armgmm",
+				[6] = "armmoho",
+				[7] = "armmmkr",
+				[8] = "armuwadves",
+				[9] = "armuwadvms",
+				[10] = "armveil",
+				[11] = "armfort",
+				[12] = "armtarg",
+				[13] = "armgate",
+				[14] = "armamb",
+				[15] = "armpb",
+				[16] = "armanni",
+				[17] = "armflak",
+				[18] = "armmercury",
+				[19] = "armemp",
+				[20] = "armamd",
+				[21] = "armsilo",
+				[22] = "armbrtha",
+				[23] = "armvulc",
+				[24] = "armdf",
+				[25] = "armlab",
+				[26] = "armhalab",
+				[27] = "armalab",
+			}
+
+		elseif name == "corack" then
+			uDef.buildoptions = {
+
+			}
+
+		elseif name == "legack" then
+			uDef.buildoptions = {
+
+			}
+
+		elseif name == "armcv" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armacv",
+				[9] = "armhacv",
+				[10] = "armlab",
+				[11] = "armvp",
+				[12] = "armap",
+				[13] = "armhp",
+				[14] = "armnanotc",
+				[15] = "armeyes",
+				[16] = "armrad",
+				[17] = "armdrag",
+				[18] = "armllt",
+				[19] = "armrl",
+				[20] = "armdl",
+				[21] = "armjamt",
+				[22] = "armjuno",
+				[23] = "armsy",
+			}
+
+		elseif name == "corcv" then
+			uDef.buildoptions = {	
+
+			}
+
+		elseif name == "legcv" then
+			uDef.buildoptions = {
+
+			}
+		
+		elseif name == "armacv" then
+			uDef.buildoptions = {
+				[1] = "armafus",
+				[2] = "armckfus",
+				[3] = "armshltx",
+				[4] = "armageo",
+				[5] = "armgmm",
+				[6] = "armmoho",
+				[7] = "armmmkr",
+				[8] = "armuwadves",
+				[9] = "armuwadvms",
+				[10] = "armveil",
+				[11] = "armfort",
+				[12] = "armtarg",
+				[13] = "armgate",
+				[14] = "armamb",
+				[15] = "armpb",
+				[16] = "armanni",
+				[17] = "armflak",
+				[18] = "armmercury",
+				[19] = "armemp",
+				[20] = "armamd",
+				[21] = "armsilo",
+				[22] = "armbrtha",
+				[23] = "armvulc",
+				[24] = "armdf",
+				[25] = "armvp",
+				[26] = "armhavp",
+				[27] = "armavp",
+			}
+		
+		elseif name == "coracv" then
+			uDef.buildoptions = {
+	
+			}
+		
+		elseif name == "legacv" then
+			uDef.buildoptions = {
+
+			}	
+
+		elseif name == "armfark" then
+			uDef.buildoptions = {
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armfus",
+				[12] = "armgmm",
+				[13] = "armhalab",
+				[14] = "armlab",
+				[15] = "armalab"
+			}
+
+		elseif name == "corfast" then
+			uDef.buildoptions = {
+
+			}
+
+		elseif name == "legaceb" then 
+			uDef.buildoptions = {
+
+			}
+		
+		elseif name == "armconsul" then
+			uDef.buildoptions = {
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[29] = "armjuno",
+				[18] = "armclaw",
+			}
+		
+		elseif name == "corprinter" then
+			uDef.buildoptions = {
+
+			}
+		
+		elseif name == "legafcv" then
+			uDef.buildoptions = {
+
+			}
+		
 		-- Commanders reduced cloak cost, increased speed
-
 		elseif name == "armcom" or name == "corcom" or name == "legcom" then
 			uDef.cloakcost = 70
 			uDef.cloakcostmoving = 700
