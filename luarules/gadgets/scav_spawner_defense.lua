@@ -2161,7 +2161,7 @@ if gadgetHandler:IsSyncedCode() then
 						captureProgress = math.min(0.05, captureProgress)
 						if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 							if captureLevel+captureProgress >= 0.99 then
-								Spring.TransferUnit(unitID, scavTeamID, false, GG.CHANGETEAM_REASON.SCAVENGED)
+								Spring.TransferUnit(unitID, scavTeamID, GG.CHANGETEAM_REASON.SCAVENGED)
 								Spring.SetUnitHealth(unitID, {capture = 0.95})
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
 								SendToUnsynced("unitCaptureFrame", unitID, 0.95)

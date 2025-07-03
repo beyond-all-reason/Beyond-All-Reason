@@ -55,10 +55,6 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-	if oldTeam == newTeam then
-		return true
-	end
-
 	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
 	if not isSharing then
 		return true

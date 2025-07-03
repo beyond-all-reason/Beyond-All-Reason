@@ -91,7 +91,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
         return 
     end
-	Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam, false, GG.CHANGETEAM_REASON.UPGRADED)
+			Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam, GG.CHANGETEAM_REASON.UPGRADED)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
