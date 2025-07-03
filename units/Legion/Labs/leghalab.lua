@@ -33,7 +33,7 @@ return {
 		workertime = 400,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
-			[1] = "leglegaceb",
+			[1] = "leghack",
 			[2] = "legadvaabot",
 			[3] = "legstr",
 			[4] = "legshot",

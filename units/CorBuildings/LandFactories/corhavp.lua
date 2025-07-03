@@ -34,7 +34,7 @@ return {
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "cormuskrat",
-			[2] = "corprinter",
+			[2] = "corhacv",
 			[3] = "cormlv",
 			[4] = "corgarp",
 			[5] = "corsala",

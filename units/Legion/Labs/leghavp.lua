@@ -47,7 +47,7 @@ return {
     oe ee ee ee oo oo
     ]],
 		buildoptions = {
-			[1] = "legafcv",
+			[1] = "leghacv",
 			[2] = "legotter",
 			[3] = "legamphtank",
 			[4] = "legmlv",
