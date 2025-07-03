@@ -1,5 +1,5 @@
 local modoptions = Spring.GetModOptions()
-if modoptions.playablerapotrs ~= true and modoptions.forceallunits ~= true then
+if modoptions.playableraptors ~= true and modoptions.forceallunits ~= true then
 	return false
 end
 
@@ -29,11 +29,11 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 		return
 	end
 
-		local builderDefID = builderID and Spring.GetUnitDefID(builderID)
-		if foundling[builderDefID] then
-			Spring.SetUnitHealth(unitID, {health=2,build=1})
-			Spring.DestroyUnit(builderID, false, true)
-		end
+	local builderDefID = Spring.GetUnitDefID(builderID)
+	if foundling[builderDefID] then
+		Spring.SetUnitHealth(unitID, {health=2,build=1})
+		Spring.DestroyUnit(builderID, false, true)
+	end
 end
 else
 -- Unsynced Space
