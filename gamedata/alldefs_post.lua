@@ -17,6 +17,7 @@
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
 -- The widget to do so is included in the game and detects these customparams auto-enables itself
 -- and writes them to Spring/baked_defs
+local calculateFlightFrames = VFS.Include("modules/projectileHelper.lua").calculateFlightFrames
 SaveDefsToCustomParams = false
 
 -------------------------
@@ -67,9 +68,23 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
-		if weaponDef.customparams and weaponDef.customparams.cluster_def then
-			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
-			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
+		local customParams = weaponDef.customparams
+
+		if customParams and customParams.cluster_def then
+			customParams.cluster_def = unitDefName .. "_" .. customParams.cluster_def
+			customParams.cluster_number = customParams.cluster_number or 5
+		end
+
+		-- precomputations for the 'unit_projectile_overrange' gadget.
+		if customParams and weaponDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (weaponDef.trajectoryheight == 0.0 or weaponDef.trajectoryheight == nil) then
+			local gameSpeed = Game.gameSpeed
+			local overRange = tonumber(customParams.overrange_distance) or weaponDef.range
+			weaponDef.flighttime = calculateFlightFrames(weaponDef.startvelocity or 0.0, weaponDef.weaponvelocity, weaponDef.weaponacceleration or 0.0, overRange)
+			weaponDef.mygravity = 5.0 * Game.gravity / (gameSpeed * gameSpeed)
+
+			-- gadget has no more work to do for these projectiles, so clear customParams.
+			customParams.projectile_destruction_method = nil
+			customParams.overrange_distance = nil
 		end
 	end
 end
