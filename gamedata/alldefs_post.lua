@@ -2377,8 +2377,8 @@ function WeaponDef_Post(name, wDef)
 		end
 	end
 
+	-- Weapon Overrange (see the 'unit_projectile_overrange' gadget)
 	local customParams = wDef.customparams
-	-- precomputations for the 'unit_projectile_overrange' gadget.
 	if customParams and wDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (wDef.trajectoryheight == 0.0 or wDef.trajectoryheight == nil) then
 		local overRange = tonumber(customParams.overrange_distance) or wDef.range
 		wDef.flighttime = calculateFlightFrames(wDef.startvelocity or 0.0, wDef.weaponvelocity, wDef.weaponacceleration or 0.0, overRange)
