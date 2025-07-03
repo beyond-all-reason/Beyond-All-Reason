@@ -24,6 +24,11 @@ end
 if gadgetHandler:IsSyncedCode() then
 -- Synced Space
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+
+	if not builderID then
+		return
+	end
+
 		local builderDefID = builderID and Spring.GetUnitDefID(builderID)
 		if foundling[builderDefID] then
 			Spring.SetUnitHealth(unitID, {health=2,build=1})
