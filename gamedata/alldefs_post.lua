@@ -68,22 +68,9 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
-		local customParams = weaponDef.customparams
-
-		if customParams and customParams.cluster_def then
-			customParams.cluster_def = unitDefName .. "_" .. customParams.cluster_def
-			customParams.cluster_number = customParams.cluster_number or 5
-		end
-
-		-- precomputations for the 'unit_projectile_overrange' gadget.
-		if customParams and weaponDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (weaponDef.trajectoryheight == 0.0 or weaponDef.trajectoryheight == nil) then
-			local overRange = tonumber(customParams.overrange_distance) or weaponDef.range
-			weaponDef.flighttime = calculateFlightFrames(weaponDef.startvelocity or 0.0, weaponDef.weaponvelocity, weaponDef.weaponacceleration or 0.0, overRange)
-			weaponDef.mygravity = 5.0 * Game.gravity / (Game.gameSpeed * Game.gameSpeed)
-
-			-- gadget has no more work to do for these projectiles, so clear customParams.
-			customParams.projectile_destruction_method = nil
-			customParams.overrange_distance = nil
+		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
+			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
 		end
 	end
 end
@@ -2388,6 +2375,18 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
+	end
+
+	local customParams = wDef.customparams
+	-- precomputations for the 'unit_projectile_overrange' gadget.
+	if customParams and wDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (wDef.trajectoryheight == 0.0 or wDef.trajectoryheight == nil) then
+		local overRange = tonumber(customParams.overrange_distance) or wDef.range
+		wDef.flighttime = calculateFlightFrames(wDef.startvelocity or 0.0, wDef.weaponvelocity, wDef.weaponacceleration or 0.0, overRange)
+		wDef.mygravity = 5.0 * Game.gravity / (Game.gameSpeed * Game.gameSpeed)
+
+		-- gadget has no more work to do for these projectiles, so clear customParams.
+		customParams.projectile_destruction_method = nil
+		customParams.overrange_distance = nil
 	end
 
 	-- Weapon Damage
