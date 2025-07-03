@@ -2049,24 +2049,23 @@ function UnitDef_Post(name, uDef)
 				[7] = "armmmkr",
 				[8] = "armuwadves",
 				[9] = "armuwadvms",
-				[10] = "armveil",
-				[11] = "armfort",
-				[12] = "armtarg",
-				[13] = "armgate",
-				[14] = "armamb",
-				[15] = "armpb",
-				[16] = "armanni",
-				[17] = "armflak",
-				[18] = "armmercury",
-				[19] = "armemp",
-				[20] = "armamd",
-				[21] = "armsilo",
-				[22] = "armbrtha",
-				[23] = "armvulc",
-				[24] = "armdf",
-				[25] = "armlab",
-				[26] = "armhalab",
-				[27] = "armalab",
+				[10] = "armfort",
+				[11] = "armtarg",
+				[12] = "armgate",
+				[13] = "armamb",
+				[14] = "armpb",
+				[15] = "armanni",
+				[16] = "armflak",
+				[17] = "armmercury",
+				[18] = "armemp",
+				[19] = "armamd",
+				[20] = "armsilo",
+				[21] = "armbrtha",
+				[22] = "armvulc",
+				[23] = "armdf",
+				[24] = "armlab",
+				[25] = "armhalab",
+				[26] = "armalab",
 			}
 
 		elseif name == "corack" then
@@ -2127,24 +2126,23 @@ function UnitDef_Post(name, uDef)
 				[7] = "armmmkr",
 				[8] = "armuwadves",
 				[9] = "armuwadvms",
-				[10] = "armveil",
-				[11] = "armfort",
-				[12] = "armtarg",
-				[13] = "armgate",
-				[14] = "armamb",
-				[15] = "armpb",
-				[16] = "armanni",
-				[17] = "armflak",
-				[18] = "armmercury",
-				[19] = "armemp",
-				[20] = "armamd",
-				[21] = "armsilo",
-				[22] = "armbrtha",
-				[23] = "armvulc",
-				[24] = "armdf",
-				[25] = "armvp",
-				[26] = "armhavp",
-				[27] = "armavp",
+				[10] = "armfort",
+				[11] = "armtarg",
+				[12] = "armgate",
+				[13] = "armamb",
+				[14] = "armpb",
+				[15] = "armanni",
+				[16] = "armflak",
+				[17] = "armmercury",
+				[18] = "armemp",
+				[19] = "armamd",
+				[20] = "armsilo",
+				[21] = "armbrtha",
+				[22] = "armvulc",
+				[23] = "armdf",
+				[24] = "armvp",
+				[25] = "armhavp",
+				[26] = "armavp",
 			}
 		
 		elseif name == "coracv" then
@@ -2157,25 +2155,6 @@ function UnitDef_Post(name, uDef)
 
 			}	
 
-		elseif name == "armfark" then
-			uDef.buildoptions = {
-				[1] = "armadvsol",
-				[2] = "armamex",
-				[3] = "armbeamer",
-				[4] = "armhlt",
-				[5] = "armguard",
-				[6] = "armferret",
-				[7] = "armcir",
-				[8] = "armjuno",
-				[9] = "armclaw",
-				[10] = "armarad",
-				[11] = "armfus",
-				[12] = "armgmm",
-				[13] = "armhalab",
-				[14] = "armlab",
-				[15] = "armalab"
-			}
-
 		elseif name == "corfast" then
 			uDef.buildoptions = {
 
@@ -2184,19 +2163,6 @@ function UnitDef_Post(name, uDef)
 		elseif name == "legaceb" then 
 			uDef.buildoptions = {
 
-			}
-		
-		elseif name == "armconsul" then
-			uDef.buildoptions = {
-				[1] = "armadvsol",
-				[2] = "armamex",
-				[3] = "armbeamer",
-				[4] = "armhlt",
-				[5] = "armguard",
-				[6] = "armferret",
-				[7] = "armcir",
-				[29] = "armjuno",
-				[18] = "armclaw",
 			}
 		
 		elseif name == "corprinter" then
