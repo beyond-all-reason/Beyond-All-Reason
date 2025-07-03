@@ -1,6 +1,6 @@
 local mathSqrt = math.sqrt
 
---- Calculate flightTime using the linear accelerated movement formula
+--- Calculate flightTime using the uniform accelerated motion formula
 ---
 --- It can work either in elmos/frame -> frames, or elmos/second -> seconds.
 --- Make sure all input parameters are in consistent units.
