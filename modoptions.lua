@@ -775,11 +775,11 @@ local options = {
     {
         key		= "scav_bosstimemult",
         name	= "Boss Preparation Time Multiplier",
-        desc	= "(Range: 0.1 - 2). How quickly Boss Anger goes from 0 to 100%.",
+        desc	= "(Range: 0.1 - 5). How quickly Boss Anger goes from 0 to 100%.",
         type	= "number",
         def		= 1,
         min		= 0.1,
-        max		= 2,
+        max		= 5,
         step	= 0.1,
         section	= "scav_defense_options",
     },
