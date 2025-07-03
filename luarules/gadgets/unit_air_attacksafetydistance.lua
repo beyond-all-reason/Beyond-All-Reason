@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name      = "Air AttackSafetyDistance",
-		desc      = "sets attackSafetyDistance for fighters",
+		desc      = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
 		author    = "Doo, Floris",
 		date      = "Sept 19th 2017",
 		license   = "GNU GPL, v2 or later",
@@ -13,20 +13,23 @@ function gadget:GetInfo()
 end
 
 --[[
-	Wiki: "attackSafetyDistance" movetypedata: Fighters abort dive toward target if within attackSafetyDistance and
+	springrts Wiki: "attackSafetyDistance" movetypedata: Fighters abort dive toward target if within attackSafetyDistance and
 	try to climb back to normal altitude while still moving toward target.	It's disabled by default. Set to half of
 	the minimum weapon range to avoid collisions, enemy fire, AOE damage. If set to greater than the weapon range,
 	the unit will fly over the target like a bomber.
 ]]--
 
 if not gadgetHandler:IsSyncedCode() then
-	return
+	return false
 end
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly and ud.isStrafingAirUnit and ud.customParams.fighter then
-		isFighter[udid] = true
+		-- customParams.fighter, was orginally only checked if there, co contents didn't matter, were defined as 1 instead of true
+		local attackDistance = tonumber(ud.customParams.fighter) or 1
+		attackDistance = attackDistance == 1 and 300 or attackDistance
+		isFighter[udid] = attackDistance
 	end
 end
 
@@ -42,7 +45,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		if curMoveCtrl then
 			Spring.MoveCtrl.Disable(unitID)
 		end
-		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", 300)
+		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", isFighter[unitDefID])
 		if curMoveCtrl then
 			Spring.MoveCtrl.Enable(unitID)
 		end
