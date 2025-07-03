@@ -889,7 +889,7 @@ local options = {
         section = "options_extra",
         def  	= false,
     },
-
+	
     {
         key    	= "scavunitsforplayers",
         name   	= "Scavengers Units Pack",
@@ -1363,6 +1363,17 @@ local options = {
     },
 
     -- Hidden Tests
+	
+	{
+        key   	= "splittiers",
+        name   	= "Split T2",
+        desc   	= "Splits T2 into two tiers moving experimental to T4.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+        hidden 	= true,
+	},
+	
     {
         key    	= "shieldsrework",
         name   	= "Shields Rework v2.0",
@@ -1439,7 +1450,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

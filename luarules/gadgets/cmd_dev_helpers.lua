@@ -529,13 +529,13 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
+		if not isAuthorized(playerID) then
+			return
+		end
+
 		if words[1] == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
-		end
-
-		if not isAuthorized(playerID) then
-			return
 		end
 
 		if words[1] == "givecat" then
@@ -578,6 +578,10 @@ if gadgetHandler:IsSyncedCode() then
 			fightertest(words)
 		elseif words[1] == "globallos" then
 			globallos(words)
+		elseif words[1] == "playertoteam" then
+			playertoteam(words)
+		elseif words[1] == "killteam" then
+			killteam(words)
 		end
 	end
 
@@ -591,10 +595,19 @@ if gadgetHandler:IsSyncedCode() then
 		local allyteams = Spring.GetAllyTeamList()
         for i = 1,#allyteams do
             local allyTeamID = allyteams[i]
-            Spring.SetGlobalLos(allyTeamID, words[2] == '1')
-        end
+			if not words[3] or allyTeamID == tonumber(words[3]) then
+				Spring.SetGlobalLos(allyTeamID, words[2] == '1')
+			end
+		end
 	end
 
+	function playertoteam(words)
+		Spring.AssignPlayerToTeam(tonumber(words[2]), tonumber(words[3]))
+	end
+
+	function killteam(words)
+		Spring.KillTeam(tonumber(words[2]))
+	end
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
 		if not fightertestenabled then
@@ -904,7 +917,9 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
-		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos 1|0 -- sets global los for all teams, 1 = on, 0 = off
+		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
+		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
+		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
 	end
 
@@ -925,6 +940,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('globallos')
+		gadgetHandler:RemoveChatAction('playertoteam')
+		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
 	end
 
@@ -1286,9 +1303,47 @@ else	-- UNSYNCED
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
+		if words[2] then
+
+		end
 		local globallos = (not words[1] or words[1] ~= '0') or false
 		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0')..(words[2] and ':'..words[2] or ''))
+	end
+
+	function playertoteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			units = Spring.GetSelectedUnits()
+			if #units > 0 then
+				words[1] = Spring.GetUnitTeam(units[1])
+			else
+				local mx,my = Spring.GetMouseState()
+				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				if targetType == 'unit' then
+					words[1] = Spring.GetUnitTeam(unitID)
+				end
+			end
+		end
+		if not words[2] then
+			words[2] = words[1]
+			words[1] = Spring.GetMyPlayerID()
+		end
+		if tonumber(words[2]) < #Spring.GetTeamList()-1 then
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
+		end
+	end
+
+	function killteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':killteam:' .. words[1])
 	end
 
 	function desync()

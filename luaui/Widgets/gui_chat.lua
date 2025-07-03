@@ -399,6 +399,10 @@ local autocompleteCommands = {
 	'luarules waterlevel',
 	'luarules wreckunits',
 	'luarules xp',
+	'luarules transferunits',
+	'luarules playertoteam',
+	'luarules killteam',
+	'luarules globallos',
 
 	-- widgets
 	'luaui reload',

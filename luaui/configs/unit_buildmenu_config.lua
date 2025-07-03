@@ -29,6 +29,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
 		isWaterUnit[unitDefID] = nil
 	end
+	if unitDef.customParams.enabled_on_no_sea_maps then
+		isWaterUnit[unitDefID] = nil
+	end
 
 	if unitDef.needGeo then
 		isGeothermal[unitDefID] = true
