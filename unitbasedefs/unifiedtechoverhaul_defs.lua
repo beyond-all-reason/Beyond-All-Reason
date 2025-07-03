@@ -273,5 +273,5 @@ local function unifiedtechoverhaulTweaks(name, uDef)
 end
 
 return {
-	unifiedtechoverhaulTweaks = unifiedtechoverhaulTweaks,
+	FightNightModpack = FightNightModpack,
 }

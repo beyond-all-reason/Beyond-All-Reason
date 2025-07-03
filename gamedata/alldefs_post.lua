@@ -1874,7 +1874,326 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.commando_blaster.weaponvelocity = 600
 		end	
 	end
-	
+
+	-------------------------
+	-- Fight Night Modpack --
+	-------------------------
+
+	if modOptions.fightnight then
+    	-- Bot and Veh lab rework
+		if name == "corlab" then
+			uDef.buildoptions = {
+				[1] = "corck",
+				[2] = "corak",
+				[3] = "cornecro",
+				[4] = "corstorm",
+				[5] = "corthud",
+				[6] = "corcrash",
+				[7] = "corroach"
+			}
+
+		elseif name == "coralab" then
+			uDef.buildoptions = {
+				[1] = "corack",
+				[2] = "corsumo",
+				[3] = "cortermite",
+				[4] = "corhrk",
+				[5] = "cordecom",
+				[6] = "corvoyr",
+				[7] = "corspy",
+				[8] = "corspec"
+			}
+
+		elseif name == "armalab" then
+			uDef.buildoptions = {
+				[1] = "armack",
+				[2] = "armsnipe",
+				[3] = "armfboy",
+				[4] = "armspid",
+				[5] = "armmark",
+				[6] = "armaser",
+				[7] = "armspy",
+				[8] = "armdecom",
+				[9] = "armscab",
+				[10] = "armsptk"
+			}
+
+		elseif name == "legalab" then
+			uDef.buildoptions = {
+				[1] = "legack",
+				[2] = "legstr",
+				[3] = "leginc",
+				[4] = "legsrail",
+				[5] = "leghrk",
+				[6] = "legaradk",
+				[7] = "legaspy",
+				[8] = "legajamk",
+				[9] = "legdecom",
+			}
+
+		elseif name == "armvp" then
+			uDef.buildoptions = {
+				[1] = "armcv",
+				[2] = "armfav",
+				[3] = "armflash",
+				[4] = "armstump",
+				[5] = "armart",
+				[6] = "armjanus",
+				[7] = "armsam",
+			}
+
+		elseif name == "corvp" then
+			uDef.buildoptions = {
+				[1] = "corcv",
+				[2] = "corfav",
+				[3] = "corgator",
+				[4] = "corraid",
+				[5] = "corlevlr",
+				[6] = "corwolv",
+				[7] = "cormist",
+			}
+
+		elseif name == "legvp" then
+			uDef.buildoptions = {
+				[1] = "legscout",
+				[2] = "legcv",
+				[3] = "leghades",
+				[4] = "leghelios",
+				[5] = "leggat",
+				[6] = "legbar",
+				[7] = "legrail",
+			}
+
+		elseif name == "armavp" then
+			uDef.buildoptions = {
+				[1] = "armacv",
+				[2] = "armbull",
+				[3] = "armmerl",
+				[4] = "armmanni",
+				[5] = "armyork",
+				[6] = "armseer",
+				[7] = "armjam",
+			}
+		
+		elseif name == "coravp" then
+			uDef.buildoptions = {
+				[1] = "coracv",
+				[2] = "corgol",
+				[3] = "corvroc",
+				[4] = "cortrem",
+				[5] = "corsent",
+				[6] = "cormabm",
+				[7] = "coreter",
+				[8] = "corvrad"
+			}
+
+		elseif name == "legavp" then
+			uDef.buildoptions = {
+				[1] = "legacv",
+				[2] = "legaheattank",
+				[3] = "legmed",
+				[4] = "legavroc",
+				[5] = "leginf",
+				[6] = "legvflak",
+				[7] = "cormabm",
+				[8] = "legavjam",
+				[9] = "legavrad",
+			}
+
+		-- Commanders reduced cloak cost, increased speed
+
+		elseif name == "armcom" or name == "corcom" or name == "legcom" then
+			uDef.cloakcost = 70
+			uDef.cloakcostmoving = 700
+			uDef.speed = 40
+
+		-- T1 Economy 1.15x HP
+		elseif name == "armwin" or name == "corwin" or name == "legwin"
+		or name == "armsolar" or name == "corsolar" or name == "legsolar"
+		or name == "armtide" or name == "cortide" or name == "legtide" 
+		or name == "armmakr" or name == "cormakr" or name == "legeconv"
+		or name == "corfmkr" or name == "armfmkr" or name == "legfeconv"
+		or name == "cornanotc" or name == "armnanotc" or name == "legnanotc"
+		or name == "armnanotcplat" or name == "cornanotcplat" or name == "legnanotcplat"
+		then
+			uDef.health = math.ceil(uDef.health * 0.115) * 10
+
+		-- T1 Mex Hp buff
+		elseif name == "armmex" or name == "cormex" or name == "legmex" then
+			uDef.health = math.ceil(uDef.health * 0.15) * 10
+
+		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 wind
+		elseif name == "armadvsol"
+		then
+			uDef.metalcost = 330
+			uDef.energycost = 2860
+
+		elseif name == "coradvsol"
+		then
+			uDef.metalcost = 360
+			uDef.energycost = 1460
+
+		elseif name == "legadvsol"
+		then
+			uDef.metalcost = 440
+			uDef.energycost = 1940
+			uDef.health = 1200
+
+		-- rezbots - 25% less BP in favor of more HP
+		elseif name == "cornecro" or name == "armrectr" or name == "legrezbot"
+		then
+			uDef.workertime = 150
+			uDef.health = math.ceil(uDef.health * 0.125) * 10
+
+
+		-- Bedbug T1 Rework
+
+		elseif name == "corroach" then
+			uDef.metalcost = 30
+			uDef.energycost = 600
+			uDef.buildtime = 800
+			uDef.health = 120
+			uDef.maxwaterdepth = 16
+			uDef.movementclass = "BOT1"
+			uDef.radardistance = 700
+			uDef.radaremitheight = 18
+			uDef.speed = 100
+			uDef.explodeas = "mediumExplosionGenericSelfd"
+			uDef.selfdestructas = "fb_blastsml"
+			uDef.customparams.techlevel = 1
+
+		-- Lab Cost Rework
+
+		-- T1
+		elseif uDef.customparams.subfolder == "ArmBuildings/LandFactories" or
+		uDef.customparams.subfolder == "CorBuildings/LandFactories" or
+		uDef.customparams.subfolder == "Legion/Labs" or
+		uDef.customparams.subfolder == "ArmBuildings/SeaFactories" or
+		uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
+		and uDef.customparams.techlevel == 1 then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.8)
+			uDef.energycost = math.ceil(uDef.energycost * 0.8)
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.8)
+			uDef.workertime = uDef.workertime * 2 
+
+		-- T2
+		elseif uDef.customparams.subfolder == "ArmBuildings/LandFactories" or
+		uDef.customparams.subfolder == "CorBuildings/LandFactories" or
+		uDef.customparams.subfolder == "Legion/Labs" or
+		uDef.customparams.subfolder == "ArmBuildings/SeaFactories" or
+		uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
+		and uDef.customparams.techlevel == 2 then
+			uDef.metalcost = uDef.metalcost - 1000
+			uDef.energycost = uDef.energycost + 2000
+			uDef.buildtime = math.ceil(uDef.buildtime * .01333) * 100
+			uDef.workertime = uDef.workertime * 4
+
+		elseif uDef.customparams.techlevel == 2 then 
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+
+		-- T3
+		elseif name == "corgant" or name == "corgantuw" 
+		or name == "leggant" or name == "leggantuw" 
+		or name == "armshltx" or name == "armshltxuw" then
+			uDef.workertime = uDef.workertime * 6
+
+		-- Cortex T1 Reworks
+		elseif name == "corthud" then
+			uDef.speed = 55
+			uDef.turnrate = 1200
+			uDef.turninplacespeedlimit = 1.8
+			uDef.sightdistance = 420
+			uDef.weapondefs.arm_ham.predictboost = 0.8
+			uDef.weapondefs.arm_ham.range = 340
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11,
+			}
+			uDef.weapondefs.arm_ham.burst = 2
+			uDef.weapondefs.arm_ham.burstrate = 0.2
+
+		elseif name == "corstorm" then
+			uDef.weapondefs.cor_bot_rocket.name = "Light Solid-Fuel Rocket"
+			uDef.weapondefs.cor_bot_rocket.range = 500
+			uDef.weapondefs.cor_bot_rocket.burst = 3
+			uDef.weapondefs.cor_bot_rocket.burstrate = 0.05
+			uDef.weapondefs.cor_bot_rocket.mygravity = 0
+			uDef.weapondefs.cor_bot_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.cor_bot_rocket.damage = {
+				default = 52,
+			}
+			uDef.weapondefs.cor_bot_rocket.trajectoryheight = 0.25
+			uDef.weapondefs.cor_bot_rocket.startvelocity = 49
+			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 285
+			uDef.weapondefs.cor_bot_rocket.weaponacceleration = 236
+			uDef.weapondefs.cor_bot_rocket.flighttime = 2.05
+			uDef.weapondefs.cor_bot_rocket.wobble = 200
+			uDef.weapondefs.cor_bot_rocket.smokesize = 2.2
+			uDef.weapondefs.cor_bot_rocket.customparams.overrange_distance = 525
+			uDef.weapondefs.cor_bot_rocket.customparams.projectile_destruction_method = "descend"
+			uDef.weapondefs.cor_bot_rocket.customparams.place_target_on_ground = true
+
+		elseif name == "corak" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.85)
+			uDef.energycost = math.ceil(uDef.energycost * 0.085) * 10
+			uDef.health = math.ceil(uDef.health * 0.09) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.085) * 10
+			uDef.weapondefs.gator_laser.range = 210
+
+		elseif name == "corlevlr" then
+			uDef.metalcost = 180
+			uDef.energycost = 1800
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.0081) * 100
+			uDef.health = 1220
+			uDef.speed = 51
+			uDef.weapondefs.corlevlr_weapon.range = 300
+
+		elseif name == "cormist" then
+			uDef.speed = math.ceil(uDef.speed * 0.97)
+			uDef.weapondefs.cortruck_missile.range = 590
+			uDef.weapondefs.cortruck_missile.areaofeffect = 62
+			uDef.weapondefs.cortruck_missile.edgeeffectiveness = 0.85
+			uDef.weapondefs.cortruck_missile.burst = 2
+			uDef.weapondefs.cortruck_missile.burstrate = 0.2
+			uDef.weapondefs.cortruck_missile.reloadtime = 5
+			uDef.weapondefs.cortruck_missile.model = "legsmallrocket.s3o" 
+			uDef.weapondefs.cortruck_aa.burst = 2
+			uDef.weapondefs.cortruck_aa.burstrate = 0.2
+			uDef.weapondefs.cortruck_aa.damage = {
+				default = 0.5,
+				vtol = 60
+			}
+
+		-- Armada T1 Reworks
+		elseif name == "armwar" then
+			uDef.speed = 61
+			uDef.health = math.ceil(uDef.health * 0.08) * 10
+			uDef.weapondefs.armwar_laser.name = "Close-Range g2g Burst Laser"
+			uDef.weapondefs.armwar_laser.range = 280
+			uDef.weapondefs.armwar_laser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armwar_laser.burst = 3
+			uDef.weapondefs.armwar_laser.burstrate = 0.175
+			uDef.weapondefs.armwar_laser.thickness = 3
+			uDef.weapondefs.armwar_laser.reloadtime = 1.08
+			uDef.weapondefs.armwar_laser.beamtime = 0.04
+			uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
+			uDef.weapondefs.armwar_laser.soundtrigger = false
+			uDef.weapondefs.armwar_laser.damage = {
+				default = 28,
+				vtol = 5
+				}
+
+		elseif name == "armham" then
+		uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
+		uDef.weapondefs.arm_ham.reloadtime = 0.87
+		uDef.weapondefs.arm_ham.weaponvelocity = 572
+		uDef.weapondefs.arm_ham.damage = {
+			default = 52,
+			vtol = 11
+			}
+		end
+	end
+
 
 
 
