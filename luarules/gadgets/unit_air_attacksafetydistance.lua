@@ -25,7 +25,7 @@ end
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.canFly and ud.customParams.fighter then
+	if ud.canFly and ud.isStrafingAirUnit and ud.customParams.fighter then
 		isFighter[udid] = true
 	end
 end
@@ -42,11 +42,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		if curMoveCtrl then
 			Spring.MoveCtrl.Disable(unitID)
 		end
-		local success = pcall(Spring.MoveCtrl.SetAirMoveTypeData, unitID, "attackSafetyDistance", 300)
-		if not success then
-			isFighter[unitDefID] = false
-			Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Unit", UnitDefs[unitDefID].name, "Could not have its attack distance set, are you sure it is a fighter/bomber?")
-		end
+		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", 300)
 		if curMoveCtrl then
 			Spring.MoveCtrl.Enable(unitID)
 		end
