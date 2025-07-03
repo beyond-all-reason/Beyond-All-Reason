@@ -2128,7 +2128,7 @@ if gadgetHandler:IsSyncedCode() then
 		--computerTeams[teamID] = nil
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
 		if spGetUnitDefID(unitID) == raptorDefID then
 			local raptorTeam = GetRaptorTeam()
 			if oldTeam == raptorTeam and newTeam ~= raptorTeam then

@@ -1556,21 +1556,23 @@ function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDe
 end
 
 function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
-										 oldTeam, newTeam, capture, reason)
-	for _, g in ipairs(self.AllowUnitTransferList) do
-		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason) then
-			return false
+										 oldTeam, newTeam, reason)
+	if (self.AllowUnitTransferList) then
+		for _, g in ipairs(self.AllowUnitTransferList) do
+			if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) then
+				return false
+			end
 		end
 	end
 	return true
 end
 
-function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
-										  unitID, unitDefID, part)
+function gadgetHandler:AllowUnitBuildStep(builderID, builderDefID,
+                                          unitID, unitDefID, part)
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
-		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
+		if not g:AllowUnitBuildStep(builderID, builderDefID, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
 			return false
 		end

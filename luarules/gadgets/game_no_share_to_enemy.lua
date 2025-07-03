@@ -40,8 +40,9 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
-    if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or capture or IsCheatingEnabled() then
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
+    if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or not isSharing or IsCheatingEnabled() then
         return true
     end
 

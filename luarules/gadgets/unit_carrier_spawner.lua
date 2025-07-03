@@ -574,7 +574,7 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitDef = UnitDefs[unitDefID]
 	local weaponList = unitDef.weapons
 	for i = 1, #weaponList do
@@ -845,7 +845,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					standalone = true
 					local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierMetaList[unitID].controlRadius)
 					if enemyunitID then
-						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false, GG.CHANGETEAM_REASON.CAPTURED)
+						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), GG.CHANGETEAM_REASON.CAPTURED)
 					end
 				elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
 					standalone = true

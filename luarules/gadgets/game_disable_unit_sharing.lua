@@ -25,12 +25,9 @@ if not (Spring.GetModOptions().disable_unit_sharing
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture, reason)
-	if toTeamID == fromTeamID then
-		return true
+function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, reason)
+	if reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD then
+		return false
 	end
-	if (capture) then
-		return true
-	end
-	return false
+	return true
 end

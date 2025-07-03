@@ -20,7 +20,7 @@ end
 local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
 	if not unitID or type(unitID) ~= "number" then
 		return true
 	end

@@ -68,12 +68,18 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture, reason)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
 	if oldTeam == newTeam then
 		return true
 	end
+
+	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
+	if not isSharing then
+		return true
+	end
+
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
+	if spIsCheatingEnabled() or unitCount < gameMaxUnits then
 		return true
 	end
 	return false
