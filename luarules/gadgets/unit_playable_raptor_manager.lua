@@ -21,10 +21,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		foundling[unitDefID] = true
 	end
 end
+
 if gadgetHandler:IsSyncedCode() then
+
 -- Synced Space
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-
 	if not builderID then
 		return
 	end
