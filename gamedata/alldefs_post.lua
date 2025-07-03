@@ -77,10 +77,9 @@ local function processWeapons(unitDefName, unitDef)
 
 		-- precomputations for the 'unit_projectile_overrange' gadget.
 		if customParams and weaponDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (weaponDef.trajectoryheight == 0.0 or weaponDef.trajectoryheight == nil) then
-			local gameSpeed = Game.gameSpeed
 			local overRange = tonumber(customParams.overrange_distance) or weaponDef.range
 			weaponDef.flighttime = calculateFlightFrames(weaponDef.startvelocity or 0.0, weaponDef.weaponvelocity, weaponDef.weaponacceleration or 0.0, overRange)
-			weaponDef.mygravity = 5.0 * Game.gravity / (gameSpeed * gameSpeed)
+			weaponDef.mygravity = 5.0 * Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
 			-- gadget has no more work to do for these projectiles, so clear customParams.
 			customParams.projectile_destruction_method = nil
