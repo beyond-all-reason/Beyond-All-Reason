@@ -1880,7 +1880,11 @@ function UnitDef_Post(name, uDef)
 	-------------------------
 
 	if modOptions.fightnight then
-    	-- Bot and Veh lab rework
+    	-- Bot and Veh lab reworks
+		-- T2 lab cost will be increased to around 4k metal
+		-- New labs are created - "ha" for half-advanced, called enhanced. Tier between T1 and T2
+		-- Enhanced labs are given amphibious vehicles as well as light and medfast T2 units
+		-- Specialty T1 mexes are changed to enhanced mexes with 2x metal income + special abilities (for faction differentiation)
 		if name == "corlab" then
 			uDef.buildoptions = {
 				[1] = "corck",
@@ -2000,6 +2004,8 @@ function UnitDef_Post(name, uDef)
 				[9] = "legavrad",
 			}
 		-- Con Reworks
+		-- Late T1 and Early T2 buildings are given to enhanced constructors
+		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
 
 		elseif name == "armck" then
 			uDef.buildoptions = {
@@ -2030,12 +2036,57 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corck" then
 			uDef.buildoptions = {
-
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "coralab",
+				[11] = "corlab",
+				[12] = "corhalab",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "corhlt",
+				[21] = "corrl",
+				[22] = "cormadsam",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
 			}
 
 		elseif name == "legck" then
 			uDef.buildoptions = {
-
+			[1] = "legsolar",
+			[2] = "legwin",
+			[3] = "leggeo",
+			[4] = "legmstor",
+			[5] = "legestor",
+			[6] = "legmex",
+			[7] = "legeconv",
+			[8] = "legalab",
+			[9] = "leglab",
+			[10] = "leghalab",
+			[11] = "legvp",
+			[12] = "legap",
+			[13] = "leghp",
+			[14] = "legnanotc",
+			[15] = "legeyes",
+			[16] = "legrad",
+			[17] = "legdrag",
+			[18] = "leglht",
+			[19] = "legcluster",
+			[20] = "legrl",
+			[21] = "legctl",
+			[22] = "legjam",
+			[23] = "corsy",
 			}
 
 		elseif name == "armack" then
@@ -2070,12 +2121,62 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corack" then
 			uDef.buildoptions = {
-
+				[1] = "corafus",
+				[3] = "corgant",
+				[4] = "corageo",
+				[5] = "corbhmth",
+				[6] = "cormoho",
+				[7] = "cormexp",
+				[8] = "cormmkr",
+				[9] = "coruwadves",
+				[10] = "coruwadvms",
+				[11] = "corfort",
+				[12] = "corasp",
+				[13] = "cortarg",
+				[14] = "corgate",
+				[15] = "cortoast",
+				[16] = "corvipe",
+				[17] = "cordoom",
+				[18] = "corflak",
+				[19] = "corscreamer",
+				[20] = "cortron",
+				[21] = "corfmd",
+				[22] = "corsilo",
+				[23] = "corint",
+				[24] = "corbuzz",
+				[25] = "corlab",
+				[26] = "coralab",
+				[27] = "corhalab",
 			}
 
 		elseif name == "legack" then
 			uDef.buildoptions = {
-
+			[1] = "legafus",
+			[2] = "leggant",
+			[3] = "legageo",
+			[4] = "legrampart",
+			[5] = "legmoho",
+			[6] = "cormexp",
+			[7] = "legadveconv",
+			[8] = "legadvestore",
+			[9] = "legamstor",
+			[10] = "legforti",
+			[11] = "corasp",
+			[12] = "legtarg",
+			[13] = "legdeflector",
+			[14] = "legacluster",
+			[15] = "legapopupdef",
+			[16] = "legbastion",
+			[17] = "legflak",
+			[18] = "leglraa",
+			[19] = "legperdition",
+			[20] = "legabm",
+			[21] = "legsilo",
+			[22] = "leglrpc",
+			[23] = "legstarfall",
+			[24] = "leglab",
+			[25] = "legalab",
+			[26] = "leghalab",
 			}
 
 		elseif name == "armcv" then
@@ -2107,12 +2208,57 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corcv" then
 			uDef.buildoptions = {	
-
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "coravp",
+				[11] = "corlab",
+				[12] = "corhavp",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "corhlt",
+				[21] = "corrl",
+				[22] = "cormadsam",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
 			}
 
 		elseif name == "legcv" then
 			uDef.buildoptions = {
-
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "legavp",
+				[9] = "leglab",
+				[10] = "leghavp",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[19] = "legcluster",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
 			}
 		
 		elseif name == "armacv" then
@@ -2142,35 +2288,73 @@ function UnitDef_Post(name, uDef)
 				[23] = "armdf",
 				[24] = "armvp",
 				[25] = "armhavp",
-				[26] = "armavp",
+				[26] = "armavp",		
 			}
 		
 		elseif name == "coracv" then
 			uDef.buildoptions = {
-	
+				[1] = "corafus",
+				[2] = "corgant",
+				[3] = "corageo",
+				[4] = "corbhmth",
+				[5] = "cormoho",
+				[7] = "cormexp",
+				[8] = "cormmkr",
+				[9] = "coruwadves",
+				[10] = "coruwadvms",
+				[11] = "corfort",
+				[12] = "corasp",
+				[13] = "cortarg",
+				[14] = "corgate",
+				[15] = "cortoast",
+				[16] = "corvipe",
+				[17] = "cordoom",
+				[18] = "corflak",
+				[19] = "corscreamer",
+				[20] = "cortron",
+				[21] = "corfmd",
+				[22] = "corsilo",
+				[23] = "corint",
+				[24] = "corbuzz",
+				[25] = "corvp",
+				[26] = "coravp",
+				[27] = "corhavp",
 			}
 		
 		elseif name == "legacv" then
 			uDef.buildoptions = {
-
+				[1] = "legafus",
+				[2] = "leggant",
+				[3] = "legageo",
+				[4] = "legrampart",
+				[5] = "legmoho",
+				[6] = "cormexp",
+				[7] = "legadveconv",
+				[8] = "legadvestore",
+				[9] = "legamstor",
+				[10] = "legforti",
+				[11] = "corasp",
+				[12] = "legtarg",
+				[13] = "legdeflector",
+				[14] = "legacluster",
+				[15] = "legapopupdef",
+				[16] = "legbastion",
+				[17] = "legflak",
+				[18] = "leglraa",
+				[19] = "legperdition",
+				[20] = "legabm",
+				[21] = "legsilo",
+				[22] = "leglrpc",
+				[23] = "legstarfall",
+				[24] = "legvp",
+				[25] = "legavp",
+				[26] = "leghavp",
 			}	
-
-		elseif name == "corfast" then
 			uDef.buildoptions = {
 
 			}
 
-		elseif name == "legaceb" then 
-			uDef.buildoptions = {
 
-			}
-		
-		elseif name == "corprinter" then
-			uDef.buildoptions = {
-
-			}
-		
-		elseif name == "legafcv" then
 			uDef.buildoptions = {
 
 			}

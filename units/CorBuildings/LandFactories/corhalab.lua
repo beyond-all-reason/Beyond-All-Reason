@@ -32,7 +32,7 @@ return {
 		workertime = 400,
 		yardmap = "oeeeeooeeeeooeeeeooeeeeooeeeeooeeeeo",
 		buildoptions = {
-			[1] = "corfast",
+			[1] = "corhack",
 			[2] = "coraak",
 			[3] = "cormort",
 			[4] = "corcan",
