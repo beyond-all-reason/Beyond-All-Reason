@@ -2678,16 +2678,16 @@ function UnitDef_Post(name, uDef)
 
 		-- Armada T1 Reworks
 		elseif name == "armcom" then
-		uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
-		uDef.weapondefs.armcomlaser.rgbcolor = "0.2 0.1 1.0"
-		uDef.weapondefs.armcomlaser.burst = 3
-		uDef.weapondefs.armcomlaser.burstrate = 0.175
-		uDef.weapondefs.armcomlaser.thickness = 3
-		uDef.weapondefs.armcomlaser.reloadtime = 0.6
-		uDef.weapondefs.armcomlaser.beamtime = 0.04
-		uDef.weapondefs.armcomlaser.soundstart = "lasrlit3"
-		uDef.weapondefs.armcomlaser.soundtrigger = false
-		uDef.weapondefs.armcomlaser.damage = {
+			uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
+			uDef.weapondefs.armcomlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armcomlaser.burst = 3
+			uDef.weapondefs.armcomlaser.burstrate = 0.175
+			uDef.weapondefs.armcomlaser.thickness = 3
+			uDef.weapondefs.armcomlaser.reloadtime = 0.6
+			uDef.weapondefs.armcomlaser.beamtime = 0.04
+			uDef.weapondefs.armcomlaser.soundstart = "lasrlit3"
+			uDef.weapondefs.armcomlaser.soundtrigger = false
+			uDef.weapondefs.armcomlaser.damage = {
 				default = 37.5,
 				subs = 2.5,
 			}
@@ -2876,7 +2876,9 @@ function UnitDef_Post(name, uDef)
 			uDef.speed = 44
 		
 		-- Legion T1 Reworks
-
+		elseif name == "legkark" then
+			uDef.speed = 46
+			
 		-- Legion T2 Reworks
 
 		end
