@@ -2762,13 +2762,13 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.mech_rapidlaser.name = "Rapid-fire g2g Burst Laser"
 		
 		elseif name == "armham" then
-		uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
-		uDef.weapondefs.arm_ham.reloadtime = 0.87
-		uDef.weapondefs.arm_ham.weaponvelocity = 572
-		uDef.weapondefs.arm_ham.range = 360
-		uDef.weapondefs.arm_ham.damage = {
-			default = 52,
-			vtol = 11
+			uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
+			uDef.weapondefs.arm_ham.reloadtime = 0.87
+			uDef.weapondefs.arm_ham.weaponvelocity = 572
+			uDef.weapondefs.arm_ham.range = 360
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11
 			}
 		elseif name == "armmart" then
 			uDef.speed = 40
