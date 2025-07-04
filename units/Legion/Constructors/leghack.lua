@@ -53,6 +53,7 @@ return {
 			[13] = "leglab",
 			[14] = "legalab",
 			[15] = "leghalab",
+			[16] = "legcluster",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
