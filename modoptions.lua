@@ -1383,17 +1383,6 @@ local options = {
         def     = false,
         hidden  = true,
     },
-
-    {
-        key = "spiders",
-        name = "t2 test",
-        desc = "Test",
-        type = "bool",
-        section = "options_experimental",
-        def = false,
-        hidden = true,
-
-    },
 	
     {
         key    	= "shieldsrework",
