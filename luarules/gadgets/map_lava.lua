@@ -56,7 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
-	local spGetMoveData =Spring.GetUnitMoveTypeData
+	local spGetMoveData = Spring.GetUnitMoveTypeData
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
@@ -66,10 +66,17 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
+	local speedDefs = {}
+	local turnDefs = {}
+	local accDefs = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
+		else 
+			speedDefs[unitDefID] = unitDef.speed
+			turnDefs[unitDefID] = unitDef.turnRate
+			accDefs[unitDefID] = unitDef.maxAcc
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -120,36 +127,34 @@ if gadgetHandler:IsSyncedCode() then
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
-			local UnitDefID = spGetUnitDefID(unitID)
-			if not canFly[UnitDefID] then
+			local unitDefID = spGetUnitDefID(unitID)
+			if not canFly[unitDefID] then
 				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					local us = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					local us = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
 					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
-						local mt = spGetMoveData(unitID)
-						local ms = UnitDefs[UnitDefID].speed
-						local tr = UnitDefs[UnitDefID].turnRate
-						local ar = UnitDefs[UnitDefID].maxAcc
-						if (mt.name == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ar and ar ~= 0) then
-							lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+						local mt = spGetMoveData(unitID).name
+						local ms = speedDefs[unitDefID]
+						local tr = turnDefs[unitDefID]
+						local ac = accDefs[unitDefID]
+						if (mt == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ac and ac ~= 0)then
+							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
-					else -- Already in lava just update slow factor
-						lavaUnits[unitID].unitSlow = us
 					end
-					if lavaUnits[unitID].slowed then
-						local unitSlow = lavaUnits[unitID].unitSlow
-						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
-						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow
-						local slowedAccRate = lavaUnits[unitID].orgAccRate * unitSlow
+					if lavaUnits[unitID].slowed and (us ~= lavaUnits[unitID].currentSlow) then
+						local slowedMaxSpeed = speedDefs[unitDefID] * us
+						local slowedTurnRate = turnDefs[unitDefID] * us
+						local slowedAccRate = accDefs[unitDefID] * us
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+						lavaUnits[unitID].currentSlow = us
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then 
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
+						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
 					end
 				lavaUnits[unitID] = nil
 				end
