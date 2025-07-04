@@ -1875,11 +1875,11 @@ function UnitDef_Post(name, uDef)
 		end	
 	end
 
-	-------------------------
-	-- Fight Night Modpack --
-	-------------------------
+	-------------------
+	-- Tech Overhaul --
+	-------------------
 
-	if modOptions.fightnight then
+	if modOptions.techoverhaul then
     	-- Bot and Veh lab reworks
 		-- T2 lab cost will be increased to around 4k metal
 		-- New labs are created - "ha" for half-advanced, called enhanced. Tier between T1 and T2
