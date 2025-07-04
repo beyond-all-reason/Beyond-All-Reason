@@ -13,7 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
+if not gadgetHandler:IsSyncedCode() and (
+	Spring.GetModOptions().experimentalextraunits or
+	Spring.GetModOptions().experimentallegionfaction
+) then
 	return false
 end
 
