@@ -2522,18 +2522,6 @@ function UnitDef_Post(name, uDef)
 			uDef.energycost = math.ceil(uDef.energycost * .03) * 100
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.03) * 100
 
-
-
-		-- Tech down
-		-- elseif name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
-		-- or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
-		--or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
-		--or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
-		--or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
-		--or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
-		--then
-		--	uDef.customparams.techlevel = 1
-
 		-- Commanders reduced cloak cost, increased speed
 		-- remove hovers from com
 		elseif name == "corcom" or name == "legcom" then
@@ -2650,14 +2638,6 @@ function UnitDef_Post(name, uDef)
 		or name == "leggant" or name == "leggantuw" 
 		or name == "armshltx" or name == "armshltxuw" then
 			uDef.workertime = uDef.workertime * 6
-
-		-- Legion
-
-		--elseif uDef.customparams.subfolder == "Legion/Labs" then
-			--uDef.metalcost = math.ceil(uDef.metalcost * 0.09) * 10
-			--uDef.energycost = math.ceil(uDef.energycost * 0.009) * 100
-			--uDef.buildtime = math.ceil(uDef.energycost * 0.009) * 100
-			--uDef.workertime = math.ceil(uDef.workertime * 0.095) * 10
 
 		-- Cortex T1 Reworks
 		elseif name == "corwolv" then
@@ -2975,6 +2955,26 @@ function UnitDef_Post(name, uDef)
 		-- T2 BP increase
 		if uDef.customparams.techlevel == 2 then 
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+		end
+
+		-- Legion
+
+		if uDef.customparams.subfolder == "Legion/Labs" or name == "leglab" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.09) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.009) * 100
+			uDef.buildtime = math.ceil(uDef.energycost * 0.009) * 100
+			uDef.workertime = math.ceil(uDef.workertime * 0.09) * 10
+		end
+
+		-- Tech down
+		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
+		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
+		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
+		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
+		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
+		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		then
+			uDef.customparams.techlevel = 1
 		end
 
 	end
