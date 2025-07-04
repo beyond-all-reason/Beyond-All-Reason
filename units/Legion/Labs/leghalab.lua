@@ -44,7 +44,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/leglab_aoplane.dds",
+			buildinggrounddecaltype = "decals/leggant_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,

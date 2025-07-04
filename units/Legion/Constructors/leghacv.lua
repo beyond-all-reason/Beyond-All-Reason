@@ -53,9 +53,10 @@ return {
 			[9] = "legfus",
 			[10] = "legarad",
 			[11] = "legajam",
-			[12] = "legarad",
-			[13] = "legajam",
-			[14] = "legsd",
+			[12] = "legsd",
+			[13] = "leghavp",
+			[14] = "legavp",
+			[15] = "legvp",
 		},
 		customparams = {
 			model_author = "ZephyrSkies",

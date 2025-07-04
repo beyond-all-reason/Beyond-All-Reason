@@ -49,9 +49,10 @@ return {
 			[9] = "legfus",
 			[10] = "legarad",
 			[11] = "legajam",
-			[12] = "legarad",
-			[13] = "legajam",
-			[14] = "legsd",
+			[12] = "legsd",
+			[13] = "leglab",
+			[14] = "legalab",
+			[15] = "leghalab",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
