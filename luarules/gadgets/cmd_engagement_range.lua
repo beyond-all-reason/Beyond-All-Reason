@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name    = "Unit Engagement Range",
 		desc    = "Cycle through a unit's weapon- and engage-ranges with a command",
-		version = 0.0,
+		version = "1.0",
 		author  = "efrec",
 		license = "GNU GPL, v2 or later",
 		date    = "2025",
@@ -22,6 +22,10 @@ end
 
 local minSplitDifference = 16 ---@type integer the smallest difference to split ranges
 local minSplitPercentage = 0.1 ---@type number the smallest proportionate difference -- todo
+
+local unitDefaultEngageRangeOverride = {
+	legbunk = 500, -- the star of this show
+}
 
 --------------------------------------------------------------------------------
 -- Global variables ------------------------------------------------------------
@@ -106,6 +110,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 		local weapons = {}
 		local unitEngageRange = tonumber(unitDef.customParams.maxrange or unitDef.maxWeaponRange or 0)
+
+		if unitDefaultEngageRangeOverride[unitDef.name] then
+			unitEngageRange = unitDefaultEngageRangeOverride[unitDef.name]
+		end
 
 		local unitArmorDamage = 0
 		local unitArmorTarget = ARMORTYPE_DEFAULT
