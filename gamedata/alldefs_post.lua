@@ -2645,9 +2645,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
 			uDef.workertime = uDef.workertime * 6
 
-		elseif uDef.customparams.techlevel == 2 then 
-			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
-
 		-- T3
 		elseif name == "corgant" or name == "corgantuw" 
 		or name == "leggant" or name == "leggantuw" 
@@ -2741,9 +2738,11 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armflash" then
 			uDef.speed = 109
 			uDef.health = 600
+
 		elseif name == "armpw" then 
 			uDef.speed = 92
 			uDef.health = 320
+			
 		elseif name == "armwar" then
 			uDef.speed = 61
 			uDef.health = math.ceil(uDef.health * 0.08) * 10
@@ -2762,6 +2761,7 @@ function UnitDef_Post(name, uDef)
 				default = 28,
 				vtol = 5
 				}
+
 		elseif name == "armllt" then
 			uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
 			uDef.weapondefs.arm_lightlaser.rgbcolor = "0.2 0.1 1.0"
@@ -2781,9 +2781,10 @@ function UnitDef_Post(name, uDef)
 					subs = 2.5,
 					vtol = 2.5,
 				}
+
 		elseif name == "armamph" then
 			uDef.weapondefs.armamph_weapon1.name = "Light g2g Burst Laser"
-			uDef.weapondefs.armamph_weapon1r.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armamph_weapon1.rgbcolor = "0.2 0.1 1.0"
 			uDef.weapondefs.armamph_weapon1.burst = 3
 			uDef.weapondefs.armamph_weapon1.beamburst = true
 			uDef.weapondefs.armamph_weapon1.burstrate = 0.175
@@ -2797,6 +2798,7 @@ function UnitDef_Post(name, uDef)
 				default = 41,
 				vtol = 7.6
 			}
+
 		elseif name == "armhlt" then
 			uDef.weapondefs.arm_laserh1.range = 700
 			uDef.weapondefs.arm_laserh1.damage.default = 580
@@ -2817,6 +2819,7 @@ function UnitDef_Post(name, uDef)
 				default = 193.5,
 				vtol = 17.5,
 			}
+
 		elseif name == "armraz" then
 			uDef.weapondefs.mech_rapidlaser.rgbcolor = "0.2 0.1 1.0"
 			uDef.weapondefs.mech_rapidlaser.rgbcolor2 = "0.6 0.6 0.9"
@@ -2850,13 +2853,15 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
 		
 		-- Armada T2 Reworks
+
 		elseif name == "armsptk" then
 			uDef.weapondefs.adv_rocket.burst = 6
 			uDef.weapondefs.adv_rocket.burstrate = 0.15
 			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
 			uDef.weapondefs.adv_rocket.smokesize = 3.25
 			uDef.weapondefs.adv_rocket.range = 750
-
+			uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
+			
 		elseif name == "armfido" then
 			uDef.weapondefs.bfido.range = 600
 			uDef.health = 800
@@ -2922,20 +2927,22 @@ function UnitDef_Post(name, uDef)
 			uDef.energycost = 25000
 			uDef.metalcost = 1800
 			uDef.buildtime = 31100
-			uDef.weapondefs.tremor_spread_fire = {
-             	accuracy = 1200,
-             	range = 1275,
-            	mygravity = 0.267,
-             	proximitypriority = 1,
-             	weaponvelocity = 600,
-            	hightrajectory = 0, 
-            	customparams = {
+			uDef.weapondefs.tremor_spread_fire.mygravity = 0.267
+			uDef.weapondefs.tremor_spread_fire.proximitypriority = 1
+            uDef.weapondefs.tremor_spread_fire.weaponvelocity = 600
+    		uDef.weapondefs.tremor_spread_fire.range = 1275
+			uDef.weapondefs.tremor_spread_fire.accuracy = 1200
+			uDef.weapondefs.tremor_spread_fire.burst = 10
+			uDef.weapondefs.tremor_spread_fire.burstrate = 0.3
+			uDef.weapondefs.tremor_spread_fire.reloadtime = 4.5
+			uDef.weapondefs.tremor_spread_fire.hightrajectory = 0
+			uDef.weapondefs.tremor_spread_fire.customparams = {
 				speceffect = "sector_fire",
 				when = "always",
 				max_range_reduction = "0.01",
 				spread_angle = "1",
-				},
-            }
+			}
+    
 
 		elseif name == "correap" then
 			uDef.health = 3000
@@ -2964,10 +2971,13 @@ function UnitDef_Post(name, uDef)
 		-- Legion T2 Reworks
 
 		end
+    
+		-- T2 BP increase
+		if uDef.customparams.techlevel == 2 then 
+		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+		end
+
 	end
-
-
-
 
 
 	-- Multipliers Modoptions
