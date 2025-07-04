@@ -57,6 +57,7 @@ return {
 			[13] = "leghavp",
 			[14] = "legavp",
 			[15] = "legvp",
+			[16] = "legcluster",
 		},
 		customparams = {
 			model_author = "ZephyrSkies",

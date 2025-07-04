@@ -2051,9 +2051,9 @@ function UnitDef_Post(name, uDef)
 				[17] = "coreyes",
 				[18] = "cordrag",
 				[19] = "corllt",
-				[20] = "corhlt",
+				[20] = "nil",
 				[21] = "corrl",
-				[22] = "cormadsam",
+				[22] = "nil",
 				[23] = "corrad",
 				[24] = "cordl",
 				[25] = "corjamt",
@@ -2080,7 +2080,7 @@ function UnitDef_Post(name, uDef)
 			[16] = "legrad",
 			[17] = "legdrag",
 			[18] = "leglht",
-			[19] = "legcluster",
+			[19] = "nil",
 			[20] = "legrl",
 			[21] = "legctl",
 			[22] = "legjam",
@@ -2223,9 +2223,9 @@ function UnitDef_Post(name, uDef)
 				[17] = "coreyes",
 				[18] = "cordrag",
 				[19] = "corllt",
-				[20] = "corhlt",
+				[20] = "nil",
 				[21] = "corrl",
-				[22] = "cormadsam",
+				[22] = "nil",
 				[23] = "corrad",
 				[24] = "cordl",
 				[25] = "corjamt",
@@ -2252,7 +2252,7 @@ function UnitDef_Post(name, uDef)
 				[16] = "legrad",
 				[17] = "legdrag",
 				[18] = "leglht",
-				[19] = "legcluster",
+				[19] = "nil",
 				[20] = "legrl",
 				[21] = "legctl",
 				[22] = "legjam",
@@ -2326,27 +2326,26 @@ function UnitDef_Post(name, uDef)
 				[3] = "legageo",
 				[4] = "legrampart",
 				[5] = "legmoho",
-				[6] = "nil",
-				[7] = "legadveconv",
-				[8] = "legadvestore",
-				[9] = "legamstor",
-				[10] = "legforti",
-				[11] = "corasp",
-				[12] = "legtarg",
-				[13] = "legdeflector",
-				[14] = "legacluster",
-				[15] = "legapopupdef",
-				[16] = "legbastion",
-				[17] = "legflak",
-				[18] = "leglraa",
-				[19] = "legperdition",
-				[20] = "legabm",
-				[21] = "legsilo",
-				[22] = "leglrpc",
-				[23] = "legstarfall",
-				[24] = "legvp",
-				[25] = "legavp",
-				[26] = "leghavp",
+				[6] = "legadveconv",
+				[7] = "legadvestore",
+				[8] = "legamstor",
+				[9] = "legforti",
+				[10] = "corasp",
+				[11] = "legtarg",
+				[12] = "legdeflector",
+				[13] = "legacluster",
+				[14] = "legapopupdef",
+				[15] = "legbastion",
+				[16] = "legflak",
+				[17] = "leglraa",
+				[18] = "legperdition",
+				[19] = "legabm",
+				[20] = "legsilo",
+				[21] = "leglrpc",
+				[22] = "legstarfall",
+				[23] = "legvp",
+				[24] = "legavp",
+				[25] = "leghavp",
 			}
 
 		elseif name == "armca" then
@@ -2359,7 +2358,7 @@ function UnitDef_Post(name, uDef)
 				[6] = "armmex",
 				[7] = "armmakr",
 				[8] = "armaap",
-				[9] = "nil",
+				[9] = nil,
 				[10] = "armlab",
 				[11] = "armvp",
 				[12] = "armap",
@@ -2395,9 +2394,9 @@ function UnitDef_Post(name, uDef)
 				[17] = "coreyes",
 				[18] = "cordrag",
 				[19] = "corllt",
-				[20] = "corhlt",
+				[20] = "nil",
 				[21] = "corrl",
-				[22] = "cormadsam",
+				[22] = "nil",
 				[23] = "corrad",
 				[24] = "cordl",
 				[25] = "corjamt",
@@ -2424,7 +2423,7 @@ function UnitDef_Post(name, uDef)
 				[16] = "legrad",
 				[17] = "legdrag",
 				[18] = "leglht",
-				[19] = "legcluster",
+				[19] = "nil",
 				[20] = "legrl",
 				[21] = "legctl",
 				[22] = "legjam",
@@ -2494,10 +2493,31 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.techlevel = 1
 
 		-- Commanders reduced cloak cost, increased speed
-		elseif name == "armcom" or name == "corcom" or name == "legcom" then
+		elseif name == "corcom" or name == "legcom" then
 			uDef.cloakcost = 70
 			uDef.cloakcostmoving = 700
 			uDef.speed = 40
+
+		-- armcom new laser
+		elseif name == "armcom" then
+			uDef.cloakcost = 70
+			uDef.cloakcostmoving = 700
+			uDef.speed = 40
+			uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
+			uDef.weapondefs.armcomlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armcomlaser.beamburst = true
+			uDef.weapondefs.armcomlaser.burst = 3
+			uDef.weapondefs.armcomlaser.burstrate = 0.1
+			uDef.weapondefs.armcomlaser.thickness = 3
+			uDef.weapondefs.armcomlaser.reloadtime = 0.6
+			uDef.weapondefs.armcomlaser.beamtime = 0.04
+			uDef.weapondefs.armcomlaser.soundstart = "lasrlit3"
+			uDef.weapondefs.armcomlaser.soundtrigger = false
+			uDef.weapondefs.armcomlaser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.armcomlaser.damage = {
+				default = 37.5,
+				subs = 2.5,
+			}
 
 		-- T1 Economy 1.15x HP
 		elseif name == "armwin" or name == "corwin" or name == "legwin"
@@ -2555,30 +2575,26 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.techlevel = 1
 
 		-- Spybots
-		elseif name == "corspy" or name == "legspy" or name == "armspy" then
+		elseif name == "corspy" or name == "legaspy" or name == "armspy" then
 			uDef.buildtime = 12800
 
 		-- Lab Cost Rework
 
 		-- T1
-		elseif uDef.customparams.subfolder == "ArmBuildings/LandFactories" or
-		uDef.customparams.subfolder == "CorBuildings/LandFactories" or
-		uDef.customparams.subfolder == "Legion/Labs" or
-		uDef.customparams.subfolder == "ArmBuildings/SeaFactories" or
-		uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
-		and uDef.customparams.techlevel == 1 then
-			uDef.metalcost = math.ceil(uDef.metalcost * 0.8)
-			uDef.energycost = math.ceil(uDef.energycost * 0.8)
-			uDef.buildtime = math.ceil(uDef.buildtime * 0.8)
+	elseif name == "armlab" or name == "armvp" or name == "armap" or name == "armsy" 
+		or name == "corlab" or name == "corap" or name == "corsy" or name == "corplat"
+		or name == "leglab" or name == "legvp" or name == "legap" or name == "legsy"
+		then 
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
 			uDef.workertime = uDef.workertime * 2 
 
 		-- T2
-		elseif uDef.customparams.subfolder == "ArmBuildings/LandFactories" or
-		uDef.customparams.subfolder == "CorBuildings/LandFactories" or
-		uDef.customparams.subfolder == "Legion/Labs" or
-		uDef.customparams.subfolder == "ArmBuildings/SeaFactories" or
-		uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
-		and uDef.customparams.techlevel == 2 then
+		elseif name == "armalab" or name == "armavp" or name == "armaap" or name == "armasy" 
+		or name == "coralab" or name == "coraap" or name == "corasy" or name == "corplat"
+		or name == "legalab" or name == "legavp" or name == "legaap" or name == "legasy"
+		then 
 			uDef.metalcost = uDef.metalcost * 2
 			uDef.energycost = uDef.energycost * 2
 			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
@@ -2677,20 +2693,12 @@ function UnitDef_Post(name, uDef)
 		
 
 		-- Armada T1 Reworks
-		elseif name == "armcom" then
-			uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
-			uDef.weapondefs.armcomlaser.rgbcolor = "0.2 0.1 1.0"
-			uDef.weapondefs.armcomlaser.burst = 3
-			uDef.weapondefs.armcomlaser.burstrate = 0.175
-			uDef.weapondefs.armcomlaser.thickness = 3
-			uDef.weapondefs.armcomlaser.reloadtime = 0.6
-			uDef.weapondefs.armcomlaser.beamtime = 0.04
-			uDef.weapondefs.armcomlaser.soundstart = "lasrlit3"
-			uDef.weapondefs.armcomlaser.soundtrigger = false
-			uDef.weapondefs.armcomlaser.damage = {
-				default = 37.5,
-				subs = 2.5,
-			}
+		elseif name == "armflash" then
+			uDef.speed = 109
+			uDef.health = 600
+		elseif name == "armpw" then 
+			uDef.speed = 92
+			uDef.health = 320
 		elseif name == "armwar" then
 			uDef.speed = 61
 			uDef.health = math.ceil(uDef.health * 0.08) * 10
@@ -2704,6 +2712,7 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.armwar_laser.beamtime = 0.04
 			uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
 			uDef.weapondefs.armwar_laser.soundtrigger = false
+			uDef.weapondefs.armwar_laser.explosiongenerator = "custom:laserhit-medium-blue"
 			uDef.weapondefs.armwar_laser.damage = {
 				default = 28,
 				vtol = 5
@@ -2711,7 +2720,9 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armllt" then
 			uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
 			uDef.weapondefs.arm_lightlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_lightlaser.beamburst = true
 			uDef.weapondefs.arm_lightlaser.burst = 3
+			uDef.weapondefs.arm_lightlaser.explosiongenerator = "custom:laserhit-medium-blue"
 			uDef.weapondefs.arm_lightlaser.burstrate = 0.175
 			uDef.weapondefs.arm_lightlaser.thickness = 3
 			uDef.weapondefs.arm_lightlaser.reloadtime = 0.7
@@ -2729,10 +2740,12 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.armamph_weapon1.name = "Light g2g Burst Laser"
 			uDef.weapondefs.armamph_weapon1r.rgbcolor = "0.2 0.1 1.0"
 			uDef.weapondefs.armamph_weapon1.burst = 3
+			uDef.weapondefs.armamph_weapon1.beamburst = true
 			uDef.weapondefs.armamph_weapon1.burstrate = 0.175
 			uDef.weapondefs.armamph_weapon1.thickness = 3
 			uDef.weapondefs.armamph_weapon1.reloadtime = 1.1
 			uDef.weapondefs.armamph_weapon1.beamtime = 0.04
+			uDef.weapondefs.armamph_weapon1.explosiongenerator = "custom:laserhit-medium-blue"
 			uDef.weapondefs.armamph_weapon1.soundstart = "lasrlit3"
 			uDef.weapondefs.armamph_weapon1.soundtrigger = false
 			uDef.weapondefs.armamph_weapon1.damage = {
@@ -2742,16 +2755,18 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armhlt" then
 			uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
 			uDef.weapondefs.arm_laserh1.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_laserh1.beamburst = true
 			uDef.weapondefs.arm_laserh1.burst = 3
 			uDef.weapondefs.arm_laserh1.burstrate = 0.175
 			uDef.weapondefs.arm_laserh1.thickness = 4
 			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
 			uDef.weapondefs.arm_laserh1.beamtime = 0.04
 			uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
 			uDef.weapondefs.arm_laserh1.soundtrigger = false
 			uDef.weapondefs.arm_laserh1.energypershot = 25
 			uDef.weapondefs.arm_laserh1.damage = {
-				commanders = 290.25
+				commanders = 290.25,
 				default = 193.5,
 				vtol = 17.5,
 			}
@@ -2791,8 +2806,9 @@ function UnitDef_Post(name, uDef)
 		-- Armada T2 Reworks
 		elseif name == "armsptk" then
 			uDef.weapondefs.adv_rocket.burst = 6
+			uDef.weapondefs.adv_rocket.burstrate = 0.15
 			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
-			uDef.weapondefs.adv_rocket.smokesize =3.25
+			uDef.weapondefs.adv_rocket.smokesize = 3.25
 		elseif name == "armfido" then
 			uDef.weapondefs.bfido.range = 600
 			uDef.health = 800
@@ -2819,12 +2835,6 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1700
 			uDef.weapondefs.armmav_weapon.areaofeffect = 30
 		-- Cortex T2 Reworks
-		elseif name == "corhunt" then
-			uDef.metalcost = 250
-			uDef.energycost = 9500
-			uDef.hoverattack = true
-			uDef.sightdistance = 1500
-			uDef.radardistance = 2700
 		elseif name == "cortermite" then
 			uDef.speed = 56
 			uDef.metalcost = 500
@@ -2864,7 +2874,7 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.tremor_spred_fire.customparams = {
 				max_range_reduction = "0.01",
 				speceffect = "sector_fire",
-				spread_angle = "1"
+				spread_angle = "1",
 				when = "always"
 			}
 		elseif name == "correap" then
@@ -2877,8 +2887,17 @@ function UnitDef_Post(name, uDef)
 		
 		-- Legion T1 Reworks
 		elseif name == "legkark" then
-			uDef.speed = 46
-			
+			uDef.health = 1700
+			uDef.weapondefs.heat_ray.damage = {
+				default = 180,
+				vtol = 28
+			}
+		elseif name == "legcen" then
+			uDef.health = 850
+			uDef.speed = 93
+
+		elseif name == "leghades" then
+			uDef.weapondefs.gauss.range = 190
 		-- Legion T2 Reworks
 
 		end
