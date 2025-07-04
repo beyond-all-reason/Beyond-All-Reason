@@ -93,13 +93,16 @@ local function getDamageRate(weaponDef)
 	local damageAntiAir = damages[ARMORTYPE_VTOL] or 0
 	local damageMax = math.max(damageDefault, damageAntiAir, 0)
 
-	return damageMax * (weaponDef.burst or 1) * (weaponDef.projectiles or 1) /
+	local damageRate = damageMax * (weaponDef.burst or 1) * (weaponDef.projectiles or 1) /
 		math.max(
 			(weaponDef.burstRate or 0) * (weaponDef.burst or 1),
 			weaponDef.reload or 0,
 			weaponDef.stockpile and weaponDef.stockpileTime or 0,
 			0.0001
 		)
+	local armorTarget = damageDefault == damageMax and ARMORTYPE_DEFAULT or ARMORTYPE_VTOL
+
+	return damageRate, armorTarget
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -125,13 +128,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 
 			if not isFakeWeapon(weaponDef) then
-				local armorDamageRate = getDamageRate(weaponDef)
+				local armorDamage, armorTarget = getDamageRate(weaponDef)
 
-				if armorDamageRate > 10 then
-					local armorTarget = damageDefault == damageMax and ARMORTYPE_DEFAULT or ARMORTYPE_VTOL
-
-					if armorDamageRate > unitArmorDamage then
-						unitArmorDamage = armorDamageRate
+				if armorDamage > 10 then
+					if armorDamage > unitArmorDamage then
+						unitArmorDamage = armorDamage
 						unitArmorTarget = armorTarget
 					end
 
