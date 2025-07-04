@@ -1567,12 +1567,12 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
 	return true
 end
 
-function gadgetHandler:AllowUnitBuildStep(builderID, builderDefID,
+function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
                                           unitID, unitDefID, part)
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
-		if not g:AllowUnitBuildStep(builderID, builderDefID, unitID, unitDefID, part) then
+		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
 			return false
 		end
@@ -1609,8 +1609,7 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	return true
 end
 
-function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
-											 featureID, featureDefID, part)
+function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
 			return false
@@ -1646,8 +1645,7 @@ function gadgetHandler:AllowResourceTransfer(oldTeamID, newTeamID, res, amount)
 	return true
 end
 
-function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam,
-											  playerID)
+function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID)
 	for _, g in ipairs(self.AllowDirectUnitControlList) do
 		if not g:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID) then
 			return false
@@ -1675,8 +1673,7 @@ function gadgetHandler:MoveCtrlNotify(unitID, unitDefID, unitTeam, data)
 	return state
 end
 
-function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam,
-										 buildUnitID, buildUnitDefID, buildUnitTeam)
+function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 	for _, g in ipairs(self.TerraformCompleteList) do
 		local stop = g:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 		if stop then
@@ -1757,8 +1754,7 @@ function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
-									   factID, factDefID, userOrders)
+function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	for _, g in ipairs(self.UnitFromFactoryList) do
 		g:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
@@ -1797,8 +1793,7 @@ function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
-									  experience, oldExperience)
+function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, g in ipairs(self.UnitExperienceList) do
 		g:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
