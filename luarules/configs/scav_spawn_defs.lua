@@ -319,6 +319,7 @@ local LandUnitsList = {
 			["armham_scav"] = 4,
 			["armpincer_scav"] = 2,
 			--Cortex
+			["cormug_scav"] = 3,
 			["corthud_scav"] = 3,
 			["corgarp_scav"] = 2,
 			--Legion

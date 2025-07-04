@@ -238,6 +238,7 @@ local armorDefs = {
 		"cormoho",
 		"cormort",
 		"cormstor",
+		"cormug",
 		"cormwall",
 		"legrwall",
 		"cornecro",
