@@ -628,6 +628,12 @@
 			"legmos": {
 				"role": ["skirmish", "air"]
 			},
+			"leglts": {
+				"role": ["support", "air"]
+			},
+			"legatrans": {
+				"role": ["support", "air"]
+			},
 	
 			// LEGION ADV AIRCRAFT aircraft - legaap
 	
@@ -643,11 +649,20 @@
 			"legphoenix": {
 				"role": ["bomber", "air"]
 			},
+			"legnap": {
+				"role": ["bomber", "air"]
+			},
+			"legmineb": {
+				"role": ["bomber", "air"]
+			},
 			"legstronghold": {
 				"role": ["assault", "air"]
 			},
 			"legfort": {
 				"role": ["heavy", "air"]
+			},
+			"legatorpbomber": {
+				"role": ["anti_sub", "air"]
 			},
 	
 			// LEGION HOVERS
