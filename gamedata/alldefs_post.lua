@@ -1882,9 +1882,9 @@ function UnitDef_Post(name, uDef)
 	if modOptions.techoverhaul then
     	-- Bot and Veh lab reworks
 		-- T2 lab cost will be increased to around 4k metal
-		-- New labs are created - "ha" for half-advanced, called enhanced. Tier between T1 and T2
-		-- Enhanced labs are given amphibious vehicles as well as light and medfast T2 units
-		-- Specialty T1 mexes are changed to enhanced mexes with 2x metal income + special abilities (for faction differentiation)
+		-- New labs are created - "ha" for half-advanced, called enhanced (placeholder). Tier between T1 and T2
+		-- Enhanced labs are given amphibious vehicles and the most expensive T1 + least expensive T2.
+		-- Specialty T1 mexes are changed to enhanced mexes with 2x metal income + special aabilities (for faction differentiation)
 		if name == "corlab" then
 			uDef.buildoptions = {
 				[1] = "corck",
@@ -2381,6 +2381,35 @@ function UnitDef_Post(name, uDef)
 			uDef.energyupkeep = 30
 			uDef.extractsmetal = 0.002
 
+		-- T2 mexes rebalance
+		elseif name == "armmoho" or name == "cormoho"
+			uDef.energyupkeep = 60
+			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
+			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+
+		elseif name == "cormexp" then
+			uDef.energyupkeep = 60
+
+		elseif name == "legmoho" then
+			uDef.extractsmetal 0.006
+			uDef.energyupkeep = 120
+			uDef.metalcost = math.ceil(uDef.metalcost * .3) * 10
+			uDef.energycost = math.ceil(uDef.energycost * .03) * 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.03) * 100
+
+
+
+		-- Tech down
+		elseif name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
+		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
+		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
+		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
+		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
+		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		then
+			uDef.customparams.techlevel = 1
+
 		-- Commanders reduced cloak cost, increased speed
 		elseif name == "armcom" or name == "corcom" or name == "legcom" then
 			uDef.cloakcost = 70
@@ -2402,7 +2431,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armmex" or name == "cormex" or name == "legmex" then
 			uDef.health = math.ceil(uDef.health * 0.15) * 10
 
-		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 wind
+		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 windc
 		elseif name == "armadvsol"
 		then
 			uDef.metalcost = 330
@@ -2463,10 +2492,10 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.subfolder == "ArmBuildings/SeaFactories" or
 		uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
 		and uDef.customparams.techlevel == 2 then
-			uDef.metalcost = uDef.metalcost - 1000
-			uDef.energycost = uDef.energycost + 2000
-			uDef.buildtime = math.ceil(uDef.buildtime * .01333) * 100
-			uDef.workertime = uDef.workertime * 4
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
 
 		elseif uDef.customparams.techlevel == 2 then 
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
@@ -2545,6 +2574,8 @@ function UnitDef_Post(name, uDef)
 			}
 
 		-- Armada T1 Reworks
+		elseif name == "armcom" then
+		uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
 		elseif name == "armwar" then
 			uDef.speed = 61
 			uDef.health = math.ceil(uDef.health * 0.08) * 10
@@ -2567,10 +2598,49 @@ function UnitDef_Post(name, uDef)
 		uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
 		uDef.weapondefs.arm_ham.reloadtime = 0.87
 		uDef.weapondefs.arm_ham.weaponvelocity = 572
+		uDef.weapondefs.arm_ham.range = 360
 		uDef.weapondefs.arm_ham.damage = {
 			default = 52,
 			vtol = 11
 			}
+		elseif name == "armllt" then
+			uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
+			uDef.weapondefs.arm_lightlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_lightlaser.burst = 3
+			uDef.weapondefs.arm_lightlaser.burstrate = 0.175
+			uDef.weapondefs.arm_lightlaser.thickness = 3
+			uDef.weapondefs.arm_lightlaser.reloadtime = weaponDef.reloadtime * 1.5
+			uDef.weapondefs.arm_lightlaser.beamtime = 0.04
+			uDef.weapondefs.arm_lightlaser.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_lightlaser.soundtrigger = false
+			uDef.weapondefs.arm_lightlaser.damage = {
+					commanders = 56.25,
+					default = 37.5,
+					subs = 2.5,
+					vtol = 2.5,
+				}
+		
+		-- Armada T2 Reworks
+			elseif name == "armlatnk" then
+				uDef.weapondefs.lightning.range = 300
+
+		-- Cortex T2 Reworks
+		elseif name == "cormart" then
+			uDef.speed = 40
+			uDef.weapondefs.cor_artillery.range = 750
+			uDef.weapondefs.cor_artillery.areaofeffect = 170
+			uDef.weapondefs.cor_artillery.damage.default = 390
+			uDef.health = 850
+		elseif name == "cormando" then
+			uDef.weapons[1].badtargetcategory = "VTOL"
+			uDef.weapons[1].onlytargetcategory = "NOTSUB"
+			uDef.weapondefs.commando_blaster.damage.default = 150
+			uDef.weapondefs.commando_blaster.weaponvelocity = 600
+
+		-- Legion T1 Reworks
+
+		-- Legion T2 Reworks
+
 		end
 	end
 
