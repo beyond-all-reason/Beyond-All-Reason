@@ -80,14 +80,20 @@ local moveStateLeashRadius = {
 local unitEngageRangeInfo = {}
 
 local function isFakeWeapon(weaponDef)
+	local custom = weaponDef.customParams
+
 	return weaponDef.nofire or
 		weaponDef.commandfire or
 		weaponDef.range < 10 or
-		(weaponDef.damages[ARMORTYPE_DEFAULT] <= 1 and weaponDef.damages[ARMORTYPE_VTOL] <= 1) or
-		weaponDef.customParams.bogus
+		custom.bogus or
+		(
+			weaponDef.damages[ARMORTYPE_DEFAULT] <= 1 and
+			weaponDef.damages[ARMORTYPE_VTOL] <= 1 and
+			not (custom.carried_unit and custom.maxunits and tonumber(custom.maxunits) >= 1)
+		)
 end
 
-local function getDamageRate(weaponDef)
+local function getArmorDamages(weaponDef)
 	local damages = weaponDef.damages
 	local damageDefault = damages[ARMORTYPE_DEFAULT] or 0
 	local damageAntiAir = damages[ARMORTYPE_VTOL] or 0
@@ -101,6 +107,28 @@ local function getDamageRate(weaponDef)
 			0.0001
 		)
 	local armorTarget = damageDefault == damageMax and ARMORTYPE_DEFAULT or ARMORTYPE_VTOL
+
+	if damageRate == 0 then
+		if weaponDef.customParams.carried_unit ~= nil then
+			local unitDef = UnitDefNames[weaponDef.customParams.carried_unit]
+
+			if unitDef ~= nil and #unitDef.weapons >= 1 then
+				local count = tonumber(weaponDef.customParams.maxunits or 1) or 1
+
+				for _, weapon in ipairs(unitDef.weapons) do
+					local droneWeaponDef = WeaponDefs[weapon.weaponDef]
+					if not isFakeWeapon(droneWeaponDef) then
+						damageRate, armorTarget = getArmorDamages(WeaponDefs[weapon.weaponDef])
+						damageRate = damageRate * count
+
+						if damageRate > 0 then
+							break
+						end
+					end
+				end
+			end
+		end
+	end
 
 	return damageRate, armorTarget
 end
@@ -128,7 +156,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 
 			if not isFakeWeapon(weaponDef) then
-				local armorDamage, armorTarget = getDamageRate(weaponDef)
+				local armorDamage, armorTarget = getArmorDamages(weaponDef)
 
 				if armorDamage > 10 then
 					if armorDamage > unitArmorDamage then
