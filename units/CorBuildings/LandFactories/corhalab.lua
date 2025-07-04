@@ -45,7 +45,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecalsizey = 8,
-			buildinggrounddecaltype = "decals/corlab_aoplane.dds",
+			buildinggrounddecaltype = "decals/corgant_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandFactories",

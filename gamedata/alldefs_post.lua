@@ -1913,26 +1913,24 @@ function UnitDef_Post(name, uDef)
 				[1] = "armack",
 				[2] = "armsnipe",
 				[3] = "armfboy",
-				[4] = "armspid",
-				[5] = "armmark",
-				[6] = "armaser",
-				[7] = "armspy",
-				[8] = "armdecom",
-				[9] = "armscab",
-				[10] = "armsptk"
+				[4] = "armmark",
+				[5] = "armaser",
+				[6] = "armspy",
+				[7] = "armdecom",
+				[8] = "armscab",
+				[9] = "armsptk"
 			}
 
 		elseif name == "legalab" then
 			uDef.buildoptions = {
 				[1] = "legack",
-				[2] = "legstr",
-				[3] = "leginc",
-				[4] = "legsrail",
-				[5] = "leghrk",
-				[6] = "legaradk",
-				[7] = "legaspy",
-				[8] = "legajamk",
-				[9] = "legdecom",
+				[2] = "leginc",
+				[3] = "legsrail",
+				[4] = "leghrk",
+				[5] = "legaradk",
+				[6] = "legaspy",
+				[7] = "legajamk",
+				[8] = "legdecom",
 			}
 
 		elseif name == "armvp" then
@@ -2156,7 +2154,7 @@ function UnitDef_Post(name, uDef)
 			[3] = "legageo",
 			[4] = "legrampart",
 			[5] = "legmoho",
-			[6] = "cormexp",
+			[6] = "nil",
 			[7] = "legadveconv",
 			[8] = "legadvestore",
 			[9] = "legamstor",
@@ -2328,7 +2326,7 @@ function UnitDef_Post(name, uDef)
 				[3] = "legageo",
 				[4] = "legrampart",
 				[5] = "legmoho",
-				[6] = "cormexp",
+				[6] = "nil",
 				[7] = "legadveconv",
 				[8] = "legadvestore",
 				[9] = "legamstor",
@@ -2349,16 +2347,40 @@ function UnitDef_Post(name, uDef)
 				[24] = "legvp",
 				[25] = "legavp",
 				[26] = "leghavp",
-			}	
-			uDef.buildoptions = {
-
 			}
+			
+		-- t1.5 upgraded mexes 
 
+		-- legion gets powerful enhanced mexes in return for weak t1 mexes. 
+		-- Legion labs are also cheaper (to-do)
+		elseif name == "legmext15" then
+			uDef.metalcost = 450
+			uDef.energycost = 7500
+			uDef.buildtime = 7500
+			uDef.health = 900
+			uDef.metalstorage = 250
+			uDef.energyupkeep = 35
+			uDef.extractsmetal = 0.003
 
-			uDef.buildoptions = {
+		elseif name == "armamex" then
+			uDef.metalcost = 220
+			uDef.buildtime = 5000
+			uDef.energycost = 5000
+			uDef.health = 1200
+			uDef.metalstorage = 150
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+			uDef.cancloak = false
+			uDef.explodeas = "mediumBuildingExplosionGeneric"
 
-			}
-		
+		elseif name == "corexp" then
+			uDef.metalcost = 235
+			uDef.energycost = 4000
+			uDef.buildtime = 5500
+			uDef.health = 1000
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+
 		-- Commanders reduced cloak cost, increased speed
 		elseif name == "armcom" or name == "corcom" or name == "legcom" then
 			uDef.cloakcost = 70

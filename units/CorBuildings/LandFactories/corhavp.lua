@@ -22,7 +22,7 @@ return {
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 14400,
+		metalcost = 1440,
 		metalstorage = 200,
 		objectname = "Units/CORAMSUB.s3o",
 		script = "Units/CORAMSUB.cob",

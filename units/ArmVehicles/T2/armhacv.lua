@@ -56,7 +56,7 @@ return {
 				[12] = "armgmm",
 				[13] = "armhavp",
 				[14] = "armvp",
-				[15] = "armavp"
+				[15] = "armavp",
 				[16] = "armveil",
 		},
 		customparams = {
