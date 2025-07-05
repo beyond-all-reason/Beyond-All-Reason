@@ -149,7 +149,7 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.forceupdate = true
 
 	stencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
-	Spring.Echo("Sensor Ranges LOS widget started, debugmode is " .. tostring(debugmode) .. ", gaiaTeamID is " .. gaiaTeamID)
+
 	if not stencilShader then
   		return goodbye("Failed to compile losrange stencil shader GL4 ")
  	end
