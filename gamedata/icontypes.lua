@@ -1068,7 +1068,7 @@ local icontypes = {
 		size = 1.36499989
 	},
 	armzapper = {
-		bitmap = "icons/vehicle.png",
+		bitmap = "icons/armzapper.png",
 		size = 0.57749999
 	},
 	armzeus = {
