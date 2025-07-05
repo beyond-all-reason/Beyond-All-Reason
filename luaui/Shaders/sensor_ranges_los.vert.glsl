@@ -1,4 +1,4 @@
-#version 420
+#version 430 core
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -12,7 +12,8 @@ layout (location = 1) in vec4 radius_params; //x is startradius, y is starttime,
 layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-
+//__DEFINES__
+geColor
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
     
@@ -38,15 +39,12 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 uniform float teamColorMix = 1.0;
 uniform vec4 rangeColor;
+
 uniform sampler2D heightmapTex;
 
-
 out DataVS {
-	//vec4 worldPos; // pos and radius
 	flat vec4 blendedcolor;
-	#ifdef USE_STIPPLE
-		float worldscale_circumference;
-	#endif
+	vec4 v_uv_camdist_radius;
 };
 
 #line 11000
@@ -56,37 +54,51 @@ float heightAtWorldPos(vec2 w){
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
+
 void main() {
-	// blend start to end on mod gf%10
-	//float timemix = clamp((mod(timeInfo.x, 10) + timeInfo.w) * (0.1), 0.0, 1.0);
-	vec4 circleWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+	
+	// Get the center position of each unit. 
+	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
 	float circleRadius = radius_params.x;
 
-	bool isclipped = isSphereVisibleXY(vec4(circleWorldPos.xyz,1.0), circleRadius * 1.1);
-	if (isclipped){
-		// Note: this is a little aggressive :/
-		gl_Position = cameraViewProj * vec4(-10000,-1000,-10000,1.0);
+	// Early bails if the circle is outside of the screen frustrum
+
+	if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
+		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
 		return;
 	}
 
-	circleWorldPos.xz = circlepointposition.xy * circleRadius +  circleWorldPos.xz;
-	// get heightmap
-	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+16.0;
-
-	// -- MAP OUT OF BOUNDS
-	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
-	float inboundsness = min(mymin.x, mymin.y);
-
-	// dump to FS
-	#ifdef USE_STIPPLE
-		worldscale_circumference = circleRadius * circlepointposition.z * 6.2831853;
+	#ifdef STENCILPASS
+	    circleRadius += 16.0;
 	#endif
-	//worldPos = circleWorldPos;
 	
-	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
-	blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
-	blendedcolor.a = rangeColor.a;
-	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
-	gl_Position = cameraViewProj * circleWorldPos;
+	
+  	// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
+	// for the fragment shader 
+	v_uv_camdist_radius.w = 0;
+	if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {	v_uv_camdist_radius.w = radius_params.x; }
+
+	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
+
+	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
+	
+	// get heightmap
+	circleVertexWorldPos.y = max(0.0,heightAtWorldPos(circleVertexWorldPos.xz))+16.0;
+
+	gl_Position = cameraViewProj * circleVertexWorldPos;
+	v_uv_camdist_radius.xy = gl_Position.xy;
+	#ifndef STENCILPASS
+		// -- MAP OUT OF BOUNDS
+		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
+		float inboundsness = min(mymin.x, mymin.y); // how distance the vertex is from the map edge
+		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
+
+		
+		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+		vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
+		blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
+		blendedcolor.a = rangeColor.a ;
+		//blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.01),0.0,1.0);
+		v_uv_camdist_radius.z = inboundsness;
+	#endif
 }
