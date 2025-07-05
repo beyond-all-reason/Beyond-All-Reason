@@ -1,13 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD		2	
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
-piece  base, turret, tracks, beamhinge, beamcase, flare;
+piece  base, turret, tracks, beamhinge, beamcase, flare, mineflare;
 
-static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging;
+static-var  notBuilding, isMoving, readyToBuild;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -17,138 +16,112 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-	turn beamcase to z-axis <-90> speed <180>;
-	wait-for-turn beamcase around z-axis;
-	
-	turn beamhinge to x-axis <90> speed <360>;
-	wait-for-turn beamhinge around x-axis;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	
-	turn beamhinge to x-axis <0> speed <360>;
-	wait-for-turn beamhinge around x-axis;	
-
-	turn beamcase to z-axis <0> speed <180>;
-	wait-for-turn beamcase around z-axis;
-	
-
-	
-	turn turret to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn turret around y-axis;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
 	hide flare;
-	bMoving = FALSE;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	isMoving = FALSE;
+	readyToBuild = FALSE;
 	animSpeed = 4;
+	call-script TB_Init();
+}
+	
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
-Activate()
+StopMoving()
 {
-	start-script RequestState(0);
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-Deactivate()
-{
-	start-script RequestState(1);
-}
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+		turn beamcase to z-axis <-90> speed <180>;
+		wait-for-turn beamcase around z-axis;
+		
+		turn beamhinge to x-axis <90> speed <360>;
+		wait-for-turn beamhinge around x-axis;
+		readyToBuild = 1;
+	}
+
 	show flare;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn turret to y-axis heading speed <600.000000>;
+	turn turret to y-axis heading speed <600.0>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	hide flare;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+
+	turn beamhinge to x-axis <0> speed <360>;
+	wait-for-turn beamhinge around x-axis;	
+
+	turn beamcase to z-axis <0> speed <180>;
+	wait-for-turn beamcase around z-axis;
+	
+	turn turret to y-axis <0.0> speed <160.0>;
+	wait-for-turn turret around y-axis;
 }
 
-StartMoving()
+QueryNanoPiece(pieceIndex)
 {
- return (0);
+	pieceIndex = flare;
 }
 
-StopMoving()
-{
- return (0);
-}
 
-QueryNanoPiece(piecenum)
-{
-	piecenum = flare;
-}
 
-AimPrimary(heading, pitch)
+
+AimWeapon1(heading, pitch)
 {
 	turn turret to y-axis heading speed <300>;
 	wait-for-turn turret around y-axis;
+
 	return (1);
 }
 
-/*
-TargetHeading(Func_Var_1)
+FireWeapon1()
 {
-	Static_Var_1 = 0 - Func_Var_1;
+	return (1);
 }
-*/
 
-SweetSpot(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	//pieceIndex = turret;
+	//pieceIndex = lnano;
+	pieceIndex = mineflare;
 }
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+
 
 Killed(severity, corpsetype)
 {

@@ -12,7 +12,6 @@ function widget:GetInfo()
    }
 end
 
-local unitCanFly = {}
 local ignoreUnitDefs = {}
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -22,18 +21,7 @@ for udid, unitDef in pairs(UnitDefs) do
 	if string.find(unitDef.name, 'droppod') then
 		ignoreUnitDefs[udid] = true
 	end
-	if unitDef.canFly then
-		unitCanFly[udid] = true
-	end
 end
-
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 4.5
-local fontfileOutlineStrength = 9
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- {unitID -> unitDefID, ... }
 -- presence of a unitID key indicates that the unit has an active (counting down) SELFD command
@@ -54,22 +42,12 @@ local spGetAllUnits				= Spring.GetAllUnits
 local spGetUnitCommands			= Spring.GetUnitCommands
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
-local spGetUnitMoveTypeData		= Spring.GetUnitMoveTypeData
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitTransporter		= Spring.GetUnitTransporter
 
 local spec = Spring.GetSpectatingState()
 
 
-function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
-end
 
 local function DrawIcon(text)
 	local iconSize = 0.9
@@ -85,6 +63,8 @@ local function DrawIcon(text)
 	if text ~= 0 then
 		gl.Translate(iconSize/2, -iconSize/2, 0)
 		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
 		font:Print(text, 0, 0, 0.66, "o")
 		font:End()
 	end
@@ -128,6 +108,12 @@ local function updateUnit(unitID)
 end
 
 local function init()
+	for k,_ in pairs(drawLists) do
+		gl.DeleteList(drawLists[k])
+	end
+	drawLists = {}
+	font = WG['fonts'].getFont(2, 1.5)
+
 	spec = Spring.GetSpectatingState()
 
 	activeSelfD = {}
@@ -141,6 +127,9 @@ end
 function widget:PlayerChanged(playerID)
 	init()
 end
+function widget:ViewResize(vsx,vsy)
+	init()
+end
 
 function widget:Initialize()
 	init()
@@ -151,7 +140,6 @@ function widget:Shutdown()
 	for k,_ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end
-	gl.DeleteFont(font)
 end
 
 
@@ -290,9 +278,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	queuedSelfD[unitID] = nil
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		activeSelfD[unitID] = nil
-		queuedSelfD[unitID] = nil
-	end
+
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	activeSelfD[unitID] = nil
+	queuedSelfD[unitID] = nil
 end

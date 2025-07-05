@@ -23,12 +23,16 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 local tractorDist = 100 ^ 2 -- default sqr tractor distance
 local isAirbase = {}
 local isAirUnit = {}
+local isAirCon = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isairbase then
 		isAirbase[unitDefID] = { tractorDist, unitDef.buildSpeed }
 	end
 	if unitDef.isAirUnit and unitDef.canFly then
 		isAirUnit[unitDefID] = true
+		if unitDef.isBuilder then
+    		isAirCon[unitDefID] = true
+		end
 	end
 end
 
@@ -654,7 +658,11 @@ else	-- Unsynced
 		else
 			local sUnits = spGetSelectedUnits()
 			for i = 1, #sUnits do
-				if isAirUnit[spGetUnitDefID(sUnits[i])] then
+				if isAirCon[spGetUnitDefID(sUnits[i])] then
+                	-- allows air constructors to target air repair pads
+                	-- although I don't think the CMD below is working as intended since you can't select
+                	-- air pads with other types of units
+				elseif isAirUnit[spGetUnitDefID(sUnits[i])] then
 					return CMD_LAND_AT_SPECIFIC_AIRBASE
 				end
 			end

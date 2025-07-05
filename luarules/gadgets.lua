@@ -19,7 +19,7 @@
 
 local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
 if Spring.IsDevLuaEnabled() then
-	VFSMODE = VFS.RAW_ONLY
+	VFSMODE = VFS.RAW_FIRST
 end
 
 VFS.Include('init.lua', nil, VFSMODE)
@@ -158,6 +158,8 @@ local callInLists = {
 	"StockpileChanged",
 
 	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -1797,9 +1799,9 @@ function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	for _, g in ipairs(self.UnitCmdDoneList) do
-		g:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		g:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	return
 end
@@ -2155,6 +2157,18 @@ end
 function gadgetHandler:ActiveCommandChanged(id, cmdType)
 	for _, g in ipairs(self.ActiveCommandChangedList) do
 		g:ActiveCommandChanged(id, cmdType)
+	end
+end
+
+function gadgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	for _, g in r_ipairs(self.CameraRotationChangedList) do
+		g:CameraRotationChanged(rotx, roty, rotz)
+	end
+end
+
+function gadgetHandler:CameraPositionChanged(posx, posy, posz)
+	for _, g in r_ipairs(self.CameraPositionChangedList) do
+		g:CameraPositionChanged(posx, posy, posz)
 	end
 end
 

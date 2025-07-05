@@ -13,19 +13,10 @@ function gadget:GetInfo()
 end
 
 
-local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
-local CMD_UNIT_SET_TARGET = 34923
-local CMD_UNIT_CANCEL_TARGET = 34924
-local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
---export to CMD table
-CMD.CMD_UNIT_SET_TARGET_NO_GROUND = CMD_UNIT_SET_TARGET_NO_GROUND
-CMD[CMD_UNIT_SET_TARGET_NO_GROUND] = 'UNIT_SET_TARGET_NO_GROUND'
-CMD.UNIT_SET_TARGET = CMD_UNIT_SET_TARGET
-CMD[CMD_UNIT_SET_TARGET] = 'UNIT_SET_TARGET'
-CMD.UNIT_CANCEL_TARGET = CMD_UNIT_SET_TARGET
-CMD[CMD_UNIT_CANCEL_TARGET] = 'UNIT_CANCEL_TARGET'
-CMD.UNIT_SET_TARGET_RECTANGLE = CMD_UNIT_SET_TARGET_RECTANGLE
-CMD[CMD_UNIT_SET_TARGET_RECTANGLE] = 'UNIT_SET_TARGET_RECTANGLE'
+local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
+local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
+local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
 local deleteMaxDistance = 30
 
@@ -116,16 +107,6 @@ if gadgetHandler:IsSyncedCode() then
 		type = CMDTYPE.ICON_UNIT_OR_AREA,
 		name = 'Set Unit Target',
 		action = 'settargetnoground',
-		cursor = 'settarget',
-		tooltip = tooltipText,
-		hidden = true,
-	}
-
-	local unitSetTargetRectangleCmdDesc = {
-		id = CMD_UNIT_SET_TARGET_RECTANGLE,
-		type = CMDTYPE.ICON_UNIT_OR_RECTANGLE,
-		name = 'Set Target',
-		action = 'settargetrectangle',
 		cursor = 'settarget',
 		tooltip = tooltipText,
 		hidden = true,
@@ -338,7 +319,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if validUnits[unitDefID] then
-			--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
@@ -550,12 +530,7 @@ if gadgetHandler:IsSyncedCode() then
 		pausedTargets[unitID] = nil
 	end
 
-	local emptyCmdOptions = {}
-	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
-		if type(cmdOptions) ~= 'table' then
-			-- does UnitCmdDone always returns number instead of table?
-			cmdOptions = emptyCmdOptions
-		end
+	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
@@ -659,7 +634,6 @@ else	-- UNSYNCED
 	local GL_LINES = GL.LINES
 
 	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitLosState = Spring.GetUnitLosState
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local spGetMyTeamID = Spring.GetMyTeamID

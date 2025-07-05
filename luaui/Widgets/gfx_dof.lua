@@ -28,8 +28,6 @@ local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 -----------------------------------------------------------------
 
 local spGetCameraPosition   = Spring.GetCameraPosition
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
 
 local math_max = math.max
 local math_log = math.log
@@ -68,16 +66,16 @@ local chobbyInterface
 
 
 local function CleanupTextures()
-	glDeleteTexture(baseBlurTex or "")
-	glDeleteTexture(baseNearBlurTex or "")
-	glDeleteTexture(intermediateBlurTex0 or "")
-	glDeleteTexture(intermediateBlurTex1 or "")
-	glDeleteTexture(intermediateBlurTex2 or "")
-	glDeleteTexture(intermediateBlurTex3 or "")
-	glDeleteTexture(finalBlurTex or "")
-	glDeleteTexture(finalNearBlurTex or "")
-	glDeleteTexture(screenTex or "")
-	glDeleteTexture(depthTex or "")
+	glDeleteTexture(baseBlurTex)
+	glDeleteTexture(baseNearBlurTex)
+	glDeleteTexture(intermediateBlurTex0)
+	glDeleteTexture(intermediateBlurTex1)
+	glDeleteTexture(intermediateBlurTex2)
+	glDeleteTexture(intermediateBlurTex3)
+	glDeleteTexture(finalBlurTex)
+	glDeleteTexture(finalNearBlurTex)
+	glDeleteTexture(screenTex)
+	glDeleteTexture(depthTex)
 	gl.DeleteFBO(intermediateBlurFBO)
 	gl.DeleteFBO(baseBlurFBO)
 	baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1,

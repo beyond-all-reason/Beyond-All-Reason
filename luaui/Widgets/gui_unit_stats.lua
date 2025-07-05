@@ -100,8 +100,6 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 local useSelection = true
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-
 local customFontSize = 14
 local fontSize = customFontSize
 
@@ -320,7 +318,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(fontfile)
+	font = WG['fonts'].getFont()
 
 	init()
 end
@@ -404,8 +402,8 @@ local function drawStats(uDefID, uID)
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost
 		local buildRem = 1 - buildProg
-		local mRem = mTotal * buildRem
-		local eRem = eTotal * buildRem
+		local mRem = math.floor(mTotal * buildRem)
+		local eRem = math.floor(eTotal * buildRem)
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 
@@ -594,7 +592,7 @@ local function drawStats(uDefID, uID)
 				defaultDamage = defaultDamage + spDamage * spCount
 			elseif uWep.customParams.speceffect == "split" then
 				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.def] or uWep
+				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
 				defaultDamage = uWep.damages[0]
 			elseif uWep.customParams.cluster then
 				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
@@ -705,17 +703,16 @@ local function drawStats(uDefID, uID)
 				local sorted = {}
 				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
 				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-				local maxDamage = sorted[1]
 
-				if maxDamage ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
-					local modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
+				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
+					local modString = "default = "..yellow.."100%"
 					local count = 0
 					for _ in pairs(modifiers) do count = count + 1 end
 					if count > 1 then
 						for _, rate in pairs(sorted) do
 							if rate ~= defaultRate then
 								local armors = table.concat(modifiers[rate], ", ")
-								local percent = format("%d", floor(100 * rate / maxDamage))
+								local percent = format("%d", floor(100 * rate / defaultRate))
 								if armors and percent then
 									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
 								end

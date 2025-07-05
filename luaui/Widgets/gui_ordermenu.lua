@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -63,9 +63,7 @@ local isStateCommand = {}
 
 local disabledCommand = {}
 
-local viewSizeX, viewSizeY = Spring.GetViewGeometry()
-
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy = Spring.GetViewGeometry()
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -286,23 +284,23 @@ local function refreshCommands()
 end
 
 function widget:ViewResize()
-	viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * uiScale
 
-	width = width / (viewSizeX / viewSizeY) * 1.78        -- make smaller for ultrawide screens
+	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
 	width = width * uiScale
 
 	-- make pixel aligned
-	width = math.floor(width * viewSizeX) / viewSizeX
-	height = math.floor(height * viewSizeY) / viewSizeY
+	width = math.floor(width * vsx) / vsx
+	height = math.floor(height * vsy) / vsy
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(fontFile)
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -319,40 +317,42 @@ function widget:ViewResize()
 	end
 	if stickToBottom then
 		posY = height
-		posX = width + (widgetSpaceMargin/viewSizeX)
+		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/viewSizeY)
+			posY = height + height + (widgetSpaceMargin/vsy)
 		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
+			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (minimapHeight / viewSizeY) - (widgetSpaceMargin/viewSizeY)
+				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end
 	end
 
-	backgroundRect = { posX * viewSizeX, (posY - height) * viewSizeY, (posX + width) * viewSizeX, posY * viewSizeY }
+	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
-		(posX * viewSizeX) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
-		((posY - height) * viewSizeY) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
-		((posX + width) * viewSizeX) - activeBgpadding,
-		(posY * viewSizeY) - activeBgpadding
+		(posX * vsx) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
+		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
+		((posX + width) * vsx) - activeBgpadding,
+		(posY * vsy) - activeBgpadding
 	}
-	displayListOrders = gl.DeleteList(displayListOrders)
+	if displayListOrders then
+		displayListOrders = gl.DeleteList(displayListOrders)
+	end
 
 	checkGuiShader(true)
 	setupCellGrid(true)
 	doUpdate = true
 
 	if ordermenuTex then
-		gl.DeleteTextureFBO(ordermenuBgTex)
+		gl.DeleteTexture(ordermenuBgTex)
 		ordermenuBgTex = nil
-		gl.DeleteTextureFBO(ordermenuTex)
+		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
 end
@@ -417,11 +417,15 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('ordermenu')
 		displayListGuiShader = nil
 	end
-	displayListOrders = gl.DeleteList(displayListOrders)
-	if ordermenuTex then
-		gl.DeleteTextureFBO(ordermenuBgTex)
+	if displayListOrders then
+		displayListOrders = gl.DeleteList(displayListOrders)
+	end
+	if ordermenuBgTex then
+		gl.DeleteTexture(ordermenuBgTex)
 		ordermenuBgTex = nil
-		gl.DeleteTextureFBO(ordermenuTex)
+	end
+	if ordermenuTex then
+		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
 	WG['ordermenu'] = nil
@@ -533,23 +537,19 @@ local function drawCell(cell, zoom)
 				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
 				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
 			end
-			if useRenderToTexture then
-				color1[4] = color1[4] * 2.1
-				color2[4] = color2[4] * 2.1
-			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
 				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
 				-- darken inside
-				color1 = {0,0,0, color1[4]*0.85}
-				color2 = {0,0,0, color2[4]*0.85}
-				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
+				color1 = {0,0,0, color1[4]*2}
+				color2 = {0,0,0, color2[4]*2}
+				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.019, 2, 2, 2, 2, color1, color2)
 			end
 			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
 			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
-		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, useRenderToTexture and 1.66)
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
 
 		-- icon
 		if showIcons then
@@ -709,15 +709,15 @@ local function drawCell(cell, zoom)
 		end
 	end
 end
+
 local function drawOrdersBackground()
-	-- just making sure blending mode is correct
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawOrders()
 	if #commands > 0 then
-		font:Begin()
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		font:Begin(useRenderToTexture)
 		for cell = 1, #commands do
 			drawCell(cell, cellZoom)
 		end
@@ -790,66 +790,69 @@ function widget:DrawScreen()
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
 		end
-		if doUpdate then
+		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
 		end
-		if not displayListOrders then
+
+		if not displayListOrders and not useRenderToTexture then
 			displayListOrders = gl.CreateList(function()
 				if not useRenderToTexture then
 					drawOrdersBackground()
 					drawOrders()
 				end
 			end)
-			if useRenderToTexture then
-				if not ordermenuBgTex then
-					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
-						target = GL.TEXTURE_2D,
-						format = GL.ALPHA,
-						fbo = true,
-					})
-					ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
-						target = GL.TEXTURE_2D,
-						format = GL.ALPHA,
-						fbo = true,
-					})
-					if ordermenuBgTex then
-						gl.RenderToTexture(ordermenuBgTex, function()
-							gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-							gl.Color(1,1,1,1)
-							gl.PushMatrix()
+		end
+
+		if useRenderToTexture then
+			if not ordermenuBgTex then
+				ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+				if ordermenuBgTex then
+					gl.R2tHelper.RenderToTexture(ordermenuBgTex,
+						function()
 							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+							gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
 							drawOrdersBackground()
-							gl.PopMatrix()
-						end)
-					end
-				end
-				if ordermenuTex then
-					gl.RenderToTexture(ordermenuTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.Color(1,1,1,1)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawOrders()
-						gl.PopMatrix()
-					end)
+						end,
+						useRenderToTexture
+					)
 				end
 			end
 		end
+		if useRenderToTexture then
+			if not ordermenuTex then
+				ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+			end
+		end
+		if ordermenuTex and doUpdate then
+			gl.R2tHelper.RenderToTexture(ordermenuTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawOrders()
+				end,
+				useRenderToTexture
+			)
+		end
 
-		if useRenderToTexture and ordermenuTex then
-			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(ordermenuBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-			-- content
-			gl.Color(1,1,1,1)
-			gl.Texture(ordermenuTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-			gl.Texture(false)
+		if useRenderToTexture then
+			if ordermenuBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
+			if ordermenuTex then
+				-- content
+				gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
 		else
 			gl.CallList(displayListOrders)
 		end
@@ -886,8 +889,8 @@ function widget:DrawScreen()
 						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
 						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - backgroundPadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
-						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - backgroundPadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.14 * colorMult or 0.28 * colorMult) })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.045 * colorMult or 0.095 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 				end
@@ -927,10 +930,9 @@ function widget:DrawScreen()
 						if cols/cell >= 1  then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
-
 						-- gloss highlight
 						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, pad, 2, 2, 2, 2)
+						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, cellWidth * 0.019, 2, 2, 2, 2)
 					else
 						clickedCellTime = nil
 					end

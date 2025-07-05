@@ -302,6 +302,8 @@ WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl
 		if not scale then
 			scale = 1
 		end
+		if scale == 0 then scale = 0.001 end
+
 		local offset = offset or 0
 		local ycMult = (sy-py) / (sx-px)
 
@@ -686,8 +688,6 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
 
-
-
 	-- draw unit
 	if texture then
 		gl.Texture(texture)
@@ -705,7 +705,8 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
 
 	-- lighten feather edges
-	borderOpacity = borderOpacity or 0.09
+	borderOpacity = borderOpacity or 0.1
+
 	local halfSize = ((sx-px) * 0.5)
 	WG.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,
@@ -727,19 +728,17 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 
 	if groupTexture then
 		local iconSize = math.floor((sx - px) * 0.3)
-		gl.Color(1, 1, 1, 0.9)
+		gl.Color(1, 1, 1, 1)
 		gl.Texture(groupTexture)
 		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
-		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
 		gl.Texture(false)
 	end
 	if radarTexture then
 		local iconSize = math.floor((sx - px) * 0.25)
 		local iconPadding = math.floor((sx - px) * 0.03)
-		gl.Color(1, 1, 1, 0.9)
+		gl.Color(0.88, 0.88, 0.88, 1)
 		gl.Texture(radarTexture)
 		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
-		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end
 end

@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT7",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
-		script = "Units/CORJUGG.cob",
+		script = "Units/corjugg.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,
@@ -138,6 +138,9 @@ return {
 				damage = {
 					default = 75,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			juggernaut_fire = {
 				areaofeffect = 65,
@@ -208,6 +211,35 @@ return {
 					default = 150,
 				},
 			},
+			juggfootstep = {
+				areaofeffect = 172,
+				avoidfeature = false,
+				camerashake = 400,
+				canattackground = false,
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0,
+				explosiongenerator = "custom:footstep-large",
+				impactonly = 1,
+				name = "JuggStep",
+				noselfdamage = true,
+				range = 0,
+				reloadtime = 1.5,
+				soundhitdry = "korgstep",
+				soundhitdryvolume = 18,
+				soundhitwet = "splssml",
+				soundhitwetvolume = 16,
+				weapontype = "Cannon",
+				customparams = {
+					nodecal = true,
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
@@ -233,6 +265,9 @@ return {
 				maindir = "0 1 0",
 				maxangledif = 270,
 				onlytargetcategory = "NOTSUB",
+			},
+			[5] = {
+				def = "JUGGFOOTSTEP",
 			},
 		},
 	},

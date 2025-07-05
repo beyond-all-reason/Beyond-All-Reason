@@ -67,9 +67,7 @@ local shaderConfig = {
 
 local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/images/decals_gl4/oldscars/"
 local footprintsPath = "luaui/images/decals_gl4/footprints/"	-- old: "luaui/images/decals_gl4/oldscars/"
-local additionalcrap = {} -- a list of paths to also include for i dunno, sprays and stuff?
 
-local atlas = nil
 
 -- large decal resolution, 16x16 grid is ok
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
@@ -86,10 +84,7 @@ local saturationThreshold = 16 * areaResolution
 
 ------------------------ GL4 BACKEND -----------------------------------
 
-local atlasColorAlpha = nil
-local atlasNormals = nil
 local atlasHeights = nil
-local atlasRG = nil
 
 local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
 local upperkeys = {}
@@ -117,99 +112,8 @@ for k,v in pairs(atlas) do
 	end
 end
 
-local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 
-
-
-
-local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
-
-
---[[local atlasSize = 4096
-local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
--- ATLASTYPE 0 HAS WIIIIIIERD MINIFICATION ARTIFACTS!
--- atlastype 1 is da bomb
--- atlastype 2 seems oddly slow?
-local atlassedImages = {}
--- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
-local decalImageCoords = {} -- Key filepath, value is {p,q,s,t}
-local numFiles = 0
-
-local function addDirToAtlas(atlas, path, key, filelist)
-	if filelist == nil then filelist = {} end
-	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = {}
-	for i, filename in ipairs(VFS.DirList(path)) do
-		files[i] = string.lower(filename)
-	end
-	table.sort(files)
-	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
-	for i=1, #files do
-		local lowerfile = string.lower(files[i])
-		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			--Spring.Echo(files[i])
-			gl.AddAtlasTexture(atlas,lowerfile)
-			atlassedImages[lowerfile] = atlas
-			filelist[lowerfile] = true
-			numFiles = numFiles + 1
-		end
-	end
-	return filelist
-end
-
-local function makeAtlases()
-	local success
-	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-
-	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.', decalImageCoords)
-	addDirToAtlas(atlasColorAlpha, footprintsPath, '_a.', decalImageCoords)
-	--addDirToAtlas(atlasColorAlpha, oldgroundscarsPath, 'scar', decalImageCoords)
-	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
-	if success == false then return false end
-	local atlasInfo = gl.TextureInfo(atlasColorAlpha)
-	local usedpixels = 0
-	-- read back the UVs:
-	for filepath, _ in pairs(decalImageCoords) do
-		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY, wow, default are texel centers, e.g. [0.5; 1023.5]
-		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
-		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
-		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
-		if autoupdate then Spring.Echo(filepath) end
-		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
-		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
-	end
-
-	if autoupdate then
-		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
-			atlasInfo.xsize, atlasInfo.ysize,
-			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
-		))
-	end
-
-	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
-	addDirToAtlas(atlasNormals, footprintsPath, '_n.')
-	success = gl.FinalizeTextureAtlas(atlasNormals)
-	if success == false then return false end
-
-	if shaderConfig.PARALLAX == 1 then
-		atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasHeights, groundscarsPath, '_h.')
-		addDirToAtlas(atlasHeights, footprintsPath, '_h.')
-		success = gl.FinalizeTextureAtlas(atlasHeights)
-		if success == false then return false end
-	end
-	if false and shaderConfig.USEGLOW == 1 then
-		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasRG, groundscarsPath, '_rg.')
-		addDirToAtlas(atlasRG, footprintsPath, '_rg.')
-		success = gl.FinalizeTextureAtlas(atlasRG)
-		if success == false then return false end
-	end
-	return true
-end
-]]--
 local decalVBO = nil
 local decalLargeVBO = nil
 local decalExtraLargeVBO = nil
@@ -217,34 +121,30 @@ local decalExtraLargeVBO = nil
 local decalShader = nil
 local decalLargeShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
 
 local hasBadCulling = false -- AMD+Linux combo
 
 --------------------------- Localization for faster access -------------------
 
 local spGetGroundHeight = Spring.GetGroundHeight
-local sqrt = math.sqrt
-local diag = math.diag
 local abs = math.abs
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
-
-local spValidUnitID = Spring.ValidUnitID
-
-local spec, fullview = Spring.GetSpectatingState()
 
 
 
 ---- GL4 Backend Stuff----
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local compactInstanceVBO  = InstanceVBOTable.compactInstanceVBO
 
 local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
@@ -302,7 +202,7 @@ local function initGL4( DPATname)
 
 	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	decalVBO = makeInstanceVBOTable(
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
@@ -319,10 +219,10 @@ local function initGL4( DPATname)
 	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 	decalVBO.VAO = smallDecalVAO
 
-	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
+	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
 
-	decalLargeVBO = makeInstanceVBOTable(
+	decalLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
 			{id = 2, name = 'uv_atlaspos', size = 4},
@@ -337,16 +237,16 @@ local function initGL4( DPATname)
 
 	decalLargeVBO.vertexVBO = planeVBO
 	decalLargeVBO.indexVBO = planeIndexVBO
-	decalLargeVBO.VAO = makeVAOandAttach(
+	decalLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		decalLargeVBO.vertexVBO,
 		decalLargeVBO.instanceVBO,
 		decalLargeVBO.indexVBO
 	)
 
-	planeVBO, numVertices = makePlaneVBO(1,1,resolution*4,resolution*4)
-	planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
+	planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution*4,resolution*4)
+	planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
 
-	decalExtraLargeVBO = makeInstanceVBOTable(
+	decalExtraLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
 			{id = 2, name = 'uv_atlaspos', size = 4},
@@ -361,7 +261,7 @@ local function initGL4( DPATname)
 
 	decalExtraLargeVBO.vertexVBO = planeVBO
 	decalExtraLargeVBO.indexVBO = planeIndexVBO
-	decalExtraLargeVBO.VAO = makeVAOandAttach(
+	decalExtraLargeVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		decalExtraLargeVBO.vertexVBO,
 		decalExtraLargeVBO.instanceVBO,
 		decalExtraLargeVBO.indexVBO
@@ -460,18 +360,12 @@ function widget:Update() -- this is pointlessly expensive!
 	local hash = hashPos(updatePositionX, updatePositionZ)
 	--Spring.Echo("Updateing smoothness at",updatePositionX, updatePositionZ)
 	local step = areaResolution/ 16
-	local totalheight = 0
-	local numsamples = 0
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
 	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x,z)
-			--numsamples = numsamples + 1
-			--totalheight = totalheight + h
-			--local avgheight = totalheight / numsamples
-			--totalsmoothness = totalsmoothness + abs(h-avgheight)
 			totalsmoothness = totalsmoothness + abs(h-prevHeight)
 			prevHeight = h
 		end
@@ -624,8 +518,6 @@ local function DrawDecals()
 		glTexture(5, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
 		glTexture(6, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
-		--if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
-		--if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -1701,16 +1593,16 @@ local UnitScriptDecalsNames = {
 	['corsumo'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corsumo_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns
-			offsetz = 0, --
+			offsetx = -1, --offset from what the UnitScriptDecal returns
+			offsetz = -1, --
 			offsetrot = 0.0, -- in radians
-			width = 30,
+			width = 26,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.85,
+			alphastart = 0.80,
 			alphadecay = 0.0010,
-			maxalpha = 1.0,
+			maxalpha = 0.9,
 			bwfactor = 0.1,
 			glowsustain = 0.0,
 			glowadd = 0.0,
@@ -2009,40 +1901,12 @@ function widget:Initialize()
 
 end
 
---[[
-function widget:DrawScreen()
-	gl.Blending(GL.ONE, GL.ZERO) -- the default mode
-	local vsx, vsy = Spring.GetViewGeometry()
-	if (Spring.GetGameFrame() %60) > 30 then
-		gl.Texture(0, atlasNormals)
-	else
-		gl.Texture(0, atlasColorAlpha	)
-	end
-	gl.TexRect(2,2,vsx-2,vsy-2,0,0,1,1)
-	gl.Texture(0, false)
-end
-]]--
-
 function widget:SunChanged()
 	--local nmp = _G["NightModeParams"]
 	--Spring.Echo("widget:SunChanged()",nmp)
 end
 
 function widget:ShutDown()
-	--[[
-	if atlasColorAlpha ~= nil then
-		gl.DeleteTextureAtlas(atlasColorAlpha)
-	end
-	if atlasHeights ~= nil then
-		gl.DeleteTextureAtlas(atlasHeights)
-	end
-	if atlasNormals ~= nil then
-		gl.DeleteTextureAtlas(atlasNormals)
-	end
-	if atlasRG ~= nil then
-		gl.DeleteTextureAtlas(atlasRG)
-	end
-	]]--
 
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')

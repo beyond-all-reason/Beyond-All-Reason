@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -28,7 +28,6 @@ local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local spec = Spring.GetSpectatingState()
 
@@ -74,8 +73,8 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.25)
+	font2 = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -120,9 +119,9 @@ function widget:ViewResize()
 	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 end
@@ -136,6 +135,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if not showWhenSpec and spec then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['unitgroups'] = {}
@@ -148,9 +151,11 @@ function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
 	end
+	if uiBgTex then
+		gl.DeleteTexture(uiBgTex)
+	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('unitgroups')
@@ -195,7 +200,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 end
 
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawContent()
@@ -218,12 +223,13 @@ local function drawContent()
 			floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
 			floor(posY * vsy) + usedHeight
 		}
-		local fontSize = height*vsy*0.24
+		local fontSize = height*vsy*0.25
 		local offset = ((groupRect[3]-groupRect[1])/4.2)
 		local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
-		local style = 'c'
-		font2:Begin()
-		font2:SetTextColor(1,1,1,useRenderToTexture and 0.7 or 0.2)
+		local style = 'co'
+		font2:Begin(useRenderToTexture)
+		font2:SetOutlineColor(0, 0, 0, 0.2)
+		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 		font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 		font2:Print(3, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
@@ -383,13 +389,13 @@ local function drawContent()
 				)
 
 				local fontSize = height*vsy*0.4
-				font2:Begin()
+				font2:Begin(useRenderToTexture)
 				font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
 				font2:End()
 				local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
 				if amount > 1 then
 					fontSize = height*vsy*0.3
-					font:Begin()
+					font:Begin(useRenderToTexture)
 					font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -431,7 +437,7 @@ local function updateList()
 		if usedWidth > uiTexWidth then
 			uiTexWidth = usedWidth
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 		end
@@ -443,9 +449,12 @@ local function updateList()
 			floor(posX * vsx) + usedWidth,
 			floor(posY * vsy) + usedHeight
 		}
-		if uiBgTex and backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
-			gl.DeleteTextureFBO(uiBgTex)
-			uiBgTex = nil
+		if backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			if uiBgTex then
+				gl.DeleteTexture(uiBgTex)
+				uiBgTex = nil
+			end
+			checkGuishader(true)
 		end
 
 		if useRenderToTexture then
@@ -455,65 +464,59 @@ local function updateList()
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
 			end
-			gl.RenderToTexture(uiTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawContent()
-				gl.PopMatrix()
-			end)
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
 		else
 			dlist = gl.CreateList(function()
 				drawBackground()
 				drawContent()
 			end)
 		end
-
-		checkGuishader(true)
 	end
 end
 
 function widget:DrawScreen()
-	if doUpdate then
-		doUpdate = false
-		updateList()
-	end
-	if (not spec or showWhenSpec) and (dlist or uiBgTex) then
-		if not useRenderToTexture then
-			gl.CallList(dlist)
+	if not spec or showWhenSpec then
+		if doUpdate then
+			doUpdate = false
+			updateList()
 		end
-		if uiBgTex then
-			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(uiBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-			gl.Texture(false)
-		end
-		if uiTex then
-			-- content
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-			gl.Texture(false)
+		if dlist or uiBgTex then
+			if uiBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+			end
+			if not useRenderToTexture then
+				gl.CallList(dlist)
+			end
+			if uiTex then
+				-- content
+				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
+			end
 		end
 	end
 end

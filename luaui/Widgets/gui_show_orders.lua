@@ -42,7 +42,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spDrawUnitCommands = Spring.DrawUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetSpecState = Spring.GetSpectatingState
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
@@ -55,7 +54,6 @@ local spGetUnitStates = Spring.GetUnitStates
 local glColor			= gl.Color
 local glTexture			= gl.Texture
 local glTexRect			= gl.TexRect
-local glText			= gl.Text
 local glRect			= gl.Rect
 
 -----------------------------------------------------
@@ -64,7 +62,7 @@ local glRect			= gl.Rect
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 end
 
 local function GetAlliedTeams()

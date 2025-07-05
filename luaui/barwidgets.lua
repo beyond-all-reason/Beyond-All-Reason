@@ -106,6 +106,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -120,6 +122,7 @@ local flexCallIns = {
 	'UnitCommand',
 	'UnitCmdDone',
 	'UnitDamaged',
+	"UnitStunned",
 	'UnitEnteredRadar',
 	'UnitEnteredLos',
 	'UnitLeftRadar',
@@ -1348,6 +1351,22 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneEnd()
 end
 
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
@@ -1568,11 +1587,21 @@ function widgetHandler:DrawPreDecals()
 	return
 end
 
-function widgetHandler:DrawWorldPreParticles()
+function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
+	-- drawAboveWater, drawBelowWater, drawReflection, drawRefraction
+	-- 1. false, 			true, 			false, 			false 
+	-- 2. true, 			false, 			true, 			false
+	-- 3. true, 			false, 			false, 			false
+
+	-- When refractions are on:
+	-- false, true, false, false
+	-- false, true, false, true
+	-- true, false, true, false
+	-- true, false, false, false
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
-		w:DrawWorldPreParticles()
+		w:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2329,20 +2358,18 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam,
-			cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2352,6 +2379,15 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	tracy.ZoneBeginN("W:UnitDamaged")
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	tracy.ZoneBeginN("W:UnitStunned")
+	for _, w in ipairs(self.UnitStunnedList) do
+		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2438,23 +2474,19 @@ function widgetHandler:UnitSeismicPing(x, y, z, strength)
 	return
 end
 
-function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
-								  transportID, transportTeam)
+function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
-		w:UnitLoaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam,
-									transportID, transportTeam)
+function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
-		w:UnitUnloaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2506,8 +2538,7 @@ end
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	tracy.ZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
-		w:StockpileChanged(unitID, unitDefID, unitTeam,
-			weaponNum, oldCount, newCount)
+		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2521,10 +2552,10 @@ function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end

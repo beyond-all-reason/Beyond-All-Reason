@@ -14,14 +14,14 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 ----------------------------------------------------------------
 -- config
 ----------------------------------------------------------------
 
 local ttl = 10
-local highlightSize = 16
 local highlightLineMin = 10
 local highlightLineMax = 20
 local edgeMarkerSize = 8
@@ -50,23 +50,17 @@ local font
 -- speedups
 ----------------------------------------------------------------
 
-local ArePlayersAllied = Spring.ArePlayersAllied
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
-local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetUnitPosition = Spring.GetUnitPosition
 local GetMyTeamID = Spring.GetMyTeamID
-local PlaySoundFile = Spring.PlaySoundFile
 local glColor = gl.Color
 local glRect = gl.Rect
 local glLineWidth = gl.LineWidth
 local glShape = gl.Shape
 local glPolygonMode = gl.PolygonMode
-local glText = gl.Text
-local max = math.max
 local abs = math.abs
-local strSub = string.sub
 local GL_LINES = GL.LINES
 local GL_TRIANGLES = GL.TRIANGLES
 local GL_LINE = GL.LINE
@@ -79,7 +73,6 @@ local GL_FILL = GL.FILL
 
 local vsx, vsy = Spring.GetViewGeometry()
 local mapPoints = {}
-local lastPoint = 1
 local timeNow, timePart
 local on = false
 local mapX = Game.mapX * 512
@@ -231,7 +224,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(1, 1.5)
 
 	sMidX = vsx * 0.5
 	sMidY = vsy * 0.5
@@ -289,21 +282,24 @@ function widget:DrawInMiniMap(sx, sy)
 	end
 	glLineWidth(lineWidth)
 
-	local ratioX = sx / mapX
-	local ratioY = sy / mapY
-
-	local flipped = getMiniMapFlipped()
+	local currRot = getCurrentMiniMapRotationOption()
 
 	for unitID, defs in pairs(mapPoints) do
 		if defs.x then
 			local x, y
 
-			if flipped then
-				x = (mapX - defs.x) * ratioX
-				y = sy - (mapY - defs.z) * ratioY
-			else
-				x = defs.x * ratioX
-				y = sy - defs.z * ratioY
+			if currRot == ROTATION.DEG_0 then
+				x = defs.x * sx / mapX
+				y = sy - defs.z * sy / mapY
+			elseif currRot == ROTATION.DEG_90 then
+				x = defs.z * sx / mapY
+				y = defs.x * sy / mapX
+			elseif currRot == ROTATION.DEG_180 then
+				x = sx - defs.x * sx / mapX
+				y = defs.z * sy / mapY
+			elseif currRot == ROTATION.DEG_270 then
+				x = sx - defs.z * sx / mapY
+				y = sy - defs.x * sy / mapX
 			end
 
 			local expired = timeNow > defs.time

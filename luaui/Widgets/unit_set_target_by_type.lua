@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local CMD_SET_TARGET = 34923
 
