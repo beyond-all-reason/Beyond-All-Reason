@@ -646,6 +646,7 @@ local armorDefs = {
 		"armbats",
 		"corbats",
 		"armepoch",
+		"corprince",
 		"corblackhy",
 	},
 
