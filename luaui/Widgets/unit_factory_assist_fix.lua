@@ -65,30 +65,21 @@ function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 	if (unitHealth >= unitMaxHealth) then
 		return -- if unit comes out with full health, guard works just fine
 	end
-
 	for myBuilderID in pairs(myAssistBuilders) do
 		maybeRemoveRepairCmd(myBuilderID, unitID, factID)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isAssistBuilder[unitDefID] then
-		if unitTeam == myTeam then     -- i own it!
-			myAssistBuilders[unitID] = true
-		elseif myAssistBuilders[unitID] then -- formerly owned, but not anymore
-			myAssistBuilders[unitID] = nil
-		end
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if isAssistBuilder[unitDefID] and unitTeam == myTeam then
+		-- this is an assist builder, and it's mine
+		-- flag is cleared by MetaUnitRemoved if unit dies or is given/captured
+		myAssistBuilders[unitID] = true
 	end
 end
 
-function widget:UnitGiven(unitID, unitDefID, unitTeam)
-	widget:UnitCreated(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitDestroyed(unitID)
-	if myAssistBuilders[unitID] then -- it's dead :(
-		myAssistBuilders[unitID] = nil
-	end
+function widget:MetaUnitRemoved(unitID)
+	myAssistBuilders[unitID] = nil
 end
 
 ------------------------------------------------------------------------------------------------
@@ -108,14 +99,20 @@ function widget:Initialize()
 	if maybeRemoveSelf() then
 		return
 	end
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
+	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), myTeam)
 	end
 end
 
 function widget:PlayerChanged()
 	myTeam = Spring.GetMyTeamID()
 	if maybeRemoveSelf() then
-		return -- early-return, just in case any other logic is added below
+		return
+	end
+	-- otherwise we handle what happens if a player changes to a different non-spectator team
+	-- note that to my knowledge, this rarely happens outside of a dev environment
+	myAssistBuilders = {}
+	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), myTeam)
 	end
 end
