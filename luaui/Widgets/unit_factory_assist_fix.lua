@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Factory Assist Fix",
-		desc      = "Fixes factory assist so that builders don't leave to repair damaged finished units",
-		author    = "TheDujin",
-		date      = "Jun 30 2025",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name    = "Factory Assist Fix",
+		desc    = "Fixes factory assist so that builders don't leave to repair damaged finished units",
+		author  = "TheDujin",
+		date    = "Jun 30 2025",
+		license = "GNU GPL, v2 or later",
+		layer   = 0,
+		enabled = true
 	}
 end
 
@@ -47,15 +47,15 @@ end
 -- instead be guarding the factory, remove the repair command
 local function maybeRemoveRepairCmd(builderUnitID, builtUnitID, factID)
 	local firstCmdID, _, _, firstCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 1)
-   if firstCmdID ~= CMD_REPAIR or firstCmdParam_1 ~= builtUnitID then
-   	return -- there's no relevant repair command to remove
-   end
-   local secondCmdID, _, _, secondCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 2)
-   if secondCmdID ~= CMD_GUARD or secondCmdParam_1 ~= factID then
-   	return -- there's no relevant factory guard, so the repair command is intentional
-   end
-   spGiveOrderToUnit(builderUnitID, CMD_REMOVE, firstCmdID, CMD_OPT_ALT)
-   end
+	if firstCmdID ~= CMD_REPAIR or firstCmdParam_1 ~= builtUnitID then
+		return -- there's no relevant repair command to remove
+	end
+	local secondCmdID, _, _, secondCmdParam_1 = spGetUnitCurrentCommand(builderUnitID, 2)
+	if secondCmdID ~= CMD_GUARD or secondCmdParam_1 ~= factID then
+		return -- there's no relevant factory guard, so the repair command is intentional
+	end
+	spGiveOrderToUnit(builderUnitID, CMD_REMOVE, firstCmdID, CMD_OPT_ALT)
+end
 
 function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 	if (not spAreTeamsAllied(myTeam, unitTeam)) then
@@ -65,7 +65,7 @@ function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 	if (unitHealth >= unitMaxHealth) then
 		return -- if unit comes out with full health, guard works just fine
 	end
-	
+
 	for myBuilderID in pairs(myAssistBuilders) do
 		maybeRemoveRepairCmd(myBuilderID, unitID, factID)
 	end
@@ -73,7 +73,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isAssistBuilder[unitDefID] then
-		if unitTeam == myTeam then -- i own it!
+		if unitTeam == myTeam then     -- i own it!
 			myAssistBuilders[unitID] = true
 		elseif myAssistBuilders[unitID] then -- formerly owned, but not anymore
 			myAssistBuilders[unitID] = nil
