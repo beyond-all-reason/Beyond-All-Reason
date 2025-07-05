@@ -687,6 +687,7 @@ function UnitDef_Post(name, uDef)
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos
+			uDef.buildoptions[numBuildoptions+2] = "cormug"
 		end
 
 		-- Cortex T2 Land Constructors

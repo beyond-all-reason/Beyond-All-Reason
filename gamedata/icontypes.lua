@@ -1787,6 +1787,10 @@ local icontypes = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
+	cormug = {
+		bitmap = "icons/bot_plasma_t1.png",
+		size = 1.10249984
+	},
 	cormuskrat = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
