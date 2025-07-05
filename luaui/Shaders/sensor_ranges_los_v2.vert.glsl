@@ -35,21 +35,16 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 }; 
 
-layout(std140, binding=5) readonly buffer coveredSSBO {
-	vec4 coveredness[];
-};
-
 #define UNITID (uni[instData.y].composite >> 16)
 
 uniform float teamColorMix = 1.0;
 uniform vec4 rangeColor;
+
 uniform sampler2D heightmapTex;
 
-
 out DataVS {
-	//vec4 worldPos; // pos and radius
 	flat vec4 blendedcolor;
-	vec4 v_uv;
+	vec4 v_uv_camdist_radius;
 };
 
 #line 11000
@@ -59,45 +54,87 @@ float heightAtWorldPos(vec2 w){
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
+//  sdScreenSphere
+//  Signed distance from a world-space sphere to the X-Y NDC box.
+//  Z (near/far) is ignored.
+//  Returns:
+//      < 0  – sphere at least partially inside the X-Y clip box
+//      = 0  – sphere exactly touches at least one edge
+//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+//
+float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
+{
+    // 1.  centre → clip space
+    vec4 clipC = cameraViewProj * vec4(centerWS, 1.0);
+    if (clipC.w <= 0.0)           // behind the eye? treat as inside
+        return -1.0;
+
+    // 2.  NDC centre (one perspective divide, reused later)
+    vec2  ndc   = clipC.xy / clipC.w;        // = clipC.xy / clipC.w
+
+    // 3.  Project world-space +X displacement
+    //     M * (p + (r,0,0,0)) = (M*p) + r*M*Xcol
+    vec4 deltaClip = radiusWS * cameraViewProj[0];   // first column of matrix
+    vec4 clipX     = clipC + deltaClip;
+
+    // 4.  Radius in NDC (second perspective divide only once)
+    float ndcRadius = length((clipX.xy / clipX.w) - ndc);
+
+    // 5.  Four signed distances, keep the worst (Chebyshev / max)
+    float dLeft   = -(ndc.x + 1.0) - ndcRadius;
+    float dRight  =  (ndc.x - 1.0) - ndcRadius;
+    float dBottom = -(ndc.y + 1.0) - ndcRadius;
+    float dTop    =  (ndc.y - 1.0) - ndcRadius;
+
+    return max(max(dLeft, dRight), max(dBottom, dTop));
+}
+
+
+
 void main() {
-	// blend start to end on mod gf%10
-	//float timemix = clamp((mod(timeInfo.x, 10) + timeInfo.w) * (0.1), 0.0, 1.0);
-
-	vec4 circleWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+	
+	// Get the center position of each unit. 
+	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
 	float circleRadius = radius_params.x;
-	#ifdef STENCILPASS
-	    circleRadius += 16.0;
-	#endif
 
-	bool isclipped = isSphereVisibleXY(vec4(circleWorldPos.xyz,1.0), circleRadius * 1.1);
-	if (isclipped){
-		// Note: this is a little aggressive :/
+	// Early bails if the circle is outside of the screen frustrum
 
-		gl_Position = cameraViewProj * vec4(-10000,-1000,-10000,1.0);
-		v_uv = gl_Position;
+	if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
+		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
 		return;
 	}
 
-	circleWorldPos.xz = circlepointposition.xy * circleRadius +  circleWorldPos.xz;
-	// get heightmap
-	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+16.0;
-
-	// -- MAP OUT OF BOUNDS
-	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
-	float inboundsness = min(mymin.x, mymin.y);
-
-	// dump to FS
-	//worldPos = circleWorldPos;
+	#ifdef STENCILPASS
+	    circleRadius += 16.0;
+	#endif
 	
-	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
-	blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
-	blendedcolor.a *= rangeColor.a;
-	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
-	//blendedcolor.rgb = coveredness[gl_InstanceID].rgb * blendedcolor.rgba;
-	gl_Position = cameraViewProj * circleWorldPos;
-	v_uv = gl_Position;
-	v_uv.w = 0;
-  // if the circlepointposition is zero, we set the radius to 0
-	if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {	v_uv.w = radius_params.x; }
+	
+  	// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
+	// for the fragment shader 
+	v_uv_camdist_radius.w = 0;
+	if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {	v_uv_camdist_radius.w = radius_params.x; }
+
+	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
+
+	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
+	
+	// get heightmap
+	circleVertexWorldPos.y = max(0.0,heightAtWorldPos(circleVertexWorldPos.xz))+16.0;
+
+	gl_Position = cameraViewProj * circleVertexWorldPos;
+	v_uv_camdist_radius.xy = gl_Position.xy;
+	#ifndef STENCILPASS
+		// -- MAP OUT OF BOUNDS
+		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
+		float inboundsness = min(mymin.x, mymin.y); // how distance the vertex is from the map edge
+		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
+
+		
+		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+		vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
+		blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
+		blendedcolor.a = rangeColor.a ;
+		//blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.01),0.0,1.0);
+		v_uv_camdist_radius.z = inboundsness;
+	#endif
 }

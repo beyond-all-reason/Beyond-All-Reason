@@ -1,4 +1,4 @@
-#version 330
+#version 430
 // This shader is (c) Beherith (mysterme@gmail.com)
 
 #extension GL_ARB_uniform_buffer_object : require
@@ -16,35 +16,25 @@
 
 in DataVS {
 	flat vec4 blendedcolor;
-	vec4 v_uv;
+	vec4 v_uv_camdist_radius;
 };
 
 out vec4 fragColor;
 
-	void main() {
+void main() {
 	// sample the stencil texture to determine if this pixel is visible
 	#ifdef STENCILPASS
 		// if we are in stencil pass, we just output the blended color
-		fragColor.rgba = vec4(vec3(v_uv.w/32), 1.0);
+		fragColor.rgba = vec4(vec3(v_uv_camdist_radius.w/32), 1.0);
 	#else
-		//vec2 stencilUV = fract((v_uv.xy * vec2(1.0/VSX, 1.0/ VSY) - 0.5)); // adjust UV coordinates if needed
+		//vec2 stencilUV = fract((v_uv_camdist_radius.xy * vec2(1.0/VSX, 1.0/ VSY) - 0.5)); // adjust UV coordinates if needed
 		vec2 stencilUV = gl_FragCoord.xy * vec2(1.0/VSX, 1.0/ VSY); // adjust UV coordinates if needed
 		float stencilValue = texture(losStencilTexture, stencilUV ).r;
-		if (stencilValue > 0.5) {
-			// if the stencil value is less than 0.5, this pixel is not visible
-			fragColor = vec4(1.0, 0.0, 0.0, 1.0 - stencilValue);
-
-		}else{
-
-			fragColor = vec4(1.0);
-
-		}
-		float flatstenc = step(stencilValue* 1.0 , 0.48);
-		float smoothstenc = 1.0 - smoothstep(0.47, 0.48, stencilValue);
-		fragColor.rgba = vec4(1.0,  flatstenc, 0.0, 1.0);
-		//fragColor.rgba = vec4(v_uv.xyz / 1024.0, 1.0);
-		fragColor.rgba = vec4(vec3(1.0), 0.5* smoothstenc);
+		
+		// if the stencil value is less than 0.5, this pixel is not visible
+		float smoothstenc = 1.0 - smoothstep(0.47, 0.477, stencilValue);
+		fragColor.rgba = vec4(blendedcolor.rgb,blendedcolor.a *( smoothstenc)  );
+		fragColor.a *= v_uv_camdist_radius.z; // inboundsness
 	#endif
-
 
 }
