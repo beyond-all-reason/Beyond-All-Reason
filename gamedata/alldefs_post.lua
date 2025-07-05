@@ -2530,6 +2530,7 @@ function UnitDef_Post(name, uDef)
 			uDef.speed = 40
 			uDef.buildoptions[26] = ""
 			uDef.buildoptions[27] = ""
+			uDef.energymake = 30
 
 		-- armcom new laser
 		elseif name == "armcom" then
@@ -2553,6 +2554,7 @@ function UnitDef_Post(name, uDef)
 			}
 			uDef.buildoptions[26] = ""
 			uDef.buildoptions[27] = ""
+			uDef.energymake = 30
 
 		-- T1 Economy 1.15x HP
 		elseif name == "armwin" or name == "corwin" or name == "legwin"
@@ -2690,8 +2692,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energycost = 1800
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.0081) * 100
 			uDef.health = 1220
-			uDef.speed = 51
-			uDef.weapondefs.corlevlr_weapon.range = 300
+			uDef.speed = 46
+			uDef.weapondefs.corlevlr_weapon.range = 310
 
 		elseif name == "cormist" then
 			uDef.speed = math.ceil(uDef.speed * 0.97)
