@@ -98,6 +98,19 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
+gadgetHandler.GG.CHANGETEAM_REASON = {
+	RECLAIMED            = 0, -- engine-side
+	GIVEN                = 1, -- engine-side
+	CAPTURED             = 2, -- engine-side
+	IDLE_PLAYER_TAKEOVER = 3, -- /take command for idle players
+	TAKEN                = 4, -- /take command
+	SOLD                 = 5, -- market sales
+	SCAVENGED            = 6, -- scavenger transfers
+	UPGRADED             = 7, -- unit upgrades
+	DECORATION           = 8, -- non-gameplay transfers (e.g., hats, wrecks)
+	DEV_TRANSFER         = 9, -- for developer/debug commands
+}
+
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
@@ -1543,17 +1556,19 @@ function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDe
 end
 
 function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
-										 oldTeam, newTeam, capture)
-	for _, g in ipairs(self.AllowUnitTransferList) do
-		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture) then
-			return false
+										 oldTeam, newTeam, reason)
+	if (self.AllowUnitTransferList) then
+		for _, g in ipairs(self.AllowUnitTransferList) do
+			if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) then
+				return false
+			end
 		end
 	end
 	return true
 end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
-										  unitID, unitDefID, part)
+                                          unitID, unitDefID, part)
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
@@ -1594,8 +1609,7 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	return true
 end
 
-function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
-											 featureID, featureDefID, part)
+function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
 			return false
@@ -1631,8 +1645,7 @@ function gadgetHandler:AllowResourceTransfer(oldTeamID, newTeamID, res, amount)
 	return true
 end
 
-function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam,
-											  playerID)
+function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID)
 	for _, g in ipairs(self.AllowDirectUnitControlList) do
 		if not g:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID) then
 			return false
@@ -1660,8 +1673,7 @@ function gadgetHandler:MoveCtrlNotify(unitID, unitDefID, unitTeam, data)
 	return state
 end
 
-function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam,
-										 buildUnitID, buildUnitDefID, buildUnitTeam)
+function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 	for _, g in ipairs(self.TerraformCompleteList) do
 		local stop = g:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 		if stop then
@@ -1742,8 +1754,7 @@ function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
-									   factID, factDefID, userOrders)
+function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	for _, g in ipairs(self.UnitFromFactoryList) do
 		g:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
@@ -1782,8 +1793,7 @@ function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
-									  experience, oldExperience)
+function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, g in ipairs(self.UnitExperienceList) do
 		g:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
@@ -1845,21 +1855,24 @@ function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-	return
+
+	if carrierMetaList[unitID] then
+		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
+		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
+			spTransferUnit(subUnitID, newTeam, false, GG.CHANGETEAM_REASON.TAKEN)
+		end
+	end
+	GG.Metal.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
-function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-
+function gadgetHandler:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	for _, g in ipairs(self.UnitGivenList) do
-		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		g:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
-	return
+	GG.Metal.UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
