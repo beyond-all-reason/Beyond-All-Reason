@@ -1373,6 +1373,16 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
+
+    {
+        key     = "techoverhaul",
+        name    = "Tech Overhaul",
+        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+        hidden  = true,
+    },
 	
     {
         key    	= "shieldsrework",
