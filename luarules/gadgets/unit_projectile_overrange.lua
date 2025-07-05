@@ -22,13 +22,19 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- "descend" moves the projectile downward until it is destroyed by collision event.
 -- "expire" sets the TTL (time to live) of the projectile to 0. Awaiting pending engine addition 1/27/25
 
+---- static limits through alldefs_post.lua
+-- some weapons can set the autodestroy parameters directly at the weapondef and let engine handle them.
+
 --static values
 local lateralMultiplier = 0.85
 local compoundingMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
 local descentSpeedStartingMultiplier = 0.15
+local engineDescent = true
 
 local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
+
+local mapGravity = Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -40,6 +46,9 @@ local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
 local spSetProjectileTimeToLive = Spring.SetProjectileTimeToLive
+local spSetProjectileGravity = Spring.SetProjectileGravity
+
+local calculateFlightFrames = VFS.Include("modules/projectileHelper.lua").calculateFlightFrames
 
 --tables
 local defWatchTable = {}
@@ -51,27 +60,6 @@ local leashWatch = {}
 
 --variables
 local gameFrame = 0
-
-local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerationRate, totalDistance)
-	local totalFrames = 0
-
-	-- Frames to reach maximum velocity
-	local framesToMaxVelocity = (maximumVelocity - initialVelocity) / accelerationRate
-
-	-- Distance traveled while accelerating
-	local distanceAccelerating = initialVelocity * framesToMaxVelocity + 0.5 * accelerationRate * framesToMaxVelocity^2
-
-	if distanceAccelerating > totalDistance then
-		-- We already traveled too much, so just calculate time with accelerated movement + quadratic equation formula
-		totalFrames = (mathSqrt(initialVelocity^2 + 2 * totalDistance * accelerationRate) - initialVelocity) / accelerationRate
-	else
-		-- Linear movement after accelerating
-		totalFrames = framesToMaxVelocity + (totalDistance - distanceAccelerating) / maximumVelocity
-	end
-
-	-- Return the floored value of total frames
-	return math.floor(totalFrames)
-end
 
 local function uptimeTurnFrames(turnRate)
 	local framesRequired = math.floor(math.rad(90) / turnRate)--the turning period is negated from uptime frames for StarburstMissiles
@@ -94,8 +82,8 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.type == "StarburstLauncher" then
 			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate))
 		end
-		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed,
-			weaponDef.weaponAcceleration, overRange) + ascentFrames
+		watchParams.flightTimeFrames = math.floor(calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed,
+			weaponDef.weaponAcceleration, overRange) + ascentFrames)
 		watchParams.weaponDefID = weaponDefID
 
 		--destruction methods
@@ -233,7 +221,12 @@ function gadget:GameFrame(frame)
 			if proData then
 				local defData = defWatchTable[proData.weaponDefID]
 				if defData.descentMethod then
-					descentTable[proID] = descentMultiplier
+					if engineDescent then
+						spSetProjectileTimeToLive(proID, 0)
+						spSetProjectileGravity(proID, -mapGravity*5)
+					else
+						descentTable[proID] = descentMultiplier
+					end
 				elseif defData.expireMethod then
 					spSetProjectileTimeToLive(proID, frame)
 				else

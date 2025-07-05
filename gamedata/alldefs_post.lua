@@ -17,6 +17,7 @@
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
 -- The widget to do so is included in the game and detects these customparams auto-enables itself
 -- and writes them to Spring/baked_defs
+local calculateFlightFrames = VFS.Include("modules/projectileHelper.lua").calculateFlightFrames
 SaveDefsToCustomParams = false
 
 -------------------------
@@ -2374,6 +2375,18 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
+	end
+
+	-- Weapon Overrange (see the 'unit_projectile_overrange' gadget)
+	local customParams = wDef.customparams
+	if customParams and wDef.weapontype == "MissileLauncher" and customParams.projectile_destruction_method == 'descend' and (wDef.trajectoryheight == 0.0 or wDef.trajectoryheight == nil) then
+		local overRange = tonumber(customParams.overrange_distance) or wDef.range
+		wDef.flighttime = calculateFlightFrames(wDef.startvelocity or 0.0, wDef.weaponvelocity, wDef.weaponacceleration or 0.0, overRange)
+		wDef.mygravity = 5.0 * Game.gravity / (Game.gameSpeed * Game.gameSpeed)
+
+		-- gadget has no more work to do for these projectiles, so clear customParams.
+		customParams.projectile_destruction_method = nil
+		customParams.overrange_distance = nil
 	end
 
 	-- Weapon Damage
