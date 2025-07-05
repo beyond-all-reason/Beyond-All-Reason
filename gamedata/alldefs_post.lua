@@ -2835,6 +2835,9 @@ function UnitDef_Post(name, uDef)
 		-- Armada T2 Reworks
 
 		elseif name == "armsptk" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.5)
+			uDef.energycost = math.ceil(uDef.energycost * 1.5)
+			uDef.buildtime = math.ceil(uDef.buildtime * 1.5)
 			uDef.weapondefs.adv_rocket.burst = 6
 			uDef.weapondefs.adv_rocket.burstrate = 0.15
 			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
@@ -2951,7 +2954,18 @@ function UnitDef_Post(name, uDef)
 		-- Legion T2 Reworks
 
 		end
-    
+
+    -- Tech down
+		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
+		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
+		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
+		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
+		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
+		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		then
+			uDef.customparams.techlevel = 1
+		end
+
 		-- T2 BP increase
 		if uDef.customparams.techlevel == 2 then 
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
@@ -2966,16 +2980,7 @@ function UnitDef_Post(name, uDef)
 			uDef.workertime = math.ceil(uDef.workertime * 0.09) * 10
 		end
 
-		-- Tech down
-		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
-		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
-		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
-		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
-		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
-		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
-		then
-			uDef.customparams.techlevel = 1
-		end
+	
 
 	end
 
