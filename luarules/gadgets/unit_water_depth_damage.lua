@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Water Crush and Collision Damage",
-		desc = "Creates and handles water collision events, and kills units stuck underwater",
+		name = "Water Damage and Disable",
+		desc = "Kills units with water damage and disables them when immobilized by water",
 		author = "SethDGamre",
 		date = "2024.9.22",
 		license = "GNU GPL, v2 or later",
@@ -52,10 +52,14 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
 local spDestroyUnit = Spring.DestroyUnit
 
+local addSuspendReason = GG.AddSuspendReason
+local clearSuspendReason = GG.ClearSuspendReason
+
 --tables
 local unitDefData = {}
 local transportDrops = {}
 local drowningUnitsWatch = {}
+local drowningUnits = {}
 local expiringTransportDrops = {}
 local livingTransports = {}
 
@@ -78,6 +82,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 	unitDefData[unitDefID] = defData
 end
+
+GG.AddUnitSuspendAndResumeReason("UnitEnteredDeepWater", "UnitLeftDeepWater")
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	livingTransports[transportID] = true
@@ -125,6 +131,7 @@ end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	drowningUnitsWatch[unitID] = nil
+    drowningUnits[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -132,6 +139,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
 	drowningUnitsWatch[unitID] = nil
+    drowningUnits[unitID] = nil
 end
 
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
@@ -160,15 +168,23 @@ function gadget:GameFrame(frame)
 			if posX then
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
+					if drowningUnits[unitID] == nil then
+						drowningUnits[unitID] = addSuspendReason(unitID, "UnitEnteredDeepWater")
+					end
+
 					spSpawnCEG('blacksmoke', posX, posY, posZ) --actually looks like tiny bubbles underwater
 					spPlaySoundFile('lavarumbleshort1', 0.40, posX, posY, posZ, 'sfx')
 					if math.random(1, 6) == 1 then
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
 					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+                else
+					clearSuspendReason(unitID, "UnitLeftDeepWater")
+                    drowningUnits[unitID] = nil
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit
+                drowningUnits[unitID] = nil
 			end
 		end
 	end
