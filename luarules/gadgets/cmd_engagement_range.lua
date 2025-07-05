@@ -13,7 +13,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() and (
+if not gadgetHandler:IsSyncedCode() or not (
 		Spring.GetModOptions().experimentalextraunits or
 		Spring.GetModOptions().experimentallegionfaction
 	) then
@@ -38,11 +38,11 @@ local ARMORTYPE_VTOL = Game.armorTypes.vtol
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_ENGAGE_STATE = CMD.ENGAGE_STATE or 34800
-local ENGAGESTATE_DEFAULT = 0
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
+---Units can have their own params but share this base table in their cmdDescs.
 ---@type CommandDescription
 local engageRangeCmdDesc = {
 	id       = CMD_ENGAGE_STATE,
@@ -54,6 +54,9 @@ local engageRangeCmdDesc = {
 	queueing = false,
 }
 
+local ENGAGESTATE_DEFAULT = 0
+
+-- Labels support mixing and matching to create param sets but add complexity.
 local labels = {
 	default   = "Engage Default",
 	close     = "Engage Close Range",
@@ -70,7 +73,7 @@ local moveStateLeashRadius = {
 	[CMD.MOVESTATE_NONE]     = 0,
 	[CMD.MOVESTATE_HOLDPOS]  = 0,
 	[CMD.MOVESTATE_MANEUVER] = 100,
-	[CMD.MOVESTATE_ROAM]     = 300, -- real value 400
+	[CMD.MOVESTATE_ROAM]     = 400,
 }
 
 -- Create up to three pseudo-weapons per unit:
