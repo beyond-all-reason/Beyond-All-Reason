@@ -161,7 +161,7 @@ local function CreateStencilShaderAndTexture()
 	local GL_R8 = 0x8229
     vsx, vsy = Spring.GetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
-    if losStencilTexture then gl.DeleteTexture(unitFeatureStencilTex) end
+    if losStencilTexture then gl.DeleteTexture(losStencilTexture) end
     losStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
 		--format = GL.RGBA8,
         format = GL_R8,
@@ -234,12 +234,10 @@ local glStencilFunc = gl.StencilFunc
 local glStencilOp = gl.StencilOp
 local glStencilTest = gl.StencilTest
 local glStencilMask = gl.StencilMask
-local GL_ALWAYS = GL.ALWAYS
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
 -- Globals
 local spec, fullview = spGetSpectatingState()
@@ -268,12 +266,11 @@ local function InitializeUnits()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
-			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
+			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), nil, true)
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
 end
-
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
@@ -282,92 +279,6 @@ function widget:PlayerChanged()
 	allyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InitializeUnits()
-	end
-end
-
-local function CalculateOverlapping()
-	local allcircles = circleInstanceVBO.indextoInstanceID
-	local totalcircles = 0
-	local totaloverlapping = 0
-	local inviewcircles = 0
-	local inviewoverlapping = 0
-	local inviewoverlapsmalls = 0
-	local additionalOverlaps = 0
-
-	local circles = {}
-	-- cut it down to visible circles only
-	for index, unitID in ipairs(allcircles) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local losrange = unitRange[Spring.GetUnitDefID(unitID)]
-		local px,py,pz = Spring.GetUnitPosition(unitID)
-		local inview = Spring.IsSphereInView(px,py,pz,losrange)
-		if px and unitRange[unitDefID] then
-			--circles[index] = {px = px, py = py, pz =  pz, losrange = losrange, inview = Spring.IsSphereInView(px,py,pz,losrange),
-			--fullycovered = false, topcovered =  false, bottomcovered =  false, leftcovered =  false, rightcovered = false}
-			if inview then 
-				circles[#circles + 1] = {px, py,  pz,  losrange, Spring.IsSphereInView(px,py,pz,losrange), false,   false,   false,   false,  false}	
-				inviewcircles = inviewcircles + 1
-			end
-			totalcircles = totalcircles + 1
-		end
-	end
-	local rmult = 0.707
-	local omult = 0.5
-
-	rmult = 0.8
-	omult = 0.25
-	for index, circle in ipairs(circles) do
-		local px,  pz, losrange = circle[1], circle[3], circle[4]
-
-		-- check for overlap
-		local overlaps = false
-		for index2, circle2 in ipairs(circles) do
-			for o = 0, 4 do 
-				local px2, pz2, losrange2 = circle2[1], circle2[3], circle2[4]
-				local testrange = losrange
-				local ox = 0
-				local oz = 0 
-				if o > 0 then 
-					testrange = losrange * rmult
-				end
-				if o == 1 then 
-					ox = losrange *omult  -- THIS IS INCORRECT! other way around!
-					oz = losrange *omult
-				elseif o == 2 then 
-					ox = -losrange *omult
-					oz = losrange * omult
-				elseif o == 3 then
-					ox = losrange *omult
-					oz = -losrange *omult
-				elseif o == 4 then
-					ox = -losrange *omult
-					oz = -losrange *omult
-				end
-				if losrange2 > testrange then
-					if math.diag(px + ox -px2, pz + oz -pz2) < (losrange2 - testrange) then
-						circle[6+o] = true -- covered
-					end 
-				end
-			end
-		end
-		if circle[7] and circle[8] and circle[9] and circle[10] then
-			inviewoverlapsmalls = inviewoverlapsmalls + 1
-			if not circle[6] then
-				additionalOverlaps = additionalOverlaps + 1
-			end
-		end	
-		if circle[6] then
-			inviewoverlapping = inviewoverlapping + 1
-		end
-	end
-	Spring.Echo("Sensor Ranges LOS: ",omult, totalcircles, totaloverlapping, inviewcircles, inviewoverlapping, inviewoverlapsmalls, additionalOverlaps)
-
-	return totalcircles, totaloverlapping, inviewcircles, inviewoverlapping, inviewoverlapsmalls
-end
-
-function widget:TextCommand(command)
-	if string.find(command, "loscircleoverlap", nil, true) then
-		Spring.Echo("CalculateOverlapping", CalculateOverlapping())
 	end
 end
 
@@ -401,11 +312,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	if losStencilTexture then gl.DeleteTexture(losStencilTexture) end
 	WG.losrange = nil
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
+	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
 	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
@@ -417,6 +329,11 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	if Spring.GetUnitIsBeingBuilt(unitID) then return end
 
 	instanceCache[1] =  unitRange[unitDefID]
+	if reason == "UnitFinished" then
+		instanceCache[2] = Spring.GetGameFrame()
+	else
+		instanceCache[2] = 0 -- start from full size
+	end
 	pushElementInstance(circleInstanceVBO,
 		instanceCache,
 		unitID, --key
@@ -468,6 +385,7 @@ function widget:DrawWorld()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	glDepthTest(true)
+	glStencilTest(false) -- Disable stencil testing
 
 	glLineWidth(1.0) 
 	gl.Clear(GL.STENCIL_BUFFER_BIT)

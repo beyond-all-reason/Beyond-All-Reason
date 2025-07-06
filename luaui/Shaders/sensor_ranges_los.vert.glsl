@@ -8,12 +8,12 @@
 #line 10000
 
 layout (location = 0) in vec4 circlepointposition;
-layout (location = 1) in vec4 radius_params; //x is startradius, y is starttime, z is endradius, w is endtime
+layout (location = 1) in vec4 radius_params; //x is startradius, pos y is growstarttime, neg y is shrinkstarttime
 layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
-geColor
+
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
     
@@ -43,14 +43,16 @@ uniform vec4 rangeColor;
 uniform sampler2D heightmapTex;
 
 out DataVS {
-	flat vec4 blendedcolor;
-	vec4 v_uv_camdist_radius;
+	vec4 v_radius_circum_height;
+	#ifndef STENCILPASS
+		flat vec4 v_blendedcolor;
+	#endif
 };
 
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   heightmapUVatWorldPos(w);
+	vec2 uvhm = heightmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
@@ -59,46 +61,58 @@ void main() {
 	
 	// Get the center position of each unit. 
 	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
-	float circleRadius = radius_params.x;
+	float nowTime = timeInfo.x + timeInfo.w;
+	float sizeFactor;
+	if (radius_params.y < -1){ //negative means shrinking
+		 sizeFactor = nowTime + radius_params.y; // size factor is the time since shrink started divided by the shrink duration
+	}else{
+		 sizeFactor = nowTime - radius_params.y; // size factor is the time since shrink started divided by the shrink duration
+	}
+	sizeFactor = clamp(sizeFactor / 15.0, 0.0, 1.0); // clamp to [0,1] range
+	float circleRadius = radius_params.x * sizeFactor;
 
 	// Early bails if the circle is outside of the screen frustrum
 
 	if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
-		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+		gl_Position = vec4(2.0, 0.0, 0.0, 1.0);
 		return;
 	}
 
 	#ifdef STENCILPASS
-	    circleRadius += 16.0;
+		// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
+		// for the fragment shader 
+		// hack in the additional 16 radius 
+		// TODO: why isnt this added BEFORE?
+	    circleRadius += 16.0;		
+
+		v_radius_circum_height.x = 0;
+		if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {
+			v_radius_circum_height.x = circleRadius; }
+		
 	#endif
-	
-	
-  	// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
-	// for the fragment shader 
-	v_uv_camdist_radius.w = 0;
-	if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {	v_uv_camdist_radius.w = radius_params.x; }
 
 	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
-
 	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
 	
-	// get heightmap
-	circleVertexWorldPos.y = max(0.0,heightAtWorldPos(circleVertexWorldPos.xz))+16.0;
+	float groundHeight = heightAtWorldPos(circleVertexWorldPos.xz); //the y component of v_radius_circum_height
+	// get heightmap at vertex
+	circleVertexWorldPos.y = max(0.0,groundHeight+16.0);
 
 	gl_Position = cameraViewProj * circleVertexWorldPos;
-	v_uv_camdist_radius.xy = gl_Position.xy;
-	#ifndef STENCILPASS
+	#ifndef STENCILPASS // Circle Pass
+
+		v_radius_circum_height.z = groundHeight; // store the ground height here for sonar and stuff
 		// -- MAP OUT OF BOUNDS
 		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
-		float inboundsness = min(mymin.x, mymin.y); // how distance the vertex is from the map edge
+		float inboundsness = min(mymin.x, mymin.y); // how distant the vertex is from the map edge
 		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
-
 		
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
-		blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
-		blendedcolor.a = rangeColor.a ;
+		v_blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
+		v_blendedcolor.a = rangeColor.a ;
 		//blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.01),0.0,1.0);
-		v_uv_camdist_radius.z = inboundsness;
+		v_radius_circum_height.w = inboundsness;
+		v_radius_circum_height.y = circleRadius * circlepointposition.z * 5.2345; // store the radius in the first component of v_radius_circum_height
 	#endif
 }
