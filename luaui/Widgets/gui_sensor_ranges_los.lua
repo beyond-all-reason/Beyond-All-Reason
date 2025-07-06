@@ -77,6 +77,7 @@ local circleShaderSourceCache = {
 		VSY = vsy,
 		RESOLUTION = resolution,
 		PADDING = 1,
+		USE_TEAMCOLOR = 1,
 		VISIBILITYCULLING = 1,
 	},
 	uniformInt = {

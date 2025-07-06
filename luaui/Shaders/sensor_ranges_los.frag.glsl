@@ -39,6 +39,10 @@ void main() {
 		float smoothstenc = 1.0 - smoothstep(0.49, 0.51, stencilValue);
 		fragColor.rgba = vec4(v_blendedcolor.rgb,v_blendedcolor.a *( smoothstenc)  );
 		fragColor.a *= v_radius_circum_height.w; // inboundsness
+			
+		#ifdef STIPPLE_RATE
+			fragColor.a *= 3.0 * sin(v_radius_circum_height.y * STIPPLE_RATE + timeInfo.x*-0.2); // PERFECT STIPPLING!
+		#endif
 	#endif
 
 }

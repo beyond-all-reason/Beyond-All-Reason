@@ -64,7 +64,7 @@ void main() {
 	float nowTime = timeInfo.x + timeInfo.w;
 	float sizeFactor;
 	if (radius_params.y < -1){ //negative means shrinking
-		 sizeFactor = nowTime + radius_params.y; // size factor is the time since shrink started divided by the shrink duration
+		 sizeFactor = 15.0 - (nowTime + radius_params.y); // size factor is the time since shrink started divided by the shrink duration
 	}else{
 		 sizeFactor = nowTime - radius_params.y; // size factor is the time since shrink started divided by the shrink duration
 	}
@@ -107,10 +107,12 @@ void main() {
 		vec2 mymin = min(circleVertexWorldPos.xz,mapSize.xy - circleVertexWorldPos.xz);
 		float inboundsness = min(mymin.x, mymin.y); // how distant the vertex is from the map edge
 		inboundsness = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0); // clamp to [0,1] range, and invert it so that the closer to the edge, the lower the value
-		
-		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-		vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
-		v_blendedcolor.rgb = mix(rangeColor.rgb, myTeamColor.rgb, teamColorMix);
+		v_blendedcolor.rgb = rangeColor.rgb;
+		#ifdef USE_TEAMCOLOR
+			uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+			vec4 myTeamColor = teamColor[teamIndex];  // We can lookup the teamcolor right here
+			v_blendedcolor.rgb = mix(v_blendedcolor.rgb, myTeamColor.rgb, teamColorMix);
+		#endif
 		v_blendedcolor.a = rangeColor.a ;
 		//blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.01),0.0,1.0);
 		v_radius_circum_height.w = inboundsness;
