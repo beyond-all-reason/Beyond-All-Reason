@@ -18,6 +18,6 @@
     unify lobby overlay detection
     use a global variable for chobby Status
 
-
+- [ ] Better radius offset vector knowing hieghtmap sample 
 
 
