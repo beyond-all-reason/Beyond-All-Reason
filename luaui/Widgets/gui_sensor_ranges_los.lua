@@ -29,11 +29,6 @@ local minSightDistance = 100
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
---only update every 15th frame, and interpolate pos in shader!
---Each instance has:
--- startposrad
--- endposrad
--- color
 -- TODO: draw ally ranges in diff color!
 -- 172 vs 123 preopt
 -- TODO 2023.07.06:
