@@ -44,34 +44,17 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 	-- X The only actual param needed per unit is its los range :D
 	-- X refactor the opacity
 
--- Compute shader visibility culling:
--- Pass 1. compute :
-	-- Inputs: Take SUniformsBuffer and the losrangeVBO
-	-- Calculates: Which of the units are in view, and which are not. 
-	-- Outputs: a VBO of vec4's of {posx, posz, losrange, index} for each unit that is in view.
-		-- note that we cant selectively output stuff we want, because no sorting is possible in compute shaders.
-	-- the indices are in the same order as in the losrangeVBO, so we can use them to index into the losrangeVBO.
-
--- Pass 2. compute :
-	-- inputs: Takes the VBO from pass 1, 
-	-- Calculates overlappedness of the los ranges. 
-	-- Outputs: a new VBO which is #maxunits size indicating overlappedness
-	-- in LOSRANGEVBO index order
-
--- Pass 3. vertex shader:
-	-- inputs: Takes the VBO from pass 2, and the losrangeVBO
-	-- draws stuff based on the VBO from pass 2, and the losrangeVBO
 -- TODO: 2025.07.02:
 	-- [x] rangecorrectionelmos = 16 
 	-- [ ] DO NOT DELETE BRANCH ON MERGE! 
 	-- [x] Fix screen resize
 	-- [-] Engine Version Check for baseVertex offset 
 	-- [x] Teamcolor no worky
-	-- [ ] override master 
+	-- [x] override master 
 	-- [x] profile
 	-- [x] Correctly reset GL state for build ETA 
 	-- [ ] Try to use only one stencil clear op, use a mask that is unique
-	-- [ ] Put SDscreenSphere into LuaShader.lua
+	-- [x] Put SDscreenSphere into LuaShader.lua
 	-- [-] Draw los in minimap, add config optios for it.  
 
 
@@ -82,8 +65,8 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local stencilShader = nil
-local circleShader = nil
+local losStencilShader = nil
+local losCircleShader = nil
 local circleInstanceVBO = nil
 
 local losStencilTexture 
@@ -99,6 +82,7 @@ local circleShaderSourceCache = {
 		VSY = vsy,
 		RESOLUTION = resolution,
 		PADDING = 1,
+		VISIBILITYCULLING = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -111,27 +95,8 @@ local circleShaderSourceCache = {
 	silent = not debugmode, -- do not print shader compile timing
 } 
  
-local stencilShaderSourceCache = {
-	shaderName = 'LOS Ranges Stencil GL4',
-	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
-	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
-	shaderConfig = {
-		STENCILPASS = 1,
-		VSX = vsx,
-		VSY = vsy,
-		RESOLUTION = resolution,
-		PADDING = 1,
-	},
-	uniformInt = {
-		heightmapTex = 0,
-		losStencilTexture = 1,
-	},
-	uniformFloat = {
-		teamColorMix = 1.0,
-		rangeColor = rangeColor,
-	},
-	silent = not debugmode, -- do not print shader compile timing
-}
+local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
+stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
 
 local function goodbye(reason)
 	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
@@ -148,13 +113,13 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
-	stencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
+	losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0)	
 
-	if not stencilShader then
+	if not losStencilShader then
   		return goodbye("Failed to compile losrange stencil shader GL4 ")
  	end
-	circleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
-	if not circleShader then
+	losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0)
+	if not losCircleShader then
 		return goodbye("Failed to compile losrange shader GL4 ")
 	end
 
@@ -178,7 +143,7 @@ local function initgl4()
 	-- Note that we are createing a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "LOSRangeCircles")
 	local circleInstanceVBOLayout = {
-		{ id = 1, name = 'radius_params', size = 4 }, -- radius, + 3 unused floats
+		{ id = 1, name = 'radius_params', size = 4 }, -- radius, gameframe, 2 unused floats
 		{ id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT}, -- instData
 	}
 
@@ -199,9 +164,9 @@ local function DrawLOSStencil() -- about 0.025 ms
         gl.Culling(false)
 		
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
-		stencilShader:Activate()
+		losStencilShader:Activate()
 		circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-		stencilShader:Deactivate()
+		losStencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.BlendEquation(GL.FUNC_ADD)
 	end
@@ -214,8 +179,8 @@ end
 -- This shows the debug stencil texture in the bottom left corner of the screen
 if debugmode then 
 	function widget:DrawScreen()	
-		circleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or circleShader
-		stencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or stencilShader
+		losCircleShader = LuaShader.CheckShaderUpdates(circleShaderSourceCache,0) or losCircleShader
+		losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache,0) or losStencilShader
 		gl.Color(1,1,1,1)
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Texture(losStencilTexture)
@@ -228,12 +193,6 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
-local glDepthTest = gl.DepthTest
-local glLineWidth = gl.LineWidth
-local glStencilFunc = gl.StencilFunc
-local glStencilOp = gl.StencilOp
-local glStencilTest = gl.StencilTest
-local glStencilMask = gl.StencilMask
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
@@ -283,28 +242,17 @@ function widget:PlayerChanged()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader or Spring.GetModOptions().disable_fogofwar then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
-	if Spring.GetModOptions().disable_fogofwar then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	WG.losrange = {}
-	WG.losrange.getOpacity = function()
-		return opacity
-	end
-	WG.losrange.setOpacity = function(value)
-		opacity = value
-	end
-	WG.losrange.getUseTeamColors = function()
-		return useteamcolors
-	end
-	WG.losrange.setUseTeamColors = function(value)
-		useteamcolors = value
-	end	
+	WG.losrange = {
+		getOpacity = function() return opacity end,
+		setOpacity = function(value) opacity = value end,
+		getUseTeamColors = function() return useteamcolors	end,
+		setUseTeamColors = function(value) useteamcolors = value end,
+	}
 
 	initgl4()	
 
@@ -355,39 +303,40 @@ end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
-	if circleInstanceVBO.usedElements == 0 then return end
-	if opacity <= 0.01 then return end
+	if Spring.IsGUIHidden() or 
+		(circleInstanceVBO.usedElements == 0) or
+		(opacity <= 0.01)
+	then return end
     
-	gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
-	glStencilTest(true) -- Enable stencil testing
-	glStencilFunc(GL_NOTEQUAL, 1, 255) -- Always Passes, 0 Bit Plane, 0 As Mask
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-	glStencilMask(1) -- Only check the first bit of the stencil buffer
+	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
+	gl.StencilTest(true) -- Enable stencil testing
+	gl.StencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
+	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+	gl.StencilMask(1) -- Only check the first bit of the stencil buffer
   
-	circleShader:Activate()
+	losCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 
-	circleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
+	losCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	--Spring.Echo("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
-	circleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
+	losCircleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
 
-	glLineWidth(rangeLineWidth * lineScale * 1.0)
+	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 
-	glDepthTest(true)
+	gl.DepthTest(true)
 	-- Note that we are skipping the first and last vertex, as those are the center of the circle : 
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -0, 0, circleInstanceVBO.usedElements) 
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:
 	--circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices -2, 1, circleInstanceVBO.usedElements) 
 	
-	circleShader:Deactivate()
+	losCircleShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
-	glDepthTest(true)
-	glStencilTest(false) -- Disable stencil testing
+	gl.DepthTest(true)
+	gl.StencilTest(false) -- Disable stencil testing
 
-	glLineWidth(1.0) 
+	gl.LineWidth(1.0) 
 	gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
 

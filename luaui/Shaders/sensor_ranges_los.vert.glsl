@@ -72,11 +72,12 @@ void main() {
 	float circleRadius = radius_params.x * sizeFactor;
 
 	// Early bails if the circle is outside of the screen frustrum
-
-	if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
-		gl_Position = vec4(2.0, 0.0, 0.0, 1.0);
-		return;
-	}
+	#ifdef VISIBILITYCULLING
+		if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
+			gl_Position = vec4(2.0, 0.0, 0.0, 1.0);
+			return;
+		}
+	#endif
 
 	#ifdef STENCILPASS
 		// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
