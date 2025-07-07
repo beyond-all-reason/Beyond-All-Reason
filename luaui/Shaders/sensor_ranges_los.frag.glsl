@@ -18,7 +18,7 @@
 in DataVS {
 	vec4 v_radius_circum_height;
 	#ifndef STENCILPASS
-		vec4 v_blendedcolor;
+		flat vec4 v_blendedcolor;
 	#endif
 };
 
