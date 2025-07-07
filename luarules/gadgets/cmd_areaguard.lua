@@ -1,12 +1,20 @@
+<<<<<<< Updated upstream
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+=======
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+if not gadgetHandler:IsSyncedCode() then return end
+>>>>>>> Stashed changes
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
+<<<<<<< Updated upstream
   return {
     name      = "Area Guard",
     desc      = "Replace Guard with Area Guard",
@@ -17,12 +25,25 @@ function gadget:GetInfo()
     layer     = 0,
     enabled   = true,
   }
+=======
+    return {
+        name = "Area Guard",
+        desc = "Replace Guard with Area Guard",
+        author = "CarRepairer",
+        date = "2013-06-12",
+        license = "GNU GPL, v2 or later",
+        handler = true,
+        layer = 0,
+        enabled = true,
+    }
+>>>>>>> Stashed changes
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local spUtilities = Spring.Utilities
+<<<<<<< Updated upstream
 --local SUC = spUtilities.CMD
 
 local env = getfenv()
@@ -40,6 +61,85 @@ local CMD_ORBIT_DRAW = SUC.ORBIT_DRAW
 local GiveClampedMoveGoalToUnit = spUtilities.GiveClampedMoveGoalToUnit
 local Angle = VFS.Include("LuaRules/Utilities/vector.lua", nil, VFS.GAME)
 --local Angle = spUtilities.Vector.Angle
+=======
+local SUC = spUtilities.CMD
+local env = getfenv()
+local SUC = VFS.Include("LuaRules/Configs/customcmds.lua", nil, VFS.GAME)
+
+for cmdName, cmdID in pairs(SUC) do
+    env["CMD_" .. cmdName] = cmdID
+end
+
+env.CMD_SETHAVEN = SUC.RETREAT_ZONE
+local CMD_AREA_GUARD = SUC.AREA_GUARD
+local CMD_ORBIT = SUC.ORBIT
+--local CMD_ORBIT_DRAW = SUC.ORBIT_DRAW
+
+----------
+---------
+function ClampPosition(x, z)
+	if x and z then
+		if Spring.Utilities.IsValidPosition(x, z) then
+			return x, z
+		else
+			if x < 1 then
+				x = 1
+			elseif x > mapWidth-1 then
+				x = mapWidth-1
+			end
+			if z < 1 then
+				z = 1
+			elseif z > mapHeight-1 then
+				z = mapHeight-1
+			end
+			return x, z
+		end
+	end
+	return 0, 0
+end
+
+
+local GiveClampedMoveGoalToUnit = spUtilities.GiveClampedMoveGoalToUnit
+local sqrt = math.sqrt
+
+local function AbsValSq(x, y, z)
+    if z then
+        return x*x + y*y + z*z
+    elseif y then
+        return x*x + y*y
+    elseif x[3] then
+        return x[1]*x[1] + x[2]*x[2] + x[3]*x[3]
+    else
+        return x[1]*x[1] + x[2]*x[2]
+    end
+end
+
+local function AbsVal(x, y, z)
+    return sqrt(AbsValSq(x, y, z))
+end
+
+local function Angle(x, z)
+    if not z then
+        x, z = x[1], x[2]
+    end
+    if x == 0 and z == 0 then
+        return 0
+    end
+    local mult = 1/AbsVal(x, z)
+    x, z = x*mult, z*mult
+    if z > 0 then
+        return math.acos(x)
+    elseif z < 0 then
+        return 2*math.pi - math.acos(x)
+    elseif x < 0 then
+        return math.pi
+    end
+    return 0
+end
+
+
+--local Angle = VFS.Include("LuaRules/Utilities/vector.lua", nil, VFS.GAME)
+>>>>>>> Stashed changes
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -49,6 +149,7 @@ local spGetUnitTeam     = Spring.GetUnitTeam
 --------------------------------------------------------------------------------
 -- Global Variables
 
+<<<<<<< Updated upstream
 local areaGuardCmd = {
 	id      = CMD_AREA_GUARD,
 	name    = "Guard2",
@@ -68,6 +169,27 @@ local orbitDrawCmd = {
 	tooltip = "Circle around the unit in a protective manner",
 	hidden  = true,
 }
+=======
+-- local areaGuardCmd = {
+-- 	id      = CMD_AREA_GUARD,
+-- 	name    = "Guard2",
+-- 	action  = "areaguard",
+-- 	cursor  = 'Guard',
+-- 	type    = CMDTYPE.ICON_UNIT_OR_AREA,
+-- 	tooltip = "Guard the unit or units",
+-- 	--hidden  = true,
+-- }
+
+-- local orbitDrawCmd = {
+-- 	id      = CMD_ORBIT_DRAW,
+-- 	name    = "OrbitDraw",
+-- 	action  = "orbitdraw",
+-- 	cursor  = 'Guard',
+-- 	type    = CMDTYPE.ICON_UNIT,
+-- 	tooltip = "Circle around the unit in a protective manner",
+-- 	hidden  = true,
+-- }
+>>>>>>> Stashed changes
 
 -- ud.canGuard is true for units for which it should not be true. This table
 -- is generated as new unit types are created. It check for guard commands.
@@ -190,6 +312,10 @@ local function DoAreaGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions )
 end
 
 local function DoCircleGuard(unitID, unitDefID, teamID, cmdParams, cmdOptions)
+<<<<<<< Updated upstream
+=======
+	Spring.Echo('DoCircleGuard')
+>>>>>>> Stashed changes
 	-- targetID is the unitID of the unit to guard.
 	-- radius is the radius to keep from the unit.
 	-- facing is an optional parameter which restricts to 120 degrees in that direction(set to 0 to disable).
@@ -361,8 +487,13 @@ function gadget:UnitCreated(unitID, unitDefID, team)
 	if cmdDescID then
 		local cmdArray = {hidden = true}
 		Spring.EditUnitCmdDesc(unitID, cmdDescID, cmdArray)
+<<<<<<< Updated upstream
 		Spring.InsertUnitCmdDesc(unitID, 500, areaGuardCmd)
 		Spring.InsertUnitCmdDesc(unitID, 501, orbitDrawCmd)
+=======
+		--Spring.InsertUnitCmdDesc(unitID, 500, areaGuardCmd)
+		--Spring.InsertUnitCmdDesc(unitID, 501, orbitDrawCmd)
+>>>>>>> Stashed changes
 	end
 end
 
@@ -374,7 +505,11 @@ end
 
 function gadget:AllowCommand_GetWantedCommand()
 	Spring.Echo('asdfAdsf')
+<<<<<<< Updated upstream
 	return {[CMD_GUARD] = true, [CMD_AREA_GUARD] = true, [CMD_ORBIT] = true, [CMD_ORBIT_DRAW] = true}
+=======
+	return {[CMD_ORBIT] = true} --, [CMD_ORBIT_DRAW] = true} [CMD_GUARD] = true, [CMD_AREA_GUARD] = true, 
+>>>>>>> Stashed changes
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -382,6 +517,7 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+<<<<<<< Updated upstream
 	if cmdID == CMD_GUARD then
 		if #cmdParams == 1 and unitID == cmdParams[1] then
 			return false
@@ -390,15 +526,65 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		DoAreaGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions )
 		return false
 	elseif cmdID == CMD_ORBIT or cmdID == CMD_ORBIT_DRAW then
+=======
+	-- Spring.Echo('guard')
+	-- Spring.Echo('unitID' ..unitID)
+	-- Spring.Echo('unitDefID' ..unitDefID)
+	-- Spring.Echo('unitTeam' ..unitTeam)
+	-- Spring.Echo('cmdID' ..cmdID)
+	-- Spring.Echo('cmdParams' ..tostring(cmdParams))
+	-- Spring.Echo('cmdParams' ..tostring(cmdParams[1]))
+	-- Spring.Echo('cmdParams' ..tostring(cmdParams[2]))
+	-- Spring.Echo('cmdParams' ..tostring(cmdParams[3]))
+	-- Spring.Echo('cmdParams' ..tostring(cmdParams[4]))
+	-- Spring.Echo('cmdOptions' ..tostring(cmdOptions))
+	-- Spring.Echo('cmdOptions' ..tostring(cmdOptions[1]))
+	-- Spring.Echo('cmdOptions' ..tostring(cmdOptions[2]))
+	-- Spring.Echo('cmdOptions' ..tostring(cmdOptions[3]))
+	-- Spring.Echo('cmdOptions' ..tostring(cmdOptions[4]))
+	--if cmdID == 134981234908 then --CMD_GUARD then
+		--Spring.Echo('raus')
+		
+		--if #cmdParams == 1 and unitID == cmdParams[1] then
+		--	return false
+		--end
+	--elseif cmdID == CMD_AREA_GUARD then
+		--Spring.Echo('AREA_GUARD')
+		--DoAreaGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions )
+		--return false
+	--if cmdID == CMD_ORBIT then -- or cmdID == CMD_ORBIT_DRAW then
+	--	Spring.Echo('orbit')
+	--	return canGuardUnitDefIDs[unitDefID] and unitID ~= cmdParams[1]
+	--elseif cmdID == 13923 then -- or cmdID == CMD_ORBIT_DRAW then
+	--	Spring.Echo('orbit1')
+	--	return canGuardUnitDefIDs[unitDefID] and unitID ~= cmdParams[1]
+	--	
+	if cmdID == 25 then
+>>>>>>> Stashed changes
 		return canGuardUnitDefIDs[unitDefID] and unitID ~= cmdParams[1]
 	end
 	return true
 end
 
 function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+<<<<<<< Updated upstream
 	if cmdID == CMD_ORBIT then
 		-- return true from DoCircleGuard to remove the command.
 		-- return false from DoCircleGuard to keep the command in the queue.
+=======
+	Spring.Echo('CommandFallback')
+	Spring.Echo('cmdID' ..cmdID)
+	-- if cmdID == CMD_ORBIT then
+	-- 	Spring.Echo('cmdID == CMD_ORBIT')
+	-- 	-- return true from DoCircleGuard to remove the command.
+	-- 	-- return false from DoCircleGuard to keep the command in the queue.
+	-- 	return true, DoCircleGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions)
+	-- elseif cmdID == 13923 then
+	-- 	Spring.Echo('cmdID == 13923')
+	-- 	return true, DoCircleGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions)
+	if cmdID == 135 then
+		Spring.Echo('cmdID == 135')
+>>>>>>> Stashed changes
 		return true, DoCircleGuard(unitID, unitDefID, unitTeam, cmdParams, cmdOptions)
 	end
 	return false -- command not used
@@ -420,8 +606,13 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
+<<<<<<< Updated upstream
 	gadgetHandler:RegisterCMDID(CMD_ORBIT_DRAW)
 	Spring.SetCustomCommandDrawData(CMD_ORBIT_DRAW, "Guard", {0.3, 0.3, 1.0, 0.7})
+=======
+	--gadgetHandler:RegisterCMDID(CMD_ORBIT_DRAW)
+	--Spring.SetCustomCommandDrawData(CMD_ORBIT_DRAW, "Guard", {0.3, 0.3, 1.0, 0.7})
+>>>>>>> Stashed changes
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		--local team = spGetUnitTeam(unitID)

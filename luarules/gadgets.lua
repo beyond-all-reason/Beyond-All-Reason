@@ -1101,19 +1101,31 @@ function gadgetHandler:GetViewSizes()
 end
 
 function gadgetHandler:RegisterCMDID(gadget, id)
-	if id <= 1000 then
-		Spring.Log(LOG_SECTION, LOG.ERROR, 'Gadget (' .. gadget.ghInfo.name .. ') ' ..
-			'tried to register a reserved CMD_ID')
-		Script.Kill('Reserved CMD_ID code: ' .. id)
-	end
+	if gadget and id then
+		Spring.Echo('i am in')
+		if id <= 1000 then
+			Spring.Log(LOG_SECTION, LOG.ERROR, 'Gadget (' .. gadget.ghInfo.name .. ') ' ..
+				'tried to register a reserved CMD_ID')
+			Script.Kill('Reserved CMD_ID code: ' .. id)
+		end
 
-	if self.CMDIDs[id] ~= nil then
-		Spring.Log(LOG_SECTION, LOG.ERROR, 'Gadget (' .. gadget.ghInfo.name .. ') ' ..
-			'tried to register a duplicated CMD_ID')
-		Script.Kill('Duplicate CMD_ID code: ' .. id)
-	end
+		if self.CMDIDs[id] ~= nil then
+			Spring.Log(LOG_SECTION, LOG.ERROR, 'Gadget (' .. gadget.ghInfo.name .. ') ' ..
+				'tried to register a duplicated CMD_ID')
+			Script.Kill('Duplicate CMD_ID code: ' .. id)
+		end
+		self.CMDIDs[id] = gadget
+	else
+		Spring.Echo('aaaa')
+		if gadget then
+			Spring.Echo('the value of the variable gadget is'..gadget)
+		end
 
-	self.CMDIDs[id] = gadget
+		
+		if id then
+			Spring.Echo('the value of the variable id'..id)
+		end
+	end
 end
 
 
