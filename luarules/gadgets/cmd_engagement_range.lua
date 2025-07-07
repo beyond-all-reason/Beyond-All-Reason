@@ -238,13 +238,13 @@ end
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
+---@param info EngageRangeInfo
+---@param params number[]
+---@param state integer
 ---@return number engageRange
 local function getEngageRange(info, params, state)
 	local label = params[state + 2] -- +1 for lua index, +1 since `state` is first
 	local category = labels[label] -- "default" | "close" | "secondary"
-
-	Spring.Echo("[cmd_engagement_range] geter", info, params, state, label, category, info[category])
-
 	return info[category]
 end
 
