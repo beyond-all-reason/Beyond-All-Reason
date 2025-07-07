@@ -37,7 +37,7 @@ local ARMORTYPE_DEFAULT = Game.armorTypes.default
 local ARMORTYPE_VTOL = Game.armorTypes.vtol
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
-local CMD_ENGAGE_STATE = CMD.ENGAGE_STATE or 34800
+local CMD_ENGAGE_STATE = GameCMD.ENGAGE_STATE
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
