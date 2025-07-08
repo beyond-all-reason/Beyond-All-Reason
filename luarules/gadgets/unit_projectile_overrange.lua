@@ -32,6 +32,7 @@ local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
 
 local mapGravity = Game.gravity / (Game.gameSpeed * Game.gameSpeed)
+local descentGravity = -mapGravity * 5
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -239,7 +240,7 @@ function gadget:GameFrame(frame)
 				if defData.descentMethod then
 					if engineDescent then
 						spSetProjectileTimeToLive(proID, 0)
-						spSetProjectileGravity(proID, -mapGravity*5)
+						spSetProjectileGravity(proID, descentGravity)
 					else
 						descentTable[proID] = descentMultiplier
 					end
