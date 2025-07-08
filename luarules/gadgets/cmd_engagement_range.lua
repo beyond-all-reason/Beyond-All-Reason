@@ -202,14 +202,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 
 			if close ~= nil and secondary ~= nil and secondary < unitEngageRange then
-				-- We can split around the leash values to keep from merging
-				-- our weapon ranges together (though that's pretty dubious)
 				-- todo: if we've condensed multiple weapons into this category,
 				-- todo: then it would be better to search through them and try
 				-- todo: to keep at least one that's at least kind of sensible
 				-- todo: but idk I think this keeps the button toggle cleaner
 				if math.abs(close - secondary) < minSplitDifference then
-					secondary = nil -- so just remove
+					secondary = nil
 				end
 			end
 
