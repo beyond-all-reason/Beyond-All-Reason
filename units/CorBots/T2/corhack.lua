@@ -53,6 +53,7 @@ return {
 			[13] = "corlab",
 			[14] = "corhalab",
 			[15] = "coralab",
+			[16] = "cormkr"
 		},
 		customparams = {
 			model_author = "Beherith",

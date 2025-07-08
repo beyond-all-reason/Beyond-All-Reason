@@ -59,6 +59,7 @@ return {
 				[15] = "armavp",
 				[16] = "armveil",
 				[17] = "armsd",
+				[18] = "armmkr"
 		},
 		customparams = {
 			model_author = "FireStorm",
