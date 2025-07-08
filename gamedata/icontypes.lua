@@ -3661,6 +3661,72 @@ local icontypes = {
 		size = 0.41999999
 	},
 
+	-- T2 split
+
+	armhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	armhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	leghack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	leghacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+
+	armalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	armhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+
+	
+	caralab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	corhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+
+	
+	legalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	leghavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+	
+
 	blank = {
 		bitmap = "icons/blank.png",
 		size = 1,
