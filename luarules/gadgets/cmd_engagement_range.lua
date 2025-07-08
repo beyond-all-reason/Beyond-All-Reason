@@ -306,26 +306,34 @@ local function updateLeashRadius(unitID, unitDefID)
 	end
 end
 
+local function addUnitCommand(unitID, unitDefID)
+	if Spring.FindUnitCmdDesc(unitID, CMD_ENGAGE_STATE) == nil then
+		local desc = engageRangeCmdDesc
+		desc.params = unitEngageRangeInfo[unitDefID].params
+		Spring.InsertUnitCmdDesc(unitID, desc)
+
+		if tonumber(desc.params[1]) ~= ENGAGESTATE_DEFAULT then
+			changeEngageState(unitID, unitDefID, desc.params, nil)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID)) ---@diagnostic disable-line -- OK
+		local unitDefID = Spring.GetUnitDefID(unitID)
+
+		if unitEngageRangeInfo[unitDefID] then
+			addUnitCommand(unitID, unitDefID)
+		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitEngageRangeInfo[unitDefID] then
-		if Spring.FindUnitCmdDesc(unitID, CMD_ENGAGE_STATE) == nil then
-			local desc = engageRangeCmdDesc
-			desc.params = unitEngageRangeInfo[unitDefID].params
-			Spring.InsertUnitCmdDesc(unitID, desc)
-
-			if tonumber(desc.params[1]) ~= ENGAGESTATE_DEFAULT then
-				changeEngageState(unitID, unitDefID, desc.params, nil)
-			end
-		end
+		addUnitCommand(unitID, unitDefID)
 	end
 end
 
