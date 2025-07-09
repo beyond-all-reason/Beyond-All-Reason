@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
-        name      = 'Attached Construction Turret', 
-        desc      = 'Attaches a builder to another mobile unit, so builder can repair while moving', 
-        author    = 'Itanthias', 
-        version   = 'v1.1', 
+        name      = 'Attached Construction Turret',
+        desc      = 'Attaches a builder to another mobile unit, so builder can repair while moving',
+        author    = 'Itanthias',
+        version   = 'v1.1',
         date      = 'July 2023', 
-        license   = 'GNU GPL, v2 or later', 
-        layer     = 12, 
+        license   = 'GNU GPL, v2 or later',
+        layer     = 12,
         enabled   = true
     }
 end
@@ -192,7 +192,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	end
 
 	-- give stop command to attached con turret if nothing to do
-	SpGiveOrderToUnit(nanoID, CMD.STOP, {})
+	SpGiveOrderToUnit(nanoID, CMD.STOP)
 
 end
 
