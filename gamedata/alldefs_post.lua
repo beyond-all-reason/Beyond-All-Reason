@@ -1877,28 +1877,35 @@ function UnitDef_Post(name, uDef)
 
 	-- T1 Turret Turnrate Adjustment 
 	if modOptions.turnrate then
+	
+		-- Cortex
 		if name == "corfav" then 
 			uDef.script = "Units/CORFAVTURNRATE.cob"
+		elseif name == "corgarp" then
+			uDef.script = "Units/CORGARPTURNRATE.cob"
+		elseif name == "corgator" then
+			uDef.script = "Units/CORGATORTURNRATE.cob"
+
+		-- Armada
 		elseif name == "armflash" then
 			uDef.script = "Units/ARMFLASHTURNRATE.cob"
 		elseif name == "armfav" then
 			uDef.script = "Units/ARMFAVTURNRATE.cob"
-		elseif name == "legscout" then
-			uDef.script = "Units/LEGSCOUTTURNRATE.cob"
-		elseif name == "corgator" then
-			uDef.script = "Units/CORGATORTURNRATE.cob"
-		elseif name == "corgarp" then
-			uDef.script = "Units/CORGARPTURNRATE.cob"
-		elseif name == "legcen" then
-			uDef.script = "Units/LEGCENTURNRATE.cob"
 		elseif name == "armpincer" then
 			uDef.script = "Units/ARMPINCERTURNRATE.cob"
+
+		-- Legion
+		elseif name == "legscout" then
+			uDef.script = "Units/LEGSCOUTTURNRATE.cob"
+		elseif name == "legcen" then
+			uDef.script = "Units/LEGCENTURNRATE.cob"
 		elseif name == "legamphtank" then
 			uDef.script = "Units/LEGAMPHTANKTURNRATE.cob"
 		elseif name == "leghelios" then
 			uDef.script = "Units/LEGHELIOSTURNRATE.cob"
 		elseif name == "leghades" then
 			uDef.script = "Units/LEGHADESTURNRATE.cob"
+
 		end
 	end
 	
