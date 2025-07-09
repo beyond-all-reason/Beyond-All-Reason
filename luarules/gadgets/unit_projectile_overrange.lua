@@ -31,7 +31,7 @@ local engineDescent = true
 local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
 
-local mapGravity = Game.gravity / (Game.gameSpeed * Game.gameSpeed)
+local mapGravity = Game.gravity / Game.gameSpeed ^ 2
 local descentGravity = -mapGravity * 5
 
 --functions
