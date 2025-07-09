@@ -60,7 +60,7 @@ end
 
 local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local transporterID = SpGetUnitTransporter(baseUnitID)
-	if (transporterID and transporterID ~= 0) then
+	if transporterID then
 		Spring.GiveOrderToUnit(nanoID, CMD_STOP, {}, 0)
 	return
   	end
