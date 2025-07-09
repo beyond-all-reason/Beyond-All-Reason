@@ -72,7 +72,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		--for XX, YY, baseUnitID in pairs(commandQueue[1]["params"]) do
 		--	Spring.Echo(XX, YY)
 		--end
-        SpGiveOrderToUnit(nanoID, commandQueue[1]["id"], commandQueue[1]["params"], {})
+        SpGiveOrderToUnit(nanoID, commandQueue[1]["id"], commandQueue[1]["params"])
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- repair command
@@ -80,13 +80,13 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		--	Spring.Echo(XX, YY)
 		--end
 		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(nanoID, CMD_REPAIR, commandQueue[1]["params"], {})
+			SpGiveOrderToUnit(nanoID, CMD_REPAIR, commandQueue[1]["params"])
 		end
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
         -- reclaim command
 		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(nanoID, CMD_RECLAIM, commandQueue[1]["params"], {})
+			SpGiveOrderToUnit(nanoID, CMD_RECLAIM, commandQueue[1]["params"])
 		end
     end
 
@@ -147,7 +147,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 			if ( (SpGetUnitSeparation(near_unit, nanoID, true) - SpGetUnitRadius(near_unit)) < radius) then
 				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
 				if buildProgress == 1 and health < maxHealth and UnitDefs[near_defid].repairable and near_unit ~= attached_builders[nanoID] then
-					SpGiveOrderToUnit(nanoID, CMD_REPAIR, {near_unit}, {})
+					SpGiveOrderToUnit(nanoID, CMD_REPAIR, {near_unit})
 					return
 				end
 			end
@@ -160,7 +160,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		if SpGetUnitAllyTeam(near_unit) ~= SpGetUnitAllyTeam(nanoID) then
 			if ( (SpGetUnitSeparation(near_unit, nanoID, true) - SpGetUnitRadius(near_unit)) < radius) then
 				if UnitDefs[near_defid].reclaimable then
-					SpGiveOrderToUnit(nanoID, CMD_RECLAIM, {near_unit}, {})
+					SpGiveOrderToUnit(nanoID, CMD_RECLAIM, {near_unit})
 					return
 				end
 			end
@@ -173,7 +173,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		local near_defid = SpGetFeatureDefID(near_feature)
 		if ( (SpGetUnitFeatureSeparation(nanoID, near_feature, true) - SpGetFeatureRadius(near_feature)) < radius) then
 			if FeatureDefs[near_defid].reclaimable and SpGetFeatureResurrect(near_feature) == "" then
-				SpGiveOrderToUnit(nanoID, CMD_RECLAIM, {near_feature+Game.maxUnits}, {})
+				SpGiveOrderToUnit(nanoID, CMD_RECLAIM, {near_feature+Game.maxUnits})
 				return
 			end
 		end
@@ -184,7 +184,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(nanoID) then
 			if ( (SpGetUnitSeparation(near_unit, nanoID, true) - SpGetUnitRadius(near_unit)) < radius) then
 				if SpGetUnitIsBeingBuilt(near_unit) then
-					SpGiveOrderToUnit(nanoID, CMD_REPAIR, {near_unit}, {})
+					SpGiveOrderToUnit(nanoID, CMD_REPAIR, {near_unit})
 					return
 				end
 			end
@@ -192,7 +192,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	end
 
 	-- give stop command to attached con turret if nothing to do
-	SpGiveOrderToUnit(nanoID, CMD.STOP, {}, {})
+	SpGiveOrderToUnit(nanoID, CMD.STOP, {})
 
 end
 
