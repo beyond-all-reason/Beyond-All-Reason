@@ -62,8 +62,6 @@ Create()
 	hide flare5;
 	hide flare6;
 	
-	set ARMORED to 1;
-
 	aimDir = 0;
 	aimy1target = 0;
 	aimy1position = 0;
