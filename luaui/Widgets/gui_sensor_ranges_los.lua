@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Beherith GL4, Borg_King",
 		date = "2021.06.18",
 		license = "GPLv2, (c) Beherith (mysterme@gmail.com)",
-		layer = 0,
+		layer = 20,
 		enabled = true
 	}
 end
@@ -308,7 +308,7 @@ function widget:DrawWorld()
 	gl.StencilTest(true) -- Enable stencil testing
 	gl.StencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
 	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-	gl.StencilMask(1) -- Only check the first bit of the stencil buffer
+	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
   
 	losCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
@@ -333,7 +333,7 @@ function widget:DrawWorld()
 	gl.StencilTest(false) -- Disable stencil testing
 
 	gl.LineWidth(1.0) 
-	gl.Clear(GL.STENCIL_BUFFER_BIT)
+	--gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
 
 

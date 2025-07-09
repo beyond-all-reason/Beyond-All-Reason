@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Beherith GL4",
 		date = "2021.06.18",
 		license = "GPLv2, (c) Beherith (mysterme@gmail.com)",
-		layer = 0,
+		layer = 17,
 		enabled = true
 	}
 end
@@ -48,7 +48,7 @@ local resolution = 4
 local vsx, vsy  = Spring.GetViewGeometry()
 
 local circleShaderSourceCache = {
-	shaderName = 'LOS Ranges Circles GL4',
+	shaderName = 'Jammer Ranges Circles GL4',
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
@@ -72,6 +72,7 @@ local circleShaderSourceCache = {
  
 local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
 stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
+stencilShaderSourceCache.shaderName = 'Jammer Ranges Stencil GL4'
 
 local function goodbye(reason)
 	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
@@ -312,9 +313,9 @@ function widget:DrawWorld()
     
 	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- Preemtively clear the stencil buffer
 	gl.StencilTest(true) -- Enable stencil testing
-	gl.StencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
+	gl.StencilFunc(GL_NOTEQUAL, 8, 8) -- Always Passes, 0 Bit Plane, 0 As Mask
 	gl.StencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-	gl.StencilMask(1) -- Only check the first bit of the stencil buffer
+	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
   
 	jammerCircleShader:Activate()
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture

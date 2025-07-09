@@ -61,6 +61,7 @@ void main() {
 	
 	// Get the center position of each unit. 
 	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+
 	float nowTime = timeInfo.x + timeInfo.w;
 	float sizeFactor;
 	if (radius_params.y < -1){ //negative means shrinking
@@ -79,25 +80,43 @@ void main() {
 		}
 	#endif
 
+	circleCenterWorldPos.y = max(0.0, circleCenterWorldPos.y + 16.0); // add 16 to the height to avoid z-fighting with the ground
+
+	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
+	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
+	
+
+	float groundHeight = heightAtWorldPos(circleVertexWorldPos.xz); //the y component of v_radius_circum_height
+	circleVertexWorldPos.y = max(0.0, groundHeight + 16.0); // add the height offset to the vertex position
+
 	#ifdef STENCILPASS
 		// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
 		// for the fragment shader 
 		// hack in the additional 16 radius 
 		// TODO: why isnt this added BEFORE?
+
+
 	    circleRadius += 16.0;		
 
-		v_radius_circum_height.x = 0;
-		if (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) {
-			v_radius_circum_height.x = circleRadius; }
+
+		bool isCenterVertex = (dot(circlepointposition.xy, circlepointposition.xy) < 0.0001) ;
+		if (!isCenterVertex) {
+			// make the vector pointing from the center to the vertex exactly circleRadius longer! 
+			
+			vec3 dir = normalize(circleVertexWorldPos.xyz - circleCenterWorldPos.xyz);
+			// this is the vector from the center to the vertex, which is now ABOUT circleRadius long, but we want it to be exactly circleRadius  + 16 long
+
+
+			circleVertexWorldPos.xyz += dir.xyz * 16.0;
+			v_radius_circum_height.x = 0;
+
+		}else{
+			v_radius_circum_height.x = circleRadius + 16.0; // the center vertex is always circleRadius + 16 long
+
+		}
 		
 	#endif
-
-	vec4 circleVertexWorldPos = vec4(circleCenterWorldPos.xyz, 1.0);
-	circleVertexWorldPos.xz += circlepointposition.xy * circleRadius;
 	
-	float groundHeight = heightAtWorldPos(circleVertexWorldPos.xz); //the y component of v_radius_circum_height
-	// get heightmap at vertex
-	circleVertexWorldPos.y = max(0.0,groundHeight+16.0);
 
 	gl_Position = cameraViewProj * circleVertexWorldPos;
 	#ifndef STENCILPASS // Circle Pass
