@@ -6,7 +6,7 @@ function gadget:GetInfo()
         desc      = 'Attaches a builder to another mobile unit, so builder can repair while moving',
         author    = 'Itanthias',
         version   = 'v1.1',
-        date      = 'July 2023', 
+        date      = 'July 2023',
         license   = 'GNU GPL, v2 or later',
         layer     = 12,
         enabled   = true
@@ -63,7 +63,7 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	if transporterID then
 		Spring.GiveOrderToUnit(nanoID, CMD_STOP, {}, 0)
 	return
-  	end
+	end
 	-- first, check command the body is performing
 	local commandQueue = SpGetUnitCommands(attached_builders[nanoID], 1)
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
