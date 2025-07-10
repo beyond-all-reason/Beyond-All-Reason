@@ -398,6 +398,7 @@ local unitOrderTable = {
 
 	['armdecadet3']    = 009450, --SCAV SHIPS
 	['coresuppt3']     = 009460,
+	['corprince']      = 009461,
 	['armpshipt3']     = 009470,
 	['corslrpc']       = 009480,
 
