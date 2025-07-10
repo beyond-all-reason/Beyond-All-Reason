@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -40,7 +39,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMouseState = Spring.GetMouseState
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local myTeamID = Spring.GetMyTeamID()
 
@@ -87,11 +86,14 @@ local unitConf = {}
 local function refreshUnitDefs()
 	unitHumanName = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.translatedHumanName then
-			unitHumanName[unitDefID] = unitDef.translatedHumanName
+		local cp = unitDef.customParams
+		if not (cp.virtualunit == "1") then
+			if unitDef.translatedHumanName then
+				unitHumanName[unitDefID] = unitDef.translatedHumanName
+			end
+			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
+				unitConf[unitDefID] = unitDef.isFactory
 		end
-		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
-			unitConf[unitDefID] = unitDef.isFactory
 		end
 	end
 end
@@ -150,7 +152,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 end
 
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local function drawContent()
@@ -179,10 +181,10 @@ local function drawContent()
 		local fontSize = height*vsy*0.33
 		local offset = ((iconRect[3]-iconRect[1])/5)
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
-		local style = 'c'
-		font2:Begin()
-		font2:SetOutlineColor(0.35,0.35,0.35,useRenderToTexture and 0.35 or 0.15)
-		font2:SetTextColor(0.5,0.5,0.5,useRenderToTexture and 1 or 0.5)
+		local style = 'co'
+		font2:Begin(useRenderToTexture)
+		font2:SetOutlineColor(0, 0, 0, 0.2)
+		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
 		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
@@ -277,7 +279,7 @@ local function drawContent()
 
 				if unitCount > 1 then
 					local fontSize = height*vsy*0.39
-					font:Begin()
+					font:Begin(useRenderToTexture)
 					font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -293,7 +295,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommands(unitID, 0)
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
@@ -403,25 +405,23 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
-		end
-		if useRenderToTexture then
 			if not uiTex then
 				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
@@ -429,20 +429,18 @@ local function updateList(force)
 					fbo = true,
 				})
 			end
-			gl.RenderToTexture(uiTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-				drawContent()
-				gl.PopMatrix()
-			end)
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
 		else
 			dlist = gl.CreateList(function()
-				if not useRenderToTextureBg then
-					drawBackground()
-				end
+				drawBackground()
 				drawContent()
 			end)
 		end
@@ -588,9 +586,11 @@ function widget:Shutdown()
 	end
 	if uiBgTex then
 		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)
+		uiTex = nil
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
@@ -695,23 +695,14 @@ function widget:DrawScreen()
 			doUpdateForce = nil
 		end
 		if dlist or uiTex or uiBgTex then
-			if useRenderToTextureBg then
+			if useRenderToTexture then
 				if uiBgTex then
 					-- background element
-					gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-					gl.Texture(uiBgTex)
-					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
-					gl.Texture(false)
-					gl.Color(1,1,1,1)
+					gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
 				end
-			end
-			if useRenderToTexture then
 				if uiTex then
 					--content
-					gl.Color(1,1,1,1)
-					gl.Texture(uiTex)
-					gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-					gl.Texture(false)
+					gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
 				end
 			else
 				gl.CallList(dlist)

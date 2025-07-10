@@ -45,9 +45,9 @@ return {
 			"leghrk",
 			"legadvaabot",
 			"legsnapper",
-			"corvoyr",
-			"corspy",
-			"corspec",
+			"legaradk",
+			"legaspy",
+			"legajamk",
 			"legdecom",
 		},
 		customparams = {

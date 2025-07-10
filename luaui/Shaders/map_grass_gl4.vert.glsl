@@ -70,8 +70,8 @@ void main() {
   // Early bail visibility culling, if instancePosRotSize.xyz is not in camera frustum, skip it:
 
   vec4 worldPos = vec4(instancePosRotSize.x, 0.0, instancePosRotSize.z, 1.0);
-  vec4 clipPos = cameraViewProj * worldPos;
-  if (abs(clipPos.x) > clipPos.w || abs(clipPos.y) > clipPos.w || clipPos.z < 0.0 || clipPos.z > clipPos.w) {
+  vec4 clipPos = cameraViewProj * vec4(worldPos.xyz, 1.0);
+  if (abs(clipPos.x / clipPos.w) > 1.1) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull by moving out of clip space
     return;
   }
