@@ -193,6 +193,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,
 				customparams = {
+					engage_range = false,
 					noattackrangearc = 1,
 				},
 				damage = {

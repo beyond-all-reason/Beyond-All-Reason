@@ -42,6 +42,7 @@ return {
 			subfolder = "Legion/Bots",
 			weapon1turretx = 200,
 			weapon1turrety = 200,
+			engage_range = "legkark_legion_shotgun",
 		},
 		featuredefs = {
 			dead = {

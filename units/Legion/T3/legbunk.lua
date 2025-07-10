@@ -36,7 +36,6 @@ return {
 		turnrate = 1214,
 		upright = true,
 		customparams = {
-			maxrange = "10",
 			unitgroup = 'weapon',
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
@@ -44,6 +43,8 @@ return {
 			techlevel = 3,
 			weapon1turretx = 200,
 			weapon1turrety = 200,
+			engage_range = "legbunk_railgunt2",
+			maxrange = 10,
 		},
 		featuredefs = {
 			dead = {
