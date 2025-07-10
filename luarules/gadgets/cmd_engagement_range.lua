@@ -24,11 +24,6 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local minSplitDifference = 16 ---@type integer the smallest difference to split ranges
-local minSplitPercentage = 0.1 ---@type number the smallest proportionate difference -- todo
-
-local unitDefaultEngageRangeOverride = {
-	legbunk = WeaponDefNames.legbunk_railgunt2 and WeaponDefNames.legbunk_railgunt2.range or nil,
-}
 
 --------------------------------------------------------------------------------
 -- Global variables ------------------------------------------------------------
@@ -100,6 +95,34 @@ local function ignoreWeapon(weaponDef)
 		weaponDef.commandfire
 end
 
+---@return number? [nil] := ignore unit
+local function getUnitEngageRange(unitDef)
+	if unitDef.customParams.engage_range ~= nil then
+		local engageRange = unitDef.customParams.engage_range
+
+		if engageRange == "false" then
+			return
+		elseif tonumber(engageRange) ~= nil then
+			return tonumber(engageRange)
+		elseif WeaponDefNames[unitDef.customParams.engage_range] ~= nil then
+			return WeaponDefNames[unitDef.customParams.engage_range].range
+		end
+	end
+
+	return tonumber(unitDef.customParams.maxrange or unitDef.maxWeaponRange or 0)
+end
+
+---@return number? [nil] := ignore weapon
+local function getWeaponEngageRange(weaponDef)
+	if not ignoreWeapon(weaponDef) then
+		if weaponDef.customParams.engage_range then
+			return tonumber(weaponDef.customParams.engage_range)
+		else
+			return weaponDef.range
+		end
+	end
+end
+
 local function getArmorDamages(weaponDef)
 	local damages = weaponDef.damages
 	local damageDefault = damages[ARMORTYPE_DEFAULT] or 0
@@ -140,7 +163,7 @@ local function getArmorDamages(weaponDef)
 	return damageRate, armorTarget
 end
 
-for unitDefID, unitDef in pairs(UnitDefs) do
+local function addUnitEngageState(unitDefID, unitDef)
 	if unitDef.canAttack and unitDef.canMove then
 		---@class EngageRangeInfo
 		---@field default number the preset unit maximum range
@@ -150,19 +173,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local info = {}
 
 		local weapons = {}
-		local unitEngageRange = tonumber(unitDef.customParams.maxrange or unitDef.maxWeaponRange or 0)
-
-		if unitDefaultEngageRangeOverride[unitDef.name] then
-			unitEngageRange = unitDefaultEngageRangeOverride[unitDef.name]
-		end
-
 		local unitArmorDamage = 0
 		local unitArmorTarget = ARMORTYPE_DEFAULT
+		local unitEngageRange = getUnitEngageRange(unitDef)
+
+		if unitEngageRange == nil then
+			return
+		end
 
 		for i = 1, #unitDef.weapons do
 			local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+			local engageRange = getWeaponEngageRange(weaponDef)
 
-			if not ignoreWeapon(weaponDef) then
+			if engageRange ~= nil then
 				local armorDamage, armorTarget = getArmorDamages(weaponDef)
 
 				if armorDamage > 10 then
@@ -172,9 +195,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 					end
 
 					weapons[#weapons + 1] = {
-						name    = weaponDef.name,
 						targets = armorTarget,
-						range   = weaponDef.range,
+						range   = engageRange,
 					}
 				end
 			end
@@ -203,10 +225,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 
 			if close ~= nil and secondary ~= nil and secondary < unitEngageRange then
-				-- todo: if we've condensed multiple weapons into this category,
-				-- todo: then it would be better to search through them and try
-				-- todo: to keep at least one that's at least kind of sensible
-				-- todo: but idk I think this keeps the button toggle cleaner
 				if math.abs(close - secondary) < minSplitDifference then
 					secondary = nil
 				end
@@ -217,7 +235,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				-- so that each def can have default state
 				local params = { tostring(ENGAGESTATE_DEFAULT), labels.default }
 
-				info.default = unitEngageRange ---@diagnostic disable-line: assign-type-mismatch -- N/A
+				info.default = unitEngageRange
 
 				if close then
 					params[#params + 1] = labels.close
@@ -235,6 +253,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 		end
 	end
+end
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	addUnitEngageState(unitDefID, unitDef)
 end
 
 --------------------------------------------------------------------------------
