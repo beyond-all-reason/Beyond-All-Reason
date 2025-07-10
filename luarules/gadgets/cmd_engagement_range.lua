@@ -44,7 +44,7 @@ local CMD_ENGAGE_STATE = GameCMD.ENGAGE_STATE
 
 ---Units can have their own params but share this base table in their cmdDescs.
 ---@type CommandDescription
-local engageRangeCmdDesc = {
+local engageStateCmdDesc = {
 	id       = CMD_ENGAGE_STATE,
 	type     = CMDTYPE.ICON_MODE,
 	name     = "engage_state",
@@ -310,7 +310,7 @@ end
 
 local function addUnitCommand(unitID, unitDefID)
 	if Spring.FindUnitCmdDesc(unitID, CMD_ENGAGE_STATE) == nil then
-		local desc = engageRangeCmdDesc
+		local desc = engageStateCmdDesc
 		desc.params = unitEngageRangeInfo[unitDefID].params
 		Spring.InsertUnitCmdDesc(unitID, desc)
 
