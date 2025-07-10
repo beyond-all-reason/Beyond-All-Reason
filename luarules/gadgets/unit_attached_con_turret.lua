@@ -17,10 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-
-local CMD_REPAIR = CMD.REPAIR
-local CMD_RECLAIM = CMD.RECLAIM
-local SpGetUnitCommands = Spring.GetUnitCommands
+local SpGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
 local SpGetFeaturePosition = Spring.GetFeaturePosition
@@ -42,6 +39,52 @@ local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 
+local CMD_GUARD = CMD.GUARD
+local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+local CMD_STOP = CMD.STOP
+
+local FEATURE_BASE_INDEX = Game.maxUnits
+
+--------------------------------------------------------------------------------
+-- Command introspection -------------------------------------------------------
+
+-- Parameter counts used with commands
+local always = {}; for i = 0, 8 do always[i] = true end
+local withParams = {}; for i = 1, 8 do withParams[i] = true end
+local never = {}
+local buildOrder = { [4] = true, }
+local buildTarget = { [1] = true, [5] = true }
+local mapPosition = { [3] = true, [4] = true, }
+
+local commandParamAllowed = {
+	[CMD.STOP]       = always,
+	[CMD.INSERT]     = always,
+	[CMD.REMOVE]     = always,
+	[CMD.WAIT]       = always,
+	[CMD.DEATHWAIT]  = always,
+	[CMD.GATHERWAIT] = always,
+	[CMD.TIMEWAIT]   = always,
+
+	[CMD.FIRE_STATE] = withParams,
+	[CMD.MOVE_STATE] = withParams,
+	[CMD.ONOFF]      = withParams,
+	[CMD.TRAJECTORY] = withParams,
+
+	[CMD.CAPTURE]    = buildTarget,
+	[CMD.RECLAIM]    = buildTarget,
+	[CMD.REPAIR]     = buildTarget,
+	[CMD.RESURRECT]  = buildTarget,
+
+	[CMD.RESTORE]    = mapPosition,
+}
+
+commandParamAllowed = setmetatable(commandParamAllowed, {
+	__index = function(self, key)
+		return key < 0 and buildOrder or never
+	end
+})
+
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
 local max_unit_radius = 0
@@ -56,76 +99,115 @@ function gadget:Initialize()
 
 end
 
-local function auto_repair_routine(unitID,unitDefID)
+local repack5 -- Same as Lua `pack` but for reusing tables.
+do
+	local commandParams = table.new(5, 0)
 
-	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attached_builders[unitID], 1)
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- build command
-		-- The attached turret must have the same buildlist as the body for this to work correctly
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-        SpGiveOrderToUnit(unitID, commandQueue[1]["id"], commandQueue[1]["params"], {})
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- repair command
-		--for XX,YY, base_unit_id in pairs(commandQueue[1]["params"]) do
-		--	Spring.Echo(XX,YY)
-		--end
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_REPAIR, commandQueue[1]["params"], {})
+	---@return number[] commandParams where #commandParams := 1|2|3|4|5
+	repack5 = function(p1, p2, p3, p4, p5)
+		local p = commandParams
+		p[1], p[2], p[3], p[4], p[5] = p1, p2, p3, p4, p5
+		return p
+	end
+end
+
+---@return boolean found
+local function findGuardOrder(turretID, guardedID)
+	local health, healthMax, _, _, buildProgress = SpGetUnitHealth(guardedID)
+
+	if health == nil then
+		return false
+	end
+
+	local command, params
+
+	if health < healthMax then
+		command, params = CMD_REPAIR, guardedID
+	elseif buildProgress < 1 then
+		command, params = -guardedID, {}
+	end
+
+	return command ~= nil and SpGiveOrderToUnit(turretID, command, params)
+end
+
+local function auto_repair_routine(unitID, baseID)
+	local command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(baseID)
+
+	if command == CMD_GUARD then
+		if findGuardOrder(unitID, param1) then
+			return
+		else
+			-- The engine doesn't do anything special for chained GUARDs, so neither do we:
+			command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(param1)
 		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-        -- reclaim command
-		if #commandQueue[1]["params"] ~= 4 then
-			SpGiveOrderToUnit(unitID, CMD_RECLAIM, commandQueue[1]["params"], {})
-		end
-    end
+	end
+
+	local params = repack5(param1, param2, param3, param4, param5)
+
+	if command ~= nil and commandParamAllowed[command][#params] then
+		SpGiveOrderToUnit(unitID, command, params)
+	end
+
+	local unitDefID = attached_builder_def[unitID]
+	local ux, uy, uz = SpGetUnitPosition(unitID)
+	local radius = UnitDefs[unitDefID].buildDistance
 
 	-- next, check to see if current command (including command from chassis) is in range
-	commandQueue = SpGetUnitCommands(unitID, 1)
-	local ux,uy,uz = SpGetUnitPosition(unitID)
-	local tx, ty, tz
-	local radius = UnitDefs[unitDefID].buildDistance
-	local distance = radius^2 + 1
-	local object_radius = 0
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
-        -- out of range build command
-		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
-		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
-    end
-    if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
-        -- out of range repair command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
+
+	-- The engine and call-ins can modify our orders, so we *must* re-fetch the current order;
+	-- e.g., when executing the build command, the engine prepends orders to reclaim features.
+	command, _, _, param1, param2, param3, param4, param5 = SpGetUnitCurrentCommand(unitID)
+
+	local dx, dy, dz
+	local distance
+
+	if command ~= nil then
+		local paramCount = #(repack5(param1, param2, param3, param4, param5))
+
+		local allowed = commandParamAllowed[command]
+
+		-- Blanket-verify all parameter counts to avoid (e.g.) area commands:
+		if allowed == buildTarget then
+			if allowed[paramCount] then
+				local object_radius = 0
+				local tx, ty, tz
+
+				if param1 < FEATURE_BASE_INDEX then
+					tx, ty, tz = SpGetUnitPosition(param1)
+					object_radius = SpGetUnitRadius(param1)
+				else
+					local featureID = param1 - FEATURE_BASE_INDEX
+					tx, ty, tz = SpGetFeaturePosition(featureID)
+					object_radius = SpGetFeatureRadius(featureID)
+				end
+
+				dx = ux - tx
+				dy = uy - ty
+				dz = uz - tz
+
+				distance = math.sqrt(dx * dx + dy * dy + dz * dz) - object_radius
+			end
+		elseif
+			(allowed == buildOrder and allowed[paramCount]) or
+			(allowed == mapPosition and allowed[paramCount])
+		then
+			local tx, ty, tz = param1, param2, param3
+
+			dx = ux - tx
+			dy = uy - ty
+			dz = uz - tz
+
+			distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+		elseif allowed[paramCount] then
+			-- We may be WAITing, for example.
+			return true
 		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
-		end
-    end
-	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
-		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
-		else
-			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
-			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
-		end
-		if tx ~= nil then
-			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
-		end
-    end
-	if tx and distance <= radius then
+	end
+
+	if distance ~= nil and distance <= radius then
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
+		heading1 = SpGetHeadingFromVector(dx, dz)
 		heading2 = SpGetUnitHeading(unitID)
 		SpCallCOBScript(unitID, 'UpdateHeading', 0, heading1-heading2+32768)
 		return
@@ -186,14 +268,16 @@ local function auto_repair_routine(unitID,unitDefID)
 	end
 
 	-- give stop command to attached con turret if nothing to do
-	SpGiveOrderToUnit(unitID,CMD.STOP,{}, {})
+	SpGiveOrderToUnit(unitID, CMD_STOP, {}, {})
 
 end
 
 attached_builders = {}
+attached_builders_reverse = {}
 attached_builder_def = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	attached_builders[unitID] = nil
+	attached_builders_reverse[unitID] = nil
 	attached_builder_def[unitID] = nil
 end
 
@@ -213,6 +297,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(nano_id, false, false, false)
 		Spring.SetUnitNoSelect(nano_id,true)
 		attached_builders[nano_id] = unitID
+		attached_builders_reverse[unitID] = nano_id
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end
 	if unitDef.name == "legmohobp" then
@@ -227,6 +312,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.SetUnitBlocking(nano_id, false, false, false)
         Spring.SetUnitNoSelect(nano_id,false)
 		attached_builders[nano_id] = unitID
+		attached_builders_reverse[unitID] = nano_id
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end
 
@@ -237,8 +323,51 @@ function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
 		for unitID, base_unit_id in pairs(attached_builders) do
-			auto_repair_routine(unitID,attached_builder_def[unitID])
+			auto_repair_routine(unitID, base_unit_id)
 		end
 	end
 
+end
+
+---Avoid enqueuing commands on the construction turret.
+---@param commandOptions CommandOptions
+---@return CommandOptions
+local function resetOptions(commandOptions)
+	-- NB: Other callins need to reuse the table.
+	local options = table.copy(commandOptions)
+
+	options.meta = nil
+
+	if options.alt ~= options.shift then
+		options.alt = nil
+		options.shift = nil
+	end
+
+	return options
+end
+
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if cmdTag == 0 and attached_builders_reverse[unitID] then
+		-- Forward to the turret.
+		local turretID = attached_builders_reverse[unitID]
+
+		if cmdID >= 0 then
+			if commandParamAllowed[cmdID][#cmdParams] then
+				SpGiveOrderToUnit(turretID, cmdID, cmdParams, resetOptions(cmdOpts))
+			end
+		else
+			-- In the crazy chance that the build frame is already placed, we would need to REPAIR:
+			local buildFrames = SpGetUnitsInCylinder(cmdParams[1], cmdParams[3], Game.squareSize)
+
+			for _, assistID in ipairs(buildFrames) do
+				if -cmdID == SpGetUnitDefID(assistID) then
+					SpGiveOrderToUnit(turretID, CMD_REPAIR, assistID)
+					return
+				end
+			end
+
+			-- Otherwise, accept the build order on the turret:
+			SpGiveOrderToUnit(turretID, cmdID, cmdParams, cmdOpts)
+		end
+	end
 end
