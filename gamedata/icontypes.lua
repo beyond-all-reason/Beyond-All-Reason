@@ -443,6 +443,10 @@ local icontypes = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
+	leggatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
+	},
 	armgatet3 = {
 		bitmap = "icons/shield.png",
 		size = 1.9425
