@@ -2,7 +2,6 @@ return {
 	armshockwave = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "ARMSHOCKWAVE.DDS",
 		buildtime = 15000,
 		canattack = true,
