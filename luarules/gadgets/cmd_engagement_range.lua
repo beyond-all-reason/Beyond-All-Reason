@@ -88,6 +88,7 @@ local function ignoreWeapon(weaponDef)
 			-- non-damaging with no valid secondary effect
 			weaponDef.damages[ARMORTYPE_DEFAULT] <= 1 and
 			weaponDef.damages[ARMORTYPE_VTOL] <= 1 and
+			weaponDef.damages[Game.armorTypes.mines] <= 1 and
 			not weaponDef.name:find("juno_pulse") and -- hardcoded :/ rip
 			not (custom.carried_unit and tonumber(custom.maxunits or 1) >= 1)
 		) or
