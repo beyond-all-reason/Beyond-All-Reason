@@ -85,18 +85,22 @@ local moveStateLeashRadius = {
 -- - The secondary-role engagement weapon.
 local unitEngageRangeInfo = {}
 
-local function isFakeWeapon(weaponDef)
+local function ignoreWeapon(weaponDef)
 	local custom = weaponDef.customParams
 
-	return weaponDef.nofire or
-		weaponDef.commandfire or
-		weaponDef.range < 10 or
-		custom.bogus or
+	return custom.bogus or
+		-- These cases are redundant with the `bogus` manual category:
+		custom.nofire or -- kicks, stomps, prime/arm/launch effects
+		weaponDef.range < 10 or -- self-detonators, fake aim points
 		(
+			-- non-damaging with no valid secondary effect
 			weaponDef.damages[ARMORTYPE_DEFAULT] <= 1 and
 			weaponDef.damages[ARMORTYPE_VTOL] <= 1 and
-			not (custom.carried_unit and custom.maxunits and tonumber(custom.maxunits) >= 1)
-		)
+			not weaponDef.name:find("juno_pulse") and -- hardcoded :/ rip
+			not (custom.carried_unit and tonumber(custom.maxunits or 1) >= 1)
+		) or
+		-- This is a true weapon but is not used for automatic ranging:
+		weaponDef.commandfire
 end
 
 local function getArmorDamages(weaponDef)
@@ -123,7 +127,7 @@ local function getArmorDamages(weaponDef)
 
 				for _, weapon in ipairs(unitDef.weapons) do
 					local droneWeaponDef = WeaponDefs[weapon.weaponDef]
-					if not isFakeWeapon(droneWeaponDef) then
+					if not ignoreWeapon(droneWeaponDef) then
 						damageRate, armorTarget = getArmorDamages(WeaponDefs[weapon.weaponDef])
 						damageRate = damageRate * count
 
@@ -161,7 +165,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		for i = 1, #unitDef.weapons do
 			local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 
-			if not isFakeWeapon(weaponDef) then
+			if not ignoreWeapon(weaponDef) then
 				local armorDamage, armorTarget = getArmorDamages(weaponDef)
 
 				if armorDamage > 10 then
