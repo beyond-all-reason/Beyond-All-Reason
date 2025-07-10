@@ -659,7 +659,7 @@ else	-- Unsynced
 			local sUnits = spGetSelectedUnits()
 			for i = 1, #sUnits do
 				local unitDefID = spGetUnitDefID(sUnits[i])
-				if isAirUnit[unitDefID] and not isAirCon[unitDefID] then
+				if isAirUnit[unitDefID] and not isAirCon[unitDefID] then -- cons still default to their usual construction tasks
 					return CMD_LAND_AT_SPECIFIC_AIRBASE
 				end
 			end
