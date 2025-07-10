@@ -28,10 +28,6 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.canFly and ud.isStrafingAirUnit then 
 		if ud.customParam.attacksafetydistance then
 			isFighter[udid] = ud.customParam.attacksafetydistance
-
-		-- legacy fighter param support
-		elseif ud.customParams.fighter then
-			isFighter[udid] = 300
 		end
 	end
 end
