@@ -27,10 +27,7 @@ local minSplitDifference = 16 ---@type integer the smallest difference to split 
 local minSplitPercentage = 0.1 ---@type number the smallest proportionate difference -- todo
 
 local unitDefaultEngageRangeOverride = {
-	legbunk = math.floor(0.5 * (
-		UnitDefNames.legbunk.sightDistance +
-		UnitDefNames.legbunk.weapons.railgunt2.range
-	)),
+	legbunk = WeaponDefNames.legbunk_railgunt2 and WeaponDefNames.legbunk_railgunt2.range or nil,
 }
 
 --------------------------------------------------------------------------------
