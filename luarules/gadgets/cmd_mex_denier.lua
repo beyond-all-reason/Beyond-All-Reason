@@ -47,6 +47,19 @@ function gadget:Initialize()
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
+local function mexExists(spot, teamID, cmdX, cmdZ)
+	local units = spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	for _, unit in ipairs(units) do
+		if isMex[spGetUnitDefID(unit)] then
+			local ux, _, uz = spGetUnitPosition(unit)
+			if not(ux == cmdX and uz == cmdZ) and spGetUnitAllyTeam(unit) == teamID then -- exclude upgrading mexes
+				return true
+			end
+		end
+	end
+	return false
+end
+
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams, _, _, playerID)
 	local isInsert = cmdID == CMD_INSERT
@@ -71,17 +84,7 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams, _, _, playerID)
 		return false
 	end
 
-	local units = spGetUnitsInCylinder(closestSpot.x, closestSpot.z, Game_extractorRadius) -- don't allow command in the first place
-	for _, unit in ipairs(units) do
-		if isMex[spGetUnitDefID(unit)] then
-			local ux, _, uz = spGetUnitPosition(unit)
-			if not(ux == bx and uz == bz) and spGetUnitAllyTeam(unit) == select(5, spGetPlayerInfo(playerID)) then -- exclude upgrading mexes
-				return false
-			end
-		end
-	end
-
-	return true
+	return not mexExists(closestSpot, select(5, spGetPlayerInfo(playerID)), bx, bz)
 end
 
 -- function gadget:AllowUnitCreation(unitDefID, builderID, teamID, x, y, z, facing)
@@ -94,16 +97,6 @@ function gadget:AllowUnitCreation(unitDefID, _, teamID, x, _, z)
 	if not closestSpot then
 		return false
 	end
-
-	local units = spGetUnitsInCylinder(closestSpot.x, closestSpot.z, Game_extractorRadius)
-	for _, unit in ipairs(units) do
-		if isMex[spGetUnitDefID(unit)] then
-			local ux, _, uz = spGetUnitPosition(unit)
-			if not(ux == x and uz == z) and spGetUnitAllyTeam(unit) == spGetTeamAllyTeamID(teamID) then -- exclude upgrading mexes
-				return false
-			end
-		end
-	end
-
-	return true
+	
+	return not mexExists(closestSpot, teamID, x, z)
 end
