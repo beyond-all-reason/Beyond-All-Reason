@@ -36,7 +36,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.165,
 		customparams = {
-			fighter = 1,
+			attacksafetydistance = 300,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",

@@ -25,11 +25,14 @@ end
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.canFly and ud.isStrafingAirUnit and ud.customParams.fighter then
-		-- customParams.fighter was orginally only checked if there, so contents didn't matter, instances were defined as 1 instead of true
-		local attackDistance = tonumber(ud.customParams.fighter) or 1
-		attackDistance = attackDistance == 1 and 300 or attackDistance
-		isFighter[udid] = attackDistance
+	if ud.canFly and ud.isStrafingAirUnit then 
+		if ud.customParam.attacksafetydistance then
+			isFighter[udid] = ud.customParam.attacksafetydistance
+
+		-- legacy fighter param support
+		elseif ud.customParams.fighter then
+			isFighter[udid] = 300
+		end
 	end
 end
 
