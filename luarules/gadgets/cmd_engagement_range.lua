@@ -129,7 +129,7 @@ local function getArmorDamages(weaponDef)
 	local damageAntiAir = damages[ARMORTYPE_VTOL] or 0
 	local damageMax = math.max(damageDefault, damageAntiAir, 0)
 
-	local damageRate = damageMax * (weaponDef.burst or 1) * (weaponDef.projectiles or 1) /
+	local damageRate = damageMax * weaponDef.burst * weaponDef.projectiles /
 		math.max(
 			math.max(weaponDef.burstRate, 1 / Game.gameSpeed) * weaponDef.burst,
 			weaponDef.reload,
