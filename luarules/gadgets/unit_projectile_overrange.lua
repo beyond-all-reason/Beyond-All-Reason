@@ -172,6 +172,9 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 
 	local metaData = { weaponDefID = weaponDefID, proOwnerID = proOwnerID }
 	local originX, _, originZ = spGetUnitPosition(proOwnerID)
+	if not originX then
+		originX, _, originZ = spGetProjectilePosition(proID)
+	end
 	metaData.originX = originX
 	metaData.originZ = originZ
 
