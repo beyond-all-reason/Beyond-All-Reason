@@ -19,7 +19,8 @@ static-var  active_barrel_one, active_barrel_two, active_barrel_three, active_ba
 #define SIGNAL_AIM_BACK 4
 #define SIGNAL_AIM_FRONT_A 8
 #define SIGNAL_AIM_FRONT_B 16
-#define SIGNAL_AIM_FLAK 32
+#define SIGNAL_AIM_FLAK_A 32
+#define SIGNAL_AIM_FLAK_B 64
 
 
 #define RB_MASS 60
@@ -553,8 +554,8 @@ QueryWeapon5(piecenum)
 
 AimWeapon5(heading, pitch)
 {
-	signal SIGNAL_AIM_FLAK;
-	set-signal-mask SIGNAL_AIM_FLAK;
+	signal SIGNAL_AIM_FLAK_A;
+	set-signal-mask SIGNAL_AIM_FLAK_A;
 	stop-spin flakturreta around y-axis;
 	turn flakturreta to y-axis heading speed <250.000000>;
 	turn flakbasea to x-axis <0> - pitch speed <200.000000>;
@@ -601,8 +602,8 @@ QueryWeapon6(piecenum)
 
 AimWeapon6(heading, pitch)
 {
-	signal SIGNAL_AIM_FLAK;
-	set-signal-mask SIGNAL_AIM_FLAK;
+	signal SIGNAL_AIM_FLAK_B;
+	set-signal-mask SIGNAL_AIM_FLAK_B;
 	stop-spin flakturretb around y-axis;
 	turn flakturretb to y-axis heading speed <250.000000>;
 	turn flakbaseb to x-axis <0> - pitch speed <200.000000>;
