@@ -108,8 +108,8 @@ local function getArmorDamages(weaponDef)
 
 	local damageRate = damageMax * (weaponDef.burst or 1) * (weaponDef.projectiles or 1) /
 		math.max(
-			(weaponDef.burstRate or 0) * (weaponDef.burst or 1),
-			weaponDef.reload or 0,
+			math.max(weaponDef.burstRate, 1 / Game.gameSpeed) * weaponDef.burst,
+			weaponDef.reload,
 			weaponDef.stockpile and weaponDef.stockpileTime or 0,
 			0.0001
 		)
