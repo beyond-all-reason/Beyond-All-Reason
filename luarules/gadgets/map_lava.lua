@@ -131,28 +131,28 @@ if gadgetHandler:IsSyncedCode() then
 			if not canFly[unitDefID] then
 				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					local us = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
-					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
-						local mt = spGetMoveData(unitID).name
-						local ms = speedDefs[unitDefID]
-						local tr = turnDefs[unitDefID]
-						local ac = accDefs[unitDefID]
-						if (mt == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ac and ac ~= 0)then
+					local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					if not lavaUnits[unitID] then -- first entry into lava
+						local moveType = spGetMoveData(unitID).name
+						local maxSpeed = speedDefs[unitDefID]
+						local turnRate = turnDefs[unitDefID]
+						local accelRate = accDefs[unitDefID]
+						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0)then
 							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
 						else
 							lavaUnits[unitID] = {slowed = false}
 						end
 					end
-					if lavaUnits[unitID].slowed and (us ~= lavaUnits[unitID].currentSlow) then
-						local slowedMaxSpeed = speedDefs[unitDefID] * us
-						local slowedTurnRate = turnDefs[unitDefID] * us
-						local slowedAccRate = accDefs[unitDefID] * us
+					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
+						local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
+						local slowedTurnRate = turnDefs[unitDefID] * unitSlow
+						local slowedAccRate = accDefs[unitDefID] * unitSlow
 						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
-						lavaUnits[unitID].currentSlow = us
+						lavaUnits[unitID].currentSlow = unitSlow
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
-				elseif lavaUnits[unitID] then 
+				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
 						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
 					end
