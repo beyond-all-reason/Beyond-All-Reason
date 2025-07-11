@@ -25,6 +25,8 @@ local setHeight = 0.046
 local maxIcons = 9
 local showRez = true
 local doUpdateForce = true
+local justSelected = false
+local listUpdated = {} -- listUpdated[unitDefID]: set to true when idle list is updated, set to false when idleList[unitDefID] is sorted
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -295,6 +297,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
+		listUpdated[unitDefID] = true
 		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
@@ -732,12 +735,23 @@ function widget:MousePress(x, y, button)
 								if clicks[unitDefID] then
 									clicks[unitDefID] = clicks[unitDefID] + 1
 								else
-									clicks[unitDefID] = 1
+									clicks[unitDefID] = 0
 								end
 								num = (clicks[unitDefID]) % (#idleList[unitDefID]) + 1
 							end
+							if listUpdated[unitDefID] then
+								local camX, _, camZ = Spring.GetCameraPosition()
+								Spring.Echo("sort")
+								table.sort(idleList[unitDefID], function (a, b)
+									local unitAX, _, unitAZ = Spring.GetUnitPosition(a)
+									local unitBX, _, unitBZ = Spring.GetUnitPosition(b)
+									return math.distance2d(unitAX, unitAZ, camX, camZ) < math.distance2d(unitBX, unitBZ, camX, camZ)
+								end)
+								listUpdated[unitDefID] = false
+							end
 							units = { idleList[unitDefID][num] }
 						end
+						justSelected = true
 						Spring.SelectUnitArray(units)
 					end
 					if button == 3 then
@@ -756,6 +770,16 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
+	if justSelected then
+		justSelected = false
+		return
+	end
+	for unitDefID, _ in pairs(idleList) do
+		listUpdated[unitDefID] = true
+	end
+	for unitDefID, _ in pairs(clicks) do
+		clicks[unitDefID] = -1
+	end
 end
 
 
