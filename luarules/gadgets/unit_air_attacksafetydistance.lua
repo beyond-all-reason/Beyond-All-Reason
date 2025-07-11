@@ -23,11 +23,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local isFighter = {}
+local unitSafeDistance = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly and ud.isStrafingAirUnit then 
 		if ud.customParams.attacksafetydistance then
-			isFighter[udid] = ud.customParams.attacksafetydistance
+			unitSafeDistance[udid] = ud.customParams.attacksafetydistance
 		end
 	end
 end
@@ -39,12 +39,12 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if isFighter[unitDefID] then
+	if unitSafeDistance[unitDefID] then
 		local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
 		if curMoveCtrl then
 			Spring.MoveCtrl.Disable(unitID)
 		end
-		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", isFighter[unitDefID])
+		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", unitSafeDistance[unitDefID])
 		if curMoveCtrl then
 			Spring.MoveCtrl.Enable(unitID)
 		end
