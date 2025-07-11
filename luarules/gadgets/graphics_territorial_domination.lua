@@ -13,11 +13,15 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then return false end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+	local LuaShader = gl.LuaShader
+	local InstanceVBOTable = gl.InstanceVBOTable
+
+	local makeInstanceVBOTable = InstanceVBOTable.makeInstanceVBOTable
+	local makeVAOandAttach = InstanceVBOTable.makeVAOandAttach
+	local pushElementInstance = InstanceVBOTable.pushElementInstance
+	local uploadAllElements = InstanceVBOTable.uploadAllElements
 
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
