@@ -710,7 +710,7 @@
 			"ready": "Ready",
 			"unready": "Unready",
 			"readied": "Readied",
-			"lock": "Lock Position",
+			"lock": "Ready",
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
