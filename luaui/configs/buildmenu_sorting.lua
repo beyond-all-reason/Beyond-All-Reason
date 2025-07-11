@@ -191,6 +191,7 @@ local unitOrderTable = {
 	['legbal']		   = 005311,
 
 	['armham']         = 005400, --ARTILLERY
+	['cormug']		   = 005405,
 	['corthud']        = 005410,
 	['armart']         = 005420,
 	['corwolv']        = 005430,
