@@ -22,18 +22,6 @@ local deleteMaxDistance = 30
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
-local function tabletostring(t)
-	local str = "{"
-	for i, v in pairs(t) do
-		if type(v) == "table" then
-			str = str .. tabletoString(v)
-		else
-			str = str .. tostring(i) .. "=" .. tostring(v) .. ","
-		end
-	end
-	return str .. "}"
-end
-
 function GG.GetUnitTarget(unitID)
 	local targetID = spGetUnitRulesParam(unitID, "targetID")
 	targetID = tonumber(targetID) and targetID >= 0 and targetID or nil
@@ -419,7 +407,7 @@ if gadgetHandler:IsSyncedCode() then
 	
 	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
-		--tracy.Message(string.format("processCommand params=%s oprt=%s", tabletostring(cmdParams), tabletostring(cmdOptions)))
+		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if validUnits[unitDefID] then
 				local weaponList = unitWeapons[unitDefID]
