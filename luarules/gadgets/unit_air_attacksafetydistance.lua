@@ -27,7 +27,7 @@ local attackSafetyDistance = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly and ud.isStrafingAirUnit then 
 		if ud.customParams.attacksafetydistance then
-			attackSafetyDistance[udid] = ud.customParams.attacksafetydistance
+			attackSafetyDistance[udid] = tonumber(ud.customParams.attacksafetydistance)
 		end
 	end
 end
