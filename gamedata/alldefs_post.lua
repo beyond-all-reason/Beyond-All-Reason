@@ -1873,6 +1873,22 @@ function UnitDef_Post(name, uDef)
 			uDef.weapons[1].onlytargetcategory = "NOTSUB"
 			uDef.weapondefs.commando_blaster.damage.default = 150
 			uDef.weapondefs.commando_blaster.weaponvelocity = 600
+		end
+	end
+
+	if modOptions.t1_lab_rework then
+		if name == "armap" or name == "corap" or name == "legap"
+		or name == "armfhp" or name == "corfhp" or name == "legfhp"
+		or name == "armhp" or name == "corhp" or name == "leghp"
+		or name == "armlab" or name == "corlab" or name == "leglab"
+		or name == "armsy" or name == "corsy" or name == "legsy"
+		or name == "armvp" or name == "corvp" or name == "legvp"
+		then
+			uDef.metalcost = uDef.metalcost * 0.7
+			uDef.energycost = uDef.energycost * 0.7
+			uDef.buildtime = uDef.buildtime * 0.7
+			uDef.workertime = 200
+			uDef.health = uDef.health * 0.7
 		end	
 	end
 	
