@@ -26,8 +26,8 @@ end
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly and ud.isStrafingAirUnit then 
-		if ud.customParam.attacksafetydistance then
-			isFighter[udid] = ud.customParam.attacksafetydistance
+		if ud.customParams.attacksafetydistance then
+			isFighter[udid] = ud.customParams.attacksafetydistance
 		end
 	end
 end
