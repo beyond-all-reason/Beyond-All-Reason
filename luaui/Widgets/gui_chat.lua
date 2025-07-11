@@ -383,6 +383,7 @@ local autocompleteCommands = {
 	'luarules givecat',
 	'luarules halfhealth',
 	'luarules kill_profiler',
+	'luarules lavalevel',
 	'luarules loadmissiles',
 	'luarules profile',
 	'luarules reclaimunits',
