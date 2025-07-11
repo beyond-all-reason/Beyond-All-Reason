@@ -22,7 +22,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armllt" or name == "corllt" or name == "leglht"
 	or name == "armbeamer" or name == "corhllt"
 	or name == "corhlt" or name == "armhlt" or name == "legmg"
-	or name == "armguard" or name == "corpun" or name == "legguard"
+	or name == "armguard" or name == "corpun" or name == "legcluster"
 	or name == "armdl" or name == "cordl" or name == "legctl" then
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
 	end
