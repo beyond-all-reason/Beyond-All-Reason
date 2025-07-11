@@ -158,7 +158,7 @@ else -- UNSYNCED
 			local uDefID = spGetUnitDefID(id)
 			if isObject[uDefID] or isDecoration[uDefID] then
 				-- make sure a command given on top of a objectified/decoration unit is a move command
-				if select(4, Spring.GetUnitHealth(id)) == 1 then
+				if select(5, Spring.GetUnitHealth(id)) == 1 then
 					return CMD_MOVE
 				end
 			end
