@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  smoke1,smoke2,smoke3,smoke4,base, arm1,arm2,arm3,clamp1,clamp2,barrell, barrelr,hotr,hotl,fan;
 
@@ -233,13 +231,12 @@ Create()
 }
 
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
 
 Killed(severity, corpsetype)
 {
