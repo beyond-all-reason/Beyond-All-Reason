@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
--- This API is now fully deprecated, as the swith to quaternions breaks it entirely. 
+-- This API is now fully deprecated, as the swith to quaternions breaks it entirely.
 
 
 local LuaShader = gl.LuaShader
@@ -309,7 +309,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}
-	InstanceVBOTable.clearInstanceTable(highlightUnitVBOTable)
+	if highlightUnitVBOTable then
+		InstanceVBOTable.clearInstanceTable(highlightUnitVBOTable)
+	end
 
 	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 		-- i am no longer nice to consumers
@@ -429,7 +431,7 @@ local deprecationWarning = "Highlight Unit API is deprecated due to lack of quat
 
 function widget:DrawWorld()
 	if highlightUnitVBOTable.usedElements > 0 then
-		if deprecationWarning then 
+		if deprecationWarning then
 			Spring.Echo(deprecationWarning)
 			deprecationWarning = nil
 		end

@@ -1,41 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  leg1, leg2, leg3, leg4, base, body;
 
-static-var  bMoving;
+static-var  isMoving;
 
-#define SIG_MOVE 1
-walkscr()
-{
-	while( bMoving )
-	{
-		if( bMoving )
-		{
-			turn leg1 to z-axis <0.000000> now;
-			sleep 33;
-		}
+#define SIGNAL_MOVE 1
 
-	}
-}
-
-MotionControl(Func_Var_1)
-{
-	while( TRUE )
-	{
-		Func_Var_1 = bMoving;
-		if( Func_Var_1 )
-		{
-			call-script walkscr();
-		}
-		else
-		{
-			sleep 100;
-		}
-	}
-}
 
 #define BASEPIECE base
 #define HITSPEED <60.0>
@@ -43,23 +14,19 @@ MotionControl(Func_Var_1)
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide base;
-	bMoving = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script MotionControl();
+	isMoving = FALSE;
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	move leg1 to y-axis [0] speed [28];
 	move leg2 to y-axis [0] speed [28];
 	move base to y-axis [0] speed [28];
@@ -67,12 +34,12 @@ StartMoving()
 	sleep 150;
 	move leg3 to y-axis [0] speed [28];
 	move leg4 to y-axis [0] speed [28];
-	bMoving = TRUE;
+	isMoving = TRUE;
 }
 
 StopMoving()
 {
-	set-signal-mask SIG_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	stop-spin base around x-axis;
 	turn base to x-axis <0> speed <270>;
 	wait-for-turn base around x-axis;	
@@ -83,10 +50,15 @@ StopMoving()
 	move base to y-axis [2.5] speed [18];
 
 	
-	bMoving = FALSE;
+	isMoving = FALSE;
 }
 
 AimWeapon1()
+{
+	return (TRUE);
+}
+
+AimWeapon2()
 {
 	return (TRUE);
 }
@@ -96,19 +68,14 @@ FireWeapon1()
 	get KILL_UNIT(get MY_ID,TRUE,FALSE);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = leg1;
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)

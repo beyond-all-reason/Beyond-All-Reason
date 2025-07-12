@@ -25,7 +25,7 @@ return {
 		metalcost = 720,
 		metalstorage = 100,
 		objectname = "Units/CORVP.s3o",
-		script = "Units/CORVP.lua",
+		script = "Units/CORVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,

@@ -32,7 +32,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,
-		turnrate = 768.20001,
+		turnrate = 600,--768.20001,
 		upright = true,
 		customparams = {
 			model_author = "PtaQ",

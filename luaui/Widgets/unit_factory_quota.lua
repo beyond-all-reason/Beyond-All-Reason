@@ -10,7 +10,6 @@ function widget:GetInfo()
       license = "GNU GPL, v2 or later",
       layer = 0,
       enabled = true,
-      handler = true
     }
 end
 
@@ -173,7 +172,7 @@ end
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
     myTeam = Spring.GetMyTeamID()
 end

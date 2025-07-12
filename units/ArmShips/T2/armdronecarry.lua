@@ -168,6 +168,7 @@ return {
 					stockpilelimit = 16,
 					stockpilemetal = 25,
 					stockpileenergy = 600,
+					dronesusestockpile = true,
 				}
 			},
 			aamissile = {

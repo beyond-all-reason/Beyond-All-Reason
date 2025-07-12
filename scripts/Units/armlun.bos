@@ -125,7 +125,14 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = gun_1;
+	if(!gun_1 )
+	{
+		pieceIndex = lflare;
+	}
+	if(gun_1 )
+	{
+		pieceIndex = rflare;
+	}
 }
 
 QueryWeapon2(pieceIndex)

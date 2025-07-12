@@ -2,7 +2,6 @@ return {
 	corexp = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "COREXP.DDS",
 		buildtime = 2900,
 		canattack = true,
