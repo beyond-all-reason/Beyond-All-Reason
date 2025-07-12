@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2",
 		layer = -10,
 		enabled = true,
-		depends = {'gl4'},
+		depends = { 'gl4' },
 	}
 end
 
@@ -15,13 +15,13 @@ local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then return false end
 
-	local LuaShader = gl.LuaShader
-	local InstanceVBOTable = gl.InstanceVBOTable
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
-	local makeInstanceVBOTable = InstanceVBOTable.makeInstanceVBOTable
-	local makeVAOandAttach = InstanceVBOTable.makeVAOandAttach
-	local pushElementInstance = InstanceVBOTable.pushElementInstance
-	local uploadAllElements = InstanceVBOTable.uploadAllElements
+local makeInstanceVBOTable = InstanceVBOTable.makeInstanceVBOTable
+local makeVAOandAttach = InstanceVBOTable.makeVAOandAttach
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local uploadAllElements = InstanceVBOTable.uploadAllElements
 
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
@@ -52,9 +52,9 @@ local amSpectating = Spring.GetSpectatingState()
 local previousAllyID = nil
 local allyColors = {}
 
-local blankColor = {0.5, 0.5, 0.5, 0.0}
-local enemyColor = {1, 0, 0, SQUARE_ALPHA}
-local alliedColor = {0, 1, 0, SQUARE_ALPHA}
+local blankColor = { 0.5, 0.5, 0.5, 0.0 }
+local enemyColor = { 1, 0, 0, SQUARE_ALPHA }
+local alliedColor = { 0, 1, 0, SQUARE_ALPHA }
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local glDepthTest = gl.DepthTest
@@ -62,9 +62,9 @@ local glTexture = gl.Texture
 local spPlaySoundFile = Spring.PlaySoundFile
 
 local planeLayout = {
-	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
-	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, showSquareTimestamp
+	{ id = 1, name = 'posscale',     size = 4 }, -- a vec4 for pos + scale
+	{ id = 2, name = 'ownercolor',   size = 4 }, --  vec4 the color of this new
+	{ id = 3, name = 'capturestate', size = 4 }, -- vec4 speed, progress, startframe, showSquareTimestamp
 }
 
 local vertexShaderSource = [[
@@ -77,8 +77,8 @@ local vertexShaderSource = [[
 //__DEFINES__
 
 layout (location = 0) in vec4 vertexPosition;
-layout (location = 1) in vec4 instancePositionScale; 
-layout (location = 2) in vec4 instanceColor; 
+layout (location = 1) in vec4 instancePositionScale;
+layout (location = 2) in vec4 instanceColor;
 layout (location = 3) in vec4 captureParameters;
 
 uniform sampler2D heightmapTexture;
@@ -269,7 +269,7 @@ local function initializeAllyColors()
 		if allyID and not allyColors[allyID] then
 			if allyID ~= gaiaAllyTeamID then
 				local r, g, b, a = Spring.GetTeamColor(teamID)
-				allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
+				allyColors[allyID] = { r, g, b, SQUARE_ALPHA }
 			else
 				allyColors[allyID] = blankColor
 			end
@@ -287,7 +287,7 @@ local function getMaxCameraHeight()
 	local reductionFactor = 0.8
 	local minimumMaxHeight = 3000
 	local maximumMaxHeight = 5000
-	
+
 	local maxDimension = math.max(mapSizeX, mapSizeZ)
 	local maxHeight = math.min(math.max(maxDimension * maxFactor * reductionFactor, minimumMaxHeight), maximumMaxHeight)
 	local minHeight = math.max(absoluteMinimum, maxHeight * minimumFactor * reductionFactor)
@@ -300,7 +300,7 @@ local function createShader()
 	local processedVertexShader = vertexShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
 	local processedFragmentShader = fragmentShaderSource
 	local minCameraHeight, maxCameraHeight = getMaxCameraHeight()
-	
+
 	squareShader = LuaShader({
 		vertex = processedVertexShader,
 		fragment = processedFragmentShader,
@@ -317,7 +317,7 @@ local function createShader()
 			updateFrameInterval = UPDATE_FRAME_RATE_INTERVAL,
 		},
 	}, "territorySquareShader")
-	
+
 	local shaderCompiled = squareShader:Initialize()
 	if not shaderCompiled then
 		Spring.Echo("Failed to compile territory square shader")
@@ -331,73 +331,74 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 	if not ysize then ysize = xsize end
 	if not xresolution then xresolution = 1 end
 	if not yresolution then yresolution = xresolution end
-	
+
 	xresolution = math.floor(xresolution)
 	yresolution = math.floor(yresolution)
-	
+
 	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	if squareVBO == nil then return nil end
-	
+
 	local VBOLayout = {
-		{id = 0, name = "position", size = 4},
+		{ id = 0, name = "position", size = 4 },
 	}
-	
+
 	local vertexData = {}
 	local vertexCount = 0
-	
+
 	for x = 0, xresolution do
 		for y = 0, yresolution do
 			local xPos = xsize * ((x / xresolution) - 0.5) * 2
 			local yPos = ysize * ((y / yresolution) - 0.5) * 2
-			
-			vertexData[#vertexData + 1] = xPos  -- x
-			vertexData[#vertexData + 1] = yPos  -- y (used as z in the shader)
-			vertexData[#vertexData + 1] = 0     -- z (unused)
-			vertexData[#vertexData + 1] = 1     -- w
-			
+
+			vertexData[#vertexData + 1] = xPos -- x
+			vertexData[#vertexData + 1] = yPos -- y (used as z in the shader)
+			vertexData[#vertexData + 1] = 0 -- z (unused)
+			vertexData[#vertexData + 1] = 1 -- w
+
 			vertexCount = vertexCount + 1
 		end
 	end
-	
+
 	local indexData = {}
 	local columnSize = yresolution + 1
-	
+
 	for x = 0, xresolution - 1 do
 		for y = 0, yresolution - 1 do
 			local baseIndex = x * columnSize + y
-			
+
 			-- First triangle (top-left)
 			indexData[#indexData + 1] = baseIndex
 			indexData[#indexData + 1] = baseIndex + 1
 			indexData[#indexData + 1] = baseIndex + columnSize
-			
+
 			-- Second triangle (bottom-right)
 			indexData[#indexData + 1] = baseIndex + 1
 			indexData[#indexData + 1] = baseIndex + columnSize + 1
 			indexData[#indexData + 1] = baseIndex + columnSize
 		end
 	end
-	
+
 	squareVBO:Define((xresolution + 1) * (yresolution + 1), VBOLayout)
 	squareVBO:Upload(vertexData)
-	
+
 	local squareIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	if squareIndexVBO == nil then 
+	if squareIndexVBO == nil then
 		squareVBO:Delete()
-		return nil 
+		return nil
 	end
-	
+
 	squareIndexVBO:Define(#indexData)
 	squareIndexVBO:Upload(indexData)
-	
+
 	return squareVBO, (xresolution + 1) * (yresolution + 1), squareIndexVBO, #indexData
 end
 
 local function updateGridSquareInstanceVBO(gridID, posScale, instanceColor, captureState)
 	local instanceData = {
-		posScale[1], posScale[2], posScale[3], posScale[4],  -- posscale: x, y, z, scale
-		instanceColor[1], instanceColor[2], instanceColor[3], instanceColor[4],         -- instanceColor: r, g, b, a
-		captureState[1], captureState[2], captureState[3], captureState[4]  -- capturestate: speed, progress, startframe, showSquareTimestamp
+		posScale[1], posScale[2], posScale[3], posScale[4],               -- posscale: x, y, z, scale
+		instanceColor[1], instanceColor[2], instanceColor[3], instanceColor[4], -- instanceColor: r, g, b, a
+		captureState[1], captureState[2], captureState[3], captureState
+		[4]                                                               -- capturestate: speed, progress, startframe, showSquareTimestamp
 	}
 	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
 end
@@ -406,13 +407,13 @@ local function initializeOpenGL4()
 	local planeResolution = 32
 	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
 	if not squareVBO then return false end
-	
+
 	instanceVBO = makeInstanceVBOTable(planeLayout, 12, "territory_square_shader")
 	instanceVBO.vertexVBO = squareVBO
 	instanceVBO.indexVBO = squareIndexVBO
 	instanceVBO.numVertices = numIndices
 	instanceVBO.primitiveType = GL.TRIANGLES
-	
+
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
 	uploadAllElements(instanceVBO)
@@ -424,7 +425,7 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
-	
+
 	amSpectating = Spring.GetSpectatingState()
 	myAllyID = Spring.GetMyAllyTeamID()
 	initializeAllyColors()
@@ -439,15 +440,16 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArr
 	if visibilityArray and myAllyID >= 0 and myAllyID + 1 <= #visibilityArray then
 		isCurrentlyVisible = string.sub(visibilityArray, myAllyID + 1, myAllyID + 1) == "1"
 	end
-	
+
 	local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
-	
+
 	return isCurrentlyVisible, shouldResetColor
 end
 
 local function notifyCapture(gridID)
 	local gridData = captureGrid[gridID]
-	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
+	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and
+	gridData.newProgress > OWNERSHIP_THRESHOLD
 end
 
 local function doCaptureEffects(gridID)
@@ -460,7 +462,7 @@ local function updateGridSquareColor(gridData)
 	if not gridData.isVisible then
 		return
 	end
-	
+
 	if gridData.allyOwnerID == gaiaAllyTeamID then
 		gridData.currentColor = blankColor
 	elseif amSpectating then
@@ -482,10 +484,11 @@ local function processSpectatorModeChange()
 	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
 		amSpectating = currentSpectating
 		myAllyID = currentAllyID
-		
+
 		for gridID, gridSquareData in pairs(captureGrid) do
 			local resetColor = false
-			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
+			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID,
+				gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
 			if resetColor then
 				gridSquareData.currentColor = blankColor
 			end
@@ -497,9 +500,9 @@ end
 local function updateGridSquareVisuals()
 	for gridID, _ in pairs(captureGrid) do
 		local gridData = captureGrid[gridID]
-		
+
 		updateGridSquareColor(gridData)
-		
+
 		local captureChangePerFrame = 0
 		if gridData.captureChange then
 			captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
@@ -507,13 +510,13 @@ local function updateGridSquareVisuals()
 
 		updateGridSquareInstanceVBO(
 			gridID,
-			{gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
+			{ gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE },
 			gridData.currentColor,
-			{captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp}
+			{ captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp }
 		)
 		gridData.captureChange = nil
 	end
-	
+
 	uploadAllElements(instanceVBO)
 end
 
@@ -533,10 +536,8 @@ function gadget:RecvFromSynced(messageName, ...)
 			currentColor = blankColor,
 			showSquareTimestamp = 0
 		}
-		
 	elseif messageName == "InitializeConfigs" then
 		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
-		
 	elseif messageName == "UpdateGridSquare" then
 		local gridID, allyOwnerID, progress, visibilityArray = ...
 		local gridData = captureGrid[gridID]
@@ -581,10 +582,11 @@ function gadget:GameFrame(frame)
 	if notifyFrames[frame] then
 		local gridID = notifyFrames[frame]
 		local gridData = captureGrid[gridID]
-		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
+		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0,
+			0, 0, "sfx")
 		notifyFrames[frame] = nil
 	end
-	
+
 	if frame % UPDATE_FRAME_RATE_INTERVAL == 0 and frame ~= lastMoveFrame then
 		processSpectatorModeChange()
 		updateGridSquareVisuals()
@@ -594,17 +596,17 @@ end
 
 function gadget:DrawWorldPreUnit()
 	if not squareShader or not squareVAO or not instanceVBO then return end
-	
+
 	if spIsGUIHidden() then return end
-	
+
 	glTexture(0, "$heightmap")
 	glDepthTest(true)
-	
+
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 0)
 	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
-	
+
 	squareShader:Deactivate()
 	glTexture(0, false)
 	glDepthTest(false)
@@ -612,15 +614,15 @@ end
 
 function gadget:DrawInMiniMap()
 	if not squareShader or not squareVAO or not instanceVBO then return end
-	
+
 	if spIsGUIHidden() then return end
-	
+
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 1)
 	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
 
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
-	
+
 	squareShader:Deactivate()
 end
 
