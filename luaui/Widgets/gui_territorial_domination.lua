@@ -1065,7 +1065,6 @@ local function createScoreBarDisplayList(allyTeamData)
 
 				local rankPositionX = barPosition.scorebarLeft
 				local rankPositionY = barPosition.scorebarBottom - rankBoxHeight
-
 				-- Draw rank background box
 				glColor(COLOR_BORDER[1], COLOR_BORDER[2], COLOR_BORDER[3], COLOR_BORDER[4])
 				glRect(rankPositionX - BORDER_WIDTH, rankPositionY - BORDER_WIDTH,
@@ -1443,8 +1442,7 @@ function widget:GameFrame(frame)
 			if lastLoop <= currentTime then
 				lastLoop = currentTime
 
-				local timeRange = loopSoundEndTime -
-				(defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
+				local timeRange = loopSoundEndTime - (defeatTime - WINDUP_SOUND_DURATION - CHARGE_SOUND_LOOP_DURATION * 10)
 				local timeLeft = loopSoundEndTime - gameSeconds
 				local minVolume = 0.05
 				local maxVolume = 0.2

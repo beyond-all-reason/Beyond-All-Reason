@@ -47,7 +47,7 @@ local lastMoveFrame = 0
 
 local myAllyID = Spring.GetMyAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
-local teams = Spring.GetTeamList()
+local allTeams = Spring.GetTeamList()
 local amSpectating = Spring.GetSpectatingState()
 local previousAllyID = nil
 local allyColors = {}
@@ -62,8 +62,8 @@ local glTexture = gl.Texture
 local spPlaySoundFile = Spring.PlaySoundFile
 
 local planeLayout = {
-	{ id = 1, name = 'posscale',     size = 4 }, -- a vec4 for pos + scale
-	{ id = 2, name = 'ownercolor',   size = 4 }, --  vec4 the color of this new
+	{ id = 1, name = 'posscale', size = 4 }, -- a vec4 for pos + scale
+	{ id = 2, name = 'ownercolor', size = 4 }, -- vec4 the color of this square
 	{ id = 3, name = 'capturestate', size = 4 }, -- vec4 speed, progress, startframe, showSquareTimestamp
 }
 
@@ -264,7 +264,7 @@ void main() {
 ]]
 
 local function initializeAllyColors()
-	for _, teamID in ipairs(teams) do
+	for _, teamID in ipairs(allTeams) do
 		local allyID = select(6, Spring.GetTeamInfo(teamID))
 		if allyID and not allyColors[allyID] then
 			if allyID ~= gaiaAllyTeamID then
@@ -365,12 +365,10 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 	for x = 0, xresolution - 1 do
 		for y = 0, yresolution - 1 do
 			local baseIndex = x * columnSize + y
-
 			-- First triangle (top-left)
 			indexData[#indexData + 1] = baseIndex
 			indexData[#indexData + 1] = baseIndex + 1
 			indexData[#indexData + 1] = baseIndex + columnSize
-
 			-- Second triangle (bottom-right)
 			indexData[#indexData + 1] = baseIndex + 1
 			indexData[#indexData + 1] = baseIndex + columnSize + 1
@@ -395,10 +393,9 @@ end
 
 local function updateGridSquareInstanceVBO(gridID, posScale, instanceColor, captureState)
 	local instanceData = {
-		posScale[1], posScale[2], posScale[3], posScale[4],               -- posscale: x, y, z, scale
+		posScale[1], posScale[2], posScale[3], posScale[4], -- posscale: x, y, z, scale
 		instanceColor[1], instanceColor[2], instanceColor[3], instanceColor[4], -- instanceColor: r, g, b, a
-		captureState[1], captureState[2], captureState[3], captureState
-		[4]                                                               -- capturestate: speed, progress, startframe, showSquareTimestamp
+		captureState[1], captureState[2], captureState[3], captureState[4] -- capturestate: speed, progress, startframe, showSquareTimestamp
 	}
 	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
 end
@@ -448,8 +445,7 @@ end
 
 local function notifyCapture(gridID)
 	local gridData = captureGrid[gridID]
-	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and
-	gridData.newProgress > OWNERSHIP_THRESHOLD
+	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
 end
 
 local function doCaptureEffects(gridID)
@@ -487,8 +483,7 @@ local function processSpectatorModeChange()
 
 		for gridID, gridSquareData in pairs(captureGrid) do
 			local resetColor = false
-			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID,
-				gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
+			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
 			if resetColor then
 				gridSquareData.currentColor = blankColor
 			end
@@ -582,8 +577,7 @@ function gadget:GameFrame(frame)
 	if notifyFrames[frame] then
 		local gridID = notifyFrames[frame]
 		local gridData = captureGrid[gridID]
-		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0,
-			0, 0, "sfx")
+		spPlaySoundFile("scavdroplootspawn", CAPTURE_SOUND_VOLUME, gridData.gridMidpointX, 0, gridData.gridMidpointZ, 0, 0, 0, "sfx")
 		notifyFrames[frame] = nil
 	end
 

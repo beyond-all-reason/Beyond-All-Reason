@@ -30,7 +30,7 @@ local territorialDominationConfig = {
 	},
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config]
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig.default
 local SECONDS_TO_MAX = config.maxTime
 local SECONDS_TO_START = config.gracePeriod
 local DEBUGMODE = false
@@ -43,19 +43,17 @@ local PROGRESS_INCREMENT = 0.06
 local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
-
 -- Scavengers/Raptors (called horde mode in this code) has to be treated differently because in appropriately difficult matches, you can't hold 50% of the map.
 -- Additionally, we must adjust the max territories required to hold according to map size and player counts so it isn't boringly easy or impossibly hard.
 local HORDE_MODE_PLAYER_CAP = 16
 local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP = 0.50 -- the maximum percentage of territory needed to be owned by HORDE_MODE_PLAYER_CAP players to avoid defeat.
 local HORDE_MODE_MIN_TERRITORY_PERCENTAGE = 0.10     -- the minimum percentage of territory needed to be owned by 16 players to avoid defeat.
 local HORDE_MODE_MIN_TERRITORIES_PER_PLAYER = 1
-local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) /
-HORDE_MODE_PLAYER_CAP
+local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) / HORDE_MODE_PLAYER_CAP
 local HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES = 3
 
-local MAX_EMPTY_IMPEDENCE_POWER = 25
-local MIN_EMPTY_IMPEDENCE_MULTIPLIER = 0.80
+local MAX_EMPTY_IMPEDANCE_POWER = 25
+local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
 local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
@@ -68,10 +66,11 @@ local RESET_DEFEAT_FRAME = 0
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
-local CORNER_MULTIPLIER = math.sqrt(2)                       -- for calculating how far from center to the corner of a square is, given the square's edge is 1 unit of distance away.
-local OWNERSHIP_THRESHOLD = MAX_PROGRESS /
-CORNER_MULTIPLIER                                            -- you own it when the circle color fill of the grid square touches the edge.
+local CORNER_MULTIPLIER = math.sqrt(2) -- for calculating how far from center to the corner of a square is, given the square's edge is 1 unit of distance away.
+local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- you own it when the circle color fill of the grid square touches the edge.
 -- the ownership fill continues beyond touching the edge of the square, this gives you a little "buffer" before ownership is lost.
+
+local MIN_DEFEAT_THRESHOLD_PERCENTAGE = 0.2
 
 local SCORE_RULES_KEY = "territorialDominationScore"
 local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
@@ -106,7 +105,7 @@ local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 local gaiaTeamID = spGetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
-local teams = spGetTeamList()
+local allTeams = spGetTeamList()
 
 local allyCount = 0
 local allyHordesCount = 0
@@ -122,6 +121,10 @@ local wantedDefeatThreshold = 0
 local maxDefeatThreshold = 0
 local pauseThresholdTimer = 0
 local currentSecond = 0
+
+
+local scavengerTeamID = Spring.Utilities.GetScavTeamID()
+local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 
 local allyTeamsWatch = {}
 local hordeModeTeams = {}
@@ -158,7 +161,7 @@ end
 
 local function getTargetThreshold()
 	local seconds = spGetGameSeconds()
-	local minFactor = 0.2
+	local minFactor = MIN_DEFEAT_THRESHOLD_PERCENTAGE
 	local maxFactor = 1
 	local thresholdExponentialFactor = min(minFactor + ((seconds - SECONDS_TO_START) / SECONDS_TO_MAX), maxFactor)
 	return #captureGrid * thresholdExponentialFactor
@@ -169,8 +172,7 @@ local function getMaximumThresholdForHordeMode()
 	if allyHordesCount and allyHordesCount > 0 then
 		local territories = #captureGrid
 		local teamCountMinusOne = originalHighestTeamCount - 1
-		local minPercentageTerritories = HORDE_MODE_MIN_TERRITORY_PERCENTAGE +
-		(teamCountMinusOne) * HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER
+		local minPercentageTerritories = HORDE_MODE_MIN_TERRITORY_PERCENTAGE + (teamCountMinusOne) * HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER
 		local requiredTerritories = max(
 		HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES + teamCountMinusOne * HORDE_MODE_MIN_TERRITORIES_PER_PLAYER,
 			territories * minPercentageTerritories)
@@ -186,8 +188,7 @@ local function setThresholdIncreaseRate()
 	if allyCount + allyHordesCount == 1 then
 		thresholdSecondsDelay = 0            --stop checking
 	else
-		local maxPVPThreshold = #captureGrid *
-		0.5                                  -- because a ally vs ally is the smallest valid territorial domination arrangment.
+		local maxPVPThreshold = #captureGrid * 0.5 -- because a ally vs ally is the smallest valid territorial domination arrangement.
 		local startTime = max(seconds, SECONDS_TO_START)
 		maxDefeatThreshold = min(getMaximumThresholdForHordeMode(), maxPVPThreshold)
 		wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, maxDefeatThreshold))
@@ -225,8 +226,8 @@ local function processLivingTeams()
 	allyTeamsWatch = {}
 	hordeModeAllies = {}
 
-	teams = Spring.GetTeamList()
-	for _, teamID in ipairs(teams) do
+	allTeams = Spring.GetTeamList()
+	for _, teamID in ipairs(allTeams) do
 		local _, _, isDead = spGetTeamInfo(teamID)
 		if not isDead then
 			local allyID = select(6, spGetTeamInfo(teamID))
@@ -265,12 +266,9 @@ local function getHighestTeamCount()
 end
 
 local function initializeTeamData()
-	for _, teamID in ipairs(teams) do
-		local luaAI = spGetTeamLuaAI(teamID)
-		if luaAI and luaAI ~= "" then
-			if string.sub(luaAI, 1, 12) == 'ScavengersAI' or string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-				hordeModeTeams[teamID] = true
-			end
+	for _, teamID in ipairs(allTeams) do
+		if teamID == scavengerTeamID or teamID == raptorTeamID then
+			hordeModeTeams[teamID] = true
 		end
 		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 	end
@@ -370,7 +368,7 @@ local function triggerAllyDefeat(allyID)
 			queueCommanderTeleportRetreat(unitID)
 		end
 	end
-	for _, teamID in ipairs(teams) do
+	for _, teamID in ipairs(allTeams) do
 		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 	end
 end
@@ -418,8 +416,7 @@ local function getAllyPowersInSquare(gridID)
 				local power = calculateUnitPower(unitID, unitData)
 
 				if hordeModeAllies[allyTeam] then
-					allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) +
-					power                                                   -- horde mode units cannot own territory, they give it back to gaia
+					allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
 				else
 					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
 				end
@@ -429,8 +426,7 @@ local function getAllyPowersInSquare(gridID)
 
 	for allyID, power in pairs(allyPowers) do
 		if allyPowers[allyID] > 0 then
-			allyPowers[allyID] = power +
-			random()                     -- randomize power to prevent ties where the last tied victor always wins
+			allyPowers[allyID] = power + random() -- randomize power to prevent ties where the last tied victor always wins
 			if allyID ~= data.allyOwnerID then
 				data.contested = true
 			end
@@ -467,12 +463,12 @@ local function calculatePowerRatio(winningAllyID, currentOwnerID, allyPowers)
 	local comparedPower = 0
 
 	if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
-		comparedPower = max(allyPowers[currentOwnerID], MAX_EMPTY_IMPEDENCE_POWER)
+		comparedPower = max(allyPowers[currentOwnerID], MAX_EMPTY_IMPEDANCE_POWER)
 	elseif #sortedTeams > 1 then
 		local secondPlaceAllyID = sortedTeams[2].team
-		comparedPower = max(allyPowers[secondPlaceAllyID], MAX_EMPTY_IMPEDENCE_POWER)
+		comparedPower = max(allyPowers[secondPlaceAllyID], MAX_EMPTY_IMPEDANCE_POWER)
 	else
-		comparedPower = min(topPower * MIN_EMPTY_IMPEDENCE_MULTIPLIER, MAX_EMPTY_IMPEDENCE_POWER)
+		comparedPower = min(topPower * MIN_EMPTY_IMPEDANCE_MULTIPLIER, MAX_EMPTY_IMPEDANCE_POWER)
 	end
 
 	if topPower ~= 0 and comparedPower ~= 0 then
@@ -899,6 +895,8 @@ function gadget:Initialize()
 	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
+	Spring.SetGameRulesParam("territorialDominationGridSize", GRID_SIZE)
+	Spring.SetGameRulesParam("territorialDominationGridCheckInterval", GRID_CHECK_INTERVAL)
 	pauseThresholdTimer = SECONDS_TO_START
 	Spring.SetGameRulesParam(PAUSE_DELAY_KEY, SECONDS_TO_START)
 	captureGrid = generateCaptureGrid()
@@ -914,8 +912,8 @@ function gadget:Initialize()
 	end
 
 	setThresholdIncreaseRate()
-	teams = Spring.GetTeamList()
-	for _, teamID in pairs(teams) do
+	allTeams = Spring.GetTeamList()
+	for _, teamID in pairs(allTeams) do
 		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
 		Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1)
 	end
