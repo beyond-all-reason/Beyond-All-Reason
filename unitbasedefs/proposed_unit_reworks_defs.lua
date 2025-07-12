@@ -70,13 +70,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energymake = 30
 	end
 
-	if (uDef.customparams.subfolder == "ArmBuildings/LandFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/LandFactories" 
-	or uDef.customparams.subfolder == "ArmBuildings/SeaFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/SeaFactories"
-	or uDef.customparams.subfolder == "Legion/Labs"))
-	and uDef.customparams.techlevel == 1 then
+	if name == "armap" or name == "corap" or name == "legap"
+	or name == "armfhp" or name == "corfhp" or name == "legfhp"
+	or name == "armhp" or name == "corhp" or name == "leghp"
+	or name == "armlab" or name == "corlab" or name == "leglab" 
+	or name == "armvp" or name == "corvp" or name == "legvp" 
+	or name == "armsy" or name == "corsy" or name == "legsy" then
 		uDef.metalcost = uDef.metalcost - 150
 		uDef.buildtime = uDef.buildtime - 1500
 		uDef.energycost = uDef.energycost - 250
