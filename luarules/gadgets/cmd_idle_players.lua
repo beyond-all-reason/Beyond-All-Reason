@@ -1,4 +1,3 @@
-
 if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -151,54 +150,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function takeTeam(cmd, line, words, playerID)
-		if not CheckPlayerState(playerID) then
-			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
-			return -- exclude taking rights from lagged players, etc
-		end
-		local targetTeam = tonumber(words[1])
-		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
-		local teamList = GetTeamList(allyTeamID)
-		if targetTeam then
-			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
-				-- don't let enemies take
-				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
-				return
-			end
-			teamList = {targetTeam}
-		end
-		local numToTake = 0
-		for _,teamID in ipairs(teamList) do
-			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
-				numToTake = numToTake + 1
-				-- transfer all units
-				local teamUnits = GetTeamUnits(teamID)
-				for i=1, #teamUnits do
-					TransferUnit(teamUnits[i], takerID)
-				end
-				-- send all resources en-block to the taker
-				for _, resourceName in ipairs(resourceList) do
-					local shareAmount = GetTeamResources(teamID, resourceName)
-					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
-					shareAmount = math.min(shareAmount,shareSlider*storage-current)
-					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
-				end
-			end
-		end
-		if numToTake == 0 then
-			SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
-		end
-	end
-
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(takeCommand)
 	end
-
 
 	function gadget:GameFrame(currentFrame)
 		currentGameFrame = currentFrame
@@ -232,19 +189,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
-		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-
 else	-- UNSYNCED
-
 
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg

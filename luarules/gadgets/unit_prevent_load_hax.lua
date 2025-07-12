@@ -53,8 +53,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      if (CMD_LOAD_UNITS == cmdParams[2]) then
        return gadget:AllowCommand(unitID, unitDefID, teamID, CMD_LOAD_UNITS, {cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7]}, cmdOptions, "nr", playerID, false, false)
      end
-     local cQueue = GetUnitCommands(unitID,20)
-     if (#cQueue > 0) then
+     local success, cQueue = pcall(GetUnitCommands, unitID, 20)
+     if not success or not cQueue or (#cQueue > 0) then
        for i=1,#cQueue do
          local command = cQueue[i]
          if (command.id == CMD_LOAD_UNITS) and (#command.params == 1) then
@@ -67,8 +67,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      if watchList[unitID] then
        return false
      end
-     local cQueue = GetUnitCommands(unitID,20)
-     if (#cQueue > 0) then
+     local success, cQueue = pcall(GetUnitCommands, unitID, 20)
+     if not success or not cQueue or (#cQueue > 0) then
        for i=1,#cQueue do
          local command = cQueue[i]
          if (command.id == CMD_LOAD_UNITS) and (#command.params == 1) then

@@ -68,9 +68,9 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
+	if spIsCheatingEnabled() or unitCount < gameMaxUnits then
 		return true
 	end
 	return false
