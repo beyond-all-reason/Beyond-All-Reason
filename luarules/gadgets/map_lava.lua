@@ -249,13 +249,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+	end
 
-	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-			Spring.Echo("Lava gadget: RecvLuaMsg: invalid packet header")
+	function gadget:RecvLuaMsg(message, playerID)
+		if string.sub(message, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
-		Spring.Echo("Lava gadget: RecvLuaMsg: valid packet header")
+
 		local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
 		local authorized = false
 		for name, enabled in pairs(_G.permissions.lavalevel) do
@@ -268,24 +268,23 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		Spring.Echo('Lava gadget: Something happened.')
-		local params = string.split(msg, ':')
+		local params = string.split(message, ':')
 		if not params[2] then
 			tideContinueFrame = gameframe + 1
-			Spring.Echo('Lava gadget: Progressing to next tide rhythm.')
+			Spring.Echo('Progressing to next tide rhythm.')
 		else 
 			local tideParams = string.split(params[2], " ")
 			local insertLevel = tonumber(tideParams[1])
 			local insertSpeed = tonumber(tideParams[2])
 			local insertRemain = tonumber(tideParams[3])
-			if (insertLevel and insertSpeed and insertRemain) then
+			if insertLevel and insertSpeed and insertRemain then
 				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
-				Spring.Echo('Lava gadget: Lava Rhythm to: ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
+				Spring.Echo('Lava Rhythm progressing to: ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
 			end
 			tideContinueFrame = gameframe + 1 
-			Spring.Echo('Lava gadget: Progressing to next tide rhythm.')
 		end
 	end
+
 
 	-- new to use notif system
 	-- if lavaGrow then
@@ -306,7 +305,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- elseif lavaGrow and lavaGrow < 0 then
 		-- 	Spring.Echo("LavaIsDropping")
 		-- end
-	end
 
 	local DAMAGE_EXTSOURCE_WATER = -5
 
@@ -468,7 +466,7 @@ else  -- UNSYCNED
 		if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 			local message = PACKET_HEADER
 			if #words == 0 then
-				Spring.Echo("tried to send: " .. message)
+				Spring.Echo("tried to send short: " .. message)
 				Spring.SendLuaRulesMsg(message)
 				return
 			end
