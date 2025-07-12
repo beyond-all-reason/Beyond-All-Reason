@@ -22,7 +22,7 @@
    - +30% energycost
 • [Flagships]
    - Reduced firerate on big gun, slightly increased damage per shot. Together, ~25% dps nerf
-   - Bigger AoE and Impulse on big gun
+   - Bigger AoE and Impulse on big gun, reduced edgeeffectiveness to 0.15
    - +17% costs
 
 # June 2025
