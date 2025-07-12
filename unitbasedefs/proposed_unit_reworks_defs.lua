@@ -11,13 +11,17 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	
-	if name == "armmex" or name == "cormex" then
+	if name == "armmex" or name == "cormex" or name == "legmex" then
 		uDef.health = uDef.health + 81
 	end
-	if name == "armck" or name == "corck" then
+	if name == "armck" or name == "corck"  or name == "legck" then
 		uDef.health = uDef.health + 90
 	end
-	if name == "armllt" or name == "corllt" or name == "armbeamer" or name == "corhllt" or name == "corhlt" or name == "armhlt" or name == "armguard" or name == "corpun" or name == "armdl" or name == "cordl" then
+	if name == "armllt" or name == "corllt" or name == "leglht"
+	or name == "armbeamer" or name == "corhllt"
+	or name == "corhlt" or name == "armhlt" or name == "legmg"
+	or name == "armguard" or name == "corpun" or name == "legcluster"
+	or name == "armdl" or name == "cordl" or name == "legctl" then
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
 	end
 
@@ -40,7 +44,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
 		uDef.weapondefs.heavyplasma.damage.default = 500
 		uDef.weapondefs.heavyplasma.edgeeffectiveness = 0.15
-		uDef.weapondefs.heavyplasma.reloadtime = 5
+		uDef.weapondefs.heavyplasma.reloadtime = 3.5
 		uDef.weapondefs.heavyplasma.areaofeffect = 160
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
 		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
@@ -52,7 +56,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
 		uDef.weapondefs.heavyplasma.damage.default = 600
 		uDef.weapondefs.heavyplasma.edgeeffectiveness = 0.15
-		uDef.weapondefs.heavyplasma.reloadtime = 7
+		uDef.weapondefs.heavyplasma.reloadtime = 5.5
 		uDef.weapondefs.heavyplasma.areaofeffect = 240
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
 		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
@@ -62,14 +66,16 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = 37
 	end
 
-	if name == "armcom" or name == "corcom" then
+	if name == "armcom" or name == "corcom" or name == "legcom" then
 		uDef.energymake = 30
 	end
 
 	if (uDef.customparams.subfolder == "ArmBuildings/LandFactories" 
 	or uDef.customparams.subfolder == "CorBuildings/LandFactories" 
 	or uDef.customparams.subfolder == "ArmBuildings/SeaFactories" 
-	or uDef.customparams.subfolder == "CorBuildings/SeaFactories" )
+	or uDef.customparams.subfolder == "CorBuildings/SeaFactories" 
+	or uDef.customparams.subfolder == "CorBuildings/SeaFactories"
+	or uDef.customparams.subfolder == "Legion/Labs"))
 	and uDef.customparams.techlevel == 1 then
 		uDef.metalcost = uDef.metalcost - 150
 		uDef.buildtime = uDef.buildtime - 1500

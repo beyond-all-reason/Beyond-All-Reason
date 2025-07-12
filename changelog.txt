@@ -25,6 +25,24 @@
    - Bigger AoE and Impulse on big gun
    - +17% costs
 
+# June 2025
+ [t2 flak turrets] increased footprint from 2x2 to 3x3
+
+# June 2025
+• [Legion changes] 
+   - 2 new T3 units added: Myrmidon T3 all-terrain mech, Charybdis T3 Hovertank
+   - New models added to replace the placeholder models left in T2: infestor, spybot, radar bot, jammer bot
+   - Phobos cost reduced 150m2400E -> 140m2200E
+   - Decurion buildtime increased 4000-4800 to slow down repair rate, energy cost increased 2700 -> 3000
+   - Arquebus cost reduced 900m18000E -> 800m16000E
+   - Thanatos speed reduced 50 -> 45, turnrate reduced 750 -> 300
+   - Triton minigun dps reduced 135 -> 105
+   - Medusa range increased 950 -> 1000
+   - Keres health reduced 23000 -> 21000
+   - Praetorian shotgun fires 10% faster
+   - Daedalus range increased 900 -> 950
+   - Starfall cost increased 58000m660000E -> 63000m720000E, reloadtime increased 15s->18s, lowered damage vs shields
+
 # May 2025
 • [Legion changes] 
    - 2 new units added: Aquilon T2 aa bot, Chimera T2 pop-up turret
