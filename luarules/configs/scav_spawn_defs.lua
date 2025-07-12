@@ -383,6 +383,7 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 4,
 			["corkarg_scav"] = 4,
+			["legeallterrainmech_scav"] = 4,
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
@@ -390,6 +391,7 @@ local LandUnitsList = {
 			["legkeres_scav"] = 4,
 			["legeshotgunmech_scav"] = 2,
 			["legbunk_scav"] = 2,
+			["legehovertank_scav"] = 2,
 		},
 		[7] = {
 			--Armada

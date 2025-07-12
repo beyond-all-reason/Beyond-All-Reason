@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
 		desc      = "lava",
-		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
+		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
 		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -3,
@@ -28,6 +28,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
+
+	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -54,7 +56,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
-	local spSetUnitVelocity = Spring.SetUnitVelocity
+	local spGetMoveData =Spring.GetUnitMoveTypeData
+	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
@@ -64,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 	local canFly = {}
 	local unitHeight = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		unitMoveDef[unitDefID] = unitDef.moveDef
+		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		end
@@ -119,14 +122,36 @@ if gadgetHandler:IsSyncedCode() then
 		for _, unitID in ipairs(all_units) do
 			local UnitDefID = spGetUnitDefID(unitID)
 			if not canFly[UnitDefID] then
-				x,y,z = spGetUnitBasePosition(unitID)
+				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
-					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
-					--Spring.Echo(lavaUnits[unitID])
-				elseif lavaUnits[unitID] then
-					lavaUnits[unitID] = nil
+					local us = clamp(1-(((lavaLevel-y) / unitHeight[UnitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					if not lavaUnits[unitID] then -- first entry into lava, save unit movement stats
+						local mt = spGetMoveData(unitID)
+						local ms = UnitDefs[UnitDefID].speed
+						local tr = UnitDefs[UnitDefID].turnRate
+						local ar = UnitDefs[UnitDefID].maxAcc
+						if (mt.name == "ground") and (ms and ms ~= 0) and (tr and tr ~= 0) and (ar and ar ~= 0) then
+							lavaUnits[unitID] = {orgSpeed=ms, orgTurnRate=tr, orgAccRate = ar, unitSlow = us, slowed = true} 
+						else
+							lavaUnits[unitID] = {slowed = false}
+						end
+					else -- Already in lava just update slow factor
+						lavaUnits[unitID].unitSlow = us
+					end
+					if lavaUnits[unitID].slowed then
+						local unitSlow = lavaUnits[unitID].unitSlow
+						local slowedMaxSpeed = lavaUnits[unitID].orgSpeed * unitSlow
+						local slowedTurnRate = lavaUnits[unitID].orgTurnRate * unitSlow
+						local slowedAccRate = lavaUnits[unitID].orgAccRate * unitSlow
+						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+					end
+				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+				spSpawnCEG(lavaEffectDamage, x, y+5, z)
+				elseif lavaUnits[unitID] then 
+					if lavaUnits[unitID].slowed then
+						spSetMoveData(unitID, {maxSpeed = lavaUnits[unitID].orgSpeed, turnRate = lavaUnits[unitID].orgTurnRate, accRate = lavaUnits[unitID].orgAccRate})
+					end
+				lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -168,10 +193,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if f % DAMAGE_RATE == 0 then
 			lavaObjectsCheck()
-		end
-
-		for unitID, speed in pairs(lavaUnits) do
-			spSetUnitVelocity(unitID, speed, speed, speed)
 		end
 
 		updateLava()
@@ -247,9 +268,9 @@ if gadgetHandler:IsSyncedCode() then
 			   return damage, 1.0
 		end
 		local moveDef = unitMoveDef[unitDefID]
-		if moveDef == nil or moveDef.family ~= "hover" then
-			  -- not a hovercraft, do not modify
-			  return damage, 1.0
+		if moveDef == nil or moveDef.family ~= "hover" then -- Out of date use of family to be removed post GDT discussion
+			-- not a hovercraft, do not modify
+			return damage, 1.0
 		end
 		return 0.0, 1.0
 	end
