@@ -2,7 +2,6 @@ return {
 	cormex = {
 		activatewhenbuilt = true,
 		buildangle = 2048,
-		buildingmask = 0,
 		buildpic = "CORMEX.DDS",
 		buildtime = 1870,
 		canrepeat = false,

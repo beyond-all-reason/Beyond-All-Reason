@@ -1,4 +1,7 @@
 # June 2025
+ [t2 flak turrets] increased footprint from 2x2 to 3x3
+
+# June 2025
 • [Legion changes] 
    - 2 new T3 units added: Myrmidon T3 all-terrain mech, Charybdis T3 Hovertank
    - New models added to replace the placeholder models left in T2: infestor, spybot, radar bot, jammer bot
