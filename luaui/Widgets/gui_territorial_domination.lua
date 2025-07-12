@@ -41,6 +41,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
+local spGetMouseState = Spring.GetMouseState
 
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -145,6 +146,8 @@ local timerWarningDisplayList = nil
 local needsScoreBarBackgroundUpdate = false
 local needsScoreBarUpdate = false
 local needsSelectionHaloUpdate = false
+
+
 
 local LAYOUT_UPDATE_THRESHOLD = 4.0
 local SCORE_BAR_UPDATE_THRESHOLD = 0.5
@@ -884,6 +887,32 @@ local function getBarPositionsCached(index)
 	return scoreBarPositions[index]
 end
 
+local function isMouseOverAnyScoreBar()
+	if not compositeDisplayList or currentGameFrame <= 1 then
+		return false
+	end
+	
+	local mx, my = spGetMouseState()
+	local allyTeamData = getAllyTeamDisplayData()
+	
+	if not allyTeamData or #allyTeamData == 0 then
+		return false
+	end
+	
+	for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
+		if allyTeamDataEntry and allyTeamDataEntry.allyTeamID then
+			local barPosition = getBarPositionsCached(allyTeamIndex)
+			
+			if barPosition and mx >= barPosition.scorebarLeft and mx <= barPosition.scorebarRight and
+			   my >= barPosition.scorebarBottom and my <= barPosition.scorebarTop then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
 local function calculateCountdownPosition(allyTeamID, barIndex)
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
@@ -1544,6 +1573,9 @@ function widget:Initialize()
 	for _, unitID in ipairs(allUnits) do
 		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil)
 	end
+	
+	-- Initialize tooltip state
+	-- Tooltip is now handled directly in Update function
 end
 
 function widget:MetaUnitAdded(unitID, unitDefID, unitTeam, builderID)
@@ -1588,6 +1620,12 @@ function widget:Update(deltaTime)
 		cleanupCountdowns()
 		forceDisplayListUpdate()
 		updateDisplayLists()
+		
+		-- Hide tooltip when major state changes
+		if WG['tooltip'] and WG['tooltip'].HideTooltip then
+			WG['tooltip'].HideTooltip('territorialDomination')
+		end
+		
 		return
 	end
 
@@ -1633,8 +1671,20 @@ function widget:Update(deltaTime)
 	if needsUpdate or forceUpdate then
 		updateDisplayLists()
 	end
+	
+	-- Handle tooltip display
+	if WG['tooltip'] and WG['tooltip'].ShowTooltip then
+		if isMouseOverAnyScoreBar() then
+			WG['tooltip'].ShowTooltip('territorialDomination', spI18N('ui.territorialDomination.scoreBarTooltip'))
+		end
+	end
 end
 
 function widget:Shutdown()
 	cleanupDisplayLists()
+	
+	-- Clean up tooltip
+	if WG['tooltip'] and WG['tooltip'].HideTooltip then
+		WG['tooltip'].HideTooltip('territorialDomination')
+	end
 end
