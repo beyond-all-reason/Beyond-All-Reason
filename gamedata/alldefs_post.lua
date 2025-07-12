@@ -1875,9 +1875,1117 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.commando_blaster.weaponvelocity = 600
 		end	
 	end
+
+	-------------------
+	-- Tech Overhaul --
+	-------------------
+
+	if modOptions.techoverhaul then
+    	-- Bot and Veh lab reworks
+		-- T2 lab cost will be increased to around 4k metal
+		-- New labs are created - "ha" for half-advanced, called enhanced (placeholder). Tier between T1 and T2
+		-- Enhanced labs are given amphibious vehicles and the most expensive T1 + least expensive T2.
+		-- Specialty T1 mexes are changed to enhanced mexes with 2x metal income + special aabilities (for faction differentiation)
+		if name == "corlab" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+			uDef.workertime = uDef.workertime * 2 
+			uDef.buildoptions = {
+				[1] = "corck",
+				[2] = "corak",
+				[3] = "cornecro",
+				[4] = "corstorm",
+				[5] = "corthud",
+				[6] = "corcrash",
+				[7] = "corroach"
+			}
+
+		elseif name == "coralab" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "corack",
+				[2] = "corsumo",
+				[3] = "cortermite",
+				[4] = "corhrk",
+				[5] = "cordecom",
+				[6] = "corvoyr",
+				[7] = "corspy",
+				[8] = "corspec"
+			}
+
+		elseif name == "armalab" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "armack",
+				[2] = "armsnipe",
+				[3] = "armfboy",
+				[4] = "armmark",
+				[5] = "armaser",
+				[6] = "armspy",
+				[7] = "armdecom",
+				[8] = "armscab",
+				[9] = "armsptk"
+			}
+
+		elseif name == "legalab" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "legack",
+				[2] = "leginc",
+				[3] = "legsrail",
+				[4] = "leghrk",
+				[5] = "legaradk",
+				[6] = "legaspy",
+				[7] = "legajamk",
+				[8] = "legdecom",
+			}
+
+		elseif name == "armvp" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+			uDef.workertime = uDef.workertime * 2 
+			uDef.buildoptions = {
+				[1] = "armcv",
+				[2] = "armfav",
+				[3] = "armflash",
+				[4] = "armstump",
+				[5] = "armart",
+				[6] = "armjanus",
+				[7] = "armsam",
+			}
+
+		elseif name == "corvp" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+			uDef.workertime = uDef.workertime * 2 
+			uDef.buildoptions = {
+				[1] = "corcv",
+				[2] = "corfav",
+				[3] = "corgator",
+				[4] = "corraid",
+				[5] = "corlevlr",
+				[6] = "corwolv",
+				[7] = "cormist",
+			}
+
+		elseif name == "legvp" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+			uDef.workertime = uDef.workertime * 2 
+			uDef.buildoptions = {
+				[1] = "legscout",
+				[2] = "legcv",
+				[3] = "leghades",
+				[4] = "leghelios",
+				[5] = "leggat",
+				[6] = "legbar",
+				[7] = "legrail",
+			}
+
+		elseif name == "armavp" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "armacv",
+				[2] = "armbull",
+				[3] = "armmerl",
+				[4] = "armmanni",
+				[5] = "armyork",
+				[6] = "armseer",
+				[7] = "armjam",
+			}
+		
+		elseif name == "coravp" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "coracv",
+				[2] = "corgol",
+				[3] = "corvroc",
+				[4] = "cortrem",
+				[5] = "corsent",
+				[6] = "cormabm",
+				[7] = "coreter",
+				[8] = "corvrad"
+			}
+
+		elseif name == "legavp" then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+			uDef.buildoptions = {
+				[1] = "legacv",
+				[2] = "legaheattank",
+				[3] = "legmed",
+				[4] = "legavroc",
+				[5] = "leginf",
+				[6] = "legvflak",
+				[7] = "cormabm",
+				[8] = "legavjam",
+				[9] = "legavrad",
+			}
+		-- Con Reworks
+		-- Late T1 and Early T2 buildings are given to enhanced constructors
+		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
+
+		elseif name == "armck" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armalab",
+				[9] = "armhalab",
+				[10] = "armlab",
+				[11] = "armvp",
+				[12] = "armap",
+				[13] = "armhp",
+				[14] = "armnanotc",
+				[15] = "armeyes",
+				[16] = "armrad",
+				[17] = "armdrag",
+				[18] = "armllt",
+				[19] = "armrl",
+				[20] = "armdl",
+				[21] = "armjamt",
+				[22] = "armjuno",
+				[23] = "armsy",
+			}
+
+		elseif name == "corck" then
+			uDef.buildoptions = {
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "coralab",
+				[11] = "corlab",
+				[12] = "corhalab",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "nil",
+				[21] = "corrl",
+				[22] = "nil",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
+			}
+
+		elseif name == "legck" then
+			uDef.buildoptions = {
+			[1] = "legsolar",
+			[2] = "legwin",
+			[3] = "leggeo",
+			[4] = "legmstor",
+			[5] = "legestor",
+			[6] = "legmex",
+			[7] = "legeconv",
+			[8] = "legalab",
+			[9] = "leglab",
+			[10] = "leghalab",
+			[11] = "legvp",
+			[12] = "legap",
+			[13] = "leghp",
+			[14] = "legnanotc",
+			[15] = "legeyes",
+			[16] = "legrad",
+			[17] = "legdrag",
+			[18] = "leglht",
+			[19] = "nil",
+			[20] = "legrl",
+			[21] = "legctl",
+			[22] = "legjam",
+			[23] = "corsy",
+			}
+
+		elseif name == "armack" then
+			uDef.buildoptions = {
+				[1] = "armafus",
+				[2] = "armckfus",
+				[3] = "armshltx",
+				[4] = "armageo",
+				[5] = "armgmm",
+				[6] = "armmoho",
+				[7] = "armmmkr",
+				[8] = "armuwadves",
+				[9] = "armuwadvms",
+				[10] = "armfort",
+				[11] = "armtarg",
+				[12] = "armgate",
+				[13] = "armamb",
+				[14] = "armpb",
+				[15] = "armanni",
+				[16] = "armflak",
+				[17] = "armmercury",
+				[18] = "armemp",
+				[19] = "armamd",
+				[20] = "armsilo",
+				[21] = "armbrtha",
+				[22] = "armvulc",
+				[23] = "armdf",
+				[24] = "armlab",
+				[25] = "armhalab",
+				[26] = "armalab",
+			}
+
+		elseif name == "corack" then
+			uDef.buildoptions = {
+				[1] = "corafus",
+				[3] = "corgant",
+				[4] = "corageo",
+				[5] = "corbhmth",
+				[6] = "cormoho",
+				[7] = "cormexp",
+				[8] = "cormmkr",
+				[9] = "coruwadves",
+				[10] = "coruwadvms",
+				[11] = "corfort",
+				[12] = "corasp",
+				[13] = "cortarg",
+				[14] = "corgate",
+				[15] = "cortoast",
+				[16] = "corvipe",
+				[17] = "cordoom",
+				[18] = "corflak",
+				[19] = "corscreamer",
+				[20] = "cortron",
+				[21] = "corfmd",
+				[22] = "corsilo",
+				[23] = "corint",
+				[24] = "corbuzz",
+				[25] = "corlab",
+				[26] = "coralab",
+				[27] = "corhalab",
+			}
+
+		elseif name == "legack" then
+			uDef.buildoptions = {
+				[1] = "legafus",
+				[2] = "leggant",
+				[3] = "legageo",
+				[4] = "legrampart",
+				[5] = "legmoho",
+				[6] = "nil",
+				[7] = "legadveconv",
+				[8] = "legadvestore",
+				[9] = "legamstor",
+				[10] = "legforti",
+				[11] = "corasp",
+				[12] = "legtarg",
+				[13] = "legdeflector",
+				[14] = "legacluster",
+				[15] = "legapopupdef",
+				[16] = "legbastion",
+				[17] = "legflak",
+				[18] = "leglraa",
+				[19] = "legperdition",
+				[20] = "legabm",
+				[21] = "legsilo",
+				[22] = "leglrpc",
+				[23] = "legstarfall",
+				[24] = "leglab",
+				[25] = "legalab",
+				[26] = "leghalab",
+			}
+
+		elseif name == "armcv" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armavp",
+				[9] = "armhavp",
+				[10] = "armlab",
+				[11] = "armvp",
+				[12] = "armap",
+				[13] = "armhp",
+				[14] = "armnanotc",
+				[15] = "armeyes",
+				[16] = "armrad",
+				[17] = "armdrag",
+				[18] = "armllt",
+				[19] = "armrl",
+				[20] = "armdl",
+				[21] = "armjamt",
+				[22] = "armjuno",
+				[23] = "armsy",
+			}
+
+		elseif name == "corcv" then
+			uDef.buildoptions = {	
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "coravp",
+				[11] = "corlab",
+				[12] = "corhavp",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "nil",
+				[21] = "corrl",
+				[22] = "nil",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
+			}
+
+		elseif name == "legcv" then
+			uDef.buildoptions = {
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "legavp",
+				[9] = "leglab",
+				[10] = "leghavp",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[19] = "nil",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
+			}
+		
+		elseif name == "armacv" then
+			uDef.buildoptions = {
+				[1] = "armafus",
+				[2] = "armckfus",
+				[3] = "armshltx",
+				[4] = "armageo",
+				[5] = "armgmm",
+				[6] = "armmoho",
+				[7] = "armmmkr",
+				[8] = "armuwadves",
+				[9] = "armuwadvms",
+				[10] = "armfort",
+				[11] = "armtarg",
+				[12] = "armgate",
+				[13] = "armamb",
+				[14] = "armpb",
+				[15] = "armanni",
+				[16] = "armflak",
+				[17] = "armmercury",
+				[18] = "armemp",
+				[19] = "armamd",
+				[20] = "armsilo",
+				[21] = "armbrtha",
+				[22] = "armvulc",
+				[23] = "armdf",
+				[24] = "armvp",
+				[25] = "armhavp",
+				[26] = "armavp",		
+			}
+		
+		elseif name == "coracv" then
+			uDef.buildoptions = {
+				[1] = "corafus",
+				[2] = "corgant",
+				[3] = "corageo",
+				[4] = "corbhmth",
+				[5] = "cormoho",
+				[7] = "cormexp",
+				[8] = "cormmkr",
+				[9] = "coruwadves",
+				[10] = "coruwadvms",
+				[11] = "corfort",
+				[12] = "corasp",
+				[13] = "cortarg",
+				[14] = "corgate",
+				[15] = "cortoast",
+				[16] = "corvipe",
+				[17] = "cordoom",
+				[18] = "corflak",
+				[19] = "corscreamer",
+				[20] = "cortron",
+				[21] = "corfmd",
+				[22] = "corsilo",
+				[23] = "corint",
+				[24] = "corbuzz",
+				[25] = "corvp",
+				[26] = "coravp",
+				[27] = "corhavp",
+			}
+		
+		elseif name == "legacv" then
+			uDef.buildoptions = {
+				[1] = "legafus",
+				[2] = "leggant",
+				[3] = "legageo",
+				[4] = "legrampart",
+				[5] = "legmoho",
+				[6] = "legadveconv",
+				[7] = "legadvestore",
+				[8] = "legamstor",
+				[9] = "legforti",
+				[10] = "corasp",
+				[11] = "legtarg",
+				[12] = "legdeflector",
+				[13] = "legacluster",
+				[14] = "legapopupdef",
+				[15] = "legbastion",
+				[16] = "legflak",
+				[17] = "leglraa",
+				[18] = "legperdition",
+				[19] = "legabm",
+				[20] = "legsilo",
+				[21] = "leglrpc",
+				[22] = "legstarfall",
+				[23] = "legvp",
+				[24] = "legavp",
+				[25] = "leghavp",
+			}
+
+		elseif name == "armca" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armaap",
+				[9] = nil,
+				[10] = "armlab",
+				[11] = "armvp",
+				[12] = "armap",
+				[13] = "armhp",
+				[14] = "armnanotc",
+				[15] = "armeyes",
+				[16] = "armrad",
+				[17] = "armdrag",
+				[18] = "armllt",
+				[19] = "armrl",
+				[20] = "armdl",
+				[21] = "armjamt",
+				[22] = "armjuno",
+				[23] = "armsy",
+			}
+
+		elseif name == "corca" then 
+			uDef.buildoptions = {
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "coraap",
+				[11] = "corlab",
+				[12] = "nil",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "nil",
+				[21] = "corrl",
+				[22] = "nil",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
+			}
+
+		elseif name == "legca" then
+			uDef.buildoptions = {
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "legaap",
+				[9] = "leglab",
+				[10] = "nil",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[19] = "nil",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
+			}
+			
+		-- t1.5 upgraded mexes 
+
+		-- legion gets powerful enhanced mexes in return for weak t1 mexes. 
+		-- Legion labs are also cheaper (to-do)
+		elseif name == "legmext15" then
+			uDef.metalcost = 450
+			uDef.energycost = 7500
+			uDef.buildtime = 7500
+			uDef.health = 900
+			uDef.metalstorage = 250
+			uDef.energyupkeep = 35
+			uDef.extractsmetal = 0.003
+
+		elseif name == "armamex" then
+			uDef.metalcost = 220
+			uDef.buildtime = 5000
+			uDef.energycost = 5000
+			uDef.health = 1200
+			uDef.metalstorage = 150
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+			uDef.cancloak = false
+			uDef.explodeas = "mediumBuildingExplosionGeneric"
+
+		elseif name == "corexp" then
+			uDef.metalcost = 235
+			uDef.energycost = 4000
+			uDef.buildtime = 5500
+			uDef.health = 1000
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+
+		-- T2 mexes rebalance
+		-- Mexes cost 60 E/s for 4x extraction
+		-- Legion pays a premium for 6x
+		elseif name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" 
+		then
+			uDef.energyupkeep = 60
+			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
+			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+
+		elseif name == "cormexp" then 
+			uDef.energyupkeep = 60
+
+		elseif name == "legmoho" then
+			uDef.extractsmetal = 0.006
+			uDef.energyupkeep = 180
+			uDef.metalcost = math.ceil(uDef.metalcost * .3) * 10
+			uDef.energycost = math.ceil(uDef.energycost * .03) * 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.03) * 100
+
+		-- Commanders reduced cloak cost, increased speed
+		-- remove hovers from com
+		elseif name == "corcom" or name == "legcom" then
+			uDef.cloakcost = 70
+			uDef.cloakcostmoving = 700
+			uDef.speed = 40
+			uDef.buildoptions[26] = ""
+			uDef.buildoptions[27] = ""
+			uDef.energymake = 30
+
+		-- armcom new laser
+		elseif name == "armcom" then
+			uDef.cloakcost = 70
+			uDef.cloakcostmoving = 700
+			uDef.speed = 40
+			uDef.weapondefs.armcomlaser.name = "Light g2g burst laser"
+			uDef.weapondefs.armcomlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armcomlaser.beamburst = true
+			uDef.weapondefs.armcomlaser.burst = 3
+			uDef.weapondefs.armcomlaser.burstrate = 0.175
+			uDef.weapondefs.armcomlaser.thickness = 3
+			uDef.weapondefs.armcomlaser.reloadtime = 0.6
+			uDef.weapondefs.armcomlaser.beamtime = 0.04
+			uDef.weapondefs.armcomlaser.soundstart = "lasrlit3"
+			uDef.weapondefs.armcomlaser.soundtrigger = false
+			uDef.weapondefs.armcomlaser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.armcomlaser.damage = {
+				default = 37.5,
+				subs = 2.5,
+			}
+			uDef.buildoptions[26] = ""
+			uDef.buildoptions[27] = ""
+			uDef.energymake = 30
+
+		-- T1 Economy 1.15x HP
+		elseif name == "armwin" or name == "corwin" or name == "legwin"
+		or name == "armsolar" or name == "corsolar" or name == "legsolar"
+		or name == "armtide" or name == "cortide" or name == "legtide" 
+		or name == "armmakr" or name == "cormakr" or name == "legeconv"
+		or name == "corfmkr" or name == "armfmkr" or name == "legfeconv"
+		or name == "cornanotc" or name == "armnanotc" or name == "legnanotc"
+		or name == "armnanotcplat" or name == "cornanotcplat" or name == "legnanotcplat"
+		then
+			uDef.health = math.ceil(uDef.health * 0.115) * 10
+
+		-- T1 Mex Hp buff
+		elseif name == "armmex" or name == "cormex" or name == "legmex" then
+			uDef.health = math.ceil(uDef.health * 0.15) * 10
+
+		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 windc
+		elseif name == "armadvsol"
+		then
+			uDef.metalcost = 330
+			uDef.energycost = 2860
+
+		elseif name == "coradvsol"
+		then
+			uDef.metalcost = 360
+			uDef.energycost = 1460
+
+		elseif name == "legadvsol"
+		then
+			uDef.metalcost = 440
+			uDef.energycost = 1940
+			uDef.health = 1200
+
+		-- rezbots - 25% less BP in favor of more HP
+		elseif name == "cornecro" or name == "armrectr" or name == "legrezbot"
+		then
+			uDef.workertime = 150
+			uDef.health = math.ceil(uDef.health * 0.125) * 10
+
+
+		-- Bedbug T1 Rework
+
+		elseif name == "corroach" then
+			uDef.metalcost = 30
+			uDef.energycost = 600
+			uDef.buildtime = 800
+			uDef.health = 120
+			uDef.maxwaterdepth = 16
+			uDef.movementclass = "BOT1"
+			uDef.radardistance = 700
+			uDef.radaremitheight = 18
+			uDef.speed = 100
+			uDef.explodeas = "mediumExplosionGenericSelfd"
+			uDef.selfdestructas = "fb_blastsml"
+			uDef.customparams.techlevel = 1
+
+		-- Spybots
+		elseif name == "corspy" or name == "legaspy" or name == "armspy" then
+			uDef.buildtime = 12800
+
+		-- Lab Cost Rework
+
+		-- T1
+	elseif name == "armlab" or name == "armap" or name == "armsy" 
+		or name == "corap" or name == "corsy" 
+		or name == "leglab" or name == "legap" or name == "legsy"
+		then 
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+			uDef.workertime = uDef.workertime * 2 
+
+		-- T2
+		elseif name == "armaap" or name == "armasy" or name == "coraap" or name == "corasy" or name == "legaap" or name == "legasy"
+		then 
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime * 6
+
+		-- T3
+		elseif name == "corgant" or name == "corgantuw" 
+		or name == "leggant" or name == "leggantuw" 
+		or name == "armshltx" or name == "armshltxuw" then
+			uDef.workertime = uDef.workertime * 6
+
+		-- Cortex T1 Reworks
+		elseif name == "corwolv" then
+			uDef.weapondefs.corwolv_gun.range = 740
+			uDef.health = 550
+		elseif name == "corthud" then
+			uDef.speed = 55
+			uDef.turnrate = 1200
+			uDef.turninplacespeedlimit = 1.8
+			uDef.sightdistance = 420
+			uDef.weapondefs.arm_ham.predictboost = 0.8
+			uDef.weapondefs.arm_ham.range = 340
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11,
+			}
+			uDef.weapondefs.arm_ham.burst = 2
+			uDef.weapondefs.arm_ham.burstrate = 0.2
+
+		elseif name == "corstorm" then
+			uDef.weapondefs.cor_bot_rocket.name = "Light Solid-Fuel Rocket"
+			uDef.weapondefs.cor_bot_rocket.range = 500
+			uDef.weapondefs.cor_bot_rocket.burst = 3
+			uDef.weapondefs.cor_bot_rocket.burstrate = 0.05
+			uDef.weapondefs.cor_bot_rocket.mygravity = 0
+			uDef.weapondefs.cor_bot_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.cor_bot_rocket.damage = {
+				default = 52,
+			}
+			uDef.weapondefs.cor_bot_rocket.trajectoryheight = 0.25
+			uDef.weapondefs.cor_bot_rocket.startvelocity = 49
+			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 285
+			uDef.weapondefs.cor_bot_rocket.weaponacceleration = 236
+			uDef.weapondefs.cor_bot_rocket.flighttime = 2.05
+			uDef.weapondefs.cor_bot_rocket.wobble = 200
+			uDef.weapondefs.cor_bot_rocket.smokesize = 2.2
+			uDef.weapondefs.cor_bot_rocket.customparams.overrange_distance = 525
+			uDef.weapondefs.cor_bot_rocket.customparams.projectile_destruction_method = "descend"
+			uDef.weapondefs.cor_bot_rocket.customparams.place_target_on_ground = true
+
+		elseif name == "corak" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.85)
+			uDef.energycost = math.ceil(uDef.energycost * 0.085) * 10
+			uDef.health = math.ceil(uDef.health * 0.09) * 10
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.085) * 10
+			uDef.weapondefs.gator_laser.range = 210
+
+		elseif name == "corlevlr" then
+			uDef.metalcost = 180
+			uDef.energycost = 1800
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.0081) * 100
+			uDef.health = 1220
+			uDef.speed = 46
+			uDef.weapondefs.corlevlr_weapon.range = 310
+
+		elseif name == "cormist" then
+			uDef.speed = math.ceil(uDef.speed * 0.97)
+			uDef.weapondefs.cortruck_missile.range = 590
+			uDef.weapondefs.cortruck_missile.areaofeffect = 62
+			uDef.weapondefs.cortruck_missile.edgeeffectiveness = 0.85
+			uDef.weapondefs.cortruck_missile.burst = 2
+			uDef.weapondefs.cortruck_missile.burstrate = 0.2
+			uDef.weapondefs.cortruck_missile.reloadtime = 5
+			uDef.weapondefs.cortruck_missile.model = "legsmallrocket.s3o" 
+			uDef.weapondefs.cortruck_aa.burst = 2
+			uDef.weapondefs.cortruck_aa.burstrate = 0.2
+			uDef.weapondefs.cortruck_aa.damage = {
+				default = 0.5,
+				vtol = 60
+			}
+		elseif name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.range = 700
+			uDef.weapondefs.cor_laserh1.reloadtime = 2.4
+			uDef.weapondefs.cor_laserh1.damage.default = 392
+		
+
+		-- Armada T1 Reworks
+		elseif name == "armflash" then
+			uDef.speed = 109
+			uDef.health = 600
+
+		elseif name == "armpw" then 
+			uDef.speed = 92
+			uDef.health = 320
+			
+		elseif name == "armwar" then
+			uDef.speed = 61
+			uDef.health = math.ceil(uDef.health * 0.08) * 10
+			uDef.weapondefs.armwar_laser.name = "Close-Range g2g Burst Laser"
+			uDef.weapondefs.armwar_laser.range = 280
+			uDef.weapondefs.armwar_laser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armwar_laser.burst = 3
+			uDef.weapondefs.armwar_laser.burstrate = 0.175
+			uDef.weapondefs.armwar_laser.thickness = 3
+			uDef.weapondefs.armwar_laser.reloadtime = 1.08
+			uDef.weapondefs.armwar_laser.beamtime = 0.04
+			uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
+			uDef.weapondefs.armwar_laser.soundtrigger = false
+			uDef.weapondefs.armwar_laser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.armwar_laser.damage = {
+				default = 28,
+				vtol = 5
+				}
+
+		elseif name == "armllt" then
+			uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
+			uDef.weapondefs.arm_lightlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_lightlaser.beamburst = true
+			uDef.weapondefs.arm_lightlaser.burst = 3
+			uDef.weapondefs.arm_lightlaser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.arm_lightlaser.burstrate = 0.175
+			uDef.weapondefs.arm_lightlaser.thickness = 3
+			uDef.weapondefs.arm_lightlaser.reloadtime = 0.7
+			uDef.weapondefs.arm_lightlaser.beamtime = 0.04
+			uDef.weapondefs.arm_lightlaser.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_lightlaser.soundtrigger = false
+			uDef.weapondefs.arm_lightlaser.energypershot = 10
+			uDef.weapondefs.arm_lightlaser.damage = {
+					commanders = 56.25,
+					default = 37.5,
+					subs = 2.5,
+					vtol = 2.5,
+				}
+
+		elseif name == "armamph" then
+			uDef.weapondefs.armamph_weapon1.name = "Light g2g Burst Laser"
+			uDef.weapondefs.armamph_weapon1.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armamph_weapon1.burst = 3
+			uDef.weapondefs.armamph_weapon1.beamburst = true
+			uDef.weapondefs.armamph_weapon1.burstrate = 0.175
+			uDef.weapondefs.armamph_weapon1.thickness = 3
+			uDef.weapondefs.armamph_weapon1.reloadtime = 1.1
+			uDef.weapondefs.armamph_weapon1.beamtime = 0.04
+			uDef.weapondefs.armamph_weapon1.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.armamph_weapon1.soundstart = "lasrlit3"
+			uDef.weapondefs.armamph_weapon1.soundtrigger = false
+			uDef.weapondefs.armamph_weapon1.damage = {
+				default = 41,
+				vtol = 7.6
+			}
+
+		elseif name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.range = 700
+			uDef.weapondefs.arm_laserh1.damage.default = 580
+			uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
+			uDef.weapondefs.arm_laserh1.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_laserh1.beamburst = true
+			uDef.weapondefs.arm_laserh1.burst = 3
+			uDef.weapondefs.arm_laserh1.burstrate = 0.175
+			uDef.weapondefs.arm_laserh1.thickness = 4
+			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
+			uDef.weapondefs.arm_laserh1.beamtime = 0.04
+			uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.arm_laserh1.soundtrigger = false
+			uDef.weapondefs.arm_laserh1.energypershot = 25
+			uDef.weapondefs.arm_laserh1.damage = {
+				commanders = 290.25,
+				default = 193.5,
+				vtol = 17.5,
+			}
+
+		elseif name == "armraz" then
+			uDef.weapondefs.mech_rapidlaser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.mech_rapidlaser.rgbcolor2 = "0.6 0.6 0.9"
+			uDef.weapondefs.mech_rapidlaser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.mech_rapidlaser.name = "Rapid-fire g2g Burst Laser"
+		
+		elseif name == "armham" then
+			uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
+			uDef.weapondefs.arm_ham.reloadtime = 0.87
+			uDef.weapondefs.arm_ham.weaponvelocity = 572
+			uDef.weapondefs.arm_ham.range = 360
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11
+			}
+
+		elseif name == "armmart" then
+			uDef.speed = 40
+			uDef.weapondefs.arm_artillery.range = 760
+			uDef.weapondefs.arm_artillery.areaofeffect = 160
+			uDef.weapondefs.arm_artillery.damage.default = 220
+			uDef.health = 750
+
+		elseif name == "armart" then
+			uDef.weapondefs.tawf113_weapon.range = 740
+			uDef.health = 520
+
+		elseif name == "armrock" then
+			uDef.weapondefs.arm_bot_rocket.range = 600
+			uDef.weapondefs.arm_bot_rocket.damage.default = 95
+			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
+		
+		-- Armada T2 Reworks
+
+		elseif name == "armsptk" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.5)
+			uDef.energycost = math.ceil(uDef.energycost * 1.5)
+			uDef.buildtime = math.ceil(uDef.buildtime * 1.5)
+			uDef.weapondefs.adv_rocket.burst = 6
+			uDef.weapondefs.adv_rocket.burstrate = 0.15
+			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.adv_rocket.smokesize = 3.25
+			uDef.weapondefs.adv_rocket.range = 750
+			uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
+			
+		elseif name == "armfido" then
+			uDef.weapondefs.bfido.range = 600
+			uDef.health = 800
+			uDef.speed = 58
+			uDef.weapondefs.bfido.weaponvelocity = 450
+			uDef.weapondefs.bfido.reloadtime = 4
+			uDef.weapondefs.bfido.damage.default = 350
+
+		elseif name == "armmanni" then
+			uDef.weapondefs.atam.reloadtime = 9.2
+			uDef.weapondefs.atam.damage.default = 4600
+			uDef.weapondefs.atam.damage.commanders = 1500
+			uDef.weapondefs.atam.energypershot = 3000
+			uDef.speed = 35
+
+		elseif name == "armlatnk" then
+			uDef.weapondefs.lightning.range = 300
+
+		elseif name == "armzeus" then
+			uDef.health = 2300
+			uDef.speed = 56
+
+		elseif name == "armmav" then 
+			uDef.autoheal = 40 
+			uDef.energycost = 10000
+			uDef.metalcost = 650
+			uDef.buildtime = 16000
+			uDef.health = 1700
+			uDef.weapondefs.armmav_weapon.areaofeffect = 30
+
+		-- Cortex T2 Reworks
+		elseif name == "cortermite" then
+			uDef.speed = 56
+			uDef.metalcost = 500
+			uDef.energycost = 7500
+			uDef.buildtime = 12500
+
+		elseif name == "corhunt" then
+			uDef.metalcost = 250
+			uDef.energycost = 9500
+			uDef.hoverattack = true
+			uDef.sightdistance = 1500
+			uDef.radardistance = 2700
+
+		elseif name == "cormart" then
+			uDef.speed = 40
+			uDef.weapondefs.cor_artillery.range = 750
+			uDef.weapondefs.cor_artillery.areaofeffect = 170
+			uDef.weapondefs.cor_artillery.damage.default = 390
+			uDef.health = 850
+
+		elseif name == "cormando" then
+			uDef.weapons[1].badtargetcategory = "VTOL"
+			uDef.seismicdistance = 1150
+			uDef.seismicsignature = 0
+			uDef.buildoptions[8] = "corrl"
+			uDef.weapons[1].onlytargetcategory = "NOTSUB"
+			uDef.weapons[1].fastautoretargeting = true
+			uDef.weapondefs.commando_blaster.damage.default = 150
+			uDef.weapondefs.commando_blaster.weaponvelocity = 600
+
+		elseif name == "cortrem" then
+			uDef.energycost = 25000
+			uDef.metalcost = 1800
+			uDef.buildtime = 31100
+			uDef.weapondefs.tremor_spread_fire.mygravity = 0.267
+			uDef.weapondefs.tremor_spread_fire.proximitypriority = 1
+            uDef.weapondefs.tremor_spread_fire.weaponvelocity = 600
+    		uDef.weapondefs.tremor_spread_fire.range = 1275
+			uDef.weapondefs.tremor_spread_fire.accuracy = 1200
+			uDef.weapondefs.tremor_spread_fire.burst = 10
+			uDef.weapondefs.tremor_spread_fire.burstrate = 0.3
+			uDef.weapondefs.tremor_spread_fire.reloadtime = 4.5
+			uDef.weapondefs.tremor_spread_fire.hightrajectory = 0
+			uDef.weapondefs.tremor_spread_fire.customparams = {
+				speceffect = "sector_fire",
+				when = "always",
+				max_range_reduction = "0.01",
+				spread_angle = "1",
+			}
+    
+
+		elseif name == "correap" then
+			uDef.health = 3000
+			uDef.buildtime = 6500
+			uDef.metalcost = 470
+			uDef.energycost = 7000
+
+		elseif name == "corcan" then
+			uDef.speed = 44
+		
+		-- Legion T1 Reworks
+		elseif name == "legkark" then
+			uDef.health = 1700
+			uDef.weapondefs.heat_ray.damage = {
+				default = 180,
+				vtol = 28
+			}
+
+		elseif name == "legcen" then
+			uDef.health = 850
+			uDef.speed = 93
+
+		elseif name == "leghades" then
+			uDef.weapondefs.gauss.range = 190
+
+		-- Legion T2 Reworks
+
+		end
+
+    -- Tech down
+		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
+		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
+		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
+		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
+		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
+		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		then
+			uDef.customparams.techlevel = 1
+		end
+
+		-- T2 BP increase
+		if uDef.customparams.techlevel == 2 then 
+		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+		end
+
+		-- Legion
+
+		if uDef.customparams.subfolder == "Legion/Labs" or name == "leglab" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 0.09) * 10
+			uDef.energycost = math.ceil(uDef.energycost * 0.009) * 100
+			uDef.buildtime = math.ceil(uDef.energycost * 0.009) * 100
+			uDef.workertime = math.ceil(uDef.workertime * 0.09) * 10
+		end
+
 	
 
-
+	end
 
 
 	-- Multipliers Modoptions
