@@ -20,9 +20,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armllt" or name == "corllt" or name == "armbeamer" or name == "corhllt" or name == "corhlt" or name == "armhlt" or name == "armguard" or name == "corpun" or name == "armdl" or name == "cordl" then
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
 	end
-	if uDef.customparams.subfolder and uDef.buildtime and (uDef.customparams.subfolder == "CorShips" or uDef.customparams.subfolder == "ArmShips") then
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100	-- 1.5x buildtime
-	end
 
 	if name == "armfast" then
 		uDef.metalcost = math.floor(uDef.metalcost *0.9)
@@ -38,10 +35,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	if name == "armepoch" then
-		uDef.metalcost = math.floor(uDef.metalcost *1.15)
-		uDef.energycost = math.floor(uDef.energycost *1.15)
-		uDef.buildtime = math.floor(uDef.buildtime *1.15)
+		uDef.metalcost = math.ceil(uDef.metalcost *1.15 / 1000) * 1000
+		uDef.energycost = math.ceil(uDef.energycost *1.15 / 10000) * 10000
+		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
 		uDef.weapondefs.heavyplasma.damage.default = 500
+		uDef.weapondefs.heavyplasma.edgeeffectiveness = 0.15
 		uDef.weapondefs.heavyplasma.reloadtime = 5
 		uDef.weapondefs.heavyplasma.areaofeffect = 160
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
@@ -49,10 +47,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.heavyplasma.impulsefactor = 1
 	end
 	if name == "corblackhy" then
-		uDef.metalcost = math.floor(uDef.metalcost *1.15)
-		uDef.energycost = math.floor(uDef.energycost *1.15)
-		uDef.buildtime = math.floor(uDef.buildtime *1.15)
+		uDef.metalcost = math.ceil(uDef.metalcost *1.15 / 1000) * 1000
+		uDef.energycost = math.ceil(uDef.energycost *1.15 / 10000) * 10000
+		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
 		uDef.weapondefs.heavyplasma.damage.default = 600
+		uDef.weapondefs.heavyplasma.edgeeffectiveness = 0.15
 		uDef.weapondefs.heavyplasma.reloadtime = 7
 		uDef.weapondefs.heavyplasma.areaofeffect = 240
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
@@ -105,6 +104,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "coraak" then
 		uDef.script = "Units/coraak_clean.cob"
 		uDef.health = 3200
+		uDef.energycost = math.floor(uDef.energycost *1.3 / 100) * 100
 		uDef.weapondefs = {
 			coraabot_missile1 = {
 				areaofeffect = 24,
@@ -205,6 +205,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armaak" then
 		uDef.script = "Units/armaak_clean.cob"
+		uDef.energycost = math.floor(uDef.energycost *1.3 / 100) * 100
 		uDef.health = 2200
 		uDef.weapondefs = {	
 			longrangemissile = {
