@@ -30,7 +30,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitIsDead = Spring.GetUnitIsDead
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_GUARD = CMD.GUARD
@@ -71,6 +71,9 @@ function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 end
 
 function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if spGetUnitIsDead(unitID) then
+		return -- rare edge case where unit gets its destroy callin sent before the create callin
+	end
 	if isAssistBuilder[unitDefID] and unitTeam == myTeam then
 		-- this is an assist builder, and it's mine
 		-- flag is cleared by MetaUnitRemoved if unit dies or is given/captured
@@ -102,6 +105,10 @@ function widget:Initialize()
 	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
 		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), myTeam)
 	end
+end
+
+function widget:Shutdown()
+	myAssistBuilders = {}
 end
 
 function widget:PlayerChanged()
