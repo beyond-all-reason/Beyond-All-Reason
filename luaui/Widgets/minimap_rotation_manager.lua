@@ -25,6 +25,8 @@ local prevSnap
 
 local spSetMiniRot		= 	Spring.SetMiniMapRotation
 local spGetMiniRot		= 	Spring.GetMiniMapRotation
+local PI = math.pi
+local HALFPI = PI / 2
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -88,9 +90,9 @@ function widget:CameraRotationChanged(_, roty)
 	if mode == CameraRotationModes.manual then return end
 	local newRot
 	if mode == CameraRotationModes.autoFlip then
-		newRot = math.pi * math.floor((roty/math.pi) + 0.5)
+		newRot = PI * math.floor((roty/PI) + 0.5)
 	elseif mode == CameraRotationModes.autoRotate then
-		newRot = math.pi/2 * (math.floor((roty/(math.pi/2)) + 0.5) % 4)
+		newRot = HALFPI * (math.floor((roty/HALFPI) + 0.5) % 4)
 	end
 	if newRot ~= prevSnap then
 		prevSnap = newRot
