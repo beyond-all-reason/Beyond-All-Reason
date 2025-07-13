@@ -14,15 +14,21 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armmex" or name == "cormex" or name == "legmex" then
 		uDef.health = uDef.health + 81
 	end
-	if name == "armck" or name == "corck"  or name == "legck" then
+
+	if name == "armck" or name == "corck" or name == "legck" then
 		uDef.health = uDef.health + 90
 	end
+
 	if name == "armllt" or name == "corllt" or name == "leglht"
 	or name == "armbeamer" or name == "corhllt"
 	or name == "corhlt" or name == "armhlt" or name == "legmg"
 	or name == "armguard" or name == "corpun" or name == "legcluster"
 	or name == "armdl" or name == "cordl" or name == "legctl" then
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
+	end
+
+	if uDef.customparams.subfolder and uDef.buildtime and (uDef.customparams.subfolder == "CorShips" or uDef.customparams.subfolder == "ArmShips") then
+		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100	-- 1.5x buildtime
 	end
 
 	if name == "armfast" then
@@ -39,11 +45,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	if name == "armepoch" then
+
 		uDef.metalcost = math.ceil(uDef.metalcost *1.15 / 1000) * 1000
 		uDef.energycost = math.ceil(uDef.energycost *1.15 / 10000) * 10000
 		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
 		uDef.weapondefs.heavyplasma.damage.default = 500
 		uDef.weapondefs.heavyplasma.edgeeffectiveness = 0.15
+
 		uDef.weapondefs.heavyplasma.reloadtime = 3.5
 		uDef.weapondefs.heavyplasma.areaofeffect = 160
 		uDef.weapondefs.heavyplasma.burstrate = 0.8
@@ -51,6 +59,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.heavyplasma.impulsefactor = 1
 	end
 	if name == "corblackhy" then
+
 		uDef.metalcost = math.ceil(uDef.metalcost *1.15 / 1000) * 1000
 		uDef.energycost = math.ceil(uDef.energycost *1.15 / 10000) * 10000
 		uDef.buildtime = math.ceil(uDef.buildtime *1.15 / 10000) * 10000
@@ -62,6 +71,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.heavyplasma.explosiongenerator = "custom:genericshellexplosion-large-aoe"
 		uDef.weapondefs.heavyplasma.impulsefactor = 1
 	end
+  
 	if name == "corkorg" then
 		uDef.speed = 37
 	end

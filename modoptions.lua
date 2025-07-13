@@ -1450,7 +1450,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= true,
     },

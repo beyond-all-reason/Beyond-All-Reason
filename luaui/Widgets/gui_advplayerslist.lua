@@ -2743,16 +2743,17 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
 
     --desynced = playerID == 1
+    local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
 	if desynced then
 		font2:SetTextColor(1,0.45,0.45,1)
-		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + (5.7*playerScale) , 8, "o")
+		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
         if player[playerID].incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
-            font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + (5.7*playerScale) , 8, "o")
+            font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         else
             font2:SetTextColor(1,0.5,0.5,1)
-            font2:Print(math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + (5.7*playerScale) , 8, "o")
+            font2:Print(math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         end
     end
     font2:End()

@@ -50,13 +50,14 @@ ShieldSphereParticle.Default = {
 
 local glMultiTexCoord = gl.MultiTexCoord
 local glCallList = gl.CallList
+local LuaShader = gl.LuaShader
 
 local gameFrame = 0
 local timeOffset = 0
 
 function ShieldSphereParticle:BeginDraw()
 	gl.DepthMask(false)
-	gl.UseShader(shieldShader)
+	shieldShader:Activate()
 	gl.Culling(false)
 	gameFrame = Spring.GetGameFrame()
 	timeOffset = Spring.GetFrameTimeOffset()
@@ -64,7 +65,7 @@ end
 
 function ShieldSphereParticle:EndDraw()
 	gl.DepthMask(false)
-	gl.UseShader(0)
+	shieldShader:Deactivate()
 
 	gl.Culling(false)
 
@@ -100,7 +101,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function ShieldSphereParticle:Initialize()
-	shieldShader = gl.CreateShader({
+	shieldShader = LuaShader({
 		vertex = [[
 			#version 150 compatibility
 
@@ -343,7 +344,7 @@ function ShieldSphereParticle:Initialize()
 			}
 
 		]],
-	})
+	}, "ShieldSphereParticleShader")
 
 	if (shieldShader == nil) then
 		print(PRIO_MAJOR,"LUPS->Shield: critical shader error: "..gl.GetShaderLog())
@@ -354,7 +355,9 @@ function ShieldSphereParticle:Initialize()
 end
 
 function ShieldSphereParticle:Finalize()
-	gl.DeleteShader(shieldShader)
+	if shieldShader then
+		shieldShader:Finalize()
+	end
 	gl.DeleteList(sphereList)
 end
 
