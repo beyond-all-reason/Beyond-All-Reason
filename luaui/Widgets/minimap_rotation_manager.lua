@@ -59,6 +59,7 @@ local function minimapRotateHandler(_, _, args)
 	end
 
 	spSetMiniRot(newRotation)
+	return true
 end
 
 local function isValidOption(num)
