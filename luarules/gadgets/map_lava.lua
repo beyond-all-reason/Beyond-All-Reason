@@ -279,7 +279,7 @@ if gadgetHandler:IsSyncedCode() then
 			local insertRemain = tonumber(tideParams[3])
 			if insertLevel and insertSpeed and insertRemain then
 				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
-				Spring.Echo('Lava Rhythm progressing to: ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
+				Spring.Echo('Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
 			end
 			tideContinueFrame = gameframe + 1 
 		end
@@ -462,18 +462,15 @@ else  -- UNSYCNED
 		-- lavalevel: Handles the '/lavalevel' chat command to adjust the lava level in-game.
 		-- Usage: /lavalevel [level] [speed] [remainTime], with no arguments progresses the current lava to the next tide Rhythm 
 		-- If speed and remainTime are not specified: defaults to 0.25 elmo/frame and 1 second respectively.
-		Spring.Echo('Lava Level Command: ' .. cmd .. ' ' .. line .. ' ' .. playerID)
 		if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 			local message = PACKET_HEADER
 			if #words == 0 then
-				Spring.Echo("tried to send short: " .. message)
 				Spring.SendLuaRulesMsg(message)
 				return
 			end
 			if words[1] then
 				message = message .. ':' .. words[1] .. ' ' .. (words[2] or '0.25') .. ' ' .. (words[3] or '1')
 			end
-			Spring.Echo("tried to send full: " .. message)
 			Spring.SendLuaRulesMsg(message)
 		end
 	end
