@@ -27,10 +27,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.009) * 100	-- 0.9x buildtime
 	end
 
-	if uDef.customparams.subfolder and uDef.buildtime and (uDef.customparams.subfolder == "CorShips" or uDef.customparams.subfolder == "ArmShips") then
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100	-- 1.5x buildtime
-	end
-
 	if name == "armfast" then
 		uDef.metalcost = math.floor(uDef.metalcost *0.9)
 		uDef.energycost = math.floor(uDef.energycost *0.9)
@@ -119,7 +115,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "coraak" then
 		uDef.script = "Units/coraak_clean.cob"
 		uDef.health = 3200
-		uDef.energycost = math.floor(uDef.energycost *1.3 / 100) * 100
 		uDef.weapondefs = {
 			coraabot_missile1 = {
 				areaofeffect = 24,
@@ -220,7 +215,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armaak" then
 		uDef.script = "Units/armaak_clean.cob"
-		uDef.energycost = math.floor(uDef.energycost *1.3 / 100) * 100
 		uDef.health = 2200
 		uDef.weapondefs = {	
 			longrangemissile = {
