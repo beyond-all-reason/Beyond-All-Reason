@@ -267,7 +267,7 @@ end
 
 function widget:Update(dt)
     local _, spectatingFullView = SpringGetSpectatingState()
-    local mapDrawMode = SpringGetMapDrawMode()
+    local mapDrawMode = WG.metalView
 
     if mapDrawMode ~= prevMapDrawMode then
         checkAllFeatures()
