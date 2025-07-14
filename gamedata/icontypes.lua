@@ -3663,6 +3663,11 @@ local icontypes = {
 
 	-- T2 split
 
+	armhaac = {
+		bitmap = "icons/air_t2_worker.png",
+		size = 1.149999999
+	},
+
 	armhack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.149999999
@@ -3670,6 +3675,11 @@ local icontypes = {
 
 	armhacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhaac = {
+		bitmap = "icons/air_t2_worker.png",
 		size = 1.149999999
 	},
 
@@ -3694,7 +3704,12 @@ local icontypes = {
 	},
 
 
-	armalab = {
+	armhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 1.425
+	},
+
+	armhalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.425
 	},
@@ -3705,7 +3720,12 @@ local icontypes = {
 	},
 
 	
-	caralab = {
+	corhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 1.425
+	},
+	
+	corhalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.425
 	},
@@ -3715,7 +3735,6 @@ local icontypes = {
 		size = 1.425
 	},
 
-	
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 1.425

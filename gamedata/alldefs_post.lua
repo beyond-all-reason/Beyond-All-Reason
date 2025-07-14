@@ -2963,7 +2963,7 @@ function UnitDef_Post(name, uDef)
 
 		if name == "armplat" then
 			uDef.buildoptions = {
-			[1] = "armcsa",
+			[1] = "armhaac",
 			[2] = "armseap",			
 			[3] = "armsb",
 			[4] = "armsfig",
@@ -2974,7 +2974,7 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corplat" then
 			uDef.buildoptions = {		
-			[1] = "corcsa",
+			[1] = "corhaac",
 			[2] = "corawac",
 			[3] = "corcut",
 			[4] = "corsb",
@@ -3028,48 +3028,6 @@ function UnitDef_Post(name, uDef)
 		}
 
 		-- Air Cons
-
-		elseif name == "armcsa" then
-			uDef.buildoptions = {
-				[1] = "armadvsol",
-				[2] = "armamex",
-				[3] = "armbeamer",
-				[4] = "armhlt",
-				[5] = "armguard",
-				[6] = "armferret",
-				[7] = "armcir",
-				[8] = "armjuno",
-				[9] = "armclaw",
-				[10] = "armarad",
-				[11] = "armveil",
-				[12] = "armfus",
-				[13] = "armgmm",
-				[14] = "armhaap",
-				[15] = "armap",
-				[16] = "armaap",
-				[17] = "armsd",
-				[18] = "armmkr"
-				}
-
-		elseif name == "corcsa" then
-			uDef.buildoptions = {
-			[1] = "coradvsol",
-			[2] = "corexp",
-			[3] = "cormaw",
-			[4] = "corhllt",
-			[5] = "corpun",
-			[6] = "cormadsam",
-			[7] = "corerad",
-			[8] = "corjuno",
-			[9] = "corfus",
-			[10] = "corarad",
-			[11] = "corshroud",
-			[12] = "corsd",
-			[13] = "corap",
-			[14] = "corhaap",
-			[15] = "coraap",
-			[16] = "cormkr"
-		}
 
 		elseif name == "armca" then
 			uDef.buildoptions = {
