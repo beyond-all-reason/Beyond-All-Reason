@@ -797,6 +797,12 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	end
 end
 
+function widget:VisibleExplosionBatch(dataSize, dataStride, data)
+	for i=1, dataSize, dataStride do
+		widget:VisibleExplosion(data[i], data[i+1], data[i+2], data[i+3], data[i+4])
+	end
+end
+
 local function placegrassCmd(_, _, params)
 	placementMode = not placementMode
 	processChanges = true
