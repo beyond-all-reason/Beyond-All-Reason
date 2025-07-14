@@ -105,12 +105,12 @@ function ArmyHST:Init()
 	self.transports = {
 		corvalk = true,
 		armatlas = true,
-		armthovr = true,
-		corthovr = true,
-		corintr = true,
+		-- armthovr = true,
+		-- corthovr = true,
+		-- corintr = true,
 		armdfly = true,
-		cortship = true,
-		armtship = true,
+		-- cortship = true,
+		-- armtship = true,
 		corseah = true,
 
 		}
