@@ -234,6 +234,18 @@ local labGrids = {
 		"", "", "legadvaabot", "",
 	},
 
+	armhaap = {
+		"armhaac", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armawac", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	corhaap = {
+		"corhaac", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corawac", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
 	armhavp = {
 		"armhacv", "armmlv", "armlatnk", "armpincer",
 		"armmart", "armcroc", "", "armgremlin",
@@ -1750,6 +1762,52 @@ local unitGrids = {
 
 	-- Split tier cons
 
+	armhaac = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armap","","","",},
+			{"","armaap","armhaap","",},
+			{"","","","",},
+		},
+	},
+
+	corhaac = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corap","","","",},
+			{"","coraap","corhaap","",},
+			{"","","","",},
+		},
+	},
+	
 	armhack = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
