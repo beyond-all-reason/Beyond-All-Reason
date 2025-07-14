@@ -76,6 +76,8 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			faction = "armada",
+			movementType = "air",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

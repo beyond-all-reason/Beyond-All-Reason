@@ -40,6 +40,8 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
 			crashable = 0,
+			faction = "armada",
+			movementType = "air",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
