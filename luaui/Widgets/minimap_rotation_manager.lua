@@ -37,7 +37,7 @@ local function minimapRotateHandler(_, _, args)
 	end
 
 	args = args or {}
-	local rotationArg = args[1] and tonumber(args[1])
+	local rotationArg = tonumber(args[1])
 	local absoluteArg = args[2] == "absolute"
 
 	if not rotationArg then return end
@@ -47,7 +47,7 @@ local function minimapRotateHandler(_, _, args)
 		return
 	end
 
-	local rotationIndex = ((rotationArg / 90) % 4 + 4) % 4 -- Normalize to 0-3 range and Negative values
+	local rotationIndex = ((rotationArg / 90) + 4) % 4 -- Normalize to 0-3 range and Negative values
 
 	local newRotation
 	if absoluteArg then
@@ -88,7 +88,7 @@ function widget:Initialize()
 
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 
-	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "pR")
+	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
 end
 
 function widget:Shutdown()
