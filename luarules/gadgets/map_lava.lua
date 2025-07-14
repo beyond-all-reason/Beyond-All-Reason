@@ -249,6 +249,25 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+	-- new to use notif system
+	-- if lavaGrow then
+	--   if lavaGrow > 0 and not lavaNotificationPlayed then
+	--     lavaNotificationPlayed = true
+	--     LavaGrowsNotificationHere
+	--   elseif lavaGrow < 0 and not lavaNotificationPlayed then
+	--     lavaNotificationPlayed = true
+	--     LavaFallsNotificationHere
+	--   elseif lavaGrow == 0 and lavaNotificationPlayed then
+	--     lavaNotificationPlayed = false
+	--   end
+	-- end
+
+		-- old lava rise/drop echos
+		-- if lavaGrow and lavaGrow > 0 then
+		-- 	Spring.Echo("LavaIsRising")
+		-- elseif lavaGrow and lavaGrow < 0 then
+		-- 	Spring.Echo("LavaIsDropping")
+		-- end
 	end
 
 	function gadget:RecvLuaMsg(message, playerID)
@@ -284,27 +303,6 @@ if gadgetHandler:IsSyncedCode() then
 			tideContinueFrame = gameframe + 1 
 		end
 	end
-
-
-	-- new to use notif system
-	-- if lavaGrow then
-	--   if lavaGrow > 0 and not lavaNotificationPlayed then
-	--     lavaNotificationPlayed = true
-	--     LavaGrowsNotificationHere
-	--   elseif lavaGrow < 0 and not lavaNotificationPlayed then
-	--     lavaNotificationPlayed = true
-	--     LavaFallsNotificationHere
-	--   elseif lavaGrow == 0 and lavaNotificationPlayed then
-	--     lavaNotificationPlayed = false
-	--   end
-	-- end
-
-		-- old lava rise/drop echos
-		-- if lavaGrow and lavaGrow > 0 then
-		-- 	Spring.Echo("LavaIsRising")
-		-- elseif lavaGrow and lavaGrow < 0 then
-		-- 	Spring.Echo("LavaIsDropping")
-		-- end
 
 	local DAMAGE_EXTSOURCE_WATER = -5
 
