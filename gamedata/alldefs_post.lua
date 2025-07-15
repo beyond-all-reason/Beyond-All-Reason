@@ -3053,10 +3053,138 @@ function UnitDef_Post(name, uDef)
 			[6] = "corsfig",
 			[7] = "corhvytrans",
 			}
+		end
+
+		----------------
+		-- Other Reworks
+
+		-- Aramada T1
+		if name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.range = 700
+			uDef.weapondefs.arm_laserh1.damage.default = 580
+			uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
+			uDef.weapondefs.arm_laserh1.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_laserh1.beamburst = true
+			uDef.weapondefs.arm_laserh1.burst = 3
+			uDef.weapondefs.arm_laserh1.burstrate = 0.175
+			uDef.weapondefs.arm_laserh1.thickness = 4
+			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
+			uDef.weapondefs.arm_laserh1.beamtime = 0.04
+			uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.arm_laserh1.soundtrigger = false
+			uDef.weapondefs.arm_laserh1.energypershot = 25
+			uDef.weapondefs.arm_laserh1.damage = {
+				commanders = 290.25,
+				default = 193.5,
+				vtol = 17.5,
+				}
+		
+		elseif name == "armham" then
+			uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
+			uDef.weapondefs.arm_ham.reloadtime = 0.87
+			uDef.weapondefs.arm_ham.weaponvelocity = 572
+			uDef.weapondefs.arm_ham.range = 360
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11
+			}
+		
+		elseif name == "armart" then
+			uDef.weapondefs.tawf113_weapon.range = 740
+			uDef.health = 520
+
+		elseif name == "armrock" then
+			uDef.weapondefs.arm_bot_rocket.range = 600
+			uDef.weapondefs.arm_bot_rocket.damage.default = 95
+			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
+		
+		-- Armada T2
+
+		elseif name == "armmart" then
+			uDef.speed = 40
+			uDef.weapondefs.arm_artillery.range = 760
+			uDef.weapondefs.arm_artillery.areaofeffect = 160
+			uDef.weapondefs.arm_artillery.damage.default = 220
+			uDef.health = 750
+		
+		elseif name == "armsptk" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.5)
+			uDef.energycost = math.ceil(uDef.energycost * 1.5)
+			uDef.buildtime = math.ceil(uDef.buildtime * 1.5)
+			uDef.weapondefs.adv_rocket.burst = 6
+			uDef.weapondefs.adv_rocket.burstrate = 0.15
+			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.adv_rocket.smokesize = 3.25
+			uDef.weapondefs.adv_rocket.range = 750
+			uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
+
+		elseif name == "armfido" then
+			uDef.weapondefs.bfido.range = 600
+			uDef.health = 800
+			uDef.speed = 58
+			uDef.weapondefs.bfido.weaponvelocity = 450
+			uDef.weapondefs.bfido.reloadtime = 4
+			uDef.weapondefs.bfido.damage.default = 350
+
+		elseif name == "armlatnk" then
+			uDef.weapondefs.lightning.range = 300
+
+		-- Cortex T1
+
+		elseif name == "corwolv" then
+			uDef.weapondefs.corwolv_gun.range = 740
+			uDef.health = 550
+
+		elseif name == "corstorm" then
+			uDef.weapondefs.cor_bot_rocket.name = "Light Solid-Fuel Rocket"
+			uDef.weapondefs.cor_bot_rocket.range = 500
+			uDef.weapondefs.cor_bot_rocket.burst = 3
+			uDef.weapondefs.cor_bot_rocket.burstrate = 0.05
+			uDef.weapondefs.cor_bot_rocket.mygravity = 0
+			uDef.weapondefs.cor_bot_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.cor_bot_rocket.damage = {
+				default = 52,
+			}
+			uDef.weapondefs.cor_bot_rocket.trajectoryheight = 0.25
+			uDef.weapondefs.cor_bot_rocket.startvelocity = 49
+			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 285
+			uDef.weapondefs.cor_bot_rocket.weaponacceleration = 236
+			uDef.weapondefs.cor_bot_rocket.flighttime = 2.05
+			uDef.weapondefs.cor_bot_rocket.wobble = 200
+			uDef.weapondefs.cor_bot_rocket.smokesize = 2.2
+			uDef.weapondefs.cor_bot_rocket.customparams.overrange_distance = 525
+			uDef.weapondefs.cor_bot_rocket.customparams.projectile_destruction_method = "descend"
+			uDef.weapondefs.cor_bot_rocket.customparams.place_target_on_ground = trueelseifname == ""
+
+			elseif name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.range = 700
+			uDef.weapondefs.cor_laserh1.reloadtime = 2.4
+			uDef.weapondefs.cor_laserh1.damage.default = 392
+
+			-- Cortex T2
+
+			elseif name == "cortermite" then
+			uDef.speed = 56
+			uDef.metalcost = 500
+			uDef.energycost = 7500
+			uDef.buildtime = 12500
+
+			elseif name == "cormart" then
+			uDef.speed = 40
+			uDef.weapondefs.cor_artillery.range = 750
+			uDef.weapondefs.cor_artillery.areaofeffect = 170
+			uDef.weapondefs.cor_artillery.damage.default = 390
+			uDef.health = 850
+
+			elseif name == "correap" then
+			uDef.health = 3000
+			uDef.buildtime = 6500
+			uDef.metalcost = 470
+			uDef.energycost = 7000
 
 		end
 	end
-
 
 
 	-- Multipliers Modoptions
