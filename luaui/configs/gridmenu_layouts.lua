@@ -214,7 +214,7 @@ local labGrids = {
 		"corkorg", "corshiva", "corsala", "corparrow",              -- juggernaut, shiva, salamander, poison arrow
 		"corsok",                                                   -- cataphract
 	},
-	-- Split bot labs
+	-- Split Tier Labs
 
 	corhalab = {
 		"corhack", "", "corpyro", "coramph",
@@ -244,6 +244,18 @@ local labGrids = {
 		"corhaac", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
+	},
+
+	armhasy = {
+		"armhacs", "", "armmship", "",              
+		"armlship", "armcrus", "", "",              
+		"armsubk", "", "armaas", "",              
+	},
+
+	corhasy = {
+		"corhacs", "", "cormship", "",              
+		"corfship", "corcrus", "", "",              
+		"corshark", "", "corarch", "",              
 	},
 
 	armhavp = {
@@ -1945,6 +1957,53 @@ local unitGrids = {
 			{"","","","",},
 		},
 	},
+
+	armhacs = {
+		{
+			{"armamex", "armtide", "armuwfus", "armfmkr",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armfhlt", "armkraken", "armclaw", "armguard",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armason", "", "armfdrag", "", },
+			{"armarad", "armveil", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"armsy", "", "armplat", "", },
+			{"", "armasy", "armhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
+	corhacs = {
+		{
+			{"corexp", "cortide", "coruwfus", "corfmkr",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corfhlt", "corfdoom", "cormaw", "corpun",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corason", "", "corfdrag", "", },
+			{"corarad", "corshroud", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"corsy", "", "corplat", "", },
+			{"", "corasy", "corhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
 
 	--minelayers
 	armmlv = {
