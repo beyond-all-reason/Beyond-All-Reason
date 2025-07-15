@@ -1,4 +1,3 @@
-armepocarmsup
 local difficulties = {
 	veryeasy = 1,
 	easy 	 = 2,
