@@ -74,7 +74,6 @@ widgetHandler = {
 	inCommandsChanged = false,
 
 	allowUserWidgets = true,
-	allowUnitControlWidgets = true,
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
@@ -276,7 +275,6 @@ function widgetHandler:LoadConfigData()
 	self.orderList = chunk().order
 	self.configData = chunk().data
 	self.allowUserWidgets = chunk().allowUserWidgets
-	self.allowUnitControlWidgets = chunk().allowUnitControlWidgets
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -296,7 +294,6 @@ function widgetHandler:SaveConfigData()
 	filetable.order = self.orderList
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
-	filetable.allowUnitControlWidgets = self.allowUnitControlWidgets
 	table.save(filetable, CONFIG_FILENAME, '-- Widget Custom data and order, order = 0 disabled widget')
 end
 
@@ -374,16 +371,13 @@ function widgetHandler:Initialize()
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
-	if self.allowUnitControlWidgets == nil then
-		self.allowUnitControlWidgets = true
-	end
 
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	unsortedWidgets = {}
 
 	if self.allowUserWidgets and allowuserwidgets then
-		if not (self.allowUnitControlWidgets and allowunitcontrolwidgets) then
+		if not allowunitcontrolwidgets then
 			CreateSandboxedSystem()
 		end
 
@@ -629,7 +623,7 @@ local SandboxedWidgetMeta =
 function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
-	local canControlUnits = fromZip or (self.allowUnitControlWidgets and allowunitcontrolwidgets)
+	local canControlUnits = fromZip or allowunitcontrolwidgets
 
 	if enableLocalsAccess then
 		local systemRef = canControlUnits and System or SandboxedSystem
@@ -1335,13 +1329,9 @@ function widgetHandler:Shutdown()
 		self.allowUserWidgets = self.__allowUserWidgets
 	end
 
-	if self.__allowUnitControlWidgets ~= nil then
-		self.allowUnitControlWidgets = self.__allowUnitControlWidgets
-	end
-
 	-- save config
 	if self.__blankOutConfig then
-		local saveData = { ["allowUserWidgets"] = self.allowUserWidgets, ["allowUnitControlWidgets"] = self.allowUnitControlWidgets }
+		local saveData = { ["allowUserWidgets"] = self.allowUserWidgets }
 		table.save(saveData, CONFIG_FILENAME, '-- Widget Custom data and order')
 	else
 		self:SaveConfigData()
