@@ -1,0 +1,218 @@
+
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
+
+
+piece  base, head1, head2, head3, head4, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, pad, platform, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3, cagelight4, cagelight_emit4;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_TURNON 4
+
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 100
+#define SMOKEPIECE base
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide nano5;
+	hide nano6;
+	hide nano7;
+	hide nano8;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
+	hide pad;
+	
+	spray = 0;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script Deactivate();
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = (spray + 1) % 8;
+	pieceIndex = nano1 + spray;
+}
+
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+	show nano5;
+	show nano6;
+	show nano7;
+	show nano8;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
+	spin cagelight3 around y-axis speed <200> accelerate <1>;
+	spin cagelight4 around y-axis speed <-200> accelerate <1>;
+	show cagelight_emit1;
+	show cagelight_emit2;
+	show cagelight_emit3;
+	show cagelight_emit4;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide nano5;
+	hide nano6;
+	hide nano7;
+	hide nano8;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
+	stop-spin cagelight3 around y-axis decelerate <1>;
+	stop-spin cagelight4 around y-axis decelerate <1>;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move head1 to y-axis [3.33333333] speed [9];
+	move head2 to y-axis [3.33333333] speed [9];
+	move head3 to y-axis [3.33333333] speed [9];
+	move head4 to y-axis [3.33333333] speed [9];
+	wait-for-move head1 along y-axis;
+	
+	turn head1 to y-axis <-45.0> speed <90>;
+	turn head2 to y-axis <45.0> speed <90>;
+	turn head3 to y-axis <-45.0> speed <90>;
+	turn head4 to y-axis <45.0> speed <90>;
+	
+	move platform to y-axis [-10] speed [30];
+	
+	wait-for-turn head4 around y-axis;
+	
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn head1 to y-axis <45.0> speed <90>;
+	turn head2 to y-axis <-45.0> speed <90>;
+	turn head3 to y-axis <45.0> speed <90>;
+	turn head4 to y-axis <-45.0> speed <90>;
+	
+	wait-for-turn head4 around y-axis;
+	
+	move head1 to y-axis [-2.666667] speed [9];
+	move head2 to y-axis [-2.666667] speed [9];
+	move head3 to y-axis [-2.666667] speed [9];
+	move head4 to y-axis [-2.666667] speed [9];
+	wait-for-move head1 along y-axis;
+	
+	move platform to y-axis [0] speed [15];
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		explode head2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano3 type BITMAPONLY | NOHEATCLOUD;
+		explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		explode head3 type BITMAPONLY | NOHEATCLOUD;
+		explode nano5 type BITMAPONLY | NOHEATCLOUD;
+		explode nano6 type BITMAPONLY | NOHEATCLOUD;
+		explode head4 type BITMAPONLY | NOHEATCLOUD;
+		explode nano7 type BITMAPONLY | NOHEATCLOUD;
+		explode nano8 type BITMAPONLY | NOHEATCLOUD;
+		explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type FALL | NOHEATCLOUD;
+		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head2 type FALL | NOHEATCLOUD;
+		explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head3 type FALL | NOHEATCLOUD;
+		explode nano5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano6 type FALL | NOHEATCLOUD;
+		explode head4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano7 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano8 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano5 type SMOKE | FALL | NOHEATCLOUD;
+		explode nano6 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode head4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano7 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano8 type SMOKE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode head2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode head3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano8 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
