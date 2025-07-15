@@ -236,13 +236,13 @@ local labGrids = {
 
 	armhaap = {
 		"armhaac", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armawac", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
 
 	corhaap = {
 		"corhaac", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
-		"corawac", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
+		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
 

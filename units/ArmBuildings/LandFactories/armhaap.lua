@@ -38,7 +38,7 @@ return {
 			[2] = "armseap",			
 			[3] = "armsb",
 			[4] = "armsfig",
-			[5] = "armawac",
+			[5] = "armsehak",
 			[6] = "armsaber",
 			[7] = "armhvytrans",
 		},
