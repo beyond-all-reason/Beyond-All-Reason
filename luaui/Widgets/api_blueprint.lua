@@ -131,7 +131,7 @@ local function rotateBlueprint(bp, facing)
 					facing = (bpu.facing + facing) % 4
 				}
 			end),
-			facing = (bp.facing + facing) % 4
+			facing = 0
 		}
 	)
 end

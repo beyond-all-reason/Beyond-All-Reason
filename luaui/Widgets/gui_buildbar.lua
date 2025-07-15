@@ -651,6 +651,8 @@ function widget:Update(dt)
 		if not moffscreen then
 			openedMenu = hoveredFac
 		end
+	elseif not (openedMenu >= 0 and isInRect(mx, my, boptRect)) then
+		openedMenu = -1
 	end
 
 	sec = sec + dt

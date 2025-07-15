@@ -10,7 +10,6 @@ function widget:GetInfo() return {
     author  = "Tom Fyuri",
     date    = "2024",
     license = "GNU GPL v2",
-    handler = true,
     layer   = 0,
     enabled = true
 } end

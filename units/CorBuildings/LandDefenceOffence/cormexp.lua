@@ -2,7 +2,6 @@ return {
 	cormexp = {
 		activatewhenbuilt = true,
 		buildangle = 2048,
-		buildingmask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		canattack = true,
