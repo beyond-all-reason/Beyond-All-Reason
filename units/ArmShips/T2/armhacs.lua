@@ -38,7 +38,7 @@ return {
 		buildoptions = {
 			[1] = "armtide",
 			[2] = "armamex",
-			[3] = "armfrad",
+			[3] = "armveil",
 			[4] = "armarad",
 			[5] = "armclaw",
 			[6] = "armsy",
@@ -49,7 +49,7 @@ return {
 			[11] = "armfmkr",
 			[12] = "armason",
 			[13] = "armuwfus",
-			[14] = "",
+			[14] = "armplat",
 			[15] = "",
 			[16] = "",
 			[17] = "armkraken",

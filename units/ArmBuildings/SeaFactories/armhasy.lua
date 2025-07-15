@@ -36,8 +36,7 @@ return {
 			[3] = "armcrus",
 			[4] = "armsubk",
 			[5] = "armaas",
-			[6] = "armantiship",
-			[7] = "armlship",		
+			[6] = "armlship",
 		},
 		customparams = {
 			model_author = "FireStorm",
