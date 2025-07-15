@@ -473,8 +473,6 @@ FireWeapon1()
 		emit-sfx 1024 + 0 from lfirept;
 		wait-for-move lgun along z-axis;
 		move lgun to z-axis [0.0] speed [4.0];
-		sleep 32;
-		gun_1 = !gun_1;
 		wait-for-move lgun along z-axis;
 	}
 	else
@@ -483,10 +481,13 @@ FireWeapon1()
 		emit-sfx 1024 + 0 from rfirept;
 		wait-for-move rgun along z-axis;
 		move rgun to z-axis [0.0] speed [4.0];
-		sleep 32;
-		gun_1 = !gun_1;
 		wait-for-move rgun along z-axis;
 	}
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 // For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
