@@ -28,7 +28,7 @@ This modoption allows disabling 'unit control' user widgets for the game.
 
 Use `!bSet AllowUnitControlWidgets 0/1` to disable.
 
-Disabling this will disable all of `Spring.GiveOrder*` methods for the user widgets.
+Disabling this means the game won't load `control` user widgets, and will disable all of `Spring.GiveOrder*` methods for user widgets.
 
 This option won't do anything if `AllowUserWidgets` is disabled.
 
