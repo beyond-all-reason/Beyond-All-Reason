@@ -2578,7 +2578,7 @@ function UnitDef_Post(name, uDef)
 
 		-- Air Labs
 
-		elseif name == "armaap" then
+		if name == "armaap" then
 			uDef.buildoptions = {
 			[1] = "armaca",
 			[2] = "armpnix",
@@ -3058,6 +3058,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 
+
 	-- Multipliers Modoptions
 
 	-- Max Speed
@@ -3214,7 +3215,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 end
 
 local function ProcessSoundDefaults(wd)
