@@ -108,12 +108,13 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	sleep 32;
 	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = flare1;
+	pieceIndex = turret;
 }
 
 QueryWeapon1(pieceIndex)
