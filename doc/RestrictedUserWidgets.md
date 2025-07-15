@@ -2,7 +2,7 @@
 
 ## User and Unit Control widgets
 
-A 'User Widget' is any widget added to a users installation inside <datadir>/LuaUI/Widgets/, thus not part of the base game.
+A 'User Widget' is any widget added to a users installation inside `<datadir>/LuaUI/Widgets/`, thus not part of the base game.
 
 There is also a subset of user widgets considered 'Unit Control', those are the ones capable of giving orders to units.
 
