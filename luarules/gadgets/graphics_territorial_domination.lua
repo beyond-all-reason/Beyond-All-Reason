@@ -39,6 +39,12 @@ local squareVBO = nil
 local squareVAO = nil
 local squareShader = nil
 local instanceVBO = nil
+local cachedMinimapFlipped = nil
+
+local cachedIsMinimapRendering = nil
+local cachedCameraHeights = { min = nil, max = nil }
+local cachedHeightmapTexture = nil
+local cameraHeightUpdateNeeded = false
 
 local captureGrid = {}
 local notifyFrames = {}
@@ -426,6 +432,8 @@ function gadget:Initialize()
 	amSpectating = Spring.GetSpectatingState()
 	myAllyID = Spring.GetMyAllyTeamID()
 	initializeAllyColors()
+	
+	cameraHeightUpdateNeeded = true
 end
 
 local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArray)
@@ -588,6 +596,56 @@ function gadget:GameFrame(frame)
 	end
 end
 
+local function updateMinimapFlipUniform()
+	local currentMinimapFlipped = getMiniMapFlipped()
+	if cachedMinimapFlipped ~= currentMinimapFlipped then
+		cachedMinimapFlipped = currentMinimapFlipped
+		squareShader:SetUniformInt("flipMinimap", currentMinimapFlipped and 1 or 0)
+	end
+end
+
+local function updateIsMinimapRenderingUniform(isMinimapRendering)
+	if not squareShader then return end
+	
+	if cachedIsMinimapRendering ~= isMinimapRendering then
+		cachedIsMinimapRendering = isMinimapRendering
+		squareShader:SetUniformInt("isMinimapRendering", isMinimapRendering)
+	end
+end
+
+local function updateCameraHeightUniforms()
+	if not squareShader then return end
+	
+	if not cameraHeightUpdateNeeded then return end
+	
+	local minCameraHeight, maxCameraHeight = getMaxCameraHeight()
+	if cachedCameraHeights.min ~= minCameraHeight or cachedCameraHeights.max ~= maxCameraHeight then
+		cachedCameraHeights.min = minCameraHeight
+		cachedCameraHeights.max = maxCameraHeight
+		squareShader:SetUniformFloat("minCameraDrawHeight", minCameraHeight)
+		squareShader:SetUniformFloat("maxCameraDrawHeight", maxCameraHeight)
+	end
+	
+	cameraHeightUpdateNeeded = false
+end
+
+local function updateHeightmapTextureUniform()
+	if not squareShader then return end
+	
+	if cachedHeightmapTexture == nil then
+		cachedHeightmapTexture = 0
+		squareShader:SetUniformInt("heightmapTexture", 0)
+	end
+end
+
+function gadget:CameraRotationChanged(rotX, rotY, rotZ)
+	cameraHeightUpdateNeeded = true
+end
+
+function gadget:CameraPositionChanged(posX, posY, posZ)
+	cameraHeightUpdateNeeded = true
+end
+
 function gadget:DrawWorldPreUnit()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 
@@ -597,8 +655,10 @@ function gadget:DrawWorldPreUnit()
 	glDepthTest(true)
 
 	squareShader:Activate()
-	squareShader:SetUniformInt("isMinimapRendering", 0)
-	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
+	updateIsMinimapRenderingUniform(0)
+	updateCameraHeightUniforms()
+	updateHeightmapTextureUniform()
+	updateMinimapFlipUniform()
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 
 	squareShader:Deactivate()
@@ -612,8 +672,10 @@ function gadget:DrawInMiniMap()
 	if spIsGUIHidden() then return end
 
 	squareShader:Activate()
-	squareShader:SetUniformInt("isMinimapRendering", 1)
-	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
+	updateIsMinimapRenderingUniform(1)
+	updateCameraHeightUniforms()
+	updateHeightmapTextureUniform()
+	updateMinimapFlipUniform()
 
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 
