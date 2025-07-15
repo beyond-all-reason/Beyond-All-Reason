@@ -164,6 +164,10 @@ FireWeapon2()
 {
 	start-script ResetFire();
 	emit-sfx 1024 + 0 from exhaust;
+}
+
+EndBurst2()
+{
 	gun_1 = !gun_1;
 }
 
