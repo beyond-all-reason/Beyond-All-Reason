@@ -1331,8 +1331,7 @@ function widgetHandler:Shutdown()
 
 	-- save config
 	if self.__blankOutConfig then
-		local saveData = { ["allowUserWidgets"] = self.allowUserWidgets }
-		table.save(saveData, CONFIG_FILENAME, '-- Widget Custom data and order')
+		table.save({ ["allowUserWidgets"] = self.allowUserWidgets }, CONFIG_FILENAME, '-- Widget Custom data and order')
 	else
 		self:SaveConfigData()
 	end
