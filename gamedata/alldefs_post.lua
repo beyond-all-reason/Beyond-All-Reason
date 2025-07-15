@@ -2482,6 +2482,7 @@ function UnitDef_Post(name, uDef)
 			uDef.metalstorage = 250
 			uDef.energyupkeep = 35
 			uDef.extractsmetal = 0.003
+			uDef.maxwaterdepth = 10000
 
 		elseif name == "armamex" then
 			uDef.metalcost = 220
@@ -2493,6 +2494,7 @@ function UnitDef_Post(name, uDef)
 			uDef.extractsmetal = 0.002
 			uDef.cancloak = false
 			uDef.explodeas = "mediumBuildingExplosionGeneric"
+			uDef.maxwaterdepth = 10000
 
 		elseif name == "corexp" then
 			uDef.metalcost = 235
@@ -2501,6 +2503,7 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1000
 			uDef.energyupkeep = 30
 			uDef.extractsmetal = 0.002
+			uDef.maxwaterdepth = 10000
 
 		-- T2 mexes rebalance
 		-- Mexes cost 60 E/s for 4x extraction
@@ -2621,7 +2624,7 @@ function UnitDef_Post(name, uDef)
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.0125) * 100
 		end
 
-		------------------------------------------
+		------------------------------
 		-- Armada and Cortex Air Split
 
 		-- Air Labs
@@ -2654,10 +2657,10 @@ function UnitDef_Post(name, uDef)
 			[3] = "armlance",
 			[4] = "armhawk",
 			[5] = "armdfly",
-			[6] = "armblade",
+			[6] = "armbrawl",
 			[7] = "armstil",
 			[8] = "armliche",
-			[9] = "armsehak",
+			[9] = "armawac",
 			}
 
 		elseif name == "coraap" then
@@ -2669,7 +2672,7 @@ function UnitDef_Post(name, uDef)
 			[5] = "corvamp",
 			[6] = "corseah",
 			[7] = "corcrwh",
-			[8] = "corhunt",
+			[8] = "corawac",
 		}
 	
 		elseif name == "armap" then
@@ -2808,6 +2811,90 @@ function UnitDef_Post(name, uDef)
 				[26] = "coraap",
 				[27] = "corhaap",
 			}
+		end
+
+		
+		------------
+		-- Sea Split
+
+		-- Sea Labs
+
+		if name == "armasy" then
+			uDef.buildoptions = {
+			[1] = "armacsub",
+			[2] = "armserp",
+			[3] = "armsjam",
+			[4] = "armbats",
+			[5] = "armmship",
+			[6] = "armepoch",
+			[7] = "armantiship"
+			}
+
+		elseif name == "corasy" then
+			uDef.buildoptions = {
+			[1] = "coracsub",
+			[2] = "corssub",
+			[3] = "corsjam",
+			[4] = "corbats",
+			[5] = "cormship",
+			[6] = "corblackhy",
+			}
+
+		-- Sea Cons
+
+		elseif name == "armcs" then
+			uDef.buildoptions = {
+			[1] = "armmex",
+			[2] = "armvp",
+			[3] = "armap",
+			[4] = "armlab",
+			[5] = "armeyes",
+			[6] = "armdl",
+			[7] = "armdrag",
+			[8] = "",
+			[9] = "armguard",
+			[10] = "armtide",
+			[11] = "armgeo",
+			[12] = "armuwgeo",
+			[13] = "armfmkr",
+			[14] = "armuwms",
+			[15] = "armuwes",
+			[16] = "armsy",
+			[17] = "armasy",
+			[18] = "armnanotcplat",
+			[19] = "armfhp",
+			[20] = "armhasy",
+			[21] = "",
+			[22] = "armfrad",
+			[23] = "armfdrag",
+			[24] = "armtl",
+			[25] = "armfrt",
+			}
+
+		elseif name == "armacsub" then
+			uDef.buildoptions = {
+			[1] = "armuwfus",
+			[2] = "armuwmmm",
+			[3] = "armuwmme",
+			[4] = "armuwadves",
+			[5] = "armuwadvms",
+			[6] = "armshltxuw",
+			[7] = "armasy",
+			[8] = "armsy",
+			[9] = "",
+			[10] = "armfatf",
+			[11] = "armatl",
+			[12] = "armfflak",
+			[13] = "",
+			[14] = "armuwageo",
+			[15] = "",
+		}
+
+		elseif name == "coracsub" then
+
+
+
+
 		end
 	end
 

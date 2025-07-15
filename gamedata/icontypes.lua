@@ -3664,12 +3664,17 @@ local icontypes = {
 	-- T2 split
 
 	armhaac = {
-		bitmap = "icons/air_t2_worker.png",
+		bitmap = "icons/shipengineer.png",
 		size = 1.149999999
 	},
 
 	armhack = {
 		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	armhacs = {
+		bitmap = "icons/vehicle_t2_worker.png",
 		size = 1.149999999
 	},
 
@@ -3685,6 +3690,11 @@ local icontypes = {
 
 	corhack = {
 		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhacs = {
+		bitmap = "icons/shipengineer.png",
 		size = 1.149999999
 	},
 
@@ -3719,6 +3729,11 @@ local icontypes = {
 		size = 1.425
 	},
 
+	armhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 1.425
+	},
+
 	
 	corhaap = {
 		bitmap = "icons/factory_air_t2.png",
@@ -3734,6 +3749,12 @@ local icontypes = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.425
 	},
+
+	corhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 1.425
+	},
+
 
 	legalab = {
 		bitmap = "icons/factory_bot_t2.png",
