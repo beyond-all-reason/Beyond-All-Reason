@@ -54,7 +54,7 @@ This marks the widget so won't be run when not allowed, thus won't generate erro
 
 ### Check widget.canControlUnits
 
-Alternatively, you can check `widget.canControlUnits` to see whether 'unit control' is allowed for your widget.
+Alternatively, you can check `widget.canControlUnits` to see whether *unit control* is allowed for your widget.
 
-If `false`, you should be careful not to use any of the 'unit control' methods, like any of `Spring.GiveOrder*`.
+If `false`, you should be careful not to use any of the *unit control* methods, like any of `Spring.GiveOrder*`.
 
