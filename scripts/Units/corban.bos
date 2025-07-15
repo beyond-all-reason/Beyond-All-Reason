@@ -108,7 +108,11 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	sleep 32;
+
+}
+
+EndBurst1()
+{
 	gun_1 = !gun_1;
 }
 
