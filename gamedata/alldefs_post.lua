@@ -3132,6 +3132,20 @@ function UnitDef_Post(name, uDef)
 
 		-- Cortex T1
 
+		elseif name == "corthud" then
+			uDef.speed = 55
+			uDef.turnrate = 1200
+			uDef.turninplacespeedlimit = 1.8
+			uDef.sightdistance = 420
+			uDef.weapondefs.arm_ham.predictboost = 0.8
+			uDef.weapondefs.arm_ham.range = 340
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11,
+			}
+			uDef.weapondefs.arm_ham.burst = 2
+			uDef.weapondefs.arm_ham.burstrate = 0.2
+
 		elseif name == "corwolv" then
 			uDef.weapondefs.corwolv_gun.range = 740
 			uDef.health = 550
