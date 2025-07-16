@@ -1,0 +1,8 @@
+#include "recoil_common_includes.h"
+
+piece base;
+
+Killed(severity, corpsetype)
+{
+	return 1;
+}
