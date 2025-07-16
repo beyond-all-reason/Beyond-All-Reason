@@ -747,4 +747,14 @@ end
 
 table.mergeInPlace(armorDefs, scavArmorDefs)
 
+-- expose armor defs to custom params
+for unitName, unitDef in pairs (DEFS.unitDefs) do
+	if unitDef.customparams.armordef then
+		local defCategory = armorDefs[unitDef.customparams.armordef]
+		if defCategory then
+			defCategory[#defCategory+1] = unitName
+		end
+	end
+end
+
 return armorDefs
