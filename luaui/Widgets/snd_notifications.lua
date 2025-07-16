@@ -430,10 +430,6 @@ function widget:Initialize()
 			end
 		end
 	end
-
-	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
-		queueNotification('RaptorsAndScavsMixed')
-	end
 end
 
 function widget:Shutdown()
@@ -478,11 +474,6 @@ function widget:GameFrame(gf)
 				--	queueNotification('BuildIntrusionCounterMeasure')
 				--end
 			end
-		end
-
-		-- raptors and scavs mixed check
-		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
-			queueNotification('RaptorsAndScavsMixed')
 		end
 
 		-- low power check

@@ -1,10 +1,8 @@
-
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
-	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
-else
+if not Spring.Utilities.Gametype.IsRaptors() then
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
 	return false
 end
+Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
 
 local gadget = gadget ---@type Gadget
 
@@ -135,6 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
+	local pvpAllyTeamIDs = {}
 	local spawnQueue = {}
 	local deathQueue = {}
 	local queenResistance = {}
@@ -179,6 +178,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local isCommander = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
+				isCommander[unitDefID] = true
+		end
+end
+
 	--------------------------------------------------------------------------------
 	-- Teams
 	--------------------------------------------------------------------------------
@@ -203,10 +209,10 @@ if gadgetHandler:IsSyncedCode() then
 			if allyTeamID == raptorAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, raptorTeamID)
 				local units = GetTeamUnits(teamID)
-				raptorteamhasplayers = true
 				for u = 1,#units do
 					Spring.DestroyUnit(units[u], false, true)
 				end
+				Spring.Echo("Killing Team (raptors): " .. teamID)
 				Spring.KillTeam(teamID)
 			end
 		end
@@ -216,11 +222,8 @@ if gadgetHandler:IsSyncedCode() then
 			local _,_,_,AI = Spring.GetTeamInfo(raptorAllies[i])
 			local LuaAI = Spring.GetTeamLuaAI(raptorAllies[i])
 			if (AI or LuaAI) and raptorAllies[i] ~= raptorTeamID then
-				local units = GetTeamUnits(raptorAllies[i])
-				for u = 1,#units do
-					Spring.DestroyUnit(units[u], false, true)
-					Spring.KillTeam(raptorAllies[i])
-				end
+				Spring.Echo("Would have killed Ally (raptors): " .. raptorAllies[i])
+				table.insert(pvpAllyTeamIDs, raptorAllies[i])
 			end
 		end
 	end
@@ -312,6 +315,14 @@ if gadgetHandler:IsSyncedCode() then
 		local xp = mRandom(0, math.ceil((queenAnger*0.01) * maxXP * 1000))*0.001
 		SetUnitExperience(unitID, xp)
 		return xp
+	end
+
+	local function getTeamCommanderCount(teamID)
+			local count = 0
+			for unitDefID, _ in pairs(isCommander) do
+					count = count + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+			end
+			return count
 	end
 
 
@@ -1864,6 +1875,16 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if n%30 == 0 then
+			for _, teamID in ipairs(pvpAllyTeamIDs) do
+				local commanderCount = getTeamCommanderCount(teamID)
+				if commanderCount == 0 or not commanderCount then
+					Spring.Echo('game frame killing team (raptors): ' .. teamID)
+					-- Spring.KillTeam(teamID)
+				end
+			end
+		end
+
 		if gameOver then
 			return
 		end
@@ -2070,27 +2091,7 @@ if gadgetHandler:IsSyncedCode() then
 
 					if not killedRaptorsAllyTeam then
 						killedRaptorsAllyTeam = true
-
-						-- kill raptor team
 						Spring.KillTeam(raptorTeamID)
-
-						-- check if scavengers are in the same allyteam and alive
-						local scavengersFoundAlive = false
-						for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
-							local luaAI = Spring.GetTeamLuaAI(teamID)
-							if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
-								scavengersFoundAlive = true
-							end
-						end
-
-						-- kill whole allyteam
-						if not scavengersFoundAlive then
-							for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
-								if not select(3, Spring.GetTeamInfo(teamID, false)) then
-									Spring.KillTeam(teamID)
-								end
-							end
-						end
 					end
 				end
 			end
