@@ -30,7 +30,7 @@ return {
 		objectname = "Units/corphantom.s3o",
 		radardistance = 1000,
 		radaremitheight = 25,
-		script = "Units/corphantom_clean.cob",
+		script = "Units/corphantom.cob",
 		seismicsignature = 4,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 650,
