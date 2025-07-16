@@ -56,6 +56,7 @@ local function minimapRotateHandler(_, _, args)
 		end
 
 		WG['options'].applyOptionValue("minimaprotation", newMode)
+		Spring.Echo("[MinimapManager] Mode set to " .. args[2])
 		return true
 
 	elseif module == "set" then
