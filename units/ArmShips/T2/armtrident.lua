@@ -29,7 +29,7 @@ return {
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/armtrident.s3o",
-		script = "Units/armtrident_clean.cob",
+		script = "Units/armtrident.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 600,
