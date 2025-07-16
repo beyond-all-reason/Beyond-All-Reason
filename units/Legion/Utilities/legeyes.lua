@@ -26,7 +26,7 @@ return {
 		maxwaterdepth = 0,
 		mincloakdistance = 36,
 		objectname = "Units/legeyes.s3o",
-		script = "Units/legeyes_clean.cob",
+		script = "Units/legeyes.cob",
 		seismicsignature = 0,
 		sightdistance = 540,
 		stealth = true,
