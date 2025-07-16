@@ -2527,11 +2527,11 @@ function UnitDef_Post(name, uDef)
 		-- Lab Costs
 
 		-- T1
+		-- T1 labs must be efficient enough to encourage players to build their own lab
 		if name == "armlab" or name == "armap" or name == "armsy" or name == "armvp" 
 		or name == "corap" or name == "corsy" or name == "corlab" or name == "corvp"
 		or name == "leglab" or name == "legap" or name == "legsy" or name == "legvp"
 		then 
-			uDef.metalcost = uDef.metalcost - 200
 			uDef.workertime = 200
 
 		-- T2
