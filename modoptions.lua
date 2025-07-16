@@ -1362,15 +1362,6 @@ local options = {
         def  	= false,
     },
 
-    {
-        key    	= "experimentalturrettrunspeed",
-        name   	= "Fast turrets",
-        desc   	= "Fast turrets for fast units",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
     -- Hidden Tests
 	
 	{
