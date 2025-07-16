@@ -3059,6 +3059,7 @@ function UnitDef_Post(name, uDef)
 		-- Other Reworks
 
 		-- Aramada T1
+	
 		if name == "armhlt" then
 			uDef.weapondefs.arm_laserh1.range = 700
 			uDef.weapondefs.arm_laserh1.damage.default = 580
@@ -3078,6 +3079,25 @@ function UnitDef_Post(name, uDef)
 				commanders = 290.25,
 				default = 193.5,
 				vtol = 17.5,
+				}
+
+		elseif name == "armwar" then
+			uDef.speed = 61
+			uDef.health = math.ceil(uDef.health * 0.08) * 10
+			uDef.weapondefs.armwar_laser.name = "Close-Range g2g Burst Laser"
+			uDef.weapondefs.armwar_laser.range = 280
+			uDef.weapondefs.armwar_laser.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.armwar_laser.burst = 3
+			uDef.weapondefs.armwar_laser.burstrate = 0.175
+			uDef.weapondefs.armwar_laser.thickness = 3
+			uDef.weapondefs.armwar_laser.reloadtime = 1.08
+			uDef.weapondefs.armwar_laser.beamtime = 0.04
+			uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
+			uDef.weapondefs.armwar_laser.soundtrigger = false
+			uDef.weapondefs.armwar_laser.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.armwar_laser.damage = {
+				default = 28,
+				vtol = 5
 				}
 		
 		elseif name == "armham" then
