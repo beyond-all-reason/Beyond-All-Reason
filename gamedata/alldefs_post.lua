@@ -1893,6 +1893,8 @@ function UnitDef_Post(name, uDef)
 			uDef.script = "Units/ARMFAVTURNRATE.cob"
 		elseif name == "armpincer" then
 			uDef.script = "Units/ARMPINCERTURNRATE.cob"
+		elseif name == "armflea" then
+			uDef.script = "Units/ARMFLEATURNRATE.cob"
 
 		-- Legion
 		elseif name == "legscout" then
