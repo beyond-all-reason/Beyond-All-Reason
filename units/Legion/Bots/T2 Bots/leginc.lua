@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/leginc.s3o",
-		script = "Units/leginc_clean.cob",
+		script = "Units/leginc.cob",
 		seismicsignature = 0,
 		selfdestructas = "penetrator",
 		sightdistance = 650,

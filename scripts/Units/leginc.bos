@@ -1,13 +1,43 @@
 
 #include "../recoil_common_includes.h"
 
-piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
+piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, oldhead, isfiring, targetswap, timer;
+static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime, aimAdj, oldsteerheading, timer;
+
+
+#define BASEPIECE body
+#define HITSPEED <45.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 8
+#define MAXTILT 100
+#define RECOIL_POWER 1000
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+//#define TB_BASE body 
+//#define TB_TURNRATE <12.0> 
+//#define TB_TILT_X <0.20>
+//#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+//#include "../tilt_bank_mobileunit.h"
+
+Steering(heading, steery, currentSpeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+		oldsteerheading = heading;
+	}
+}
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
+#define SIGNAL_RESTORE 2
+#define SIGNAL_LIGHT 512
 
 Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -22,7 +52,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn bltoes to y-axis <-1.740573> speed <33.598694> / animSpeed; 
 			move body to x-axis [-0.733100] speed [5.346102] / animSpeed; 
 			move body to z-axis [0.327225] speed [8.540756] / animSpeed; 
-			turn body to x-axis <-1.248221> speed <59.694160> / animSpeed; 
+			//turn body to x-axis <-1.248221> speed <59.694160> / animSpeed; 
 			turn brfoot to z-axis <-6.422924> speed <159.924154> / animSpeed; 
 			turn brhinge to x-axis <1.642459> speed <73.893067> / animSpeed; 
 			turn brhinge to z-axis <5.939603> speed <109.751712> / animSpeed; 
@@ -42,8 +72,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <1.992340> speed <82.491855> / animSpeed; 
 			turn frhinge to y-axis <29.060020> speed <194.375880> / animSpeed; 
 			turn frtoes to z-axis <8.711231> speed <177.357189> / animSpeed; 
-			turn sleeve to x-axis <1.109600> speed <51.988881> / animSpeed; 
-			turn turret to y-axis <-1.709714> speed <3.031317> / animSpeed; 
+			//turn sleeve to x-axis <1.109600> speed <51.988881> / animSpeed; 
+			//turn turret to y-axis <-1.709714> speed <3.031317> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 	}
 		if (isMoving) { //Frame:6
@@ -57,8 +87,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to x-axis [0.087222] speed [24.609663] / animSpeed; 
 			move body to z-axis [0.819191] speed [14.758989] / animSpeed; 
 			move body to y-axis [0.087483] speed [4.754913] / animSpeed; 
-			turn body to x-axis <0.349444> speed <47.929929> / animSpeed; 
+			//turn body to x-axis <0.349444> speed <47.929929> / animSpeed; 
 			turn body to y-axis <-0.409035> speed <55.983679> / animSpeed; 
+			turn turret to y-axis <0.409035> speed <55.983679> / animSpeed; 
 			turn brfoot to z-axis <1.899875> speed <249.683975> / animSpeed; 
 			turn brhinge to x-axis <4.143355> speed <75.026892> / animSpeed; 
 			turn brhinge to z-axis <1.973189> speed <118.992401> / animSpeed; 
@@ -78,8 +109,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <2.550150> speed <16.734307> / animSpeed; 
 			turn frhinge to y-axis <23.062291> speed <179.931874> / animSpeed; 
 			turn frtoes to z-axis <17.220222> speed <255.269723> / animSpeed; 
-			turn sleeve to x-axis <-0.236333> speed <40.378001> / animSpeed; 
-			turn turret to y-axis <0.420321> speed <63.901032> / animSpeed; 
+			//turn sleeve to x-axis <-0.236333> speed <40.378001> / animSpeed; 
+			//turn turret to y-axis <0.420321> speed <63.901032> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:9
@@ -93,8 +124,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to x-axis [0.774669] speed [20.623430] / animSpeed; 
 			move body to z-axis [0.166144] speed [19.591408] / animSpeed; 
 			move body to y-axis [-0.122910] speed [6.311778] / animSpeed; 
-			turn body to x-axis <-0.426831> speed <23.288255> / animSpeed; 
+			//turn body to x-axis <-0.426831> speed <23.288255> / animSpeed; 
 			turn body to y-axis <-1.975958> speed <47.007714> / animSpeed; 
+			turn turret to y-axis <1.975958> speed <47.007714> / animSpeed; 
 			turn brfoot to z-axis <6.992860> speed <152.789537> / animSpeed; 
 			turn brhinge to x-axis <5.175122> speed <30.953026> / animSpeed; 
 			turn brhinge to z-axis <3.094221> speed <33.630970> / animSpeed; 
@@ -113,8 +145,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <0.840561> speed <51.287682> / animSpeed; 
 			turn frhinge to y-axis <18.658970> speed <132.099615> / animSpeed; 
 			turn frtoes to z-axis <22.615071> speed <161.845465> / animSpeed; 
-			turn sleeve to x-axis <0.350304> speed <17.599113> / animSpeed; 
-			turn turret to y-axis <2.210012> speed <53.690723> / animSpeed; 
+			//turn sleeve to x-axis <0.350304> speed <17.599113> / animSpeed; 
+			//turn turret to y-axis <2.210012> speed <53.690723> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:12
@@ -129,6 +161,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to z-axis [0.713846] speed [16.431054] / animSpeed; 
 			move body to y-axis [0.053544] speed [5.293605] / animSpeed; 
 			turn body to y-axis <-0.459555> speed <45.492108> / animSpeed; 
+			turn turret to y-axis <0.459555> speed <45.492108> / animSpeed; 
 			turn brfoot to z-axis <21.026684> speed <421.014747> / animSpeed; 
 			turn brhinge to x-axis <7.664687> speed <74.686940> / animSpeed; 
 			turn brhinge to z-axis <-0.574596> speed <110.064520> / animSpeed; 
@@ -148,8 +181,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <15.421500> speed <437.428175> / animSpeed; 
 			turn frhinge to y-axis <36.653647> speed <539.840291> / animSpeed; 
 			turn frtoes to z-axis <0.311716> speed <669.100628> / animSpeed; 
-			turn sleeve to x-axis <0.463252> speed <3.388441> / animSpeed; 
-			turn turret to y-axis <0.638311> speed <47.151005> / animSpeed; 
+			//turn sleeve to x-axis <0.463252> speed <3.388441> / animSpeed; 
+			//turn turret to y-axis <0.638311> speed <47.151005> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:15
@@ -162,8 +195,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn bltoes to y-axis <1.924900> speed <53.418924> / animSpeed; 
 			move body to x-axis [-0.554897] speed [29.130947] / animSpeed; 
 			move body to z-axis [0.611917] speed [3.057879] / animSpeed; 
-			turn body to x-axis <0.741585> speed <35.802051> / animSpeed; 
+			//turn body to x-axis <0.741585> speed <35.802051> / animSpeed; 
 			turn body to y-axis <1.435502> speed <56.851710> / animSpeed; 
+			turn turret to y-axis <-1.435502> speed <56.851710> / animSpeed; 
 			turn brfoot to z-axis <37.790272> speed <502.907631> / animSpeed; 
 			turn brhinge to x-axis <9.808732> speed <64.321351> / animSpeed; 
 			turn brhinge to z-axis <-8.166082> speed <227.744583> / animSpeed; 
@@ -183,8 +217,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <6.320628> speed <273.026157> / animSpeed; 
 			turn frhinge to y-axis <55.479888> speed <564.787250> / animSpeed; 
 			turn frtoes to z-axis <-31.344664> speed <949.691395> / animSpeed; 
-			turn sleeve to x-axis <-0.623362> speed <32.598434> / animSpeed; 
-			turn turret to y-axis <-1.608670> speed <67.409434> / animSpeed; 
+			//turn sleeve to x-axis <-0.623362> speed <32.598434> / animSpeed; 
+			//turn turret to y-axis <-1.608670> speed <67.409434> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:18
@@ -197,7 +231,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn bltoes to y-axis <4.303723> speed <71.364683> / animSpeed; 
 			move body to x-axis [-0.733101] speed [5.346104] / animSpeed; 
 			move body to z-axis [0.327224] speed [8.540764] / animSpeed; 
-			turn body to x-axis <-1.248221> speed <59.694167> / animSpeed; 
+			//turn body to x-axis <-1.248221> speed <59.694167> / animSpeed; 
 			turn brfoot to z-axis <28.793209> speed <269.911898> / animSpeed; 
 			turn brhinge to x-axis <8.327152> speed <44.447396> / animSpeed; 
 			turn brhinge to z-axis <2.591801> speed <322.736479> / animSpeed; 
@@ -216,8 +250,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <-7.824958> speed <424.367568> / animSpeed; 
 			turn frhinge to y-axis <55.138140> speed <10.252455> / animSpeed; 
 			turn frtoes to z-axis <-29.953289> speed <41.741233> / animSpeed; 
-			turn sleeve to x-axis <1.109601> speed <51.988897> / animSpeed; 
-			turn turret to y-axis <-1.709714> speed <3.031339> / animSpeed; 
+			//turn sleeve to x-axis <1.109601> speed <51.988897> / animSpeed; 
+			//turn turret to y-axis <-1.709714> speed <3.031339> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:21
@@ -231,8 +265,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to x-axis [0.087222] speed [24.609665] / animSpeed; 
 			move body to z-axis [0.819191] speed [14.758997] / animSpeed; 
 			move body to y-axis [0.087483] speed [4.754916] / animSpeed; 
-			turn body to x-axis <0.349444> speed <47.929935> / animSpeed; 
+			//turn body to x-axis <0.349444> speed <47.929935> / animSpeed; 
 			turn body to y-axis <-0.409035> speed <55.983702> / animSpeed; 
+			turn turret to y-axis <0.409035> speed <55.983702> / animSpeed; 
 			turn brfoot to z-axis <-13.368090> speed <1264.838959> / animSpeed; 
 			turn brhinge to x-axis <2.380644> speed <178.395254> / animSpeed; 
 			turn brhinge to z-axis <17.497970> speed <447.185070> / animSpeed; 
@@ -252,8 +287,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <0.060342> speed <236.558999> / animSpeed; 
 			turn frhinge to y-axis <54.646848> speed <14.738763> / animSpeed; 
 			turn frtoes to z-axis <-18.590479> speed <340.884308> / animSpeed; 
-			turn sleeve to x-axis <-0.236333> speed <40.378017> / animSpeed; 
-			turn turret to y-axis <0.420321> speed <63.901055> / animSpeed; 
+			//turn sleeve to x-axis <-0.236333> speed <40.378017> / animSpeed; 
+			//turn turret to y-axis <0.420321> speed <63.901055> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:24
@@ -267,8 +302,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to x-axis [0.774669] speed [20.623430] / animSpeed; 
 			move body to z-axis [0.166144] speed [19.591415] / animSpeed; 
 			move body to y-axis [-0.122910] speed [6.311780] / animSpeed; 
-			turn body to x-axis <-0.426832> speed <23.288272> / animSpeed; 
+			//turn body to x-axis <-0.426832> speed <23.288272> / animSpeed; 
 			turn body to y-axis <-1.975959> speed <47.007721> / animSpeed; 
+			turn turret to y-axis <1.975959> speed <47.007721> / animSpeed; 
 			turn brfoot to z-axis <-23.551906> speed <305.514490> / animSpeed; 
 			turn brhinge to x-axis <-12.350371> speed <441.930449> / animSpeed; 
 			turn brhinge to z-axis <1.005421> speed <494.776471> / animSpeed; 
@@ -287,8 +323,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <1.118222> speed <31.736392> / animSpeed; 
 			turn frhinge to y-axis <53.964006> speed <20.485240> / animSpeed; 
 			turn frtoes to z-axis <-10.185560> speed <252.147575> / animSpeed; 
-			turn sleeve to x-axis <0.350305> speed <17.599130> / animSpeed; 
-			turn turret to y-axis <2.210012> speed <53.690723> / animSpeed; 
+			//turn sleeve to x-axis <0.350305> speed <17.599130> / animSpeed; 
+			//turn turret to y-axis <2.210012> speed <53.690723> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:27
@@ -303,6 +339,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			move body to z-axis [0.713846] speed [16.431072] / animSpeed; 
 			move body to y-axis [0.053544] speed [5.293611] / animSpeed; 
 			turn body to y-axis <-0.459553> speed <45.492159> / animSpeed; 
+			turn turret to y-axis <0.459553> speed <45.492159> / animSpeed; 
 			turn brfoot to z-axis <-19.457469> speed <122.833115> / animSpeed; 
 			turn brhinge to x-axis <-5.352389> speed <209.939465> / animSpeed; 
 			turn brhinge to z-axis <2.667180> speed <49.852792> / animSpeed; 
@@ -322,8 +359,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <2.231763> speed <33.406214> / animSpeed; 
 			turn frhinge to y-axis <45.440849> speed <255.694723> / animSpeed; 
 			turn frtoes to z-axis <-1.464765> speed <261.623829> / animSpeed; 
-			turn sleeve to x-axis <0.463251> speed <3.388383> / animSpeed; 
-			turn turret to y-axis <0.638310> speed <47.151055> / animSpeed; 
+			//turn sleeve to x-axis <0.463251> speed <3.388383> / animSpeed; 
+			//turn turret to y-axis <0.638310> speed <47.151055> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:30
@@ -336,8 +373,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn bltoes to y-axis <-2.860530> speed <159.157627> / animSpeed; 
 			move body to x-axis [-0.554897] speed [29.130930] / animSpeed; 
 			move body to z-axis [0.611917] speed [3.057890] / animSpeed; 
-			turn body to x-axis <0.741585> speed <35.802010> / animSpeed; 
+			//turn body to x-axis <0.741585> speed <35.802010> / animSpeed; 
 			turn body to y-axis <1.435502> speed <56.851665> / animSpeed; 
+			turn turret to y-axis <-1.435502> speed <56.851665> / animSpeed; 
 			turn brfoot to z-axis <-11.753729> speed <231.112189> / animSpeed; 
 			turn brhinge to x-axis <-0.820644> speed <135.952359> / animSpeed; 
 			turn brhinge to z-axis <2.281212> speed <11.579047> / animSpeed; 
@@ -356,8 +394,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https:/
 			turn frhinge to z-axis <4.742068> speed <75.309175> / animSpeed; 
 			turn frhinge to y-axis <35.539216> speed <297.048991> / animSpeed; 
 			turn frtoes to z-axis <2.799325> speed <127.922703> / animSpeed; 
-			turn sleeve to x-axis <-0.623362> speed <32.598393> / animSpeed; 
-			turn turret to y-axis <-1.608670> speed <67.409384> / animSpeed; 
+			//turn sleeve to x-axis <-0.623362> speed <32.598393> / animSpeed; 
+			//turn turret to y-axis <-1.608670> speed <67.409384> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 	}
@@ -413,8 +451,9 @@ StopWalking() {
 	move body to z-axis [0] speed [100] / animSpeed;
 	
 	turn body to x-axis <0> speed <200> / animSpeed;
+	turn body to y-axis <0> speed <200> / animSpeed;
 	turn body to z-axis <0> speed <200> / animSpeed;
-	
+	turn turret to y-axis <0> speed <200> / animSpeed; 
 	turn sleeve to x-axis <0> speed <200> / animSpeed;
 	turn turret to z-axis <0> speed <200> / animSpeed;
 	
@@ -495,31 +534,6 @@ UnitSpeed(){
 	}
 }
 
-SweepFire()
-{
-	while( TRUE )
-	{
-		if (targetswap == 1 AND isfiring == 1)
-		{
-			emit-sfx 2048 from flare;
-			timer = timer + 1;
-		}
-		if (timer > 150)
-		{
-			//signal SIGNAL_AIM1;
-			//timer = 0;
-			start-script ExecuteRestoreAfterDelay();
-			hide flare;
-		}
-		sleep 20;
-	}
-}
-
-#define BASEPIECE body
-#define HITSPEED <65.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 6
-#define MAXTILT 100
 
 StartMoving(reversing)
 {
@@ -528,6 +542,7 @@ StartMoving(reversing)
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
+	//START_TILTBANK;
 }
 
 StopMoving()
@@ -535,63 +550,101 @@ StopMoving()
 	isMoving = FALSE;
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
+	//STOP_TILTBANK;
 }
 Stop()
 {
 	hide flare;
 }
 
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    signal SIGNAL_AIM1;
-    isfiring = 0;
-	hide flare;
-	oldhead = -1000000;
-	if (Stunned) {
-        return (1);
-    }
-	turn aimy1 to y-axis <0.0> speed <20.0>;
-	turn aimx1 to x-axis <0.0> speed <20.0>;
-	timer = 0;
-	targetswap = 0;
-}
-
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
-	oldhead = -1000000;
 	sleep restore_delay;
-	
-	turn aimy1 to y-axis <0> speed <25>;
-	turn aimx1 to x-axis <0> speed <5>;
-	
+	oldhead = 1000000;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+ExecuteRestoreAfterDelay(addTime) {
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+	//while((timeLeft > 1) || Stunned) {
+		//get PRINT(timeLeft, get GAME_FRAME);
+    //    addTime = timeLeft;
+    //    timeLeft = 1;
+    //    sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    //}
+	hide flare;
+	turn aimy1 to y-axis <0.0> speed <20.0>;
+	turn aimx1 to x-axis <0.0> speed <20.0>;
+    timeLeft = 0;
+	timer = 0;
+    isfiring = 0;
+	oldhead = -1000000;
+	aimAdj = 0;	
+}
+
+SweepFire()
+{
+	signal SIGNAL_LIGHT;
+	set-signal-mask SIGNAL_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, targetswap, isfiring, lastfired+firetime>gameframe);
+		//get PRINT(1234, lastfired, firetime, gameframe);
+		if (timer > 30)
+		{
+			timer = 0;
+			start-script ExecuteRestoreAfterDelay();
+		}
+		if (isfiring == 1 AND timer <= 30)
+		{
+			timer = timer + 1;
+			emit-sfx 2048 from flare;
+		}
+		sleep 20;
+	}
 }
 
 Create()
 {
+	
+	restore_delay = 6000;
+	timeLeft = restore_delay;
+	//call-script TB_Init();
+	
 	spin ringinner around y-axis speed <200>;
 	spin ringouter around y-axis speed <-200>;
 	
 	hide flare;
 	hide aimy1;
 	hide aimx1;
-	
-	targetswap = 0; 	
+		
 	isfiring = 0;
-	timer = 0;
 	oldhead = -1000000;
-	
-	restore_delay = 1000;
+
+	firetime = 10;
+	lastfired = get(GAME_FRAME)-200;
+	timer = 0;
+
+	oldsteerheading = get HEADING;
 	isMoving = FALSE;
 	animSpeed = 3;
-	
+	aimAdj = 0;
+	start-script Steering();
 	start-script SweepFire();
 	start-script StopMoving();
 	start-script UnitSpeed();
 }
 
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
 
 AimFromWeapon1(pieceIndex)
 {
@@ -606,49 +659,53 @@ QueryWeapon1(pieceIndex)
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
-	    //start-script ExecuteRestoreAfterDelay();
-	}
 }
 
-#include "../debug.h"
+//#include "../debug.h"
 //#define DEBUG
 
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	
-	turn aimy1 to y-axis heading speed <30>;
+	timer = 0;
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
+	turn aimy1 to y-axis heading - aimAdj speed <30>;
 	turn aimx1 to x-axis -1*pitch speed <15>;
-	
-	if (get ABS(oldhead - heading) > 500)
+	if (((get ABS(oldhead - heading)) > 65536) OR ((get ABS(oldhead - heading) > <1>) AND ((get ABS(oldhead - heading)) < 65536 - <1>)))
 	{
-		targetswap = 1;
+		oldhead = 1000000;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
-	if (get ABS(oldhead - heading) < 500)
+	gameframe = get(GAME_FRAME);
+	if ((get ABS(oldhead - heading) < <1>) AND oldhead != -1000000)
 	{
 		oldhead = heading;
 		isfiring = 1;
-		start-script RestoreAfterDelay();
-		return (1);
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
+		gameframe = get(GAME_FRAME);
+		lastfired = gameframe;
+		return (0);
 	}
-	
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
-	
-	start-script RestoreAfterDelay();
-	isfiring = 1;
-	//show flare;
+	if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	oldhead = heading;
-	return (1);
+	//isfiring = 1;
+	
+	return (0);
 }
 
 FireWeapon1()
 {
-	start-script RestoreAfterDelay();
-	targetswap = 0;
-	timer = timer + 1;
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	return (0);
 }
 
