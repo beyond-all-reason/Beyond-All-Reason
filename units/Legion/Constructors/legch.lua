@@ -27,7 +27,7 @@ return {
 		movementclass = "HOVER3",
 		objectname = "Units/LEGCH.s3o",
 		radardistance = 50,
-		script = "Units/LEGCH_CLEAN.cob",
+		script = "Units/LEGCH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 338,
