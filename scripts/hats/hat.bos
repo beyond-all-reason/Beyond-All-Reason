@@ -1,17 +1,6 @@
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base;
-
-Create()
-{
-	return 0;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
