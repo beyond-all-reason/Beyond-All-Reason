@@ -1,5 +1,5 @@
-#define TA			// This is a TA script
 
+#include "../recoil_common_includes.h"
 
 
 piece  base, emit, light, dome, cap, blinka, blinkb, blinkc, blinkd, blinktop, bowl, groundblink;

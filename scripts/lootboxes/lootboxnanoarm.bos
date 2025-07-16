@@ -1,24 +1,10 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, aim, emitnano;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  buildHeading;
 
-
-Activatescr()
-{
-	sleep 1;
-	return (0);
-}
-
-Deactivatescr()
-{
-	sleep 1;
-	return (0);
-}
 
 
 #define BASEPIECE base
@@ -26,112 +12,13 @@ Deactivatescr()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from aim;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-}
-
-Go()
-{
-	call-script Activatescr();
-	turn aim to y-axis Static_Var_1 speed <320.000000>;
-	wait-for-turn aim around y-axis;
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide emitnano;
-	call-script InitState();
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
-	Static_Var_2 = 5000;
+	buildHeading = 0;
 	return (0);
 }
 
@@ -141,7 +28,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aim to y-axis <0.000000> speed <100.000000>;
+	turn aim to y-axis <0.0> speed <100.0>;
 	wait-for-turn aim around y-axis;
 }
 SetStunned(State)
@@ -153,52 +40,37 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	set INBUILDSTANCE to 1;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	set INBUILDSTANCE to 0;
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
-	Static_Var_1 = Func_Var_1;
-	start-script RequestState(0);
-	return (0);
+	buildHeading = heading;
+	turn aim to y-axis buildHeading speed <320.0>;
+
 }
 
 StopBuilding()
 {
-	start-script RequestState(1);
-	return (0);
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano;
-	return (0);
+	pieceIndex = emitnano;
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-	return (0);
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = aim;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {
