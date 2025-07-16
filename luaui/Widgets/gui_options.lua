@@ -6869,6 +6869,14 @@ function widget:Initialize()
 	WG['options'].removeOption = function(name)
 		return WG['options'].removeOptions({ name })
 	end
+	WG['options'].applyOptionValue = function(option, value)
+		local optionID = getOptionByID(option)
+		if not optionID then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			return
+		end
+			applyOptionValue(optionID, tonumber(value))
+	end
 
 	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "option", optionCmd, nil, 't')

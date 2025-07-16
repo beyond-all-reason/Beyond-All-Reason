@@ -33,7 +33,7 @@ local HALFPI = PI / 2
 
 local function minimapRotateHandler(_, _, args)
 	if mode ~= CameraRotationModes.none then
-		mode = CameraRotationModes.none --TODO: settings menu doesn't update realtime (workaround reloading the options widget to force `getMode`)
+		WG['options'].applyOptionValue("minimaprotation", CameraRotationModes.none)
 	end
 
 	args = args or {}
@@ -73,6 +73,7 @@ function widget:Initialize()
 	WG['minimaprotationmanager'].setMode = function(newMode)
 		if isValidOption(newMode) then
 			mode = newMode
+			prevSnap = nil
 			widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
 		end
 	end
