@@ -22,7 +22,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/scavbuildings/CORWINT2.s3o",
-		script = "Units/scavbuildings/CORWINT2.cob",
+		script = "Units/CORWIN.cob",
 		seismicsignature = 0,
 		selfdestructas = "windboom",
 		sightdistance = 273,
