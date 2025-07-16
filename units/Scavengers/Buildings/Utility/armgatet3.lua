@@ -28,7 +28,7 @@ return {
 		noautofire = true,
 		objectname = "Units/ARMGATET3.s3o",
 		onoffable = false,
-		script = "Units/ARMGATET3.cob",
+		script = "Units/ARMGATE.cob",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 350,
