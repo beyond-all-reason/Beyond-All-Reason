@@ -59,7 +59,7 @@ end
 
 function widget:UnitFromFactory(unitID, _, unitTeam, factID)
 	if (not spAreTeamsAllied(myTeam, unitTeam)) then
-		return -- impossible to be assisting enemy factory
+		return -- no in-game reason to ever be assisting enemy factory
 	end
 	local unitHealth, unitMaxHealth = spGetUnitHealth(unitID)
 	if (unitHealth >= unitMaxHealth) then
