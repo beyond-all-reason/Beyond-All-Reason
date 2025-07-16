@@ -25,7 +25,7 @@ return {
 		movestate = 0,
 		nochasecategory = "MOBILE VTOL",
 		objectname = "Units/LEGAVROC.s3o",
-		script = "Units/LEGAVROC_clean.cob",
+		script = "Units/LEGAVROC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 247,
