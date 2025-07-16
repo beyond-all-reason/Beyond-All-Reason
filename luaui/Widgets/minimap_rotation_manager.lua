@@ -18,6 +18,7 @@ local CameraRotationModes = {
 
 local mode
 local prevSnap
+local trackingLock = false
 
 
 --------------------------------------------------------------------------------
@@ -32,34 +33,67 @@ local HALFPI = PI / 2
 --------------------------------------------------------------------------------
 
 local function minimapRotateHandler(_, _, args)
-	if mode ~= CameraRotationModes.none then
-		WG['options'].applyOptionValue("minimaprotation", CameraRotationModes.none)
-	end
-
 	args = args or {}
-	local rotationArg = tonumber(args[1])
-	local absoluteArg = args[2] == "absolute"
+	local module = args[1]
+	if module == "mode" then
+		if not args[2] then
+			Spring.Echo("[MinimapManager] No mode specified. Available modes: none, autoFlip|180, autoRotate|90")
+			return
+		end
 
-	if not rotationArg then return end
+		local modeMap = {
+			["none"] = CameraRotationModes.none,
+			["autoFlip"] = CameraRotationModes.autoFlip,
+			["180"] = CameraRotationModes.autoFlip,
+			["autoRotate"] = CameraRotationModes.autoRotate,
+			["90"] = CameraRotationModes.autoRotate
+		}
 
-	if rotationArg % 90 ~= 0 then
-		Spring.Echo("[MinimapRotate] Invalid rotation argument. Received: " .. rotationArg)
-		return
-	end
+		local newMode = modeMap[args[2]]
+		if not newMode then
+			Spring.Echo("[MinimapManager] Invalid mode specified: " .. args[2] .. ". Available modes: none, autoFlip|180, autoRotate|90")
+			return
+		end
 
-	local rotationIndex = ((rotationArg / 90) + 4) % 4 -- Normalize to 0-3 range and Negative values
+		WG['options'].applyOptionValue("minimaprotation", newMode)
+		return true
 
-	local newRotation
-	if absoluteArg then
-		newRotation = rotationIndex * HALFPI
+	elseif module == "set" then
+
+		local rotationArg = tonumber(args[2]) or nil
+		local absoluteArg = args[3] == "absolute"
+
+		if not rotationArg or rotationArg % 90 ~= 0 then
+			Spring.Echo("[MinimapManager] Rotation must be a multiple of 90. Received: " .. rotationArg)
+			return
+		end
+
+		local rotationIndex = ((rotationArg / 90) + 4) % 4 -- Normalize to 0-3 range and Negative values
+
+		local newRotation
+		if absoluteArg then
+			newRotation = rotationIndex * HALFPI
+		else
+			local currentRotation = spGetMiniRot()
+			local currentIndex = math.floor((currentRotation / HALFPI + 0.5) % 4)
+			newRotation = ((currentIndex + rotationIndex) % 4) * HALFPI
+		end
+
+		if not trackingLock then
+			trackingLock = true
+			Spring.Echo("[MinimapManager] Auto-tracking locked during manual rotation")
+		end
+
+		spSetMiniRot(newRotation)
+		return true
+
+	elseif module == "toggleTracking" then
+		trackingLock = not trackingLock
+		Spring.Echo("[MinimapManager] Tracking lock is now " .. (trackingLock and "enabled" or "disabled"))
+		return true
 	else
-		local currentRotation = spGetMiniRot()
-		local currentIndex = math.floor((currentRotation / HALFPI + 0.5) % 4)
-		newRotation = ((currentIndex + rotationIndex) % 4) * HALFPI
+		Spring.Echo("[MinimapManager] Invalid module. Usage: mode [none|autoFlip/180|autoRotate/90], set [degrees] [absolute], toggleLock")
 	end
-
-	spSetMiniRot(newRotation)
-	return true
 end
 
 local function isValidOption(num)
@@ -74,6 +108,7 @@ function widget:Initialize()
 		if isValidOption(newMode) then
 			mode = newMode
 			prevSnap = nil
+			trackingLock = false
 			widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
 		end
 	end
@@ -97,7 +132,7 @@ function widget:Shutdown()
 end
 
 function widget:CameraRotationChanged(_, roty)
-	if mode == CameraRotationModes.none then return end
+	if mode == CameraRotationModes.none or trackingLock then return end
 	local newRot
 	if mode == CameraRotationModes.autoFlip then
 		newRot = PI * math.floor((roty/PI) + 0.5)
