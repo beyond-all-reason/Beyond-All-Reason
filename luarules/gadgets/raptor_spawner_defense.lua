@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
-	local pvpAllyTeamIDs = {}
+	local alliedTeamIDs = {}
 	local spawnQueue = {}
 	local deathQueue = {}
 	local queenResistance = {}
@@ -222,7 +222,7 @@ end
 			local _,_,_,AI = Spring.GetTeamInfo(raptorAllies[i])
 			local LuaAI = Spring.GetTeamLuaAI(raptorAllies[i])
 			if (AI or LuaAI) and raptorAllies[i] ~= raptorTeamID and raptorAllies[i] ~= scavTeamID then
-				table.insert(pvpAllyTeamIDs, raptorAllies[i])
+				alliedTeamIDs[raptorAllies[i]] = true
 			end
 		end
 	end
@@ -1334,6 +1334,9 @@ end
 	--------------------------------------------------------------------------------
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if alliedTeamIDs[unitTeam] or unitTeam == scavTeamID then
+			return
+		end
 
 		local unitDef = UnitDefs[unitDefID]
 
@@ -1875,7 +1878,7 @@ end
 		end
 
 		if n%30 == 0 and n > 100 then
-			for _, teamID in ipairs(pvpAllyTeamIDs) do
+			for teamID, _ in pairs(alliedTeamIDs) do
 				local commanderCount = getTeamCommanderCount(teamID)
 				if commanderCount == 0 or not commanderCount then
 					Spring.KillTeam(teamID)

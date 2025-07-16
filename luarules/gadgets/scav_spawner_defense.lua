@@ -135,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
-	local pvpAllyTeamIDs = {}
+	local alliedTeamIDs = {}
 	local spawnQueue = {}
 	local deathQueue = {}
 	local bossResistance = {}
@@ -229,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
 			local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
 			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID and scavAllies[i] ~= raptorTeamID then
-				table.insert(pvpAllyTeamIDs, scavAllies[i])
+				alliedTeamIDs[scavAllies[i]] = true
 			end
 		end
 	end
@@ -1580,6 +1580,10 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	local createUnitQueue = {}
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if alliedTeamIDs[unitTeam] or unitTeam == raptorTeamID then
+			return
+		end
+
 		if unitTeam == scavTeamID then
 			local _, maxH = Spring.GetUnitHealth(unitID)
 			Spring.SetUnitHealth(unitID, maxH)
@@ -2003,7 +2007,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if n%30 == 0 and n > 100 then
-			for _, teamID in ipairs(pvpAllyTeamIDs) do
+			for teamID, _ in pairs(alliedTeamIDs) do
 				local commanderCount = getTeamCommanderCount(teamID)
 				if commanderCount == 0 or not commanderCount then
 					Spring.KillTeam(teamID)
@@ -2224,7 +2228,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 
-		if oldTeam == scavTeamID then
+		if oldTeam == scavTeamID and not (alliedTeamIDs[newTeam] or newTeam == raptorTeamID) then
 			if unitSquadTable[unitID] then
 				for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
 					if id == unitID then
@@ -2377,6 +2381,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		if alliedTeamIDs[unitTeam] or unitTeam == raptorTeamID then
+			return
+		end
+
 		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
 			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
 			HumanTechLevel = math.max(HumanTechLevel, unitTech)
