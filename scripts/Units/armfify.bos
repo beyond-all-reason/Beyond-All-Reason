@@ -1,8 +1,5 @@
-#define TA			// This is a TA script
-#define SIGNAL_BUILD 2
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, nano, armhexla, armhexlb, armhexla_emit, armhexlb_emit;
 
@@ -24,10 +21,7 @@ Create()
     hide nano;
     hide armhexla_emit;
     hide armhexlb_emit;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -44,8 +38,6 @@ StartBuilding(heading, pitch)
 	show nano;
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
-	//turn aimy1 to y-axis heading speed <260.0>;
-	//wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
 	show armhexla_emit;
     show armhexlb_emit;
@@ -58,7 +50,6 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 	hide armhexla_emit;
     hide armhexlb_emit;
-	//turn aimy1 to y-axis <0> speed <260.0>;
 }
 
 QueryNanoPiece(pieceIndex)
