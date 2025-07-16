@@ -1,4 +1,4 @@
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if not Spring.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
