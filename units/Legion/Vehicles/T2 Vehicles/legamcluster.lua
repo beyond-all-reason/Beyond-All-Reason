@@ -25,7 +25,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGAMCLUSTER.s3o",
-		script = "Units/LEGAMCLUSTER_clean.cob",
+		script = "Units/LEGAMCLUSTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 300,
