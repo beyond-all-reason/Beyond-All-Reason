@@ -140,6 +140,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenIDs = {}
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -212,7 +213,6 @@ end
 				for u = 1,#units do
 					Spring.DestroyUnit(units[u], false, true)
 				end
-				Spring.Echo("Killing Team (raptors): " .. teamID)
 				Spring.KillTeam(teamID)
 			end
 		end
@@ -221,8 +221,7 @@ end
 		for i = 1,#raptorAllies do
 			local _,_,_,AI = Spring.GetTeamInfo(raptorAllies[i])
 			local LuaAI = Spring.GetTeamLuaAI(raptorAllies[i])
-			if (AI or LuaAI) and raptorAllies[i] ~= raptorTeamID then
-				Spring.Echo("Would have killed Ally (raptors): " .. raptorAllies[i])
+			if (AI or LuaAI) and raptorAllies[i] ~= raptorTeamID and raptorAllies[i] ~= scavTeamID then
 				table.insert(pvpAllyTeamIDs, raptorAllies[i])
 			end
 		end
@@ -1875,12 +1874,11 @@ end
 			end
 		end
 
-		if n%30 == 0 then
+		if n%30 == 0 and n > 100 then
 			for _, teamID in ipairs(pvpAllyTeamIDs) do
 				local commanderCount = getTeamCommanderCount(teamID)
 				if commanderCount == 0 or not commanderCount then
-					Spring.Echo('game frame killing team (raptors): ' .. teamID)
-					-- Spring.KillTeam(teamID)
+					Spring.KillTeam(teamID)
 				end
 			end
 		end

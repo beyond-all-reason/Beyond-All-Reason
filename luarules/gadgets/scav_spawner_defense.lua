@@ -141,6 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 	local bossResistance = {}
 	local bossIDs = {}
 	local bosses = {resistances = bossResistance, statuses = {}, playerDamages = {}}
+	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
@@ -219,7 +220,6 @@ if gadgetHandler:IsSyncedCode() then
 				for u = 1,#units do
 					Spring.DestroyUnit(units[u], false, true)
 				end
-				Spring.Echo("Killing Team (scavs): " .. teamID)
 				Spring.KillTeam(teamID)
 			end
 		end
@@ -228,8 +228,7 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1,#scavAllies do
 			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
 			local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
-			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID then
-				Spring.Echo("Would have killed Ally (scavs): " .. scavAllies[i])
+			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID and scavAllies[i] ~= raptorTeamID then
 				table.insert(pvpAllyTeamIDs, scavAllies[i])
 			end
 		end
@@ -2007,7 +2006,6 @@ if gadgetHandler:IsSyncedCode() then
 			for _, teamID in ipairs(pvpAllyTeamIDs) do
 				local commanderCount = getTeamCommanderCount(teamID)
 				if commanderCount == 0 or not commanderCount then
-					Spring.Echo('game frame killing team (scavs): ' .. teamID)
 					Spring.KillTeam(teamID)
 				end
 			end
