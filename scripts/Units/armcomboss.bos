@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
 
@@ -10,17 +8,17 @@ piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvi
 static-var isAiming, isAimingDgun, isBuilding, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
 
 // Signal definitions
-#define SIG_AIM 2
-#define SIG_WALK 4
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var maxSpeed, animFramesPerKeyframe, bMoving;
+static-var maxSpeed, animFramesPerKeyframe, isMoving;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcom_anim_walk_v4.blend
-	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <113.735764> / animSpeed; //delta=-3.79
 			turn head to x-axis <-2.620635> speed <39.654598> / animSpeed; //delta=1.32
 			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
@@ -30,7 +28,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to z-axis <10.085981> speed <605.673206> / animSpeed; //delta=-20.19
 			turn lthigh to y-axis <15.046731> speed <118.088344> / animSpeed; //delta=3.94
 			if (leftArm) turn luparm to x-axis <9.919362> speed <279.367450> / animSpeed; //delta=9.31
-			if (leftArm) turn luparm to z-axis <-12.399998> speed <114.000041> / animSpeed; //delta=-3.80
+			if (leftArm) turn luparm to z-axis <-12.399998> speed <114.0> / animSpeed; //delta=-3.80
 			if (leftArm) turn luparm to y-axis <0.965138> speed <187.380006> / animSpeed; //delta=-6.25
 			turn pelvis to z-axis <-1.666667> speed <49.999997> / animSpeed; //delta=1.67
 			turn pelvis to y-axis <-2.296296> speed <68.888891> / animSpeed; //delta=-2.30
@@ -47,8 +45,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <7.879434> speed <236.383029> / animSpeed; //delta=7.88
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			if (leftArm) turn biggun to x-axis <-46.675856> speed <46.179694> / animSpeed; //delta=-1.54
 			turn head to x-axis <-1.563179> speed <31.723679> / animSpeed; //delta=-1.06
 			turn head to y-axis <-6.127755> speed <68.937274> / animSpeed; //delta=-2.30
@@ -75,7 +73,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <13.926961> speed <181.425790> / animSpeed; //delta=6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			if (leftArm) turn biggun to x-axis <-46.110552> speed <16.959121> / animSpeed; //delta=-0.57
 			turn head to x-axis <0.023005> speed <47.585527> / animSpeed; //delta=-1.59
 			turn head to y-axis <-7.659692> speed <45.958102> / animSpeed; //delta=-1.53
@@ -86,9 +84,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <14.540810> speed <93.704134> / animSpeed; //delta=-3.12
 			if (leftArm) turn luparm to x-axis <20.474264> speed <98.952127> / animSpeed; //delta=-3.30
 			if (leftArm) turn luparm to y-axis <5.388938> speed <71.821661> / animSpeed; //delta=2.39
-			move pelvis to y-axis [-2.000000] speed [18.888888] / animSpeed; //delta=-0.63
-			turn pelvis to z-axis <-5.000000> speed <27.777769> / animSpeed; //delta=0.93
-			turn pelvis to y-axis <-6.000000> speed <24.444453> / animSpeed; //delta=-0.81
+			move pelvis to y-axis [-2.0] speed [18.888888] / animSpeed; //delta=-0.63
+			turn pelvis to z-axis <-5.0> speed <27.777769> / animSpeed; //delta=0.93
+			turn pelvis to y-axis <-6.0> speed <24.444453> / animSpeed; //delta=-0.81
 			turn rfoot to x-axis <-34.556331> speed <305.131751> / animSpeed; //delta=10.17
 			turn rleg to x-axis <32.187523> speed <882.363941> / animSpeed; //delta=-29.41
 			if (rightArm) turn rloarm to x-axis <-64.499997> speed <87.888552> / animSpeed; //delta=2.93
@@ -102,7 +100,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <15.758869> speed <54.957239> / animSpeed; //delta=1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			if (leftArm) turn biggun to x-axis <-47.068049> speed <28.724907> / animSpeed; //delta=0.96
 			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
 			turn head to y-axis <-6.127755> speed <45.958102> / animSpeed; //delta=1.53
@@ -130,7 +128,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <13.926961> speed <54.957239> / animSpeed; //delta=-1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			if (leftArm) turn biggun to x-axis <-49.335727> speed <68.030323> / animSpeed; //delta=2.27
 			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
 			turn head to y-axis <-3.829846> speed <68.937274> / animSpeed; //delta=2.30
@@ -141,7 +139,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <8.321622> speed <266.996423> / animSpeed; //delta=-8.90
 			if (leftArm) turn luparm to x-axis <15.615877> speed <102.946916> / animSpeed; //delta=3.43
 			if (leftArm) turn luparm to y-axis <5.076670> speed <9.368019> / animSpeed; //delta=-0.31
-			turn pelvis to z-axis <-2.000000> speed <58.888879> / animSpeed; //delta=-1.96
+			turn pelvis to z-axis <-2.0> speed <58.888879> / animSpeed; //delta=-1.96
 			turn pelvis to y-axis <-2.772487> speed <67.619039> / animSpeed; //delta=2.25
 			turn rfoot to x-axis <-39.119034> speed <357.682424> / animSpeed; //delta=11.92
 			turn rleg to x-axis <104.636879> speed <789.433742> / animSpeed; //delta=-26.31
@@ -158,10 +156,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <7.879434> speed <181.425790> / animSpeed; //delta=-6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:24
+		if (isMoving) { //Frame:24
 			if (leftArm) turn biggun to x-axis <-52.006372> speed <80.119348> / animSpeed; //delta=2.67
 			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
-			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=3.83
+			turn head to y-axis <0.0> speed <114.895376> / animSpeed; //delta=3.83
 			turn lfoot to x-axis <-23.280778> speed <357.540911> / animSpeed; //delta=11.92
 			turn lleg to x-axis <46.510843> speed <277.878733> / animSpeed; //delta=9.26
 			turn lthigh to x-axis <-23.415420> speed <612.523459> / animSpeed; //delta=-20.42
@@ -169,9 +167,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <1.272165> speed <211.483711> / animSpeed; //delta=-7.05
 			if (leftArm) turn luparm to x-axis <11.452920> speed <124.888703> / animSpeed; //delta=4.16
 			if (leftArm) turn luparm to y-axis <3.308728> speed <53.038265> / animSpeed; //delta=-1.77
-			move pelvis to y-axis [-2.000000] speed [25.555551] / animSpeed; //delta=0.85
-			turn pelvis to z-axis <-0.000000> speed <60.000006> / animSpeed; //delta=-2.00
-			turn pelvis to y-axis <0.000000> speed <83.174607> / animSpeed; //delta=2.77
+			move pelvis to y-axis [-2.0] speed [25.555551] / animSpeed; //delta=0.85
+			turn pelvis to z-axis <-0.0> speed <60.0> / animSpeed; //delta=-2.00
+			turn pelvis to y-axis <0.0> speed <83.174607> / animSpeed; //delta=2.77
 			turn rfoot to x-axis <-45.278120> speed <184.772566> / animSpeed; //delta=6.16
 			turn rleg to x-axis <90.786697> speed <415.505474> / animSpeed; //delta=13.85
 			turn rleg to z-axis <0.843235> speed <24.355743> / animSpeed; //delta=-0.81
@@ -183,11 +181,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			if (rightArm) turn ruparm to x-axis <16.947865> speed <91.311783> / animSpeed; //delta=-3.04
 			if (rightArm) turn ruparm to y-axis <0.900000> speed <45.888888> / animSpeed; //delta=-1.53
 			turn aimy1 to x-axis <-4.594870> speed <18.402335> / animSpeed; //delta=0.61
-			turn aimy1 to z-axis <-0.000000> speed <61.681404> / animSpeed; //delta=2.06
-			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=-7.88
+			turn aimy1 to z-axis <-0.0> speed <61.681404> / animSpeed; //delta=2.06
+			turn aimy1 to y-axis <0.0> speed <236.383029> / animSpeed; //delta=-7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			if (leftArm) turn biggun to x-axis <-53.142724> speed <34.090567> / animSpeed; //delta=1.14
 			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
 			turn head to y-axis <3.829846> speed <114.895376> / animSpeed; //delta=3.83
@@ -216,7 +214,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-7.879434> speed <236.383029> / animSpeed; //delta=-7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:32
+		if (isMoving) { //Frame:32
 			if (leftArm) turn biggun to x-axis <-55.253092> speed <63.311038> / animSpeed; //delta=2.11
 			turn head to x-axis <-1.563179> speed <31.723670> / animSpeed; //delta=-1.06
 			turn head to y-axis <6.127755> speed <68.937274> / animSpeed; //delta=2.30
@@ -242,7 +240,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-13.926961> speed <181.425790> / animSpeed; //delta=-6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:36
+		if (isMoving) { //Frame:36
 			if (leftArm) turn biggun to x-axis <-56.389444> speed <34.090567> / animSpeed; //delta=1.14
 			turn head to x-axis <0.023005> speed <47.585536> / animSpeed; //delta=-1.59
 			turn head to y-axis <7.659692> speed <45.958102> / animSpeed; //delta=1.53
@@ -253,12 +251,12 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <5.332458> speed <15.498655> / animSpeed; //delta=-0.52
 			if (leftArm) turn luparm to x-axis <-3.274263> speed <167.758466> / animSpeed; //delta=5.59
 			if (leftArm) turn luparm to y-axis <-6.556594> speed <45.333998> / animSpeed; //delta=-1.51
-			move pelvis to y-axis [-2.000000] speed [25.555555] / animSpeed; //delta=-0.85
-			turn pelvis to z-axis <5.000000> speed <31.089813> / animSpeed; //delta=-1.04
-			turn pelvis to y-axis <6.000000> speed <29.200275> / animSpeed; //delta=0.97
+			move pelvis to y-axis [-2.0] speed [25.555555] / animSpeed; //delta=-0.85
+			turn pelvis to z-axis <5.0> speed <31.089813> / animSpeed; //delta=-1.04
+			turn pelvis to y-axis <6.0> speed <29.200275> / animSpeed; //delta=0.97
 			turn rfoot to x-axis <4.673420> speed <156.586261> / animSpeed; //delta=-5.22
 			turn rleg to x-axis <17.968366> speed <112.905793> / animSpeed; //delta=3.76
-			if (rightArm) turn rloarm to x-axis <-38.000000> speed <43.722158> / animSpeed; //delta=-1.46
+			if (rightArm) turn rloarm to x-axis <-38.0> speed <43.722158> / animSpeed; //delta=-1.46
 			turn rthigh to x-axis <-40.972853> speed <227.481055> / animSpeed; //delta=-7.58
 			turn rthigh to z-axis <-12.483621> speed <13.132763> / animSpeed; //delta=-0.44
 			turn rthigh to y-axis <-18.495587> speed <4.624260> / animSpeed; //delta=-0.15
@@ -269,7 +267,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-15.758869> speed <54.957239> / animSpeed; //delta=-1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
+		if (isMoving) { //Frame:40
 			if (leftArm) turn biggun to x-axis <-55.431951> speed <28.724805> / animSpeed; //delta=-0.96
 			turn head to x-axis <-0.505722> speed <15.861819> / animSpeed; //delta=0.53
 			turn head to y-axis <6.127755> speed <45.958102> / animSpeed; //delta=-1.53
@@ -298,7 +296,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-13.926961> speed <54.957239> / animSpeed; //delta=1.83
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:44
+		if (isMoving) { //Frame:44
 			if (leftArm) turn biggun to x-axis <-53.164273> speed <68.030323> / animSpeed; //delta=-2.27
 			turn head to x-axis <-2.091907> speed <47.585562> / animSpeed; //delta=1.59
 			turn head to y-axis <3.829846> speed <68.937274> / animSpeed; //delta=-2.30
@@ -326,10 +324,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn aimy1 to y-axis <-7.879434> speed <181.425790> / animSpeed; //delta=6.05
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:48
+		if (isMoving) { //Frame:48
 			if (leftArm) turn biggun to x-axis <-50.493628> speed <80.119348> / animSpeed; //delta=-2.67
 			turn head to x-axis <-3.149363> speed <31.723676> / animSpeed; //delta=1.06
-			turn head to y-axis <0.000000> speed <114.895376> / animSpeed; //delta=-3.83
+			turn head to y-axis <0.0> speed <114.895376> / animSpeed; //delta=-3.83
 			turn lfoot to x-axis <-44.880435> speed <188.924672> / animSpeed; //delta=6.30
 			turn lleg to x-axis <90.690391> speed <407.363547> / animSpeed; //delta=13.58
 			turn lleg to z-axis <-1.028354> speed <29.811568> / animSpeed; //delta=0.99
@@ -339,9 +337,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			turn lthigh to y-axis <9.180887> speed <243.372656> / animSpeed; //delta=8.11
 			if (leftArm) turn luparm to x-axis <2.662867> speed <125.339441> / animSpeed; //delta=-4.18
 			if (leftArm) turn luparm to y-axis <-1.793232> speed <71.050921> / animSpeed; //delta=2.37
-			move pelvis to y-axis [-2.000000] speed [25.555551] / animSpeed; //delta=0.85
-			turn pelvis to z-axis <-0.000000> speed <62.666668> / animSpeed; //delta=2.09
-			turn pelvis to y-axis <0.000000> speed <86.222221> / animSpeed; //delta=-2.87
+			move pelvis to y-axis [-2.0] speed [25.555551] / animSpeed; //delta=0.85
+			turn pelvis to z-axis <-0.0> speed <62.666668> / animSpeed; //delta=2.09
+			turn pelvis to y-axis <0.0> speed <86.222221> / animSpeed; //delta=-2.87
 			turn rfoot to x-axis <-23.519080> speed <364.135724> / animSpeed; //delta=12.14
 			turn rleg to x-axis <46.484300> speed <278.590678> / animSpeed; //delta=9.29
 			if (rightArm) turn rloarm to x-axis <-53.199999> speed <206.555576> / animSpeed; //delta=6.89
@@ -351,11 +349,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 			if (rightArm) turn ruparm to x-axis <23.351554> speed <90.983396> / animSpeed; //delta=3.03
 			if (rightArm) turn ruparm to y-axis <0.479402> speed <36.051284> / animSpeed; //delta=1.20
 			turn aimy1 to x-axis <-4.594870> speed <18.402335> / animSpeed; //delta=0.61
-			turn aimy1 to z-axis <-0.000000> speed <64.422792> / animSpeed; //delta=-2.15
-			turn aimy1 to y-axis <0.000000> speed <236.383029> / animSpeed; //delta=7.88
+			turn aimy1 to z-axis <-0.0> speed <64.422792> / animSpeed; //delta=-2.15
+			turn aimy1 to y-axis <0.0> speed <236.383029> / animSpeed; //delta=7.88
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:52
+		if (isMoving) { //Frame:52
 			if (leftArm) turn biggun to x-axis <-48.215180> speed <68.353460> / animSpeed; //delta=-2.28
 			turn head to x-axis <-2.620635> speed <15.861851> / animSpeed; //delta=-0.53
 			turn head to y-axis <-3.829846> speed <114.895376> / animSpeed; //delta=-3.83
@@ -386,39 +384,39 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move pelvis to y-axis [-1.000000] speed [6.944444]/6;
+	move pelvis to y-axis [-1.0] speed [6.944444]/6;
 	if (leftArm) turn biggun to x-axis <-52.006372> speed <28.433941>/6;
 	turn dish to y-axis <7.500000> speed <-4.326923>/6;
 	turn head to x-axis <-1.298815> speed <11.896390>/6;
-	turn head to y-axis <0.000000> speed <28.723844>/6;
+	turn head to y-axis <0.0> speed <28.723844>/6;
 	turn lfoot to x-axis <2.870126> speed <274.263975>/6;
 	turn lleg to x-axis <22.425678> speed <349.693872>/6;
-	turn lleg to y-axis <0.000000> speed <7.922289>/6;
-	turn lleg to z-axis <0.000000> speed <7.923996>/6;
+	turn lleg to y-axis <0.0> speed <7.922289>/6;
+	turn lleg to z-axis <0.0> speed <7.923996>/6;
 	turn lthigh to x-axis <-21.115098> speed <255.919901>/6;
 	turn lthigh to y-axis <11.110453> speed <66.749106>/6;
 	turn lthigh to z-axis <-10.103126> speed <151.418301>/6;
 	if (leftArm) turn luparm to x-axis <19.231610> speed <69.841862>/6;
 	if (leftArm) turn luparm to y-axis <7.211138> speed <46.845002>/6;
 	if (leftArm) turn luparm to z-axis <-16.200000> speed <28.500010>/6;
-	turn pelvis to y-axis <0.000000> speed <21.666665>/6;
-	turn pelvis to z-axis <0.000000> speed <18.055557>/6;
+	turn pelvis to y-axis <0.0> speed <21.666665>/6;
+	turn pelvis to z-axis <0.0> speed <18.055557>/6;
 	turn rfoot to x-axis <0.415283> speed <248.713120>/6;
 	turn rleg to x-axis <25.768060> speed <346.011740>/6;
-	turn rleg to y-axis <0.000000> speed <6.521982>/6;
-	turn rleg to z-axis <0.000000> speed <6.524652>/6;
+	turn rleg to y-axis <0.0> speed <6.521982>/6;
+	turn rleg to z-axis <0.0> speed <6.524652>/6;
 	if (rightArm) turn rloarm to x-axis <-53.199995> speed <51.638894>/6;
 	turn rthigh to x-axis <-21.950628> speed <255.149679>/6;
 	turn rthigh to y-axis <-11.905752> speed <66.515336>/6;
 	turn rthigh to z-axis <9.396449> speed <151.125663>/6;
 	if (rightArm) turn ruparm to x-axis <24.693159> speed <39.648544>/6;
-	if (rightArm) turn ruparm to y-axis <0.000000> speed <31.089853>/6;
+	if (rightArm) turn ruparm to y-axis <0.0> speed <31.089853>/6;
 	if (rightArm) turn ruparm to z-axis <12.399998> speed <-7.153845>/6;
 	turn aimy1 to x-axis <-2.263907> speed <15.181924>/6;
-	turn aimy1 to y-axis <0.000000> speed <59.095757>/6;
-	turn aimy1 to z-axis <0.000000> speed <18.561539>/6;
+	turn aimy1 to y-axis <0.0> speed <59.095757>/6;
+	turn aimy1 to z-axis <0.0> speed <18.561539>/6;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -435,16 +433,16 @@ UnitSpeed(){
 		sleep 131;
 	}
 }
-StartMoving(){
-  signal SIG_WALK;
-  set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+  signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving = FALSE;
+	signal SIGNAL_MOVE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
 
@@ -455,7 +453,7 @@ AmIBored() {
 	//return isAiming == false and isBuilding == false and isMoving == false
 	if (isAiming == 0){
 		if (isBuilding == 0 ){
-			if (bMoving == 0){
+			if (isMoving == 0){
 				return (1);
 			}
 		}
@@ -478,13 +476,13 @@ Create(){
 	hide aimx1;
 	hide aimy1;
 	hide teleport;
-	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
+	//turn rloarm to  x-axis <-15> speed <130.0> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
 	animSpeed = 4;
-	bMoving = 0;
+	isMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
 	isAimingDgun = 0;
@@ -495,23 +493,23 @@ Create(){
 	call-script StopWalking();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 	return (0);
 }
 
 
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
-	turn torso to  y-axis <0> speed <105.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
+	turn torso to  y-axis <0> speed <105.0> ; //-- Turn(torso, y-axis, 0, math.rad(305))
 	
-	turn biggun to  x-axis <-38> speed <95.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
-	turn luparm to  x-axis <0> speed <95.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
-	turn rloarm to  x-axis <-38> speed <95.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
-	turn ruparm to  x-axis <0> speed <95.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	turn biggun to  x-axis <-38> speed <95.0> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	turn luparm to  x-axis <0> speed <95.0> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	turn rloarm to  x-axis <-38> speed <95.0> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	turn ruparm to  x-axis <0> speed <95.0> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
 	
 	isAiming = 0;
 	isAimingDgun = 0;
@@ -525,8 +523,8 @@ ResumeBuilding()
 	sleep 800;
 	if( isBuilding AND ( !isAiming ) )
 	{
-		turn torso to y-axis buildHeading speed <150.000000>;
-		turn luparm to x-axis <-55.000000> - buildPitch speed <45.000000>;
+		turn torso to y-axis buildHeading speed <150.0>;
+		turn luparm to x-axis <-55.0> - buildPitch speed <45.0>;
 	}
 	return (0);
 }
@@ -536,25 +534,21 @@ ResumeBuilding()
 //--gun functions;
 //-----------------------------------------------------------------------
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
+
 /////////// pew pew laser
-QueryPrimary(piecenum) //pew laser
+QueryWeapon1(pieceIndex) //pew laser
 {
-	piecenum = laserflare;
+	pieceIndex = laserflare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = ruparm;
+	pieceIndex = ruparm;
 	return (0);
 }
 
-AimPrimary(heading, pitch) //pew pew
+AimWeapon1(heading, pitch) //pew pew
 {
 	if (isAimingDgun){
 		return (0);
@@ -562,11 +556,11 @@ AimPrimary(heading, pitch) //pew pew
 	
 	rightarm = 0;
 	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn torso to  y-axis heading speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
@@ -579,7 +573,7 @@ AimPrimary(heading, pitch) //pew pew
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 100;
 	return (0);
@@ -587,19 +581,19 @@ FirePrimary()
 
 /////////// uw weapon
 
-QuerySecondary(piecenum) //uw weapon
+QueryWeapon2(pieceIndex) //uw weapon
 {
-	piecenum = laserflare;
+	pieceIndex = laserflare;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = laserflare;
+	pieceIndex = laserflare;
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	if( get PIECE_Y(head) > 0 )
 	{
@@ -614,11 +608,11 @@ AimSecondary(heading, pitch)
 	}
 	rightarm = 0;
 	//call-script FixArms(0, 1);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn torso to  y-axis heading speed <300.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <390.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <390.0> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
@@ -631,7 +625,7 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 100;
 	return (0);
@@ -640,19 +634,19 @@ FireSecondary()
 ////////// DGUN
 
 
-QueryTertiary(piecenum) //dgun
+QueryWeapon3(pieceIndex) //dgun
 {
-	piecenum = lflare;
+	pieceIndex = lflare;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = biggun;
+	pieceIndex = biggun;
 	return (0);
 }
 
-FireTertiary()
+FireWeapon3()
 {
 	//emit-sfx 1024 + 0 from lflare;
 	isAimingDgun = 0;
@@ -668,24 +662,24 @@ FireTertiary()
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAimingDgun = 1;
 	isAiming = 1;
 	leftArm = 0;
 	//call-script FixArms(1, 0);
-	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn biggun to  x-axis <-85> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
-	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	turn torso to  y-axis heading speed <360.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn biggun to  x-axis <-85> speed <390.0> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
+	turn luparm to 	x-axis <5> - pitch speed <390.0> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
 	//wait-for-turn biggun around x-axis;
 	return (1);
 }
 
 SprayNano(heading, pitch){
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep 1000;
 	while (1){
 	
@@ -699,14 +693,14 @@ SprayNano(heading, pitch){
 
 StartBuilding(heading, pitch)
 {
-	signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	//set-signal-mask SIGNAL_AIM1;
 	isBuilding		= 1;
-	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
-	//turn pelvis to  x-axis <0> speed <395.0000> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
-	turn torso to  y-axis heading speed <30.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <39.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-55> -pitch speed <39.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+	//turn torso to  x-axis <0> speed <395.0> ; //-- Turn(torso, x-axis, 0, math.rad(395))
+	//turn pelvis to  x-axis <0> speed <395.0> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
+	turn torso to  y-axis heading speed <30.0> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <39.0> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-55> -pitch speed <39.0> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 
 	wait-for-turn ruparm around x-axis;
 	set INBUILDSTANCE to 1;
@@ -716,24 +710,12 @@ StartBuilding(heading, pitch)
 	return (0);
 }
 
-
-
-
-TargetCleared(Func_Var_1)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	call-script RestoreAfterDelay();
-	return (0);
-}
-
-
 StopBuilding()
 {
 	isBuilding = 0;
 	set INBUILDSTANCE to 0;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }
