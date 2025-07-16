@@ -1,32 +1,29 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 //piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
 //       luparm, ruparm, rnano, lnano;
 
 piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1; 
 
-static-var  bMoving, notBuilding, nanoNozzle, currentSpeed,	statechg_DesiredState,
-			statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
+static-var  isMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
 
 #define MOVESCALE 250 //Higher values are bigger, 100 is default
-static-var animAmplitude; //Higher values are bigger, 100 is default
+#define animAmplitude 70 //Higher values are bigger, 100 is default
 
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
-	//set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
-			turn head to x-axis ((<-3.000000> *animAmplitude)/100) speed ((<90.000009> *animAmplitude)/100) / animSpeed; //delta=3.00
+	//set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
+			turn head to x-axis ((<-3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animSpeed; //delta=3.00
 			turn lfoot to x-axis ((<-17.579662> *animAmplitude)/100) speed ((<527.389800> *animAmplitude)/100) / animSpeed; //delta=17.58
 			turn lhip to x-axis ((<-1.313085> *animAmplitude)/100) speed ((<39.392648> *animAmplitude)/100) / animSpeed; //delta=1.31
 			turn lleg to x-axis ((<21.121725> *animAmplitude)/100) speed ((<633.651822> *animAmplitude)/100) / animSpeed; //delta=-21.12
 			turn lleg to z-axis ((<0.235737> *animAmplitude)/100) speed ((<7.072109> *animAmplitude)/100) / animSpeed; //delta=-0.24
 			move pelvis to z-axis (((([1.699118] *MOVESCALE)/100) *animAmplitude)/100) speed (((([50.973555] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.70
-			move pelvis to y-axis (((([2.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.00
+			move pelvis to y-axis (((([2.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([60.0] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=2.00
 			turn rfoot to x-axis ((<6.535332> *animAmplitude)/100) speed ((<196.060012> *animAmplitude)/100) / animSpeed; //delta=-6.54
 			turn rhip to x-axis ((<-41.589753> *animAmplitude)/100) speed ((<1247.692676> *animAmplitude)/100) / animSpeed; //delta=41.59
 			turn rhip to z-axis ((<-0.393109> *animAmplitude)/100) speed ((<11.793276> *animAmplitude)/100) / animSpeed; //delta=0.39
@@ -34,8 +31,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to x-axis ((<-8.919102> *animAmplitude)/100) speed ((<267.572976> *animAmplitude)/100) / animSpeed; //delta=8.92
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:7
+	while(isMoving) {
+		if (isMoving) { //Frame:7
 			turn head to x-axis ((<-1.295845> *animAmplitude)/100) speed ((<51.124667> *animAmplitude)/100) / animSpeed; //delta=-1.70
 			turn head to y-axis ((<-2.972861> *animAmplitude)/100) speed ((<89.185835> *animAmplitude)/100) / animSpeed; //delta=-2.97
 			turn lfoot to x-axis ((<-58.734866> *animAmplitude)/100) speed ((<1234.656123> *animAmplitude)/100) / animSpeed; //delta=41.16
@@ -57,8 +54,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<0.050441> *animAmplitude)/100) speed ((<3.071866> *animAmplitude)/100) / animSpeed; //delta=0.10
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:10
-			turn head to x-axis ((<6.000000> *animAmplitude)/100) speed ((<218.875347> *animAmplitude)/100) / animSpeed; //delta=-7.30
+		if (isMoving) { //Frame:10
+			turn head to x-axis ((<6.0> *animAmplitude)/100) speed ((<218.875347> *animAmplitude)/100) / animSpeed; //delta=-7.30
 			turn head to y-axis ((<-6.191199> *animAmplitude)/100) speed ((<96.550133> *animAmplitude)/100) / animSpeed; //delta=-3.22
 			turn lfoot to x-axis ((<-13.840104> *animAmplitude)/100) speed ((<1346.842877> *animAmplitude)/100) / animSpeed; //delta=-44.89
 			turn lhip to x-axis ((<24.276116> *animAmplitude)/100) speed ((<660.017706> *animAmplitude)/100) / animSpeed; //delta=-22.00
@@ -78,8 +75,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<-0.515267> *animAmplitude)/100) speed ((<16.971234> *animAmplitude)/100) / animSpeed; //delta=-0.57
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
-			turn head to x-axis ((<1.500000> *animAmplitude)/100) speed ((<135.000010> *animAmplitude)/100) / animSpeed; //delta=4.50
+		if (isMoving) { //Frame:13
+			turn head to x-axis ((<1.500000> *animAmplitude)/100) speed ((<135.0> *animAmplitude)/100) / animSpeed; //delta=4.50
 			turn head to y-axis ((<-3.095599> *animAmplitude)/100) speed ((<92.867990> *animAmplitude)/100) / animSpeed; //delta=3.10
 			turn lfoot to x-axis ((<-34.307340> *animAmplitude)/100) speed ((<614.017093> *animAmplitude)/100) / animSpeed; //delta=20.47
 			turn lhip to x-axis ((<26.787498> *animAmplitude)/100) speed ((<75.341460> *animAmplitude)/100) / animSpeed; //delta=-2.51
@@ -98,9 +95,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<-0.050434> *animAmplitude)/100) speed ((<13.944980> *animAmplitude)/100) / animSpeed; //delta=0.46
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
-			turn head to x-axis ((<-3.000000> *animAmplitude)/100) speed ((<135.000004> *animAmplitude)/100) / animSpeed; //delta=4.50
-			turn head to y-axis ((<-0.000000> *animAmplitude)/100) speed ((<92.867978> *animAmplitude)/100) / animSpeed; //delta=3.10
+		if (isMoving) { //Frame:16
+			turn head to x-axis ((<-3.0> *animAmplitude)/100) speed ((<135.0> *animAmplitude)/100) / animSpeed; //delta=4.50
+			turn head to y-axis ((<-0.0> *animAmplitude)/100) speed ((<92.867978> *animAmplitude)/100) / animSpeed; //delta=3.10
 			turn lfoot to x-axis ((<6.821116> *animAmplitude)/100) speed ((<1233.853687> *animAmplitude)/100) / animSpeed; //delta=-41.13
 			turn lhip to x-axis ((<-42.082308> *animAmplitude)/100) speed ((<2066.094197> *animAmplitude)/100) / animSpeed; //delta=68.87
 			turn lhip to z-axis ((<0.399687> *animAmplitude)/100) speed ((<12.481446> *animAmplitude)/100) / animSpeed; //delta=-0.42
@@ -108,8 +105,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn lleg to x-axis ((<-8.529861> *animAmplitude)/100) speed ((<281.938171> *animAmplitude)/100) / animSpeed; //delta=-9.40
 			turn lleg to z-axis ((<0.052684> *animAmplitude)/100) speed ((<12.535836> *animAmplitude)/100) / animSpeed; //delta=0.42
 			move pelvis to z-axis (((([1.600000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([14.000001] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.47
-			move pelvis to y-axis (((([2.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([20.000002] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.67
-			turn pelvis to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<136.685033> *animAmplitude)/100) / animSpeed; //delta=4.56
+			move pelvis to y-axis (((([2.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([20.000002] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.67
+			turn pelvis to x-axis ((<-0.0> *animAmplitude)/100) speed ((<136.685033> *animAmplitude)/100) / animSpeed; //delta=4.56
 			turn rfoot to x-axis ((<-17.470241> *animAmplitude)/100) speed ((<921.324482> *animAmplitude)/100) / animSpeed; //delta=30.71
 			turn rhip to x-axis ((<-1.674077> *animAmplitude)/100) speed ((<1162.091663> *animAmplitude)/100) / animSpeed; //delta=-38.74
 			turn rhip to z-axis ((<0.002708> *animAmplitude)/100) speed ((<7.127289> *animAmplitude)/100) / animSpeed; //delta=-0.24
@@ -118,7 +115,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to z-axis ((<-0.142773> *animAmplitude)/100) speed ((<11.575982> *animAmplitude)/100) / animSpeed; //delta=0.39
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:19
+		if (isMoving) { //Frame:19
 			turn head to x-axis ((<-0.682153> *animAmplitude)/100) speed ((<69.535415> *animAmplitude)/100) / animSpeed; //delta=-2.32
 			turn head to y-axis ((<2.911492> *animAmplitude)/100) speed ((<87.344764> *animAmplitude)/100) / animSpeed; //delta=2.91
 			turn lfoot to x-axis ((<30.658100> *animAmplitude)/100) speed ((<715.109511> *animAmplitude)/100) / animSpeed; //delta=-23.84
@@ -140,7 +137,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<0.679486> *animAmplitude)/100) speed ((<22.604256> *animAmplitude)/100) / animSpeed; //delta=0.75
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:22
+		if (isMoving) { //Frame:22
 			turn head to x-axis ((<5.999999> *animAmplitude)/100) speed ((<200.464574> *animAmplitude)/100) / animSpeed; //delta=-6.68
 			turn head to y-axis ((<5.761615> *animAmplitude)/100) speed ((<85.503674> *animAmplitude)/100) / animSpeed; //delta=2.85
 			turn lfoot to x-axis ((<6.361546> *animAmplitude)/100) speed ((<728.896602> *animAmplitude)/100) / animSpeed; //delta=24.30
@@ -161,7 +158,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<0.012731> *animAmplitude)/100) speed ((<20.002626> *animAmplitude)/100) / animSpeed; //delta=-0.67
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn head to x-axis ((<1.500000> *animAmplitude)/100) speed ((<134.999969> *animAmplitude)/100) / animSpeed; //delta=4.50
 			turn head to y-axis ((<3.130808> *animAmplitude)/100) speed ((<78.924204> *animAmplitude)/100) / animSpeed; //delta=-2.63
 			turn lfoot to x-axis ((<13.001016> *animAmplitude)/100) speed ((<199.184081> *animAmplitude)/100) / animSpeed; //delta=-6.64
@@ -181,9 +178,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis ((<-0.170529> *animAmplitude)/100) speed ((<5.497813> *animAmplitude)/100) / animSpeed; //delta=-0.18
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
-			turn head to x-axis ((<-3.000000> *animAmplitude)/100) speed ((<135.000020> *animAmplitude)/100) / animSpeed; //delta=4.50
-			turn head to y-axis ((<-0.000000> *animAmplitude)/100) speed ((<93.924234> *animAmplitude)/100) / animSpeed; //delta=-3.13
+		if (isMoving) { //Frame:28
+			turn head to x-axis ((<-3.0> *animAmplitude)/100) speed ((<135.0> *animAmplitude)/100) / animSpeed; //delta=4.50
+			turn head to y-axis ((<-0.0> *animAmplitude)/100) speed ((<93.924234> *animAmplitude)/100) / animSpeed; //delta=-3.13
 			turn lfoot to x-axis ((<-17.579662> *animAmplitude)/100) speed ((<917.420337> *animAmplitude)/100) / animSpeed; //delta=30.58
 			turn lhip to x-axis ((<-1.313085> *animAmplitude)/100) speed ((<1163.590327> *animAmplitude)/100) / animSpeed; //delta=-38.79
 			turn lhip to z-axis ((<-0.041390> *animAmplitude)/100) speed ((<6.769649> *animAmplitude)/100) / animSpeed; //delta=0.23
@@ -191,8 +188,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn lleg to x-axis ((<21.121725> *animAmplitude)/100) speed ((<33.099080> *animAmplitude)/100) / animSpeed; //delta=1.10
 			turn lleg to z-axis ((<0.235737> *animAmplitude)/100) speed ((<5.510430> *animAmplitude)/100) / animSpeed; //delta=-0.18
 			move pelvis to z-axis (((([1.699118] *MOVESCALE)/100) *animAmplitude)/100) speed (((([15.486778] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.52
-			move pelvis to y-axis (((([2.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([20.000002] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.67
-			turn pelvis to x-axis ((<-0.000000> *animAmplitude)/100) speed ((<140.812563> *animAmplitude)/100) / animSpeed; //delta=4.69
+			move pelvis to y-axis (((([2.0] *MOVESCALE)/100) *animAmplitude)/100) speed (((([20.000002] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=0.67
+			turn pelvis to x-axis ((<-0.0> *animAmplitude)/100) speed ((<140.812563> *animAmplitude)/100) / animSpeed; //delta=4.69
 			turn rfoot to x-axis ((<6.535332> *animAmplitude)/100) speed ((<1228.785268> *animAmplitude)/100) / animSpeed; //delta=-40.96
 			turn rhip to x-axis ((<-41.589753> *animAmplitude)/100) speed ((<2063.813853> *animAmplitude)/100) / animSpeed; //delta=68.79
 			turn rhip to z-axis ((<-0.393109> *animAmplitude)/100) speed ((<9.177611> *animAmplitude)/100) / animSpeed; //delta=0.31
@@ -204,28 +201,28 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 30; // tune restore speed here, higher values are slower restore speeds
-	move pelvis to y-axis ([0.000000]*MOVESCALE)/100 speed (([200.000000]*MOVESCALE)/100) / animSpeed;
-	move pelvis to z-axis ([0.000000]*MOVESCALE)/100 speed (([169.911849]*MOVESCALE)/100) / animSpeed;
-	turn head to x-axis <0.000000> speed <729.584489> / animSpeed;
-	turn head to y-axis <0.000000> speed <321.833775> / animSpeed;
-	turn lfoot to x-axis <0.000000> speed <4489.476255> / animSpeed;
-	turn lhip to x-axis <0.000000> speed <6886.980656> / animSpeed;
-	turn lhip to y-axis <0.000000> speed <356.606781> / animSpeed;
-	turn lhip to z-axis <0.000000> speed <330.117315> / animSpeed;
-	turn lleg to x-axis <0.000000> speed <6551.031655> / animSpeed;
-	turn lleg to y-axis <0.000000> speed <79.064700> / animSpeed;
-	turn lleg to z-axis <0.000000> speed <118.708448> / animSpeed;
-	turn pelvis to x-axis <0.000000> speed <469.375210> / animSpeed;
-	turn rfoot to x-axis <0.000000> speed <4444.481616> / animSpeed;
-	turn rhip to x-axis <0.000000> speed <6879.379509> / animSpeed;
-	turn rhip to y-axis <0.000000> speed <163.568123> / animSpeed;
-	turn rhip to z-axis <0.000000> speed <167.665045> / animSpeed;
-	turn rleg to x-axis <0.000000> speed <5994.845935> / animSpeed;
-	turn rleg to y-axis <0.000000> speed <75.347520> / animSpeed;
-	turn rleg to z-axis <0.000000> speed <126.287879> / animSpeed;
+	move pelvis to y-axis ([0.0]*MOVESCALE)/100 speed (([200.0]*MOVESCALE)/100) / animSpeed;
+	move pelvis to z-axis ([0.0]*MOVESCALE)/100 speed (([169.911849]*MOVESCALE)/100) / animSpeed;
+	turn head to x-axis <0.0> speed <729.584489> / animSpeed;
+	turn head to y-axis <0.0> speed <321.833775> / animSpeed;
+	turn lfoot to x-axis <0.0> speed <4489.476255> / animSpeed;
+	turn lhip to x-axis <0.0> speed <6886.980656> / animSpeed;
+	turn lhip to y-axis <0.0> speed <356.606781> / animSpeed;
+	turn lhip to z-axis <0.0> speed <330.117315> / animSpeed;
+	turn lleg to x-axis <0.0> speed <6551.031655> / animSpeed;
+	turn lleg to y-axis <0.0> speed <79.064700> / animSpeed;
+	turn lleg to z-axis <0.0> speed <118.708448> / animSpeed;
+	turn pelvis to x-axis <0.0> speed <469.375210> / animSpeed;
+	turn rfoot to x-axis <0.0> speed <4444.481616> / animSpeed;
+	turn rhip to x-axis <0.0> speed <6879.379509> / animSpeed;
+	turn rhip to y-axis <0.0> speed <163.568123> / animSpeed;
+	turn rhip to z-axis <0.0> speed <167.665045> / animSpeed;
+	turn rleg to x-axis <0.0> speed <5994.845935> / animSpeed;
+	turn rleg to y-axis <0.0> speed <75.347520> / animSpeed;
+	turn rleg to z-axis <0.0> speed <126.287879> / animSpeed;
 }
 // REMEMBER TO animspeed = 3 in Create() !!
 UnitSpeed(){
@@ -238,142 +235,68 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-	set-signal-mask SIG_WALK;
+
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
-
 
 #define BASEPIECE pelvis
 #define HITSPEED <75.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-
-Go()
-{
-
-//	turn luparm to x-axis <0.010989> speed <160.000000>;
-//	turn ruparm to x-axis <0.010989> speed <160.000000>;
-}
-
-Stop()
-
-{	
-	set-signal-mask SIG_BUILD;
-	set INBUILDSTANCE to 0;
-	turn head to y-axis <0.000000> speed <160.000000>;
-//	turn luparm to x-axis <45.000000> speed <160.000000>;
-//	turn ruparm to x-axis <45.000000> speed <160.000000>;
-//	wait-for-turn head around y-axis;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
-	bMoving = FALSE;
-	notBuilding = 1;
-	animspeed = 3;
-	nanoNozzle = 0;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	isMoving = FALSE;
+	hide nano;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 60;
-	animAmplitude = 70;
-	//turn luparm to x-axis <45.010989> speed <45>;
-//	turn ruparm to x-axis <45.010989> speed <45>;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn head to y-axis heading speed <260.000000>;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
+	turn head to y-axis heading speed <260.0>;
 	wait-for-turn head around y-axis;
+	
+	show nano;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
-	sleep 1000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;	
+
+	hide nano;
+
+	sleep 6000;
+	
+	set INBUILDSTANCE to 0;
+	turn head to y-axis <0.0> speed <160.0>;
 }
 
-SweetSpot(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = pelvis;
+	pieceIndex = nano;
 }
 
-QueryNanoPiece(piecenum)
-{
-	piecenum = head + nanoNozzle;  //head was nano
-	nanoNozzle = !nanoNozzle;
-}
-
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_5 = 0 - Func_Var_1;
-}
-*/
 
 Killed(severity, corpsetype)
 {
@@ -383,12 +306,6 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode head type BITMAPONLY | NOHEATCLOUD;
 		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lhip type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode rhip type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -397,12 +314,6 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type FALL | NOHEATCLOUD;
-		//explode lhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -411,23 +322,11 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type SMOKE | FALL | NOHEATCLOUD;
-		//explode rhip type SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lhip type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rhip type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
