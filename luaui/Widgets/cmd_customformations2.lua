@@ -23,8 +23,9 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = minimapUtils.ROTATION
 
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
