@@ -114,8 +114,12 @@ FireWeapon1()
 		move lbarrel to z-axis [-5.0] now;
 		move lbarrel to z-axis [0.0] speed [7.50000];
 	}
-	gun_1 = !gun_1;
 	return (0);
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
