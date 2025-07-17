@@ -177,8 +177,9 @@ local vtoldamagetag = Game.armorTypes['vtol']
 local defaultdamagetag = Game.armorTypes['default']
 
 -- globals
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = minimapUtils.ROTATION
 local selUnitCount = 0
 local selBuilderCount = 0 -- we need builder count separately
 local shifted = false
