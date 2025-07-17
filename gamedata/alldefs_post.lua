@@ -1881,32 +1881,36 @@ function UnitDef_Post(name, uDef)
 		-- Cortex
 		if name == "corfav" then 
 			uDef.script = "Units/CORFAVTURNRATE.cob"
-		elseif name == "corgarp" then
-			uDef.script = "Units/CORGARPTURNRATE.cob"
+		--elseif name == "corgarp" then
+		--	uDef.script = "Units/CORGARPTURNRATE.cob"
 		elseif name == "corgator" then
 			uDef.script = "Units/CORGATORTURNRATE.cob"
+		elseif name == "corpyro" then
+			uDef.script = "Units/CORPYROTURNRATE.cob"
 
 		-- Armada
 		elseif name == "armflash" then
 			uDef.script = "Units/ARMFLASHTURNRATE.cob"
 		elseif name == "armfav" then
 			uDef.script = "Units/ARMFAVTURNRATE.cob"
-		elseif name == "armpincer" then
-			uDef.script = "Units/ARMPINCERTURNRATE.cob"
+		--elseif name == "armpincer" then
+		--	uDef.script = "Units/ARMPINCERTURNRATE.cob"
 		elseif name == "armflea" then
 			uDef.script = "Units/ARMFLEATURNRATE.cob"
+		
 
 		-- Legion
 		elseif name == "legscout" then
 			uDef.script = "Units/LEGSCOUTTURNRATE.cob"
 		elseif name == "legcen" then
 			uDef.script = "Units/LEGCENTURNRATE.cob"
-		elseif name == "legamphtank" then
-			uDef.script = "Units/LEGAMPHTANKTURNRATE.cob"
+		--elseif name == "legamphtank" then
+		--	uDef.script = "Units/LEGAMPHTANKTURNRATE.cob"
 		elseif name == "leghelios" then
 			uDef.script = "Units/LEGHELIOSTURNRATE.cob"
 		elseif name == "leghades" then
 			uDef.script = "Units/LEGHADESTURNRATE.cob"
+		
 
 		end
 	end
