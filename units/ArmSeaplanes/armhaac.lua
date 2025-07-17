@@ -53,7 +53,7 @@ return {
 			[15] = "armap",
 			[16] = "armaap",
 			[17] = "armsd",
-			[18] = "armmkr"
+			[18] = "armmakr"
 			},
 		customparams = {
 			model_author = "Flaka",

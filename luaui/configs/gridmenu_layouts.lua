@@ -1777,7 +1777,7 @@ local unitGrids = {
 	armhaac = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
-			{"","","","",},
+			{"armmakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1800,7 +1800,7 @@ local unitGrids = {
 	corhaac = {
 		{
 			{"corexp","coradvsol","corfus","",},
-			{"","","","",},
+			{"cormakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1823,7 +1823,7 @@ local unitGrids = {
 	armhack = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
-			{"","","","",},
+			{"armmakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1846,7 +1846,7 @@ local unitGrids = {
 	corhack = {
 		{
 			{"corexp","coradvsol","corfus","",},
-			{"","","","",},
+			{"cormakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1869,7 +1869,7 @@ local unitGrids = {
 	leghack = {
 		{
 			{"legmext15","legadvsol","legfus","",},
-			{"","","","",},
+			{"legeconv","","","",},
 			{"","","","",},
 		},
 		{
@@ -1892,7 +1892,7 @@ local unitGrids = {
 	armhacv = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
-			{"","","","",},
+			{"armmakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1915,7 +1915,7 @@ local unitGrids = {
 	corhacv = {
 		{
 			{"corexp","coradvsol","corfus","",},
-			{"","","","",},
+			{"cormakr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1938,7 +1938,7 @@ local unitGrids = {
 	leghacv = {
 		{
 			{"legmext15","legadvsol","legfus","",},
-			{"","","","",},
+			{"legeconv","","","",},
 			{"","","","",},
 		},
 		{
@@ -1960,8 +1960,8 @@ local unitGrids = {
 
 	armhacs = {
 		{
-			{"armamex", "armtide", "armuwfus", "armfmkr",},
-			{"","","","",},
+			{"armamex", "armtide", "armuwfus", "",},
+			{"armfmkr","","","",},
 			{"","","","",},
 		},
 		{
@@ -1983,8 +1983,8 @@ local unitGrids = {
 
 	corhacs = {
 		{
-			{"corexp", "cortide", "coruwfus", "corfmkr",},
-			{"","","","",},
+			{"corexp", "cortide", "coruwfus", "",},
+			{"corfmkr","","","",},
 			{"","","","",},
 		},
 		{
