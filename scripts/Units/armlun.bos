@@ -102,13 +102,13 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( !gun_1 )
+	if( gun_1 )
 	{
 		emit-sfx 1024 + 0 from rflare;
 		move rbarrel to z-axis [-5.0] now;
 		move rbarrel to z-axis [0.0] speed [7.50000];
 	}
-	if( gun_1 )
+	if( !gun_1 )
 	{
 		emit-sfx 1024 + 0 from lflare;
 		move lbarrel to z-axis [-5.0] now;
