@@ -72,6 +72,9 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 50, piece = "mainAirjet", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 38, piece = "leftAirjet", light = 1 },
 	},
+	["legehovertank"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 7, length = 12, piece = "airjetFlare", light = 1 },
+	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},

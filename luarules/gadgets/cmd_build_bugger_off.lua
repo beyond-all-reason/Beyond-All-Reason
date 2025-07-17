@@ -189,7 +189,7 @@ function gadget:GameFrame(frame)
 			for idx, command in ipairs(builderCommands) do
 				if command.id < 0 then
 					hasBuildCommand = true
-					if idx == 1 then
+					if idx == 1 and command.params[1] and command.params[3] then
 						buildCommandFirst = true
 						targetX, targetZ  = command.params[1], command.params[3]
 					end

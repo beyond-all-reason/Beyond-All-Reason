@@ -2,10 +2,10 @@ return {
 	leggat	= {
 		maxacc = 0.02,
 		maxdec = 0.04,
-		energycost = 2700,
+		energycost = 3000,
 		metalcost = 300,
 		buildpic = "LEGGAT.DDS",
-		buildtime = 4000,
+		buildtime = 4800,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "34 16 40",
