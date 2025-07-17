@@ -54,8 +54,6 @@ local presets = {
 -- non-editables
 local vsx = 1                        -- current viewport width
 local vsy = 1                        -- current viewport height
-local ivsx = 1.0 / vsx
-local ivsy = 1.0 / vsy
 local qvsx,qvsy
 local iqvsx, iqvsy
 
@@ -72,8 +70,8 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local glGetSun = gl.GetSun
 
@@ -85,17 +83,7 @@ local glTexture = gl.Texture
 local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local glDeleteShader = gl.DeleteShader
-local glUseShader = gl.UseShader
 
-local glUniformInt = gl.UniformInt
-local glUniform = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
-
-local brightShaderIllumLoc, brightShaderFragLoc
---local brightShaderIvsxLoc, brightShaderIvsyLoc
-local brightShaderTimeLoc
-local blurShaderFragLoc, blurShaderHorizontalLoc
-local combineShaderDebgDrawLoc
 
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
@@ -122,8 +110,8 @@ local function MakeBloomShaders()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	local downscale = presets[preset].quality
 	--Spring.Echo("New bloom init preset:", preset)
-	vsx = math.max(4,viewSizeX); ivsx = 1.0 / vsx --we can do /n here!
-	vsy = math.max(4,viewSizeY); ivsy = 1.0 / vsy
+	vsx = math.max(4,viewSizeX)
+	vsy = math.max(4,viewSizeY)
 	qvsx,qvsy = math.ceil(vsx/downscale), math.ceil(vsy/downscale) -- we ceil to ensure perfect upscaling
 	iqvsx, iqvsy = 1.0 / qvsx, 1.0 / qvsy
 
@@ -144,15 +132,16 @@ local function MakeBloomShaders()
 
 	local definesString = LuaShader.CreateShaderDefinesString(shaderConfig)
 
-	glDeleteTexture(brightTexture1 or "")
-	glDeleteTexture(brightTexture2 or "")
 	--Spring.Echo(vsx, vsy, qvsx,qvsy)
 
+	glDeleteTexture(brightTexture1)
 	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
+
+	glDeleteTexture(brightTexture2)
 	brightTexture2 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
@@ -168,43 +157,44 @@ local function MakeBloomShaders()
 
 
 	if glDeleteShader then
-		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
-		if blurShader ~= nil then glDeleteShader(blurShader or 0) end
-		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
+		if brightShader  then brightShader:Finalize() end
+		if blurShader  	then blurShader:Finalize() end
+		if combineShader  then combineShader:Finalize() end
 	end
 
-	combineShader = glCreateShader({
-		fragment = "#version 150 compatibility\n" .. definesString  ..  [[
-			uniform sampler2D texture0;
-			uniform int debugDraw;
 
-			void main(void) {
-				vec2 subpixel = vec2(IHSX, IHSY) * 0.5; // YES FREAKING HALF-PIXEL BLUR HERE TOO CAUSE WHY NOT?
-				vec4 a = texture2D(texture0, gl_TexCoord[0].st + subpixel);
-				if (debugDraw == 1) {
-					a.a= 1.0;
+	combineShader = LuaShader({
+			fragment = "#version 150 compatibility\n" .. definesString  ..  [[
+				uniform sampler2D texture0;
+				uniform int debugDraw;
+
+				void main(void) {
+					vec2 subpixel = vec2(IHSX, IHSY) * 0.5; // YES FREAKING HALF-PIXEL BLUR HERE TOO CAUSE WHY NOT?
+					vec4 a = texture2D(texture0, gl_TexCoord[0].st + subpixel);
+					if (debugDraw == 1) {
+						a.a= 1.0;
+					}
+					gl_FragColor = a;
+					//gl_FragColor.rg = gl_TexCoord[0].st; // to debug texture coordinates
 				}
-				gl_FragColor = a;
-				//gl_FragColor.rg = gl_TexCoord[0].st; // to debug texture coordinates
-			}
-		]],
-		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
-		vertex =
-			"#version 150 compatibility\n" .. definesString ..[[
-			void main(void)	{
-				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
-				#if DOWNSCALE >= 2
-					gl_TexCoord[0].xy = vec2(gl_TexCoord[0].xy * vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ) /  vec2(VSX, VSY));
-				#endif
-				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
-		]],
-		uniformInt = {
-			texture0 = 0,
-			debugDraw = 0,
-		}
-	})
+			]],
+			vertex =
+				"#version 150 compatibility\n" .. definesString ..[[
+				void main(void)	{
+					gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
+					#if DOWNSCALE >= 2
+						gl_TexCoord[0].xy = vec2(gl_TexCoord[0].xy * vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ) /  vec2(VSX, VSY));
+					#endif
+					gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
+			]],
+			uniformInt = {
+				texture0 = 0,
+				debugDraw = 0,
+			},
+		},
+		"Bloom Combine Shader")
 
-	if (combineShader == nil) then
+	if not combineShader:Initialize() then
 		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); Spring.Echo(glGetShaderLog()); return
 	end
 
@@ -213,7 +203,7 @@ local function MakeBloomShaders()
 	-- this allows us to get away with 5 texture fetches instead of 9 for our 9 sized kernel!
 	 -- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
 
-	blurShader = glCreateShader({
+	blurShader = LuaShader({
 		vertex = [[
 			#version 150 compatibility
 			void main(void)	{
@@ -370,15 +360,16 @@ local function MakeBloomShaders()
 		},
 		uniformFloat = {
 			horizontal = 0,
+			fragBlurAmplifier = 0,
 		}
-	})
+	}, "Bloom Blur Shader")
 
-	if (blurShader == nil) then
+	if not blurShader:Initialize() then
 		RemoveMe("[BloomShader::Initialize] blurShader compilation failed"); Spring.Echo(glGetShaderLog()); return
 	end
 
 
-	brightShader = glCreateShader({
+	brightShader = LuaShader({
 		vertex = [[
 			#version 150 compatibility
 			void main(void)	{
@@ -396,8 +387,6 @@ local function MakeBloomShaders()
 
 			uniform float illuminationThreshold;
 			uniform float fragGlowAmplifier;
-			//uniform float ivsx;
-			//uniform float ivsy;
 			uniform float time;
 
 			void main(void) {
@@ -485,36 +474,22 @@ local function MakeBloomShaders()
 			mapDepthTex = 3,
 		},
 		uniformFloat = {
-			--ivsx = 0,
-			--ivsy = 0,
 			time = 0,
+			illuminationThreshold = 0, 
+			fragGlowAmplifier = 0,
 		}
-	})
+	}, "Bloom Bright Shader")
 
-	if (brightShader == nil) then
+	if not brightShader:Initialize() then
 		Spring.Echo(glGetShaderLog());
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); return
 	end
-
-	--brightShaderIvsxLoc = glGetUniformLocation(brightShader, "ivsx")
-	--brightShaderIvsyLoc = glGetUniformLocation(brightShader, "ivsy")
-	brightShaderTimeLoc = glGetUniformLocation(brightShader, "time")
-	brightShaderIllumLoc = glGetUniformLocation(brightShader, "illuminationThreshold")
-	brightShaderFragLoc = glGetUniformLocation(brightShader, "fragGlowAmplifier")
-
-	blurShaderFragLoc = glGetUniformLocation(blurShader, "fragBlurAmplifier")
-	blurShaderHorizontalLoc = glGetUniformLocation(blurShader, "horizontal")
-
-	combineShaderDebgDrawLoc = glGetUniformLocation(combineShader, "debugDraw")
 
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
-
-local luaShaderDir = "LuaUI/Include/"
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 function widget:Initialize()
 
@@ -549,15 +524,17 @@ function widget:Initialize()
 	end
 
 	MakeBloomShaders()
-	rectVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	rectVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()
-	glDeleteTexture(brightTexture1 or "")
+	glDeleteTexture(brightTexture1)
+	glDeleteTexture(brightTexture2)
+	brightTexture1, brightTexture2 = nil, nil
 	if glDeleteShader then
-		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
-		if blurShader ~= nil then glDeleteShader(blurShader or 0) end
-		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
+		if brightShader  then brightShader:Finalize() end
+		if blurShader ~= nil then blurShader:Finalize() end
+		if combineShader ~= nil then combineShader:Finalize() end
 	end
 	WG['bloomdeferred'] = nil
 end
@@ -576,12 +553,11 @@ local function Bloom()
 	gl.Color(1, 1, 1, 1)
 	gl.Culling(true)
 
-	glUseShader(brightShader)
-		glUniform(   brightShaderIllumLoc, illumThreshold)
-		glUniform(   brightShaderFragLoc, glowAmplifier)
-		--glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
-		--glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
-		glUniform(   brightShaderTimeLoc, df)
+	brightShader:Activate()
+		brightShader:SetUniform("illuminationThreshold", illumThreshold)
+		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier)
+		--brightShader:SetUniform("time", df)
+
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")
 		glTexture(2, "$model_gbuffer_zvaltex")
@@ -594,28 +570,26 @@ local function Bloom()
 		glTexture(1, false)
 		glTexture(2, false)
 		glTexture(3, false)
-	glUseShader(0)
+	brightShader:Deactivate()
 
 	if not debugBrightShader then
 		if presets[preset].blurPasses > 0 then
-			glUseShader(blurShader)
+			blurShader:Activate()
 			for i = 1, presets[preset].blurPasses do
-
-					glUniform(blurShaderFragLoc, blurAmplifier)
-					glUniform(blurShaderHorizontalLoc, 0)
+					blurShader:SetUniform("fragBlurAmplifier", blurAmplifier)
+					blurShader:SetUniform("horizontal", 0)
 					glTexture(brightTexture1)
 					--glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
 					glRenderToTexture(brightTexture2, FullScreenQuad)
 					glTexture(false)
 
-					glUniform(blurShaderFragLoc, blurAmplifier)
-					glUniform(blurShaderHorizontalLoc, 1)
+					blurShader:SetUniform("horizontal", 1)
 					glTexture(brightTexture2)
 					--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
 					glRenderToTexture(brightTexture1, FullScreenQuad)
 					glTexture(false)
 			end
-			glUseShader(0)
+			blurShader:Deactivate()
 		end
 	end
 
@@ -624,14 +598,13 @@ local function Bloom()
 	else
 		gl.Blending(GL.ONE, GL.ZERO)
 	end
-
-	glUseShader(combineShader)
-		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
+	combineShader:Activate()
+		combineShader:SetUniformInt("debugDraw",dbgDraw)
 		glTexture(0, brightTexture1)
 		--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 		rectVAO:DrawArrays(GL.TRIANGLES)
 		glTexture(0, false)
-	glUseShader(0)
+	combineShader:Deactivate()
 
 	gl.Blending("reset")
 	gl.DepthMask(false) --"BK OpenGL state resets", was true

@@ -889,7 +889,7 @@ local options = {
         section = "options_extra",
         def  	= false,
     },
-
+	
     {
         key    	= "scavunitsforplayers",
         name   	= "Scavengers Units Pack",
@@ -1363,6 +1363,17 @@ local options = {
     },
 
     -- Hidden Tests
+	
+	{
+        key   	= "splittiers",
+        name   	= "Split T2",
+        desc   	= "Splits T2 into two tiers moving experimental to T4.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+        hidden 	= true,
+	},
+	
     {
         key    	= "shieldsrework",
         name   	= "Shields Rework v2.0",
@@ -1439,7 +1450,17 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "factory_costs",
+        name 	= "Factory Costs Test Patch",
+        desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
+        type 	= "bool",
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
@@ -1547,6 +1568,30 @@ local options = {
         section = "dev",
         type    = "bool",
         def     =  false,
+    },
+    {
+        key     = "dummyboolfeelfreetotouch",
+        name    = "dummy to hide the faction limiter",
+        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        section = "dev",
+        type    = "bool",
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+    },
+    {
+        key     = "factionlimiter",
+        name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
+        desc    = [[BITMASK to be used via custom ui, only visible when boss
+Set to [0] To disable.
+Otherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.
+Offset by 3 for each consecutive team.
+If a team's bitmask is 0, All are Enabled.
+Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
+        section = "dev",
+        type    = "number",
+        def     =  0,
+        min    	= 0,
+        max    	= 16777215,-- math hard, 24 bit limitish?
+        step   	= 1,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

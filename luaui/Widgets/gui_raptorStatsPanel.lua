@@ -42,7 +42,6 @@ local panelFontSize = 14
 local waveFontSize = 36
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local viewSizeX, viewSizeY = 0, 0
 local w = 300
@@ -454,7 +453,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 
 	x1 = math.floor(x1 - viewSizeX)
 	y1 = math.floor(y1 - viewSizeY)

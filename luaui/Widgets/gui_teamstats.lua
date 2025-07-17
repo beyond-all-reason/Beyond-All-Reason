@@ -196,13 +196,12 @@ function calcAbsSizes()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2, 1.3, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
+	font2 = WG['fonts'].getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end

@@ -28,6 +28,11 @@ local useHexagons = true
 
 ----------------------------------------------------------------------------
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local selectionVBO = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -272,7 +277,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(selectionVBO)
+	InstanceVBOTable.clearInstanceTable(selectionVBO)
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end

@@ -2544,18 +2544,18 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	return
 end
 
-function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
-		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end

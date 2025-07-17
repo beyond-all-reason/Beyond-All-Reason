@@ -1,52 +1,36 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dish1, dish2, dish3, dish4, emit;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  recentlyHit, wantOpen;
+
+#define SIGNAL_TURNON 4
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+#include "../damagedsmoke.h"
+Create()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = SFXTYPE_BLACKSMOKE;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = SFXTYPE_WHITESMOKE;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
+	recentlyHit = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 }
 
+// open it on when built
+// close it up when hit
+// open it when time passed
+// dont open it while hit
+// dont reopen it if off after being hit !!!
+// dont let any of the above conflict in time.
+// dont change state while stunned
+// obey desired state changes while closed for hit
 
-Go()
+Open()
 {
-	if( Static_Var_1 )
-	{
-		set ACTIVATION to 0;
-		return (0);
-	}
-	turn dish1 to x-axis <-90.016484> speed <60.000000>;
-	turn dish3 to x-axis <90.016484> speed <60.000000>;
-	turn dish2 to z-axis <-90.016484> speed <60.000000>;
-	turn dish4 to z-axis <90.016484> speed <60.000000>;
+	turn dish1 to x-axis <-90.016484> speed <60.0>;
+	turn dish3 to x-axis <90.016484> speed <60.0>;
+	turn dish2 to z-axis <-90.016484> speed <60.0>;
+	turn dish4 to z-axis <90.016484> speed <60.0>;
 	wait-for-turn dish1 around x-axis;
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;
@@ -54,14 +38,16 @@ Go()
 	show emit;
 	set ARMORED to 0;
 	set YARD_OPEN to 0;
+	set ACTIVATION to 100;
 }
 
-Stop()
+Close()
 {
-	turn dish1 to x-axis <0.000000> speed <120.000000>;
-	turn dish3 to x-axis <0.000000> speed <120.000000>;
-	turn dish2 to z-axis <0.000000> speed <120.000000>;
-	turn dish4 to z-axis <0.000000> speed <120.000000>;
+	set ACTIVATION to 0;
+	turn dish1 to x-axis <0.0> speed <120.0>;
+	turn dish3 to x-axis <0.0> speed <120.0>;
+	turn dish2 to z-axis <0.0> speed <120.0>;
+	turn dish4 to z-axis <0.0> speed <120.0>;
 	wait-for-turn dish1 around x-axis;
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;
@@ -71,76 +57,42 @@ Stop()
 	set YARD_OPEN to 1;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
-}
-
 Activate()
 {
-	if( Static_Var_1 )
+	if( recentlyHit )
 	{
-		set ACTIVATION to 0;
+		set ACTIVATION to 0; // dont open it while hit, feedback it
+		wantOpen = 1;
 		return (0);
 	}
-	start-script RequestState(0);
+	call-script Open();
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	call-script Close();
 }
 
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
-		Static_Var_1 = 1;
+
+	if (!recentlyHit){
+		start-script Close(); 
+		recentlyHit = 1;
+		wantOpen = get ACTIVATION;
 	}
-	if( Static_Var_1 )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_1 = 0;
-		set ACTIVATION to 100;
+	// Signal after Close() so as not to interrupt it
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	sleep 8000;
+	recentlyHit = 0;
+	if (wantOpen){
+		start-script Open();
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

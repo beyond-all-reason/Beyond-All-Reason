@@ -237,6 +237,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					norangering= 1,
+				},
 				damage = {
 					default = 200,
 					subs = 100,

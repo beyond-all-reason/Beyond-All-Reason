@@ -81,7 +81,7 @@ selectedLineWidth  2.0
 selectedBlendSrc   src_alpha
 selectedBlendDst   one_minus_src_alpha
 
-rangeAttack          1.0  0.3  0.3  0.3
+rangeAttack          1.0  0.3  0.3  0.0
 rangeBuild           0.3  1.0  0.3  0.3
 rangeRadar           0.3  1.0  0.3  0.3
 rangeSonar           0.3  0.3  1.0  0.3

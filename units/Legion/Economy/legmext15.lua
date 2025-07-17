@@ -6,7 +6,6 @@ return {
 		buildangle = 2048,
 		energycost = 5000,
 		metalcost = 250,
-		buildingmask = 0,
 		buildpic = "LEGMEXT15.DDS",
 		buildtime = 5000,
 		canrepeat = false,
@@ -36,8 +35,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmext15_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,

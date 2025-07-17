@@ -23,7 +23,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.5	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -99,6 +99,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -340,9 +341,10 @@ function widget:ViewResize()
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
-	font = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.4, 0.2, 1.3)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
+	font3 = WG['fonts'].getFont(2, 1.6)
+
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
@@ -489,6 +491,7 @@ function updateInputDlist()
 
 		-- button text
 		usedFont:Begin()
+		usedFont:SetOutlineColor(0,0,0,0.4)
 		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
 		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
@@ -648,6 +651,7 @@ function DrawWindow()
 	end
 
 	font:Begin()
+	font:SetOutlineColor(0,0,0,0.4)
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -769,9 +773,11 @@ function DrawWindow()
 						if option.type == nil then
 							font:End()
 							font3:Begin()
+							font3:SetOutlineColor(0,0,0,0.4)
 							font3:Print('\255\255\200\130' .. option.name, xPos + (oPadding * 0.5), yPos - (oHeight * 1.8) - oPadding, oHeight * 1.5, "no")
 							font3:End()
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:SetTextColor(1, 1, 1, 1)
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
@@ -857,10 +863,12 @@ function DrawWindow()
 								if option.id == 'font2' then
 									font:End()
 									font2:Begin()
+									font2:SetOutlineColor(0,0,0,0.4)
 									font2:SetTextColor(1, 1, 1, 1)
 									font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
 									font2:End()
 									font:Begin()
+									font:SetOutlineColor(0,0,0,0.4)
 								else
 									font:SetTextColor(1, 1, 1, 1)
 									font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
@@ -1279,6 +1287,7 @@ function widget:DrawScreen()
 									end
 									consoleCmdDlist = glCreateList(function()
 										font:Begin()
+										font:SetOutlineColor(0,0,0,0.4)
 										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
 										font:End()
@@ -1363,10 +1372,12 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
 							fontOption[i]:Begin()
+							fontOption[i]:SetOutlineColor(0,0,0,0.4)
 							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
+							font:SetOutlineColor(0,0,0,0.4)
 							font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end
@@ -1886,7 +1897,7 @@ function init()
 			lighteffects_screenspaceshadows = 0,
 			distortioneffects = false,
 			snow = false,
-			particles = 9000,
+			particles = 10000,
 			guishader = 0,
 			decalsgl4 = 0,
 			decals = 0,
@@ -1907,7 +1918,7 @@ function init()
 			lighteffects_screenspaceshadows = 1,
 			distortioneffects = true,
 			snow = false,
-			particles = 12000,
+			particles = 15000,
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
@@ -1928,7 +1939,7 @@ function init()
 			 lighteffects_screenspaceshadows = 2,
 			distortioneffects = true,
 		 	snow = true,
-		 	particles = 15000,
+		 	particles = 20000,
 		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
@@ -1949,7 +1960,7 @@ function init()
 			lighteffects_screenspaceshadows = 3,
 			distortioneffects = true,
 			snow = true,
-			particles = 20000,
+			particles = 30000,
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
@@ -1970,7 +1981,7 @@ function init()
 			lighteffects_screenspaceshadows = 4,
 			distortioneffects = true,
 			snow = true,
-			particles = 25000,
+			particles = 40000,
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
@@ -2622,7 +2633,7 @@ function init()
 		{ id = "label_gfx_effects", group = "gfx", name = Spring.I18N('ui.settings.option.label_effects'), category = types.basic },
 		{ id = "label_gfx_effects_spacer", group = "gfx", category = types.basic },
 
-		{ id = "particles", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.particles'), type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = Spring.I18N('ui.settings.option.particles_descr'),
+		{ id = "particles", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.particles'), type = "slider", min = 10000, max = 40000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = Spring.I18N('ui.settings.option.particles_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2794,14 +2805,6 @@ function init()
 				init()
 			end
 		end
-		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshSettings then
-					WG['music'].RefreshSettings()
-				end
-			end
 		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
@@ -3530,12 +3533,28 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
 		  end,
 		},
+		{ id = "advplayerlist_showallyid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showallyid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showallyid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'allyid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'allyid' }, value, { 'allyid', value })
+		  end,
+		},
 		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showid_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'id' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
+		  end,
+		},
+		{ id = "advplayerlist_showplayerid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showplayerid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showplayerid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'playerid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'playerid' }, value, { 'playerid', value })
 		  end,
 		},
 		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_rank_descr'),
@@ -4243,83 +4262,82 @@ function init()
 		  end,
 		},
 
-		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.defrange_descr') },
+		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range GL4", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range GL4"), description = Spring.I18N('ui.settings.option.defrange_descr') },
+
 		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = Spring.I18N('ui.settings.option.defrange_allyair_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
+			  loadWidgetData("Defense Range GL4", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
 		},
 		{ id = "defrange_allyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = Spring.I18N('ui.settings.option.defrange_allyground_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_allyground", { 'enabled', 'ally', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_allycannon", { 'enabled', 'ally', 'cannon' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'cannon' }, value)
 		  end,
 		},
 		{ id = "defrange_allynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = Spring.I18N('ui.settings.option.defrange_allynuke_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
+			  loadWidgetData("Defense Range GL4", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
+		  end,
+		},
+		{ id = "defrange_allylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyLRPC ~= nil and WG['defrange'].getAllyLRPC()), description = Spring.I18N('ui.settings.option.defrange_allylrpc_descr'),
+		  onload = function(i)
+			  loadWidgetData("Defense Range GL4", "defrange_allylrpc", { 'enabled', 'ally', 'lrpc' })
+		  end,
+		  onchange = function(i, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyLRPC', { 'enabled', 'ally', 'lrpc' }, value)
 		  end,
 		},
 		{ id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = Spring.I18N('ui.settings.option.defrange_enemyair_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
 		},
 		{ id = "defrange_enemyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = Spring.I18N('ui.settings.option.defrange_enemyground_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemyground", { 'enabled', 'enemy', 'cannon' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'cannon' }, value)
 		  end,
 		},
 		{ id = "defrange_enemynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = Spring.I18N('ui.settings.option.defrange_enemynuke_descr'),
 		  onload = function(i)
-			  loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
+			  loadWidgetData("Defense Range GL4", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
 		  onchange = function(i, value)
-			  if widgetHandler.configData["Defense Range"] == nil then  widgetHandler.configData["Defense Range"] = {}  end
-			  if widgetHandler.configData["Defense Range GL4"] == nil then  widgetHandler.configData["Defense Range GL4"] = {}  end
-			  if widgetHandler.configData["Defense Range"].enabled == nil then widgetHandler.configData["Defense Range"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  if widgetHandler.configData["Defense Range GL4"].enabled == nil then widgetHandler.configData["Defense Range GL4"].enabled = { ally = { air = false, ground = false, nuke = false }, enemy = { air = true, ground = true, nuke = true } } end
-			  saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyNuke', { 'enabled', 'enemy', 'nuke' }, value)
+		  end,
+		},
+		{ id = "defrange_enemylrpc", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemylrpc'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyLRPC ~= nil and WG['defrange'].getEnemyLRPC()), description = Spring.I18N('ui.settings.option.defrange_enemylrpc_descr'),
+		  onload = function(i)
+			  loadWidgetData("Defense Range GL4", "defrange_enemylrpc", { 'enabled', 'enemy', 'lrpc' })
+		  end,
+		  onchange = function(i, value)
+			  --saveOptionValue('Defense Range', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
+			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyLRPC', { 'enabled', 'enemy', 'lrpc' }, value)
 		  end,
 		},
 
@@ -6253,21 +6271,21 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armjamt"].id] = true,
-		[UnitDefNames["armdecom"].id] = false,
-		[UnitDefNames["cordecom"].id] = false,
-		[UnitDefNames["armferret"].id] = false,
-		[UnitDefNames["armamb"].id] = false,
-		[UnitDefNames["armpb"].id] = false,
-		[UnitDefNames["armsnipe"].id] = false,
-		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = true,
-		[UnitDefNames["armamex"].id] = true,
-		[UnitDefNames["armshockwave"].id] = true,
-		[UnitDefNames["armckfus"].id] = true,
-		[UnitDefNames["armspy"].id] = true,
-		[UnitDefNames["corspy"].id] = true,
-		[UnitDefNames["corphantom"].id] = true,
+		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id or -1] = false,
+		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id or -1] = false,
+		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id or -1] = false,
+		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id or -1] = false,
+		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id or -1] = false,
+		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id or -1] = false,
+		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id or -1] = false,
+		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id or -1] = true,
+		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id or -1] = true,
+		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id or -1] = true,
+		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id or -1] = true,
+		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id or -1] = true,
+		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id or -1] = true,
+		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id or -1] = true,
+		[UnitDefNames["legaspy"] and UnitDefNames["legaspy"].id or -1] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
@@ -6649,6 +6667,13 @@ function widget:Initialize()
 	end
 	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
 		widgetHandler:EnableWidget("HighlightUnit API GL4")
+	end
+
+
+	if newerVersion then
+		if widgetHandler.orderList["Defense Range GL4"] < 0.5 then
+			widgetHandler:EnableWidget("Defense Range GL4")
+		end
 	end
 
 	updateGrabinput()

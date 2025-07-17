@@ -1129,6 +1129,33 @@ local unitDistortions = {
 		},
 	},
 
+	-- ['legspy'] = {
+	-- 	-- spycloakhead = {
+	-- 	-- 	distortionType = 'point',
+	-- 	-- 	pieceName = 'body',
+	-- 	-- 	distortionConfig = { posx = 0, posy = 5.5, posz = 13, radius = 4.5,
+	-- 	-- 					noiseStrength = 3, noiseScaleSpace = -1.7, distanceFalloff = 0.75, onlyModelMap = -1,
+	-- 	-- 					windAffected = -1, riseRate = -0.5,
+	-- 	-- 					lifeTime = 0,  effectType = 0},
+	-- 	-- },
+	-- 	spycloakl = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'chassis',
+	-- 		distortionConfig = { posx = -7.5, posy = 4.8, posz = 0, radius = 5.5,
+	-- 						noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+	-- 						windAffected = -1, riseRate = -0.5,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- 	spycloakr = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'chassis',
+	-- 		distortionConfig = { posx = 7.5, posy = 4.8, posz = 0, radius = 5.5,
+	-- 						noiseStrength = 24, noiseScaleSpace = -1.5, distanceFalloff = 0.9, onlyModelMap = -1,
+	-- 						windAffected = -1, riseRate = -0.5,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- },
+
 	['armveil'] = {
 		-- magnifier = {
 		-- 	distortionType = 'point',
@@ -1665,6 +1692,30 @@ local unitDistortions = {
 		},
 	},
 
+	['legajamk'] = {
+		legdistortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'blob',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = 0, pos2y = 0, pos2z = 2, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['legavjam'] = {
+		legdistortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'cloaklight',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = 0, pos2y = 0, pos2z = 2, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
 	['corjuno'] = {
 		distortion = {
 			distortionType = 'point',
@@ -2077,7 +2128,7 @@ do
 			local alreadyhasjet = false
 			for j, distortion in pairs(unitDistortions[unitDefName]) do
 				if distortion.pieceName == airjet.piece then
-					Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
+					-- Spring.Echo("airjet distortion already exists for piece", unitDefName, airjet.piece)
 					alreadyhasjet = true
 					break
 				end

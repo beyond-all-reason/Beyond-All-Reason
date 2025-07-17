@@ -129,6 +129,13 @@ local armjunoShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
+local legjunoShieldSphere = table.merge(defaults, {
+	pos = { 0, 69, 0 },
+	size = 9,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
 local corjunoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
@@ -170,6 +177,10 @@ local legdeflectorShieldSphere = table.merge(defaults, {
 local UnitEffects = {
 	["armjuno"] = {
 		{ class = 'ShieldSphere', options = armjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+	},
+	["legjuno"] = {
+		{ class = 'ShieldSphere', options = legjunoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
@@ -338,9 +349,12 @@ UnitEffects = nil
 local orbVBO = nil
 local orbShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
 local vsSrc =
 [[
@@ -779,7 +793,7 @@ local function initGL4()
   )
   shaderCompiled = orbShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile orbShader GL4 ") end
-  local sphereVBO, numVerts, sphereIndexVBO, numIndices = makeSphereVBO(24,16,1)
+  local sphereVBO, numVerts, sphereIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(24,16,1)
   --Spring.Echo("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength
@@ -788,10 +802,10 @@ local function initGL4()
 		  {id = 6, name = 'color2', size = 4}, --- color
 		  {id = 7, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
 		}
-  orbVBO = makeInstanceVBOTable(orbVBOLayout,256, "orbVBO", 7)
+  orbVBO = InstanceVBOTable.makeInstanceVBOTable(orbVBOLayout,256, "orbVBO", 7)
   orbVBO.numVertices = numIndices
   orbVBO.vertexVBO = sphereVBO
-  orbVBO.VAO = makeVAOandAttach(orbVBO.vertexVBO, orbVBO.instanceVBO)
+  orbVBO.VAO = InstanceVBOTable.makeVAOandAttach(orbVBO.vertexVBO, orbVBO.instanceVBO)
   orbVBO.primitiveType = GL.TRIANGLES
   orbVBO.indexVBO = sphereIndexVBO  
   orbVBO.VAO:AttachIndexBuffer(orbVBO.indexVBO)
@@ -877,12 +891,12 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	if orbVBO.usedElements > 0 then 
-		clearInstanceTable(orbVBO) 
+		InstanceVBOTable.clearInstanceTable(orbVBO) 
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID, nil, true)
 	end
-	uploadAllElements(orbVBO)
+	InstanceVBOTable.uploadAllElements(orbVBO)
 end
 
 function widget:VisibleUnitRemoved(unitID)
