@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  ground, base, radar, nano1, nano2, nano3, nano4, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, drone11, drone12, drone13, drone14, drone15, drone16, frontwheels, backwheels;
 
 static-var  Stunned, oldHeading;
 
 // Signal definitions
-#define SIG_MOVE			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -18,7 +16,7 @@ static-var  Stunned, oldHeading;
 #define UNITSIZE 8
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
@@ -41,7 +39,7 @@ Go()
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
+	spin radar around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -74,10 +72,7 @@ Create()
 	hide blink;
 	hide wake1;
 	hide wake2;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Activate()
@@ -93,8 +88,8 @@ Deactivate()
 
 Steering(heading, steer, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -109,45 +104,42 @@ Steering(heading, steer, currentSpeed)
 	}
 }
 
-StartMoving()
+StartMoving(reversing)
 {
 	start-script Steering();
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 	turn base to x-axis <0.0> speed <1.0>;
 	move base to y-axis [0.0] speed [0.17];
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-AimPrimary(heading, pitch)
+
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script RestoreAfterDelay();
-	return (0);
+	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 150;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = radar;
+	pieceIndex = radar;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = radar;
+	pieceIndex = radar;
 	return (0);
 }
 
