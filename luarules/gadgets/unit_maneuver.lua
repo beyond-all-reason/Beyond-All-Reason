@@ -1,9 +1,10 @@
-lastReturnMovePositionlocal gadget = gadget ---@type Gadget
+local gadget = gadget ---@type Gadget
+--make this a widget
 
 function gadget:GetInfo()
 	return {
-		name = 'Custom Maneuver behaviour',
-		desc = 'Return unit to it\'s last move position when it no longer has a valid target in sight',
+		name = 'Custom Maneuver/Chase behaviour',
+		desc = 'Return unit to it\'s last move position when it no longer has a valid target',
 		author = 'chocolatemalc',
 		version = 'v1.0',
 		date = 'July 2025',
