@@ -45,7 +45,20 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_UNLOAD_UNITS)
 end
 
+local CMD_INSERT = CMD.INSERT
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+	return cmdParams[2], p
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
 			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then

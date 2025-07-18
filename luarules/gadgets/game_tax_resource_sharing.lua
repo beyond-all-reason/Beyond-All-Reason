@@ -33,6 +33,10 @@ local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
 -- Callins
 ----------------------------------------------------------------
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD.RECLAIM)
+end
 
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
@@ -68,6 +72,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return false
 end
 
+
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
 	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
@@ -77,7 +82,19 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1] = cmdParams[4]
+	return cmdParams[2], p
+end
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if cmdID == CMD.INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	-- Disallow reclaiming allied units for metal
 	if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
 		local targetID = cmdParams[1]

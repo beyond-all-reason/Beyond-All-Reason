@@ -30,7 +30,20 @@ function gadget:Initialize()
     gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
 
+local CMD_INSERT = CMD.INSERT
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+	return cmdParams[2], p
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	-- accepts: CMD.ATTACK
 	if empUnits[unitDefID]
 	and cmdParams[2] == nil

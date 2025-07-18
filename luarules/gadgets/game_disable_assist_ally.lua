@@ -25,6 +25,8 @@ if allowAssist then
 	return false
 end
 
+local CMD_INSERT = CMD.INSERT
+
 local function isComplete(u)
 	local _,_,_,_,buildProgress=Spring.GetUnitHealth(u)
 	if buildProgress and buildProgress>=1 then
@@ -34,8 +36,23 @@ local function isComplete(u)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD.REPAIR)
+end
+
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+	return cmdParams[2], p
+end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
 

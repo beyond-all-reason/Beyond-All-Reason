@@ -191,15 +191,20 @@ end
 
 GG.SetWantedCloaked = SetWantedCloaked
 
-function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true}
-end
+local CMD_INSERT = CMD.INSERT
+local params = {}
 
-function gadget:AllowCommand_GetWantedUnitDefID()
-	return true
+local function fromInsert(cmdParams)
+	local p = params
+	p[1] = cmdParams[4]
+	return cmdParams[2], p
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	if cmdID == CMD_WANT_CLOAK then
 		if canCloak[unitDefID] then
 			SetWantedCloaked(unitID, cmdParams[1])

@@ -16,9 +16,21 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local CMD_CAPTURE = CMD.CAPTURE
+local CMD_INSERT = CMD.INSERT
+
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1] = cmdParams[4]
+	return cmdParams[2], p
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	-- accepts: CMD.CAPTURE
 	if Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not select(4, Spring.GetTeamInfo(Spring.GetUnitTeam(cmdParams[1]))) and not Spring.GetTeamLuaAI(Spring.GetUnitTeam(cmdParams[1])) then
 		return false
@@ -27,5 +39,5 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_CAPTURE)
+	gadgetHandler:RegisterAllowCommand(CMD.CAPTURE)
 end
