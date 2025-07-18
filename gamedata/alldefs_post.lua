@@ -1927,8 +1927,6 @@ function UnitDef_Post(name, uDef)
 			uDef.script = "Units/LEGMRVTURNRATE.cob"
 		elseif name == "legskirmtank" then
 			uDef.script = "Units/LEGSKIRMTANKTURNRATE.cob"
-	
-
 		end
 	end
 	
