@@ -2,7 +2,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 
     if name == "armwar" then
 		uDef.weapondefs.armwar_laser.name = "Close-Range g2g Burst Laser"
-		uDef.weapondefs.armwar_laser.rgbcolor = "0.4 0.2 0.6"
+		uDef.weapondefs.armwar_laser.rgbcolor = "0.3 0.1 0.6"
 		uDef.weapondefs.armwar_laser.burst = 3
 		uDef.weapondefs.armwar_laser.burstrate = 0.175
 		uDef.weapondefs.armwar_laser.thickness = 3
@@ -17,7 +17,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 
 	elseif name == "armllt" then
 		uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
-		uDef.weapondefs.arm_lightlaser.rgbcolor = "0.4 0.2 0.6"
+		uDef.weapondefs.arm_lightlaser.rgbcolor = "0.3 0.1 0.6"
 		uDef.weapondefs.arm_lightlaser.beamburst = true
 		uDef.weapondefs.arm_lightlaser.burst = 3
 		uDef.weapondefs.arm_lightlaser.explosiongenerator = "custom:laserhit-medium-blue"
@@ -36,7 +36,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 
 	elseif name == "armamph" then
 		uDef.weapondefs.armamph_weapon1.name = "Light g2g Burst Laser"
-		uDef.weapondefs.armamph_weapon1.rgbcolor = "0.4 0.2 0.6"
+		uDef.weapondefs.armamph_weapon1.rgbcolor = "0.3 0.1 0.6"
 		uDef.weapondefs.armamph_weapon1.burst = 3
 		uDef.weapondefs.armamph_weapon1.beamburst = true
 		uDef.weapondefs.armamph_weapon1.burstrate = 0.175
@@ -68,7 +68,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 			
     elseif name == "armcom" then
         uDef.weapondefs.armcomlaser.name = "Light g2g/g2a Burst Laser"
-        uDef.weapondefs.armcomlaser.rgbcolor = "0.4 0.2 0.6"
+        uDef.weapondefs.armcomlaser.rgbcolor = "0.3 0.1 0.6"
         uDef.weapondefs.armcomlaser.beamburst = true
         uDef.weapondefs.armcomlaser.burst = 3
         uDef.weapondefs.armcomlaser.burstrate = 0.175
@@ -84,7 +84,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 
 	elseif name == "armcrus" then
 		uDef.weapondefs.laser.name = "Light close-quarters g2g burst laser"
-		uDef.weapondefs.laser.rgbcolor = "0.4 0.2 0.6"
+		uDef.weapondefs.laser.rgbcolor = "0.3 0.1 0.6"
 		uDef.weapondefs.laser.beamburst = true
 		uDef.weapondefs.laser.burst = 3
 		uDef.weapondefs.laser.burstrate = 0.175
