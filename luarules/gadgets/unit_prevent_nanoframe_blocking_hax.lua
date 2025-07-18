@@ -102,8 +102,21 @@ function gadget:GameFrame(n)
 	end
 end
 
+local CMD_INSERT = CMD.INSERT
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+	return cmdParams[2], p
+end
+
 -- make it not manually or accidentally targetable
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	-- accepts: CMD.ATTACK
 	if not cmdParams[2] and newNanoFrameNeutralState[cmdParams[1]] ~= nil then
 		return false

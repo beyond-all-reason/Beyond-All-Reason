@@ -38,11 +38,17 @@ function gadget:Initialize()
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
--- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3] = cmdParams[4], cmdParams[5], cmdParams[6]
+	return cmdParams[2], p
+end
+
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
-	local isInsert = cmdID == CMD_INSERT
-	if isInsert and cmdParams[2] then
-		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
 	end
 
 	if not isMex[-cmdID] then
@@ -50,9 +56,6 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 	end
 
 	local bx, bz = cmdParams[1], cmdParams[3]
-	if isInsert then
-		bx, bz = cmdParams[4], cmdParams[6] -- this is where the cmd position is placed in prepended commands with commandinsert
-	end
 
 	-- We find the closest metal spot to the assigned command position
 	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)

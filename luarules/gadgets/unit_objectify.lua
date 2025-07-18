@@ -117,7 +117,20 @@ if gadgetHandler:IsSyncedCode() then
         return damage, nil
     end
 
+	local CMD_INSERT = CMD.INSERT
+	local params = {}
+
+	local function fromInsert(cmdParams)
+		local p = params
+		p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+		return cmdParams[2], p
+	end
+
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+		if cmdID == CMD_INSERT then
+			cmdID, cmdParams = fromInsert(cmdParams)
+		end
+
 		if cmdID and (numObjects > 0 or numDecorations > 0) then
 			-- prevents area targetting
 			if cmdID == CMD_ATTACK then
@@ -129,6 +142,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 			-- remove any decoration that is blocking a queued build order
+			-- todo: this will delete decorations over any distance and even for enqueued commands
 			elseif cmdID < 0 and numDecorations > 0 then
 				if cmdParams[3] and isBuilder[spGetUnitDefID(unitID)] then
 					local udefid = math.abs(cmdID)

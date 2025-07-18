@@ -24,6 +24,7 @@ local GiveOrderToUnit = Spring.GiveOrderToUnit
 
 local CMD_LOAD_ONTO = CMD.LOAD_ONTO
 local CMD_STOP = CMD.STOP
+local CMD_INSERT = CMD.INSERT
 
 local massLeft = {}
 local toBeLoaded = {}
@@ -43,7 +44,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local insParams = {}
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdID == CMD_INSERT then
+		insParams[1] = cmdParams[4]
+		cmdParams = insParams
+	end
+
 	-- accepts: CMD.LOAD_ONTO
 	local transportID = cmdParams[1]
 	toBeLoaded[unitID] = transportID
