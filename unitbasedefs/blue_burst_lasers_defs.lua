@@ -109,7 +109,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 		uDef.weapondefs.armfhlt_laser.soundstart = "lasrlit3"
 		uDef.weapondefs.armfhlt_laser.explosiongenerator = "custom:laserhit-medium-blue"
 		uDef.weapondefs.armfhlt_laser.soundtrigger = false
-		uDef.weapondefs.armfhlt_laser.energypershot = 13.33,
+		uDef.weapondefs.armfhlt_laser.energypershot = 13.33
 		uDef.weapondefs.armfhlt_laser.damage = {
 			commanders = 150,
 			default = 105,
