@@ -139,7 +139,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 				noselfdamage = true,
 				range = 620,
 				reloadtime = 0.9,
-				rgbcolor = "0.8 1 0.6",
+				rgbcolor = "0.8 0.0.75 0.8",
 				size = 4,
 				stages = 8,
 				soundhit = "xplomed2",
