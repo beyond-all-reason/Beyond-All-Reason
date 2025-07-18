@@ -130,7 +130,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+		local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
+		if oldTeam == newTeam or not isSharing then
+			return true
+		end
 		return not deadTeam[newTeam]
 	end
 
