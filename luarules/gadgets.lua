@@ -158,8 +158,12 @@ local callInLists = {
 	"StockpileChanged",
 
 	"ActiveCommandChanged",
+
 	"CameraRotationChanged",
 	"CameraPositionChanged",
+	"MiniMapRotationChanged",
+	"MiniMapStateChanged",
+	"MiniMapGeometryChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -2169,6 +2173,24 @@ end
 function gadgetHandler:CameraPositionChanged(posx, posy, posz)
 	for _, g in r_ipairs(self.CameraPositionChangedList) do
 		g:CameraPositionChanged(posx, posy, posz)
+	end
+end
+
+function gadgetHandler:MiniMapRotationChanged(newRot, oldRot)
+	for _, g in ipairs(self.MiniMapRotationChangedList) do
+		g:MiniMapRotationChanged(newRot, oldRot)
+	end
+end
+
+function gadgetHandler:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
+	for _, g in ipairs(self.MiniMapStateChangedList) do
+		g:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
+	end
+end
+
+function gadgetHandler:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
+	for _, g in ipairs(self.MiniMapGeometryChangedList) do
+		g:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
 	end
 end
 
