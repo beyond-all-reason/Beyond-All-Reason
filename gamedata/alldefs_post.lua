@@ -1208,8 +1208,8 @@ function UnitDef_Post(name, uDef)
 
 	-- Armada Blue Burst Lasers
 	if modOptions.armada_blue_burst_lasers == true then
-		local armadaBlueBurstLasers = VFS.Include("unitbasedefs/armada_blue_burst_lasers_defs.lua")
-		uDef = armadaBlueBurstLasers.blue_burst_lasersTweaks(name, uDef)
+		local armada_blue_burst_lasers = VFS.Include("unitbasedefs/blue_burst_lasers_defs.lua")
+		uDef = armada_blue_burst_lasers.blue_burst_lasersTweaks(name, uDef)
 	end
 
 	--Lategame Rebalance
