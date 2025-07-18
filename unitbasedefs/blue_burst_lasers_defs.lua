@@ -7,13 +7,13 @@ local function blue_burst_lasersTweaks(name, uDef)
 		uDef.weapondefs.armwar_laser.burstrate = 0.175
 		uDef.weapondefs.armwar_laser.thickness = 3
 		uDef.weapondefs.armwar_laser.reloadtime = 1.35
-			uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
+		uDef.weapondefs.armwar_laser.soundstart = "lasrlit3"
 		uDef.weapondefs.armwar_laser.soundtrigger = false
 		uDef.weapondefs.armwar_laser.explosiongenerator = "custom:laserhit-medium-blue"
 		uDef.weapondefs.armwar_laser.damage = {
 			default = 27.5,
 			vtol = 4.5
-				}
+		}
 
 	elseif name == "armllt" then
 		uDef.weapondefs.arm_lightlaser.name = "Light g2g Burst Laser"
@@ -49,7 +49,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 			default = 40,
 			vtol = 7.5
 		}
-		elseif name == "armhlt" then
+	elseif name == "armhlt" then
 		uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
 		uDef.weapondefs.arm_laserh1.rgbcolor = "0.2 0.1 1.0"
 		uDef.weapondefs.arm_laserh1.beamburst = true

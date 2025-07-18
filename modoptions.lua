@@ -1456,14 +1456,14 @@ local options = {
     },
 
     {
-        key 	= "armada_blue_burst_lasers",
+        key 	= "blue_burst_lasers",
         name 	= "Armada Blue Burst Lasers",
         desc 	= "Replaces Armada lasers with 3 round burst blue lasers.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
-    }
+    },
 
     {
         key 	= "factory_costs",
