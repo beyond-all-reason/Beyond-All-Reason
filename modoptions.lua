@@ -1464,7 +1464,7 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
-
+    
     {
         key 	= "factory_costs",
         name 	= "Factory Costs Test Patch",
