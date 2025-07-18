@@ -30,7 +30,8 @@ local function isNearGeo(x, z)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 end
 
 local CMD_INSERT = CMD.INSERT
