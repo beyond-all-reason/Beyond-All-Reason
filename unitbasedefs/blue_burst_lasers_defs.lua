@@ -81,6 +81,26 @@ local function blue_burst_lasersTweaks(name, uDef)
             default = 37.5,
             subs = 2.5,
         }
+
+	elseif name == "armcrus" then
+		uDef.weapondefs.laser.name = "Light close-quarters g2g burst laser"
+		uDef.weapondefs.laser.rgbcolor = "0.2 0.1 1.0"
+		uDef.weapondefs.laser.beamburst = true
+		uDef.weapondefs.laser.burst = 3
+		uDef.weapondefs.laser.burstrate = 0.175
+		uDef.weapondefs.laser.thickness = 3
+		uDef.weapondefs.laser.reloadtime = 0.5
+		uDef.weapondefs.laser.soundstart = "lasrlit3"
+		uDef.weapondefs.laser.explosiongenerator = "custom:laserhit-medium-blue"
+		uDef.weapondefs.laser.soundtrigger = false
+		uDef.weapondefs.laser.damage = {
+			default = 37.5,
+			vtol = 4
+		}
+
+	elseif name == "armraz" then
+		uDef.weapondefs.mech_rapidlaser.rgbcolor = "0.2 0.1 1.0"
+
     end
 
     return uDef
