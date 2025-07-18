@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author  = "SethDGamre",
 		date    = "2025",
 		license = "GNU GPL, v2",
-		layer   = -9,
+		layer   = 1, --after game_territorial_domination.lua
 		enabled = true,
 	}
 end

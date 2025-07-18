@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2",
-		layer = -10,
+		layer = 1, --after game_territorial_domination.lua
 		enabled = true,
 		depends = { 'gl4' },
 	}
