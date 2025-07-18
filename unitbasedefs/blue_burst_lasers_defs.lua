@@ -55,7 +55,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 		uDef.weapondefs.arm_laserh1.beamburst = true
 		uDef.weapondefs.arm_laserh1.burst = 3
 		uDef.weapondefs.arm_laserh1.burstrate = 0.175
-		uDef.weapondefs.arm_laserh1.thickness = 4
+		uDef.weapondefs.arm_laserh1.thickness = 6
 		uDef.weapondefs.arm_laserh1.reloadtime = 2.7
 		uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
 		uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
@@ -104,7 +104,7 @@ local function blue_burst_lasersTweaks(name, uDef)
 		uDef.weapondefs.armfhlt_laser.beamburst = true
 		uDef.weapondefs.armfhlt_laser.burst = 3
 		uDef.weapondefs.armfhlt_laser.burstrate = 0.175
-		uDef.weapondefs.armfhlt_laser.thickness = 3
+		uDef.weapondefs.armfhlt_laser.thickness = 6
 		uDef.weapondefs.armfhlt_laser.reloadtime = 1.35
 		uDef.weapondefs.armfhlt_laser.soundstart = "lasrlit3"
 		uDef.weapondefs.armfhlt_laser.explosiongenerator = "custom:laserhit-medium-blue"
