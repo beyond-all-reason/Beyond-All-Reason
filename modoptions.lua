@@ -1457,14 +1457,14 @@ local options = {
 
     {
         key 	= "blue_burst_lasers",
-        name 	= "Armada Laser Reworks",
-        desc 	= "Replaces Armada lasers with 3 round burst blue lasers and HEMG.",
+        name 	= "Armada Blue Burst Lasers",
+        desc 	= "Replaces Armada lasers with 3 round burst blue lasers.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
-    
+
     {
         key 	= "factory_costs",
         name 	= "Factory Costs Test Patch",
