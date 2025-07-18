@@ -2,10 +2,10 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Water Crush and Collision Damage",
-		desc = "Creates and handles water collision events, and kills units stuck underwater",
+		name = "weapon prioritization",
+		desc = "weapon prioritization gadget",
 		author = "SethDGamre",
-		date = "2024.9.22",
+		date = "2025.7.18",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true
@@ -15,6 +15,8 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 -- CONSTANTS
+local CYCLE_FRAMES = Game.gameSpeed
+
 ---configables
 local DOOM_DECAY_PERCENTAGE = 0.01 -- the speed at which doom (virtual health) decays as a percentage per second.
 
@@ -26,7 +28,24 @@ local CERTAINTY_PROJECTILE_SLOWNESS_PENALTY_MULTIPLIER = 0.9 -- the multiplier f
 -- variables
 local gameFrame = 0
 
-local overkillWeaponWatch = {}
+local slowProjectileWeaponWatch = {}
+
+local projectileWeaponTypes = {
+	StarburstMissiles = true,
+	AircraftBomb = true,
+	Cannon = true,
+	Dgun = true,
+	EmgCannon = true,
+	Flame = true,
+	LaserCannon = true,
+	MissileLauncher = true,
+	StarburstLauncher = true,
+	TorpedoLauncher = true,
+}
+
+local ignoredWeaponTypes = {
+	Shield = true
+}
 
 --functions
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -44,6 +63,15 @@ local spDestroyUnit = Spring.DestroyUnit
 local mathSqrt = math.sqrt
 
 --functions
+
+local function projectileSpeedIsSlowerThanACycle(range, velocity)
+	local distanceTraveledInOneSecond = velocity * CYCLE_FRAMES
+	if distanceTraveledInOneSecond >= range then
+		return distanceTraveledInOneSecond / range
+	else
+		return false
+	end
+end
 
 local function calculateProjectileTravelFrames(weaponDefID)
 	local weaponDef = WeaponDefs[weaponDefID]
@@ -83,6 +111,8 @@ local function getProjectileSlownessCertainty(weaponDefID)
 	return false
 end
 
+
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local localUnitDefs = {}
 	localUnitDefs.maxDoom = unitDef.health
@@ -90,11 +120,16 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	local watchWeapon = false
 
-	local slownessCertainty = getProjectileSlownessCertainty(weaponDefID)
-	if getProjectileSlownessCertainty(weaponDefID) then
-		watchWeapon = true
+
+	local watchWeapon = false
+	if not ignoredWeaponTypes[weaponDef.type] then
+		local slownessCertainty = getProjectileSlownessCertainty(weaponDefID)
+		if projectileWeaponTypes[weaponDef.type] and projectileSpeedIsSlowerThanACycle(weaponDef.range, weaponDef.projectilespeed) then
+			watchWeapon = true
+			slowProjectileWeaponWatch[weaponDefID] = slownessCertainty
+			Spring.Echo("Watching weapon ".. weaponDef.name .. " (" .. weaponDefID .. ") because it's slow", "travel time: " .. projectileSpeedIsSlowerThanACycle(weaponDef.range, weaponDef.projectilespeed))
+		end
 	end
 
 	if watchWeapon then
