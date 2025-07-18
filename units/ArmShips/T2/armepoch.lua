@@ -157,12 +157,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 1,
 					vtol = 150,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			flak = {
@@ -193,6 +193,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 250,
 				},
@@ -200,9 +203,6 @@ return {
 					[1] = 1,
 					[2] = 0.33,
 					[3] = 0.7,
-				},
-				customparams = {
-					noattackrangearc = 1,
 				},
 			},
 			heavyplasma = {
@@ -230,12 +230,12 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 437,
 					vtol = 200,
-				},
-				customparams = {
-					noattackrangearc = 1,
 				},
 			},
 			mediumplasma = {
@@ -260,12 +260,12 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 570,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 270,
 					vtol = 65,
-				},
-				customparams = {
-					noattackrangearc = 1,
 				},
 			},
 		},

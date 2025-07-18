@@ -189,12 +189,11 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 150,
-				},
-        
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			heavylaser = {
