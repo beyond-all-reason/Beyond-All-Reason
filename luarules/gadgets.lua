@@ -1343,6 +1343,7 @@ end
 
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
+local CMD_INSERT = CMD.INSERT
 local allowCommandList = {[CMD_ANY] = {}}
 
 function gadgetHandler:ReorderAllowCommands(gadget, f)
@@ -1480,7 +1481,7 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	local cmdKey = cmdID or CMD_NIL
+	local cmdKey = cmdID == CMD_INSERT and cmdParams[2] or cmdID or CMD_NIL
 	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
 
 	tracy.ZoneBeginN("G:AllowCommand")
