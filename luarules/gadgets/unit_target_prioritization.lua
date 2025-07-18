@@ -29,9 +29,45 @@ local CERTAINTY_PROJECTILE_SLOWNESS_PENALTY_MULTIPLIER = 0.9 -- the multiplier f
 local gameFrame = 0
 
 local slowProjectileWeaponWatch = {}
+local precalculatedAccuracyCertainties = {}
+
+local dibsSteps = { --musn't be more than 30 steps. This is the order in which units are given "dibs" on target selection in order of reloadtime.
+	[1] = 0.5,
+	[2] = 1,
+	[3] = 2,
+	[4] = 4,
+	[5] = 8
+}
+
+local ACCURACY_PENALTY_CALC_RANGE = 500 -- for the purposes of certainty penalizations, 
+--it's good enough to assume accuracy calculations at maximum range so we don't have to calculate ranges and do simulation reconstructive math.
+local accuracies = { --the left number multiplied by ACCURACY_PENALTY_CALC_RANGE is the accuracy equivalent from a weaponDef's accuracy.
+ S = 1 * ACCURACY_PENALTY_CALC_RANGE, --zzz we are gonna have to do range checks, but we will simply compare the resultant accuracy * target range to this. Early exit when distance < 500
+ A = 3 * ACCURACY_PENALTY_CALC_RANGE,
+ B = 10 * ACCURACY_PENALTY_CALC_RANGE,
+ C = 20 * ACCURACY_PENALTY_CALC_RANGE,
+ D = 40 * ACCURACY_PENALTY_CALC_RANGE,
+ F = 100 * ACCURACY_PENALTY_CALC_RANGE,
+}
+
+local weaponTypeCertaintyPenalties = { -- the smaller the number, the less certain the weapon will deal its full damage.
+	AircraftBomb = 0.8,
+	BeamLaser = 1.0,
+	Cannon = 0.8,
+	Dgun = 0.8,
+	EmgCannon = 0.8,
+	Flame = 0.8,
+	LaserCannon = 0.8,
+	LightningCanon = 1.0,
+	Melee = 1.0,
+	MissileLauncher = 0.8,
+	Rifle = 1.0,
+	StarburstLauncher = 0.8,
+	StarburstMissiles = 0.8,
+	TorpedoLauncher = 0.8,
+}
 
 local projectileWeaponTypes = {
-	StarburstMissiles = true,
 	AircraftBomb = true,
 	Cannon = true,
 	Dgun = true,
@@ -40,7 +76,13 @@ local projectileWeaponTypes = {
 	LaserCannon = true,
 	MissileLauncher = true,
 	StarburstLauncher = true,
+	StarburstMissiles = true,
 	TorpedoLauncher = true,
+}
+
+local trackingAbleWeaponTypes = {
+	MissileLauncher = true,
+	StarburstMissiles = true,
 }
 
 local ignoredWeaponTypes = {
@@ -61,6 +103,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spDestroyUnit = Spring.DestroyUnit
 
 local mathSqrt = math.sqrt
+local mathMax = math.max
 
 --functions
 
@@ -103,12 +146,59 @@ local function calculateProjectileTravelFrames(weaponDefID)
 	return math.floor(totalFrames)
 end
 
+
+
 local function getProjectileSlownessCertainty(weaponDefID)
 	local travelFrames = calculateProjectileTravelFrames(weaponDefID)
 	if travelFrames > SlOW_PROJECTILE_FRAMES then
 		return CERTAINTY_PROJECTILE_SLOWNESS_PENALTY_MULTIPLIER ^ (travelFrames / SlOW_PROJECTILE_FRAMES)
 	end
 	return false
+end
+
+local function getAccuracyThreshold(rangeAccuracyProduct)
+	if rangeAccuracyProduct < accuracies.S then
+		return accuracies.S
+	elseif rangeAccuracyProduct < accuracies.A then
+		return accuracies.A
+	elseif rangeAccuracyProduct < accuracies.B then
+		return accuracies.B
+	elseif rangeAccuracyProduct < accuracies.C then
+		return accuracies.C
+	elseif rangeAccuracyProduct < accuracies.D then
+		return accuracies.D
+	else
+		return accuracies.F
+	end
+end
+
+local function calculateWeaponCertainty(weaponDefID)
+	local weaponDef = WeaponDefs[weaponDefID]
+
+	if weaponDef.customParams.certainty_override then
+		return weaponDef.customParams.certainty_override
+	end
+	
+	local certainty = 1
+
+	-- Apply base weapon type certainty penalties
+	if weaponTypeCertaintyPenalties[weaponDef.type] then
+		certainty = certainty * weaponTypeCertaintyPenalties[weaponDef.type]
+	end
+	
+	-- Handle tracking weapons (MissileLauncher and StarburstMissile) and accuracy
+	local accuracyCertainty = 1.0
+	if not trackingAbleWeaponTypes[weaponDef.type] then -- at such short ranges, it's worthwhile to perform a simple max range calculation.
+		
+		precalculatedAccuracyCertainties[weaponDefID] = getAccuracyThreshold(weaponDef.range * weaponDef.accuracy)
+	end
+	
+	return certainty
+end
+
+local function getWeaponDibsPriority(weaponDefID)
+	local weaponDef = WeaponDefs[weaponDefID]
+
 end
 
 
@@ -130,6 +220,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 			slowProjectileWeaponWatch[weaponDefID] = slownessCertainty
 			Spring.Echo("Watching weapon ".. weaponDef.name .. " (" .. weaponDefID .. ") because it's slow", "travel time: " .. projectileSpeedIsSlowerThanACycle(weaponDef.range, weaponDef.projectilespeed))
 		end
+		local weaponCertainty = calculateWeaponCertainty(weaponDefID)
 	end
 
 	if watchWeapon then
