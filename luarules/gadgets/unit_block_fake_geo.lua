@@ -38,9 +38,9 @@ local CMD_INSERT = CMD.INSERT
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD_INSERT then
 		return gadget:AllowCommand(unitID, unitDefID, teamID, cmdParams[2], {cmdParams[4], cmdParams[5], cmdParams[6]}, cmdParams[3])
+	else
+		return not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
 	end
-
-	return cmdID >= 0 or not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
