@@ -37,10 +37,10 @@ return {
 			[4] = "armbats",
 			[5] = "armepoch",
 			[6] = "armantiship",
-			[1] = "armbanth",
-			[2] = "armmar",
-			[3] = "armcroc",
-			[4] = "armlun",
+			[7] = "armbanth",
+			[8] = "armmar",
+			[9] = "armcroc",
+			[10] = "armlun",
 		},
 		customparams = {
 			model_author = "FireStorm",
@@ -67,7 +67,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			pieceexplosiongenerators = {
+ 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
