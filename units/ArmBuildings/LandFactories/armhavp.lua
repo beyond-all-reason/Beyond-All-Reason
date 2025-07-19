@@ -2,7 +2,7 @@ return {
 	armhavp = {
 		buildangle = 1024,
 		builder = true,
-		buildpic = "ARMVP.DDS",
+		buildpic = "ARMHAVP.DDS",
 		buildtime = 14400,
 		canmove = true,
 		collisionvolumescales = "120 34 92",

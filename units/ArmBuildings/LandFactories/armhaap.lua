@@ -2,7 +2,7 @@ return {
 	armhaap = {
 		activatewhenbuilt = true,
 		builder = true,
-		buildpic = "ARMAP.DDS",
+		buildpic = "ARMHAAP.DDS",
 		buildtime = 14500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

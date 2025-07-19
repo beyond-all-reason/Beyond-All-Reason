@@ -2,7 +2,7 @@ return {
 	corhalab = {
 		buildangle = 1024,
 		builder = true,
-		buildpic = "CORLAB.DDS",
+		buildpic = "CORHALAB.DDS",
 		buildtime = 13000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

@@ -2,7 +2,7 @@ return {
 	corhaap = {
 		activatewhenbuilt = true,
 		builder = true,
-		buildpic = "CORAP.DDS",
+		buildpic = "CORHAAP.DDS",
 		buildtime = 14360,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

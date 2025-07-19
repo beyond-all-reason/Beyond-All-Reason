@@ -2,7 +2,7 @@ return {
 	corhavp = {
 		buildangle = 2048,
 		builder = true,
-		buildpic = "CORVP.DDS",
+		buildpic = "CORHAVP.DDS",
 		buildtime = 14300,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",

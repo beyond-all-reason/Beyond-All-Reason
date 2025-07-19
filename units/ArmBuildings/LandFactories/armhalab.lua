@@ -2,7 +2,7 @@ return {
 	armhalab = {
 		buildangle = 1024,
 		builder = true,
-		buildpic = "ARMLAB.DDS",
+		buildpic = "ARMHALAB.DDS",
 		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
