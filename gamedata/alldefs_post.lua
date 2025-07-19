@@ -2588,25 +2588,25 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "coraca" then
 			uDef.buildoptions = {
-			[1] = "coradvsol",
-			[2] = "corexp",
-			[3] = "cormaw",
-			[4] = "corhllt",
-			[5] = "corpun",
-			[6] = "cormadsam",
-			[7] = "corerad",
-			[8] = "corjuno",
-			[9] = "corfus",
-			[10] = "corarad",
-			[11] = "corshroud",
-			[12] = "corsd",
-			[13] = "corap",
-			[14] = "corhaap",
-			[15] = "coraap",
-			[16] = "cormakr"
+				[1] = "coradvsol",
+				[2] = "corexp",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corap",
+				[14] = "corhaap",
+				[15] = "coraap",
+				[16] = "cormakr"
 		}
 
-			elseif name == "legca" then
+		elseif name == "legca" then
 			uDef.buildoptions = {
 				[1] = "legsolar",
 				[2] = "legwin",
@@ -2643,11 +2643,11 @@ function UnitDef_Post(name, uDef)
 		if name == "armasy" then
 			uDef.buildoptions = {
 			[1] = "armacsub",
-			[2] = "armserp",
-			[3] = "armsjam",
-			[4] = "armbats",
-			[5] = "armepoch",
-			[6] = "armantiship"
+			[2] = "armmship",
+			[3] = "armcrus",
+			[4] = "armsubk",
+			[5] = "armaas",
+			[6] = "armlship",
 		}
 
 		elseif name == "corasy" then
@@ -2719,20 +2719,22 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armacsub" then
 			uDef.buildoptions = {
-			[1] = "armuwfus",
-			[2] = "armuwmmm",
-			[3] = "armuwmme",
-			[4] = "armuwadves",
-			[5] = "armuwadvms",
-			[6] = "armshltxuw",
+			[1] = "armtide",
+			[2] = "armamex",
+			[3] = "armveil",
+			[4] = "armarad",
+			[5] = "armclaw",
 			[7] = "armasy",
-			[8] = "armsy",
-			[10] = "armfatf",
-			[11] = "armatl",
-			[12] = "armfflak",
-			[13] = "armkraken",
-			[14] = "armuwageo",
-			}
+			[8] = "armguard",
+			[9] = "armfhlt",
+			[10] = "armhasy",
+			[11] = "armfmkr",
+			[12] = "armason",
+			[13] = "armuwfus",
+			[17] = "armkraken",
+			[18] = "armfdrag",
+			[19] = "armsy"
+		}
 
 		elseif name == "coracsub" then
 			uDef.buildoptions = {
