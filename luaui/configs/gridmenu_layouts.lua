@@ -241,7 +241,7 @@ local labGrids = {
 	},
 
 	corhaap = {
-		"corhaac", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
@@ -1797,7 +1797,7 @@ local unitGrids = {
 		},
 	},
 
-	corhaac = {
+	corhaca = {
 		{
 			{"corexp","coradvsol","corfus","",},
 			{"cormakr","","","",},

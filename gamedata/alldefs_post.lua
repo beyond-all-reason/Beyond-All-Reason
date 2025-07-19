@@ -2472,16 +2472,15 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "coraap" then
-			uDef.buildoptions = {
+			uDef.buildoptions = {		
 			[1] = "coraca",
-			[2] = "corape",
-			[3] = "corhurc",
-			[4] = "cortitan",
-			[5] = "corvamp",
-			[6] = "corseah",
-			[7] = "corcrwh",
-			[8] = "corawac",
-		}
+			[2] = "corhunt",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+			[7] = "corhvytrans",
+			}
 	
 		elseif name == "armap" then
 			uDef.buildoptions = {
@@ -2541,9 +2540,8 @@ function UnitDef_Post(name, uDef)
 				[5] = "corestor",
 				[6] = "cormex",
 				[7] = "cormakr",
-				[8] = "",
 				[11] = "corlab",
-				[12] = "corhaap",
+				[12] = "coraap",
 				[13] = "corvp",
 				[14] = "corap",
 				[15] = "corhp",
@@ -2551,9 +2549,7 @@ function UnitDef_Post(name, uDef)
 				[17] = "coreyes",
 				[18] = "cordrag",
 				[19] = "corllt",
-				[20] = "",
 				[21] = "corrl",
-				[22] = "",
 				[23] = "corrad",
 				[24] = "cordl",
 				[25] = "corjamt",
@@ -2592,33 +2588,23 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "coraca" then
 			uDef.buildoptions = {
-				[1] = "corafus",
-				[2] = "corgant",
-				[3] = "corageo",
-				[4] = "corbhmth",
-				[5] = "cormoho",
-				[7] = "cormexp",
-				[8] = "cormmkr",
-				[9] = "coruwadves",
-				[10] = "coruwadvms",
-				[11] = "corfort",
-				[12] = "corasp",
-				[13] = "cortarg",
-				[14] = "corgate",
-				[15] = "cortoast",
-				[16] = "corvipe",
-				[17] = "cordoom",
-				[18] = "corflak",
-				[19] = "corscreamer",
-				[20] = "cortron",
-				[21] = "corfmd",
-				[22] = "corsilo",
-				[23] = "corint",
-				[24] = "corbuzz",
-				[25] = "corap",
-				[26] = "coraap",
-				[27] = "corhaap",
-			}
+			[1] = "coradvsol",
+			[2] = "corexp",
+			[3] = "cormaw",
+			[4] = "corhllt",
+			[5] = "corpun",
+			[6] = "cormadsam",
+			[7] = "corerad",
+			[8] = "corjuno",
+			[9] = "corfus",
+			[10] = "corarad",
+			[11] = "corshroud",
+			[12] = "corsd",
+			[13] = "corap",
+			[14] = "corhaap",
+			[15] = "coraap",
+			[16] = "cormakr"
+		}
 
 			elseif name == "legca" then
 			uDef.buildoptions = {
@@ -2948,7 +2934,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corplat" then
 			uDef.workertime = 400
 			uDef.buildoptions = {		
-			[1] = "corhaac",
+			[1] = "corhaca",
 			[2] = "corhunt",
 			[3] = "corcut",
 			[4] = "corsb",
