@@ -1,0 +1,144 @@
+
+#include "../recoil_common_includes.h"
+
+piece  ground, base, flare, turret, wake, fan, barrel;
+
+static-var  restore_delay; 
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
+
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <25>
+#define HOVER_ROCKBASE ground
+#define HOVER_WOBBLE_PERIOD 30
+#define HOVER_WOBBLE_AMPLITUDE [0.5]
+#define HOVER_WAKEPIECE wake
+#define HOVER_IDLE_SFX 1024 + 2
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#include "../bar_hovercraft_common.h"
+
+
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 200
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+Create()
+{
+	hide wake;
+	hide flare;
+	spin fan around y-axis speed <-300>;
+	hide flare;
+	restore_delay = 3000;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script HoverCraftMotion();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.0> speed <200.0>;
+	turn barrel to x-axis <0.0> speed <100.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <630.0>;
+	turn barrel to x-axis <0.0> - pitch speed <100.0>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn barrel around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		
+		
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
+		
+	return corpsetype;
+}

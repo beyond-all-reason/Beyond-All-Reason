@@ -1390,6 +1390,16 @@ local options = {
     },
 
     -- Hidden Tests
+
+    {
+        key = "turnrate",
+        name = "Proposed T1 Turret Turnates",
+        desc = "Splits T2 into two tiers moving experimental to T4.",
+        type = "bool",
+        section = "options_experimental",
+        def = false,
+        hidden = false,
+    },
 	
 	{
         key   	= "splittiers",
