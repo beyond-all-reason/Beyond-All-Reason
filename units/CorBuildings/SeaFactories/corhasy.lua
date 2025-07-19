@@ -32,7 +32,7 @@ return {
 		waterline = 1,
 		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
-			[1] = "coracsub",
+			[1] = "corhacs",
 			[2] = "corssub",
 			[3] = "corsjam",
 			[4] = "corbats",
@@ -43,7 +43,7 @@ return {
 			[9] = "corsala",
 			[10] = "corparrow",
 			[11] = "corsok",
-		}
+		},
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
