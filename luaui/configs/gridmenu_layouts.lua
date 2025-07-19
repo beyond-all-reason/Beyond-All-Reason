@@ -235,7 +235,7 @@ local labGrids = {
 	},
 
 	armhaap = {
-		"armhaac", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
 		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
@@ -1774,7 +1774,7 @@ local unitGrids = {
 
 	-- Split tier cons
 
-	armhaac = {
+	armhaca = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
 			{"armmakr","","","",},

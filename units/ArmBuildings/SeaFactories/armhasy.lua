@@ -29,6 +29,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 3000,
 		workertime = 600,
+		waterline = 1.5,
 		yardmap = "weeeeeeeeeew eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee weeeeeeeeeew",
 		buildoptions = {
 			[1] = "armhacs",

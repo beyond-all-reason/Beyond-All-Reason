@@ -3671,7 +3671,7 @@ local icontypes = {
 
 	-- T2 split
 
-	armhaac = {
+	armhaca = {
 		bitmap = "icons/shipengineer.png",
 		size = 2.31
 	},
