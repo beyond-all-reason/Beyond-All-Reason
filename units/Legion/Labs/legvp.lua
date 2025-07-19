@@ -3,11 +3,11 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 2048,
-		energycost = 1800,
-		metalcost = 720,
+		energycost = 1650,
+		metalcost = 570,
 		builder = true,
 		buildpic = "LEGVP.DDS",
-		buildtime = 7200,
+		buildtime = 5700,
 		canmove = true,
 		collisionvolumeoffsets = "0 19 0",
 		collisionvolumescales = "101 53 106",
@@ -31,7 +31,7 @@ return {
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,
 		terraformspeed = 500,
-		workertime = 100,
+		workertime = 150,
 		yardmap = [[h
     oo oo oo oo oo oo
     oo oo oo oo oo oo

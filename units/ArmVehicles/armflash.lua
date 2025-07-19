@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 350,
-		speed = 99,
+		speed = 101,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",
