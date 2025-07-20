@@ -110,6 +110,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 30,
+				firetolerance = 4500,
 				impactonly = 1,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
