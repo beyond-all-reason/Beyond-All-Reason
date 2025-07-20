@@ -1911,7 +1911,7 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armalab" then
 			uDef.buildoptions = {
-			[1] = "armhack",
+			[1] = "armack",
 			[2] = "armfido",
 			[3] = "armaak",
 			[4] = "armzeus",
@@ -1925,13 +1925,13 @@ function UnitDef_Post(name, uDef)
 		elseif name == "legalab" then
 			uDef.buildoptions = {
 				[1] = "legack",
-				[2] = "leginc",
-				[3] = "legsrail",
-				[4] = "leghrk",
-				[5] = "legaradk",
-				[6] = "legaspy",
-				[7] = "legajamk",
-				[8] = "legdecom",
+				[2] = "legadvaabot",
+				[3] = "legstr",
+				[4] = "legshot",
+				[5] = "leginfestor",
+				[6] = "legamph",
+				[7] = "legsnapper",
+				[8] = "legbart",
 			}
 
 		elseif name == "armvp" then
@@ -2003,6 +2003,8 @@ function UnitDef_Post(name, uDef)
 				[7] = "cormabm",
 				[8] = "legavjam",
 				[9] = "legavrad",
+				[10] = "legkeres",
+				[11] = "legerailtank",
 			}
 		-- Con Reworks
 		-- Late T1 and Early T2 buildings are given to enhanced constructors
@@ -2460,7 +2462,7 @@ function UnitDef_Post(name, uDef)
 
 		if name == "armaap" then
 			uDef.buildoptions = {
-			[1] = "armhaca",
+			[1] = "armaca",
 			[2] = "armseap",			
 			[3] = "armsb",
 			[4] = "armsfig",

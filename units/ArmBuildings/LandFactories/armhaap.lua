@@ -33,7 +33,7 @@ return {
 		workertime = 600,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
-			[1] = "armaca",
+			[1] = "armhaca",
 			[2] = "armpnix",
 			[3] = "armlance",
 			[4] = "armhawk",
