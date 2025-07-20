@@ -398,49 +398,46 @@ end
 -- update queue number
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	if spIsUnitSelected(factID) then
-		refreshCommandsNextFrame = true
+		doUpdate = true
 	end
 end
 
+-- Debouncing logic to handle rapid selection events gracefully.
 local sec = 0
-local updateSelection = true
-local refreshCommandsNextFrame = false
+local selectionUpdateCountdown = 0
 local prevSelBuilderDefs = {}
-function widget:Update(dt)
-	if refreshCommandsNextFrame then
-		doUpdate = true
-		refreshCommandsNextFrame = false
-	end
 
-	if updateSelection then
-		updateSelection = false
-		selectedBuilders = {}
-		selectedBuilderCount = 0
-		local prevSelectedFactoryCount = selectedFactoryCount
-		selectedFactoryCount = 0
-		local selBuilderDefs = {}
-		SelectedUnitsCount = spGetSelectedUnitsCount()
-		if SelectedUnitsCount > 0 then
-			local sel = Spring.GetSelectedUnits()
-			for _, unitID in pairs(sel) do
-				local uDefID = spGetUnitDefID(unitID)
-				if units.isFactory[uDefID] then
-					selectedFactoryCount = selectedFactoryCount + 1
-					selBuilderDefs[uDefID] = true
-				end
-				if units.isBuilder[uDefID] then
-					selectedBuilders[unitID] = true
-					selectedBuilderCount = selectedBuilderCount + 1
-					selBuilderDefs[uDefID] = true
+function widget:Update(dt)
+	-- This block handles the debounced selection update.
+	if selectionUpdateCountdown > 0 then
+		selectionUpdateCountdown = selectionUpdateCountdown - 1
+		if selectionUpdateCountdown == 0 then
+			-- The countdown finished! Time to perform the update.
+			selectedBuilders = {}
+			selectedBuilderCount = 0
+			local prevSelectedFactoryCount = selectedFactoryCount
+			selectedFactoryCount = 0
+			local selBuilderDefs = {}
+			SelectedUnitsCount = spGetSelectedUnitsCount()
+			if SelectedUnitsCount > 0 then
+				local sel = Spring.GetSelectedUnits()
+				for _, unitID in pairs(sel) do
+					local uDefID = spGetUnitDefID(unitID)
+					if units.isFactory[uDefID] then
+						selectedFactoryCount = selectedFactoryCount + 1
+						selBuilderDefs[uDefID] = true
+					end
+					if units.isBuilder[uDefID] then
+						selectedBuilders[unitID] = true
+						selectedBuilderCount = selectedBuilderCount + 1
+						selBuilderDefs[uDefID] = true
+					end
 				end
 			end
 
 			if selectedFactoryCount ~= prevSelectedFactoryCount then
 				doUpdate = true
-			end
-
-			-- check if builder type selection actually differs from previous selection
-			if not doUpdate then
+			else
 				local selectionHasChanged = false
 				if #selBuilderDefs ~= #prevSelBuilderDefs then
 					selectionHasChanged = true
@@ -462,11 +459,11 @@ function widget:Update(dt)
 				end
 
 				if selectionHasChanged then
-					refreshCommandsNextFrame = true
+					doUpdate = true
 				end
 			end
+			prevSelBuilderDefs = selBuilderDefs
 		end
-		prevSelBuilderDefs = selBuilderDefs
 	end
 
 	local prevBuildmenuShows = buildmenuShows
@@ -1082,7 +1079,7 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
-		refreshCommandsNextFrame = true
+		doUpdate = true
 	end
 	if cmdID == CMD_STOP_PRODUCTION then
 		if WG.Quotas then
@@ -1094,7 +1091,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	updateSelection = true
+	-- Every time the selection changes, reset the countdown.
+	-- A value of 3 gives a 3-frame window for the selection to "settle".
+	-- This robustly handles both single clicks and rapid drag-selections.
+	selectionUpdateCountdown = 3
 end
 
 local function unbindBuildUnits()
@@ -1225,7 +1225,7 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						end
-						refreshCommandsNextFrame = true
+						doUpdate = true
 						return true
 					end
 				end
@@ -1358,7 +1358,7 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
+	widget:SelectionChanged()
 
 	WG['buildmenu'] = {}
 	WG['buildmenu'].getGroups = function()
