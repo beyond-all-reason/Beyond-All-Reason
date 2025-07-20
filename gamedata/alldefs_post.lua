@@ -1900,13 +1900,13 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coralab" then
 			uDef.buildoptions = {
 				[1] = "corack",
-				[2] = "corsumo",
-				[3] = "cortermite",
-				[4] = "corhrk",
-				[5] = "cordecom",
-				[6] = "corvoyr",
-				[7] = "corspy",
-				[8] = "corspec"
+				[2] = "coraak",
+				[3] = "cormort",
+				[4] = "corcan",
+				[5] = "corpyro",
+				[6] = "corsktl",
+				[7] = "coramph",
+				[8] = "cormando"
 			}
 
 		elseif name == "armalab" then
