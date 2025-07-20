@@ -319,7 +319,7 @@ local function calculateWeaponDoomages(weaponDefID)
 end
 
 local function isWeaponAvailableToFire(unitID, weaponNum)
-	local reloadState = spGetUnitWeaponState(unitID, weaponNum)
+	local reloadState = select(3, spGetUnitWeaponState(unitID, weaponNum))
 	if not reloadState then
 		return false  -- Invalid weapon or unit
 	end
@@ -417,7 +417,7 @@ local function applyUnitWeaponDoomages()
 			local unitDef = UnitDefs[unitDefID]
 			if unitDef.weapons then
 				for weaponNum = 1, #unitDef.weapons do
-					local targetType, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
+					local targetType, isUserTarget, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
 					if targetID and targetType == WEAPON_TARGET_TYPE_UNIT and isWeaponAvailableToFire(unitID, weaponNum) then
 						local weaponDefID = unitDef.weapons[weaponNum].weaponDef
 						if weaponDefID then
