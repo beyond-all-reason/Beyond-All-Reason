@@ -217,7 +217,7 @@ local labGrids = {
 	-- Split Tier Labs
 
 	corhalab = {
-		"corhack", "corsktl", "corshiva", "corsumo",
+		"corhack", "corsktl", "corsumo", "corshiva",
 		"corcat", "corkarg", "corvoyr", "corspec",
 		"corkorg", "cordecom", "cordemon", "", 
 	},

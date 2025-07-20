@@ -2402,18 +2402,8 @@ function UnitDef_Post(name, uDef)
 		or name == "coraap" or name == "corasy" or name == "coralab" or name == "coravp"
 		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
 		then 
-			uDef.metalcost = uDef.metalcost * 2
-			uDef.energycost = uDef.energycost * 2
-			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
-			uDef.workertime = uDef.workertime * 6
-
-		-- T3
-		elseif name == "corgant" or name == "corgantuw" 
-		or name == "leggant" or name == "leggantuw" 
-		or name == "armshltx" or name == "armshltxuw" then
-			uDef.workertime = uDef.workertime * 6
-
-
+			uDef.metalcost = uDef.metalcost - 1300
+			uDef.workertime = uDef.workertime * 2
 		end
 
 		------------
@@ -2427,13 +2417,6 @@ function UnitDef_Post(name, uDef)
 		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
 		then
 			uDef.customparams.techlevel = 1
-		end
-
-		-----------------
-		-- T2 BP increase
-
-		if uDef.customparams.techlevel == 2 then 
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.0125) * 100
 		end
 
 		------------------------------
@@ -2819,51 +2802,51 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corch" then
 			uDef.buildoptions = {
-			[1] = "corsolar",
-			[2] = "coradvsol",
-			[3] = "corwin",
-			[4] = "corgeo",
-			[5] = "cormstor",
-			[6] = "corestor",
-			[7] = "cormex",
-			[8] = "",
-			[9] = "cormakr",
-			[10] = "",
-			[11] = "",
-			[12] = "",
-			[13] = "corhp",
-			[14] = "cornanotc",
-			[15] = "cornanotcplat",
-			[16] = "coreyes",
-			[17] = "corrad",
-			[18] = "cordrag",
-			[19] = "cormaw",
-			[20] = "corllt",
-			[21] = "corhllt",
-			[22] = "corhlt",
-			[23] = "corpun",
-			[24] = "corrl",
-			[25] = "cormadsam",
-			[26] = "corerad",
-			[27] = "cordl",
-			[28] = "corjamt",
-			[29] = "corjuno",
-			[30] = "corfhp",
-			[31] = "",
-			[32] = "coramsub",
-			[33] = "corplat",
-			[34] = "cortide",
-			[36] = "corfmkr",
-			[37] = "coruwms",
-			[38] = "coruwes",
-			[39] = "corfdrag",
-			[40] = "corfrad",
-			[41] = "corfhlt",
-			[42] = "corfrt",
-			[43] = "cortl",
-			[44] = "corhavp",
-			[45] = "corhasy",
-			[46] = "coruwgeo",
+				[1] = "corsolar",
+				[2] = "coradvsol",
+				[3] = "corwin",
+				[4] = "corgeo",
+				[5] = "cormstor",
+				[6] = "corestor",
+				[7] = "cormex",
+				[8] = "",
+				[9] = "cormakr",
+				[10] = "",
+				[11] = "",
+				[12] = "",
+				[13] = "corhp",
+				[14] = "cornanotc",
+				[15] = "cornanotcplat",
+				[16] = "coreyes",
+				[17] = "corrad",
+				[18] = "cordrag",
+				[19] = "cormaw",
+				[20] = "corllt",
+				[21] = "corhllt",
+				[22] = "corhlt",
+				[23] = "corpun",
+				[24] = "corrl",
+				[25] = "cormadsam",
+				[26] = "corerad",
+				[27] = "cordl",
+				[28] = "corjamt",
+				[29] = "corjuno",
+				[30] = "corfhp",
+				[31] = "",
+				[32] = "coramsub",
+				[33] = "corplat",
+				[34] = "cortide",
+				[36] = "corfmkr",
+				[37] = "coruwms",
+				[38] = "coruwes",
+				[39] = "corfdrag",
+				[40] = "corfrad",
+				[41] = "corfhlt",
+				[42] = "corfrt",
+				[43] = "cortl",
+				[44] = "corhavp",
+				[45] = "corhasy",
+				[46] = "coruwgeo",
 			}
 
 		elseif name == "leghc" then 
