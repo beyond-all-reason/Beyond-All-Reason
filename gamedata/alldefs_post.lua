@@ -1904,9 +1904,11 @@ function UnitDef_Post(name, uDef)
 				[3] = "cormort",
 				[4] = "corcan",
 				[5] = "corpyro",
-				[6] = "corsktl",
+				[6] = "corspy",
 				[7] = "coramph",
-				[8] = "cormando"
+				[8] = "cormando",
+				[9] = "cortermite",
+				[10] = "corhrk",
 			}
 
 		elseif name == "armalab" then
