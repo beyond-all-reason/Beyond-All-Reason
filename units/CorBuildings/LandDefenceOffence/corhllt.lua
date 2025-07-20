@@ -131,14 +131,14 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 112.5,
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 			hllt_top = {
 				areaofeffect = 12,
@@ -170,14 +170,14 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 112.5,
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

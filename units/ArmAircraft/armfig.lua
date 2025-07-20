@@ -36,7 +36,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
-			fighter = 1,
+			attacksafetydistance = 300,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
