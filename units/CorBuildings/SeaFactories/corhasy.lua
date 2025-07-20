@@ -43,6 +43,7 @@ return {
 			[9] = "corsala",
 			[10] = "corparrow",
 			[11] = "corsok",
+			[12] = "corcarry"
 		},
 		customparams = {
 			model_author = "Mr Bob",
