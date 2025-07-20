@@ -960,7 +960,7 @@ local options = {
 
     {
         key     = "map_lavatidemode",
-        name	= "Lava Tide Mode Position",
+        name	= "Lava Tide Mode",
         desc	= "Toggle whether lava starts at high or low tide, or uses the advanced settings",
         hidden	= false,
         type	= "list",
