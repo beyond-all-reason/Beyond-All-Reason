@@ -70,6 +70,9 @@ local math_isInRect = math.isInRect
 local buildmenuShows = false
 local refreshBuildmenu = true
 
+local forceRefreshNextFrame = false
+local refreshRetryCounter = 0 -- Failsafe counter for the retry mechanism
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -269,7 +272,6 @@ local function RefreshCommands()
 			end
 		end
 	else
-
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
@@ -296,6 +298,12 @@ local function RefreshCommands()
 				end
 			end
 		end
+	end
+
+	-- Failsafe check: if we have a builder but got no commands, try again.
+	if (not preGamestartPlayer) and cmdsCount == 0 and selectedBuilderCount > 0 then
+		forceRefreshNextFrame = true
+		refreshRetryCounter = 10 -- Set a retry limit of 10 frames.
 	end
 end
 
@@ -402,17 +410,24 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	end
 end
 
--- Debouncing logic to handle rapid selection events gracefully.
 local sec = 0
 local selectionUpdateCountdown = 0
 local prevSelBuilderDefs = {}
 
 function widget:Update(dt)
-	-- This block handles the debounced selection update.
+	-- Check failsafe retry flag
+	if forceRefreshNextFrame and refreshRetryCounter > 0 then
+		doUpdate = true
+		refreshRetryCounter = refreshRetryCounter - 1
+		if refreshRetryCounter == 0 then
+			forceRefreshNextFrame = false -- Stop retrying
+		end
+	end
+
+	-- Debounced selection update logic
 	if selectionUpdateCountdown > 0 then
 		selectionUpdateCountdown = selectionUpdateCountdown - 1
 		if selectionUpdateCountdown == 0 then
-			-- The countdown finished! Time to perform the update.
 			selectedBuilders = {}
 			selectedBuilderCount = 0
 			local prevSelectedFactoryCount = selectedFactoryCount
@@ -1092,8 +1107,7 @@ end
 
 function widget:SelectionChanged(sel)
 	-- Every time the selection changes, reset the countdown.
-	-- A value of 3 gives a 3-frame window for the selection to "settle".
-	-- This robustly handles both single clicks and rapid drag-selections.
+	-- This debounces rapid events (like from drag-selecting).
 	selectionUpdateCountdown = 3
 end
 
