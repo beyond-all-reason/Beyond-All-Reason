@@ -3711,6 +3711,11 @@ local icontypes = {
 		size = 2.31
 	},
 
+	leghaca = {
+		bitmap = "icons/air_t2_worker.png",
+		size = 2.31
+	},
+
 	leghack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 2.31
@@ -3763,8 +3768,12 @@ local icontypes = {
 		size = 2.6
 	},
 
+	leghaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
 
-	legalab = {
+	leghalab = {
 		bitmap = "icons/factory_bot_t2.png",
 		size = 2.6
 	},

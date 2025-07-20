@@ -1995,17 +1995,17 @@ function UnitDef_Post(name, uDef)
 		elseif name == "legavp" then
 			uDef.buildoptions = {
 				[1] = "legacv",
-				[2] = "legaheattank",
-				[3] = "legmed",
-				[4] = "legavroc",
-				[5] = "leginf",
-				[6] = "legvflak",
-				[7] = "cormabm",
-				[8] = "legavjam",
-				[9] = "legavrad",
-				[10] = "legkeres",
-				[11] = "legerailtank",
+				[2] = "legotter",
+				[3] = "legamphtank",
+				[4] = "legmlv",
+				[5] = "legmrv",
+				[6] = "legfloat",
+				[7] = "legaskirmtank",
+				[8] = "legamcluster",
+				[9] = "legvcarry",
 			}
+
+
 		-- Con Reworks
 		-- Late T1 and Early T2 buildings are given to enhanced constructors
 		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
@@ -2066,29 +2066,27 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "legck" then
 			uDef.buildoptions = {
-			[1] = "legsolar",
-			[2] = "legwin",
-			[3] = "leggeo",
-			[4] = "legmstor",
-			[5] = "legestor",
-			[6] = "legmex",
-			[7] = "legeconv",
-			[8] = "",
-			[9] = "leglab",
-			[10] = "leghalab",
-			[11] = "legvp",
-			[12] = "legap",
-			[13] = "leghp",
-			[14] = "legnanotc",
-			[15] = "legeyes",
-			[16] = "legrad",
-			[17] = "legdrag",
-			[18] = "leglht",
-			[19] = "nil",
-			[20] = "legrl",
-			[21] = "legctl",
-			[22] = "legjam",
-			[23] = "corsy",
+				[1]  = "legsolar",
+				[2]  = "legwin",
+				[3]  = "leggeo",
+				[4]  = "legmstor",
+				[5]  = "legestor",
+				[6]  = "legmex",
+				[7]  = "legeconv",
+				[9]  = "leglab",
+				[10] = "legalab",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
 			}
 
 		elseif name == "armack" then
@@ -2135,33 +2133,24 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "legack" then
 			uDef.buildoptions = {
-				[1] = "legafus",
-				[2] = "leggant",
-				[3] = "legageo",
-				[4] = "legrampart",
-				[5] = "legmoho",
-				[6] = "nil",
-				[7] = "legadveconv",
-				[8] = "legadvestore",
-				[9] = "legamstor",
-				[10] = "legforti",
-				[11] = "corasp",
-				[12] = "legtarg",
-				[13] = "legdeflector",
-				[14] = "legacluster",
-				[15] = "legapopupdef",
-				[16] = "legbastion",
-				[17] = "legflak",
-				[18] = "leglraa",
-				[19] = "legperdition",
-				[20] = "legabm",
-				[21] = "legsilo",
-				[22] = "leglrpc",
-				[23] = "legstarfall",
-				[24] = "leglab",
-				[25] = "legalab",
-				[26] = "leghalab",
-			}
+			[1] = "legadvsol",
+			[2] = "legmext15",
+			[3] = "legdtr",
+			[4] = "legmg",
+			[5] = "legrhapsis",
+			[6] = "leglupara",
+			[7] = "legjuno",
+			[8] = "leghive",
+			[9] = "legfus",
+			[10] = "legarad",
+			[11] = "legajam",
+			[12] = "legsd",
+			[13] = "leglab",
+			[14] = "legalab",
+			[15] = "leghalab",
+			[16] = "legcluster",
+			[17] = "legeconv"
+		}
 
 		elseif name == "armcv" then
 			uDef.buildoptions = {
@@ -2223,22 +2212,20 @@ function UnitDef_Post(name, uDef)
 				[5] = "legestor",
 				[6] = "legmex",
 				[7] = "legeconv",
-				[8] = "",
-				[9] = "leglab",
-				[10] = "leghavp",
-				[11] = "legvp",
-				[12] = "legap",
-				[13] = "leghp",
-				[14] = "legnanotc",
-				[15] = "legeyes",
-				[16] = "legrad",
-				[17] = "legdrag",
-				[18] = "leglht",
-				[19] = "nil",
-				[20] = "legrl",
-				[21] = "legctl",
-				[22] = "legjam",
-				[23] = "corsy",
+				[8] = "leglab",
+				[9] = "legavp",
+				[10] = "legvp",
+				[11] = "legap",
+				[12] = "leghp",
+				[13] = "legnanotc",
+				[14] = "legeyes",
+				[15] = "legrad",
+				[16] = "legdrag",
+				[17] = "leglht",
+				[18] = "legrl",
+				[19] = "legctl",
+				[20] = "legjam",
+				[21] = "corsy",
 			}
 		
 		elseif name == "armacv" then
@@ -2285,31 +2272,23 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "legacv" then
 			uDef.buildoptions = {
-				[1] = "legafus",
-				[2] = "leggant",
-				[3] = "legageo",
-				[4] = "legrampart",
-				[5] = "legmoho",
-				[6] = "legadveconv",
-				[7] = "legadvestore",
-				[8] = "legamstor",
-				[9] = "legforti",
-				[10] = "corasp",
-				[11] = "legtarg",
-				[12] = "legdeflector",
-				[13] = "legacluster",
-				[14] = "legapopupdef",
-				[15] = "legbastion",
-				[16] = "legflak",
-				[17] = "leglraa",
-				[18] = "legperdition",
-				[19] = "legabm",
-				[20] = "legsilo",
-				[21] = "leglrpc",
-				[22] = "legstarfall",
-				[23] = "legvp",
-				[24] = "legavp",
-				[25] = "leghavp",
+				[1] = "legadvsol",
+				[2] = "legmext15",
+				[3] = "legdtr",
+				[4] = "legmg",
+				[5] = "legrhapsis",
+				[6] = "leglupara",
+				[7] = "legjuno",
+				[8] = "leghive",
+				[9] = "legfus",
+				[10] = "legarad",
+				[11] = "legajam",
+				[12] = "legsd",
+				[13] = "leghavp",
+				[14] = "legavp",
+				[15] = "legvp",
+				[16] = "legcluster",
+				[17] = "legeconv"
 			}
 
 
@@ -2608,21 +2587,21 @@ function UnitDef_Post(name, uDef)
 				[7] = "legeconv",
 				[8] = "legaap",
 				[9] = "leglab",
-				[10] = "",
-				[11] = "legvp",
-				[12] = "legap",
-				[13] = "leghp",
-				[14] = "legnanotc",
-				[15] = "legeyes",
-				[16] = "legrad",
-				[17] = "legdrag",
-				[18] = "leglht",
-				[19] = "",
-				[20] = "legrl",
-				[21] = "legctl",
-				[22] = "legjam",
-				[23] = "corsy",
+				[10] = "legvp",
+				[11] = "legap",
+				[12] = "leghp",
+				[13] = "legnanotc",
+				[14] = "legeyes",
+				[15] = "legrad",
+				[16] = "legdrag",
+				[17] = "leglht",
+				[18] = "legrl",
+				[19] = "legctl",
+				[20] = "legjam",
+				[21] = "corsy",
 			}
+
+		
 		end
 
 		
@@ -2744,6 +2723,36 @@ function UnitDef_Post(name, uDef)
 		
 
 		end
+
+		--------------------------
+		-- Legion Air Placeholders
+
+		if name == "legaca" then
+			uDef.buildoptions = {
+			[1] = "legadvsol",
+			[2] = "legmext15",
+			[3] = "legdtr",
+			[4] = "legmg",
+			[5] = "legrhapsis",
+			[6] = "leglupara",
+			[7] = "legjuno",
+			[8] = "leghive",
+			[9] = "legfus",
+			[10] = "legarad",
+			[11] = "legajam",
+			[12] = "legsd",
+			[13] = "legap",
+			[14] = "legaap",
+			[15] = "leghaap",
+			[16] = "legcluster",
+			[17] = "legeconv"
+		}
+
+		elseif name == "legaap" then
+
+
+
+		end		
 
 		-----------------------------------------
 		-- Hovers, Sea Planes and Amphibious Labs

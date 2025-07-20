@@ -1,5 +1,6 @@
 return {
-	leghalab maxacc = 0,
+	leghalab = {
+		maxacc = 0,
 		maxdec = 0,
 		energycost = 62000,
 		metalcost = 8400,
