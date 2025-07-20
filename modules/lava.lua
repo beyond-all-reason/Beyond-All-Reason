@@ -157,7 +157,7 @@ local function applyConfig(lavaConfig)
 end
 
 -- Generates a lava tide rhythm based on the spring modoptions.
-local function validateTideRhym(modoptionDataRaw)
+local function validateTideRhythm(modoptionDataRaw)
 	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
 		return false
 	end
@@ -197,7 +197,7 @@ local function lavaModGen(modOptions)
 	if modOptions.map_lavatidemode == "lavaadvanced" then 
 		local modoptionAdvancedRaw = modOptions.map_advancedrhythm
 		--Spring.Echo("Lava Advanced Raw Tide Rhythm Data: ", modoptionAdvancedRaw)
-		local advancedRhythm = validateTideRhym(modoptionAdvancedRaw)
+		local advancedRhythm = validateTideRhythm(modoptionAdvancedRaw)
 		--Spring.Echo("Lava Advanced Processed Tide Rhythm Data: ", advancedRhythm)
 		if advancedRhythm then 
 			tideRhythm = advancedRhythm
