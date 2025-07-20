@@ -168,20 +168,26 @@ local function validateTideRhym(modoptionDataRaw)
 		local partRhythm = {}
 		for value in string.gmatch(tide, "[^,]+") do
 			if not tonumber(value) then
-				Spring.Echo("Lava Modoption Tide Rhythm Data is not valid, invalid value: ", value)
+				Spring.Echo("Lava Advanced Tide Rhythm data is not valid, non-number value: ", value)
 				return false
 			else 
 			table.insert(partRhythm, tonumber(value))
 			end
 		end
 		if #partRhythm ~= 3 then
-			Spring.Echo("Lava Modoption Tide Rhythm Data is not valid, invalid tide: ", partRhythm)
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, invalid tide definition: ", partRhythm)
+			return false
+		elseif not ((partRhythm[1] >= 0) and (partRhythm[2] > 0) and (partRhythm[3] > 0)) then
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, negative or zero values: ", partRhythm)
+			return false
+		elseif (partRhythm[1] % 1 ~= 0) or (partRhythm[3]*30 % 1 ~= 0) then
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, Height and Dwell frame must be a whole number: ", partRhythm)
 			return false
 		end
 		table.insert(advancedRhythm, partRhythm)
 	end
 	if #advancedRhythm == 0 then
-		Spring.Echo("Lava Modoption Tide Rhythm Data is not valid, empty tide table.")
+		Spring.Echo("Lava Advanced Tide Rhythm data is not valid, empty tide table.")
 		return false
 	end
 	return advancedRhythm
@@ -190,15 +196,15 @@ end
 local function lavaModGen(modOptions)
 	if modOptions.map_lavatidemode == "lavaadvanced" then 
 		local modoptionAdvancedRaw = modOptions.map_advancedrhythm
-		Spring.Echo("Lava Modoption Raw Tide Rhythm Data: ", modoptionAdvancedRaw)
+		--Spring.Echo("Lava Advanced Raw Tide Rhythm Data: ", modoptionAdvancedRaw)
 		local advancedRhythm = validateTideRhym(modoptionAdvancedRaw)
-		Spring.Echo("Lava Modoption Processed Tide Rhythm Data: ", advancedRhythm)
+		--Spring.Echo("Lava Advanced Processed Tide Rhythm Data: ", advancedRhythm)
 		if advancedRhythm then 
 			tideRhythm = advancedRhythm
 			level = tideRhythm[1][1] + 1
 			grow = tideRhythm[1][2]
 		else 
-			Spring.Echo("Lava Modoption Tide Rhythm Data is not valid, using default values")
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
 			level = 4
 			tideRhythm = { { 4, 0.05, 5*6000 } }
 		end
