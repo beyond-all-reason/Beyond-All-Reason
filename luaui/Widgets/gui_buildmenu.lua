@@ -398,14 +398,20 @@ end
 -- update queue number
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	if spIsUnitSelected(factID) then
-		doUpdateClock = os_clock() + 0.001
+		refreshCommandsNextFrame = true
 	end
 end
 
 local sec = 0
 local updateSelection = true
+local refreshCommandsNextFrame = false
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	if refreshCommandsNextFrame then
+		doUpdate = true
+		refreshCommandsNextFrame = false
+	end
+
 	if updateSelection then
 		updateSelection = false
 		selectedBuilders = {}
@@ -435,23 +441,28 @@ function widget:Update(dt)
 
 			-- check if builder type selection actually differs from previous selection
 			if not doUpdate then
+				local selectionHasChanged = false
 				if #selBuilderDefs ~= #prevSelBuilderDefs then
-					doUpdateClock = os_clock() + 0.001
+					selectionHasChanged = true
 				else
 					for uDefID, _ in pairs(prevSelBuilderDefs) do
 						if not selBuilderDefs[uDefID] then
-							doUpdateClock = os_clock() + 0.001
+							selectionHasChanged = true
 							break
 						end
 					end
-					if not doUpdate then
+					if not selectionHasChanged then
 						for uDefID, _ in pairs(selBuilderDefs) do
 							if not prevSelBuilderDefs[uDefID] then
-								doUpdateClock = os_clock() + 0.001
+								selectionHasChanged = true
 								break
 							end
 						end
 					end
+				end
+
+				if selectionHasChanged then
+					refreshCommandsNextFrame = true
 				end
 			end
 		end
@@ -799,11 +810,7 @@ function widget:DrawScreen()
 	end
 
 	local x, y, b, b2, b3 = spGetMouseState()
-	local now = os_clock()
-	if doUpdate or (doUpdateClock and now >= doUpdateClock) or refreshBuildmenu then
-		if doUpdateClock and now >= doUpdateClock then
-			doUpdateClock = nil
-		end
+	if doUpdate or refreshBuildmenu then
 		if not useRenderToTexture then
 			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 		end
@@ -1075,9 +1082,7 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
-		if doUpdateClock == nil then
-			doUpdateClock = os_clock() + 0.001
-		end
+		refreshCommandsNextFrame = true
 	end
 	if cmdID == CMD_STOP_PRODUCTION then
 		if WG.Quotas then
@@ -1220,7 +1225,7 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						end
-						doUpdateClock = os_clock() + 0.001
+						refreshCommandsNextFrame = true
 						return true
 					end
 				end
