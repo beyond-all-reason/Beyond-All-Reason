@@ -413,27 +413,19 @@ end
 local function applyUnitWeaponDoomages()
 	for unitID, unitData in pairs(unitWatch) do
 		local unitDefID = unitDefCache[unitID]
-		if not unitDefID then
-			return
-		end
-		
-		local unitDef = UnitDefs[unitDefID]
-		if not unitDef.weapons then
-			return
-		end
-		
-		for weaponNum = 1, #unitDef.weapons do
-			local targetType, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
-			if not targetID or targetType ~= WEAPON_TARGET_TYPE_UNIT or not isWeaponAvailableToFire(unitID, weaponNum) then
-				return
+		if unitDefID then
+			local unitDef = UnitDefs[unitDefID]
+			if unitDef.weapons then
+				for weaponNum = 1, #unitDef.weapons do
+					local targetType, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
+					if targetID and targetType == WEAPON_TARGET_TYPE_UNIT and isWeaponAvailableToFire(unitID, weaponNum) then
+						local weaponDefID = unitDef.weapons[weaponNum].weaponDef
+						if weaponDefID then
+							applyWeaponDoomageToTarget(weaponDefID, targetID)
+						end
+					end
+				end
 			end
-			
-			local weaponDefID = unitDef.weapons[weaponNum].weaponDef
-			if not weaponDefID then
-				return
-			end
-			
-			applyWeaponDoomageToTarget(weaponDefID, targetID)
 		end
 	end
 end
@@ -519,7 +511,7 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	if not defPriority then
 		return
 	end
-	Spring.Echo("checking...", targetID, doomedUnits[targetID])
+	Spring.Echo(gameFrame, "checking...", targetID, doomedUnits[targetID])
 	if doomedUnits[targetID] then
 		Spring.Echo("targetID", targetID, "defPriority", defPriority, "priorityMultipliers.dropNow", priorityMultipliers.dropNow)
 		return true, defPriority * priorityMultipliers.dropNow
