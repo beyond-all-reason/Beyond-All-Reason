@@ -70,6 +70,13 @@ local math_isInRect = math.isInRect
 local buildmenuShows = false
 local refreshBuildmenu = true
 
+--[[ MODIFICATION START ]]
+-- New state variables for the robust update system
+local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+local forceRefreshNextFrame = false   -- The failsafe retry flag
+local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
+--[[ MODIFICATION END ]]
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -297,6 +304,18 @@ local function RefreshCommands()
 			end
 		end
 	end
+	
+	--[[ MODIFICATION START ]]
+	-- Failsafe check with reset logic
+	if (not preGamestartPlayer) and cmdsCount == 0 and selectedBuilderCount > 0 then
+		forceRefreshNextFrame = true
+		refreshRetryCounter = 10 -- Set a retry limit
+	else
+		-- On success, explicitly cancel any ongoing retry
+		forceRefreshNextFrame = false
+		refreshRetryCounter = 0
+	end
+	--[[ MODIFICATION END ]]
 end
 
 local function clear()
@@ -403,60 +422,75 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
-local updateSelection = true
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
-	if updateSelection then
-		updateSelection = false
-		selectedBuilders = {}
-		selectedBuilderCount = 0
-		local prevSelectedFactoryCount = selectedFactoryCount
-		selectedFactoryCount = 0
-		local selBuilderDefs = {}
-		SelectedUnitsCount = spGetSelectedUnitsCount()
-		if SelectedUnitsCount > 0 then
-			local sel = Spring.GetSelectedUnits()
-			for _, unitID in pairs(sel) do
-				local uDefID = spGetUnitDefID(unitID)
-				if units.isFactory[uDefID] then
-					selectedFactoryCount = selectedFactoryCount + 1
-					selBuilderDefs[uDefID] = true
-				end
-				if units.isBuilder[uDefID] then
-					selectedBuilders[unitID] = true
-					selectedBuilderCount = selectedBuilderCount + 1
-					selBuilderDefs[uDefID] = true
-				end
-			end
+	--[[ MODIFICATION START ]]
+	-- Check failsafe retry flag
+	if forceRefreshNextFrame and refreshRetryCounter > 0 then
+		doUpdate = true
+		refreshRetryCounter = refreshRetryCounter - 1
+		if refreshRetryCounter == 0 then
+			forceRefreshNextFrame = false
+		end
+	end
 
-			if selectedFactoryCount ~= prevSelectedFactoryCount then
-				doUpdate = true
-			end
-
-			-- check if builder type selection actually differs from previous selection
-			if not doUpdate then
-				if #selBuilderDefs ~= #prevSelBuilderDefs then
-					doUpdateClock = os_clock() + 0.001
-				else
-					for uDefID, _ in pairs(prevSelBuilderDefs) do
-						if not selBuilderDefs[uDefID] then
-							doUpdateClock = os_clock() + 0.001
-							break
-						end
+	-- Debounced selection update logic
+	if selectionUpdateCountdown > 0 then
+		selectionUpdateCountdown = selectionUpdateCountdown - 1
+		if selectionUpdateCountdown == 0 then
+			-- The old `updateSelection = false` is no longer needed
+			-- The rest of the original logic from `if updateSelection` block is moved here
+			selectedBuilders = {}
+			selectedBuilderCount = 0
+			local prevSelectedFactoryCount = selectedFactoryCount
+			selectedFactoryCount = 0
+			local selBuilderDefs = {}
+			SelectedUnitsCount = spGetSelectedUnitsCount()
+			if SelectedUnitsCount > 0 then
+				local sel = Spring.GetSelectedUnits()
+				for _, unitID in pairs(sel) do
+					local uDefID = spGetUnitDefID(unitID)
+					if units.isFactory[uDefID] then
+						selectedFactoryCount = selectedFactoryCount + 1
+						selBuilderDefs[uDefID] = true
 					end
-					if not doUpdate then
-						for uDefID, _ in pairs(selBuilderDefs) do
-							if not prevSelBuilderDefs[uDefID] then
-								doUpdateClock = os_clock() + 0.001
+					if units.isBuilder[uDefID] then
+						selectedBuilders[unitID] = true
+						selectedBuilderCount = selectedBuilderCount + 1
+						selBuilderDefs[uDefID] = true
+					end
+				end
+
+				if selectedFactoryCount ~= prevSelectedFactoryCount then
+					doUpdate = true
+				end
+
+				-- check if builder type selection actually differs from previous selection
+				if not doUpdate then
+					if #selBuilderDefs ~= #prevSelBuilderDefs then
+						doUpdate = true
+					else
+						for uDefID, _ in pairs(prevSelBuilderDefs) do
+							if not selBuilderDefs[uDefID] then
+								doUpdate = true
 								break
+							end
+						end
+						if not doUpdate then
+							for uDefID, _ in pairs(selBuilderDefs) do
+								if not prevSelBuilderDefs[uDefID] then
+									doUpdate = true
+									break
+								end
 							end
 						end
 					end
 				end
 			end
+			prevSelBuilderDefs = selBuilderDefs
 		end
-		prevSelBuilderDefs = selBuilderDefs
 	end
+	--[[ MODIFICATION END ]]
 
 	local prevBuildmenuShows = buildmenuShows
 	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
@@ -479,7 +513,6 @@ function widget:Update(dt)
 		checkGuishader()
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
-			doUpdate = true
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
@@ -1089,7 +1122,10 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	updateSelection = true
+	--[[ MODIFICATION START ]]
+	-- The original `updateSelection = true` is replaced with the debouncer.
+	selectionUpdateCountdown = 3
+	--[[ MODIFICATION END ]]
 end
 
 local function unbindBuildUnits()
