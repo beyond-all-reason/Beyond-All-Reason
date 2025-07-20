@@ -186,10 +186,6 @@ local function validateTideRhythm(modoptionDataRaw)
 		end
 		table.insert(advancedRhythm, partRhythm)
 	end
-	if #advancedRhythm == 0 then
-		Spring.Echo("Lava Advanced Tide Rhythm data is not valid, empty tide table.")
-		return false
-	end
 	return advancedRhythm
 end
 
@@ -205,8 +201,10 @@ local function lavaModGen(modOptions)
 			grow = tideRhythm[1][2]
 		else 
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
-			level = 4
-			tideRhythm = { { 4, 0.05, 5*6000 } }
+			if not tideRhythm then 
+				level = 4
+				tideRhythm = { { 4, 0.05, 5*6000 } }
+			end
 		end
 	else 
 		local lowRhythm = {modOptions.map_lavalowlevel, 0.25, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
