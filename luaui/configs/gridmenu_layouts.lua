@@ -265,9 +265,9 @@ local labGrids = {
 	},
 
 	corhavp = {
-		"corhacv", "cormlv", "corsala", "corgarp",
-		"cormart", "correap", "corban", "",
-		"corparrow", "cormuskrat", "", "",
+		"corhacv", "cormabm", "corban", "corgol",
+		"cortrem", "corsok", "corvrad", "coreter",
+		"corparrow", "corvroc", "corsent", "",
 	},
 
 	leghavp = {

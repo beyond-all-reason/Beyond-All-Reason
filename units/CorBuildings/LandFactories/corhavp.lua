@@ -8,7 +8,7 @@ return {
 		collisionvolumescales = "196 110 196",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 62000,
+		energycost = 50000,
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 12,
@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 8400,
+		metalcost = 6600,
 		metalstorage = 800,
 		objectname = "Units/CORHAVP.s3o",
 		script = "Units/CORAMSUB.cob",
@@ -28,7 +28,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1200,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
 			[1] = "corhacv",
@@ -39,7 +39,9 @@ return {
 			[6] = "cormabm",
 			[7] = "coreter",
 			[8] = "corvrad",
-			[9] = "corsok"
+			[9] = "corsok",
+			[10] = "corban",
+			[11] = "corparrow",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

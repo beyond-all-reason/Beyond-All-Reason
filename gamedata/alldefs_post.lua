@@ -1956,6 +1956,9 @@ function UnitDef_Post(name, uDef)
 				[5] = "corlevlr",
 				[6] = "corwolv",
 				[7] = "cormist",
+				[8] = "cormlv",
+				[9] = "corgarp",
+				[10] = "cormuskrat"
 			}
 
 		elseif name == "legvp" then
@@ -1979,19 +1982,22 @@ function UnitDef_Post(name, uDef)
 			[6] = "armpincer",
 			[7] = "armmart",
 			[8] = "armgremlin",
+			[9] = "corsh",
 			}
 		
 		elseif name == "coravp" then
 			uDef.buildoptions = {
-			[1] = "cormuskrat",
+			[1] = "corch",
 			[2] = "coracv",
 			[3] = "cormlv",
 			[4] = "corgarp",
 			[5] = "corsala",
-			[6] = "corparrow",
-			[7] = "corban",
-			[8] = "correap",
-			[9] = "cormart",
+			[6] = "correap",
+			[7] = "cormart",
+			[8] = "corhal",
+			[9] = "cormh",
+			[10] = "corsnap",
+			[11] = "corah"
 			}
 
 		elseif name == "legavp" then
@@ -2181,6 +2187,31 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "corcv" then
+			uDef.buildoptions = {	
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[11] = "corlab",
+				[12] = "coravp",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "corrl",
+				[21] = "corrad",
+				[22] = "cordl",
+				[23] = "corjamt",
+				[24] = "corsy",
+			}
+
+		elseif name == "cormuskrat" then
 			uDef.buildoptions = {	
 				[1] = "corsolar",
 				[2] = "corwin",
@@ -2802,51 +2833,22 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corch" then
 			uDef.buildoptions = {
-				[1] = "corsolar",
-				[2] = "coradvsol",
-				[3] = "corwin",
-				[4] = "corgeo",
-				[5] = "cormstor",
-				[6] = "corestor",
-				[7] = "cormex",
-				[8] = "",
-				[9] = "cormakr",
-				[10] = "",
-				[11] = "",
-				[12] = "",
-				[13] = "corhp",
-				[14] = "cornanotc",
-				[15] = "cornanotcplat",
-				[16] = "coreyes",
-				[17] = "corrad",
-				[18] = "cordrag",
-				[19] = "cormaw",
-				[20] = "corllt",
-				[21] = "corhllt",
-				[22] = "corhlt",
-				[23] = "corpun",
-				[24] = "corrl",
-				[25] = "cormadsam",
-				[26] = "corerad",
-				[27] = "cordl",
-				[28] = "corjamt",
-				[29] = "corjuno",
-				[30] = "corfhp",
-				[31] = "",
-				[32] = "coramsub",
-				[33] = "corplat",
-				[34] = "cortide",
-				[36] = "corfmkr",
-				[37] = "coruwms",
-				[38] = "coruwes",
-				[39] = "corfdrag",
-				[40] = "corfrad",
-				[41] = "corfhlt",
-				[42] = "corfrt",
-				[43] = "cortl",
-				[44] = "corhavp",
-				[45] = "corhasy",
-				[46] = "coruwgeo",
+				[1] = "coradvsol",
+				[2] = "corexp",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corvp",
+				[14] = "corhavp",
+				[15] = "coravp",
+				[16] = "cormkr"
 			}
 
 		elseif name == "leghc" then 

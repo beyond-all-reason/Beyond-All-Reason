@@ -28,7 +28,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1200,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
 			[1] = "corkorg",
