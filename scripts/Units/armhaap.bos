@@ -84,7 +84,7 @@ Activate()
 	
 	wait-for-turn towercover around x-axis;
 	
-	move pad to y-axis [16] speed [8];
+	move pad to y-axis [16] speed [16];
 	turn strut1 to x-axis <-30> speed <30>;
 	turn strut2 to x-axis <30> speed <30>;
 	
@@ -130,7 +130,7 @@ Deactivate()
 	move base to y-axis [0] speed [17.5];
 	move tower to y-axis [0] speed [26];
 	
-	move pad to y-axis [0] speed [8];
+	move pad to y-axis [0] speed [16];
 	turn strut1 to x-axis <0> speed <30>;
 	turn strut2 to x-axis <0> speed <30>;
 	
