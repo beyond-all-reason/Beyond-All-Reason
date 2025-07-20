@@ -24,7 +24,7 @@ return {
 		metalstorage = 800,
 		objectname = "Units/LEGHAVP.s3o",
 		radardistance = 50,
-		script = "Units/LEGAMPHLAB.cob",
+		script = "Units/LEGHAVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,

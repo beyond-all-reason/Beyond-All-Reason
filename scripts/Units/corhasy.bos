@@ -92,10 +92,10 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move head1 to y-axis [3.33333333] speed [9];
-	move head2 to y-axis [3.33333333] speed [9];
-	move head3 to y-axis [3.33333333] speed [9];
-	move head4 to y-axis [3.33333333] speed [9];
+	move head1 to y-axis [6.66666666] speed [9];
+	move head2 to y-axis [6.66666666] speed [9];
+	move head3 to y-axis [6.66666666] speed [9];
+	move head4 to y-axis [6.66666666] speed [9];
 	wait-for-move head1 along y-axis;
 	
 	turn head1 to y-axis <-45.0> speed <90>;
@@ -123,10 +123,10 @@ Deactivate()
 	
 	wait-for-turn head4 around y-axis;
 	
-	move head1 to y-axis [-2.666667] speed [9];
-	move head2 to y-axis [-2.666667] speed [9];
-	move head3 to y-axis [-2.666667] speed [9];
-	move head4 to y-axis [-2.666667] speed [9];
+	move head1 to y-axis [-5.333333] speed [9];
+	move head2 to y-axis [-5.333333] speed [9];
+	move head3 to y-axis [-5.333333] speed [9];
+	move head4 to y-axis [-5.333333] speed [9];
 	wait-for-move head1 along y-axis;
 	
 	move platform to y-axis [0] speed [15];
