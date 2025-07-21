@@ -2341,10 +2341,10 @@ function UnitDef_Post(name, uDef)
 		-- Lab Costs
 		
 		-- Raghna T2 lab costs
-		elseif name == "armhaap" or name == "corhaap" or name == "leghaap"
-		or name == "armhasy" or name == "corhasy" or name == "leghasy"
-		or name == "armhalab" or name == "corhalab" or name == "leghalab"
-		or name == "armhavp" or name == "corhavp" or name == "leghavp"
+		elseif name == "armhaap" or name == "corhaap"
+		or name == "armhasy" or name == "corhasy"
+		or name == "armhalab" or name == "corhalab"
+		or name == "armhavp" or name == "corhavp"
 		then
 			uDef.metalcost = 2000
 			uDef.energycost = uDef.energycost + 14000
@@ -2370,48 +2370,48 @@ function UnitDef_Post(name, uDef)
 
 		if name == "armaap" then
 			uDef.buildoptions = {
-			[1] = "armaca",
-			[2] = "armpnix",
-			[3] = "armlance",
-			[4] = "armhawk",
-			[5] = "armdfly",
-			[6] = "armbrawl",
-			[7] = "armstil",
-			[8] = "armliche",
-			[9] = "armawac",
+				[1] = "armaca",
+				[2] = "armpnix",
+				[3] = "armlance",
+				[4] = "armhawk",
+				[5] = "armdfly",
+				[6] = "armblade",
+				[7] = "armstil",
+				[8] = "armliche",
+				[9] = "armsehak",
 			}
 
 		elseif name == "coraap" then
 			uDef.buildoptions = {
-			[1] = "coraca",
-			[2] = "corape",
-			[3] = "corhurc",
-			[4] = "cortitan",
-			[5] = "corvamp",
-			[6] = "corseah",
-			[7] = "corcrwh",
-			[8] = "corawac",
-		}
+				[1] = "coraca",
+				[2] = "corape",
+				[3] = "corhurc",
+				[4] = "cortitan",
+				[5] = "corvamp",
+				[6] = "corseah",
+				[7] = "corcrwh",
+				[8] = "corhunt",
+			}
 	
 		elseif name == "armap" then
 			uDef.buildoptions = {
-			[1] = "armca",
-			[2] = "armpeep",
-			[3] = "armfig",
-			[4] = "armthund",
-			[5] = "armatlas",
-			[6] = "armkam",
+				[1] = "armca",
+				[2] = "armpeep",
+				[3] = "armfig",
+				[4] = "armthund",
+				[5] = "armatlas",
+				[6] = "armkam",
 			}
 
 		elseif name == "corap" then
 			uDef.buildoptions = {
-			[1] = "corca",
-			[2] = "corfink",
-			[3] = "corveng",
-			[4] = "corshad",
-			[5] = "corvalk",
-			[6] = "corbw",
-		}
+				[1] = "corca",
+				[2] = "corfink",
+				[3] = "corveng",
+				[4] = "corshad",
+				[5] = "corvalk",
+				[6] = "corbw",
+			}
 
 		-- Air Cons
 
@@ -2566,53 +2566,53 @@ function UnitDef_Post(name, uDef)
 
 		if name == "armasy" then
 			uDef.buildoptions = {
-			[1] = "armacsub",
-			[2] = "armserp",
-			[3] = "armsjam",
-			[4] = "armbats",
-			[5] = "armepoch",
-			[6] = "armantiship"
+				[1] = "armacsub",
+				[2] = "armserp",
+				[3] = "armsjam",
+				[4] = "armbats",
+				[5] = "armepoch",
+				[6] = "armantiship"
 			}
 
 		elseif name == "corasy" then
 			uDef.buildoptions = {
-			[1] = "coracsub",
-			[2] = "corssub",
-			[3] = "corsjam",
-			[4] = "corbats",
-			[5] = "cormship",
-			[6] = "corblackhy",
+				[1] = "coracsub",
+				[2] = "corssub",
+				[3] = "corsjam",
+				[4] = "corbats",
+				[5] = "cormship",
+				[6] = "corblackhy",
 			}
 
 		-- Sea Cons
 
 		elseif name == "armcs" then
 			uDef.buildoptions = {
-			[1] = "armmex",
-			[2] = "armvp",
-			[3] = "armap",
-			[4] = "armlab",
-			[5] = "armeyes",
-			[6] = "armdl",
-			[7] = "armdrag",
-			[8] = "",
-			[9] = "",
-			[10] = "armtide",
-			[11] = "armgeo",
-			[12] = "armuwgeo",
-			[13] = "armfmkr",
-			[14] = "armuwms",
-			[15] = "armuwes",
-			[16] = "armsy",
-			[17] = "",
-			[18] = "armnanotcplat",
-			[19] = "armfhp",
-			[20] = "armhasy",
-			[21] = "",
-			[22] = "armfrad",
-			[23] = "armfdrag",
-			[24] = "armtl",
-			[25] = "armfrt",
+				[1] = "armmex",
+				[2] = "armvp",
+				[3] = "armap",
+				[4] = "armlab",
+				[5] = "armeyes",
+				[6] = "armdl",
+				[7] = "armdrag",
+				[8] = "",
+				[9] = "",
+				[10] = "armtide",
+				[11] = "armgeo",
+				[12] = "armuwgeo",
+				[13] = "armfmkr",
+				[14] = "armuwms",
+				[15] = "armuwes",
+				[16] = "armsy",
+				[17] = "",
+				[18] = "armnanotcplat",
+				[19] = "armfhp",
+				[20] = "armhasy",
+				[21] = "",
+				[22] = "armfrad",
+				[23] = "armfdrag",
+				[24] = "armtl",
+				[25] = "armfrt",
 			}
 
 		elseif name == "corcs" then
