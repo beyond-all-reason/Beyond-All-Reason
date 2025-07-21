@@ -1943,26 +1943,25 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armavp" then
 			uDef.buildoptions = {
-				[1] = "armacv",
-				[2] = "armbull",
-				[3] = "armmerl",
-				[4] = "armmanni",
-				[5] = "armyork",
-				[6] = "armseer",
-				[7] = "armjam",
-			}
+			[1] = "armacv",
+			[2] = "armgremlin",
+			[3] = "armmerl",
+			[4] = "armmanni",
+			[5] = "armseer",
+			[6] = "armjam",
+		}
 		
 		elseif name == "coravp" then
 			uDef.buildoptions = {
-				[1] = "coracv",
-				[2] = "corgol",
-				[3] = "corvroc",
-				[4] = "cortrem",
-				[5] = "corsent",
-				[6] = "cormabm",
-				[7] = "coreter",
-				[8] = "corvrad"
-			}
+			[1] = "coracv",
+			[2] = "corparrow",
+			[3] = "corgol",
+			[4] = "corban",
+			[5] = "corvroc",
+			[6] = "cortrem",
+			[7] = "coreter",
+			[8] = "corvrad",
+		}
 
 		elseif name == "legavp" then
 			uDef.buildoptions = {
@@ -2329,7 +2328,7 @@ function UnitDef_Post(name, uDef)
 			uDef.energyupkeep = 150
 			uDef.health = 850
 		
-		elseif name == "cormoho" or name == "coruwmme" or name == "legmoho" then
+		elseif name == "cormoho" or name == "coruwmme" then
 			uDef.energyupkeep = 150
 			uDef.health = 1000
 		
