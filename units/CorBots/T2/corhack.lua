@@ -56,7 +56,7 @@ return {
 			[15] = "corfmd",
 			[16] = "corlab",
 			[17] = "coralab",
-			[18] = "corsalab",
+			[18] = "corhalab",
 			[19] = "cormoho",
 		},
 		customparams = {

@@ -1776,94 +1776,94 @@ local unitGrids = {
 
 	armhaca = {
 		{
-			{"armamex","armadvsol","armfus","armgmm",},
-			{"armmakr","","","",},
-			{"","","","",},
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{"armbeamer","armhlt","armclaw","armguard",},
-			{"armferret","armcir","","",},
-			{"armjuno","","","",},
+			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"armarad","armveil","armsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armgate", },                                      -- shield
 		},
 		{
-			{"armap","","","",},
-			{"","armaap","armhaap","",},
-			{"","","","",},
-		},
+			{ "armap", },                                       -- T1 lab,
+			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
+			{ "armplat", },                                     -- seaplane lab (aircon only)
+		}
 	},
 
 	corhaca = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{ "corvipe", "cordoom", "cortoast", "cortron" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo" },                 -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"cararad","corshroud","corsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{"corap","","","",},
-			{"","coraap","corhaap","",},
-			{"","","","",},
-		},
+			{ "corap", },                                       -- T1 lab,
+			{ "corgant", "coraap", },                           -- T3 lab, T2 lab
+			{ "corplat", },                                     -- seaplane lab (aircon only)
+		}
 	},
 	
 	armhack = {
 		{
-			{"armamex","armadvsol","armfus","armgmm",},
-			{"armmakr","","","",},
-			{"","","","",},
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{"armbeamer","armhlt","armclaw","armguard",},
-			{"armferret","armcir","","",},
-			{"armjuno","","","",},
+			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"armarad","armveil","armsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armgate", },                                     -- shield
 		},
 		{
-			{"armlab","","","",},
-			{"","armalab","armhalab","",},
-			{"","","","",},
-		},
+			{ "armlab", },                                      -- T1 lab,
+			{ "armshltx", "armalab", },                         -- T3 lab, T2 lab
+			{ },                                                --
+		}
 	},
 
 	corhack = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"cararad","corshroud","corsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{"corlab","","","",},
-			{"","coralab","corhalab","",},
-			{"","","","",},
-		},
+			{ "corlab", },                                      -- T1 lab,
+			{ "corgant", "coralab", },                          -- T3 lab, T2 lab
+			{ },                                                --
+		}
 	},
 
 	leghack = {
@@ -1891,48 +1891,48 @@ local unitGrids = {
 
 	armhacv = {
 		{
-			{"armamex","armadvsol","armfus","armgmm",},
-			{"armmakr","","","",},
-			{"","","","",},
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
-			{"armbeamer","armhlt","armclaw","armguard",},
-			{"armferret","armcir","","",},
-			{"armjuno","","","",},
+			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"armarad","armveil","armsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armgate", },                                     -- shield
 		},
 		{
-			{"armvp","","","",},
-			{"","armavp","armhavp","",},
-			{"","","","",},
-		},
+			{ "armvp", },                                       -- T1 lab,
+			{ "armshltx", "armavp", },                          -- T3 lab, T2 lab
+			{ },                                                --
+		}
 	},
 
 	corhacv = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"cararad","corshroud","corsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{"corlab","","","",},
-			{"","coralab","corhalab","",},
-			{"","","","",},
-		},
+			{ "corvp", },                                       -- T1 lab,
+			{ "corgant", "coravp", },                           -- T3 lab, T2 lab
+			{ },                                                --
+		}
 	},
 
 	leghacv = {
@@ -1960,48 +1960,48 @@ local unitGrids = {
 
 	armhacs = {
 		{
-			{"armamex", "armtide", "armuwfus", "",},
-			{"armfmkr","","","",},
-			{"","","","",},
+			{ "armuwmme", "armuwfus", },                       -- uw moho, uw fusion,
+			{ "armuwmmm", "armuwageo" },                       -- floating T2 converter, adv geo powerplant
+			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{"armfhlt", "armkraken", "armclaw", "armguard",},
-			{"","","","",},
-			{"","","","",},
+			{ "armatl", "armkraken", },                        -- adv torp launcher, floating heavy platform
+			{ "armfflak", },                                   -- floating flak
+			{ },                                               --
 		},
 		{
-			{"armason", "", "armfdrag", "", },
-			{"armarad", "armveil", "", "", },
-			{"", "", "", "", },
+			{ "armason", "armfatf" },                		   -- adv sonar, floating targeting facility
+			{ "", "", "", "armfasp" },                         -- Floating air repair pad
+			{ },                                               --
 		},
 		{
-			{"armsy", "", "armplat", "", },
-			{"", "armasy", "armhasy", "", },
-			{"", "", "", "", },
-		},
+			{ "armsy", },                                      -- T1 shipyard
+			{ "armshltxuw", "armasy", },                       -- amphibious gantry, T2 shipyard
+			{ },                                               --
+		}
 	},
+
 
 	corhacs = {
 		{
-			{"corexp", "cortide", "coruwfus", "",},
-			{"corfmkr","","","",},
-			{"","","","",},
+			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
+			{ "coruwmmm", "coruwageo" },                       -- floating T2 converter, adv geo powerplant
+			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{"corfhlt", "corfdoom", "cormaw", "corpun",},
-			{"","","","",},
-			{"","","","",},
+			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
+			{ "corenaa", },                                    -- floating flak
+			{ },                                               --
 		},
 		{
-			{"corason", "", "corfdrag", "", },
-			{"corarad", "corshroud", "", "", },
-			{"", "", "", "", },
+			{ "corason", "corfatf",  },                         -- adv sonar, floating targeting facility
+			{ "", "", "", "corfasp" },                          -- Floating air repair pad
 		},
 		{
-			{"corsy", "", "corplat", "", },
-			{"", "corasy", "corhasy", "", },
-			{"", "", "", "", },
-		},
+			{ "corsy", },                                      -- T1 shipyard
+			{ "corgantuw", "corasy" },                         -- amphibious gantry, T2 shipyard
+			{ },                                               --
+		}
 	},
 
 

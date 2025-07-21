@@ -1,7 +1,7 @@
 return {
 	corhasy = {
 		builder = true,
-		buildpic = "CORSY.DDS",
+		buildpic = "CORASY.DDS",
 		buildtime = 9900,
 		canmove = true,
 		collisionvolumeoffsets = "0 7 0",

@@ -1943,25 +1943,25 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armavp" then
 			uDef.buildoptions = {
-			[1] = "armacv",
-			[2] = "armgremlin",
-			[3] = "armmerl",
-			[4] = "armmanni",
-			[5] = "armseer",
-			[6] = "armjam",
-		}
+				[1] = "armacv",
+				[2] = "armgremlin",
+				[3] = "armmerl",
+				[4] = "armmanni",
+				[5] = "armseer",
+				[6] = "armjam",
+			}
 		
 		elseif name == "coravp" then
 			uDef.buildoptions = {
-			[1] = "coracv",
-			[2] = "corparrow",
-			[3] = "corgol",
-			[4] = "corban",
-			[5] = "corvroc",
-			[6] = "cortrem",
-			[7] = "coreter",
-			[8] = "corvrad",
-		}
+				[1] = "coracv",
+				[2] = "corparrow",
+				[3] = "corgol",
+				[4] = "corban",
+				[5] = "corvroc",
+				[6] = "cortrem",
+				[7] = "coreter",
+				[8] = "corvrad",
+			}
 
 		elseif name == "legavp" then
 			uDef.buildoptions = {
@@ -1979,61 +1979,47 @@ function UnitDef_Post(name, uDef)
 		-- Late T1 and Early T2 buildings are given to enhanced constructors
 		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
 
+		elseif name == "armca" then 
+			uDef.buildoptions[11] = "armhaap"
+
 		elseif name == "armck" then
-			uDef.buildoptions = {
-				[1] = "armsolar",
-				[2] = "armwin",
-				[3] = "armgeo",
-				[4] = "armmstor",
-				[5] = "armestor",
-				[6] = "armmex",
-				[7] = "armmakr",
-				[8] = "",
-				[9] = "armhalab",
-				[10] = "armlab",
-				[11] = "armvp",
-				[12] = "armap",
-				[13] = "armhp",
-				[14] = "armnanotc",
-				[15] = "armeyes",
-				[16] = "armrad",
-				[17] = "armdrag",
-				[18] = "armllt",
-				[19] = "armrl",
-				[20] = "armdl",
-				[21] = "armjamt",
-				[22] = "armjuno",
-				[23] = "armsy",
-			}
+			uDef.buildoptions[10] = "armhalab"
+
+		elseif name == "armcv" then 
+			uDef.buildoptions[10] = "armhavp"
+
+		elseif name =="armcs" then
+			uDef.buildoptions[17] = "armhasy"
+
+		elseif name == "armbeaver" then
+			uDef.buildoptions[14] = "armhavp"
+		
+		elseif name == "armch" then
+			uDef.buildoptions[44] = "armhavp"
+			uDef.buildoptions[45] = "armhasy"
+
+		
+
+		elseif name == "corca" then 
+			uDef.buildoptions[11] = "corhaap"
 
 		elseif name == "corck" then
-			uDef.buildoptions = {
-				[1] = "corsolar",
-				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[8] = "",
-				[11] = "corlab",
-				[12] = "corhalab",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "nil",
-				[21] = "corrl",
-				[22] = "nil",
-				[23] = "corrad",
-				[24] = "cordl",
-				[25] = "corjamt",
-				[26] = "corsy",
-			}
+			uDef.buildoptions[10] = "corhalab"
 
+		elseif name == "corcv" then
+			uDef.buildoptions[10] = "corhavp"
+
+		elseif name == "corcs" then
+			uDef.buildoptions[17] = "corhasy"
+
+		elseif name == "corch" then
+			uDef.buildoptions[44] = "corhavp"
+			uDef.buildoptions[45] = "corhasy"
+
+		elseif name == "cormuskrat" then
+			uDef.buildoptions[14] = "corhavp"
+
+	
 		elseif name == "legck" then
 			uDef.buildoptions = {
 			[1] = "legsolar",
@@ -2154,33 +2140,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "legjam",
 				[23] = "corsy",
 			}
-
-		elseif name == "legca" then
-			buildoptions = {
-				[1] = "legsolar",
-				[2] = "legwin",
-				[3] = "leggeo",
-				[4] = "legmstor",
-				[5] = "legestor",
-				[6] = "legmex",
-				[7] = "legeconv",
-				[8] = "",
-				[9] = "leglab",
-				[10] = "leghaap",
-				[11] = "legvp",
-				[12] = "legap",
-				[13] = "leghp",
-				[14] = "legnanotc",
-				[15] = "legeyes",
-				[16] = "legrad",
-				[17] = "legdrag",
-				[18] = "leglht",
-				[19] = "nil",
-				[20] = "legrl",
-				[21] = "legctl",
-				[22] = "legjam",
-				[23] = "corsy",
-			}
 		
 		elseif name == "armacv" then
 			uDef.metalcost = 450
@@ -2196,12 +2155,12 @@ function UnitDef_Post(name, uDef)
 				[10] = "armvulc",
 				[11] = "armvp",
 				[12] = "armavp",
-				[13] = "armsavp",
+				[13] = "armhavp",
 				[14] = "armshltx",
 			}
 		
 		elseif name == "coracv" then
-			uDef.metalcost
+			uDef.metalcost = 450
 			uDef.buildoptions = {
 				[1] = "corafus",
 				[2] = "corageo",
@@ -2215,7 +2174,7 @@ function UnitDef_Post(name, uDef)
 				[10] = "corbuzz",
 				[11] = "corvp",
 				[12] = "coravp",
-				[13] = "corsavp",
+				[13] = "corhavp",
 				[14] = "corgant",
 			}
 		
@@ -2249,8 +2208,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		-- T2 mexes rebalance
-		elseif name == "armmoho"  or name == "armuwmme" 
-		then
+		elseif name == "armmoho"  or name == "armuwmme" then
 			uDef.energyupkeep = 150
 			uDef.health = 850
 		
@@ -2267,7 +2225,7 @@ function UnitDef_Post(name, uDef)
 		-- Lab Costs
 		
 		-- Raghna T2 lab costs
-		elseif name == "armhaap" or name == "corhaap"
+		if name == "armhaap" or name == "corhaap"
 		or name == "armhasy" or name == "corhasy"
 		or name == "armhalab" or name == "corhalab"
 		or name == "armhavp" or name == "corhavp"
@@ -2285,8 +2243,6 @@ function UnitDef_Post(name, uDef)
 			uDef.metalcost = (uDef.metalcost * 2) - 1500
 			uDef.energycost = (uDef.energycost * 2) - 4000
 			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
-
-
 		end
 
 		------------------------------
@@ -2337,6 +2293,16 @@ function UnitDef_Post(name, uDef)
 				[4] = "corshad",
 				[5] = "corvalk",
 				[6] = "corbw",
+			}
+
+		elseif name == "legap" then
+			uDef.buildoptions = {
+				[1] = "legca",
+				[2] = "legfig",
+				[3] = "legkam",
+				[4] = "legcib",
+				[5] = "legmos",
+				[6] = "leglts",
 			}
 
 		-- Air Cons
@@ -2391,7 +2357,7 @@ function UnitDef_Post(name, uDef)
 				[5] = "legestor",
 				[6] = "legmex",
 				[7] = "legeconv",
-				[8] = "legaap",
+				[8] = "leghaap",
 				[9] = "leglab",
 				[10] = "",
 				[11] = "legvp",
@@ -2468,114 +2434,8 @@ function UnitDef_Post(name, uDef)
 		-----------------------------------------
 		-- Hovers, Sea Planes and Amphibious Labs
 		
-
-		-- Hover Labs
-		-- Made by T1 cons
-		if name == "armhp" or name == "armfhp"
-		or name == "corhp" or name == "corfhp" 
-		or name == "leghp" or name == "legfhp" then
-			uDef.workertime = 400
-			
-		-- hover cons
-		elseif name == "armch" then
-			uDef.buildoptions = {
-			[1] = "armsolar",
-			[2] = "armadvsol",
-			[3] = "armwin",
-			[4] = "armgeo",
-			[5] = "armmstor",
-			[6] = "armestor",
-			[7] = "armmex",
-			[8] = "",
-			[9] = "armmakr",
-			[10] = "",
-			[11] = "",
-			[12] = "",
-			[13] = "armhp",
-			[14] = "armnanotc",
-			[15] = "armnanotcplat",
-			[16] = "armeyes",
-			[17] = "armrad",
-			[18] = "armdrag",
-			[19] = "armclaw",
-			[20] = "armllt",
-			[21] = "armbeamer",
-			[22] = "armhlt",
-			[23] = "armguard",
-			[24] = "armrl",
-			[25] = "armferret",
-			[26] = "armcir",
-			[27] = "armdl",
-			[28] = "armjamt",
-			[29] = "armjuno",
-			[30] = "armfhp",
-			[31] = "",
-			[32] = "armamsub",
-			[33] = "armplat",
-			[34] = "armtide",
-			[36] = "armfmkr",
-			[37] = "armuwms",
-			[38] = "armuwes",
-			[39] = "armfdrag",
-			[40] = "armfrad",
-			[41] = "armfhlt",
-			[42] = "armfrt",
-			[43] = "armtl",
-			[44] = "armhavp",
-			[45] = "armhasy",
-			[46] = "armuwgeo",
-			}
-
-		elseif name == "corch" then
-			uDef.buildoptions = {
-			[1] = "corsolar",
-			[2] = "coradvsol",
-			[3] = "corwin",
-			[4] = "corgeo",
-			[5] = "cormstor",
-			[6] = "corestor",
-			[7] = "cormex",
-			[8] = "",
-			[9] = "cormakr",
-			[10] = "",
-			[11] = "",
-			[12] = "",
-			[13] = "corhp",
-			[14] = "cornanotc",
-			[15] = "cornanotcplat",
-			[16] = "coreyes",
-			[17] = "corrad",
-			[18] = "cordrag",
-			[19] = "cormaw",
-			[20] = "corllt",
-			[21] = "corhllt",
-			[22] = "corhlt",
-			[23] = "corpun",
-			[24] = "corrl",
-			[25] = "cormadsam",
-			[26] = "corerad",
-			[27] = "cordl",
-			[28] = "corjamt",
-			[29] = "corjuno",
-			[30] = "corfhp",
-			[31] = "",
-			[32] = "coramsub",
-			[33] = "corplat",
-			[34] = "cortide",
-			[36] = "corfmkr",
-			[37] = "coruwms",
-			[38] = "coruwes",
-			[39] = "corfdrag",
-			[40] = "corfrad",
-			[41] = "corfhlt",
-			[42] = "corfrt",
-			[43] = "cortl",
-			[44] = "corhavp",
-			[45] = "corhasy",
-			[46] = "coruwgeo",
-			}
-
-		elseif name == "leghc" then 
+	
+		if name == "leghc" then 
 			uDef.buildoptions = {
 			[1] = "legsolar",
 			[2] = "legadvsol",
@@ -2629,34 +2489,32 @@ function UnitDef_Post(name, uDef)
 		-- Made by hover cons and enhanced ship cons 
 		-- Enhanced ships given seaplanes instead of static AA
 		elseif name == "armplat" then
-			uDef.workertime = 400
+			uDef.metalcost = 2000
 			uDef.buildoptions = {
-			[1] = "armhaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armawac",
-			[6] = "armsaber",
-			[7] = "armhvytrans",
-			}
+				[1] = "armhaca",
+				[2] = "armseap",			
+				[3] = "armsb",
+				[4] = "armsfig",
+				[5] = "armawac",
+				[6] = "armsaber",
+			}	
 
 		elseif name == "corplat" then
-			uDef.workertime = 400
+			uDef.metalcost = 2000
 			uDef.buildoptions = {		
-			[1] = "corhaca",
-			[2] = "corhunt",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-			[7] = "corhvytrans",
+				[1] = "corhaca",
+				[2] = "corawac",
+				[3] = "corcut",
+				[4] = "corsb",
+				[5] = "corseap",
+				[6] = "corsfig",
 			}
 		end
 
 		----------------------
 		-- GDT Balance Changes
 
-		elseif name == "armfido" then
+		if name == "armfido" then
 			uDef.weapondefs.bfido.range = 600
 			uDef.health = 800
 			uDef.speed = 58

@@ -47,7 +47,7 @@ return {
 			[8] = "corenaa",
 			[9] = "corfdoom",
 			[10] = "corfasp",
-			[11] = "corsasy",
+			[11] = "corhasy",
 			[12] = "coruwmme",
 		},
 		customparams = {

@@ -47,7 +47,7 @@ return {
 			[8] = "armfflak",
 			[9] = "armkraken",
 			[10] = "armfasp",
-			[11] = "armsasy",
+			[11] = "armhasy",
 			[12] = "armuwmme",
 		},
 		customparams = {

@@ -53,7 +53,7 @@ return {
 			[15] = "corfmd",
 			[16] = "corap",
 			[17] = "coraap",
-			[18] = "corsaap",
+			[18] = "corhaap",
 			[19] = "cormoho",
 		},
 		customparams = {
