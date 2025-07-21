@@ -116,11 +116,11 @@ return {
 				sprayangle = 6000,
 				waterbounce = true,
 				weapontype = "AircraftBomb",
+				customparams = {
+					water_splash = 0, -- corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+				},
 				damage = {
 					default = 50,
-				},
-				customParams = {
-					water_splash = 0, -- corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 				},
 			},
 		},

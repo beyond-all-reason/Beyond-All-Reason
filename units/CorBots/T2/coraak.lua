@@ -133,6 +133,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					vtol = 220,
 				},
@@ -140,9 +143,6 @@ return {
 					[1] = 1,
 					[2] = 0.33,
 					[3] = 0.7,
-				},
-				customparams = {
-					bogus = 1
 				},
 			},
 			bogus_missile = {

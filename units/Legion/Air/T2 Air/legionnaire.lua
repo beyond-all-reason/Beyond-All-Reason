@@ -44,7 +44,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-			fighter = 1,
+			attacksafetydistance = 300,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
