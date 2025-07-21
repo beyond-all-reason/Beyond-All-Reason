@@ -2586,100 +2586,29 @@ function UnitDef_Post(name, uDef)
 
 		-- Sea Cons
 
-		elseif name == "armcs" then
-			uDef.buildoptions = {
-				[1] = "armmex",
-				[2] = "armvp",
-				[3] = "armap",
-				[4] = "armlab",
-				[5] = "armeyes",
-				[6] = "armdl",
-				[7] = "armdrag",
-				[8] = "",
-				[9] = "",
-				[10] = "armtide",
-				[11] = "armgeo",
-				[12] = "armuwgeo",
-				[13] = "armfmkr",
-				[14] = "armuwms",
-				[15] = "armuwes",
-				[16] = "armsy",
-				[17] = "",
-				[18] = "armnanotcplat",
-				[19] = "armfhp",
-				[20] = "armhasy",
-				[21] = "",
-				[22] = "armfrad",
-				[23] = "armfdrag",
-				[24] = "armtl",
-				[25] = "armfrt",
-			}
-
-		elseif name == "corcs" then
-			uDef.buildoptions = {
-			[1] = "cormex",
-			[2] = "corvp",
-			[3] = "corap",
-			[4] = "corlab",
-			[5] = "coreyes",
-			[6] = "cordl",
-			[7] = "cordrag",
-			[8] = "",
-			[9] = "",
-			[10] = "cortide",
-			[11] = "corgeo",
-			[12] = "coruwgeo",
-			[13] = "corfmkr",
-			[14] = "coruwms",
-			[15] = "coruwes",
-			[16] = "corsy",
-			[17] = "",
-			[18] = "cornanotcplat",
-			[19] = "corfhp",
-			[20] = "corhasy",
-			[21] = "",
-			[22] = "corfrad",
-			[23] = "corfdrag",
-			[24] = "cortl",
-			[25] = "corfrt",
-			}
-
 		elseif name == "armacsub" then
+			uDef.metalcost = 500
 			uDef.buildoptions = {
-			[1] = "armuwfus",
-			[2] = "armuwmmm",
-			[3] = "armuwmme",
-			[4] = "armuwadves",
-			[5] = "armuwadvms",
-			[6] = "armshltxuw",
+			[1] = "armuwmmm",
+			[2] = "armshltxuw",
+			[3] = "armatl",
+			[4] = "armasy",
+			[5] = "armsy",
+			[6] = "armuwageo",
 			[7] = "armasy",
-			[8] = "armsy",
-			[9] = "",
-			[10] = "armfatf",
-			[11] = "armatl",
-			[12] = "armfflak",
-			[13] = "armkraken",
-			[14] = "armuwageo",
-			[15] = "",
 		}
 
 		elseif name == "coracsub" then
+			uDef.metalcost = 500
 			uDef.buildoptions = {
-			[1] = "coruwfus",
-			[2] = "coruwmmm",
-			[3] = "coruwmme",
-			[4] = "coruwadves",
-			[5] = "coruwadvms",
-			[6] = "corgantuw",
-			[7] = "corasy",
-			[8] = "corsy",
-			[9] = "",
-			[10] = "corfatf",
-			[11] = "coratl",
-			[12] = "corenaa",
-			[13] = "corfdoom",
-			[14] = "coruwageo",
-			[15] = "",
+			[1] = "coruwmmm",
+			[2] = "coruwmme",
+			[3] = "corgantuw",
+			[4] = "corasy",
+			[5] = "corsy",
+			[6] = "coratl",
+			[7] = "coruwageo",
+			[8] = "corasy",
 		}
 
 		end
