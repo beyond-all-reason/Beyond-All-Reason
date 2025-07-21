@@ -38,7 +38,7 @@ return {
 		stealth = true,
 		customparams = {
 			detonaterange = "64",
-			minfootprint = "3",
+			minfootprint = "4",
 			instantselfd = true,
 			mine = true,
 			model_author = "Tharsis",
