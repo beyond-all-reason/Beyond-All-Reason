@@ -1681,7 +1681,7 @@ function UnitDef_Post(name, uDef)
 			[15] = "corfmd",
 			[16] = "corlab",
 			[17] = "coralab",
-			[18] = "corsalab",
+			[18] = "coralab",
 			[19] = "cormoho",
 		}
 		elseif name == "coracv" then
@@ -2062,63 +2062,40 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armack" then
+			uDef.metalcost = 400
 			uDef.buildoptions = {
 				[1] = "armafus",
-				[2] = "armckfus",
-				[3] = "armshltx",
-				[4] = "armageo",
-				[5] = "armgmm",
-				[6] = "armmoho",
-				[7] = "armmmkr",
-				[8] = "armuwadves",
-				[9] = "armuwadvms",
-				[10] = "armfort",
-				[11] = "armtarg",
-				[12] = "armgate",
-				[13] = "armamb",
-				[14] = "armpb",
-				[15] = "armanni",
-				[16] = "armflak",
-				[17] = "armmercury",
-				[18] = "armemp",
-				[19] = "armamd",
-				[20] = "armsilo",
-				[21] = "armbrtha",
-				[22] = "armvulc",
-				[23] = "armdf",
-				[24] = "armlab",
-				[25] = "armhalab",
-				[26] = "",
+				[2] = "armageo",
+				[4] = "armmoho",
+				[5] = "armmmkr",
+				[6] = "armanni",
+				[7] = "armmercury",
+				[8] = "armsilo",
+				[9] = "armbrtha",
+				[10] = "armvulc",
+				[11] = "armlab",
+				[12] = "armalab",
+				[13] = "armhalab",
+				[14] = "armshltx",
 			}
 
 		elseif name == "corack" then
+			uDef.metalcost = 400
 			uDef.buildoptions = {
 				[1] = "corafus",
-				[3] = "corgant",
-				[4] = "corageo",
-				[5] = "corbhmth",
-				[6] = "cormoho",
-				[7] = "cormexp",
-				[8] = "cormmkr",
-				[9] = "coruwadves",
-				[10] = "coruwadvms",
-				[11] = "corfort",
-				[12] = "corasp",
-				[13] = "cortarg",
-				[14] = "corgate",
-				[15] = "cortoast",
-				[16] = "corvipe",
-				[17] = "cordoom",
-				[18] = "corflak",
-				[19] = "corscreamer",
-				[20] = "cortron",
-				[21] = "corfmd",
-				[22] = "corsilo",
-				[23] = "corint",
-				[24] = "corbuzz",
-				[25] = "corlab",
-				[26] = "coralab",
-				[27] = "corhalab",
+				[2] = "corageo",
+				[3] = "cormexp",
+				[4] = "cormmkr",
+				[5] = "cortoast",
+				[6] = "cordoom",
+				[7] = "corscreamer",
+				[8] = "corsilo",
+				[9] = "corint",
+				[10] = "corbuzz",
+				[11] = "corlab",
+				[12] = "coralab",
+				[13] = "corhalab",
+				[14] = "corgant",
 			}
 
 		elseif name == "legack" then
@@ -2151,61 +2128,6 @@ function UnitDef_Post(name, uDef)
 				[26] = "leghalab",
 			}
 
-		elseif name == "armcv" then
-			uDef.buildoptions = {
-				[1] = "armsolar",
-				[2] = "armwin",
-				[3] = "armgeo",
-				[4] = "armmstor",
-				[5] = "armestor",
-				[6] = "armmex",
-				[7] = "armmakr",
-				[8] = "",
-				[9] = "armhavp",
-				[10] = "armlab",
-				[11] = "armvp",
-				[12] = "armap",
-				[13] = "armhp",
-				[14] = "armnanotc",
-				[15] = "armeyes",
-				[16] = "armrad",
-				[17] = "armdrag",
-				[18] = "armllt",
-				[19] = "armrl",
-				[20] = "armdl",
-				[21] = "armjamt",
-				[22] = "armjuno",
-				[23] = "armsy",
-			}
-
-		elseif name == "corcv" then
-			uDef.buildoptions = {	
-				[1] = "corsolar",
-				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[8] = "",
-				[11] = "corlab",
-				[12] = "corhavp",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "nil",
-				[21] = "corrl",
-				[22] = "nil",
-				[23] = "corrad",
-				[24] = "cordl",
-				[25] = "corjamt",
-				[26] = "corsy",
-			}
-
 		elseif name == "legcv" then
 			uDef.buildoptions = {
 				[1] = "legsolar",
@@ -2232,65 +2154,69 @@ function UnitDef_Post(name, uDef)
 				[22] = "legjam",
 				[23] = "corsy",
 			}
+
+		elseif name == "legca" then
+			buildoptions = {
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "",
+				[9] = "leglab",
+				[10] = "leghaap",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[19] = "nil",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
+			}
 		
 		elseif name == "armacv" then
+			uDef.metalcost = 450
 			uDef.buildoptions = {
 				[1] = "armafus",
-				[2] = "armckfus",
-				[3] = "armshltx",
-				[4] = "armageo",
-				[5] = "armgmm",
-				[6] = "armmoho",
-				[7] = "armmmkr",
-				[8] = "armuwadves",
-				[9] = "armuwadvms",
-				[10] = "armfort",
-				[11] = "armtarg",
-				[12] = "armgate",
-				[13] = "armamb",
-				[14] = "armpb",
-				[15] = "armanni",
-				[16] = "armflak",
-				[17] = "armmercury",
-				[18] = "armemp",
-				[19] = "armamd",
-				[20] = "armsilo",
-				[21] = "armbrtha",
-				[22] = "armvulc",
-				[23] = "armdf",
-				[24] = "armvp",
-				[25] = "armhavp",
-				[26] = "armavp",		
+				[2] = "armageo",
+				[4] = "armmoho",
+				[5] = "armmmkr",
+				[6] = "armanni",
+				[7] = "armmercury",
+				[8] = "armsilo",
+				[9] = "armbrtha",
+				[10] = "armvulc",
+				[11] = "armvp",
+				[12] = "armavp",
+				[13] = "armsavp",
+				[14] = "armshltx",
 			}
 		
 		elseif name == "coracv" then
+			uDef.metalcost
 			uDef.buildoptions = {
 				[1] = "corafus",
-				[2] = "corgant",
-				[3] = "corageo",
-				[4] = "corbhmth",
-				[5] = "cormoho",
-				[7] = "cormexp",
-				[8] = "cormmkr",
-				[9] = "coruwadves",
-				[10] = "coruwadvms",
-				[11] = "corfort",
-				[12] = "corasp",
-				[13] = "cortarg",
-				[14] = "corgate",
-				[15] = "cortoast",
-				[16] = "corvipe",
-				[17] = "cordoom",
-				[18] = "corflak",
-				[19] = "corscreamer",
-				[20] = "cortron",
-				[21] = "corfmd",
-				[22] = "corsilo",
-				[23] = "corint",
-				[24] = "corbuzz",
-				[25] = "corvp",
-				[26] = "coravp",
-				[27] = "corhavp",
+				[2] = "corageo",
+				[3] = "cormexp",
+				[4] = "cormmkr",
+				[5] = "cortoast",
+				[6] = "cordoom",
+				[7] = "corscreamer",
+				[8] = "corsilo",
+				[9] = "corint",
+				[10] = "corbuzz",
+				[11] = "corvp",
+				[12] = "coravp",
+				[13] = "corsavp",
+				[14] = "corgant",
 			}
 		
 		elseif name == "legacv" then
@@ -2414,8 +2340,9 @@ function UnitDef_Post(name, uDef)
 			}
 
 		-- Air Cons
-		
+
 		elseif name == "armaca" then
+			uDef.metalcost = 400
 			uDef.buildoptions = {
 				[1] = "armafus",
 				[2] = "armageo",
@@ -2435,6 +2362,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "coraca" then
+			uDef.metalcost = 400
 			uDef.buildoptions = {
 				[1] = "corafus",
 				[2] = "corageo",
