@@ -9,6 +9,7 @@ local Spring_DestroyUnit = Spring.DestroyUnit
 local base = piece("base")
 local unitDefID = Spring_GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
+local minFootprint = tonumber(UnitDefs[unitDefID].customParams.minfootprint) or 0
 
 local math_sqrt = math.sqrt
 
@@ -16,16 +17,19 @@ local ux, uy, uz
 
 -- Author: Doo
 -- Requires customParams.detonaterange in unitDefs or 64 elmos range will be used
+-- It is also possible to limit the detonation to a certain footprint (not mass!) by setting customParams.minfootprint
 -- Possible enhancements: Use GetUnitsInCylinder(or sphere) of detonaterange and check for any restriction on target units
 
-function GetClosestEnemyDistance()
+function GetClosestEnemy()
 	local targetID = Spring_GetUnitNearestEnemy(unitID, triggerRange)
 	if targetID then
 		local tx, ty, tz = Spring_GetUnitPosition(targetID)
-		local dis = distance(ux, uy, uz, tx, ty, tz)
-		return dis
+		local distanceVal = distance(ux, uy, uz, tx, ty, tz)
+		local targetDefID = Spring_GetUnitDefID(targetID)
+	   local footprintVal = UnitDefs[targetDefID].xsize or 0
+	   return distanceVal, footprintVal
 	else
-		return math.huge
+		return math.huge, 0
 	end
 end
 
@@ -60,13 +64,17 @@ end
 function EnemyDetect()
 	while true do
 		if not Spring_GetUnitIsBeingBuilt(unitID) then
-			local firestate = Spring_GetUnitStates(unitID)
-			if firestate and firestate > 0 then
+			local unitStates = Spring_GetUnitStates(unitID)
+			if unitStates and unitStates.firestate and unitStates.firestate > 0 then
 				if not Spring_GetUnitIsStunned(unitID) then
-					if GetClosestEnemyDistance() <= triggerRange then
-						StartThread(Detonate)
-						return
-					end
+					local enemyDist, enemyFootprint = GetClosestEnemy()
+				   if enemyDist <= triggerRange then
+					   if enemyFootprint >= minFootprint then
+						   -- Spring.Echo("MINE DETONATION: " .. unitID .. " at " .. ux .. ", " .. uy .. ", " .. uz .. " triggered by enemy at distance: " .. enemyDist .. " with xsize: " .. enemyFootprint .. " vs minFootprint: " .. minFootprint)
+						   StartThread(Detonate)
+						   return
+					   end
+				   end
 				end
 			end
 		end
