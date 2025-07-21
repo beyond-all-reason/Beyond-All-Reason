@@ -1872,11 +1872,6 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.commando_blaster.weaponvelocity = 600
 		end	
 	end
-<<<<<<< Updated upstream
-	
-
-
-=======
 
 	-------------------
 	-- Tech Overhaul --
@@ -2751,7 +2746,6 @@ function UnitDef_Post(name, uDef)
 
 		end
 	end
->>>>>>> Stashed changes
 
 
 	-- Multipliers Modoptions
