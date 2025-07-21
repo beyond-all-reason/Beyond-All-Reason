@@ -1375,9 +1375,9 @@ local options = {
 	},
 
     {
-        key     = "techoverhaul",
-        name    = "Tech Overhaul",
-        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
+        key     = "techsplit",
+        name    = "T2 Split",
+        desc    = "Splits T2 into two tiers moving experimental to T4.",
         type    = "bool",
         section = "options_experimental",
         def     = false,
