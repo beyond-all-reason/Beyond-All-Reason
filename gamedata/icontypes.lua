@@ -3671,7 +3671,7 @@ local icontypes = {
 
 	-- T2 split
 
-	armhaac = {
+	armhaca = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.149999999
 	},
@@ -3691,7 +3691,7 @@ local icontypes = {
 		size = 1.149999999
 	},
 
-	corhaac = {
+	corhaca = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.149999999
 	},

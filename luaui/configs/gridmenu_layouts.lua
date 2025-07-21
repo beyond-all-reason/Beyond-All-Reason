@@ -235,13 +235,13 @@ local labGrids = {
 	},
 
 	armhaap = {
-		"armhaac", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
 		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
 
 	corhaap = {
-		"corhaac", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
@@ -1774,7 +1774,7 @@ local unitGrids = {
 
 	-- Split tier cons
 
-	armhaac = {
+	armhaca = {
 		{
 			{"armamex","armadvsol","armfus","armgmm",},
 			{"armmakr","","","",},
@@ -1797,7 +1797,7 @@ local unitGrids = {
 		},
 	},
 
-	corhaac = {
+	corhaca = {
 		{
 			{"corexp","coradvsol","corfus","",},
 			{"cormakr","","","",},
