@@ -2414,62 +2414,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		-- Air Cons
-
-		elseif name == "armca" then
-			uDef.buildoptions = {
-				[1] = "armsolar",
-				[2] = "armwin",
-				[3] = "armgeo",
-				[4] = "armmstor",
-				[5] = "armestor",
-				[6] = "armmex",
-				[7] = "armmakr",
-				[8] = "",
-				[9] = "armhaap",
-				[10] = "armlab",
-				[11] = "armvp",
-				[12] = "armap",
-				[13] = "armhp",
-				[14] = "armnanotc",
-				[15] = "armeyes",
-				[16] = "armrad",
-				[17] = "armdrag",
-				[18] = "armllt",
-				[19] = "armrl",
-				[20] = "armdl",
-				[21] = "armjamt",
-				[22] = "armjuno",
-				[23] = "armsy",
-			}
-
-		elseif name == "corca" then 
-			uDef.buildoptions = {
-				[1] = "corsolar",
-				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[8] = "",
-				[11] = "corlab",
-				[12] = "corhaap",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "",
-				[21] = "corrl",
-				[22] = "",
-				[23] = "corrad",
-				[24] = "cordl",
-				[25] = "corjamt",
-				[26] = "corsy",
-			}
-
+		
 		elseif name == "armaca" then
 			uDef.buildoptions = {
 				[1] = "armafus",
