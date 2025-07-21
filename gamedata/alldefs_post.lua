@@ -2340,21 +2340,26 @@ function UnitDef_Post(name, uDef)
 
 		------------
 		-- Lab Costs
-		-- T2
+		
+		-- Raghna T2 lab costs
+		elseif name == "armhaap" or name == "corhaap" or name == "leghaap"
+		or name == "armhasy" or name == "corhasy" or name == "leghasy"
+		or name == "armhalab" or name == "corhalab" or name == "leghalab"
+		or name == "armhavp" or name == "corhavp" or name == "leghavp"
+		then
+			uDef.metalcost = 2000
+			uDef.energycost = uDef.energycost + 14000
+			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
+			uDef.workertime = uDef.workertime - 100
+		
+		-- T2 -> T3
 		elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
 		or name == "coraap" or name == "corasy" or name == "coralab" or name == "coravp"
 		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
 		then 
-			uDef.metalcost = uDef.metalcost * 2
-			uDef.energycost = uDef.energycost * 2
+			uDef.metalcost = (uDef.metalcost * 2) - 1500
+			uDef.energycost = (uDef.energycost * 2) - 4000
 			uDef.buildtime = math.ceil(uDef.buildtime * .02) * 100
-			uDef.workertime = uDef.workertime * 6
-
-		-- T3
-		elseif name == "corgant" or name == "corgantuw" 
-		or name == "leggant" or name == "leggantuw" 
-		or name == "armshltx" or name == "armshltxuw" then
-			uDef.workertime = uDef.workertime * 6
 
 
 		end

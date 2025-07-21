@@ -21,7 +21,7 @@ return {
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 2000,
+		metalcost = 1240,
 		metalstorage = 200,
 		objectname = "Units/CORHALAB.s3o",
 		script = "Units/CORHALAB.cob",

@@ -48,9 +48,9 @@ return {
     ]],
 		buildoptions = {
 			[1] = "leghacv",
-			[2] = "legotter",
-			[3] = "legamphtank",
-			[4] = "legmlv",
+			[2] = "",
+			[3] = "",
+			[4] = "",
 			[5] = "legmrv",
 			[6] = "legfloat",
 			[7] = "legaskirmtank",
