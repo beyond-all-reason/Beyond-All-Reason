@@ -2570,8 +2570,8 @@ function UnitDef_Post(name, uDef)
 				[2] = "armserp",
 				[3] = "armsjam",
 				[4] = "armbats",
-				[5] = "armepoch",
-				[6] = "armantiship"
+				[5] = "armmship",
+				[6] = "armepoch",
 			}
 
 		elseif name == "corasy" then

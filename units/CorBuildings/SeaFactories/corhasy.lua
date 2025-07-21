@@ -32,11 +32,12 @@ return {
 		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {		
 			[1] = "corhacs",
-			[2] = "corcrus",
-			[3] = "corshark",
-			[4] = "corarch",
-			[5] = "cormship",
-			[6] = "corfship",
+			[2] = "cormls",
+			[3] = "corcrus",
+			[4] = "corshark",
+			[5] = "corarch",
+			[6] = "corantiship",
+			[7] = "corfship",
 		},
 		customparams = {
 			model_author = "Mr Bob",
