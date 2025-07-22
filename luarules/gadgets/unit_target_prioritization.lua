@@ -42,6 +42,8 @@ String argument "tag" can return a specific variable. Possible tags are:
 ]]
 
 
+--zzz the script works for a while but then eventually the echo's completely stop from units that otherwise were working just fine checking and tracking targets... it seems to be the unit+weapons that get forgotten. 
+
 
 if not gadgetHandler:IsSyncedCode() then return end
 
@@ -80,6 +82,7 @@ local precalculatedCertainties = {}
 local weaponDefDibsSteps = {}
 local doomedUnits = {}
 local unitDefCache = {}
+local weaponsWithTargets = {} -- weaponID = targetID mapping
 local weaponDefs = WeaponDefs -- localized for faster performance
 local weaponDefDPSCache = {}
 
@@ -124,6 +127,11 @@ local projectileWeaponTypes = {
 local ignoredWeaponTypes = {
 	Shield = true
 }
+
+-- helper functions
+local function getWeaponID(unitID, weaponNum)
+	return unitID * 1000 + weaponNum -- create unique weapon identifier
+end
 
 --functions
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -389,7 +397,7 @@ local function applyProjectileDoomages()
 	end
 end
 
-local function applyWeaponDoomageToTarget(weaponDefID, targetID)
+local function applyWeaponDoomageToTarget(weaponDefID, targetID, unitID, weaponNum)
 	local doomage = getWeaponDoomageAgainstTarget(weaponDefID, targetID, false)
 	local certainties = precalculatedCertainties[weaponDefID]
 	if not certainties then
@@ -408,6 +416,12 @@ local function applyWeaponDoomageToTarget(weaponDefID, targetID)
 	if targetUnitData.doomPoints <= 0 then
 		doomedUnits[targetID] = true
 	end
+	
+	-- Store weapon -> target mapping when doomage is applied
+	if unitID and weaponNum then
+		local weaponID = getWeaponID(unitID, weaponNum)
+		weaponsWithTargets[weaponID] = targetID
+	end
 end
 
 local function applyUnitWeaponDoomages()
@@ -421,8 +435,28 @@ local function applyUnitWeaponDoomages()
 					if targetID and targetType == WEAPON_TARGET_TYPE_UNIT and isWeaponAvailableToFire(unitID, weaponNum) then
 						local weaponDefID = unitDef.weapons[weaponNum].weaponDef
 						if weaponDefID then
-							applyWeaponDoomageToTarget(weaponDefID, targetID)
+							applyWeaponDoomageToTarget(weaponDefID, targetID, unitID, weaponNum)
 						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function clearTargetsFromWeaponsWithNoTarget()
+	for unitID, unitData in pairs(unitWatch) do
+		local unitDefID = unitDefCache[unitID]
+		if unitDefID then
+			local unitDef = UnitDefs[unitDefID]
+			if unitDef.weapons then
+				for weaponNum = 1, #unitDef.weapons do
+					local weaponID = getWeaponID(unitID, weaponNum)
+					local targetType, isUserTarget, targetID = spGetUnitWeaponTarget(unitID, weaponNum)
+					
+					-- If weapon has no target, clear it from weaponsWithTargets
+					if not targetID or targetType ~= WEAPON_TARGET_TYPE_UNIT then
+						weaponsWithTargets[weaponID] = nil
 					end
 				end
 			end
@@ -442,7 +476,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		calculateWeaponCertainties(weaponDefID)
 		calculateWeaponDibsPriority(weaponDefID)
 		calculateWeaponDoomages(weaponDefID)
-		Spring.Echo("name", weaponDef.name, "certainties", precalculatedCertainties[weaponDefID], "dibsStep", weaponDefDibsSteps[weaponDefID])
 	end
 
 	if weaponTypeCertaintyPenalties[weaponDef.type] then
@@ -455,8 +488,10 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID, builderDefID, builderTeam)
+	local health = Spring.GetUnitHealth(unitID)
 	unitWatch[unitID] = {
-		doomPoints = Spring.GetUnitHealth(unitID)
+		doomPoints = health,
+		maxDoomPoints = health
 	}
 	unitDefCache[unitID] = unitDefID
 end
@@ -464,16 +499,48 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	unitWatch[unitID] = nil
 	unitDefCache[unitID] = nil
+	
+	-- Clean up weaponsWithTargets for destroyed unit
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef and unitDef.weapons then
+		for weaponNum = 1, #unitDef.weapons do
+			local weaponID = getWeaponID(unitID, weaponNum)
+			weaponsWithTargets[weaponID] = nil
+		end
+	end
 end
 
 function gadget:ProjectileCreated(projectileID, weaponDefID, attackerID, attackerDefID, attackerTeam)
 	if slowProjectileDefs[weaponDefID] then
 		local targetType, targetID = spGetProjectileTarget(projectileID)
 		if targetType == PROJECTILE_TARGET_TYPE_UNIT then
+			-- Apply doomage immediately when projectile is created
+			local doomage = getWeaponDoomageAgainstTarget(weaponDefID, targetID, true)
+			local targetUnitData = unitWatch[targetID]
+			if targetUnitData then
+				local certainties = precalculatedCertainties[weaponDefID]
+				if certainties then
+					local certainty
+					if isUnitMoving(targetID) then
+						certainty = certainties.movingTarget
+					else
+						certainty = certainties.accuracy
+					end
+					
+					local adjustedDoomage = doomage * certainty
+					targetUnitData.doomPoints = targetUnitData.doomPoints - adjustedDoomage
+					
+					if targetUnitData.doomPoints <= 0 then
+						doomedUnits[targetID] = true
+					end
+				end
+			end
+			
+			-- Still track the projectile for GameFrame cleanup
 			projectileWatch[projectileID] = {
 				weaponDefID = weaponDefID,
 				targetID = targetID,
-				doomage = getWeaponDoomageAgainstTarget(weaponDefID, targetID, true)
+				doomage = doomage
 			}
 		end
 	end
@@ -490,6 +557,7 @@ function gadget:GameFrame(frame)
 		doomedUnits = {}
 		applyProjectileDoomages()
 		applyUnitWeaponDoomages()
+		clearTargetsFromWeaponsWithNoTarget()
 	end
 end
 
@@ -511,10 +579,21 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	if not defPriority then
 		return
 	end
-	Spring.Echo(gameFrame, "checking...", targetID, doomedUnits[targetID])
-	if doomedUnits[targetID] then
-		Spring.Echo("targetID", targetID, "defPriority", defPriority, "priorityMultipliers.dropNow", priorityMultipliers.dropNow)
-		return true, defPriority * priorityMultipliers.dropNow
+	
+	-- Check if target doesn't match existing weapon's current entry
+	local weaponID = getWeaponID(attackerID, attackerWeaponNum)
+	local existingTargetID = weaponsWithTargets[weaponID]
+	
+	if existingTargetID and existingTargetID ~= targetID then
+		-- Target has changed, apply doomage immediately
+		applyWeaponDoomageToTarget(attackerWeaponDefID, targetID, attackerID, attackerWeaponNum)
+		Spring.Echo("Recheck Target", targetID, existingTargetID)
+	end
+	
+	local targetUnitData = unitWatch[targetID]
+	if targetUnitData and targetUnitData.doomPoints <= -targetUnitData.maxDoomPoints then
+		Spring.Echo("Target denied - doomPoints too negative", targetID, targetUnitData.doomPoints, -targetUnitData.maxDoomPoints)
+		return false, defPriority * priorityMultipliers.dropNow
 	end
 	return true, defPriority
 end
@@ -524,9 +603,13 @@ function gadget:Initialize()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitTeam = Spring.GetUnitTeam(unitID)
-		if unitDefID and unitTeam then
-			gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if unitDefID then
+			local health = Spring.GetUnitHealth(unitID)
+			unitWatch[unitID] = {
+				doomPoints = health,
+				maxDoomPoints = health
+			}
+			unitDefCache[unitID] = unitDefID
 		end
 	end
 end
