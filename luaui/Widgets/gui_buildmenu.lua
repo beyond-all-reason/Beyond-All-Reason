@@ -1124,7 +1124,7 @@ end
 function widget:SelectionChanged(sel)
 	--[[ MODIFICATION START ]]
 	-- The original `updateSelection = true` is replaced with the debouncer.
-	selectionUpdateCountdown = 3
+	selectionUpdateCountdown = 1
 	--[[ MODIFICATION END ]]
 end
 
