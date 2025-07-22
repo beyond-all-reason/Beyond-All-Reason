@@ -55,7 +55,7 @@ return {
 			[17] = "armdf",
 			[18] = "armap",
 			[19] = "armaap",
-			[20] = "armsaap",
+			[20] = "armhaap",
 			[21] = "armmoho",
 		},
 		customparams = {
