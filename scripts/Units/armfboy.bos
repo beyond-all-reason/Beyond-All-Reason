@@ -352,7 +352,7 @@ RestoreAfterDelay()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = barrel;
+	pieceIndex = turret;
 	return (0);
 }
 
