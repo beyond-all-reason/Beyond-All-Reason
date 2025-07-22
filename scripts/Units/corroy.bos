@@ -123,7 +123,7 @@ FireWeapon2()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = turret;
+	pieceIndex = barrel2 ;
 }
 
 QueryWeapon1(pieceIndex)

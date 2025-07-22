@@ -266,7 +266,7 @@ FireWeapon2()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = emit_spark;
+	pieceIndex = lturret;
 	return (0);
 }
 

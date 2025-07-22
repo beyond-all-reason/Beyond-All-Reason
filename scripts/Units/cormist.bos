@@ -131,7 +131,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = gun;
+	pieceIndex = flare1;
 }
 QueryWeapon1(pieceIndex)
 {
@@ -169,7 +169,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = gun;
+	piecenum = flare1;
 }
 
 QueryWeapon2(piecenum)
