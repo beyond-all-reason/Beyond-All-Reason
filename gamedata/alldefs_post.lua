@@ -1681,7 +1681,7 @@ function UnitDef_Post(name, uDef)
 			[15] = "corfmd",
 			[16] = "corlab",
 			[17] = "coralab",
-			[18] = "coralab",
+			[18] = "corsalab",
 			[19] = "cormoho",
 		}
 		elseif name == "coracv" then
