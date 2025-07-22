@@ -1,0 +1,342 @@
+
+#include "../recoil_common_includes.h"	
+#include "../factories_common.h"
+
+piece  base, pad, nanofr, nanofl, nanobr, nanobl, nanotop, nanobot, caseback, casebacknano, beamleft, beamright, coverleft, coverright, casefront, 
+casefrontin, casefrontlow, casefrontmid, nanofront, head, headbot, headtop, reactor_li, reactor_lo, reactor_ri, reactor_ro, rodfront,
+cellBase1, cellBase2, cellBase3, cellBase4, cell1, cell2, cell3, cell4, 
+smoke1,
+smoke2,
+smoke3,
+smoke4,
+smoke5,
+smoke6,
+smoke7,
+smoke8,
+smoke9,
+smoke10,
+smoke11,
+smoke12;
+
+
+static-var  spray, Stunned;
+
+SmokeItUp()
+{	while (TRUE) {
+		emit-sfx 258 from smoke1;
+		sleep 45;
+		emit-sfx 258 from smoke2;
+		sleep 45;
+		emit-sfx 258 from smoke3;
+		sleep 45;
+		emit-sfx 258 from smoke4;
+		sleep 45;
+		emit-sfx 258 from smoke5;
+		sleep 45;
+		emit-sfx 258 from smoke6;
+		sleep 45;
+		emit-sfx 258 from smoke7;
+		sleep 45;
+		emit-sfx 258 from smoke8;
+		sleep 45;
+		emit-sfx 258 from smoke9;
+		sleep 45;
+		emit-sfx 258 from smoke10;
+		sleep 45;
+		emit-sfx 258 from smoke11;
+		sleep 45;
+		emit-sfx 258 from smoke12;
+		sleep 100;
+	}
+}
+
+MoveCells()
+{
+	while(TRUE)
+	{
+		move cell1 to y-axis [0] speed [5];
+		sleep 500;
+		move cell4 to y-axis [0] speed [5];
+		sleep 500;
+		move cell2 to y-axis [0] speed [5];
+		sleep 500;
+		move cell3 to y-axis [0] speed [5];
+		sleep 500;
+		wait-for-move cell1 along y-axis;
+		move cell1 to y-axis [-7] speed [5];
+		sleep 500;
+		move cell4 to y-axis [-7] speed [5];
+		sleep 500;
+		move cell2 to y-axis [-7] speed [5];
+		sleep 500;
+		move cell3 to y-axis [-7] speed [5];
+		sleep 500;
+		wait-for-move cell1 along y-axis;
+	}
+}
+
+///////////////
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move reactor_li to x-axis [-1.5] speed [6];
+	move reactor_ri to x-axis [1.5] speed [6];
+	wait-for-move reactor_li along x-axis;
+	move reactor_lo to x-axis [-0.5] speed [6];
+	move reactor_ro to x-axis [0.5] speed [6];
+
+	turn head to x-axis <10> speed <20>;
+	turn headtop to x-axis <-15> speed <15>;
+	turn headbot to x-axis <30> speed <30>;
+
+	turn rodfront to x-axis <10> speed <15>;
+
+	move casefrontlow to y-axis [-5.5] speed [11];
+	move casefrontlow to z-axis [3.5] speed [7];
+
+
+	move casefront to z-axis [2.5] speed [5];
+	wait-for-move casefront along z-axis;
+	move casefront to y-axis [-5] speed [5];
+	move casefront to z-axis [14.5] speed [14.5];
+	turn nanofront to x-axis <50> speed <27>;
+	
+
+
+	move casefrontmid to z-axis [1.5] speed [12];
+	turn casefrontmid to x-axis <60> speed <30>;	
+
+	move caseback to y-axis [-7] speed [28];
+	move caseback to z-axis [-4] speed [16];
+	move casefrontin to y-axis [-15] speed [45];
+	move casefrontin to z-axis [8] speed [24];
+	move casebacknano to y-axis [9] speed [18];
+	move casebacknano to z-axis [3.5] speed [7];
+
+	wait-for-move casebacknano along y-axis;
+
+	move beamleft to x-axis [2.4] speed [10];
+	move beamright to x-axis [-2.4] speed [10];
+	turn beamleft to x-axis <-60> speed <70>;
+	turn beamright to x-axis <-60> speed <70>;
+	turn coverleft to x-axis <120> speed <140>;
+	turn coverright to x-axis <120> speed <140>;
+	
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn beamleft to x-axis <0> speed <70>;
+	turn beamright to x-axis <0> speed <70>;
+	turn coverleft to x-axis <0> speed <140>;
+	turn coverright to x-axis <0> speed <140>;
+	wait-for-turn beamleft around x-axis;
+	move beamleft to x-axis [0] speed [10];
+	move beamright to x-axis [0] speed [10];
+	wait-for-move beamleft along x-axis;
+	move caseback to y-axis [0] speed [16];
+	move caseback to z-axis [0.2] speed [14];
+	move casebacknano to y-axis [0] speed [16];
+	move casebacknano to z-axis [0] speed [16];
+	move coverleft to x-axis [0] speed [10];
+	move coverright to x-axis [0] speed [10];
+
+	move casefrontin to y-axis [0] speed [30];
+	move casefrontin to z-axis [0] speed [16];
+
+
+	turn casefrontmid to x-axis <0> speed <40>;	
+
+	move casefrontlow to y-axis [0] speed [22];
+	move casefrontlow to z-axis [0] speed [14];	
+
+	move casefront to y-axis [0] speed [12];
+	move casefront to z-axis [0] speed [22];
+	turn rodfront to x-axis <0> speed <30>;
+	turn nanofront to x-axis <0> speed <30>;
+
+	turn headtop to x-axis <0> speed <15>;
+	turn headbot to x-axis <0> speed <30>;
+	turn head to x-axis <0> speed <20>;
+
+	move reactor_li to x-axis [2] speed [10];
+	move reactor_lo to x-axis [2.5] speed [12];
+	move reactor_ri to x-axis [-2] speed [4];
+	move reactor_ro to x-axis [-2.5] speed [6];
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+//////////
+
+
+Create()
+{
+	hide pad;
+	hide nanofr;
+	hide nanofl;
+	hide nanobr;
+	hide nanobl;
+	hide nanobot;
+	hide nanotop;
+
+	turn cellBase1 to x-axis <40> now;
+	turn cellBase2 to x-axis <40> now;
+	turn cellBase3 to x-axis <40> now;
+	turn cellBase4 to x-axis <40> now;
+
+	move cell1 to y-axis [-7] now;
+	move cell2 to y-axis [-7] now;
+	move cell3 to y-axis [-7] now;
+	move cell4 to y-axis [-7] now;
+
+	move pad to z-axis [2.5] now;
+
+	spray = 0;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+
+	spray = (spray+1) % 6;
+	pieceIndex = nanofr + spray;
+
+	// spray = spray + 1;
+	// if (spray >= 8) 
+	// {
+	// 	spray = 0;
+	// }
+	// pieceIndex = nanobl + spray;
+}
+
+StartBuilding()
+{	
+
+	show nanofr;
+	show nanofl;
+	show nanobr;
+	show nanobl;
+	show nanobot;
+	show nanotop;
+	
+	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
+
+	// while (TRUE) {
+	// 	emit-sfx 259 from smoke1;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke2;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke3;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke4;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke5;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke6;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke7;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke8;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke9;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke10;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke11;
+	// 	sleep 45;
+	// 	emit-sfx 259 from smoke12;
+	// 	sleep 5000;
+	// }
+
+	start-script MoveCells();
+	start-script SmokeItUp();
+
+}
+
+StopBuilding()
+{
+
+	hide nanofr;
+	hide nanofl;
+	hide nanobr;
+	hide nanobl;
+	hide nanobot;
+	hide nanotop;
+	move cell1 to y-axis [-7] speed [14];
+	move cell2 to y-axis [-7] speed [14];
+	move cell3 to y-axis [-7] speed [14];
+	move cell4 to y-axis [-7] speed [14];
+	
+	
+	signal SIGNAL_BUILD;
+}
+
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode casefront type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanofront type BITMAPONLY | NOHEATCLOUD;
+		explode nanotop type BITMAPONLY | NOHEATCLOUD;
+		explode head type BITMAPONLY | NOHEATCLOUD;
+		explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode casefront type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanofront type FALL | NOHEATCLOUD;
+		explode nanotop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode casefront type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanofront type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanotop type SMOKE | FALL | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode casefront type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofront type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanotop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
+
+

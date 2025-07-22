@@ -3669,6 +3669,112 @@ local icontypes = {
 		size = 0.41999999
 	},
 
+	-- T2 split
+
+	armhaac = {
+		bitmap = "icons/shipengineer.png",
+		size = 1.149999999
+	},
+
+	armhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	armhacs = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	armhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhaac = {
+		bitmap = "icons/air_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	corhacs = {
+		bitmap = "icons/shipengineer.png",
+		size = 1.149999999
+	},
+
+	corhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+	leghack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 1.149999999
+	},
+
+	leghacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 1.149999999
+	},
+
+
+	armhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 1.425
+	},
+
+	armhalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	armhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+
+	armhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 1.425
+	},
+
+	
+	corhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 1.425
+	},
+	
+	corhalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	corhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+
+	corhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 1.425
+	},
+
+
+	legalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 1.425
+	},
+
+	leghavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 1.425
+	},
+	
+
 	blank = {
 		bitmap = "icons/blank.png",
 		size = 1,
