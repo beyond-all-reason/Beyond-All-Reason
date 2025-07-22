@@ -31,7 +31,7 @@ return {
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 845,
-		speed = 33.6,
+		speed = 37,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7392,

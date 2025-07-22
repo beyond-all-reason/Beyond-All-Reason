@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "ARMDL.DDS",
-		buildtime = 6600,
+		buildtime = 6000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "44 55 44",
