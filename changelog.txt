@@ -1,5 +1,6 @@
 # June 2025
  [t2 flak turrets] increased footprint from 2x2 to 3x3
+ Warrior movement class from 2x2 to 3x3 (pawn to fido spacing)
 
 # June 2025
 • [Legion changes] 
