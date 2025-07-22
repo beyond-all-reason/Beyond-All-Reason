@@ -72,7 +72,7 @@ local refreshBuildmenu = true
 
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
-local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+local needsSelectionUpdate = false  -- Flag to update selection on the next frame
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -434,61 +434,60 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Debounced selection update logic
-	if selectionUpdateCountdown > 0 then
-		selectionUpdateCountdown = selectionUpdateCountdown - 1
-		if selectionUpdateCountdown == 0 then
-			-- The old `updateSelection = false` is no longer needed
-			-- The rest of the original logic from `if updateSelection` block is moved here
-			selectedBuilders = {}
-			selectedBuilderCount = 0
-			local prevSelectedFactoryCount = selectedFactoryCount
-			selectedFactoryCount = 0
-			local selBuilderDefs = {}
-			SelectedUnitsCount = spGetSelectedUnitsCount()
-			if SelectedUnitsCount > 0 then
-				local sel = Spring.GetSelectedUnits()
-				for _, unitID in pairs(sel) do
-					local uDefID = spGetUnitDefID(unitID)
-					if units.isFactory[uDefID] then
-						selectedFactoryCount = selectedFactoryCount + 1
-						selBuilderDefs[uDefID] = true
-					end
-					if units.isBuilder[uDefID] then
-						selectedBuilders[unitID] = true
-						selectedBuilderCount = selectedBuilderCount + 1
-						selBuilderDefs[uDefID] = true
-					end
+	-- Simplified selection update logic (1-frame delay)
+	if needsSelectionUpdate then
+		-- The logic to update the selection runs here
+		selectedBuilders = {}
+		selectedBuilderCount = 0
+		local prevSelectedFactoryCount = selectedFactoryCount
+		selectedFactoryCount = 0
+		local selBuilderDefs = {}
+		SelectedUnitsCount = spGetSelectedUnitsCount()
+		if SelectedUnitsCount > 0 then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				local uDefID = spGetUnitDefID(unitID)
+				if units.isFactory[uDefID] then
+					selectedFactoryCount = selectedFactoryCount + 1
+					selBuilderDefs[uDefID] = true
 				end
+				if units.isBuilder[uDefID] then
+					selectedBuilders[unitID] = true
+					selectedBuilderCount = selectedBuilderCount + 1
+					selBuilderDefs[uDefID] = true
+				end
+			end
 
-				if selectedFactoryCount ~= prevSelectedFactoryCount then
+			if selectedFactoryCount ~= prevSelectedFactoryCount then
+				doUpdate = true
+			end
+
+			-- check if builder type selection actually differs from previous selection
+			if not doUpdate then
+				if #selBuilderDefs ~= #prevSelBuilderDefs then
 					doUpdate = true
-				end
-
-				-- check if builder type selection actually differs from previous selection
-				if not doUpdate then
-					if #selBuilderDefs ~= #prevSelBuilderDefs then
-						doUpdate = true
-					else
-						for uDefID, _ in pairs(prevSelBuilderDefs) do
-							if not selBuilderDefs[uDefID] then
+				else
+					for uDefID, _ in pairs(prevSelBuilderDefs) do
+						if not selBuilderDefs[uDefID] then
+							doUpdate = true
+							break
+						end
+					end
+					if not doUpdate then
+						for uDefID, _ in pairs(selBuilderDefs) do
+							if not prevSelBuilderDefs[uDefID] then
 								doUpdate = true
 								break
-							end
-						end
-						if not doUpdate then
-							for uDefID, _ in pairs(selBuilderDefs) do
-								if not prevSelBuilderDefs[uDefID] then
-									doUpdate = true
-									break
-								end
 							end
 						end
 					end
 				end
 			end
-			prevSelBuilderDefs = selBuilderDefs
 		end
+		prevSelBuilderDefs = selBuilderDefs
+
+		-- Reset the flag so this only runs once
+		needsSelectionUpdate = false
 	end
 	--[[ MODIFICATION END ]]
 
@@ -1123,8 +1122,7 @@ end
 
 function widget:SelectionChanged(sel)
 	--[[ MODIFICATION START ]]
-	-- The original `updateSelection = true` is replaced with the debouncer.
-	selectionUpdateCountdown = 1
+	needsSelectionUpdate = true
 	--[[ MODIFICATION END ]]
 end
 
