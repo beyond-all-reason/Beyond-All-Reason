@@ -15,7 +15,18 @@ end
 
 include("keysym.h.lua")
 
-SYMKEYS = table.invert(KEYSYMS)
+--- CHANGE START ---
+-- 1. Localize Global Functions
+local pairs = pairs
+local ipairs = ipairs
+local tonumber = tonumber
+local string_format = string.format
+local table_invert = table.invert
+local pcall = pcall
+local table_wipe = table.wipe -- Assumes a modern Spring engine environment
+
+SYMKEYS = table_invert(KEYSYMS)
+--- CHANGE END ---
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
@@ -60,7 +71,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, activeAreaMargin
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
-local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
+local doUpdate, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
@@ -73,6 +84,7 @@ local refreshBuildmenu = true
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
 local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+local raceConditionUpdateCountdown = 0 -- Timer for race conditions
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -113,13 +125,22 @@ local height = 0
 local selectedBuilders = {}
 local selectedBuilderCount = 0
 local selectedFactoryCount = 0
+--- CHANGE START ---
+-- 2. Persistent cellRects Table
 local cellRects = {}
+--- CHANGE END ---
 local cmds = {}
 local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+
+--- CHANGE START ---
+-- 4. Pre-calculation Tables for Loops
+local unitDefToCellMap = {}
+local cellQuotas = {}
+--- CHANGE END ---
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -252,6 +273,82 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 end
 
+--- CHANGE START ---
+-- 3. Cache Grid Geometry
+local function UpdateGridGeometry()
+	local activeArea = {
+		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
+		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
+		backgroundRect[3] - bgpadding - activeAreaMargin,
+		backgroundRect[4] - bgpadding - activeAreaMargin
+	}
+	local contentHeight = activeArea[4] - activeArea[2]
+	local contentWidth = activeArea[3] - activeArea[1]
+	local maxCellSize = contentHeight/2
+	-- determine grid size
+	if not dynamicIconsize then
+		colls = defaultColls
+		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
+		rows = math_floor(contentHeight / cellSize)
+	else
+		colls = minColls
+		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
+
+		rows = math_floor(contentHeight / cellSize)
+		if minColls < maxColls then
+			while cmdsCount > rows * colls do
+				colls = colls + 1
+				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
+				rows = math_floor(contentHeight / cellSize)
+				if colls == maxColls then
+					break
+				end
+			end
+		end
+		if stickToBottom then
+			if rows > 1 and cmdsCount <= (colls-1) * rows then
+				colls = colls - 1
+				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows)))
+			end
+		end
+	end
+
+	-- adjust grid size when pages are needed
+	local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
+	if cmdsCount > colls * rows then
+		pages = math_ceil(cmdsCount / (colls * rows))
+		-- when more than 1 page: reserve bottom row for paginator and calc again
+		if pages > 1 then
+			pages = math_ceil(cmdsCount / (colls * (rows - 1)))
+		end
+		if currentPage > pages then
+			currentPage = pages
+		end
+
+		-- remove a row if there isnt enough room for the paginator UI
+		if not stickToBottom then
+			if paginatorCellHeight < (0.06 * (1 - ((colls / 4) * 0.25))) * vsy then
+				rows = rows - 1
+			end
+		else
+			if paginatorCellHeight < (0.06 * (1 - ((rows / 4) * 0.25))) * vsx then
+				colls = colls - 1
+			end
+		end
+	else
+		currentPage = 1
+		pages = 1
+	end
+
+	-- these are globals so it can be re-used (hover highlight)
+	cellPadding = math_floor(cellSize * cfgCellPadding)
+	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
+	cornerSize = math_floor(cellSize * cfgIconCornerSize)
+	cellInnerSize = cellSize - cellPadding - cellPadding
+	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
+end
+--- CHANGE END ---
+
 local function RefreshCommands()
 	cmds = {}
 	cmdsCount = 0
@@ -260,10 +357,10 @@ local function RefreshCommands()
 		if startDefID then
 
 			local cmdUnitdefs = {}
-			for i, udefid in pairs(unitBuildOptions[startDefID]) do
+			for i, udefid in ipairs(unitBuildOptions[startDefID]) do
 				cmdUnitdefs[udefid] = i
 			end
-			for k, uDefID in pairs(units.unitOrder) do
+			for k, uDefID in ipairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
@@ -280,21 +377,21 @@ local function RefreshCommands()
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
-			for index, cmd in pairs(activeCmdDescs) do
+			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
 					end
 				end
 			end
-			for k, uDefID in pairs(units.unitOrder) do
+			for k, uDefID in ipairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
 					cmdsCount = cmdsCount + 1
 					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
 				end
 			end
 		else
-			for index, cmd in pairs(activeCmdDescs) do
+			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdsCount = cmdsCount + 1
@@ -316,6 +413,43 @@ local function RefreshCommands()
 		refreshRetryCounter = 0
 	end
 	--[[ MODIFICATION END ]]
+
+	--- CHANGE START ---
+	-- 3. & 4. Pre-calculate geometry and lookup tables
+	UpdateGridGeometry()
+
+	if table_wipe then
+		table_wipe(unitDefToCellMap)
+		table_wipe(cellQuotas)
+	else
+		unitDefToCellMap = {}
+		cellQuotas = {}
+	end
+
+	local numCellsPerPage = rows * colls
+	local startCellID = numCellsPerPage * (currentPage - 1)
+	for i = 1, numCellsPerPage do
+		local cellRectID = startCellID + i
+		if cmds[cellRectID] then
+			local uDefID = cmds[cellRectID].id * -1
+			unitDefToCellMap[uDefID] = cellRectID
+		end
+	end
+
+	if WG.Quotas then
+		local quotas = WG.Quotas.getQuotas()
+		for _, factoryID in ipairs(spGetSelectedUnits()) do
+			if quotas[factoryID] then
+				for uDefID, quotaValue in pairs(quotas[factoryID]) do
+					cellQuotas[uDefID] = {
+						builderID = factoryID,
+						quota = quotaValue,
+					}
+				end
+			end
+		end
+	end
+	--- CHANGE END ---
 end
 
 local function clear()
@@ -406,6 +540,12 @@ function widget:ViewResize()
 	checkGuishader(true)
 	clear()
 	doUpdate = true
+	--- CHANGE START ---
+	-- 3. Recalculate geometry on resize
+	if cmdsCount > 0 then
+		UpdateGridGeometry()
+	end
+	--- CHANGE END ---
 end
 
 function widget:LanguageChanged()
@@ -417,7 +557,7 @@ end
 -- update queue number
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	if spIsUnitSelected(factID) then
-		doUpdateClock = os_clock() + 0.001
+		raceConditionUpdateCountdown = 2
 	end
 end
 
@@ -448,7 +588,7 @@ function widget:Update(dt)
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 			if SelectedUnitsCount > 0 then
 				local sel = Spring.GetSelectedUnits()
-				for _, unitID in pairs(sel) do
+				for _, unitID in ipairs(sel) do
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
 						selectedFactoryCount = selectedFactoryCount + 1
@@ -605,7 +745,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
-				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+				return string_format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
 			end
 			return price
 		end
@@ -632,18 +772,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		)
 	end
 
-
-	local quotaNumber, builderID
-	for _, factoryID in ipairs(spGetSelectedUnits()) do
-		if WG.Quotas and WG.Quotas.getQuotas()[factoryID] and WG.Quotas.getQuotas()[factoryID][uDefID] then
-			quotaNumber = WG.Quotas.getQuotas()[factoryID][uDefID]
-			builderID = factoryID
-			break
-		end
-	end
-
-	if quotaNumber and quotaNumber ~= 0 then
-		local quotaText = WG.Quotas.getUnitAmount(builderID, uDefID) .. "/" .. quotaNumber
+	--- CHANGE START ---
+	-- 4. Use pre-calculated quota table
+	local quotaInfo = cellQuotas[uDefID]
+	if quotaInfo and quotaInfo.quota ~= 0 then
+		local quotaText = WG.Quotas.getUnitAmount(quotaInfo.builderID, uDefID) .. "/" .. quotaInfo.quota
 		local quotaFontSize = cellInnerSize * 0.29
 		local textWidth = font2:GetTextWidth(quotaText .. "  ") * quotaFontSize
 		local pad = math_floor(cellInnerSize * 0.03)
@@ -659,14 +792,17 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		font2:Print(
 			"\255\255\130\190" .. quotaText,
 			cellRects[cellRectID][1] + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
-			cellRects[cellRectID][2] + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*quotaFontSize)/2,
+			cellRects[cellRectID][2] + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaInfo.quota)*quotaFontSize)/2,
 			quotaFontSize,
 			"ro"
 		)
 	end
+	--- CHANGE END ---
 end
 
 function drawBuildmenu()
+	--- CHANGE START ---
+	-- 3. Grid geometry is now pre-calculated, so this function is just a renderer
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -675,72 +811,16 @@ function drawBuildmenu()
 	}
 	local contentHeight = activeArea[4] - activeArea[2]
 	local contentWidth = activeArea[3] - activeArea[1]
-	local maxCellSize = contentHeight/2
-	-- determine grid size
-	if not dynamicIconsize then
-		colls = defaultColls
-		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
-		rows = math_floor(contentHeight / cellSize)
-	else
-		colls = minColls
-		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
-
-		rows = math_floor(contentHeight / cellSize)
-		if minColls < maxColls then
-			while cmdsCount > rows * colls do
-				colls = colls + 1
-				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
-				rows = math_floor(contentHeight / cellSize)
-				if colls == maxColls then
-					break
-				end
-			end
-		end
-		if stickToBottom then
-			if rows > 1 and cmdsCount <= (colls-1) * rows then
-				colls = colls - 1
-				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows)))
-			end
-		end
-	end
-
-	-- adjust grid size when pages are needed
 	local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
-	if cmdsCount > colls * rows then
-		pages = math_ceil(cmdsCount / (colls * rows))
-		-- when more than 1 page: reserve bottom row for paginator and calc again
-		if pages > 1 then
-			pages = math_ceil(cmdsCount / (colls * (rows - 1)))
-		end
-		if currentPage > pages then
-			currentPage = pages
-		end
 
-		-- remove a row if there isnt enough room for the paginator UI
-		if not stickToBottom then
-			if paginatorCellHeight < (0.06 * (1 - ((colls / 4) * 0.25))) * vsy then
-				rows = rows - 1
-				paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
-			end
-		else
-			if paginatorCellHeight < (0.06 * (1 - ((rows / 4) * 0.25))) * vsx then
-				colls = colls - 1
-				paginatorCellHeight = math_floor(contentHeight - (colls * cellSize))
-			end
-		end
+	-- 2. Reuse cellRects table
+	if table_wipe then
+		table_wipe(cellRects)
 	else
-		currentPage = 1
-		pages = 1
+		cellRects = {}
 	end
+	--- CHANGE END ---
 
-	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * cfgCellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
-	cornerSize = math_floor(cellSize * cfgIconCornerSize)
-	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
-
-	cellRects = {}
 	local numCellsPerPage = rows * colls
 	local cellRectID = numCellsPerPage * (currentPage - 1)
 	local maxCellRectID = numCellsPerPage * currentPage
@@ -761,7 +841,6 @@ function drawBuildmenu()
 			iconCount = iconCount + 1
 			cellRectID = cellRectID + 1
 
-			local uDefID = cmds[cellRectID].id * -1
 			if stickToBottom then
 				cellRects[cellRectID] = {
 					activeArea[1] + ((coll - 1) * cellSize),
@@ -780,7 +859,7 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefID])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
 		end
 	end
 
@@ -832,11 +911,16 @@ function widget:DrawScreen()
 	end
 
 	local x, y, b, b2, b3 = spGetMouseState()
-	local now = os_clock()
-	if doUpdate or (doUpdateClock and now >= doUpdateClock) or refreshBuildmenu then
-		if doUpdateClock and now >= doUpdateClock then
-			doUpdateClock = nil
+	-- Handle the frame-based counter for race conditions
+	if raceConditionUpdateCountdown > 0 then
+		raceConditionUpdateCountdown = raceConditionUpdateCountdown - 1
+		if raceConditionUpdateCountdown == 0 then
+			doUpdate = true
 		end
+	end
+
+	-- The main refresh condition check
+	if doUpdate or refreshBuildmenu then
 		if not useRenderToTexture then
 			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 		end
@@ -1055,36 +1139,23 @@ function widget:DrawScreen()
 
 		-- draw builders buildoption progress
 		if showBuildProgress then
-			local numCellsPerPage = rows * colls
-			local maxCellRectID = numCellsPerPage * currentPage
-			if maxCellRectID > cmdsCount then
-				maxCellRectID = cmdsCount
-			end
-			-- loop selected builders
-			local drawncellRectIDs = {}
+			--- CHANGE START ---
+			-- 4. Use pre-calculated map to eliminate nested loops
 			for builderUnitID, _ in pairs(selectedBuilders) do
 				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 				if unitBuildID then
 					local unitBuildDefID = spGetUnitDefID(unitBuildID)
 					if unitBuildDefID then
-						-- loop all shown cells
-						for cellRectID, _ in pairs(cellRects) do
-							if not drawncellRectIDs[cellRectID] then
-								if cellRectID > maxCellRectID then
-									break
-								end
-								local cellUnitDefID = cmds[cellRectID].id * -1
-								if unitBuildDefID == cellUnitDefID then
-									drawncellRectIDs[cellRectID] = true
-									local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
-									progress = 1 - progress -- make the effect wind counter-clockwise
-									RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
-								end
-							end
+						local cellRectID = unitDefToCellMap[unitBuildDefID]
+						if cellRectID and cellRects[cellRectID] then
+							local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
+							progress = 1 - progress -- make the effect wind counter-clockwise
+							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 						end
 					end
 				end
 			end
+			--- CHANGE END ---
 		end
 	end
 end
@@ -1108,9 +1179,7 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
 	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
-		if doUpdateClock == nil then
-			doUpdateClock = os_clock() + 0.001
-		end
+		raceConditionUpdateCountdown = 2
 	end
 	if cmdID == CMD_STOP_PRODUCTION then
 		if WG.Quotas then
@@ -1217,7 +1286,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+					if cmds[cellRectID] and cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						local uDefID = cmds[cellRectID].id  --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1256,7 +1325,7 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						end
-						doUpdateClock = os_clock() + 0.001
+						raceConditionUpdateCountdown = 2
 						return true
 					end
 				end
@@ -1311,8 +1380,8 @@ local function buildUnitHandler(_, _, _, data)
 
 	local buildCycle = {}
 	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
-		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
-			local uDefName = string.sub(keybind.command, 11)
+		if string_sub(keybind.command, 1, 10) == 'buildunit_' then
+			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 	        if uDef then -- prevents crashing when trying to access unloaded units (legion)
 	            if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
