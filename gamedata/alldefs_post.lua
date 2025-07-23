@@ -1922,6 +1922,8 @@ function UnitDef_Post(name, uDef)
 			[7] = "armspid",
 			[8] = "armfast",
 			[9] = "armvader",
+			[10] = "armsptk"
+			[11] = "armspy"
 			}
 
 		elseif name == "legalab" then
@@ -1945,6 +1947,9 @@ function UnitDef_Post(name, uDef)
 				[5] = "armart",
 				[6] = "armjanus",
 				[7] = "armsam",
+				[8] = "armbeaver",
+				[9] = "armpincer",
+				[10] = "armsh"
 			}
 
 		elseif name == "corvp" then
@@ -1975,14 +1980,15 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armavp" then
 			uDef.buildoptions = {
 			[1] = "armacv",
-			[2] = "armbeaver",
+			[2] = "armch",
 			[3] = "armmlv",
 			[4] = "armcroc",
 			[5] = "armlatnk",
-			[6] = "armpincer",
+			[6] = "armah",
 			[7] = "armmart",
 			[8] = "armgremlin",
-			[9] = "corsh",
+			[9] = "armmh",
+			[10] = "armanac",
 			}
 		
 		elseif name == "coravp" then

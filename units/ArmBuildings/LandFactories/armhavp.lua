@@ -38,6 +38,7 @@ return {
 			[6] = "armseer",
 			[7] = "armjam",
 			[8] = "armthor",
+			[9] = "armlun"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
