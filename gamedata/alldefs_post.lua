@@ -2557,28 +2557,34 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armaca" then
+			uDef.buildpic = "ARMCSA.DDS"
+			uDef.objectname = "Units/ARMCSA.s3o"
+			uDef.script = "Units/ARMCSA.cob"
 			uDef.buildoptions = {
-			[1] = "armadvsol",
-			[2] = "armamex",
-			[3] = "armbeamer",
-			[4] = "armhlt",
-			[5] = "armguard",
-			[6] = "armferret",
-			[7] = "armcir",
-			[8] = "armjuno",
-			[9] = "armclaw",
-			[10] = "armarad",
-			[11] = "armveil",
-			[12] = "armfus",
-			[13] = "armgmm",
-			[14] = "armhaap",
-			[15] = "armap",
-			[16] = "armaap",
-			[17] = "armsd",
-			[18] = "armmakr"
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armveil",
+				[12] = "armfus",
+				[13] = "armgmm",
+				[14] = "armhaap",
+				[15] = "armap",
+				[16] = "armaap",
+				[17] = "armsd",
+				[18] = "armmakr"
 			}
 		
 		elseif name == "coraca" then
+			uDef.uDef.buildpic = "CORCSA.DDS"
+			uDef.objectname = "Units/CORCSA.s3o"
+			uDef.script = "Units/CORCSA.cob"
 			uDef.buildoptions = {
 				[1] = "coradvsol",
 				[2] = "corexp",
@@ -2596,7 +2602,7 @@ function UnitDef_Post(name, uDef)
 				[14] = "corhaap",
 				[15] = "coraap",
 				[16] = "cormakr"
-		}
+			}
 
 		elseif name == "legca" then
 			uDef.buildoptions = {
