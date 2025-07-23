@@ -16,6 +16,8 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_INSERT = CMD.INSERT
+
 local function isNearGeo(x, z)
 	-- modded geos can be bigger than 40 elmo but w/e, this gadget only lives
 	-- until next engine anyway, plus centered placement still works
@@ -33,10 +35,17 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 end
 
-local CMD_INSERT = CMD.INSERT
+local params = {}
+
+local function fromInsert(cmdParams)
+	local p = params
+	p[1], p[2], p[3], p[4], p[5] = cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7], cmdParams[8]
+	return cmdParams[2], p
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD_INSERT then
-		return gadget:AllowCommand(unitID, unitDefID, teamID, cmdParams[2], {cmdParams[4], cmdParams[5], cmdParams[6]}, cmdParams[3])
+		cmdID, cmdParams = fromInsert(cmdParams)
 	end
 
 	return cmdID >= 0 or not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])

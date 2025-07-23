@@ -31,6 +31,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spIsPosInMap = Spring.IsPosInMap
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
+local CMD_INSERT = CMD.INSERT
 
 local isMobileUnit = {}
 local isBuilder = {}
@@ -87,12 +88,23 @@ function gadget:GameFrame(f)
 	end
 end
 
+local params = {}
+local function fromInsert(cmdParams)
+	local p = params
+	p[1] = cmdParams[4]
+	return cmdParams[2], p
+end
+
 local function isInsideMap(unitID)
 	local x,_,z = spGetUnitPosition(unitID)
 	return spIsPosInMap(x, z)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = fromInsert(cmdParams)
+	end
+
 	if cmdID == CMD_STOP and isMobileUnit[unitDefID] then
 		return isInsideMap(unitID)
 	elseif cmdID == CMD_GUARD then
@@ -105,5 +117,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			end
 		end
 	end
+
 	return true
 end
