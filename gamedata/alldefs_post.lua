@@ -1922,6 +1922,8 @@ function UnitDef_Post(name, uDef)
 			[7] = "armspid",
 			[8] = "armfast",
 			[9] = "armvader",
+			[10] = "armspy",
+			[11] = "armsptk",
 			}
 
 		elseif name == "legalab" then
