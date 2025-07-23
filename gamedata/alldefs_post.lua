@@ -1922,7 +1922,7 @@ function UnitDef_Post(name, uDef)
 			[7] = "armspid",
 			[8] = "armfast",
 			[9] = "armvader",
-			[10] = "armsptk"
+			[10] = "armsptk",
 			[11] = "armspy"
 			}
 
