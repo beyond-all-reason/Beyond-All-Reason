@@ -2,11 +2,11 @@ return {
 	legfhp = {
 		maxacc = 0,
 		maxdec = 0,
-		energycost = 3000,
-		metalcost = 900,
+		energycost = 2750,
+		metalcost = 750,
 		builder = true,
 		buildpic = "LEGFHP.DDS",
-		buildtime = 11000,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 35 96",
@@ -28,7 +28,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 100,
+		workertime = 150,
 		yardmap = "weeeew weeeew weeeew weeeew weeeew weeeew",
 		buildoptions = {
 			[1] = "legch",

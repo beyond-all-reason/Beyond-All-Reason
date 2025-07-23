@@ -43,7 +43,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
-			fighter = 1,
+			attacksafetydistance = 300,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

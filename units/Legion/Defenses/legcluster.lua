@@ -7,7 +7,7 @@ return {
 		energycost = 11000,
 		metalcost = 850,
 		buildpic = "LEGCLUSTER.DDS",
-		buildtime = 19300,
+		buildtime = 17400,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
