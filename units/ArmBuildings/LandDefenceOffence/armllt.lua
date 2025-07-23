@@ -2,7 +2,7 @@ return {
 	armllt = {
 		buildangle = 32768,
 		buildpic = "ARMLLT.DDS",
-		buildtime = 2660,
+		buildtime = 2400,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 -31 0",

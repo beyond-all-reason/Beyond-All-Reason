@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
-		speed = 65.1,
+		speed = 60,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "armbull_tracks",
