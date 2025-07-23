@@ -2582,7 +2582,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "coraca" then
-			uDef.uDef.buildpic = "CORCSA.DDS"
+			uDef.buildpic = "CORCSA.DDS"
 			uDef.objectname = "Units/CORCSA.s3o"
 			uDef.script = "Units/CORCSA.cob"
 			uDef.buildoptions = {
