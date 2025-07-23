@@ -19,7 +19,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 7900,
+		metalcost = 4600,
 		metalstorage = 800,
 		objectname = "Units/ARMHAVP.s3o",
 		script = "Units/ARMAMSUB.cob",
@@ -38,6 +38,7 @@ return {
 			[6] = "armseer",
 			[7] = "armjam",
 			[8] = "armthor",
+			[9] = "armlun"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

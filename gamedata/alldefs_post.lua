@@ -1945,6 +1945,9 @@ function UnitDef_Post(name, uDef)
 				[5] = "armart",
 				[6] = "armjanus",
 				[7] = "armsam",
+				[8] = "armbeaver",
+				[9] = "armpincer",
+				[10] = "armsh"
 			}
 
 		elseif name == "corvp" then
@@ -1975,14 +1978,15 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armavp" then
 			uDef.buildoptions = {
 			[1] = "armacv",
-			[2] = "armbeaver",
+			[2] = "armch",
 			[3] = "armmlv",
 			[4] = "armcroc",
 			[5] = "armlatnk",
 			[6] = "armpincer",
 			[7] = "armmart",
 			[8] = "armgremlin",
-			[9] = "corsh",
+			[9] = "armanac",
+			[10] = "armmh"
 			}
 		
 		elseif name == "coravp" then
