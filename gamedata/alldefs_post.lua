@@ -1984,11 +1984,11 @@ function UnitDef_Post(name, uDef)
 			[3] = "armmlv",
 			[4] = "armcroc",
 			[5] = "armlatnk",
-			[6] = "armpincer",
+			[6] = "armah",
 			[7] = "armmart",
 			[8] = "armgremlin",
-			[9] = "armanac",
-			[10] = "armmh"
+			[9] = "armmh",
+			[10] = "armanac",
 			}
 		
 		elseif name == "coravp" then
