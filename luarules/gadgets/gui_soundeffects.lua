@@ -86,6 +86,16 @@ for name, defs in pairs(GUIUnitSoundEffects) do
 		if UnitDefNames[name..'_scav'] then
 			newGUIUnitSoundEffects[UnitDefNames[name..'_scav'].id] = defs
 		end
+		-- only use sub-tables for selecting multiple sounds
+		for key, value in pairs(defs) do
+			if type(value) == "table" and #value == 1 then
+				defs[key] = value[1]
+			end
+		end
+		-- ensure activate-able units have deactivate sounds
+		if not defs.BaseSoundDeactivate and defs.BaseSoundActivate then
+			defs.BaseSoundDeactivate = defs.BaseSoundActivate
+		end
 	end
 end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
@@ -231,9 +241,6 @@ function gadget:GameFrame(n)
 				local posx, posy, posz = spGetUnitPosition(unitID)
 				if currentlyActive == 1 then
 					ActiveStateTrackingUnitList[unitID] = 1
-					if not GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate and GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
-						GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
-					end
 					if myTeamID == unitsTeam[unitID] then
 						if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
 							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
