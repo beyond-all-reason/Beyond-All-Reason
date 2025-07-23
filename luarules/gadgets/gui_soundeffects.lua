@@ -31,6 +31,9 @@ local AllyUnitFinishedSoundDelayFrames = 1
 local AllyUnitCreatedSoundDelayFrames = 1
 local AllyCommandUnitDelayFrames = 1
 
+local commandSoundLimit = 20
+local commandSoundCount = commandSoundLimit
+
 -- InitValues
 local PreviouslySelectedUnits = {}
 local ActiveStateTrackingUnitList = {}
@@ -148,15 +151,20 @@ function gadget:Initialize()
 	end
 end
 
-local sec = 0
+local sec, cmd = 0, 0
 function gadget:Update()
-	sec = sec + Spring.GetLastUpdateSeconds()
+	local dt = Spring.GetLastUpdateSeconds()
+	sec = sec + dt
+	cmd = cmd + dt
 	if sec > 0.5 then
 		sec = 0
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
 		spectator, fullview = Spring.GetSpectatingState()
 		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
+	end
+	if cmd > 1 / 30 then
+		commandSoundCount = commandSoundLimit
 	end
 end
 
@@ -356,7 +364,9 @@ end
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if not enabled then return end
 
-	if CurrentGameFrame ~= UsedFrame then
+	if CurrentGameFrame ~= UsedFrame and commandSoundCount > 1 then
+		commandSoundCount = commandSoundCount - 1
+
 		if spIsUnitSelected(unitID) then
 			local selectedUnitCount = spGetSelectedUnitsCount()
 			if selectedUnitCount > 1 then
