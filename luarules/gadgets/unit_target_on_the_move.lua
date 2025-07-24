@@ -304,7 +304,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- register allowcommand callin
 		gadgetHandler:RegisterAllowCommand(CMD_STOP)
 		gadgetHandler:RegisterAllowCommand(CMD_DGUN)
-		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
@@ -553,7 +552,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
 			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 				return false --command was used & fully processed, so block command
@@ -566,9 +565,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif cmdID == CMD_DGUN then
 				pauseTargetting(unitID)
-			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
-				pauseTargetting(unitID)
-				waitingForInsertRemoval[unitID] = true
+
+				if fromInsert ~= nil then
+					waitingForInsertRemoval[unitID] = true
+				end
 			end
 		end
 		return true  -- command was not used OR was used but not fully processed, so don't block command
