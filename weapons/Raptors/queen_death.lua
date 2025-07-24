@@ -3,7 +3,6 @@ return {
 		areaofeffect = 512,
 		craterboost = 0,
 		cratermult = 0,
-		impulseboost = 0,
 		impulsefactor = 0.4,
 		explosiongenerator = "custom:nukedatbewm-roost",
 		name = "queen_death",

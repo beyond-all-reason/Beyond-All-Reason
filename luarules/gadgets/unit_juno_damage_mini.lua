@@ -2,6 +2,8 @@ if not WeaponDefNames.legcib_juno_pulse_mini then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage Mini',
@@ -52,6 +54,26 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
+		['legavrad'] = true,
+		['legavjam'] = true,
+		['legaradk'] = true,
+		['legajamk'] = true,
+		['legfrad'] = true,
+		
+		['armmine1'] = true,
+		['armmine2'] = true,
+		['armmine3'] = true,
+		['armfmine3'] = true,	
+		['cormine1'] = true,
+		['cormine2'] = true,
+		['cormine3'] = true,		
+		['cormine4'] = true,		
+		['corfmine3'] = true,	
+		['legmine1'] = true,
+		['legmine2'] = true,
+		['legmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,
@@ -62,6 +84,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -82,6 +107,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}

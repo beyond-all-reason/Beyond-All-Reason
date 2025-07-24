@@ -5,7 +5,6 @@ return {
 		buildpic = "CORACK.DDS",
 		buildtime = 9700,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 42 30",
 		collisionvolumetype = "Box",
@@ -38,7 +37,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 1075.25,
 		upright = true,
-		workertime = 180,
+		workertime = 190,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corafus",

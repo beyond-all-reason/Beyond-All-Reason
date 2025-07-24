@@ -1,4 +1,3 @@
--- the commented out slopemod were there to compensate for modoption betterunitmovementmrectr
 ----------------------------------------------------------------------------------
 --README
 --for organizational purposes all unit deffs must be added to thge movedeff name.
@@ -99,7 +98,7 @@ local moveDatas = {
 		minwaterdepth = 10,
 	},
 
-	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -130,7 +129,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
+	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -142,6 +141,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
+	-- armlun corsok armthover corthovr lootboxgold lootboxplatinum
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -226,8 +226,8 @@ local moveDatas = {
 	-- armthor
 	HTANK5 = {
 		crushstrength = 1400,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 7,
+		footprintz = 7,
 		maxslope = 22,
 		slopeMod = 42,
 		maxwaterdepth = 24,
@@ -266,7 +266,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr
+	--  armfido leggstr corhrk
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -307,12 +307,12 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corshiva armmar
-	HABOT4 = {
+	-- corshiva armmar armbanth legjav
+	HABOT5 = {
 		crushstrength = 252,
 		depthmod = 0,
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 5,
+		footprintz = 5,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
@@ -320,8 +320,8 @@ local moveDatas = {
 	-- armvang corkarg corthermite
 	HTBOT4 = {
 		crushstrength = 252,
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 6,
+		footprintz = 6,
 		maxslope = 80,
 		maxwaterdepth = 22,
 		depthModParams = {
@@ -330,21 +330,21 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corkorg armbanth
-	VBOT5 = {
+	-- corkorg legeheatraymech
+	VBOT6 = {
 		crushstrength = 1400,
 		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 24,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 30,
 	},
 	-- corjugg
-	HBOT5 = {
+	HBOT7 = {
 		crushstrength = 1400,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 7,
+		footprintz = 7,
 		maxslope = 36,
 		maxwaterdepth = 30,
 		depthModParams = {
@@ -525,7 +525,7 @@ local moveDatas = {
 	},
 
 
-	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3
+	-- corslrpc armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
@@ -571,15 +571,8 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
-		--if moveData.IsAllTerrain then
-		--	moveData.slopemod = 2
-		--else
-		--	moveData.speedModClass = 0
-		--end
-	else
-		--moveData.slopemod = 60
 	end
-	--moveData.IsAllTerrain = nil
+
 	defs[#defs + 1] = moveData
 end
 

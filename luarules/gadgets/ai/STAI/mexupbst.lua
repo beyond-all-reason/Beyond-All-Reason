@@ -27,7 +27,9 @@ function MexUpBST:OwnerIdle()
 		end
 		-- maybe we've just finished reclaiming?
 		if self.mexPos  and not self.mohoStarted then
-			builder:Build(self.upType:Name(), self.mexPos)
+			--builder:Build(self.upType:Name(), self.mexPos)
+			self.ai.tool:GiveOrderToUnit(builder, game:GetTypeByName(self.upType:Name())*-1,self.mexPos , 0,'1-1')
+
 			self.active = true
 			self.mohoStarted = true
 			self.mexPos = nil
@@ -107,7 +109,8 @@ function MexUpBST:StartUpgradeProcess()
 		end
 	end
 	if mexUnit then
-		self.unit:Internal():Reclaim(mexUnit)
+		--self.unit:Internal():Reclaim(mexUnit)
+		self.ai.tool:GiveOrderToUnit(selfUnit, CMD.RECLAIM, mexUnit:ID(), 0,'1-1')
 		self.mexPos = mexUnit:GetPosition()
 		self.upType = upType
 	end

@@ -145,16 +145,16 @@ unitCollisionVolume['armpb'] = {
 	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
-	on={105,66,105,0,33,0,2,1,0},
-	off={105,44,105,0,0,0,2,1,0},
+	on={96,66,96,0,33,0,1,1,1},
+	off={96,44,96,0,0,0,1,1,1},
 }
 unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
 unitCollisionVolume['armvp'] = {
-	on={120,34,92,0,0,0,2,1,0},
-	off={90,34,92,0,0,0,2,1,0},
+	on={96,34,96,0,0,0,2,1,0},
+	off={96,34,96,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
@@ -162,8 +162,8 @@ unitCollisionVolume['cordoom'] = {
 }
 
 unitCollisionVolume['corplat'] = {
-	on={112,60,112,0,28,0,1,1,1},
-	off={112,35,112,0,0,0,1,1,1},
+	on={96,60,96,0,28,0,1,1,1},
+	off={96,42,96,0,-20,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
 
@@ -200,6 +200,19 @@ pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
 }
+pieceCollisionVolume['legerailtank'] = {
+	['0']={65,28.3,90.6, 0,1,-10, 2,1},
+	['10']={31,21,36, 0,6.4,2.3, 2,1},
+	--['10']={50,50,50,0,0,0,2,1},
+}
+pieceCollisionVolume['leginf'] = {
+	['1']={38,49,88, 0,22.8,14.3, 2,1},
+	['0']={35,37,88, 0,21,11, 2,1},
+}
+---pieceCollisionVolume['legsrailt4'] = {
+---	['0']={121,53,121,0,26,0,2,2},
+---	['7']={26,26,132,0,7,20,2,4},
+---}
 pieceCollisionVolume['armrad'] = {
 	['1']={22,58,22,0,0,0,1,1},
 	['3']={60,13,13,11,0,0,1,0},
@@ -231,7 +244,7 @@ pieceCollisionVolume['armvulc'] = {
 }
 pieceCollisionVolume['corgator'] = {
 	['0']={23,14,33,0,0,0,2,1},
-	['1']={15,5,25,0,0,2,2,1},
+	['3']={15,5,25,0,0,2,2,1},
 }
 pieceCollisionVolume['corsala'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
@@ -245,7 +258,7 @@ pieceCollisionVolume['cortermite'] = {
 
 pieceCollisionVolume['correap'] = {
 	['0']={36,20,46,0,3.5,0,2,1},
-	['1']={24,14,24,0,1.875,1.5,2,1},
+	['3']={24,14,24,0,1.875,1.5,2,1},
 }
 pieceCollisionVolume['corlevlr'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
@@ -253,7 +266,7 @@ pieceCollisionVolume['corlevlr'] = {
 }
 pieceCollisionVolume['corraid'] = {
 	['0']={33,18,39,0,3.5,0,2,1},
-	['2']={16,7,15,0,0,1,2,1},
+	['4']={16,7,15,0,0,1,2,1},
 }
 pieceCollisionVolume['cormist'] = {
 	['0']={34,18,43,0,3.5,0,2,1},
@@ -262,10 +275,6 @@ pieceCollisionVolume['cormist'] = {
 pieceCollisionVolume['corgarp'] = {
 	['0']={30,21,42,0,0,6,2,1},
 	['6']={16,7,15,0,-2,1.5,2,1},
-}
-pieceCollisionVolume['armflash'] = {
-	['0']={24,13,31,0,0,0,2,1},
-	['1']={16,12,16,0,0,0,2,1},
 }
 pieceCollisionVolume['armstump'] = {
 	['0']={34,18,40,0,-5,0,2,1},
@@ -300,8 +309,8 @@ pieceCollisionVolume['corsnap'] = {
 	['3']={12,10,12,0,0,0,2,1},
 }
 pieceCollisionVolume['corsumo'] = {
-	['0']={38,34,36,0,0,0,2,1},
-	['2']={24,16,25,0,0,0,2,1},
+	['0']={42,32,45,0,0,0,2,1},
+	['2']={22,10,22,0,0,0,1,1},
 }
 pieceCollisionVolume['armfboy'] = {
 	['0']={34,40,42,0,-5,0,2,1},
@@ -324,8 +333,8 @@ pieceCollisionVolume['seal'] = {
 	['1']={12,16,12,0,0,0,2,1},
 }
 pieceCollisionVolume['corban'] = {
-	['0']={26,32,34,0,0,0,2,1},
-	['3']={24,16,24,0,0,0,2,1},
+	['0']={44,32,44,0,0,0,2,1},
+	['3']={24,16,24,0,8,0,2,1},
 }
 pieceCollisionVolume['cormart'] = {
 	['0']={30,28,34,0,0,0,2,1},
@@ -361,6 +370,11 @@ pieceCollisionVolume['legcar'] = {
 	['4']={14,12,20,0,-2,-6,2,1},
 }
 
+pieceCollisionVolume['legmed'] = {
+	['0']={48,31,69,0,0,0,2,1},
+	['1']={7,25,15,0,35,-5,2,1},
+}
+
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
 --		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
 
@@ -376,9 +390,9 @@ pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
     ['0']={60,65,60,0,20,0,1,1,0},
 }
-pieceCollisionVolume['leginfestor'] = {
-	['0']={38,23,45,0,7,0,1,1},
-	['16']={12,10,20,2,0,1,1,2},
+pieceCollisionVolume['legmohoconct'] = {
+	['0']={70,30,70,0,-3,0,1,1},
+	['1']={21,16,30,0,-3,-1,2,1},
 }
 
 for name, v in pairs(pieceCollisionVolume) do

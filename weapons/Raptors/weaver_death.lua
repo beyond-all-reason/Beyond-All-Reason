@@ -5,7 +5,6 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:raptorunitexplosion-medium-red",
-		impulseboost = 0,
 		impulsefactor = 0,
 		interceptedbyshieldtype = 1,
 		name = "WeaverBugDeath",

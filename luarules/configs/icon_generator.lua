@@ -225,16 +225,10 @@ unitConfigs = {
 	[UnitDefNames.armferret.id] = {
 		unfold = false,
 	},
-	[UnitDefNames.armptl.id] = {
-		unfold = false,
-	},
 	[UnitDefNames.corcs.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.corfmd.id] = {
-		unfold = false,
-	},
-	[UnitDefNames.corptl.id] = {
 		unfold = false,
 	},
 	[UnitDefNames.corsilo.id] = {

@@ -1,0 +1,203 @@
+#include "../recoil_common_includes.h"
+
+piece  base, pole, 
+		dishAStrut, dishA, dishATop1, dishATop2, dishABot1, dishABot2,
+		dishBStrut, dishB, dishBTop1, dishBTop2, dishBBot1, dishBBot2,
+		dishCStrut, dishC, dishCTop1, dishCTop2, dishCBot1, dishCBot2,
+        dishALight, dishBLight, dishCLight, blinkLight;
+
+static-var  Stunned;
+
+#define SIGNAL_TURNON 4
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
+}
+
+Create()
+{
+	//hide blink;
+
+	move dishATop2 to z-axis [-1] now;
+    move dishABot2 to z-axis [-1] now;
+    turn dishATop2 to x-axis <30> now;
+    turn dishABot2 to x-axis <-30> now;
+    move dishATop1 to z-axis [-1] now;
+    move dishABot1 to z-axis [-1] now;
+    turn dishATop1 to x-axis <10> now;
+    turn dishABot1 to x-axis <-10> now;
+
+	move dishBTop2 to z-axis [-1] now;
+    move dishBBot2 to z-axis [-1] now;
+    turn dishBTop2 to x-axis <30> now;
+    turn dishBBot2 to x-axis <-30> now;
+    move dishBTop1 to z-axis [-1] now;
+    move dishBBot1 to z-axis [-1] now;
+    turn dishBTop1 to x-axis <10> now;
+    turn dishBBot1 to x-axis <-10> now;
+
+	move dishCTop2 to z-axis [-1] now;
+    move dishCBot2 to z-axis [-1] now;
+    turn dishCTop2 to x-axis <30> now;
+    turn dishCBot2 to x-axis <-30> now;
+    move dishCTop1 to z-axis [-1] now;
+    move dishCBot1 to z-axis [-1] now;
+    turn dishCTop1 to x-axis <10> now;
+    turn dishCBot1 to x-axis <-10> now;
+
+	turn dishBStrut to y-axis <120> now;
+	turn dishCStrut to y-axis <-120> now;
+
+
+	return (0);
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Lights()
+{
+	set-signal-mask SIGNAL_TURNON;
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blinkLight;
+		}
+		sleep 2500;
+	}
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+
+
+	turn dishATop1 to x-axis <0> speed <30>;
+    turn dishABot1 to x-axis <0> speed <30>;
+    sleep 100;
+    turn dishBTop1 to x-axis <0> speed <30>;
+    turn dishBBot1 to x-axis <0> speed <30>;
+    sleep 100;
+    turn dishCTop1 to x-axis <0> speed <30>;
+    turn dishCBot1 to x-axis <0> speed <30>;
+    sleep 100;
+    wait-for-turn dishABot1 around x-axis;
+
+	move dishATop1 to z-axis [0] speed [3];
+    move dishABot1 to z-axis [0] speed [3];
+    sleep 100;
+    move dishBTop1 to z-axis [0] speed [3];
+    move dishBBot1 to z-axis [0] speed [3];
+    sleep 100;
+    move dishCTop1 to z-axis [0] speed [3];
+    move dishCBot1 to z-axis [0] speed [3];
+    wait-for-move dishABot1 along z-axis;
+
+	turn dishATop2 to x-axis <0> speed <30>;
+    turn dishABot2 to x-axis <0> speed <30>;
+    sleep 100;
+    turn dishBTop2 to x-axis <0> speed <30>;
+    turn dishBBot2 to x-axis <0> speed <30>;
+    sleep 100;
+    turn dishCTop2 to x-axis <0> speed <30>;
+    turn dishCBot2 to x-axis <0> speed <30>;
+    wait-for-turn dishABot2 around x-axis;
+
+    move dishATop2 to z-axis [0] speed [3];
+    move dishABot2 to z-axis [0] speed [3];
+    spin dishA around z-axis speed <-100> accelerate <1>;
+    sleep 200;
+    move dishBTop2 to z-axis [0] speed [3];
+    move dishBBot2 to z-axis [0] speed [3];
+    spin dishB around z-axis speed <-100> accelerate <1>;
+    sleep 200;
+    move dishCTop2 to z-axis [0] speed [3];
+    move dishCBot2 to z-axis [0] speed [3];
+    spin dishC around z-axis speed <-100> accelerate <1>;
+    wait-for-move dishABot2 along z-axis;
+
+	spin pole around y-axis speed <-50> accelerate <2>;
+
+    show dishALight;
+    show dishBLight;
+    show dishCLight;
+
+	start-script Lights();
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	stop-spin pole around y-axis decelerate <4>;
+
+	move dishATop2 to z-axis [-1] 		speed [3];
+    move dishABot2 to z-axis [-1] 		speed [3];
+    turn dishATop2 to x-axis <30>  		speed <30>;
+    turn dishABot2 to x-axis <-30>		speed <30>;
+    move dishATop1 to z-axis [-1] 		speed [3];
+    move dishABot1 to z-axis [-1] 		speed [3];
+    turn dishATop1 to x-axis <10>  		speed <30>;
+    turn dishABot1 to x-axis <-10>		speed <30>;
+
+	move dishBTop2 to z-axis [-1] 		speed [3];
+    move dishBBot2 to z-axis [-1] 		speed [3];
+    turn dishBTop2 to x-axis <30>  		speed <30>;
+    turn dishBBot2 to x-axis <-30>		speed <30>;
+    move dishBTop1 to z-axis [-1] 		speed [3];
+    move dishBBot1 to z-axis [-1] 		speed [3];
+    turn dishBTop1 to x-axis <10>  		speed <30>;
+    turn dishBBot1 to x-axis <-10>		speed <30>;
+
+	move dishCTop2 to z-axis [-1]   	speed [3];
+    move dishCBot2 to z-axis [-1]   	speed [3];
+    turn dishCTop2 to x-axis <30>   	speed <30>;
+    turn dishCBot2 to x-axis <-30>  	speed <30>;
+    move dishCTop1 to z-axis [-1]   	speed [3];
+    move dishCBot1 to z-axis [-1]   	speed [3];
+    turn dishCTop1 to x-axis <10>   	speed <30>;
+    turn dishCBot1 to x-axis <-10>   	speed <30>;
+
+    hide dishALight;
+    hide dishBLight;
+    hide dishCLight;
+
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pole type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pole type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pole type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pole type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

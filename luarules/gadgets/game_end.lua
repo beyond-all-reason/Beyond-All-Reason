@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Game End",
@@ -23,7 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 	local fixedallies = Spring.GetModOptions().fixedallies
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
 
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 
@@ -35,13 +37,12 @@ if gadgetHandler:IsSyncedCode() then
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) then
+		if luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers")) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
-			--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
-			local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamList[i])
-			local teammates = Spring.GetTeamList(allyTeam)
+			local allyTeamID = select(6, Spring.GetTeamInfo(teamList[i], false))
+			local teammates = Spring.GetTeamList(allyTeamID)
 			for j = 1, #teammates do
 				ignoredTeams[teammates[j]] = true
 			end
@@ -60,7 +61,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local KillTeam = Spring.KillTeam
-	local GetTeamList = Spring.GetTeamList
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
 	local GetTeamInfo = Spring.GetTeamInfo
@@ -119,7 +119,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and Spring.GetGameFrame() < earlyDropGrace then
-				local teams = Spring.GetTeamList(allyTeamID)
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
 					local teamUnits = Spring.GetTeamUnits(teamID)
 					for i=1, #teamUnits do
@@ -216,7 +215,7 @@ if gadgetHandler:IsSyncedCode() then
 				teamCount = teamCount + 1
 			end
 		end
-		if teamCount < 2 then  -- sandbox mode
+		if #allyteamList-1 < 2 then  -- sandbox mode
 			gadgetHandler:RemoveGadget(self)
 			return
 		elseif teamCount == 2 or isFFA then  -- let player quit & rejoin in 1v1
@@ -226,7 +225,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- at start, fill in the table of all alive allyteams
 		for _, allyTeamID in ipairs(allyteamList) do
 			if allyTeamID ~= gaiaAllyTeamID then
-				local allyteamTeams = GetTeamList(allyTeamID)
+				local allyteamTeams = Spring.GetTeamList(allyTeamID)
 				local allyTeamInfo = {
 					unitCount = 0,
 					unitDecorationCount = 0,
@@ -414,7 +413,7 @@ if gadgetHandler:IsSyncedCode() then
 		CheckAllPlayers()
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
+	function gadget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
 		if not ignoredTeams[unitTeamID] then
 			local allyTeamID = teamToAllyTeam[unitTeamID]
 			local allyTeamInfo = allyTeamInfos[allyTeamID]
@@ -428,13 +427,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	gadget.UnitGiven = gadget.UnitCreated
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
-		if not ignoredTeams[unitTeamID] then
-			local allyTeamID = teamToAllyTeam[unitTeamID]
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		if not ignoredTeams[unitTeam] then
+			local allyTeamID = teamToAllyTeam[unitTeam]
 			local allyTeamInfo = allyTeamInfos[allyTeamID]
-			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+			local teamUnitCount = allyTeamInfo.teams[unitTeam].unitCount - 1
 			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-			allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+			allyTeamInfo.teams[unitTeam].unitCount = teamUnitCount
 			allyTeamInfo.unitCount = allyTeamUnitCount
 			if unitDecoration[unitDefID] then
 				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
@@ -455,12 +454,12 @@ if gadgetHandler:IsSyncedCode() then
 		-- detect when no players are ingame (thus only specs remain) and shutdown the game
 		if Spring.GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
 			local activeTeams = 0
-			local leaderPlayerID, isDead, isAiTeam, isLuaAI, active, spec
+			local leaderPlayerID, isDead, isAiTeam, active, spec
 			for _, teamID in ipairs(teamList) do
 				if teamID ~= gaiaTeamID then
-					leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
+					leaderPlayerID, isDead, isAiTeam = GetTeamInfo(teamID, false)
 					if isDead == 0 and not isAiTeam then
-						_, active, spec = Spring.GetPlayerInfo(leaderPlayerID, false)
+						_, active, spec = GetPlayerInfo(leaderPlayerID, false)
 						if active and not spec then
 							activeTeams = activeTeams + 1
 						end

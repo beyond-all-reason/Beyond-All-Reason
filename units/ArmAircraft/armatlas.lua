@@ -5,7 +5,6 @@ return {
 		buildtime = 3850,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 100,
 		energycost = 1300,
@@ -36,6 +35,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			crashable = 0,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,

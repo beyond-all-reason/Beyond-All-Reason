@@ -7,7 +7,7 @@ return {
 		buildtime = 10,
 		canmove = true,
 		capturable = false,
-		category = "",
+		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "Box",
@@ -57,6 +57,7 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			virtualunit = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

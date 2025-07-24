@@ -1,0 +1,86 @@
+#include "../recoil_common_includes.h"
+
+piece  base, core, rotor1, rotor2, rotor3, rotor4, swivel, wall1, topLight, botLeftLight, botRightLight, topLeftLight, topRightLight;
+
+static-var  Active;
+
+MMStatus(State)
+{
+	Active = State;
+	if (Active){
+		turn rotor1 to y-axis <0> speed <20>;
+        turn rotor2 to y-axis <0> speed <20>;
+        turn rotor3 to y-axis <0> speed <20>;
+        turn rotor4 to y-axis <0> speed <20>;
+        move wall1 to y-axis [0] speed [5];
+        move core to y-axis [0] speed [5];
+		wait-for-move core along y-axis;
+		show topLight;
+		show botLeftLight;
+		show botrightLight;
+		show toprightLight;
+		show topLeftLight;
+
+	}
+	else
+	{
+		hide topLight;
+		hide botLeftLight;
+		hide botrightLight;
+		hide toprightLight;
+		hide topLeftLight;
+        move wall1 to y-axis [5] speed [5];
+        move core to y-axis [-5] speed [5];
+        turn rotor1 to y-axis <-80> speed <20>;
+        turn rotor2 to y-axis <-60> speed <20>;
+        turn rotor3 to y-axis <-40> speed <20>;
+        turn rotor4 to y-axis <-20> speed <20>;
+	}
+	//get PRINT(get GAME_FRAME, Active);
+	
+}
+
+Create()
+{
+			hide topLight;
+		hide botLeftLight;
+		hide botrightLight;
+		hide toprightLight;
+		hide topLeftLight;
+	Active = 0;
+
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode core type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode core type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode core type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode core type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

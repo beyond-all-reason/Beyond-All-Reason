@@ -3,7 +3,6 @@ return {
 		areaofeffect = 16,
 		craterboost = 0,
 		cratermult = 0,
-		impulseboost = 0,
 		impulsefactor = 0.4,
 		explosiongenerator = "custom:raptorunitexplosion-small-red",
 		name = "talon_death",

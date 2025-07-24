@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Unit Energy Icons", -- GL4
@@ -12,7 +14,6 @@ end
 
 local weaponEnergyCostFloor = 6
 
-local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
 local spGetUnitTeam		        = Spring.GetUnitTeam
@@ -21,13 +22,10 @@ local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 
-local spec, fullview = Spring.GetSpectatingState()
-local lastGameFrame = 0
-
 local chobbyInterface
 
 local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
-local maxStall = 0
+local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6*( xsize^2 + zsize^2 )^0.5
@@ -42,7 +40,7 @@ for udid, unitDef in pairs(UnitDefs) do
 				if weaponDef.stockpile then
 					neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))
 				elseif weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
-					neededEnergy = weaponDef.energyCost
+					neededEnergy = weaponDef.energyCost --ToDO: Check if there is reloadtime < 1 sec else adjust similar to stockpile 
 				end
 			end
 		end
@@ -88,7 +86,14 @@ end
 -- GL4 Backend stuff:
 local energyIconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+
+local luaShaderDir = "LuaUI/Include/"
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -104,7 +109,7 @@ local function initGL4()
 	shaderConfig.BREATHESIZE = 0.1
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = " gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.ZPULL = 512.0 -- send 32 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
@@ -127,7 +132,7 @@ local function UpdateTeamEnergy()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spec, fullview = Spring.GetSpectatingState()
+	local spec, fullview = Spring.GetSpectatingState()
 	if spec then
 		fullview = select(2,Spring.GetSpectatingState())
 	end
@@ -138,7 +143,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	end
 
 	UpdateTeamEnergy()
-	clearInstanceTable(energyIconVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(energyIconVBO) -- clear all instances
 	teamUnits = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
@@ -160,10 +165,13 @@ function widget:Initialize()
 end
 
 local function updateStalling()
+	UpdateTeamEnergy()
 	local gf = Spring.GetGameFrame()
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
-		if teamEnergy[teamID] and teamEnergy[teamID] < maxStall then
+		if teamEnergy[teamID] then
+			--It is possible to add here a check if maxEnergy > maxStall and then remove all energy symbols and then skip the for, but I believe it is roughly the same speed as it is right now, so left that out
+			--Previous implementation of such a mechanism led to the energy symbols then remaining when the condition was reached(worked for all but starfall)
 			for unitID, unitDefID in pairs(units) do
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
@@ -193,13 +201,6 @@ local function updateStalling()
 	end
 	if energyIconVBO.dirty then
 		uploadAllElements(energyIconVBO)
-	end
-end
-
-function widget:Update(dt)
-	if Spring.GetGameFrame() ~= lastGameFrame then
-		lastGameFrame = Spring.GetGameFrame()
-		UpdateTeamEnergy()
 	end
 end
 

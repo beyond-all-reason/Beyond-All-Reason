@@ -1,4 +1,6 @@
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Prevent outside-of-map hax",
@@ -24,16 +26,26 @@ local mapZ = Game.mapSizeZ
 local allMobileUnits = {}
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitDefID = Spring.GetUnitDefID
+local spValidUnitID = Spring.ValidUnitID
+local spIsPosInMap = Spring.IsPosInMap
 local CMD_STOP = CMD.STOP
+local CMD_GUARD = CMD.GUARD
 
 local isMobileUnit = {}
+local isBuilder = {}
 for unitDefID, udef in pairs(UnitDefs) do
 	if not (udef.isBuilding or udef.speed == 0) then
 		isMobileUnit[unitDefID] = true
 	end
+	if udef.isBuilder and (udef.buildSpeed and udef.buildSpeed > 0) and (udef.buildDistance and udef.buildDistance > 0) then
+		isBuilder[unitDefID] = true
+	end
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_STOP)
+	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
@@ -45,7 +57,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	allMobileUnits[unitID] = nil
 end
 
@@ -75,11 +87,22 @@ function gadget:GameFrame(f)
 	end
 end
 
+local function isInsideMap(unitID)
+	local x,_,z = spGetUnitPosition(unitID)
+	return spIsPosInMap(x, z)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 	if cmdID == CMD_STOP and isMobileUnit[unitDefID] then
-		local x,_,z = Spring.GetUnitPosition(unitID)
-		if z < 0 or x < 0 or z > mapZ or x > mapX then
-			return false
+		return isInsideMap(unitID)
+	elseif cmdID == CMD_GUARD then
+		-- To guard out of map both units must be builders
+		local guardeeID = cmdParams[1]
+		if guardeeID and spValidUnitID(guardeeID) and not isInsideMap(guardeeID) then
+			local guardeeUnitDefID = spGetUnitDefID(guardeeID)
+			if not (isBuilder[unitDefID] and isBuilder[guardeeUnitDefID]) then
+				return false
+			end
 		end
 	end
 	return true

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Reclaim Field Highlight",
@@ -53,6 +55,7 @@ local abs = math.abs
 local floor = math.floor
 local min = math.min
 local max = math.max
+local clamp = math.clamp
 local sqrt = math.sqrt
 local mathHuge = math.huge
 
@@ -75,6 +78,7 @@ local glVertex = gl.Vertex
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
+local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -122,6 +126,7 @@ end
 
 -- Information tables
 local knownFeatures
+local flyingFeatures
 local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
@@ -256,7 +261,7 @@ do
 	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 	local function convexSetConditioning(points)
-		table.sort(points, sortMonotonic)
+		-- table.sort(points, sortMonotonic) -- Moved to previous, shared step.
 		local remaining = { points[1] }
 		local x, z = points[1].x, points[1].z
 
@@ -352,7 +357,7 @@ do
 		MonotoneChain = function (points)
 			local numPoints = #points
 			if numPoints < 3 then return end
-			table.sort(points, sortMonotonic)
+			-- table.sort(points, sortMonotonic) -- Moved to previous, shared step.
 
 			local lower = {}
 			for i = 1, numPoints do
@@ -413,6 +418,7 @@ do
 
 		local convexHull, hullArea
 		if #points >= 3 then
+			table.sort(points, sortMonotonic) -- Moved to avoid repeating the sort.
 			if #points >= 60 then
 				convexHull = MonotoneChain(convexSetConditioning(points))
 			else
@@ -433,7 +439,7 @@ do
 		featureConvexHulls[clusterID] = convexHull
 
 		cluster.area = hullArea
-		local areaSize = max(0, min(1, (hullArea - 2 * areaTextMin) / areaTextRange))
+		local areaSize = clamp((hullArea - 2 * areaTextMin) / areaTextRange, 0, 1)
 		cluster.font = fontSizeMin + (fontSizeMax - fontSizeMin) * areaSize
 	end
 end
@@ -453,27 +459,6 @@ do
 		unprocessed = {}
 		for fid, feature in pairs(knownFeatures) do
 			unprocessed[fid] = true
-		end
-	end
-
-	---Distance from a point to its nearest neighbor.
-	local function Reachability(point, neighbors)
-		if point.rd ~= nil then
-			return point.rd
-		end
-		-- This function was changed from its generic implementation because
-		-- the special case where minPoints == 2 has a much faster evaluation.
-		-- Note also that we have to guarantee the epsilon neighbors matrix.
-		local reachDistSq = mathHuge
-		for fid, distSq in pairs(neighbors) do
-			if unprocessed[fid] == nil and distSq < reachDistSq then
-				reachDistSq = distSq
-			end
-		end
-		-- Fine to double-check epsilon here since we remove mathHuge anyway.
-		if reachDistSq <= epsilonSq then
-			point.rd = reachDistSq
-			return reachDistSq
 		end
 	end
 
@@ -497,7 +482,7 @@ do
 
 		local clusterID = #featureClusters
 		local featureID = next(unprocessed)
-		while featureID ~= nil do
+		while featureID do
 			-- Start a new cluster.
 			local point = knownFeatures[featureID]
 			local members = { point }
@@ -511,24 +496,19 @@ do
 
 			-- Process immediate neighbors.
 			local neighbors = featureNeighborsMatrix[featureID]
-			if neighbors ~= nil and Reachability(point, neighbors) ~= nil then
-				local seedsPQ = PriorityQueue.new()
-				Update(neighbors, point, seedsPQ)
+			local seedsPQ = PriorityQueue.new()
+			Update(neighbors, point, seedsPQ)
 
-				-- Continue to spread through neighbors
-				-- by moving to the next nearest point.
-				local neighbor = seedsPQ:pop()
-				while neighbor ~= nil do
-					local point = neighbor[2] -- [1] = priority, [2] = point
-					members[#members+1] = point
-					point.cid = clusterID
+			-- Spread through next-neighbors by moving to the nearest point.
+			local neighbor = seedsPQ:pop()
+			while neighbor do
+				local point = neighbor[2] -- [1] = priority, [2] = point
+				members[#members+1] = point
+				point.cid = clusterID
 
-					local nextNeighbors = featureNeighborsMatrix[point.fid]
-					if nextNeighbors ~= nil and Reachability(point, nextNeighbors) ~= nil then
-						Update(nextNeighbors, point, seedsPQ)
-					end
-					neighbor = seedsPQ:pop()
-				end
+				local nextNeighbors = featureNeighborsMatrix[point.fid]
+				Update(nextNeighbors, point, seedsPQ)
+				neighbor = seedsPQ:pop()
 			end
 
 			featureID = next(unprocessed)
@@ -555,49 +535,54 @@ end
 
 local function RemoveFeature(featureID)
 	local neighbors = featureNeighborsMatrix[featureID]
-	if neighbors ~= nil then
-		for nid, distSq in pairs(neighbors) do
-			-- Update the reachability of neighbors linked through this point.
-			local neighbor = knownFeatures[nid]
-			if neighbor.rd == distSq then
-				local nextNeighbors = featureNeighborsMatrix[nid]
-				nextNeighbors[featureID] = nil
-				local reachDistSq = mathHuge
-				for fid2, distSq2 in pairs(nextNeighbors) do
-					if distSq2 < reachDistSq then
-						reachDistSq = distSq2
-					end
+	local epsilonSq = epsilonSq
+	for nid, distSq in pairs(neighbors) do
+		-- Update the reachability of neighbors linked through this point.
+		local neighbor = knownFeatures[nid]
+		if neighbor.rd == distSq then
+			local nextNeighbors = featureNeighborsMatrix[nid]
+			nextNeighbors[featureID] = nil
+			local reachDistSq = mathHuge
+			for fid2, distSq2 in pairs(nextNeighbors) do
+				if distSq2 < reachDistSq then
+					reachDistSq = distSq2
 				end
-				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
-			else
-				featureNeighborsMatrix[nid][featureID] = nil
 			end
+			neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
+		else
+			featureNeighborsMatrix[nid][featureID] = nil
 		end
-		featureNeighborsMatrix[featureID] = nil
 	end
+	featureNeighborsMatrix[featureID] = nil
 	knownFeatures[featureID] = nil
 end
 
 local function UpdateFeatureReclaim()
+	local dirty, removed = {}, false
 	for fid, fInfo in pairs(knownFeatures) do
 		local metal = spGetFeatureResources(fid)
 		if metal >= minFeatureMetal then
 			if fInfo.metal ~= metal then
-				if fInfo.cid ~= nil then
+				if fInfo.cid then
+					dirty[fInfo.cid] = true
 					local thisCluster = featureClusters[fInfo.cid]
 					thisCluster.metal = thisCluster.metal - fInfo.metal + metal
 				end
 				fInfo.metal = metal
 			end
-			redrawingNeeded = true
 		else
 			RemoveFeature(fid)
-			clusterizingNeeded = true
+			removed = true
 		end
 	end
 
-	for ii = 1, #featureClusters do
-		featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+	if removed then
+		clusterizingNeeded = true
+	elseif next(dirty) then
+		redrawingNeeded = true
+		for ii in pairs(dirty) do
+			featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+		end
 	end
 end
 
@@ -654,7 +639,7 @@ do
 		--[[3]] onSelectReclaimer,
 		--[[4]] onSelectResurrector,
 		--[[5]] onActiveCommand,
-		--[[6]] widgetHandler:RemoveWidget(),
+		--[[6]] widgetHandler.RemoveWidget,
 	}
 
 	UpdateDrawEnabled = function ()
@@ -668,7 +653,7 @@ end
 -- Drawing
 
 local camUpVector
-local cameraScale
+local cameraScale = 1
 
 local function DrawHullVertices(hull)
 	for j = 1, #hull do
@@ -695,23 +680,21 @@ end
 
 local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
-	if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
-		local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
-		for clusterID = 1, #featureClusters do
-			local center = featureClusters[clusterID].center
+	local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
+	for clusterID = 1, #featureClusters do
+		local center = featureClusters[clusterID].center
 
-			glPushMatrix()
+		glPushMatrix()
 
-			glTranslate(center.x, center.y, center.z)
-			glRotate(-90, 1, 0, 0)
-			glRotate(cameraFacing, 0, 0, 1)
+		glTranslate(center.x, center.y, center.z)
+		glRotate(-90, 1, 0, 0)
+		glRotate(cameraFacing, 0, 0, 1)
 
-			glColor(numberColor)
-			glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
+		glColor(numberColor)
+		glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
 
-			glPopMatrix()
+		glPopMatrix()
 		end
-	end
 end
 
 --------------------------------------------------------------------------------
@@ -734,6 +717,7 @@ function widget:Initialize()
 
 	-- Start/restart feature clustering.
 	knownFeatures = {}
+	flyingFeatures = {}
 	featureNeighborsMatrix = {}
 	featureClusters = {}
 	featureConvexHulls = {}
@@ -742,6 +726,8 @@ function widget:Initialize()
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
+
+	camUpVector = spGetCameraVectors().up
 end
 
 function widget:Shutdown()
@@ -789,7 +775,39 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	if clusterizingNeeded == true then
+	local featuresAdded = false
+	for featureID, fInfo in pairs(flyingFeatures) do
+		local _,_,_, vw = spGetFeatureVelocity(featureID)
+		if vw <= 1e-3 then
+			flyingFeatures[featureID] = nil
+			local x, y, z = spGetFeaturePosition(featureID)
+			fInfo.x, fInfo.y, fInfo.z = x, y, z
+			local M = featureNeighborsMatrix
+			local M_newFeature = {}
+			local reachDistSq, epsilonSq = mathHuge, epsilonSq
+			for fid2, feat2 in pairs(knownFeatures) do
+				local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
+				if distSq <= epsilonSq then
+					M[fid2][featureID] = distSq
+					M_newFeature[fid2] = distSq
+					if distSq < reachDistSq then
+						reachDistSq = distSq
+					end
+					if feat2.rd == nil or distSq < feat2.rd then
+						feat2.rd = distSq
+					end
+				end
+			end
+			featureNeighborsMatrix[featureID] = M_newFeature
+			if reachDistSq < epsilonSq then
+				fInfo.rd = reachDistSq
+			end
+			knownFeatures[featureID] = fInfo
+			featuresAdded = true
+		end
+	end
+
+	if featuresAdded or clusterizingNeeded then
 		for fid, fInfo in pairs(knownFeatures) do
 			local metal = spGetFeatureResources(fid)
 			if metal < minFeatureMetal then
@@ -812,26 +830,47 @@ function widget:GameFrame(frame)
 		end
 		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid) -- number, list id
 		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-		redrawingNeeded = false
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
-	camUpVector = spGetCameraVectors().up
-	if drawFeatureClusterTextList ~= nil then
-		glDeleteList(drawFeatureClusterTextList)
-		drawFeatureClusterTextList = nil
+	local camUpVectorNew = spGetCameraVectors().up
+	if redrawingNeeded or camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVector[3] then
+		camUpVector = camUpVectorNew
+		if drawFeatureClusterTextList ~= nil then
+			glDeleteList(drawFeatureClusterTextList)
+			drawFeatureClusterTextList = nil
+		end
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
 	end
-	drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+
+	redrawingNeeded = false
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	local metal = spGetFeatureResources(featureID)
 	if metal >= minFeatureMetal then
 		local x, y, z = spGetFeaturePosition(featureID)
+		local feature = {
+			fid   = featureID,
+			metal = metal,
+			x     = x,
+			y     = max(0, y),
+			z     = z,
+		}
 
+		-- To deal with e.g. raptor eggs spawning at altitude ~20:
+		if y > 0 then
+			local elevation = spGetGroundHeight(x, z)
+			if elevation > 0 and y > elevation + 2 then
+				flyingFeatures[featureID] = feature
+				return -- Delay clusterizing until stationary.
+			end
+		end
+
+		-- Assuming the feature's motion is highly likely negligible:
 		local M = featureNeighborsMatrix
 		local M_newFeature = {}
-		local reachDistSq = mathHuge
+		local reachDistSq, epsilonSq = mathHuge, epsilonSq
 		for fid2, feat2 in pairs(knownFeatures) do
 			local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
 			if distSq <= epsilonSq then
@@ -846,16 +885,10 @@ function widget:FeatureCreated(featureID, allyTeamID)
 			end
 		end
 		featureNeighborsMatrix[featureID] = M_newFeature
-
-		knownFeatures[featureID] = {
-			fid   = featureID,
-			metal = metal,
-			rd    = (reachDistSq < epsilonSq and reachDistSq) or nil,
-			x     = x,
-			y     = max(0, y), -- Ground height is checked later.
-			z     = z,
-		}
-
+		if reachDistSq < epsilonSq then
+			feature.rd = reachDistSq
+		end
+		knownFeatures[featureID] = feature
 		clusterizingNeeded = true
 	end
 end
@@ -864,6 +897,8 @@ function widget:FeatureDestroyed(featureID, allyTeamID)
 	if knownFeatures[featureID] ~= nil then
 		RemoveFeature(featureID)
 		clusterizingNeeded = true
+	else
+		flyingFeatures[featureID] = nil
 	end
 end
 

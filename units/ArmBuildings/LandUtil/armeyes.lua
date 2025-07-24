@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMEYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 32 20",

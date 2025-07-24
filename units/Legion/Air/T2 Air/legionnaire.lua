@@ -10,7 +10,6 @@ return {
 		buildtime = 10000,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 160,
 		explodeas = "smallExplosionGenericAir",
@@ -45,7 +44,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-			fighter = 1,
+			attacksafetydistance = 300,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -97,7 +96,6 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.0,
 				firestarter = 0,
-				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
 				minIntensity = 0.8,
@@ -123,6 +121,9 @@ return {
 					commanders = 1,
 					default = 2,
 					vtol = 80,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 

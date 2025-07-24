@@ -6,6 +6,8 @@ disabled because of these problems:
  * replacement player cant give units/resources
 ]]
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Substitution",
@@ -242,24 +244,13 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
+	local ColorString = Spring.Utilities.Color.ToString
 
 	local revealed = false
 
 	local function colourNames(teamID)
 		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
-		local R255 = math.floor(nameColourR * 255)
-		local G255 = math.floor(nameColourG * 255)
-		local B255 = math.floor(nameColourB * 255)
-		if R255 % 10 == 0 then
-			R255 = R255 + 1
-		end
-		if G255 % 10 == 0 then
-			G255 = G255 + 1
-		end
-		if B255 % 10 == 0 then
-			B255 = B255 + 1
-		end
-		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)

@@ -7,7 +7,6 @@ return {
 		buildtime = 8360,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealtitude = 75,
 		energycost = 3200,
@@ -35,7 +34,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 60,
+		workertime = 65,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",

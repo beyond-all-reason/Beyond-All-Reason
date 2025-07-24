@@ -2,12 +2,10 @@ return {
 	armshockwave = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "ARMSHOCKWAVE.DDS",
 		buildtime = 15000,
 		canattack = true,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 20,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 45 40",
@@ -136,7 +134,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-lightning",
 				firestarter = 100,
 				impactonly = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "Medium EMP turret",
@@ -157,6 +154,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 540,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 800,
 					vtol = 0,

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Dynamic collision volume & Hitsphere Scaledown",
@@ -274,7 +276,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	--check if a pop-up type unit was destroyed
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if popupUnits[unitID] then
 			popupUnits[unitID] = nil
 		end

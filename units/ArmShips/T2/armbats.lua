@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMBATS.DDS",
 		buildtime = 35000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 -10 4",
 		collisionvolumescales = "63 63 144",
 		collisionvolumetype = "CylZ",
@@ -113,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
@@ -126,6 +124,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 470,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 300,
 					vtol = 65,

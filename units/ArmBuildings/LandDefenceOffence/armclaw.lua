@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4650,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
 		decoyfor = "armdrag",
@@ -130,7 +129,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 24,
 				name = "Close-quarters g2g lightning turret",
@@ -147,6 +145,7 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {
+					exclude_preaim = true,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "2",
@@ -161,7 +160,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				burstControlWhenOutOfArc = 2,
+				burstcontrolwhenoutofarc = 2,
 				def = "DCLAW",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",

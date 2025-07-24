@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Inherit Creation Units XP",
@@ -46,11 +48,17 @@ for id, def in pairs(UnitDefs) do
 	if def.speed and def.speed ~= 0 then
 		mobileUnits[id] = true
 	end
-	if def.speed == 0 and def.weapons and def.weapons[1] and not string.find(def.name, "corgate") and not string.find(def.name, "armgate") and not string.find(def.name, "leggate") then
-		turretUnits[id] = true
+	if def.speed == 0 and def.weapons and def.weapons[1] then
+		for i = 1, #def.weapons do
+			local wDef = WeaponDefs[def.weapons[i].weaponDef]
+			if wDef.type ~= "Shield" then
+				turretUnits[id] = true
+				break
+			end
+		end
 	end
 	if def.power then
-	unitPowerDefs[id] = def.power
+		unitPowerDefs[id] = def.power
 	end
 end
 
@@ -70,18 +78,18 @@ local initializeList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if  builderID and mobileUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp
 		childrenWithParents[unitID] = {
-			unitid=unitID,
-			parentunitid=builderID,
-			parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
+			unitid = unitID,
+			parentunitid = builderID,
+			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
 			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
 			childtype = "MOBILEBUILT",
 		}
 	end
 	if  builderID and turretUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "TURRET") then -- only immobile combat units will pass xp
 		childrenWithParents[unitID] = {
-			unitid=unitID,
-			parentunitid=builderID,
-			parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
+			unitid = unitID,
+			parentunitid = builderID,
+			parentxpmultiplier = calculatePowerDiffXP(unitID, builderID),
 			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
 			childtype = "TURRET",
 		}
@@ -140,8 +148,8 @@ function gadget:GameFrame(frame)
 
 			initializeList[unitID] = nil -- this concludes innitialization
 		end
-		
-		
+
+
 		for unitID, value in pairs(childrenWithParents) do
 			local oldXP = oldChildXPValues[unitID] or 0
 			local newXP = spGetUnitExperience(unitID) or 0
@@ -157,7 +165,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
 	local evoID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
 	if evoID then

@@ -2,6 +2,8 @@ if not (Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetMo
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "assistdrone spawn",
@@ -65,7 +67,7 @@ function SpawnAssistDrone(unitID, unitDefID, unitTeam)
         local posx, posy, posz = Spring.GetUnitPosition(unitID)
         local droneID = Spring.CreateUnit(droneunit, posx, posy+100, posz, 0, unitTeam)
         if droneID then
-            Spring.SpawnCEG("scav-spawnexplo", posx, posy+100, posz,0,0,0)
+            GG.ScavengersSpawnEffectUnitID(droneID)
             Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
             teamIDDroneList[unitTeam][droneID] = true
             Spring.SetUnitCosts(droneID, {buildTime = 500, metalCost = 1, energyCost = 1})
@@ -80,7 +82,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end

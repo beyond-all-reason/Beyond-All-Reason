@@ -9,7 +9,6 @@ return {
 		buildpic = "legeconv.DDS",
 		buildtime = 2600,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "40 40 40",
 		collisionvolumetype = "CYLY",

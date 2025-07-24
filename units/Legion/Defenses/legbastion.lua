@@ -9,10 +9,9 @@ return {
 		buildpic = "legbastion.DDS",
 		buildtime = 79000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 0.0 0.0",
-		collisionvolumescales = "60 150 60",
-		collisionvolumetype = "box",
+		collisionvolumescales = "102 151 97",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		energystorage = 1000,
@@ -38,13 +37,13 @@ return {
 		customparams = {
 			maxrange = 1125,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corjuno_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecaltype = "decals/legbastion_aoplane.dds",
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Gabs",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
@@ -53,9 +52,9 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "60 150 60",
-				collisionvolumetype = "Box",
+				collisionvolumeoffsets = "0.0 0.0 0.0",
+				collisionvolumescales = "102 151 97",
+				collisionvolumetype = "CylY",
 				damage = 5400,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -109,7 +108,7 @@ return {
 			},
 		},
 		weapondefs = {
-			pineappleofdoom = {
+			t2heatray = {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -124,10 +123,9 @@ return {
 				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Heavy g2g Cleansing Heat Ray",
+				name = "Heavy Sustained Sweepfire Heat Ray",
 				noselfdamage = true,
 				predictboost = 0.3,
 				proximitypriority = 1,
@@ -140,13 +138,13 @@ return {
 				soundstart = "heatray3",
 				soundstartvolume = 38,
 				soundtrigger = 1,
-				targetmoveerror = 0.001,
 				thickness = 5.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
 					default = 155,
+					vtol = 15,
 				},
 				
 				customparams = {
@@ -157,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "pineappleofdoom",
+				def = "t2heatray",
 				onlytargetcategory = "SURFACE",
 			}
 		},

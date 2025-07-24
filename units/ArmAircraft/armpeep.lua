@@ -5,7 +5,7 @@ return {
 		buildtime = 2800,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT",
+		category = "LIGHTAIRSCOUT",
 		collide = false,
 		cruisealtitude = 180,
 		energycost = 1550,
@@ -39,6 +39,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.0575,
 		customparams = {
+			crashable = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",

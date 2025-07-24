@@ -15,7 +15,7 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
-		category = "BOT MOBILE NOWEAPON NOTAIR NOTSUB",
+		category = "OBJECT",
 		defaultmissiontype = "Standby",
 		explodeas = "TINYBUG_DEATH",
 		floater = true,

@@ -7,7 +7,6 @@ return {
 		buildpic = "legbombard.dds",
 		buildtime = 17500,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 18 32",
 		collisionvolumetype = "Box",
@@ -122,7 +121,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Pop-up heavy g2g grenade launcher",
 				noselfdamage = true,
@@ -187,6 +185,10 @@ return {
 					default = 375,
 					subs = 300,
 				},
+				customparams = {
+					noattackrangearc= 1,
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

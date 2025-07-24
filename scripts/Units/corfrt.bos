@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, flare3, base, turret;
 
@@ -9,54 +7,20 @@ static-var  gun_1;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+
+
+#define WATER_ROCK_UNITSIZE 10
+#include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <30.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+#define RECOIL_POWER 25000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <15.000000>;
-	turn base to z-axis <0> - anglez speed <15.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to x-axis <0.000000> - anglex speed <12.000000>;
-	turn base to z-axis anglez speed <12.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to x-axis anglex / <0.005495> speed <9.000000>;
-	turn base to z-axis <0> - (anglez / <0.005495>) speed <9.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to x-axis <0.000000> speed <3.000000>;
-	turn base to z-axis <0.000000> speed <3.000000>;
-}
 
 Create()
 {
@@ -64,13 +28,10 @@ Create()
 	hide flare1;
 	hide flare2;
 	gun_1 = flare2;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	turn turret to x-axis <-25> speed <25.00000>;
+	SLEEP_UNTIL_UNITFINISHED;
+	turn turret to x-axis <-25> speed <25.0>;
 	spin turret around y-axis speed <25.0>;
-	start-script RockOnWaves();
+	start-script FloatMotion();
 }
 Stop()
 {
@@ -81,7 +42,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to x-axis <-25> speed <25.00000>;
+	turn turret to x-axis <-25> speed <25.0>;
 	spin turret around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -99,52 +60,34 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <450.000000>;
-	turn turret to x-axis <0.000000> - pitch speed <450.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <450.0>;
+	turn turret to x-axis <0.0> - pitch speed <450.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	++gun_1;
-	if( gun_1 == 4 )
-	{
-		gun_1 = flare2;
-	}
+	gun_1 = (gun_1 + 1) % 3;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = flare2;
-	}
-	if( gun_1 == 3 )
-	{
-		piecenum = flare3;
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

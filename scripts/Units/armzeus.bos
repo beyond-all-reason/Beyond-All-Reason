@@ -1,13 +1,16 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torso, backpack, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
-static-var  bMoving, bAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
+static-var  isMoving, restore_delay, moveSpeed, currentSpeed, animspeed, wpnheading; 
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+
+//#define DEBUG
+#include "../debug.h"
+
+#include "../opencloseanim.h"
 
 static-var maxSpeed, animFramesPerKeyframe;
 
@@ -17,9 +20,9 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 Walk() {
-	if (bMoving) { //Frame:4
+	if (isMoving) { //Frame:4
 			turn lfoot to x-axis <-7.199620> speed <215.988613> / animSpeed; 
 			turn lfoot to z-axis <-0.750735> speed <22.522041> / animSpeed; 
 			turn lfoot to y-axis <0.403230> speed <12.096901> / animSpeed; 
@@ -38,7 +41,7 @@ Walk() {
 			turn luparm to z-axis <-0.104344> speed <3.130313> / animSpeed; 
 			turn luparm to y-axis <-0.106906> speed <3.207183> / animSpeed; 
 			
-			if ( !isAiming){
+			if ( IsClosed){
 			turn rloarm to x-axis <2.378045> speed <71.341343> / animSpeed; 
 			turn rloarm to z-axis <2.347062> speed <70.411846> / animSpeed; 
 			turn rloarm to y-axis <0.847999> speed <25.439984> / animSpeed;
@@ -47,8 +50,8 @@ Walk() {
 			}
 		sleep 98;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:7
+	while(isMoving) {
+		if (isMoving) { //Frame:7
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-4.079282> speed <93.610146> / animSpeed; 
 			turn lleg to x-axis <-7.424414> speed <144.010039> / animSpeed; 
@@ -72,7 +75,7 @@ Walk() {
 			turn luparm to y-axis <-0.213812> speed <3.207183> / animSpeed; 
 			turn lloarm to x-axis <-9.681470> speed <145.222044> / animSpeed; 
 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <0.388061> speed <18.079456> / animSpeed; 
 			turn ruparm to z-axis <0.476225> speed <7.802159> / animSpeed; 
 			turn ruparm to y-axis <0.279896> speed <8.407586> / animSpeed; 
@@ -81,7 +84,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:10
+		if (isMoving) { //Frame:10
 			turn lfoot to x-axis <-14.208429> speed <303.874412> / animSpeed; 
 			turn lfoot to z-axis <4.170078> speed <147.502117> / animSpeed; 
 			turn lfoot to y-axis <-7.653428> speed <242.923822> / animSpeed; 
@@ -107,7 +110,7 @@ Walk() {
 			turn luparm to y-axis <-0.320718> speed <3.207184> / animSpeed; 
 			turn lloarm to x-axis <-14.522205> speed <145.222056> / animSpeed; 
 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-0.492733> speed <26.423822> / animSpeed; 
 			turn ruparm to z-axis <0.582435> speed <3.186306> / animSpeed; 
 			turn ruparm to y-axis <0.560149> speed <8.407585> / animSpeed; 
@@ -117,7 +120,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:13
+		if (isMoving) { //Frame:13
 			turn lfoot to x-axis <-7.861976> speed <190.393589> / animSpeed; 
 			turn lfoot to y-axis <-8.110533> speed <13.713159> / animSpeed; 
 			turn lleg to x-axis <74.686479> speed <1071.366022> / animSpeed; 
@@ -142,7 +145,7 @@ Walk() {
 			turn lloarm to z-axis <0.213281> speed <13.218873> / animSpeed; 
 			turn lloarm to y-axis <-0.067051> speed <4.990803> / animSpeed; 
 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-0.825382> speed <9.979465> / animSpeed; 
 			turn ruparm to y-axis <0.068412> speed <14.752121> / animSpeed; 
 			turn rloarm to x-axis <5.515089> speed <67.020817> / animSpeed; 
@@ -151,7 +154,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			turn lfoot to x-axis <21.690702> speed <886.580343> / animSpeed; 
 			turn lfoot to z-axis <4.351855> speed <7.986288> / animSpeed; 
 			turn lfoot to y-axis <-10.283250> speed <65.181520> / animSpeed; 
@@ -161,8 +164,8 @@ Walk() {
 			turn lthigh to x-axis <-30.535242> speed <278.800092> / animSpeed; 
 			turn lthigh to z-axis <-1.402269> speed <156.024920> / animSpeed; 
 			turn lthigh to y-axis <1.049882> speed <102.833834> / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [28.830757] / animSpeed; 
-			turn pelvis to y-axis <-0.000000> speed <225.875005> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [28.830757] / animSpeed; 
+			turn pelvis to y-axis <-0.0> speed <225.875005> / animSpeed; 
 			turn rfoot to x-axis <-7.207572> speed <169.113988> / animSpeed; 
 			turn rleg to x-axis <-12.230308> speed <748.058523> / animSpeed; 
 			turn rleg to z-axis <3.697749> speed <36.374747> / animSpeed; 
@@ -176,14 +179,14 @@ Walk() {
 			turn lloarm to z-axis <0.653910> speed <13.218871> / animSpeed; 
 			turn lloarm to y-axis <0.099309> speed <4.990803> / animSpeed; 
 			
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-2.041342> speed <36.478792> / animSpeed; 
 			turn ruparm to y-axis <-0.777506> speed <25.377531> / animSpeed; 
 			turn rloarm to x-axis <5.224230> speed <8.725780> / animSpeed; 
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:19
+		if (isMoving) { //Frame:19
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <52.965576> speed <938.246233> / animSpeed; 
 			turn lfoot to z-axis <-1.237152> speed <167.670216> / animSpeed; 
@@ -209,7 +212,7 @@ Walk() {
 			turn lloarm to z-axis <1.094539> speed <13.218872> / animSpeed; 
 			turn lloarm to y-axis <0.265669> speed <4.990803> / animSpeed; 
 			
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-7.011375> speed <149.100991> / animSpeed; 
 			turn ruparm to z-axis <0.746683> speed <5.405972> / animSpeed; 
 			turn ruparm to y-axis <-1.230249> speed <13.582306> / animSpeed; 
@@ -217,7 +220,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:22
+		if (isMoving) { //Frame:22
 			turn lfoot to x-axis <13.164725> speed <1194.025530> / animSpeed; 
 			turn lfoot to z-axis <-0.766866> speed <14.108585> / animSpeed; 
 			turn lfoot to y-axis <0.668069> speed <24.324133> / animSpeed; 
@@ -245,7 +248,7 @@ Walk() {
 			turn lloarm to z-axis <2.468783> speed <41.227316> / animSpeed; 
 			turn lloarm to y-axis <0.550142> speed <8.534192> / animSpeed; 
 			
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-10.365927> speed <100.636566> / animSpeed; 
 			turn ruparm to z-axis <0.926882> speed <5.405972> / animSpeed; 
 			turn rloarm to x-axis <-5.459356> speed <284.576344> / animSpeed; 
@@ -254,7 +257,7 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			turn lfoot to x-axis <-4.676950> speed <535.250263> / animSpeed; 
 			turn lfoot to y-axis <0.434839> speed <6.996926> / animSpeed; 
 			turn lleg to x-axis <12.861630> speed <489.757092> / animSpeed; 
@@ -279,7 +282,7 @@ Walk() {
 			turn lloarm to x-axis <5.601376> speed <313.263356> / animSpeed; 
 			turn lloarm to z-axis <1.196500> speed <38.168484> / animSpeed; 
 			turn lloarm to y-axis <0.236169> speed <9.419190> / animSpeed; 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <-4.687609> speed <170.349550> / animSpeed; 
 			turn ruparm to z-axis <0.571517> speed <10.660935> / animSpeed; 
 			turn ruparm to y-axis <-0.664584> speed <19.926842> / animSpeed; 
@@ -289,15 +292,15 @@ Walk() {
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (isMoving) { //Frame:28
 			turn lfoot to x-axis <-7.199620> speed <75.680105> / animSpeed; 
 			turn lleg to x-axis <-12.224749> speed <752.591369> / animSpeed; 
 			turn lleg to z-axis <3.692376> speed <47.585604> / animSpeed; 
 			turn lleg to y-axis <0.019436> speed <11.168048> / animSpeed; 
 			turn lthigh to x-axis <19.141667> speed <1038.542284> / animSpeed; 
 			turn lthigh to z-axis <-1.780384> speed <95.504220> / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [37.715424] / animSpeed; 
-			turn pelvis to y-axis <0.000000> speed <230.452341> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [37.715424] / animSpeed; 
+			turn pelvis to y-axis <0.0> speed <230.452341> / animSpeed; 
 			turn rfoot to x-axis <22.048074> speed <976.632084> / animSpeed; 
 			turn rfoot to z-axis <-0.414806> speed <135.835599> / animSpeed; 
 			turn rfoot to y-axis <0.349097> speed <248.201906> / animSpeed; 
@@ -314,10 +317,10 @@ Walk() {
 			turn lloarm to x-axis <-4.840735> speed <313.263318> / animSpeed; 
 			turn lloarm to z-axis <-0.075783> speed <38.168481> / animSpeed; 
 			turn lloarm to y-axis <-0.077804> speed <9.419190> / animSpeed; 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn ruparm to x-axis <0.990709> speed <170.349543> / animSpeed; 
 			turn ruparm to z-axis <0.216153> speed <10.660935> / animSpeed; 
-			turn ruparm to y-axis <-0.000356> speed <19.926841> / animSpeed; 
+			turn ruparm to y-axis <-0.0> speed <19.926841> / animSpeed; 
 			turn rloarm to x-axis <2.378045> speed <15.949390> / animSpeed; 
 			turn rloarm to z-axis <2.347062> speed <7.945896> / animSpeed; 
 			}
@@ -325,42 +328,42 @@ Walk() {
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move pelvis to y-axis [0.000000] speed [19.143617];
-	turn lfoot to x-axis <0.000000> speed <398.008510>;
-	turn lfoot to y-axis <0.000000> speed <117.621241>;
-	turn lfoot to z-axis <0.000000> speed <55.890072>;
-	turn lleg to x-axis <0.000000> speed <529.368023>;
-	turn lleg to y-axis <0.000000> speed <156.850585>;
-	turn lleg to z-axis <0.000000> speed <138.756447>;
-	turn lthigh to x-axis <0.000000> speed <625.783469>;
-	turn lthigh to y-axis <0.000000> speed <85.529648>;
-	turn lthigh to z-axis <0.000000> speed <74.684548>;
-	turn pelvis to y-axis <0.000000> speed <76.817447>;
-	turn rfoot to x-axis <0.000000> speed <325.544028>;
-	turn rfoot to y-axis <0.000000> speed <83.001625>;
-	turn rfoot to z-axis <0.000000> speed <48.948067>;
-	turn rleg to x-axis <0.000000> speed <550.686871>;
-	turn rleg to y-axis <0.000000> speed <207.811687>;
-	turn rleg to z-axis <0.000000> speed <160.527892>;
-	turn rthigh to x-axis <0.000000> speed <630.557139>;
-	turn rthigh to y-axis <0.000000> speed <48.952954>;
-	turn rthigh to z-axis <0.000000> speed <69.814160>;
-	turn luparm to x-axis <0.000000> speed <118.421794>;
-	turn luparm to y-axis <0.000000> speed <1.069061>;
-	turn luparm to z-axis <0.000000> speed <16.270322>;	
+	move pelvis to y-axis [0.0] speed [19.143617];
+	turn lfoot to x-axis <0.0> speed <398.008510>;
+	turn lfoot to y-axis <0.0> speed <117.621241>;
+	turn lfoot to z-axis <0.0> speed <55.890072>;
+	turn lleg to x-axis <0.0> speed <529.368023>;
+	turn lleg to y-axis <0.0> speed <156.850585>;
+	turn lleg to z-axis <0.0> speed <138.756447>;
+	turn lthigh to x-axis <0.0> speed <625.783469>;
+	turn lthigh to y-axis <0.0> speed <85.529648>;
+	turn lthigh to z-axis <0.0> speed <74.684548>;
+	turn pelvis to y-axis <0.0> speed <76.817447>;
+	turn rfoot to x-axis <0.0> speed <325.544028>;
+	turn rfoot to y-axis <0.0> speed <83.001625>;
+	turn rfoot to z-axis <0.0> speed <48.948067>;
+	turn rleg to x-axis <0.0> speed <550.686871>;
+	turn rleg to y-axis <0.0> speed <207.811687>;
+	turn rleg to z-axis <0.0> speed <160.527892>;
+	turn rthigh to x-axis <0.0> speed <630.557139>;
+	turn rthigh to y-axis <0.0> speed <48.952954>;
+	turn rthigh to z-axis <0.0> speed <69.814160>;
+	turn luparm to x-axis <0.0> speed <118.421794>;
+	turn luparm to y-axis <0.0> speed <1.069061>;
+	turn luparm to z-axis <0.0> speed <16.270322>;	
+	move torso to x-axis [0.0] speed [25.713165];
+	move torso to y-axis [0.0] speed [25.713620];
+	move torso to z-axis [0.0] speed [28.538611];	
 	
-	if ( !isAiming){
-		turn ruparm to x-axis <0.000000> speed <56.783183>;
-		turn ruparm to y-axis <0.000000> speed <8.459177>;
-		turn ruparm to z-axis <0.000000> speed <3.553645>;	
-		turn rloarm to x-axis <0.000000> speed <94.858781>;
-		turn rloarm to y-axis <0.000000> speed <10.549088>;
-		turn rloarm to z-axis <0.000000> speed <23.470615>;	
-		move torso to x-axis [0.000000] speed [25.713165];
-		move torso to y-axis [0.000000] speed [25.713620];
-		move torso to z-axis [0.000000] speed [28.538611];			
+	if (IsClosed){
+		turn ruparm to x-axis <0.0> speed <56.783183>;
+		turn ruparm to y-axis <0.0> speed <8.459177>;
+		turn ruparm to z-axis <0.0> speed <3.553645>;	
+		turn rloarm to x-axis <0.0> speed <94.858781>;
+		turn rloarm to y-axis <0.0> speed <10.549088>;
+		turn rloarm to z-axis <0.0> speed <23.470615>;			
 	}
 
 }
@@ -371,7 +374,7 @@ UnitSpeed(){
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
-	\if (animSpeed<1) animSpeed=1;
+		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
@@ -379,16 +382,16 @@ UnitSpeed(){
 		sleep 98;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+  set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
   call-script StopWalking();
 }
 
@@ -399,21 +402,10 @@ StopMoving(){
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-drawgun()
+Open()
 {
-
-	//turn ruparm to x-axis <0.000000> speed <56.783183>;
-	//turn ruparm to y-axis <0.000000> speed <8.459177>;
-	//turn ruparm to z-axis <0.000000> speed <3.553645>;	
-	//turn rloarm to x-axis <0.000000> speed <94.858781>;
-	//turn rloarm to y-axis <0.000000> speed <10.549088>;
-	//turn rloarm to z-axis <0.000000> speed <23.470615>;	
-	//turn luparm to x-axis <0.000000> speed <118.421794>;
-	//turn luparm to y-axis <0.000000> speed <1.069061>;
-	//turn luparm to z-axis <0.000000> speed <16.270322>;
-	
 	var drawspeed;
 	drawspeed = 5;
 	
@@ -437,38 +429,14 @@ drawgun()
 	turn rloarm to x-axis <-55> speed <43>*drawspeed*2;
 	
 	wait-for-turn ruparm around x-axis;
-	gunDrawn = 1;
-	
-	
-/*
-	turn rloarm to x-axis <0> speed <360>;
-	turn lloarm to x-axis <0> speed <360>;
-	turn ruparm to x-axis <-150> speed <360>;
-	turn rloarm to x-axis <-45> speed <360>;
-	sleep 250;
-	
-	turn ruparm to x-axis <90> speed <360>;
-	//turn luparm to x-axis <-179> speed <360>;
-	sleep 125;
-	
-	hide gunstatic;
-	show gunhand;
-	//turn luparm to x-axis <0> speed <360>; //90   arm bleibt beim schieïssen nun unten
-	turn ruparm to x-axis <-60> speed <360>; //-179*   720
-	sleep 125;
-	turn ruparm to x-axis <-10> speed <360>;  //0* ****** arm position when shooting (only ruparm, rloarm is in aiming)
-	sleep 125;
-	turn rloarm to x-axis <-40> speed <360>; //new armhaltung nach dem schiessen wenn waffe wieder im holster
-	sleep 125;  //new
-*/
+	//get PRINT(IsOpen, IsClosed);
+
 
 }
 
-holstgun()
+Close()
 {
-	
-	var drawspeed;
-	drawspeed = 3;
+	#define drawspeed 3
 	
 	turn ruparm to x-axis <54> speed <54>*drawspeed;
 	turn ruparm to z-axis <-10> speed <10>*drawspeed;
@@ -493,49 +461,17 @@ holstgun()
 	turn rloarm to z-axis <0> speed <43>*drawspeed;
 	
 	wait-for-turn ruparm around x-axis;
-	gunDrawn = 0;
-
 }
-
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script holstgun();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script drawgun();
-			currentstate = 0;
-		}
-		sleep 32;
-	}
-	statechg_StateChanging = FALSE;
-}
-
-
 
 Sparks()
 {
 	while( TRUE )
 	{
-		while( !bAiming )
+		while( !IsOpen )
 		{
 			sleep 100;
 		}
-		emit-sfx 1025 + 0 from spark_emit;	
+		emit-sfx 1024 + 0 from spark_emit;	
 		sleep 200;
 	}
 }
@@ -558,23 +494,12 @@ Create()
 	hide aimy1;
 	show gunstatic;
 	hide gunhand;
-	isAiming = FALSE;
 	animspeed = 3;
 	wpnheading = 0;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	restore_delay = 7000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	gunDrawn = 0;
 	moveSpeed = get MAX_SPEED;
-	bAiming = FALSE;
 	start-script Sparks();
-}
-
-
-SweetSpot(piecenum)
-{
-	piecenum = torso;
 }
 
 static-var  Stunned;
@@ -585,21 +510,19 @@ ExecuteRestoreAfterDelay()
 		hide static_emit;
         return (1);
     }
-	call-script RequestState(1);
+	set-signal-mask 0;
+	call-script OpenCloseAnim(0);
 	hide gun_emit;
 	show static_emit;
-    turn aimy1 to y-axis <0.000000> speed <90>;
-    turn aimx1 to x-axis <0.000000> speed <45>;
+    turn aimy1 to y-axis <0.0> speed <90>;
+    turn aimx1 to x-axis <0.0> speed <45>;
     turn torso to y-axis <0> speed <45>;    
-    
-	isAiming = FALSE;
 	
-	turn luparm to x-axis <0.000000> speed <118.421794>;
-	turn luparm to y-axis <0.000000> speed <1.069061>;
-	turn luparm to z-axis <0.000000> speed <16.270322>;	
+	turn luparm to x-axis <0.0> speed <118.421794>;
+	turn luparm to y-axis <0.0> speed <1.069061>;
+	turn luparm to z-axis <0.0> speed <16.270322>;	
     
     wpnheading = 0;
-    bAiming = 0;
 }
 SetStunned(State)
 {
@@ -612,46 +535,43 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	isAiming = TRUE;
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	start-script RestoreAfterDelay();
 	
-	if (bAiming == 1) return 0;
 	turn aimy1 to y-axis heading speed <225.005495>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <75.005495>;
-	
-	if (!gunDrawn ) return 0;
+	turn aimx1 to x-axis <0.0> - pitch speed <75.005495>;
+	//get PRINT(get GAME_FRAME, OCA_intransition_wantOpen,IsClosed, IsOpen);
+	if (!IsOpen ) return 0;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 2000){
-		bAiming = 1;
+	// TODO ADD 0xBADFACE
+	if (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpnheading - heading), <11>)){
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
 	}
 	wpnheading = heading;
-	start-script RestoreAfterDelay();
 	return (1);
-	
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = rloarm;
+	pieceIndex = rloarm;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	show gun_emit;
 	hide static_emit;
@@ -661,8 +581,8 @@ FirePrimary()
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armzeus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armzeus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
-	signal SIG_WALK;
-	signal SIG_AIM;
+	signal SIGNAL_MOVE;
+	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	turn aimy1 to y-axis <0> speed <120>;
 	turn aimx1 to x-axis <0> speed <120>;
@@ -866,7 +786,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn backpack to x-axis <1.987363> speed <29.128363> ; 
 			turn backpack to z-axis <3.674573> speed <2.642227> ; 
 			turn backpack to y-axis <7.323191> speed <7.220146> ; 
-			turn lfoot to x-axis <38.436599> speed <8.000798> ; 
+			turn lfoot to x-axis <38.436599> speed <8.0> ; 
 			turn lleg to x-axis <13.713488> speed <5.993017> ; 
 			turn lloarm to x-axis <-8.642851> speed <32.222147> ; 
 			turn lloarm to z-axis <1.728834> speed <8.676587> ; 
@@ -1324,7 +1244,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			turn lfoot to x-axis <37.780085> speed <26.655804> ; 
 			turn lleg to x-axis <12.239941> speed <11.479747> ; 
 			turn lleg to z-axis <1.573461> speed <3.219257> ; 
-			turn lleg to y-axis <-1.000906> speed <2.360124> ; 
+			turn lleg to y-axis <-1.0> speed <2.360124> ; 
 			turn lthigh to x-axis <43.511594> speed <40.068827> ; 
 			turn lthigh to z-axis <7.708693> speed <23.254984> ; 
 			turn lthigh to y-axis <-4.645130> speed <17.100015> ; 
@@ -1720,7 +1640,7 @@ DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\de
 			move torso to z-axis [2.295931] speed [44.257425] ; 
 			move torso to y-axis [-0.159389] speed [12.022943] ; 
 			turn torso to x-axis <0.104721> speed <1.672227> ; 
-			turn torso to x-axis <6.000051> speed <95.811558> ; 
+			turn torso to x-axis <6.0> speed <95.811558> ; 
 			turn torso to z-axis <-0.166935> speed <28.875303> ; 
 			turn torso to y-axis <3.781670> speed <2.892352> ; 
 		sleep 65;
@@ -1826,20 +1746,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode gunstatic type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gunhand type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode emit_spark type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type FALL | NOHEATCLOUD;
-		//explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -1850,17 +1758,6 @@ Killed(severity, corpsetype)
 		explode gunstatic type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type SMOKE | FALL | NOHEATCLOUD;
-		//explode gunhand type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
-		//explode emit_spark type SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -1869,16 +1766,5 @@ Killed(severity, corpsetype)
 		explode gunstatic type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode gunhand type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode emit_spark type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

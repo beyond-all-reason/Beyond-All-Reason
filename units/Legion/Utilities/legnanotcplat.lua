@@ -16,11 +16,9 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
-		energyupkeep = 30,
 		explodeas = "nanoboom",
 		floater = true,
 		footprintx = 3,

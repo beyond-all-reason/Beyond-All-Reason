@@ -19,8 +19,11 @@ local object = {
 local tombstones = {
 	armstone = table.copy(object),
 	corstone = table.copy(object),
+	legstone = table.copy(object),
 }
 tombstones.corstone.object = "corstone.s3o"
 tombstones.corstone.customparams.normaltex = "unittextures/cor_normal.dds"
+tombstones.legstone.object = "legstone.s3o"
+tombstones.legstone.customparams.normaltex = "unittextures/leg_normal.dds"
 
 return tombstones

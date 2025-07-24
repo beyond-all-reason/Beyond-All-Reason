@@ -4,9 +4,8 @@ return {
 		buildpic = "CORSSUB.DDS",
 		buildtime = 24750,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW EMPABLE UNDERWATER",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "52 14 67",
+		collisionvolumescales = "52 25 60",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		energycost = 29000,
@@ -104,7 +103,7 @@ return {
 		},
 		weapondefs = {
 			armserp_weapon = {
-				areaofeffect = 16,
+				areaofeffect = 160,
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
@@ -115,7 +114,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "coradvtorpedo.s3o",
 				name = "AdvTorpedo",

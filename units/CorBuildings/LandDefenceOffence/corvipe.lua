@@ -4,7 +4,6 @@ return {
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energycost = 14000,
@@ -113,7 +112,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 70,
 				flighttime = 1.05,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile3fast.s3o",
 				name = "Heavy g2g sabot rocket launcher",
@@ -141,6 +139,11 @@ return {
 				weapontimer = 0.1,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
+				customparams = {
+					exclude_preaim = true,
+					overrange_distance = 840,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 825,
 					hvyboats = 577.5,

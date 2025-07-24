@@ -3,7 +3,6 @@ return {
 		buildpic = "ARMPB.DDS",
 		buildtime = 15000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -115,7 +114,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Pop-up heavy g2g gauss cannon",
 				nogap = false,
@@ -133,6 +131,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 675,
 					hvyboats = 472.5,

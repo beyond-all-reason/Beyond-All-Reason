@@ -1,4 +1,6 @@
 --------------------------------------------------------------------------------
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = "Anti Ranges",
@@ -8,7 +10,7 @@ function widget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 4,
         layer     = 5,
-        enabled   = true
+        enabled   = false
     }
 end
 
@@ -82,9 +84,9 @@ function identifyAntiNukeUnits()
         local weapons = unitDef.weapons
         for i=1, #weapons do
             local weaponDef = WeaponDefs[weapons[i].weaponDef]
-            if weaponDef and weaponDef.coverageRange and weaponDef.coverageRange > 0 then
+            if weaponDef and weaponDef.interceptor and weaponDef.interceptor == 1 then
                 antiNukeDefs[unitDefID] = weaponDef.coverageRange
-                break  -- No need to check further weapons for this unit
+                break
             end
         end
     end

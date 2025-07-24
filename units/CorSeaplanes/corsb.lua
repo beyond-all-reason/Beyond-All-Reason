@@ -6,7 +6,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER CANBEUW",
 		collide = false,
 		cruisealtitude = 150,
 		energycost = 8200,
@@ -99,7 +98,6 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
 				model = "airbombsea.s3o",
@@ -118,6 +116,9 @@ return {
 				sprayangle = 6000,
 				waterbounce = true,
 				weapontype = "AircraftBomb",
+				customparams = {
+					water_splash = 0, -- corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+				},
 				damage = {
 					default = 50,
 				},

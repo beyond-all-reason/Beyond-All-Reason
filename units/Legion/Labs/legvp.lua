@@ -3,37 +3,49 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 2048,
-		energycost = 1800,
-		metalcost = 720,
+		energycost = 1650,
+		metalcost = 570,
 		builder = true,
 		buildpic = "LEGVP.DDS",
-		buildtime = 7200,
+		buildtime = 5700,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "3 15 2",
-		collisionvolumescales = "101 40 106",
+		collisionvolumeoffsets = "0 19 0",
+		collisionvolumescales = "101 53 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		footprintx = 7,
-		footprintz = 7,
+		footprintx = 6,
+		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
-		levelground = false,
+		levelground = true,
 		health = 3000,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		objectname = "Units/CORVP.s3o",
+		objectname = "Units/LEGVP.s3o",
 		radardistance = 50,
-		script = "Units/CORVP.lua",
+		script = "Units/LEGVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,
 		terraformspeed = 500,
-		workertime = 100,
-		yardmap = "ooooooo ooooooo ooooooo oocccoo oocccoo oocccoo oocccoo",
+		workertime = 150,
+		yardmap = [[h
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    ]],
 		buildoptions = {
 			[1] = "legscout",
 			[2] = "legcv",
@@ -48,14 +60,14 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corvp_aoplane.dds",
+			buildinggrounddecaltype = "decals/legvp_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorBuildings/LandFactories",
+			model_author = "Protar/Ghoulish",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Labs",
 		},
 		featuredefs = {
 			dead = {
@@ -66,19 +78,19 @@ return {
 				collisionvolumetype = "BOX",
 				damage = 1590,
 				featuredead = "HEAP",
-				footprintx = 7,
-				footprintz = 7,
+				footprintx = 6,
+				footprintz = 6,
 				height = 20,
 				metal = 470,
-				object = "Units/corvp_dead.s3o",
+				object = "Units/legvp_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 795,
-				footprintx = 7,
-				footprintz = 7,
+				footprintx = 6,
+				footprintz = 6,
 				height = 4,
 				metal = 188,
 				object = "Units/cor7X7B.s3o",

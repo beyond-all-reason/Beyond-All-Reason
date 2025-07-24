@@ -5,7 +5,6 @@ return {
 		buildpic = "CORMMKR.DDS",
 		buildtime = 31300,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		energycost = 21000,
 		explodeas = "advmetalmaker",

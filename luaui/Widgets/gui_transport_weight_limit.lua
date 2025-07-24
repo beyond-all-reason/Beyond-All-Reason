@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "gui_transport_weight_limit",
@@ -110,8 +112,8 @@ function widget:SelectionChanged(sel)
 	elseif selectedUnitsCount > 1 then
 		for i = 1, #selectedUnits do
 			local unitID = selectedUnits[i]
-			local unitdefID = Spring.GetUnitDefID(unitID)
-			if validTrans[unitdefID] then
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			if validTrans[unitDefID] then
 				transID = unitID
 				transDefID = unitDefID
 				unitcount = unitcount + 1

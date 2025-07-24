@@ -9,7 +9,6 @@ return {
 		buildtime = 1000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealt = 40,
 		explodeas = "tinyExplosionGeneric",
@@ -82,7 +81,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.75,
 				groundbounce = true,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cordepthcharge.s3o",
 				name = "Depthcharge launcher",
@@ -102,6 +100,9 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 255,
 				},

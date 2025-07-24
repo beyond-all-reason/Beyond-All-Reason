@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name = "Highlight Commander Wrecks",
@@ -43,9 +45,11 @@ end
 
 -- GL4
 
-local includeDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local vsSrc = [[
     #version 420
@@ -150,10 +154,10 @@ local function makeCylinderVBO(sections)
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
-    local vbo = makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
+    local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
     vbo.vertexVBO = vertexVBO
     vbo.numVertices = numVertices
-    vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+    vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
     return vbo
 end
 
@@ -232,13 +236,13 @@ local function checkAllFeatures()
         return
     end
 
-    clearInstanceTable(instanceVBO)
+    InstanceVBOTable.clearInstanceTable(instanceVBO)
 
     for _, featureID in ipairs(SpringGetAllFeatures()) do
         checkAddHighlight(featureID, true)
     end
 
-    uploadAllElements(instanceVBO)
+    InstanceVBOTable.uploadAllElements(instanceVBO)
 end
 
 function widget:DrawWorld()

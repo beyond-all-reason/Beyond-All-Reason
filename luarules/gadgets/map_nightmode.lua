@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Map NightMode",
@@ -326,7 +328,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local transitionenabled = false
 	local nightModeConfig = {
 		{
-			nightFactor = {0.4, 0.4, 0.55, 0.7},
+			nightFactor = {0.15, 0.15, 0.18, 0.5},
 			azimuth = 1.5,
 			altitude = 0.5,
 			dayDuration = 180,

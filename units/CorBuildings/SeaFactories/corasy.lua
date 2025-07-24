@@ -4,7 +4,6 @@ return {
 		buildpic = "CORASY.DDS",
 		buildtime = 15700,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "186 78 183",
 		collisionvolumetype = "Box",
@@ -30,7 +29,7 @@ return {
 		terraformspeed = 1000,
 		waterline = 19,
 		workertime = 300,
-		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
+		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
 			[1] = "coracsub",
 			[2] = "cormls",

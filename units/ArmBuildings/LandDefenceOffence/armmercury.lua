@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMMERCURY.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 -1 0",
 		collisionvolumescales = "60 78 60",
 		collisionvolumetype = "CylY",
@@ -114,7 +113,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge-aa",
 				firestarter = 90,
 				flighttime = 2.2,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "corscreamermissile.s3o",
@@ -148,8 +146,10 @@ return {
 				weaponacceleration = 1000,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
+				customparams = {
+					stockpilelimit = 5,
+				},
 				damage = {
-					space = 750,
 					vtol = 750,
 				},
 			},
@@ -158,7 +158,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARM_ADVSAM",
-				onlytargetcategory = "VTOL SPACE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

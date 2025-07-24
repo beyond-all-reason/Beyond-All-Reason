@@ -5,7 +5,6 @@ return {
 		buildpic = "CORMUSKRAT.DDS",
 		buildtime = 6860,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "26 28 46",
 		collisionvolumetype = "Box",
@@ -40,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 300,
-		workertime = 80,
+		workertime = 85,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",
@@ -84,7 +83,7 @@ return {
 			[40] = "corfrad",
 			[41] = "corfhlt",
 			[42] = "corfrt",
-			[43] = "corptl",
+			[43] = "cortl",
 			[44] = "coruwgeo",
 		},
 		customparams = {

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Airbase Manager",
@@ -21,12 +23,16 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 local tractorDist = 100 ^ 2 -- default sqr tractor distance
 local isAirbase = {}
 local isAirUnit = {}
+local isAirCon = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isairbase then
 		isAirbase[unitDefID] = { tractorDist, unitDef.buildSpeed }
 	end
 	if unitDef.isAirUnit and unitDef.canFly then
 		isAirUnit[unitDefID] = true
+		if unitDef.isBuilder then
+    		isAirCon[unitDefID] = true
+		end
 	end
 end
 
@@ -254,13 +260,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function FlyAway(unitID, airbaseID)
-		--
 		-- hack, after detaching units don't always continue with their command q
 		GiveWaitWaitOrder(unitID)
-		--
 
 		-- if the unit has no orders, tell it to move a little away from the airbase
-		local q = Spring.GetCommandQueue(unitID, 0)
+		local q = Spring.GetUnitCommandCount(unitID)
 		if q == 0 then
 			local px, _, pz = spGetUnitPosition(airbaseID)
 			local theta = math_random() * 2 * math_pi
@@ -321,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if not planes[unitID] and not airbases[unitID] then
 			return
 		end
@@ -622,7 +626,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-
 else	-- Unsynced
 
 
@@ -634,7 +637,6 @@ else	-- Unsynced
 	local spGetSelectedUnits = Spring.GetSelectedUnits
 
 	local myTeamID = Spring.GetMyTeamID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
@@ -644,7 +646,6 @@ else	-- Unsynced
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:DefaultCommand(type, id, cmd)
@@ -657,7 +658,8 @@ else	-- Unsynced
 		else
 			local sUnits = spGetSelectedUnits()
 			for i = 1, #sUnits do
-				if isAirUnit[spGetUnitDefID(sUnits[i])] then
+				local unitDefID = spGetUnitDefID(sUnits[i])
+				if isAirUnit[unitDefID] and not isAirCon[unitDefID] then -- cons still default to their usual construction tasks
 					return CMD_LAND_AT_SPECIFIC_AIRBASE
 				end
 			end

@@ -31,6 +31,7 @@ if (System == nil) then
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = Game.CustomCommands.GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,
@@ -127,4 +128,8 @@ if (System == nil) then
 
 		_VERSION       = _VERSION
 	}
+
+	System.CMD.ANY = 'a'
+	System.CMD.NIL = 'n'
+	System.CMD.BUILD = 'b'
 end

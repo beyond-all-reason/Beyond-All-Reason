@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Area unload",
@@ -5,7 +7,6 @@ function widget:GetInfo()
 		author = "Doo",
 		date = "April 2018",
 		license = "GNU GPL, v2 or later",
-		handler = true,
 		layer = 0,
 		enabled = true
 	}

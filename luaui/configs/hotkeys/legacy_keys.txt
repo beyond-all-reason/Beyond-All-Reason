@@ -44,7 +44,7 @@ bind sc_e reclaim
 bind Shift+sc_e reclaim
 bind sc_f fight
 bind Shift+sc_f fight
-bind Alt+sc_f forcestart
+bind Alt+sc_f chain force forcestart | say !cv forcestart
 bind sc_g guard
 bind Shift+sc_g guard
 bind sc_j canceltarget
@@ -56,6 +56,8 @@ bind sc_l loadunits
 bind Shift+sc_l loadunits
 bind sc_m move
 bind Shift+sc_m move
+bind sc_n  command_skip_current
+bind Ctrl+sc_n  command_cancel_last
 bind sc_p patrol
 bind Shift+sc_p patrol
 bind sc_q,sc_q drawlabel // double hit Q for drawlabel, these are only present due to legacy. Should be deprecated at some point
@@ -121,6 +123,8 @@ bind sc_z buildunit_cormex
 bind Shift+sc_z buildunit_cormex
 bind sc_z buildunit_legmex
 bind Shift+sc_z buildunit_legmex
+bind sc_z buildunit_legmext15
+bind Shift+sc_z buildunit_legmext15
 bind sc_z buildunit_corexp
 bind Shift+sc_z buildunit_corexp
 bind sc_z buildunit_armmoho
@@ -131,10 +135,6 @@ bind sc_z buildunit_legmoho
 bind Shift+sc_z buildunit_legmoho
 bind sc_z buildunit_cormexp
 bind Shift+sc_z buildunit_cormexp
-bind sc_z buildunit_coruwmex
-bind Shift+sc_z buildunit_coruwmex
-bind sc_z buildunit_armuwmex
-bind Shift+sc_z buildunit_armuwmex
 bind sc_z buildunit_coruwmme
 bind Shift+sc_z buildunit_coruwmme
 bind sc_z buildunit_armuwmme
@@ -150,10 +150,16 @@ bind sc_x buildunit_corsolar
 bind Shift+sc_x buildunit_corsolar
 bind sc_x buildunit_corwin
 bind Shift+sc_x buildunit_corwin
+bind sc_x buildunit_legsolar
+bind Shift+sc_x buildunit_legsolar
+bind sc_x buildunit_legwin
+bind Shift+sc_x buildunit_legwin
 bind sc_x buildunit_armadvsol
 bind Shift+sc_x buildunit_armadvsol
 bind sc_x buildunit_coradvsol
 bind Shift+sc_x buildunit_coradvsol
+bind sc_x buildunit_legadvsol
+bind Shift+sc_x buildunit_legadvsol
 bind sc_x buildunit_armfus
 bind Shift+sc_x buildunit_armfus
 bind sc_x buildunit_armmmkr
@@ -162,6 +168,10 @@ bind sc_x buildunit_corfus
 bind Shift+sc_x buildunit_corfus
 bind sc_x buildunit_cormmkr
 bind Shift+sc_x buildunit_cormmkr
+bind sc_x buildunit_legfus
+bind Shift+sc_x buildunit_legfus
+bind sc_x buildunit_legadveconv
+bind Shift+sc_x buildunit_legadveconv
 bind sc_x buildunit_armtide
 bind Shift+sc_x buildunit_armtide
 bind sc_x buildunit_cortide
@@ -200,6 +210,10 @@ bind sc_c buildunit_corvipe
 bind Shift+sc_c buildunit_corvipe
 bind sc_c buildunit_corflak
 bind Shift+sc_c buildunit_corflak
+bind sc_c buildunit_legapopupdef
+bind Shift+sc_c buildunit_legapopupdef
+bind sc_c buildunit_legflak
+bind Shift+sc_c buildunit_legflak
 bind sc_c buildunit_armgplat
 bind Shift+sc_c buildunit_armgplat
 bind sc_c buildunit_corgplat
@@ -240,6 +254,14 @@ bind sc_v buildunit_corvp
 bind Shift+sc_v buildunit_corvp
 bind sc_v buildunit_corap
 bind Shift+sc_v buildunit_corap
+bind sc_v buildunit_legnanotc
+bind Shift+sc_v buildunit_legnanotc
+bind sc_v buildunit_leglab
+bind Shift+sc_v buildunit_leglab
+bind sc_v buildunit_legvp
+bind Shift+sc_v buildunit_legvp
+bind sc_v buildunit_legap
+bind Shift+sc_v buildunit_legap
 bind sc_v buildunit_armsy
 bind Shift+sc_v buildunit_armsy
 bind sc_v buildunit_corsy
@@ -266,7 +288,9 @@ bind Ctrl+Shift+sc_o cameraflip // CameraFlip
 
 //if not WG[ Set target default ] then
 bind Alt+sc_y settarget
+bind Shift+Alt+sc_y settarget
 bind sc_y settargetnoground
+bind Shift+sc_y settargetnoground
 
 bind Ctrl+sc_` group unset
 
@@ -278,3 +302,6 @@ bind           Alt+sc_c  blueprint_create
 bind           Alt+sc_d  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
+
+// quotas
+bind           Alt+sc_g  factoryqueuemode

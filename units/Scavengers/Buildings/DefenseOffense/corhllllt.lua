@@ -9,7 +9,6 @@ return {
 		buildtime = 8800,
 		canrepeat = false,
 		cantbetransported = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0-20 0",
 		collisionvolumescales = "32 160 32",
 		collisionvolumetype = "CylY",
@@ -116,7 +115,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Close-quarters light g2g laser",
@@ -129,7 +127,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -140,6 +137,9 @@ return {
 					default = 75,
 					vtol = 5,
 				},
+				customparams = {
+					exclude_preaim = true,
+				}
 			},
 			hllt_2 = {
 				areaofeffect = 12,
@@ -154,7 +154,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Close-quarters light g2g laser",
@@ -167,7 +166,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -178,6 +176,10 @@ return {
 					default = 75,
 					vtol = 5,
 				},
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+				}
 			},
 			hllt_3 = {
 				areaofeffect = 12,
@@ -192,7 +194,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Close-quarters light g2g laser",
@@ -205,7 +206,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -216,6 +216,10 @@ return {
 					default = 75,
 					vtol = 5,
 				},
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+				}
 			},
 			hllt_4 = {
 				areaofeffect = 12,
@@ -230,7 +234,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
 				name = "Close-quarters light g2g laser",
@@ -243,7 +246,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -254,6 +256,10 @@ return {
 					default = 75,
 					vtol = 5,
 				},
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+				}
 			},
 		},
 		weapons = {

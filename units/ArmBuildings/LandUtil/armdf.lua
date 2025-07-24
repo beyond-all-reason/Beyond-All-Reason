@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMDF.DDS",
 		buildtime = 7500,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "91 57 59",
 		collisionvolumetype = "Box",
@@ -31,8 +30,8 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armfus_aoplane.dds",
 			decoyfor = "armfus",
 			model_author = "Cremuss",

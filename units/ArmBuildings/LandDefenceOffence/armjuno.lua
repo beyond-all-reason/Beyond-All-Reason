@@ -2,7 +2,6 @@ return {
 	armjuno = {
 		buildpic = "ARMJUNO.DDS",
 		buildtime = 21800,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "44 128 44",
 		collisionvolumetype = "CylY",
@@ -116,7 +115,6 @@ return {
 				energypershot = 12000,
 				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 200,
 				model = "epulse.s3o",
@@ -143,8 +141,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					lups_noshockwave = 1,
 					nofire = true,
+					stockpilelimit = 20,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

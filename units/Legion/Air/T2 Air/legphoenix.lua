@@ -10,10 +10,6 @@ return {
 		canfly = true,
 		canattack = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
-		collisionvolumeoffsets = "0 0 5",
-		collisionvolumescales = "110 20 60",--yes this is unconventional but needs to be this way (passes the Drivver Test)
-		collisionvolumetype = "Box",
 		collide = false,
 		cruisealtitude = 220,
 		explodeas = "largeexplosiongeneric",
@@ -46,8 +42,8 @@ return {
 		wingdrag = 0.125,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Protar/Hornet",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legionaircraft/T2",
 			techlevel = 2,
 		},
@@ -55,9 +51,6 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "110 10 45",
-				collisionvolumetype = "Box",
 				damage = 1200,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -70,8 +63,6 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				collisionvolumescales = "55.0 4.0 6.0",
-				collisionvolumetype = "cylY",
 				damage = 600,
 				footprintx = 3,
 				footprintz = 3,
@@ -127,6 +118,7 @@ return {
 				beamttl = 0.099,
 				camerashake = 0.1,
 				corethickness = 0.4,
+				collidefriendly = false,
 				craterareaofeffect = 120,
 				craterboost = 0,
 				cratermult = 0,
@@ -135,7 +127,6 @@ return {
 				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
 				name = "Heavy a2g Phoenix Flame Heat Ray",
@@ -151,7 +142,6 @@ return {
 				soundstart = "",
 				soundstartvolume = 0,
 				soundtrigger = 0,
-				targetmoveerror = 0.1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -161,6 +151,9 @@ return {
 					default = 145,
 					vtol = 5,
 				},
+				customparams = {
+					sweepfire=7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}
 			},
 			legphtarg = {--targetting only
 				areaofeffect = 121,
@@ -175,7 +168,6 @@ return {
 				edgeeffectiveness = -0.99,
 				explosiongenerator = "custom:noexplosion",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "empty.s3o",
 				mygravity = 0.4,
@@ -191,6 +183,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
+					water_splash = 0, -- targetting weapon aircraftbomb
 				},
 			},
 			legphsound = {

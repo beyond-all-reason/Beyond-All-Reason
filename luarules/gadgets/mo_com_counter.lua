@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Com Counter",
@@ -10,15 +12,11 @@ function gadget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------
-
-if not (gadgetHandler:IsSyncedCode()) then --synced only
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
-local countChanged  = true
+local spSetTeamRulesParam = Spring.SetTeamRulesParam
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -27,67 +25,51 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local teamComs = {}
+local teamAllyTeam = {}
+local teamList = Spring.GetTeamList()
+for _,teamID in pairs(teamList) do
+	teamAllyTeam[teamID] = select(6,Spring.GetTeamInfo(teamID,false))
+	local newCount = 0
+	for unitDefID,_ in pairs(isCommander) do
+		newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+	end
+	teamComs[teamID] = newCount
+end
+teamList = nil
+
+local function updateEnemyComCount()
+	for teamID,_ in pairs(teamComs) do
+		-- count all coms in enemy teams, to get enemy allyteam com count
+		local enemyComCount = 0
+		for otherTeamID,_ in pairs(teamComs) do
+			if teamAllyTeam[teamID] ~= teamAllyTeam[otherTeamID] then
+				enemyComCount = enemyComCount + teamComs[otherTeamID]
+			end
+		end
+		-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
+		spSetTeamRulesParam(teamID, "enemyComCount", enemyComCount, {private=true, allied=false})
+	end
+end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-	-- record com creation
 	if isCommander[unitDefID] then
-		if not teamComs[teamID] then
-			teamComs[teamID] = 0
-		end
 		teamComs[teamID] = teamComs[teamID] + 1
-		countChanged = true
+		updateEnemyComCount()
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	-- record com death
 	if isCommander[unitDefID] then
-		if not teamComs[teamID] then
-			teamComs[teamID] = 0 --should never happen
-		end
 		teamComs[teamID] = teamComs[teamID] - 1
-		countChanged = true
+		updateEnemyComCount()
 	end
 end
 
--- BAR does not allow sharing to enemy, so no need to check Given, Taken, etc
-
-local function ReCheck()
-	-- occasionally, recheck just to make sure...
-	local teamList = Spring.GetTeamList()
-	for _,teamID in pairs(teamList) do
-		local newCount = 0
-		for unitDefID,_ in pairs(isCommander) do
-			newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
-		end
-		if newCount ~= teamComs[teamID] then
-			countChanged = true
-			teamComs[teamID] = newCount
-		end
-	end
-end
-
-function gadget:GameFrame(n)
-	if n%30==0 then
-		ReCheck()
-	end
-
-	if countChanged then
-		UpdateCount()
-		countChanged = false
-	end
-end
-
-function UpdateCount()
-	-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
-	for teamID,_ in pairs(teamComs) do
-		local enemyComCount = 0
-		for otherTeamID,val in pairs(teamComs) do -- count all coms in enemy teams, to get enemy allyteam com count
-			if select(6,Spring.GetTeamInfo(otherTeamID,false)) ~= select(6,Spring.GetTeamInfo(teamID,false)) then
-				enemyComCount = enemyComCount + teamComs[otherTeamID]
-			end
-		end
-		--Spring.Echo(teamID, teamComs[teamID], enemyComCount)
-		Spring.SetTeamRulesParam(teamID, "enemyComCount", enemyComCount, {private=true, allied=false})
+function gadget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
+	if isCommander[unitDefID] then
+		teamComs[teamID] = teamComs[teamID] - 1
+		teamComs[newTeamID] = teamComs[newTeamID] + 1
+		updateEnemyComCount()
 	end
 end

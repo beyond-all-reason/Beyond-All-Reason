@@ -15,6 +15,8 @@
 -- REASON:
 -- AllowUnitBuildStep is damn expensive and is a serious perf hit if it is used for all this.
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = 'Builder Priority', 	-- this once was named: Passive Builders v3
@@ -54,8 +56,7 @@ local resources = { "metal", "energy" } -- ipairs-able
 resources["metal"] = 1 -- reverse-able
 resources["energy"] = 2
 
-VFS.Include('luarules/configs/customcmds.h.lua')
-local CMD_PRIORITY = CMD_PRIORITY
+local CMD_PRIORITY = GameCMD.PRIORITY
 local cmdPassiveDesc = {
       id      = CMD_PRIORITY,
       name    = 'priority',
@@ -90,6 +91,7 @@ local deadTeamList = {}
 local unitBuildSpeed = {}
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
+local suspendBuilderPriority
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
@@ -110,8 +112,9 @@ end
 local isTeamSavingMetal = function(_) return false end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
-
+	
 	for _, teamID in ipairs(teamList) do
 		-- Distribute initial update frames. They will drift on their own afterward.
 		local gameFrame = Spring.GetGameFrame()
@@ -121,6 +124,7 @@ function gadget:Initialize()
 		-- Reset team tracking for constructors and their build priority settings.
 		canBuild[teamID] = canBuild[teamID] or {}
 		passiveCons[teamID] = passiveCons[teamID] or {}
+		Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 	end
 
 	for _,unitID in pairs(Spring.GetAllUnits()) do
@@ -193,10 +197,11 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+    -- accepts CMD_PRIORITY
     -- track which cons are set to passive
-    if cmdID == CMD_PRIORITY and canPassive[unitDefID] then
+    if canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
-        if cmdIdx then
+        if cmdIdx and suspendBuilderPriority == 0 then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
             cmdDesc.params[1] = cmdParams[1]
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
@@ -221,6 +226,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local nonPassiveConsTotalExpenseMetal = 0
 	local passiveConsExpense = {}
 	local passiveTeamCons = passiveCons[teamID]
+	suspendBuilderPriority = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority")
 
 	for builderID in pairs(canBuild[teamID]) do
 		local builtUnit = spGetUnitIsBuilding(builderID)
@@ -271,8 +277,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 			local newPullMetal = teamStallingMetal - passivePullMetal
 			local newPullEnergy = teamStallingEnergy - passivePullEnergy
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
-				-- Changed: Stalling in one resource stalls in the other.
-				if newPullMetal <= 0 or newPullEnergy <= 0 then
+				-- Stalling in one resource stalls in the other (if both resource types are used)
+				if (newPullMetal <= 0 and passivePullMetal > 0) or (newPullEnergy <= 0 and passivePullEnergy > 0) then
 					wouldStall = true
 				else
 					teamStallingMetal = newPullMetal
@@ -283,14 +289,14 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 		-- turn this passive builder on/off as appropriate
 		local wantedBuildSpeed = wouldStall and 0 or realBuildSpeed[builderID]
-		if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
+		if currentBuildSpeed[builderID] ~= wantedBuildSpeed and suspendBuilderPriority == 0 then
 			spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
 			currentBuildSpeed[builderID] = wantedBuildSpeed
 		end
 
 		-- override buildTargetOwners build speeds for a single frame;
 		-- let them build at a tiny rate to prevent nanoframes from possibly decaying
-		if (buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0) then
+		if (buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0 and suspendBuilderPriority == 0) then
 			spSetUnitBuildSpeed(builderID, 0.001) --(*)
 		end
 	end
@@ -319,7 +325,8 @@ function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
 			local teamID = spGetUnitTeam(builderID)
-			if not isTeamSavingMetal(teamID) then
+			suspendBuilderPriority = Spring.GetTeamRulesParam (teamID, "suspendbuilderpriority")
+			if not isTeamSavingMetal(teamID) and suspendBuilderPriority == 0 then
             	spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
 			end
         end

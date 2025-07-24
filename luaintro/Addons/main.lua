@@ -11,19 +11,12 @@ if addon.InGetInfo then
 	}
 end
 
-local loadscreens = VFS.DirList("bitmaps/loadpictures/")
-local backgroundTexture = loadscreens[math.random(#loadscreens)]
-
-local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
-if string.find(backgroundTexture, "guide") then
-	showTips = false
-end
-
 local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loading bar
 
-local infolog = VFS.LoadFile("infolog.txt")
+local gameID
 local usingIntelPotato = false
+local infolog = VFS.LoadFile("infolog.txt")
 if infolog then
 	local function lines(str)
 		local t = {}
@@ -56,7 +49,53 @@ if infolog then
 				usingIntelPotato = false
 			end
 		end
+		if string.find(line, '001] GameID: ') then
+			gameID = string.sub(line, string.find(line, ': ')+2)
+		end
 	end
+end
+
+-- use gameID so everyone launching the match will see the same loadscreen
+if gameID then
+	local seed = tonumber(string.sub(gameID, 1, 4), 16)
+	if seed then
+		math.randomseed(seed)
+	end
+end
+
+local loadscreens = {}
+local loadscreenPath = "bitmaps/loadpictures/"
+
+local teamList = Spring.GetTeamList()
+for _, teamID in ipairs(teamList) do
+	local luaAI = Spring.GetTeamLuaAI(teamID)
+	if luaAI then
+		if luaAI:find("Raptors") then
+			loadscreens = VFS.DirList(loadscreenPath.."manual/raptors/")
+			if loadscreens[1] then
+				break
+			end
+		elseif luaAI:find("Scavengers") then
+			loadscreens = VFS.DirList(loadscreenPath.."manual/scavengers/")
+			if loadscreens[1] then
+				break
+			end
+		end
+	end
+end
+if not loadscreens[1] then
+	loadscreens = VFS.DirList(loadscreenPath)
+end
+local backgroundTexture = loadscreens[math.random(#loadscreens)]
+
+if math.random(1,15) == 1 then
+	showDonationTip = true
+	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
+end
+
+local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
+if string.find(backgroundTexture, "guide") then
+	showTips = false
 end
 
 local hasLowRam = false
@@ -134,10 +173,10 @@ if showTips then
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
 end
 
-if math.random(1,8) == 1 then
-	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
+if showDonationTip then
 	randomTip = Spring.I18N('tips.loadscreen.donations')
 end
+
 
 -- for guishader
 local function CheckHardware()
@@ -344,9 +383,9 @@ end
 local function bartexture(px,py,sx,sy, texLength, texHeight)
 	local texHeight = texHeight or 1
 	local width = (sx-px) / texLength * 4
-	gl.TexCoord(width, texHeight)
+	gl.TexCoord(width or 1, texHeight)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(width, 0)
+	gl.TexCoord(width or 1, 0)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(0,0)
 	gl.Vertex(px, py, 0)
@@ -398,6 +437,8 @@ end
 
 function addon.DrawLoadScreen()
 	local loadProgress = SG.GetLoadProgress()
+
+	if not Platform.gl then return end
 
 	if not aspectRatio then
 		local texInfo = gl.TextureInfo(backgroundTexture)
@@ -535,7 +576,7 @@ function addon.DrawLoadScreen()
 	if loadProgress == 0 then
 		loadProgress = lastProgress[1]
 	else
-		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
+		loadProgress = math.clamp(loadProgress, lastProgress[1], lastProgress[2])
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()

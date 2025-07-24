@@ -6,7 +6,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER CANBEUW",
 		collide = true,
 		cruisealtitude = 100,
 		energycost = 6500,
@@ -89,7 +88,6 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 3,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Homing torpedo launcher",
@@ -113,8 +111,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					noattackrangearc = 1,
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 				damage = {
 					commanders = 150,

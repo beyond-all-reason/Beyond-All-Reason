@@ -5,7 +5,6 @@ return {
 		buildpic = "CORSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "77 78 77",
 		collisionvolumetype = "Ell",
@@ -31,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		yardmap = "ooooo ooooo ooooo ooooo ooooo",
+		yardmap = "yoooy ooooo ooooo ooooo yoooy",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 8,

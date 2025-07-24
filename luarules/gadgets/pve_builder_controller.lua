@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "PvE Builder Controller",
@@ -23,24 +25,7 @@ else
 	return false
 end
 
-local scavengerAITeamID = 999
---local raptorsAITeamID = 999
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
---for i = 1, #teams do
---	local luaAI = Spring.GetTeamLuaAI(teams[i])
---	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
---		raptorsAITeamID = i - 1
---		break
---	end
---end
+local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do
@@ -77,7 +62,8 @@ function gadget:GameFrame(frame)
             for unitID, data in pairs(aliveBuilders) do
                 if (Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,15) == 0) or (data.isFactory) then
                     --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-                    if (data.isFactory and #Spring.GetFullBuildQueue(unitID, 0) < 5) or ((not data.isFactory) and (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1])) then
+					local unitCommands = not data.isFactory and Spring.GetUnitCommands(unitID, 1) or {}
+                    if (data.isFactory and #Spring.GetFullBuildQueue(unitID) < 5) or (not data.isFactory and (not unitCommands[1] or (unitCommands[1] and unitCommands[1].id > 0 and unitCommands[1].id ~= CMD.REPAIR))) then
                         --Spring.Echo(data.unitDefName, "Isn't building anything")
                         local turretOptions = {}
                         for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do

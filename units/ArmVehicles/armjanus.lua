@@ -3,7 +3,6 @@ return {
 		buildpic = "ARMJANUS.DDS",
 		buildtime = 3550,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "25 12 33",
 		collisionvolumetype = "Box",
@@ -142,6 +141,10 @@ return {
 				weaponacceleration = 80,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
+				customparams = {
+					overrange_distance = 437,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 330,
 					subs = 110,

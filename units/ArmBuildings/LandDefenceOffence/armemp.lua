@@ -3,7 +3,6 @@ return {
 		buildangle = 8192,
 		buildpic = "ARMEMP.DDS",
 		buildtime = 79300,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "80 30 60",
 		collisionvolumetype = "Box",
@@ -116,7 +115,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 500,
 				model = "cortronmissile.s3o",
@@ -145,6 +143,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 50000,
 				},
@@ -154,7 +155,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMEMP_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

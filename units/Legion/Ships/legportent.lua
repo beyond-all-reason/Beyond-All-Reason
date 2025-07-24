@@ -9,7 +9,6 @@ return {
 		buildpic = "legportent.DDS",
 		buildtime = 20000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 1",
 		collisionvolumescales = "34 34 82",
 		collisionvolumetype = "CylZ",
@@ -116,7 +115,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy s2g plasma cannon",
 				noselfdamage = true,
@@ -133,6 +131,9 @@ return {
 					default = 150,
 					vtol = 30,
 					sub = 30,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 
 			},

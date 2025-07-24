@@ -6,7 +6,6 @@ return {
 		buildpic = "ARMFARK.DDS",
 		buildtime = 4300,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "21 26 17",
 		collisionvolumetype = "CylY",

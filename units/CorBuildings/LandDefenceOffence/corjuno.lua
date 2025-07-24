@@ -2,7 +2,6 @@ return {
 	corjuno = {
 		buildpic = "CORJUNO.DDS",
 		buildtime = 27700,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "50 88 50",
 		collisionvolumetype = "CylY",
@@ -116,7 +115,6 @@ return {
 				energypershot = 12000,
 				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 200,
 				model = "epulse.s3o",
@@ -145,6 +143,8 @@ return {
 				customparams = {
 					lups_noshockwave = 1,
 					nofire = true,
+					stockpilelimit = 20,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

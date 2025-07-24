@@ -44,21 +44,21 @@ end
 local luaFiles = VFS.DirList('features/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
-	local fdEnv = {}
-	fdEnv._G = fdEnv
-	fdEnv.Shared = shared
-	fdEnv.GetFilename = function() return filename end
-	setmetatable(fdEnv, { __index = system })
-	local success, fds = pcall(VFS.Include, filename, fdEnv, vfs_modes)
+	local featureDefsEnv = {}
+	featureDefsEnv._G = featureDefsEnv
+	featureDefsEnv.Shared = shared
+	featureDefsEnv.GetFilename = function() return filename end
+	setmetatable(featureDefsEnv, { __index = system })
+	local success, defs = pcall(VFS.Include, filename, featureDefsEnv, VFS_MODES)
 
 	if (not success) then
-		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(fds))
-	elseif (fds == nil) then
+		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(defs))
+	elseif (defs == nil) then
 		Spring.Log(section, LOG.ERROR, 'Missing return table from: ' .. filename)
 	else
-		for fdName, fd in pairs(fds) do
-			if ((type(fdName) == 'string') and (type(fd) == 'table')) then
-				featureDefs[fdName] = fd
+		for featureDefName, featureDef in pairs(defs) do
+			if ((type(featureDefName) == 'string') and (type(featureDef) == 'table')) then
+				featureDefs[featureDefName] = featureDef
 			end
 		end
 	end

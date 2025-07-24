@@ -5,7 +5,6 @@ return {
 		buildpic = "CORACV.DDS",
 		buildtime = 12900,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "36 36 47",
 		collisionvolumetype = "BOX",
@@ -41,7 +40,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1616,
 		turnrate = 363,
-		workertime = 250,
+		workertime = 265,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corafus",

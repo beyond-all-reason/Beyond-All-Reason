@@ -12,6 +12,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "GameTypeInfo",
@@ -43,7 +45,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
+	font = WG['fonts'].getFont(1, 1.5)
 
 	if messages[1] then
 		messages[1].x = widgetScale * 60
@@ -63,7 +65,8 @@ end
 
 function widget:Initialize()
 	if Spring.GetModOptions().deathmode == "neverend" then
-		WidgetHandler:RemoveWidget() return
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	messages[1] = {}
@@ -78,13 +81,22 @@ function widget:Initialize()
 end
 
 function widget:LanguageChanged()
-	if Spring.GetModOptions().deathmode == "killall" then
-		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllUnits')
+	local key
+	local deathmode = Spring.GetModOptions().deathmode
+
+	if deathmode == "killall" then
+		key = 'killAllUnits'
+	elseif deathmode == "builders" then
+		key = 'killAllBuilders'
+	elseif deathmode == "territorial_domination" or Spring.GetModOptions().temp_enable_territorial_domination then
+		key = 'territorialDomination'
 	else
-		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
+		key = 'killAllCommanders'
 	end
 
-	if Spring.GetModOptions().deathmode == "own_com" then
+	messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.' .. key)
+
+	if deathmode == "own_com" then
 		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
 	end
 end

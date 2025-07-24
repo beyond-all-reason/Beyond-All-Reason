@@ -159,11 +159,20 @@ CATT3_Aim(heading, pitch){
 			// Perform the turn with a NOW, this means that this will be run every frame!
 			turn CATT3_PIECE_Y to y-axis CATT3position now;
 			//turn CATT3_PIECE_Y to y-axis CATT3position speed 30 * CATT3velocity;
+			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT3velocity) < CATT3_JERK)) {
+				CATT3velocity = 0;
+				#ifndef CATT_DONTRESTORE
+					start-script CATT3_Restore();
+				#endif
+				return;
+			}
 		}
 		sleep 32;
 	}
 	CATT3velocity = 0;
-	start-script CATT3_Restore();
+	#ifndef CATT_DONTRESTORE
+		start-script CATT3_Restore();
+	#endif
 }
 
 #undef CATT_INDEX

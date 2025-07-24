@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMUWFUS.DDS",
 		buildtime = 99900,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
 		energycost = 33500,
 		energymake = 1200,
@@ -29,8 +28,8 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armuwfus_aoplane.dds",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

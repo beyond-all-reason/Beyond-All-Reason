@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = "Lups Shield",
@@ -23,6 +25,7 @@ end
 local GAMESPEED = Game.gameSpeed
 local SHIELDARMORID = 4
 local SHIELDARMORIDALT = 0
+local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 
 -----------------------------------------------------------------
 -- Small vector math lib
@@ -228,6 +231,19 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
+	local unitIsActive = Spring.GetUnitIsActive(unitID)
+	if unitIsActive ~= unitData.isActive then
+		forceUpdate = true
+		unitData.isActive = unitIsActive
+	end
+
+	local shieldEnabled = Spring.GetUnitRulesParam (unitID, SHIELDONRULESPARAMINDEX)
+	if shieldEnabled == 1 then
+		unitVisible = true
+	elseif shieldEnabled == 0 then
+		unitVisible = false
+	end
+
 	if unitVisible == unitData.unitVisible and not forceUpdate then
 		return
 	end
@@ -237,7 +253,7 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		local fxID = unitData.fxTable[i]
 		local fx = Lups.GetParticles(fxID)
 		if fx then
-			fx.visibleToMyAllyTeam = unitVisible
+			fx.visibleToMyAllyTeam = unitIsActive and unitVisible
 		end
 	end
 end
@@ -311,7 +327,6 @@ local HIT_POINT_FOLLOWS_PROJECTILE = false
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
-	local radius = unitData.radius
 
 	local found = false
 
@@ -415,7 +430,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	RemoveUnit(unitID)
 end
 

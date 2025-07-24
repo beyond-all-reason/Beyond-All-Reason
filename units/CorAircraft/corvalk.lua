@@ -5,7 +5,6 @@ return {
 		buildtime = 4120,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 100,
 		energycost = 1450,
@@ -36,6 +35,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name    = 'Prevent Excessive Share',
@@ -5,7 +7,7 @@ function gadget:GetInfo()
 		author  = 'Niobium',
 		date    = 'April 2012',
 		license = 'GNU GPL, v2 or later',
-		layer   = 0,
+		layer   = 2, -- after 'Tax Resource Sharing'
 		enabled = true
 	}
 end

@@ -36,6 +36,7 @@ return {
 		yardmap = "oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo oooooooooooooooo ",
 		buildoptions = {
 			"legaca",
+			"legmost3",
 			"legfortt4",
 		},
 		customparams = {

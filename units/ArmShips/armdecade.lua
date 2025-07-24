@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMDECADE.DDS",
 		buildtime = 2450,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 -1",
 		collisionvolumescales = "21 25 62",
 		collisionvolumetype = "CylZ",
@@ -113,7 +112,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-small-yellow",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
 				name = "Rapid-fire close-quarters plasma turret",
@@ -130,6 +128,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 9,
 					vtol = 2,

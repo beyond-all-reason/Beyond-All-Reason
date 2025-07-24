@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Factionpicker",
@@ -9,13 +11,8 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-local factions = {
-	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
-	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
-}
-if Spring.GetModOptions().experimentallegionfaction then
-	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
-end
+local factions = {}
+
 
 local doUpdate
 local playSounds = true
@@ -30,6 +27,23 @@ local myTeamID = Spring.GetMyTeamID()
 local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+do
+	local validStartUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	for i, unitID_string in ipairs(validStartUnits) do
+		-- TODO: figure out a better approach to this as sidedata faction names and language file keys do not match
+		local unitID = tonumber(unitID_string)
+		factions[i] = {
+			startUnit = unitID,
+			faction = string.sub(UnitDefs[unitID].name, 1, 3) }
+		if factions[i].faction == "dum" then
+			factions[i].faction = "random"
+		end
+	end
+end
+if #factions == 0 then
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
+	return false
+end
 
 local factionRect = {}
 for i, faction in pairs(factions) do
@@ -37,7 +51,6 @@ for i, faction in pairs(factions) do
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -101,7 +114,7 @@ local function drawFactionpicker()
 			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
 			local tooltip = ''
 			local maxWidth = WG['tooltip'].getFontsize() * 80
-			local textLines, numLines = font:WrapText(text, maxWidth)
+			local textLines, numLines = font2:WrapText(text, maxWidth)
 			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
 			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
 		end
@@ -147,8 +160,8 @@ function widget:ViewResize()
 		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	font2 = WG['fonts'].getFont(2)
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding

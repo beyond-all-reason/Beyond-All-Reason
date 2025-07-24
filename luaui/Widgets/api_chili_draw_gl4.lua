@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Chili Draw GL4 API",
@@ -63,8 +65,12 @@ local function makeAtlas()
 end
 
 ------------- SHADERS ----------------------------------------------
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local chiliShader = nil
 
 local autoupdate = false -- auto update shader, for debugging only!
@@ -74,8 +80,8 @@ local shaderConfig = { -- these will get #defined in shader headers
 }
 
 -- TODO use this instead
-local vsSrcPath = "LuaUI/Widgets/Shaders/chiligl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/chiligl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/chiligl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/chiligl4.frag.glsl"
 
 -- the vertex shader maps to screen space
 local vsSrc =  [[
@@ -329,7 +335,6 @@ end
 --- An instance VBO is just a set of instances
 --- An instance VBO Table is a lua table that wraps an instance VBO to allow for easy and fast addition and removal of elements
 
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 local widgetInstanceVBOs = {} -- this will be a list of _named_ instance VBOs, so you can separate per-pass (or per widget or whatever)
 
 local function goodbye(reason)
@@ -350,11 +355,11 @@ local chiliInstanceVBOLayout = { -- see how this matches per instance attributes
 
 local function CreateInstanceVBOTable(tableName)
 	local defaultMaxElements
-	local newInstanceVBO = makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
+	local newInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
 	
 	newInstanceVBO.vertexVBO = rectVBO
 	newInstanceVBO.indexVBO  = rectIndexVBO
-	newInstanceVBO.VAO = makeVAOandAttach(
+	newInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		newInstanceVBO.vertexVBO,
 		newInstanceVBO.instanceVBO,
 		newInstanceVBO.indexVBO

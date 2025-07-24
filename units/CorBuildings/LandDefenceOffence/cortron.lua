@@ -3,7 +3,6 @@ return {
 		buildangle = 8192,
 		buildpic = "CORTRON.DDS",
 		buildtime = 59000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
 		collisionvolumetype = "CylY",
@@ -116,8 +115,7 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				metalpershot = 550,
 				model = "cortronmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",
@@ -143,6 +141,10 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					water_splash_ceg = "splash-gigantic", -- 1 bigger than it would get
+					stockpilelimit = 10,
+				},
 				damage = {
 					commanders = 750,
 					default = 4000,

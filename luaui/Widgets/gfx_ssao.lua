@@ -1,15 +1,15 @@
-
-local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	isPotatoGpu = true
+	return false
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
-	isPotatoGpu = true
+	return false
 end
 
 
 local widgetName = "SSAO"
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name      = widgetName,
@@ -19,7 +19,8 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = 999999,
-        enabled   = not isPotatoGpu,
+        enabled   = true,
+        depends   = {'gl4'},
     }
 end
 
@@ -58,7 +59,7 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
 	{name = 'DEBUG_SSAO', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_SSAO show the raw samples'},
 
-	
+
 	{name = 'BRIGHTEN', default = 20, min = 0, max = 255, digits = 0, tooltip = 'Should SSAO Brighten Models, if yes by how much'},
 	{name = 'BLUR_HALF_KERNEL_SIZE', default = 3, min = 1, max = 12, digits = 0, tooltip = 'BLUR_HALF_KERNEL_SIZE*2 - 1 samples for blur'},
 	{name = 'BLUR_SIGMA', default = 3, min = 1, max = 10, digits = 1, tooltip = 'Sigma width of blur filter'},
@@ -69,7 +70,7 @@ local definesSlidersParamsList = {
 	{name = 'BLUR_POWER', default = 2, min = 1, max = 8, digits = 1, tooltip = 'Post-blur correction factor'},
 	{name = 'BLUR_CLAMP', default = 0.05, min = 0, max = 1, digits = 3, tooltip = 'Limit occlusion post-blur'},
 	{name = 'DEBUG_BLUR', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_BLUR show the result of the blur only'},
-	
+
 
 	{name = 'USE_STENCIL', default = 1, min = 0, max = 1, digits = 0, tooltip = 'USE_STENCIL set to zero if you dont wanna'},
 	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
@@ -81,9 +82,9 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_ALPHA_POW', default = 8, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
 }
 local function InitShaderDefines()
-	for i, shaderDefine in ipairs(definesSlidersParamsList) do 
+	for i, shaderDefine in ipairs(definesSlidersParamsList) do
 		-- dont overwrite existing, externally defined values with the defaults:
-		if shaderConfig[shaderDefine.name] == nil then 
+		if shaderConfig[shaderDefine.name] == nil then
 			shaderConfig[shaderDefine.name] = shaderDefine.default;
 		end
 	end
@@ -92,7 +93,7 @@ InitShaderDefines()
 
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	--Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
-	if value ~= oldvalue then 
+	if value ~= oldvalue then
 		widget:ViewResize()
 	end
 end
@@ -102,8 +103,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 local shaderDefinedSliders = {
 	windowtitle = "SSAO Defines",
 	name = "SSAOParams",
-	left = vsx - 540, 
-	bottom = 200, 
+	left = vsx - 540,
+	bottom = 200,
 	right = vsx - 540 + 250,
 	sliderheight = 20,
 	valuetarget = shaderConfig,
@@ -132,9 +133,9 @@ local presets = {
 		BLUR_SIGMA = 2,
 		BRIGHTEN = 30,
 		DOWNSAMPLE = 2,
-		MINCOSANGLE = 0.69, 
+		MINCOSANGLE = 0.69,
 		MINSELFWEIGHT = 0.3,
-		NOFUSE = 1, -- at low quality, some vram can be saved 
+		NOFUSE = 1, -- at low quality, some vram can be saved
 		OFFSET = 1,
 		OUTLIERCORRECTIONFACTOR = 0.66,
 		SSAO_FADE_DIST_0 = 2000,
@@ -154,7 +155,7 @@ local presets = {
 		MINCOSANGLE = 0.70,
 		OUTLIERCORRECTIONFACTOR = 0.16,
 		SSAO_FADE_DIST_0 = 2200,
-		SSAO_FADE_DIST_1 = 1100,	
+		SSAO_FADE_DIST_1 = 1100,
 		SSAO_KERNEL_SIZE = 32,
 		SSAO_MIN = 0.74,
 		SSAO_RADIUS = 8,
@@ -177,8 +178,8 @@ local presets = {
 }
 
 local function ActivatePreset(presetID)
-	if presets[presetID] then 
-		for k,v in pairs(presets[presetID]) do 
+	if presets[presetID] then
+		for k,v in pairs(presets[presetID]) do
 			shaderConfig[k] = v
 		end
 	end
@@ -189,21 +190,17 @@ ActivatePreset(preset)
 -- File path Constants
 -----------------------------------------------------------------
 
-local shadersDir = "LuaUI/Widgets/Shaders/"
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local shadersDir = "LuaUI/Shaders/"
 
 -----------------------------------------------------------------
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local vsx, vsy, vpx, vpy
 local texPaddingX, texPaddingY = 0,0
-
-
-local screenQuadList
-local screenWideList
 
 local gbuffFuseFBO
 local ssaoFBO
@@ -219,6 +216,10 @@ local gaussianBlurShader
 local ssaoShaderCache
 local gbuffFuseShaderCache
 local gaussianBlurShaderCache
+
+local texrectShader = nil
+local texrectFullVAO = nil
+local texrectPaddedVAO = nil
 
 local unitStencilTexture
 
@@ -254,29 +255,29 @@ end
 --see http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 local function GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)
 	local dWeights, dOffsets = GetGaussDiscreteWeightsOffsets(sigma, (kernelHalfSize-1) * 2 + 1 , 1.0)
-	-- at khs = 4 
+	-- at khs = 4
 	-- dWeights, {1=0.1112202, 2=0.10779832, 3=0.09815148, 4=0.08395342, 5=0.06745847, 6=0.05092032, 7=0.03610791, }
 	-- dOffsets, {1=0, 2=1, 3=2, 4=3, 5=4, 6=5, 7=6, }
 
 	local weights = {dWeights[1]}
 	local offsets = {dOffsets[1]}
 	local totalweights = dWeights[1]
-	
+
 	-- for 4 this should go to 3
-	for i = 1, kernelHalfSize -1  do -- for khs 4 this goes from 1 to , well 1. 
+	for i = 1, kernelHalfSize -1  do -- for khs 4 this goes from 1 to , well 1.
 		local newWeight = dWeights[2 * i ] + dWeights[2 * i + 1]
 		weights[i + 1] = newWeight * valMult
 		offsets[i + 1] = (dOffsets[2 * i] * dWeights[2 * i] + dOffsets[2 * i + 1] * dWeights[2 * i + 1]) / newWeight
 	end
 
-	for i = 2, kernelHalfSize do 
+	for i = 2, kernelHalfSize do
 		totalweights = totalweights + 2 * weights[i] -- 2x cause symmetric kernel
 	end
 
 	--[[
 	local function tabletostring(t)
 		local res = '{'
-		for k,v in pairs(t) do 
+		for k,v in pairs(t) do
 			res = res .. tostring(k) .. "=" .. tostring(v) .. ', '
 		end
 		return res .. '}'
@@ -285,7 +286,7 @@ local function GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)
 	Spring.Echo("GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)",sigma, kernelHalfSize, valMult, 'total = ', totalweights)
 	Spring.Echo('dWeights',tabletostring(dWeights))
 	Spring.Echo('dOffsets',tabletostring(dOffsets))
-	Spring.Echo('weights',tabletostring(weights)) 
+	Spring.Echo('weights',tabletostring(weights))
 	Spring.Echo('offsets',tabletostring(offsets))
 	]]--
 	return weights, offsets
@@ -313,20 +314,20 @@ local function GetSamplingVectorArray(kernelSize)
 		local points = {}
 		local phi = math.pi * (math.sqrt(5.) - 1.)--  # golden angle in radians
 		local samples = 2*kernelSize + math.floor((100 * shaderConfig.SSAO_KERNEL_MINZ))
-	
+
 		for i =0, samples do
 			local y = 1 - (i / (samples - 1)) * 2  -- y goes from 1 to -1
 			local radius = math.sqrt(1 - y * y)  -- radius at y
-	
+
 			local theta = phi * i  -- golden angle increment
-	
+
 			local x = math.cos(theta) * radius
 			local z = math.sin(theta) * radius
 			local randlength = math.max(0.2, math.pow(math.random(), shaderConfig.SSAO_RANDOM_LENGTH) )
 			points[i+1] = {x = x * randlength, y = z* randlength,z =  y* randlength} -- note the swizzle of zy
 		end
 
-		for i = 0, kernelSize-1 do 
+		for i = 0, kernelSize-1 do
 			result[i] = points[i +1]
 		end
 		return result
@@ -344,7 +345,7 @@ local function GetSamplingVectorArray(kernelSize)
 			local scale = i / (kernelSize - 1)
 			--scale = scale * scale -- shift most samples closer to the origin
 			scale = math.pow(scale, shaderConfig.SSAO_RANDOM_LENGTH)
-			scale = math.min(math.max(scale, 0.2), 1.0) --clamp
+			scale = math.clamp(scale, 0.2, 1.0) --clamp
 
 			x, y, z = x * scale, y * scale, z * scale -- scale
 			result[i] = {x = x, y = y, z = z}
@@ -360,7 +361,7 @@ end
 
 local function InitGL()
 	local canContinue = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
-	
+
 	if not canContinue then
 		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Deferred shading is not enabled or advanced shading is not active"))
 	end
@@ -397,16 +398,16 @@ local function InitGL()
 	if shaderConfig.NOFUSE == 0 then
 		commonTexOpts.format = GL_RGB16F
 		gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts) -- at 1080p this is 16MB
-	
+
 		gbuffFuseFBO = gl.CreateFBO({
 			color0 = gbuffFuseViewPosTex,
 			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
 		if not gl.IsValidFBO(gbuffFuseFBO) then
 			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid gbuffFuseFBO"))
-		end	
+		end
 	end
-	
+
 	commonTexOpts.min_filter = GL.LINEAR
 	commonTexOpts.mag_filter = GL.LINEAR
 	commonTexOpts.format = GL_RGBA8
@@ -431,13 +432,13 @@ local function InitGL()
 	end
 
 	-- ensure stencil is available
-	if shaderConfig.USE_STENCIL == 1 then 
+	if shaderConfig.USE_STENCIL == 1 then
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
 	end
 
 	gbuffFuseShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."gbuffFuse.frag.glsl",
 		uniformInt = {
 			modelDepthTex = 1,
@@ -448,13 +449,13 @@ local function InitGL()
 		uniformFloat = {},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": G-buffer Fuse",
+		shaderName = widgetName.." G-buffer Fuse",
 	}
 
 	gbuffFuseShader = LuaShader.CheckShaderUpdates(gbuffFuseShaderCache)
 
 	ssaoShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."ssao.frag.glsl",
 		uniformInt = {
 			viewPosTex = 5,
@@ -472,7 +473,7 @@ local function InitGL()
 		},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": SSAO",
+		shaderName = widgetName.." SSAO",
 	}
 
 	ssaoShader = LuaShader.CheckShaderUpdates(ssaoShaderCache)
@@ -489,7 +490,7 @@ local function InitGL()
 
 
 	gaussianBlurShaderCache = {
-		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
 		fssrcpath = shadersDir.."gaussianBlur.frag.glsl",
 		uniformInt = {
 			tex = 0,
@@ -501,7 +502,7 @@ local function InitGL()
 		},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": gaussianBlur",
+		shaderName = widgetName.." gaussianBlur",
 	}
 
 	gaussianBlurShader = LuaShader.CheckShaderUpdates(gaussianBlurShaderCache)
@@ -513,43 +514,29 @@ local function InitGL()
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
 	end)
 
+	texrectShader = LuaShader.CheckShaderUpdates({
+		vssrcpath = shadersDir.."texrect_screen.vert.glsl",
+		fssrcpath = shadersDir.."texrect_screen.frag.glsl",
+		uniformInt = {
+			tex = 0,
+		},
+		uniformFloat = {
+			uniformparams = {0,0,0,0},
+		},
+		silent = true, -- suppress compilation messages
+		shaderConfig = {},
+		shaderName = widgetName..": texrect",
+	})
+	
+	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
+
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0, 1.0, 1.0)
-	--screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1000, 1000, 0.0, 0.0,
-	--	1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-	screenWideList = gl.CreateList(function() 
+	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0.0, 0.0, 1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
 
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PushMatrix()
-		gl.LoadIdentity()
-	
-			gl.MatrixMode(GL.PROJECTION)
-			gl.PushMatrix()
-			gl.LoadIdentity()
-	
-
-			gl.TexRect(-1, -1, 1, 1, 0.0, 0.0,
-				1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-			
-			gl.MatrixMode(GL.PROJECTION)
-			gl.PopMatrix()
-	
-		gl.MatrixMode(GL.MODELVIEW)
-		gl.PopMatrix()
-		end
-	)
 
 end
 
 local function CleanGL()
-
-	if screenQuadList then
-		gl.DeleteList(screenQuadList)
-	end
-
-	if screenWideList then
-		gl.DeleteList(screenWideList)
-	end
 
 	gl.DeleteTexture(ssaoTex)
 	if gbuffFuseViewPosTex then gl.DeleteTexture(gbuffFuseViewPosTex) end
@@ -563,6 +550,7 @@ local function CleanGL()
 	ssaoShader:Finalize()
 	gbuffFuseShader:Finalize()
 	gaussianBlurShader:Finalize()
+	texrectShader:Finalize()
 end
 
 
@@ -600,11 +588,11 @@ function widget:Initialize()
 		InitGL()
 	end
 
-	if WG['flowui_gl4']  and WG['flowui_gl4'].forwardslider then 
-		Spring.Echo(" WG[flowui_gl4] detected")	
+	if WG['flowui_gl4']  and WG['flowui_gl4'].forwardslider then
+		Spring.Echo(" WG[flowui_gl4] detected")
 			shaderDefinedSlidersLayer, shaderDefinedSlidersWindow = WG['flowui_gl4'].requestWidgetLayer(shaderDefinedSliders) -- this is a window
 			shaderDefinedSliders.parent = shaderDefinedSlidersWindow
-			
+
 			WG['flowui_gl4'].forwardslider(shaderDefinedSliders)
 	end
 
@@ -638,9 +626,9 @@ function widget:Shutdown()
 		Spring.SetConfigFloat("tonemapE", initialTonemapE)
 		Spring.SendCommands("luarules updatesun")
 	end
-	
-	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end 
-	--if shaderDefinedSlidersWindow and shaderDefinedSlidersWindow.Destroy then shaderDefinedSlidersWindow:Destroy() end 
+
+	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end
+	--if shaderDefinedSlidersWindow and shaderDefinedSlidersWindow.Destroy then shaderDefinedSlidersWindow:Destroy() end
 
 	CleanGL()
 end
@@ -650,24 +638,24 @@ local function DoDrawSSAO()
 	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	gl.Blending(false)
 
-	if shaderConfig.USE_STENCIL == 1 and unitStencilTexture then 	
+	if shaderConfig.USE_STENCIL == 1 and unitStencilTexture then
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture() -- needs this to notify that we want it next frame too
 		glTexture(7, unitStencilTexture)
 	end
 
 
 	local prevFBO
-	
-	if ((shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0) and (shaderConfig.NOFUSE ~= 1) then 
+
+	if ((shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0) and (shaderConfig.NOFUSE ~= 1) then
 	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
 		gbuffFuseShader:Activate() -- ~0.25ms
 
 			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 			glTexture(1, "$model_gbuffer_zvaltex")
 			glTexture(4, "$map_gbuffer_zvaltex")
+			
+			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
-			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
-		
 			glTexture(1, false)
 			glTexture(4, false)
 
@@ -679,17 +667,17 @@ local function DoDrawSSAO()
 	prevFBO = gl.RawBindFBO(ssaoFBO)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		ssaoShader:Activate()
-			if shaderConfig.NOFUSE > 0 then 
+			if shaderConfig.NOFUSE > 0 then
 				glTexture(1, "$model_gbuffer_zvaltex")
 				glTexture(4, "$map_gbuffer_zvaltex")
 			else
 				glTexture(5, gbuffFuseViewPosTex)
 			end
 			glTexture(0, "$model_gbuffer_normtex")
+			
+			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
-			gl.CallList(screenQuadList) 
-
-			for i = 0, 6 do glTexture(i,false) end  
+			for i = 0, 6 do glTexture(i,false) end
 		ssaoShader:Deactivate()
 	gl.RawBindFBO(nil, nil, prevFBO)
 
@@ -700,14 +688,14 @@ local function DoDrawSSAO()
 
 				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 				prevFBO = gl.RawBindFBO(ssaoBlurFBO)
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+				texrectFullVAO:DrawArrays(GL.TRIANGLES)
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoBlurTex)
 
 				gaussianBlurShader:SetUniform("strengthMult", shaderConfig.SSAO_ALPHA_POW/ 7.0) --vertical blur
 				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 				prevFBO = gl.RawBindFBO(ssaoFBO)
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+				texrectFullVAO:DrawArrays(GL.TRIANGLES)
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoTex)
 
@@ -715,7 +703,7 @@ local function DoDrawSSAO()
 		if shaderConfig.DEBUG_BLUR == 1 then
 			gl.Blending(false) -- now blurred tex contains normals
 		else
-			if shaderConfig.BRIGHTEN == 0 then 
+			if shaderConfig.BRIGHTEN == 0 then
 				gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
 			else
 			-- at this point, Alpha contains occlusoin, and rgb contains brighten factor
@@ -729,9 +717,10 @@ local function DoDrawSSAO()
 		end
 	end
 	-- Already bound
-	--glTexture(0, ssaoBlurTexes[1])
+	texrectShader:Activate()
+	texrectPaddedVAO:DrawArrays(GL.TRIANGLES)
+	texrectShader:Deactivate()
 
-	gl.CallList(screenWideList)
 
 	glTexture(0, false)
 	glTexture(1, false)
@@ -742,27 +731,16 @@ local function DoDrawSSAO()
 	glTexture(6, false)
 	glTexture(7, false)
 
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.DepthMask(true) --"BK OpenGL state resets", already commented out
+	-- Extremely important, this is the state that we have to leave when exiting DrawWorldPreParticles!
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(false) --"BK OpenGL state resets", already commented out
 	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
-local drawFrame = -1
---function widget:DrawWorldPreParticles()
--- NOTE THAT DrawWorldPreParticles is called multiple times per frame, and also has a bug where only the buttom half of the screen gets SSAO
-function widget:DrawWorld()
-	local df = Spring.GetDrawFrame()
-	if df == drawFrame then 
-		return 
-	else
-		drawFrame = df
-	end
+function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	if shaderConfig.ENABLE == 0 then return end
-	DoDrawSSAO(false)
-
-	if delayedUpdateSun and os.clock() > delayedUpdateSun then
-		Spring.SendCommands("luarules updatesun")
-		delayedUpdateSun = nil
+	if drawAboveWater and not drawReflection and not drawRefraction then
+		DoDrawSSAO()
 	end
 end
 
@@ -776,15 +754,15 @@ end
 
 local lastfps = Spring.GetFPS()
 function widget:DrawScreen()
-	if shaderDefinedSlidersLayer then 
+	if shaderDefinedSlidersLayer then
 		local newfps = Spring.GetFPS()
-		if ssaoShaderCache.updateFlag then 
+		if ssaoShaderCache.updateFlag then
 			ssaoShaderCache.updateFlag = nil
 			lastfps = newfps
 		end
 		local totaldrawus = (1000/newfps)
 		local lastdelta = (1000/lastfps - 1000/newfps)
-		
+
 		gl.Text(string.format("SSAO total %.3f ms delta %.3f ms", totaldrawus, lastdelta),  vsx - 600,  20, 16, "do")
 	end
 end

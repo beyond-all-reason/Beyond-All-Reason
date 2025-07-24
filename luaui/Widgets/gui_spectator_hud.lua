@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Spectator HUD",
@@ -49,8 +51,7 @@ metrics or changing from spectating view to player view.
 local viewScreenWidth
 local viewScreenHeight
 
-local includeDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local mathfloor = math.floor
 local mathabs = math.abs
@@ -62,7 +63,7 @@ local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
-local ecostatsWidget = nil
+local ecostatsHidden = false
 
 local haveFullView = false
 
@@ -86,6 +87,7 @@ local regenerateTextTextures = true
 local titleTexture = nil
 local titleTextureDone = false
 local statsTexture = nil
+local updateNow = false
 
 local knobVertexShaderSource = [[
 #version 420
@@ -725,9 +727,9 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG['topbar'] then
+	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
-		widgetDimensions.top = topBarPosition[2] - widgetDimensions.distanceFromTopBar
+		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
 	end
@@ -1120,7 +1122,7 @@ local function drawBars()
 		(mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
 		mouseOnBar = true
 	end
-
+	
 	for metricIndex,metric in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height
@@ -1149,68 +1151,40 @@ local function drawText()
 	local indexLeft = teamOrder and teamOrder[1] or 1
 	local indexRight = teamOrder and teamOrder[2] or 2
 
-	gl.Color(textColorWhite)
-	gl.Texture(titleTexture)
-	gl.TexRect(
-		titleDimensions.left,
-		widgetDimensions.bottom,
-		titleDimensions.right,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
-
-	gl.Texture(statsTexture)
-	gl.TexRect(
-		knobDimensions.leftKnobLeft,
-		widgetDimensions.bottom,
-		knobDimensions.rightKnobRight,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
+	gl.R2tHelper.BlendTexRect(titleTexture, titleDimensions.left, widgetDimensions.bottom, titleDimensions.right, widgetDimensions.top, true)
+	gl.R2tHelper.BlendTexRect(statsTexture, knobDimensions.leftKnobLeft, widgetDimensions.bottom, knobDimensions.rightKnobRight, widgetDimensions.top, true)
 end
 
 local function doTitleTexture()
 	local function drawTitlesToTexture()
-		-- This may be unnecessary, but without initializing the texture like this I've seen some weird fragments that
-		-- look like the texture would have old drawings.
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-titleDimensions.width, -widgetDimensions.height, titleDimensions.width, widgetDimensions.height)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / titleDimensions.width,
 			2 / widgetDimensions.height,
 			0
 		)
-		font:Begin()
-			font:SetTextColor(textColorWhite)
+		font:Begin(true)
+		font:SetTextColor(textColorWhite)
 
-			for metricIndex,metric in ipairs(metricsEnabled) do
-				local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
+		for metricIndex,metric in ipairs(metricsEnabled) do
+			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 
-				local textHCenter = titleDimensions.widthHalf
-				local textVCenter = bottom + titleDimensions.verticalCenterOffset
-				local textText = metricsEnabled[metricIndex].text
+			local textHCenter = titleDimensions.widthHalf
+			local textVCenter = bottom + titleDimensions.verticalCenterOffset
+			local textText = metricsEnabled[metricIndex].text
 
-				font:Print(
-					textText,
-					textHCenter,
-					textVCenter,
-					titleDimensions.fontSize,
-					'cvo'
-				)
-			end
+			font:Print(
+				textText,
+				textHCenter,
+				textVCenter,
+				titleDimensions.fontSize,
+				'cvo'
+			)
+		end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(titleTexture, drawTitlesToTexture)
+	gl.R2tHelper.RenderToTexture(titleTexture, drawTitlesToTexture,	true)
 end
 
 local function updateStatsTexture()
@@ -1235,19 +1209,13 @@ local function updateStatsTexture()
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
-		-- Remove everything we drew previously
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-statsTextureWidth, -statsTextureHeight, statsTextureWidth, statsTextureHeight)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / statsTextureWidth,
 			2 / statsTextureHeight,
 			0
 		)
-		font:Begin()
+		font:Begin(true)
 			font:SetTextColor(textColorWhite)
 
 			local indexLeft = teamOrder and teamOrder[1] or 1
@@ -1319,10 +1287,9 @@ local function updateStatsTexture()
 				)
 			end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(statsTexture, drawStatsToTexture)
+	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
 local function updateTextTextures()
@@ -1349,8 +1316,8 @@ local function createMetricDisplayLists()
 				bottom,
 				right,
 				top,
-				1, 1, 1, 1,
-				1, 1, 1, 1
+				metricIndex == 1 and 0 or 1, 0, 0, 1,
+				0 or 1, 1, 1, 1
 			)
 		end)
 		table.insert(metricDisplayLists, newDisplayList)
@@ -1710,10 +1677,10 @@ end
 
 local function addMiddleKnobs()
 	for metricIndex,_ in ipairs(metricsEnabled) do
-		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
+		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height + 1.0
 		local textBottom = bottom + titleDimensions.padding
 
-		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2 - knobDimensions.width
+		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2 - knobDimensions.width / 2
 		local middleKnobBottom = textBottom
 
 		local middleKnobColor = colorKnobMiddleGrey
@@ -1824,21 +1791,21 @@ end
 
 local function hideEcostats()
 	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
-		ecostatsWidget = widgetHandler:FindWidget("Ecostats")
+		local ecostatsWidget = widgetHandler:FindWidget("Ecostats")
 		if (not ecostatsWidget) then return end
+		ecostatsHidden = true
 		widgetHandler:RemoveWidget(ecostatsWidget)
 	end
 end
 
 local function showEcostats()
-	if ecostatsWidget then
-		widgetHandler:InsertWidget(ecostatsWidget)
-		ecostatsWidget = nil
+	if ecostatsHidden then
+		widgetHandler:EnableWidget("Ecostats")
+		ecostatsHidden = false
 	end
 end
 
 local function init()
-	hideEcostats()
 	font = WG['fonts'].getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
@@ -1885,8 +1852,8 @@ local function init()
 
 	if haveFullView then
 		updateStats()
-
 		moveMiddleKnobs()
+		updateNow = true
 	end
 end
 
@@ -1894,7 +1861,6 @@ local function deInit()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
-	showEcostats()
 end
 
 local function reInit()
@@ -1953,11 +1919,14 @@ function widget:Initialize()
 
 	checkAndUpdateHaveFullView()
 
+	hideEcostats()
 	init()
 end
 
 function widget:Shutdown()
 	deInit()
+	WG["spectator_hud"] = {}
+	showEcostats()
 
 	if shader then
 		shader:Finalize()
@@ -2067,14 +2036,32 @@ function widget:GameFrame(frameNum)
 		addMiddleKnobs()
 	end
 
-	if frameNum % settings.statsUpdateFrequency == 1 then
+	if frameNum % settings.statsUpdateFrequency == 1 or updateNow then
 		updateStats()
 
 		moveMiddleKnobs()
+		updateNow = false
 	end
 end
 
+local sec = 0
+local topbarShowButtons = true
 function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.05 then
+		sec = 0
+		if WG['topbar'] then
+			local prevShowButtons = topbarShowButtons
+			if WG['topbar'].getShowButtons() ~= prevShowButtons then
+				topbarShowButtons = WG['topbar'].getShowButtons()
+				if haveFullView then
+					init()
+				else
+					deInit()
+				end
+			end
+		end
+	end
 	if checkAndUpdateHaveFullView() then
 		if haveFullView then
 			init()

@@ -1,16 +1,16 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
-      name      = "Unit Wait Icons",
-      desc      = "Shows the wait/pause icon above units",
-      author    = "Floris, Beherith",
-      date      = "June 2024",
-      license   = "GNU GPL, v2 or later",
-      layer     = -40,
-      enabled   = true
+	  name      = "Unit Wait Icons",
+	  desc      = "Shows the wait/pause icon above units",
+	  author    = "Floris, Beherith, Robert82",
+	  date      = "May 2025",
+	  license   = "GNU GPL, v2 or later",
+	  layer     = -40,
+	  enabled   = true
    }
 end
-
-local onlyOwnTeam = true
 
 local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
 local iconSequenceNum = 44	-- always starts at 1
@@ -18,18 +18,20 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
-local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
-local teamList = {} -- {team1, team2, team3....}
+local waitingUnits = {}
+local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
+local checkDelay = 5
+local unitsPerFrame = 300
+local gf = Spring.GetGameFrame()
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetUnitTeam = Spring.GetUnitTeam
-local spec, fullview = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
+local spIsGUIHidden   = Spring.IsGUIHidden()
+local spGetConfigInt  = Spring.GetConfigInt
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -44,9 +46,16 @@ end
 --------------------------------------------------------------------------------
 
 -- GL4 Backend stuff:
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+
 local iconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -78,51 +87,58 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	spec, fullview = Spring.GetSpectatingState()
-	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
-	clearInstanceTable(iconVBO) -- clear all instances
-	unitScope = {}
-	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
-	end
-	uploadAllElements(iconVBO) -- upload them all
-end
-
 
 function widget:Initialize()
 	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	initUnits()
+end
+local function MarkAsWaiting(unitID, unitDefID, unitTeam)
+	if unitTeam == myTeamID and unitConf[unitDefID] then --(not onlyOwnTeam or
+		waitingUnits[unitID] = unitDefID
 	end
 end
 
+local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	if waitingUnits[unitID] then
+		waitingUnits[unitID] = nil           -- erase flag
+	end
+	if iconVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(iconVBO, unitID)
+	end
+end
+
+local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
+	if not unitConf[unitDefID] then return end
+	local queue = unitConf[unitDefID] and unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
+		MarkAsWaiting(unitID, unitDefID, unitTeam)
+	else
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	end
+end
+
+
+function forgetUnit(unitID, unitDefID, unitTeam)
+	needsCheck[unitID]   = nil
+	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+end
+
 local function updateIcons()
-	local gf = Spring.GetGameFrame()
-	local queue
-	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
-		if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
-			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
-					pushElementInstance(
-						iconVBO, -- push into this Instance VBO Table
-						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-						 0, --Spring.GetUnitTeam(featureID), -- teamID
-						 4, -- how many vertices should we make ( 2 is a quad)
-						 gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-						 0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-						 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-						unitID, -- this is the key inside the VBO Table, should be unique per unit
-						false, -- update existing element
-						true, -- noupload, dont use unless you know what you want to batch push/pop
-						unitID) -- last one should be featureID!
-				end
+	for unitID, unitDefID in pairs(waitingUnits) do
+		if not iconVBO.instanceIDtoIndex[unitID] then--if visibleUnits[unitID] then
+			if spValidUnitID(unitID) then
+			pushElementInstance(iconVBO,
+				{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],
+				0, 4, gf, 0, 0.75, 0,  0,1,0,1,  0,0,0,0},
+				unitID, false, true, unitID)
 			end
-		elseif iconVBO.instanceIDtoIndex[unitID] then
+		end
+	end
+	for unitID in pairs(iconVBO.instanceIDtoIndex) do
+		if not waitingUnits[unitID] then
 			popElementInstance(iconVBO, unitID, true)
 		end
 	end
@@ -131,30 +147,66 @@ local function updateIcons()
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and
+		needsCheck[unitID] = {
+		frame = gf + checkDelay,
+		defID = unitDefID,
+		team  = unitTeam
+		}
+end
+
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
+	CheckWaitingStatus(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitIdle(unitID, unitDefID, unitTeam)
+	CheckWaitingStatus(unitID, unitDefID, unitTeam)
+end
+
+function initUnits()
+	waitingUnits  = {}      -- forget any previous “waiting” flags
+	local unitDefID
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+		unitDefID = Spring.GetUnitDefID(unitID)
+		needsCheck[unitID] = {
+			frame = gf + checkDelay,
+			defID = unitDefID,
+			team  = myTeamID
+		}
+	end
+end
+
+
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 24 == 0 then
+	local currentUnitPerFrame = 0
+	gf = n
+	for unitID, data in pairs(needsCheck) do
+		currentUnitPerFrame = currentUnitPerFrame +1
+		if currentUnitPerFrame < unitsPerFrame then
+			if n >= data.frame then
+				CheckWaitingStatus(unitID, data.defID, data.team)
+				needsCheck[unitID] = nil -- done, remove from queue
+			end
+		end
+	end
+	if gf % 24 == 0 and next(waitingUnits) then
 		updateIcons()
 	end
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
-		unitScope[unitID] = unitDefID
-	end
-end
-
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	unitScope[unitID] = nil
-	if iconVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(iconVBO, unitID)
-	end
-end
-
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then return end
-
+	if spIsGUIHidden then return end
 	if iconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.DepthMask(false)
 		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)

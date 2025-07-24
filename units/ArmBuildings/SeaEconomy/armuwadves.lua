@@ -4,7 +4,7 @@ return {
 		buildpic = "ARMUWADVES.DDS",
 		buildtime = 20300,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 62 62",
 		collisionvolumetype = "Box",

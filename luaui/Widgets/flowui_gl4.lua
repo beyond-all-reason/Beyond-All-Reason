@@ -1,5 +1,7 @@
 
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = 'FlowUI GL4 Tester',
@@ -13,14 +15,17 @@ function widget:GetInfo()
 	}
 end
 
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 local debugmode = false
 
-local glLineWidth = gl.LineWidth
-local glDepthTest = gl.DepthTest
-local GL_LINES = GL.LINES
 local font, loadedFontSize
 local rectRoundVBO = nil
-local vsx, vsy = Spring.GetViewGeometry()
 local groups = {} -- {energy = 'LuaUI/Images/groupicons/'energy.png',...}, retrieves from buildmenu in initialize
 local unitGroup = {}	-- {unitDefID = 'energy'}retrieves from buildmenu in initialize
 local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initialize
@@ -457,7 +462,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			end
 
 			if delta then
-				local cache = self.vboCache
 
 				self.vboCache[self.vbokeys[keyname]] = self.vboCache[self.vbokeys[keyname]] + delta
 			else
@@ -1242,9 +1246,6 @@ print ("end")
 -- GL4 STUFF
 ----------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 local rectRoundShader = nil
 local rectRoundVAO = nil
 local vsx,vsy = gl.GetViewSizes()
@@ -1597,7 +1598,7 @@ local function goodbye(reason)
 end
 
 local function makeRectRoundVBO(name)
-	local rectRoundVBO = makeInstanceVBOTable(
+	local rectRoundVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'screenpos', size = 4},
 			{id = 1, name = 'cornersizes', size = 4},
@@ -1773,9 +1774,6 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 	-- texture should be a table of UV coords from atlas
 	local fronttextalpha = 0
 
-	if texture == nil then
-	end
-
 	if atlasID == nil then
 			texture = {0,0,1,1}
 	else
@@ -1785,10 +1783,7 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 
 	if color == nil then color = {1,1,1,0.5} end
 	--uvs = Draw.TransformUVAtlasxXyY(texture, uvs) -- DO OFFSET!
-	local scale = size and (size / (sx-px)) or 1
 	--local offset = offset or 0
-	local csyMult = 1 / ((sy - py) / cs)
-	local ycMult = (sy-py) / (sx-px)
 
 	if z == nil then z = 0.50 end  -- fools depth sort
 	if c2 == nil then c2 = c1 end
@@ -1901,7 +1896,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
 
@@ -2116,24 +2111,6 @@ Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  
 			sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,
 			radarTexture,
 			{1, 1, 1, 0.9})
-	end
-	if price then
-		local priceSize = math.floor((sx - px) * 0.15)
-		local iconPadding = math.floor((sx - px) * 0.03)
-		--font2:Print("\255\245\245\245" .. price[1] .. "\n\255\255\255\000" .. price[2], px + iconPadding, py + iconPadding + (priceSize * 1.35), priceSize, "o")
-	end
-	if queueCount then
-		local pad = math.floor(halfSize * 0.06)
-		--local textWidth = math.floor(font2:GetTextWidth(cmds[cellRectID].params[1] .. '  ') * halfSize * 0.57)
-		--local pad2 = 0
-		--WG.FlowUI.Draw.RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.365) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cs * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		--WG.FlowUI.Draw.RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.15) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		--WG.FlowUI.Draw.RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2 + pad, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.365) - pad2 + pad, cellRects[cellRectID][3] - cellPadding - iconPadding - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - pad2, cs * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
-		--font2:Print("\255\190\255\190" .. cmds[cellRectID].params[1],
-		--	cellRects[cellRectID][1] + cellPadding + (halfSize * 1.88) - pad2,
-		--	cellRects[cellRectID][2] + cellPadding + (halfSize * 1.43) - pad2,
-		--	(sx - px) * 0.29, "ro"
-		--)
 	end
 	local cnt = 0
 	for k,v in pairs(elementIDs) do

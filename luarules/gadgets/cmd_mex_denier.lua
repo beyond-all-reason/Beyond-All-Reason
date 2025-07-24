@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Deny Invalid Mex Orders",
@@ -27,6 +29,8 @@ end
 local metalSpotsList
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
@@ -38,7 +42,7 @@ end
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 	local isInsert = cmdID == CMD_INSERT
-	if isInsert then
+	if isInsert and cmdParams[2] then
 		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
 	end
 

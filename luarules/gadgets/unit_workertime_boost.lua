@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Workertime Multiplier Boost",
@@ -20,6 +22,7 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
@@ -55,7 +58,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	builderWatch[unitID] = nil
 end
 
@@ -75,9 +78,11 @@ function gadget:GameFrame(frame)
 					end
 					if enableBoost == true then
 						Spring.SetUnitBuildSpeed(id, data.boost)
+						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
 					else
 						Spring.SetUnitBuildSpeed(id, data.buildspeed)
 						data.timestamp = frame+60
+						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else
 					Spring.SetUnitBuildSpeed(id, data.buildspeed)

@@ -9,7 +9,6 @@ return {
 		buildtime = 1500,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealt = 40,
 		explodeas = "smallExplosionGeneric",
@@ -88,7 +87,6 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 3,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Homing depth charge launcher",
@@ -113,7 +111,6 @@ return {
 				weaponvelocity = 200,
 				customparams = {
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 				damage = {
 					commanders = 30,
@@ -134,7 +131,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.75,
 				groundbounce = true,
-				impulseboost = 1.9,
 				impulsefactor = 0.123,
 				model = "cordepthcharge.s3o",
 				name = "Depthcharge launcher",

@@ -3,6 +3,8 @@ if not (Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().rui
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "ruin spawn",
@@ -42,7 +44,7 @@ end
 math_random = math.random	-- not a local cause the includes below use it
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
+local blueprintController = VFS.Include('luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua')
 local scavConfig = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
@@ -70,17 +72,17 @@ local landMexesList = {
 	"legmoho",
 	"legmoho",
 	"legmoho",
+	"legmohocon",
+	"legmohocon",
 }
 
 local seaMexesList = {
 	"armmex",
-	"armuwmex",
 	"armuwmme",
 	"armuwmme",
 	"armuwmme",
 	"armuwmme",
 	"cormex",
-	"coruwmex",
 	"coruwmme",
 	"coruwmme",
 	"coruwmme",
@@ -277,7 +279,6 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
-					--Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
@@ -313,8 +314,8 @@ local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,2) == 0 then
 			local spot = mexSpots[i]
-			local posx = spot.x
-			local posz = spot.z
+			local posx = math.ceil(spot.x/16)*16
+			local posz = math.ceil(spot.z/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local mexesList
 			if posy > 0 then
@@ -338,7 +339,6 @@ local function SpawnMexes(mexSpots)
 			if canBuildHere then
 				local mex = mexesList[math.random(1,#mexesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -353,8 +353,8 @@ local function SpawnGeos(geoSpots)
 	for i = 1,#geoSpots do
 		if math.random(0,1) == 0 then
 			local spot = geoSpots[i]
-			local posx = spot.x
-			local posz = spot.z
+			local posx = math.ceil(spot.x/16)*16
+			local posz = math.ceil(spot.z/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local geosList
 			if posy > 0 then
@@ -378,7 +378,6 @@ local function SpawnGeos(geoSpots)
 			if canBuildHere then
 				local geo = geosList[math.random(1,#geosList)]
 				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -395,8 +394,8 @@ local function SpawnMexGeoRandomStructures()
 			if SpawnedMexes[i] then
 				local spot = mexSpots[i]
 				for j = 1,SpawnedMexes[i] do
-					local posx2 = spot.x+math.random(-512,512)
-					local posz2 = spot.z+math.random(-512,512)
+					local posx2 = math.ceil((spot.x+math.random(-512,512))/16)*16
+					local posz2 = math.ceil((spot.z+math.random(-512,512))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
@@ -404,13 +403,13 @@ local function SpawnMexGeoRandomStructures()
 					else
 						defencesList = seaDefences
 					end
-				
+
 					local radius = 128
 					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
 								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
-				
+
 					if posy2 > 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
 					elseif posy2 <= 0 then
@@ -420,11 +419,10 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere and getNearestBlocker(posx2, posz2) < radius then
 						canBuildHere = false
 					end
-				
+
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						--Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
 						Spring.SetUnitNeutral(unit, true)
 						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -440,8 +438,8 @@ local function SpawnMexGeoRandomStructures()
 			if SpawnedGeos[i] then
 				local spot = geoSpots[i]
 				for j = 1,SpawnedGeos[i] do
-					local posx2 = spot.x+math.random(-1024,1024)
-					local posz2 = spot.z+math.random(-1024,1024)
+					local posx2 = math.ceil((spot.x+math.random(-1024,1024))/16)*16
+					local posz2 = math.ceil((spot.z+math.random(-1024,1024))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
@@ -449,27 +447,26 @@ local function SpawnMexGeoRandomStructures()
 					else
 						defencesList = seaDefences
 					end
-				
+
 					local radius = 128
 					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
 								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
-				
+
 					if posy2 > 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
 					elseif posy2 <= 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius, true)
 					end
-					
+
 					if canBuildHere and getNearestBlocker(posx2, posz2) < radius then
 						canBuildHere = false
 					end
-				
+
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						--Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
 						Spring.SetUnitNeutral(unit, true)
 						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -483,8 +480,8 @@ end
 local function SpawnRandomStructures()
 	for i = 1,math.ceil(spawnCutoffFrame/10) do
 		for j = 1,20 do
-			local posx = math.random(196,Game.mapSizeX-196)
-			local posz = math.random(196,Game.mapSizeZ-196)
+			local posx = math.ceil(math.random(196,Game.mapSizeX-196)/16)*16
+			local posz = math.ceil(math.random(196,Game.mapSizeZ-196)/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local defencesList
 			if posy > 0 then
@@ -512,7 +509,6 @@ local function SpawnRandomStructures()
 			if canBuildHere then
 				local defence = defencesList[math.random(1,#defencesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
@@ -565,24 +561,24 @@ function gadget:GameFrame(n)
 		-- 	seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
 		-- 	blueprintTierLevel = -1
 		if r > 98 and Spring.GetModOptions().ruins_only_t1 == false then -- elseif
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
+			landRuin = blueprintController.GetRandomLandBlueprint(4)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(4)
 			blueprintTierLevel = 4
 		elseif r > 95 and Spring.GetModOptions().ruins_only_t1 == false then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(3)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(3)
+			landRuin = blueprintController.GetRandomLandBlueprint(3)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(3)
 			blueprintTierLevel = 3
 		elseif r > 85 and Spring.GetModOptions().ruins_only_t1 == false then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
+			landRuin = blueprintController.GetRandomLandBlueprint(2)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(2)
 			blueprintTierLevel = 2
 		elseif r > 65 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
+			landRuin = blueprintController.GetRandomLandBlueprint(1)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(1)
 			blueprintTierLevel = 1
 		else
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
+			landRuin = blueprintController.GetRandomLandBlueprint(0)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(0)
 			blueprintTierLevel = 0
 		end
 

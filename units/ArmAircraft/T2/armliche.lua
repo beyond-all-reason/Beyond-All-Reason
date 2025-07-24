@@ -5,7 +5,6 @@ return {
 		buildtime = 57400,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = false,
 		cruisealtitude = 150,
 		energycost = 46000,
@@ -46,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			attacksafetydistance = 3000,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -97,7 +97,6 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 100,
 				flighttime = 2,
-				impulseboost = 0.123,
 				impulsefactor = 1,
 				model = "catapultmissile.s3o",
 				name = "Tactical nuclear homing missile",
@@ -116,6 +115,9 @@ return {
 				weaponacceleration = 40,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					commanders = 3150,
 					default = 5625,
@@ -134,7 +136,6 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 100,
 				flighttime = 0.1,
-				impulseboost = 0.123,
 				impulsefactor = 2,
 				model = "catapultmissile.s3o",
 				name = "Tactical nuclear a2g homing missile",

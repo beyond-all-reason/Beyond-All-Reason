@@ -7,7 +7,6 @@ return {
 		buildtime = 18000,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealtitude = 70,
 		energycost = 11000,
@@ -35,7 +34,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 100,
+		workertime = 105,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corafus",

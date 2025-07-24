@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name = "CommandInsert",
@@ -102,10 +104,10 @@ end
 --]]
 
 local function GetUnitOrFeaturePosition(id)
-	if id <= Game.maxUnits then
+	if id < Game.maxUnits then
 		return Spring.GetUnitPosition(id)
 	else
-		return Spring.GetFeaturePosition(id-Game.maxUnits)
+		return Spring.GetFeaturePosition(id - Game.maxUnits)
 	end
 end
 
@@ -131,6 +133,8 @@ function widget:CommandNotify(id, params, options)
   if options.alt then opt = opt + CMD.OPT_ALT end
   if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
+  -- options.meta not forwarded since we're doing insert with it
+  -- and don't want to alias with engine at the same time.
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
 
@@ -157,7 +161,7 @@ function widget:CommandNotify(id, params, options)
   local units = Spring.GetSelectedUnits()
   for i=1,#units do
     local unit_id = units[i]
-    local commands = Spring.GetCommandQueue(unit_id,100)
+    local commands = Spring.GetUnitCommands(unit_id,100)
     local px,py,pz = Spring.GetUnitPosition(unit_id)
     local min_dlen = 1000000
     local insert_pos = 0
@@ -166,7 +170,7 @@ function widget:CommandNotify(id, params, options)
       --Spring.Echo("cmd:"..table.tostring(command))
       local px2,py2,pz2 = GetCommandPos(command)
       if px2 and px2>-1 then
-        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
+        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((pz2-pz)*(pz2-pz))))
         --Spring.Echo("dlen "..dlen)
         if dlen < min_dlen then
           min_dlen = dlen

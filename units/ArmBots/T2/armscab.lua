@@ -4,7 +4,6 @@ return {
 		buildtime = 40000,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 3 -1",
 		collisionvolumescales = "43 23 49",
 		collisionvolumetype = "box",
@@ -120,7 +119,6 @@ return {
 				explosiongenerator = "custom:antinuke",
 				firestarter = 100,
 				flighttime = 20,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
@@ -150,6 +148,9 @@ return {
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 7000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 500,
 				},

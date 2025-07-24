@@ -4,7 +4,6 @@ return {
 		buildtime = 30600,
 		canmove = true,
 		cantbetransported = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "61 60 61",
 		collisionvolumetype = "cylY",
@@ -22,7 +21,7 @@ return {
 		maxslope = 36,
 		maxwaterdepth = 32,
 		metalcost = 1550,
-		movementclass = "HABOT4",
+		movementclass = "HABOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHIVA.s3o",
 		script = "Units/CORSHIVA.cob",
@@ -37,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = 650,
-			model_author = "FireStorm",
+			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorGantry",
 			techlevel = 3,
@@ -77,6 +76,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+				[2] = "custom:subbubbles",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -114,8 +115,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
+				impulsefactor = 0.8,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,
@@ -135,7 +135,6 @@ return {
 			shiva_rocket = {
 				areaofeffect = 60,
 				avoidfeature = false,
-				burnblow = true,
 				castshadow = true,
 				cegtag = "missiletrailmedium-starburst",
 				craterareaofeffect = 0,
@@ -145,8 +144,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 7,
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
+				impulsefactor = 0.8,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",
@@ -170,6 +168,10 @@ return {
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
+				customparams = {
+					overrange_distance = 920,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 750,
 				},

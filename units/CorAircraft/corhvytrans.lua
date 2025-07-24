@@ -35,6 +35,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			crashable = 0,
 			model_author = "Protar",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

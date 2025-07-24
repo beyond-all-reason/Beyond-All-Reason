@@ -10,7 +10,6 @@ return {
 		buildpic = "CORPT.DDS",
 		buildtime = 2900,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 -1",
 		collisionvolumescales = "20 20 60",
 		collisionvolumetype = "box",
@@ -123,7 +122,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 3,
 				gravityaffected = "false",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "legtorpedo.s3o",
 				name = "Homing torpedo launcher",
@@ -153,7 +151,6 @@ return {
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 			},
 
@@ -169,7 +166,6 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium-uw",
 				flighttime = 3,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cortorpedo.s3o",
 				name = "Depthcharge launcher",

@@ -2,6 +2,8 @@
 -- When tabbing out of the overview, the camera DOES NOT "zoom-to-cursor"
 -- When scrolling out of the overiew, the camera DOES "zoom-to-cursor"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Overview Camera Keep Position",

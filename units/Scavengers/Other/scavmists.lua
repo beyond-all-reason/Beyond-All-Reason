@@ -57,12 +57,12 @@ local lvlParams = {
 
         --unitspawning
         landunitspawns = "armmeatball armassimilator armpwt4 armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
-        landturretspawns = "armpb armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall armlwall cormwall armlwall cormwall",
+        landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
         waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
         unitspawnrange = 300, 
         turretspawnrange = 400, 
         landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 4, --same here
+        landturretburst = 8, --same here
         waterburst = 12, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 
 	},
@@ -84,7 +84,6 @@ for lvl, stats in pairs(lvlParams) do
 		cancloak = true,
         initcloaked = true,
 		decloakonfire = false,
-		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "64 24 64",
 		collisionvolumetype = "CylY",
@@ -193,7 +192,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.landunitspawns,
 					spawns_surface = "LAND",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {
@@ -239,7 +238,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "LAND",
 					spawns_mode = "random",
 					spawns_expire = 60,
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {
@@ -285,7 +284,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_name = stats.waterspawns,
 					spawns_surface = "SEA",
 					spawns_mode = "random",
-                    spawns_ceg = "scav-spawnexplo",
+                    spawns_ceg = "scav-spawnexplo-medium",
 					spawns_stun = 1
 				},
 				damage = {

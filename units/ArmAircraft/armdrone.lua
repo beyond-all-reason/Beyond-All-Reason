@@ -5,7 +5,6 @@ return {
 		buildtime = 1200,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealtitude = 40,
 		energycost = 600,
@@ -88,7 +87,6 @@ return {
 				duration = 0.025,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:laserhit-small-yellow",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",
@@ -107,6 +105,9 @@ return {
 				turret = false,
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 11,
 					vtol = 3,

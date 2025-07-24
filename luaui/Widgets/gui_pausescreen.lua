@@ -1,6 +1,8 @@
 include("keysym.h.lua")
 local versionNumber = "1.34"
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pause Screen",
@@ -14,7 +16,6 @@ function widget:GetInfo()
 end
 
 local spGetGameSpeed = Spring.GetGameSpeed
-local spGetGameState = Spring.GetGameState
 local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
@@ -152,10 +153,6 @@ function widget:Update(dt)
 	else
 		paused = false
 	end
-
-	--if spGetGameState and select(3, spGetGameState()) then	-- is locally paused? NOTE: returns true if you do /pause as spec regardless of game actually being paused of not
-	--	paused = true
-	--end
 
 	-- admin pause / game freeze
 	if not paused and gameFrame > 0 and not gameover then

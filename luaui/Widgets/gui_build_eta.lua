@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "BuildETA",
@@ -40,7 +42,7 @@ end
 
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 13.0)
+	font = WG['fonts'].getFont(nil, 1.2, 0.2, 20)
 end
 
 local function makeETA(unitID, unitDefID)
@@ -159,7 +161,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	etaTable[unitID] = nil
 end
 

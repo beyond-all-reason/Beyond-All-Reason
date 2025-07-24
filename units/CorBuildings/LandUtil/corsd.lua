@@ -5,7 +5,6 @@ return {
 		buildpic = "CORSD.DDS",
 		buildtime = 12000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "65 10 60",
 		collisionvolumetype = "Box",

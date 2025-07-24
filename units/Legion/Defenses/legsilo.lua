@@ -7,7 +7,6 @@ return {
 		metalcost = 7700,
 		buildpic = "LEGSILO.DDS",
 		buildtime = 181000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 18 -2",
 		collisionvolumescales = "90 38 84",
 		collisionvolumetype = "Box",
@@ -117,7 +116,6 @@ return {
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
 				flighttime = 400,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				metalpershot = 1500,
 				model = "legicbm.s3o",
@@ -149,6 +147,7 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,
@@ -163,7 +162,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Nuclear Launch",

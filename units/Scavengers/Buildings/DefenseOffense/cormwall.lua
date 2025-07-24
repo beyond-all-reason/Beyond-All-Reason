@@ -6,7 +6,6 @@ return {
 		buildpic = "CORMWALL.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "32 50 32",
 		collisionvolumetype = "CylY",
@@ -176,7 +175,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
 				flighttime = 3.2,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "catapultmissile.s3o",
@@ -209,6 +207,11 @@ return {
 				damage = {
 					default = 450,
 				},
+				customparams = {
+					exclude_preaim = true,
+					overrange_distance = 777,
+					projectile_destruction_method = "descend",
+				}
 			},
 		},
 		weapons = {

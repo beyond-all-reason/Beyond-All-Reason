@@ -9,15 +9,14 @@ return {
 		buildpic = "LEGAVP.DDS",
 		buildtime = 18500,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "1 0 0",
-		collisionvolumescales = "124 70 109",
+		collisionvolumeoffsets = "0 0 5",
+		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
-		footprintz = 7,
+		footprintz = 9,
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
@@ -25,15 +24,34 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,
-		objectname = "Units/CORAVP.s3o",
+		objectname = "Units/LEGAVP.s3o",
 		radardistance = 50,
-		script = "Units/CORAVP.cob",
+		script = "Units/LEGAVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
+		yardmap = [[h
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        ]],
 		buildoptions = {
 			"legacv",
 			"legmrv",
@@ -45,29 +63,30 @@ return {
 			"legvcarry",
 			"legavroc",
 			"leginf",
-			"corsent",
+			"legvflak",
 			"cormabm",
-			"coreter",
-			"corvrad",
+			"legavjam",
+			"legavrad",
+			"legafcv"
 		},
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/coravp_aoplane.dds",
-			buildinggrounddecalsizey = 10,
-			buildinggrounddecalsizex = 10,
+			usebuildinggrounddecal = false,
+			buildinggrounddecaltype = "decals/legavp_aoplane.dds",
+			buildinggrounddecalsizey = 12,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 0.01,
 			unitgroup = 'buildert2',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorBuildings/LandFactories",
+			model_author = "ZephyrSkies",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Labs",
 			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 -6 0",
-				collisionvolumescales = "124 30 104",
+				collisionvolumeoffsets = "0 0 5",
+				collisionvolumescales = "144 70 144",
 				collisionvolumetype = "Box",
 				damage = 2777,
 				featuredead = "HEAP",
@@ -75,7 +94,7 @@ return {
 				footprintz = 6,
 				height = 20,
 				metal = 1721,
-				object = "Units/coravp_dead.s3o",
+				object = "Units/legavp_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

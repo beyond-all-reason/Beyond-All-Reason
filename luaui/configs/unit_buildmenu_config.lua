@@ -4,31 +4,32 @@
 ---
 
 
-local unitName = {}
-local unitEnergyCost = {}
-local unitMetalCost = {}
-local unitGroup = {}
-local unitRestricted = {}
-local isBuilder = {}
-local isFactory = {}
-local unitIconType = {}
-local isMex = {}
-local isWind = {}
-local isWaterUnit = {}
-local isGeothermal = {}
-local unitMaxWeaponRange = {}
-
-local showWaterUnits = false
+local unitEnergyCost = {} ---@type table<number, number>
+local unitMetalCost = {} ---@type table<number, number>
+local unitGroup = {} ---@type table<number, number>
+local unitRestricted = {} ---@type table<number, true>
+local manualUnitRestricted = {} ---@type table<number, true>
+local isBuilder = {} ---@type table<number, true>
+local isFactory = {} ---@type table<number, true>
+local unitIconType = {} ---@type table<number, number>
+local isMex = {} ---@type table<number, true>
+local isWind = {} ---@type table<number, true>
+local isWaterUnit = {} ---@type table<number, true>
+local isGeothermal = {} ---@type table<number, true>
+local unitMaxWeaponRange = {} ---@type table<number, number>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'legatorpbomber'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end
 	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
+		isWaterUnit[unitDefID] = nil
+	end
+	if unitDef.customParams.enabled_on_no_sea_maps then
 		isWaterUnit[unitDefID] = nil
 	end
 
@@ -46,6 +47,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.maxThisUnit == 0 then
 		unitRestricted[unitDefID] = true
+		manualUnitRestricted[unitDefID] = true
 	end
 
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -65,25 +67,29 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
+---@param disable boolean
 local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
+---@param disable boolean
 local function restrictGeothermalUnits(disable)
 	for unitDefID,_ in pairs(isGeothermal) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
+---@param disable boolean
 local function restrictWaterUnits(disable)
 	for unitDefID,_ in pairs(isWaterUnit) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
+---Sets geothermal unit restriction based on the presence of geothermal
+---features.
 local function checkGeothermalFeatures()
 	local hideGeoUnits = true
 	local geoThermalFeatures = {}
@@ -107,10 +113,12 @@ end
 -- UNIT ORDER ----------------------
 ------------------------------------
 
--- At the end of this 'UNIT ORDER' section, unitOrder is an array with unitIDs
--- sorted by their value specified in unitOrderManualOverrideTable. If no
--- value is specified, the unit will be placed at the end of the array.
+---At the end of this 'UNIT ORDER' section, unitOrder is an array with unitIDs
+---sorted by their value specified in unitOrderManualOverrideTable. If no
+---value is specified, the unit will be placed at the end of the array.
+---@type number[]
 local unitOrder = {}
+
 local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
 -- Populate unitOrder with unit IDs.
@@ -138,51 +146,45 @@ maxOrder = maxOrder + 1
 -- For units who have the same order value we compare the unit's IDs.
 -- This sort is always stable, as no two units should have the same ID.
 table.sort(unitOrder, function(aID, bID)
-			local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
-			local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
+	local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
+	local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-			if (aOrder == bOrder) then
-			  return aID < bID
-			end
-			return aOrder < bOrder
-		end)
-
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
-local minWaterUnitDepth = -11
+	if (aOrder == bOrder) then
+		return aID < bID
+	end
+	return aOrder < bOrder
+end)
 
 
-------------------------------------
--- /UNIT ORDER ----------------------
-------------------------------------
-
-return {
-
-	unitName = unitName,
+local units = {
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
-	isBuilder = isBuilder,
-	isFactory = isFactory,
 	unitIconType = unitIconType,
-	isMex = isMex,
-	isWind = isWind,
-	isWaterUnit = isWaterUnit,
-	isGeothermal = isGeothermal,
 	unitMaxWeaponRange = unitMaxWeaponRange,
-
-	minWaterUnitDepth = minWaterUnitDepth,
+	---Set of unit IDs that are factories.
+	isFactory = isFactory,
+	---Set of unit IDs that have build options.
+	isBuilder = isBuilder,
+	---Set of unit IDs that require metal.
+	isMex = isMex,
+	---Set of unit IDs that require wind.
+	isWind = isWind,
+	---Set of unit IDs that require water.
+	isWaterUnit = isWaterUnit,
+	---Set of unit IDs that require geothermal.
+	isGeothermal = isGeothermal,
+	minWaterUnitDepth = -11,
+	---An array with unitIDs sorted by their value specified in
+	---`unitOrderManualOverrideTable`. If no value is specified, the unit will be
+	---placed at the end of the array.
 	unitOrder = unitOrder,
-
-	showWaterUnits = showWaterUnits,
 
 	checkGeothermalFeatures = checkGeothermalFeatures,
 	restrictGeothermalUnits = restrictGeothermalUnits,
 	restrictWindUnits = restrictWindUnits,
 	restrictWaterUnits = restrictWaterUnits,
 }
+
+return units

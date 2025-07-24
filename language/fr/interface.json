@@ -910,8 +910,6 @@
 				"cus_descr": "Permet : texture en profondeur, marques de bataille sur les unités, lumières clignotantes, luminosité d'environnement, traces de chenilles au sol",
 				"darkenmap": "Assombrir la carte",
 				"darkenmap_descr": "Assombrit toute la carte (pas les unités)",
-				"darkenmap_darkenfeatures": "assombrissement",
-				"darkenmap_darkenfeatures_descr": "Permet d'assombrir les éléments (arbres, épaves, etc) avec \nle curseur au-dessus\n\nNB : Peut demander beaucoup du processeur, cette technique recharge tous les éléments visibles\npour les afficher de nouveau.",
 				"advmapshading": "Ombrage de la carte avancé",
 				"advmapshading_descr": "Permet : texture en profondeur, textures en détails, luminosité améliorée, ombres.",
 				"shadowslider": "Ombres",

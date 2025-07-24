@@ -3,6 +3,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Unit Explosion Spawner",
@@ -321,7 +323,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local index = expireByID[unitID]
 	if spawnNames[unitID] then
 	    spawnNames[unitID] = nil

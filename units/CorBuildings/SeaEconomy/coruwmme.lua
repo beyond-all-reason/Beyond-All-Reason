@@ -2,11 +2,9 @@ return {
 	coruwmme = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "CORUWMME.DDS",
 		buildtime = 14100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energycost = 8100,

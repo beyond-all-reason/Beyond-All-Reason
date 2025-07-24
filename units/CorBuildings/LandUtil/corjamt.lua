@@ -6,7 +6,6 @@ return {
 		buildtime = 4570,
 		canattack = false,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 37 30",
 		collisionvolumetype = "CylY",

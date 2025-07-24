@@ -5,7 +5,6 @@ return {
 		buildtime = 16000,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		collisionvolumeoffsets = "1 1 5",
 		collisionvolumescales = "52 21 52",
@@ -40,6 +39,7 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
@@ -100,7 +100,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 1000,
 				explosiongenerator = "custom:laserhit-emp",
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.05,
 				name = "Heavy a2g EMP beam",
@@ -129,7 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMDFLY_PARALYZER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

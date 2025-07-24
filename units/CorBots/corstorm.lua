@@ -3,7 +3,6 @@ return {
 		buildpic = "CORSTORM.DDS",
 		buildtime = 1950,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "22 28 22",
 		collisionvolumetype = "cylY",
@@ -113,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1,
 				metalpershot = 0,
@@ -139,6 +137,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
+				customparams = {
+					overrange_distance = 547,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 157,
 				},

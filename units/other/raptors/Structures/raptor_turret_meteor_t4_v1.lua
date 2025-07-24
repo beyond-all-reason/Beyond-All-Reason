@@ -15,7 +15,7 @@ return {
 		canrestore = false,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "80 50 80",
 		collisionvolumetype = "box",
@@ -83,6 +83,7 @@ return {
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 70,
 				hightrajectory = 1,
+				interceptedbyshieldtype = 0,
 				model = "Raptors/greyrock2.s3o",
 				name = "METEORLAUNCHER",
 				proximitypriority = -1,
@@ -98,6 +99,9 @@ return {
 				damage = {
 					default = 30000,
 				},
+				customparams = {
+					shield_aoe_penetration = true,
+				}
 			},
 		},
 		weapons = {

@@ -1,12 +1,10 @@
 return {
 	armpship = {
-		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4250,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",
@@ -112,7 +110,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Light long-range plasma cannon",
 				noselfdamage = true,
@@ -126,6 +123,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 290,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 70,
 					subs = 70,

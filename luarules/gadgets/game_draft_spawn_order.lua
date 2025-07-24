@@ -56,7 +56,7 @@ local function FindPlayerName(teamID)
 end
 
 local function shuffleArray(array)
-	local n = #array
+	local n = (array and #array) or 0
 	if n <= 1 then return array end
 	local random = math.random
 	for i = 1, n do
@@ -78,7 +78,6 @@ local function GetSkillByPlayer(playerID)
 	local customtable = select(11, spGetPlayerInfo(playerID))
 	if type(customtable) == 'table' then
 		local tsMu = customtable.skill
-		local tsSigma = customtable.skilluncertainty
 		local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 		if (ts == nil) then return 0 else return ts end
 	end
@@ -228,6 +227,7 @@ local function PreInitDraftOrderData()
 end
 
 local function putLateJoinersLast(array)
+	if not array then return end
 	local lateJoiners = false
 	for _, teamID in ipairs(array) do
 		if not teamPlayerData[teamID] then
@@ -260,7 +260,7 @@ local function putLateJoinersLast(array)
 end
 
 local function InitDraftOrderData(allyTeamID_ready)
-	if allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
+	if not allyTeamID_ready or allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
 	allyTeamIsInGame[allyTeamID_ready] = true
 	if draftMode == "random" or draftMode == "captain" then
 		local tteams = Spring.GetTeamList()

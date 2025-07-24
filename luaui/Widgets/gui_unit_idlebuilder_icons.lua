@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
    return {
       name      = "Unit Idle Builder Icons",
@@ -19,13 +21,12 @@ local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
-local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
-local spec, fullview = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -33,10 +34,13 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 3.3 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
-		unitConf[unitDefID] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
+	local cp = unitDef.customParams
+	if not (cp.virtualunit == "1") then
+		if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
+			local xsize, zsize = unitDef.xsize, unitDef.zsize
+			local scale = 3.3 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
+			unitConf[unitDefID] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
+		end
 	end
 end
 
@@ -44,9 +48,16 @@ end
 --------------------------------------------------------------------------------
 
 -- GL4 Backend stuff:
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local iconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -62,7 +73,7 @@ local function initGL4()
 	shaderConfig.BREATHESIZE = 0--0.1
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = " gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.ZPULL = 512.0 -- send 16 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
@@ -80,8 +91,7 @@ end
 
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
-	clearInstanceTable(iconVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(iconVBO) -- clear all instances
 	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
@@ -105,8 +115,8 @@ local function updateIcons()
 	local gf = Spring.GetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
-		if not (queue and queue[1]) then
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
+		if queue == 0 then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 					if not idleUnitList[unitID] then

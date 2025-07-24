@@ -3,7 +3,6 @@ return {
 		buildpic = "CORVROC.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "40 40 44",
 		collisionvolumetype = "Box",
@@ -116,8 +115,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 12,
-				impulseboost = 0.2,
-				impulsefactor = 0.2,
+				impulsefactor = 0.8,
 				metalpershot = 0,
 				model = "corvrocket.s3o",
 				name = "Rocket",
@@ -142,6 +140,10 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 415,
+				customparams = {
+					overrange_distance = 1507,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					commanders = 810,
 					default = 1700,

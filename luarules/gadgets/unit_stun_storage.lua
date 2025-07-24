@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Stun Storage",
@@ -14,7 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetTeamResources = Spring.GetTeamResources
 local spSetTeamResource = Spring.SetTeamResource
 
@@ -24,21 +25,28 @@ local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
 	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
-		if ud.metalStorage >= 50 then
-			if not storageDefs[udid] then
-				storageDefs[udid] = {}
+
+		-- instead of checking every unit to see if it is a commander we add them in late, except we don't cause they move
+		-- i don't understand our decision making but i'm future proofing this
+		-- commanders were tested to be excluded for the first 150 game frames
+		-- well re-add them if they ever get stationarty to the list of storage units 150 frames in late instead, to lower amount of checks
+		if ud.customParams.iscommander then
+			isCommander[udid] = true
+		else
+
+			if ud.metalStorage >= 50 then
+				if not storageDefs[udid] then
+					storageDefs[udid] = {}
+				end
+				storageDefs[udid].metal = ud.metalStorage
 			end
-			storageDefs[udid].metal = ud.metalStorage
-		end
-		if ud.energyStorage >= 100 then
-			if not storageDefs[udid] then
-				storageDefs[udid] = {}
+			if ud.energyStorage >= 100 then
+				if not storageDefs[udid] then
+					storageDefs[udid] = {}
+				end
+				storageDefs[udid].energy = ud.energyStorage
 			end
-			storageDefs[udid].energy = ud.energyStorage
 		end
-	end
-	if ud.customParams.iscommander then
-		isCommander[udid] = true
 	end
 end
 
@@ -66,24 +74,40 @@ local function reduceStorage(unitID, unitDefID, teamID)
 	end
 end
 
-function gadget:GameFrame(n)
-	if n % 5 == 1 then
-		for unitID, unitDefID in pairs(paralyzedUnits) do
-			if not spGetUnitIsStunned(unitID) then		-- when EMP ran out: restore total storage
-				restoreStorage(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+if #isCommander > 0 then
+	function gadget:GameFrame(n)
+		if n > 150 then
+			for commander, _ in pairs(isCommander) do
+				if UnitDefs[commander].metalStorage >= 50 then
+					storageDefs[udid].metal = UnitDefs[commander].metalStorage
+				end
+				if UnitDefs[commander].energyStorage >= 100 then
+					storageDefs[udid].energy = UnitDefs[commander].energyStorage
+				end
 			end
+			isCommander = nil
+			gadgetHandler:RemoveCallIn("GameFrame")
 		end
 	end
+else
+	isCommander = nil
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, teamID, damage, paralyzer)
-	-- when freshly EMP'd: reduce total storage
-	if paralyzer and storageDefs[unitDefID] and not paralyzedUnits[unitID] then
-		local _, maxHealth, paralyzeDamage, _, _ = Spring.GetUnitHealth(unitID)
-		if paralyzeDamage + damage > maxHealth then
-			if not isCommander[unitDefID] or Spring.GetGameFrame() > 150 then	-- workaround to prevent commander-gate paralyze effect to rob you of half your starting resources
+function gadget:UnitStunned(unitID, unitDefID, teamID, stunned)
+	if not storageDefs[unitDefID] then
+		return
+	end
+
+	if stunned then
+		if not paralyzedUnits[unitID] then
+			local beingBuilt, _ = Spring.GetUnitIsBeingBuilt(unitID)
+			if not beingBuilt then
 				reduceStorage(unitID, unitDefID, teamID)
 			end
+		end
+	else
+		if paralyzedUnits[unitID] then
+			restoreStorage(unitID, unitDefID, teamID)
 		end
 	end
 end
@@ -108,7 +132,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if paralyzedUnits[unitID] then
 		restoreStorage(unitID, unitDefID, unitTeam)
 	end
@@ -116,6 +140,12 @@ end
 
 function gadget:Initialize()
 	local allUnits = Spring.GetAllUnits()
+
+	if #allUnits == 0 then
+		return
+	end
+
+	local spGetUnitIsStunned = Spring.GetUnitIsStunned
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		if select(5, Spring.GetUnitHealth(unitID)) == 1 then
@@ -128,6 +158,7 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	local spGetUnitIsStunned = Spring.GetUnitIsStunned
 	for unitID, unitDefID in pairs(paralyzedUnits) do
 		if spGetUnitIsStunned(unitID) then
 			restoreStorage(unitID, unitDefID, Spring.GetUnitTeam(unitID))

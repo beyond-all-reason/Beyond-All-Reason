@@ -3,7 +3,6 @@ return {
 		buildpic = "CORSUMO.DDS",
 		buildtime = 51000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 34 36",
 		collisionvolumetype = "Box",
@@ -34,7 +33,7 @@ return {
 		turnrate = 368,
 		usepiececollisionvolumes = 1,
 		customparams = {
-			model_author = "Beherith",
+			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,
 			subfolder = "CorBots/T2",
@@ -45,8 +44,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-2.34260559082 -0.241825708008 -1.33148193359",
-				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
+				collisionvolumeoffsets = "0.0 -8 1.8",
+				collisionvolumescales = "44.2 41.0 49.1",
 				collisionvolumetype = "Box",
 				damage = 8400,
 				featuredead = "HEAP",
@@ -73,6 +72,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:footstep-medium",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -115,7 +117,6 @@ return {
 				explosiongenerator = "custom:laserhit-large-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.2,
 				name = "HighEnergyLaser",
@@ -126,9 +127,8 @@ return {
 				rgbcolor2 = "0.9 1 0.9",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrhvy3",
+				soundstart = "lasrhvy3short",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 4.6,
 				tolerance = 10000,
 				turret = true,
@@ -139,11 +139,29 @@ return {
 					vtol = 71,
 				},
 			},
+			sumohvylaserroar = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "Laserroar",
+				noselfdamage = true,
+				soundhitdry = "laserroar",
+				soundhitdryvolume = 17,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
 				onlytargetcategory = "NOTSUB",
+			},
+			[2] = {
+				def = "SUMOHVYLASERROAR",
 			},
 		},
 	},

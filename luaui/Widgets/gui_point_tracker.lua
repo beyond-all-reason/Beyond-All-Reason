@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Point Tracker",
@@ -6,7 +8,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "20211020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 20, -- below most GUI elements, which generally go up to 10
 		enabled = true
 	}
 end
@@ -14,7 +16,7 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -26,7 +28,6 @@ local GetTeamColor = Spring.GetTeamColor
 local GetSpectatingState = Spring.GetSpectatingState
 
 local glLineWidth = gl.LineWidth
-local GL_LINES = GL.LINES
 
 ----------------------------------------------------------------
 --vars
@@ -60,13 +61,17 @@ end
 local mapMarkInstanceVBO = nil
 local mapMarkShader= nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
+
 
 local function ClearPoints()
 	mapPoints = {}
-  clearInstanceTable(mapMarkInstanceVBO)
+	InstanceVBOTable.clearInstanceTable(mapMarkInstanceVBO)
 end
 
 local shaderParams = {
@@ -82,7 +87,7 @@ layout (location = 1) in vec4 worldposradius;
 layout (location = 2) in vec4 colorlife;
 
 uniform float isMiniMap;
-uniform float cameraFlipped;
+uniform float mapRotation;
 
 out DataVS {
 	vec4 blendedcolor;
@@ -99,12 +104,19 @@ void main()
 
   float viewratio = 1.0;
   if (isMiniMap > 0.5) {
-    if (cameraFlipped > 0.5) {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
-    } else {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+    if (mapRotation == 0) {
+        worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (mapRotation == 1) {
+		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
+    }else if (mapRotation == 2) {
+        worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (mapRotation == 3) {
+		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
     }
-    viewratio = mapSize.x / mapSize.y;
   } else {
     worldPosInCamSpace  = cameraViewProj * vec4(worldposradius.xyz, 1.0);
     viewratio = viewGeometry.x / viewGeometry.y;
@@ -194,7 +206,7 @@ local function initGL4()
         },
 	uniformFloat = {
         isMiniMap = 0,
-        cameraFlipped = 0,
+        mapRotation = 0,
       },
     },
     "mapMarkShader GL4"
@@ -207,10 +219,10 @@ local function initGL4()
 		  {id = 1, name = 'posradius', size = 4}, -- posradius
 		  {id = 2, name = 'colorlife', size = 4}, --  color + startgameframe
 		}
-  mapMarkInstanceVBO = makeInstanceVBOTable(mapMarkInstanceVBOLayout,32, "mapMarkInstanceVBO")
+  mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
   mapMarkInstanceVBO.numVertices = numVertices
   mapMarkInstanceVBO.vertexVBO = markerVBO
-  mapMarkInstanceVBO.VAO = makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+  mapMarkInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
   mapMarkInstanceVBO.primitiveType = GL.LINES
 
   if false then -- testing
@@ -227,7 +239,7 @@ function DrawMapMarksWorld(isMiniMap)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped() and 1 or 0)
+		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
@@ -306,4 +318,8 @@ function widget:DrawInMiniMap(sx, sy)
   gl.ClipDistance ( 1, false)
   gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)
+end
+
+function widget:ClearMapMarks()
+	ClearPoints()
 end
