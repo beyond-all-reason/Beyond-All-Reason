@@ -139,8 +139,8 @@ local updateRes = { metal = {false,false,false,false}, energy = {false,false,fal
 
 -- Display Lists
 local dlistWindText = {}
-local dlistResValuesBar = {}
 local dlistResValues = {}
+-- --- OPTIMIZATION: dlistResValuesBar is removed as it's now drawn directly.
 local dlistResbar = { metal = {}, energy = {} }
 local dlistEnergyGlow
 local dlistQuit
@@ -252,23 +252,41 @@ function widget:ViewResize()
 	for res, _ in pairs(dlistResValues) do
 		dlistResValues[res] = glDeleteList(dlistResValues[res])
 	end
-	for res, _ in pairs(dlistResValuesBar) do
-		dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res])
-	end
+	-- --- OPTIMIZATION: No need to delete dlistResValuesBar as it no longer exists.
 
 	init()
 end
 
+-- --- OPTIMIZATION: Memoized short() function to reduce string allocations.
+local shortCache = {}
+local shortCacheCount = 0
 local function short(n, f)
 	if f == nil then f = 0 end
 
-	if n > 9999999 then
-		return sformat("%." .. f .. "fm", n / 1000000)
-	elseif n > 9999 then
-		return sformat("%." .. f .. "fk", n / 1000)
-	else
-		return sformat("%." .. f .. "f", n)
+	local key = n .. ':' .. f -- Create a unique key for the number and format
+	if shortCache[key] then
+		return shortCache[key]
 	end
+
+	local result
+	if n > 9999999 then
+		result = sformat("%." .. f .. "fm", n / 1000000)
+	elseif n > 9999 then
+		result = sformat("%." .. f .. "fk", n / 1000)
+	else
+		result = sformat("%." .. f .. "f", n)
+	end
+
+	shortCache[key] = result
+	shortCacheCount = shortCacheCount + 1
+
+	-- Safety net to prevent the cache from growing indefinitely over a very long game.
+	if shortCacheCount > 500 then
+		shortCache = {}
+		shortCacheCount = 0
+	end
+
+	return result
 end
 
 local function updateButtons()
@@ -794,6 +812,7 @@ local function updateResbar(res)
 	end
 end
 
+-- --- OPTIMIZATION: This function no longer creates a display list. It just calculates the width of the bar.
 local function updateResbarValues(res, update)
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
@@ -805,49 +824,9 @@ local function updateResbarValues(res, update)
 		local barSize = barHeight * 0.2
 		local valueWidth = math_floor(((cappedCurRes /maxStorageRes) * barWidth))
 		if valueWidth < math.ceil(barSize) then valueWidth = math.ceil(barSize) end
-		if valueWidth ~= lastValueWidth[res] then  -- only recalc if the width changed
-			lastValueWidth[res] = valueWidth
 
-			-- resbar
-			if dlistResValuesBar[res] then  glDeleteList(dlistResValuesBar[res]) end
-			dlistResValuesBar[res] = glCreateList(function()
-				local glowSize = barHeight * 7
-				local color1, color2, glowAlpha
-
-				if res == 'metal' then
-					color1 = { 0.51, 0.51, 0.5, 1 }
-					color2 = { 0.95, 0.95, 0.95, 1 }
-					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-				else
-					color1 = { 0.5, 0.45, 0, 1 }
-					color2 = { 0.8, 0.75, 0, 1 }
-					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-				end
-
-				RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
-				local borderSize = 1
-				RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
-
-				-- Bar value glow
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-				glTexture(barGlowCenterTexture)
-				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-				glTexture(barGlowEdgeTexture)
-				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-				glTexture(false)
-
-				if res == 'metal' then
-					glTexture(noiseBackgroundTexture)
-					glColor(1,1,1, 0.37)
-					TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
-					glTexture(false)
-				end
-
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			end)
-		end
+		-- Store the calculated width for direct drawing later.
+		lastValueWidth[res] = valueWidth
 
 		-- energy glow effect
 		if res == 'energy' then
@@ -1192,6 +1171,80 @@ function widget:Update(dt)
 	end
 end
 
+-- --- OPTIMIZATION: This function draws the filled portion of the resource bar directly.
+local function drawResBarValueDirectly(res)
+	local valueWidth = lastValueWidth[res]
+	if not valueWidth or valueWidth <= 0 then return end
+
+	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+	local cappedCurRes = smoothedResources[res][1]
+	local glowSize = barHeight * 7
+	local barSize = barHeight * 0.2
+	local color1, color2, glowAlpha
+
+	if res == 'metal' then
+		color1 = { 0.51, 0.51, 0.5, 1 }
+		color2 = { 0.95, 0.95, 0.95, 1 }
+		glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+	else
+		color1 = { 0.5, 0.45, 0, 1 }
+		color2 = { 0.8, 0.75, 0, 1 }
+		glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+	end
+
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
+	local borderSize = 1
+	RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+
+	-- Bar value glow
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+	glTexture(barGlowCenterTexture)
+	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+	glTexture(barGlowEdgeTexture)
+	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+	glTexture(false)
+
+	if res == 'metal' then
+		glTexture(noiseBackgroundTexture)
+		glColor(1,1,1, 0.37)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, (resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1])*0.33, 0)
+		glTexture(false)
+	end
+
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+end
+
+-- --- OPTIMIZATION: Pre-defined function to avoid creating closures in a loop.
+local function renderResbarText()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+	local res = 'metal'
+	drawResbarValue(res)
+	if updateRes[res][2] then
+		updateRes[res][2] = false
+		drawResbarPullIncome(res)
+	end
+	if updateRes[res][3] then
+		updateRes[res][3] = false
+		drawResbarStorage(res)
+	end
+
+	res = 'energy'
+	drawResbarValue(res)
+	if updateRes[res][2] then
+		updateRes[res][2] = false
+		drawResbarPullIncome(res)
+	end
+	if updateRes[res][3] then
+		updateRes[res][3] = false
+		drawResbarStorage(res)
+	end
+end
+
 local function drawResBars()
 	glPushMatrix()
 
@@ -1227,9 +1280,8 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		if dlistResValuesBar[res] then
-			glCallList(dlistResValuesBar[res]) -- res bar
-		end
+		-- --- OPTIMIZATION: Draw the bar directly instead of calling a display list.
+		drawResBarValueDirectly(res)
 		glCallList(dlistResbar[res][2]) -- sliders
 
 		if not useRenderToTexture then
@@ -1266,9 +1318,8 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		if dlistResValuesBar[res] then
-			glCallList(dlistResValuesBar[res]) -- res bar
-		end
+		-- --- OPTIMIZATION: Draw the bar directly instead of calling a display list.
+		drawResBarValueDirectly(res)
 		glCallList(dlistEnergyGlow)
 		glCallList(dlistResbar[res][2]) -- sliders
 
@@ -1335,36 +1386,8 @@ local function drawResBars()
 				}
 			end
 
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-					res = 'metal'
-					drawResbarValue(res)
-					if updateRes[res][2] then
-						updateRes[res][2] = false
-						drawResbarPullIncome(res)
-					end
-					if updateRes[res][3] then
-						updateRes[res][3] = false
-						drawResbarStorage(res)
-					end
-
-					res = 'energy'
-					drawResbarValue(res)
-					if updateRes[res][2] then
-						updateRes[res][2] = false
-						drawResbarPullIncome(res)
-					end
-					if updateRes[res][3] then
-						updateRes[res][3] = false
-						drawResbarStorage(res)
-					end
-				end,
-				useRenderToTexture, scissors
-			)
+			-- --- OPTIMIZATION: Use a pre-defined function instead of a closure.
+			gl.R2tHelper.RenderToTexture(uiTex, renderResbarText, useRenderToTexture, scissors)
 		end
 	end
 end
@@ -1577,6 +1600,47 @@ local function drawUi()
 	end
 end
 
+-- --- OPTIMIZATION: Pre-defined functions for RenderToTexture to avoid creating closures.
+local function renderUiBackground()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	drawUiBackground()
+end
+
+local function renderUi()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	drawUi()
+end
+
+local function renderWindText(windValue)
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+	local fontSize = (height / 2.66) * widgetScale
+	font2:Begin(useRenderToTexture)
+	font2:SetOutlineColor(0,0,0,1)
+	font2:Print("\255\255\255\255" .. windValue, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+	font2:End()
+end
+
+local function renderComCounter()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+	if allyComs == 1 and (gameFrame % 12 < 6) then
+		glColor(1, 0.6, 0, 0.45)
+	else
+		glColor(1, 1, 1, 0.22)
+	end
+	glCallList(dlistComs)
+end
+
+
 function widget:DrawScreen()
 	now = os.clock()
 
@@ -1605,26 +1669,10 @@ function widget:DrawScreen()
 			})
 
 			if uiBgTex then
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-						drawUiBackground()
-					end,
-					useRenderToTexture
-				)
+				gl.R2tHelper.RenderToTexture(uiBgTex, renderUiBackground, useRenderToTexture)
 			end
 			if uiTex then
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-						drawUi()
-					end,
-					useRenderToTexture
-				)
+				gl.R2tHelper.RenderToTexture(uiTex, renderUi, useRenderToTexture)
 			end
 
 			if WG['guishader'] then
@@ -1702,19 +1750,8 @@ function widget:DrawScreen()
 		if useRenderToTexture then
 			if currentWind ~= prevWind then
 				prevWind = currentWind
-
 				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-						local fontSize = (height / 2.66) * widgetScale
-						font2:Begin(useRenderToTexture)
-						font2:SetOutlineColor(0,0,0,1)
-						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-						font2:End()
-					end,
+					function() renderWindText(currentWind) end, -- Pass currentWind to the pre-defined function
 					useRenderToTexture,
 					{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
 				)
@@ -1733,20 +1770,7 @@ function widget:DrawScreen()
 				prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
 				comsDlistUpdate = nil
 
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-						if allyComs == 1 and (gameFrame % 12 < 6) then
-							glColor(1, 0.6, 0, 0.45)
-						else
-							glColor(1, 1, 1, 0.22)
-						end
-						glCallList(dlistComs)
-					end,
-					useRenderToTexture,
+				gl.R2tHelper.RenderToTexture(uiTex, renderComCounter, useRenderToTexture,
 					{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
 				)
 			end
@@ -2008,7 +2032,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 
-			if not draggingShareIndicator and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if not draggingShareIndicator and conversionIndicatorArea and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
 
@@ -2190,7 +2214,7 @@ function widget:Shutdown()
 		for n, _ in pairs(dlistResbar['metal']) do dlistResbar['metal'][n] = glDeleteList(dlistResbar['metal'][n]) end
 		for n, _ in pairs(dlistResbar['energy']) do dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n]) end
 		for res, _ in pairs(dlistResValues) do dlistResValues[res] = glDeleteList(dlistResValues[res]) end
-		for res, _ in pairs(dlistResValuesBar) do dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res]) end
+		-- --- OPTIMIZATION: No need to delete dlistResValuesBar as it no longer exists.
 	end
 
 	if uiBgTex then
