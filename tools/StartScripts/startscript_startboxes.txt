@@ -206,7 +206,7 @@
 	numplayers = 1;
 	numusers = 7;
 	startpostype = 2;
-	mapname = Supreme Isthmus v1.8;
+	mapname = Supreme Isthmus v2.1;
 	myplayername = Player;
 	gametype = Beyond All Reason $VERSION;
 	nohelperais = 0;
