@@ -17,6 +17,7 @@ local lavaMap = lava.isLavaMap
 local PACKET_HEADER = "$ll$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
+
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
@@ -25,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 	local tideIndex = 1
 	local tideContinueFrame = 0
 	local gameframe = 0
+	local gameSpeed = Game.gameSpeed
 	local tideRhythm = {}
 	local lavaUnits = {}
 
@@ -35,13 +37,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
-	local lavaDamage = lava.damage * (DAMAGE_RATE / Game.gameSpeed)
+	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
 	if lavaDamageFeatures then
 		if not tonumber(lavaDamageFeatures) then
 			lavaDamageFeatures = 0.1
 		end
-		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / Game.gameSpeed)
+		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / gameSpeed)
 	end
 
 	-- ceg effects
@@ -106,7 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*30
+			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*gameSpeed
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
@@ -199,7 +201,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(f)
 		gameframe = f
-		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
+		_G.lavaLevel = lavaLevel+math.sin(f/gameSpeed)*0.5
 		--_G.lavaLevel = lavaLevel + clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 -- clamp to avoid jittering when sin(x) is around +-1
 
 		if f % DAMAGE_RATE == 0 then
@@ -298,7 +300,7 @@ if gadgetHandler:IsSyncedCode() then
 			local insertRemain = tonumber(tideParams[3])
 			if (insertLevel and insertLevel >= 0 and insertLevel % 1 == 0) and
 				(insertSpeed and insertSpeed > 0) and 
-				(insertRemain and insertRemain > 0 and insertRemain *30 % 1 == 0) then
+				(insertRemain and insertRemain > 0 and insertRemain *gameSpeed % 1 == 0) then
 				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
 				Spring.Echo('Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
 				tideContinueFrame = gameframe + 1 
