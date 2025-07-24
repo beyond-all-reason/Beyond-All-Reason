@@ -75,8 +75,38 @@ local getCommandCode = function(cmdID)
 	return CMD[cmdID] or gameCommands[cmdID]
 end
 
+local CMD_INSERT = CMD.INSERT
+
+---@param unitID integer
+---@param cmdID integer|CMD
+---@param cmdParams number[]|CMD[]
+---@param cmdOptions CommandOptions
+---@param cmdTag integer
+---@param fromInsert CommandOptions
+local function giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	for i = #cmdParams, 1, -1 do cmdParams[i + 3] = cmdParams[i] end
+	cmdParams[1], cmdParams[2], cmdParams[3] = cmdTag, cmdID, cmdOptions.coded
+	Spring.GiveOrderToUnit(unitID, CMD_INSERT, cmdParams, fromInsert.coded)
+end
+
+---@param unitID integer
+---@param cmdID integer|CMD
+---@param cmdParams number[]|CMD[]
+---@param cmdOptions CommandOptions
+---@param cmdTag integer
+---@param fromInsert CommandOptions
+local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	if fromInsert then
+		GiveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	else
+		GiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
+	end
+end
+
 return {
 	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
 	GetCommandCode = getCommandCode,
+	GiveInsertOrderToUnit = giveInsertOrderToUnit,
+	ReissueOrder = reissueOrder,
  }
