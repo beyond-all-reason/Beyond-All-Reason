@@ -25,7 +25,7 @@ return {
 		maxwaterdepth = 0,
 		objectname = "Units/LEGJAM.s3o",
 		onoffable = true,
-		radardistancejam = 350,
+		radardistancejam = 390,
 		script = "Units/LEGJAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",

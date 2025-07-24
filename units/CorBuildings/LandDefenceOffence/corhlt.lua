@@ -2,7 +2,7 @@ return {
 	corhlt = {
 		buildangle = 4096,
 		buildpic = "CORHLT.DDS",
-		buildtime = 12650,
+		buildtime = 11400,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "38 90 38",

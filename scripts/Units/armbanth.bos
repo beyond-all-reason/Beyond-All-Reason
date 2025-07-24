@@ -1,13 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+
+#include "../recoil_common_includes.h"
 
 piece  head, torso, pelvis, missleflare,
        rleg, rthigh, lthigh, lleg, ltoe,  rtoe, lfoot, rfoot,
         luparm, ruparm, rloarm, lloarm, rshoulder, lshoulder, lbarrel, rbarrel, rflare, lflare, turret, laserflare, antenna, aimx1, aimy1;
 
-static-var  gun_1, gun_3,  bAiming, Static_Var_5, StompXZ, StompHeading,
+static-var  gun_1, gun_3,  isAiming, StompXZ, StompHeading,
             restore_delay, myHeading, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
@@ -16,17 +15,17 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 
 // For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, moveHands;
-#define SIG_WALK 1
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, moveHands;
+#define SIGNAL_MOVE 1
 Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:5
 			turn antenna to x-axis <0.777777> speed <53.333339> / animSpeed; //delta=1.78
 			turn head to x-axis <3.786915> speed <8.607460> / animSpeed; //delta=-0.29
 			turn lfoot to x-axis <-7.727963> speed <198.698877> / animSpeed; //delta=-6.62
@@ -37,12 +36,12 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-14.983340> speed <16.971159> / animSpeed; //delta=0.57
 			turn lthigh to y-axis <-12.247465> speed <599.630230> / animSpeed; //delta=-19.99
 			turn ltoe to x-axis <-9.058824> speed <18.427680> / animSpeed; //delta=-0.61
-			move pelvis to x-axis [2.000000] speed [60.000000] / animSpeed; //delta=2.00
-			turn pelvis to z-axis <-1.500000> speed <45.000001> / animSpeed; //delta=1.50
-			turn pelvis to y-axis <-5.000000> speed <149.999996> / animSpeed; //delta=-5.00
+			move pelvis to x-axis [2.0] speed [60.0] / animSpeed; //delta=2.00
+			turn pelvis to z-axis <-1.500000> speed <45.0> / animSpeed; //delta=1.50
+			turn pelvis to y-axis <-5.0> speed <149.999996> / animSpeed; //delta=-5.00
 			turn rfoot to x-axis <-43.905911> speed <880.496181> / animSpeed; //delta=29.35
-			turn rfoot to z-axis <-0.000150> speed <400.102503> / animSpeed; //delta=-13.34
-			turn rfoot to y-axis <0.000804> speed <102.287116> / animSpeed; //delta=3.41
+			turn rfoot to z-axis <-0.0> speed <400.102503> / animSpeed; //delta=-13.34
+			turn rfoot to y-axis <0.0> speed <102.287116> / animSpeed; //delta=3.41
 			turn rleg to x-axis <49.670095> speed <425.957508> / animSpeed; //delta=-14.20
 			turn rthigh to x-axis <-9.973088> speed <370.592276> / animSpeed; //delta=-12.35
 			turn rthigh to z-axis <-3.016314> speed <512.826923> / animSpeed; //delta=17.09
@@ -67,9 +66,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:10
-			turn antenna to x-axis <-0.000000> speed <23.333323> / animSpeed; //delta=0.78
+	while(isMoving) {
+		if (isMoving) { //Frame:10
+			turn antenna to x-axis <-0.0> speed <23.333323> / animSpeed; //delta=0.78
 			turn head to x-axis <3.561147> speed <6.773055> / animSpeed; //delta=0.23
 			turn head to y-axis <-5.005229> speed <148.268690> / animSpeed; //delta=-4.94
 			turn lfoot to x-axis <1.081959> speed <264.297665> / animSpeed; //delta=-8.81
@@ -78,9 +77,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-19.862386> speed <146.371398> / animSpeed; //delta=4.88
 			turn lthigh to y-axis <-14.607954> speed <70.814684> / animSpeed; //delta=-2.36
 			turn ltoe to x-axis <-10.438577> speed <41.392586> / animSpeed; //delta=1.38
-			move pelvis to x-axis [1.500000] speed [15.000000] / animSpeed; //delta=-0.50
-			turn pelvis to z-axis <-1.000000> speed <15.000001> / animSpeed; //delta=-0.50
-			turn pelvis to y-axis <-8.000000> speed <90.000003> / animSpeed; //delta=-3.00
+			move pelvis to x-axis [1.500000] speed [15.0] / animSpeed; //delta=-0.50
+			turn pelvis to z-axis <-1.0> speed <15.0> / animSpeed; //delta=-0.50
+			turn pelvis to y-axis <-8.0> speed <90.0> / animSpeed; //delta=-3.00
 			turn rfoot to x-axis <-39.119717> speed <143.585808> / animSpeed; //delta=-4.79
 			turn rleg to x-axis <21.644685> speed <840.762307> / animSpeed; //delta=28.03
 			turn rthigh to x-axis <14.154367> speed <723.823637> / animSpeed; //delta=-24.13
@@ -106,7 +105,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn antenna to x-axis <-1.444444> speed <43.333331> / animSpeed; //delta=1.44
 			turn head to y-axis <-6.735030> speed <51.894040> / animSpeed; //delta=-1.73
 			turn lfoot to x-axis <16.807289> speed <471.759891> / animSpeed; //delta=-15.73
@@ -115,16 +114,16 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-12.882094> speed <209.408785> / animSpeed; //delta=-6.98
 			turn lthigh to y-axis <-5.889249> speed <261.561159> / animSpeed; //delta=8.72
 			turn ltoe to x-axis <-0.814118> speed <288.733783> / animSpeed; //delta=-9.62
-			move pelvis to x-axis [0.000000] speed [45.000000] / animSpeed; //delta=-1.50
-			turn pelvis to z-axis <-0.000000> speed <30.000000> / animSpeed; //delta=-1.00
-			turn pelvis to y-axis <-9.000000> speed <30.000009> / animSpeed; //delta=-1.00
+			move pelvis to x-axis [0.0] speed [45.0] / animSpeed; //delta=-1.50
+			turn pelvis to z-axis <-0.0> speed <30.0> / animSpeed; //delta=-1.00
+			turn pelvis to y-axis <-9.0> speed <30.0> / animSpeed; //delta=-1.00
 			turn rfoot to x-axis <-1.487672> speed <1128.961351> / animSpeed; //delta=-37.63
 			turn rleg to x-axis <29.341526> speed <230.905234> / animSpeed; //delta=-7.70
 			turn rthigh to x-axis <16.908902> speed <82.636051> / animSpeed; //delta=-2.75
 			turn rthigh to z-axis <3.375138> speed <127.682268> / animSpeed; //delta=-4.26
 			turn rthigh to y-axis <-0.850967> speed <32.583246> / animSpeed; //delta=-1.09
 			turn rtoe to x-axis <-45.581513> speed <1323.991796> / animSpeed; //delta=44.13
-			move torso to y-axis [0.000000] speed [10.200000] / animSpeed; //delta=0.34
+			move torso to y-axis [0.0] speed [10.200000] / animSpeed; //delta=0.34
 			turn torso to y-axis <13.780833> speed <45.936010> / animSpeed; //delta=1.53
 			if (moveHands) {
 				turn lloarm to x-axis <35.048142> speed <4.555565> / animSpeed; //delta=0.15
@@ -137,7 +136,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn antenna to x-axis <-2.555555> speed <33.333332> / animSpeed; //delta=1.11
 			turn head to y-axis <-5.770232> speed <28.943938> / animSpeed; //delta=0.96
 			turn lfoot to x-axis <27.492893> speed <320.568116> / animSpeed; //delta=-10.69
@@ -146,9 +145,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-4.087866> speed <263.826827> / animSpeed; //delta=-8.79
 			turn lthigh to y-axis <-0.677783> speed <156.343986> / animSpeed; //delta=5.21
 			turn ltoe to x-axis <2.756426> speed <107.116307> / animSpeed; //delta=-3.57
-			move pelvis to x-axis [-1.500000] speed [45.000000] / animSpeed; //delta=-1.50
-			turn pelvis to z-axis <1.000000> speed <30.000000> / animSpeed; //delta=-1.00
-			turn pelvis to y-axis <-8.000000> speed <30.000009> / animSpeed; //delta=1.00
+			move pelvis to x-axis [-1.500000] speed [45.0] / animSpeed; //delta=-1.50
+			turn pelvis to z-axis <1.0> speed <30.0> / animSpeed; //delta=-1.00
+			turn pelvis to y-axis <-8.0> speed <30.0> / animSpeed; //delta=1.00
 			turn rfoot to x-axis <-43.261243> speed <1253.207137> / animSpeed; //delta=41.77
 			turn rleg to x-axis <57.855288> speed <855.412858> / animSpeed; //delta=-28.51
 			turn rthigh to x-axis <3.290640> speed <408.547838> / animSpeed; //delta=13.62
@@ -171,10 +170,10 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
+		if (isMoving) { //Frame:25
 			emit-sfx 4096 + 3 from ltoe;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(ltoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(ltoe) & 0x0000ffff),   get HEADING(0));
-			turn antenna to x-axis <-3.000000> speed <13.333334> / animSpeed; //delta=0.44
+			turn antenna to x-axis <-3.0> speed <13.333334> / animSpeed; //delta=0.44
 			turn head to y-axis <-3.322747> speed <73.424542> / animSpeed; //delta=2.45
 			turn lfoot to x-axis <-16.293293> speed <1313.585584> / animSpeed; //delta=43.79
 			turn lleg to x-axis <48.447109> speed <1445.022874> / animSpeed; //delta=-48.17
@@ -182,9 +181,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-0.471254> speed <108.498363> / animSpeed; //delta=-3.62
 			turn lthigh to y-axis <-0.217577> speed <13.806187> / animSpeed; //delta=0.46
 			turn ltoe to x-axis <3.911303> speed <34.646310> / animSpeed; //delta=-1.15
-			move pelvis to x-axis [-2.000000] speed [15.000000] / animSpeed; //delta=-0.50
-			turn pelvis to z-axis <1.500000> speed <15.000001> / animSpeed; //delta=-0.50
-			turn pelvis to y-axis <-5.000000> speed <90.000003> / animSpeed; //delta=3.00
+			move pelvis to x-axis [-2.0] speed [15.0] / animSpeed; //delta=-0.50
+			turn pelvis to z-axis <1.500000> speed <15.0> / animSpeed; //delta=-0.50
+			turn pelvis to y-axis <-5.0> speed <90.0> / animSpeed; //delta=3.00
 			turn rfoot to x-axis <-61.737363> speed <554.283580> / animSpeed; //delta=18.48
 			turn rleg to x-axis <90.793800> speed <988.155364> / animSpeed; //delta=-32.94
 			turn rthigh to x-axis <-17.607427> speed <626.942018> / animSpeed; //delta=20.90
@@ -208,7 +207,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:30
+		if (isMoving) { //Frame:30
 			turn antenna to x-axis <-2.555555> speed <13.333334> / animSpeed; //delta=-0.44
 			turn head to y-axis <-0.062939> speed <97.794250> / animSpeed; //delta=3.26
 			turn lfoot to x-axis <-38.989804> speed <680.895309> / animSpeed; //delta=22.70
@@ -219,17 +218,16 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn ltoe to x-axis <10.406751> speed <194.863453> / animSpeed; //delta=-6.50
 			move pelvis to x-axis [-2.300000] speed [8.999999] / animSpeed; //delta=-0.30
 			turn pelvis to z-axis <1.750000> speed <7.499999> / animSpeed; //delta=-0.25
-			turn pelvis to y-axis <0.000000> speed <149.999996> / animSpeed; //delta=5.00
+			turn pelvis to y-axis <0.0> speed <149.999996> / animSpeed; //delta=5.00
 			turn rfoot to x-axis <-41.098437> speed <619.167781> / animSpeed; //delta=-20.64
 			turn rleg to x-axis <103.237025> speed <373.296749> / animSpeed; //delta=-12.44
-			turn rloarm to x-axis <33.985181> speed <86.555538> / animSpeed; //delta=-2.89
 			turn rthigh to x-axis <-47.280062> speed <890.179050> / animSpeed; //delta=29.67
 			turn rthigh to z-axis <5.913167> speed <76.718727> / animSpeed; //delta=-2.56
 			turn rthigh to y-axis <4.031663> speed <86.922022> / animSpeed; //delta=2.90
 			turn rtoe to x-axis <-18.351593> speed <122.263169> / animSpeed; //delta=-4.08
-			turn torso to x-axis <-0.000000> speed <5.695252> / animSpeed; //delta=-0.19
-			turn torso to z-axis <-0.000000> speed <5.608649> / animSpeed; //delta=0.19
-			turn torso to y-axis <0.000000> speed <229.680590> / animSpeed; //delta=-7.66
+			turn torso to x-axis <-0.0> speed <5.695252> / animSpeed; //delta=-0.19
+			turn torso to z-axis <-0.0> speed <5.608649> / animSpeed; //delta=0.19
+			turn torso to y-axis <0.0> speed <229.680590> / animSpeed; //delta=-7.66
 			if (moveHands) {
 				turn lshoulder to x-axis <1.101303> speed <22.641277> / animSpeed; //delta=0.75
 				turn lshoulder to z-axis <1.873996> speed <29.716663> / animSpeed; //delta=0.99
@@ -240,10 +238,11 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 				turn rshoulder to x-axis <1.101303> speed <22.641277> / animSpeed; //delta=0.75
 				turn rshoulder to z-axis <-1.873996> speed <29.716663> / animSpeed; //delta=-0.99
 				turn ruparm to x-axis <20.624627> speed <191.891373> / animSpeed; //delta=-6.40
+				turn rloarm to x-axis <33.985181> speed <86.555538> / animSpeed; //delta=-2.89
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:35
+		if (isMoving) { //Frame:35
 			turn antenna to x-axis <-1.444444> speed <33.333335> / animSpeed; //delta=-1.11
 			turn head to y-axis <3.307282> speed <101.106639> / animSpeed; //delta=3.37
 			turn lfoot to x-axis <-43.892954> speed <147.094510> / animSpeed; //delta=4.90
@@ -252,9 +251,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <2.978285> speed <4.563986> / animSpeed; //delta=0.15
 			turn lthigh to y-axis <0.422753> speed <23.650981> / animSpeed; //delta=-0.79
 			turn ltoe to x-axis <-0.458544> speed <325.958865> / animSpeed; //delta=10.87
-			move pelvis to x-axis [-2.000000] speed [8.999999] / animSpeed; //delta=0.30
+			move pelvis to x-axis [-2.0] speed [8.999999] / animSpeed; //delta=0.30
 			turn pelvis to z-axis <1.500000> speed <7.499999> / animSpeed; //delta=0.25
-			turn pelvis to y-axis <5.000000> speed <149.999996> / animSpeed; //delta=5.00
+			turn pelvis to y-axis <5.0> speed <149.999996> / animSpeed; //delta=5.00
 			turn rfoot to x-axis <-7.170669> speed <1017.833031> / animSpeed; //delta=-33.93
 			turn rleg to x-axis <82.156029> speed <632.429891> / animSpeed; //delta=21.08
 			turn rthigh to x-axis <-62.927195> speed <469.414006> / animSpeed; //delta=15.65
@@ -278,8 +277,8 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:40
-			turn antenna to x-axis <0.000000> speed <43.333329> / animSpeed; //delta=-1.44
+		if (isMoving) { //Frame:40
+			turn antenna to x-axis <0.0> speed <43.333329> / animSpeed; //delta=-1.44
 			turn head to y-axis <5.959820> speed <79.576131> / animSpeed; //delta=2.65
 			turn lfoot to x-axis <-38.722033> speed <155.127632> / animSpeed; //delta=-5.17
 			turn lleg to x-axis <21.539288> speed <836.892458> / animSpeed; //delta=27.90
@@ -287,9 +286,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <0.798388> speed <65.396914> / animSpeed; //delta=2.18
 			turn lthigh to y-axis <-0.206988> speed <18.892250> / animSpeed; //delta=-0.63
 			turn ltoe to x-axis <-1.378462> speed <27.597543> / animSpeed; //delta=0.92
-			move pelvis to x-axis [-1.500000] speed [15.000000] / animSpeed; //delta=0.50
-			turn pelvis to z-axis <1.000000> speed <15.000001> / animSpeed; //delta=0.50
-			turn pelvis to y-axis <8.000000> speed <90.000003> / animSpeed; //delta=3.00
+			move pelvis to x-axis [-1.500000] speed [15.0] / animSpeed; //delta=0.50
+			turn pelvis to z-axis <1.0> speed <15.0> / animSpeed; //delta=0.50
+			turn pelvis to y-axis <8.0> speed <90.0> / animSpeed; //delta=3.00
 			turn rfoot to x-axis <1.852174> speed <270.685289> / animSpeed; //delta=-9.02
 			turn rleg to x-axis <55.655271> speed <795.022750> / animSpeed; //delta=26.50
 			turn rthigh to x-axis <-61.499556> speed <42.829179> / animSpeed; //delta=-1.43
@@ -313,7 +312,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:45
+		if (isMoving) { //Frame:45
 			turn antenna to x-axis <1.444444> speed <43.333329> / animSpeed; //delta=-1.44
 			turn head to y-axis <7.035030> speed <32.256315> / animSpeed; //delta=1.08
 			turn lfoot to x-axis <-0.508901> speed <1146.393945> / animSpeed; //delta=-38.21
@@ -322,16 +321,16 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-3.470907> speed <128.078860> / animSpeed; //delta=4.27
 			turn lthigh to y-axis <0.849236> speed <31.686743> / animSpeed; //delta=1.06
 			turn ltoe to x-axis <-44.818383> speed <1303.197619> / animSpeed; //delta=43.44
-			move pelvis to x-axis [0.000000] speed [45.000000] / animSpeed; //delta=1.50
-			turn pelvis to z-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00
-			turn pelvis to y-axis <9.000000> speed <30.000009> / animSpeed; //delta=1.00
+			move pelvis to x-axis [0.0] speed [45.0] / animSpeed; //delta=1.50
+			turn pelvis to z-axis <-0.0> speed <30.0> / animSpeed; //delta=1.00
+			turn pelvis to y-axis <9.0> speed <30.0> / animSpeed; //delta=1.00
 			turn rfoot to x-axis <17.381069> speed <465.866858> / animSpeed; //delta=-15.53
 			turn rleg to x-axis <11.111301> speed <1336.319075> / animSpeed; //delta=44.54
 			turn rthigh to x-axis <-51.718483> speed <293.432201> / animSpeed; //delta=-9.78
 			turn rthigh to z-axis <12.892781> speed <207.279661> / animSpeed; //delta=6.91
 			turn rthigh to y-axis <5.882229> speed <259.029819> / animSpeed; //delta=-8.63
 			turn rtoe to x-axis <-0.347170> speed <280.693536> / animSpeed; //delta=-9.36
-			move torso to y-axis [0.000000] speed [29.699998] / animSpeed; //delta=0.99
+			move torso to y-axis [0.0] speed [29.699998] / animSpeed; //delta=0.99
 			turn torso to y-axis <-13.780833> speed <45.936010> / animSpeed; //delta=-1.53
 			if (moveHands) {
 				turn lloarm to x-axis <20.040738> speed <79.222220> / animSpeed; //delta=-2.64
@@ -343,7 +342,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:50
+		if (isMoving) { //Frame:50
 			turn antenna to x-axis <2.555555> speed <33.333332> / animSpeed; //delta=-1.11
 			turn head to y-axis <5.194816> speed <55.206443> / animSpeed; //delta=-1.84
 			turn lfoot to x-axis <-42.872558> speed <1270.909693> / animSpeed; //delta=42.36
@@ -352,9 +351,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-3.867209> speed <11.889037> / animSpeed; //delta=0.40
 			turn lthigh to y-axis <-0.132760> speed <29.459878> / animSpeed; //delta=-0.98
 			turn ltoe to x-axis <-25.946784> speed <566.147977> / animSpeed; //delta=-18.87
-			move pelvis to x-axis [1.500000] speed [45.000000] / animSpeed; //delta=1.50
-			turn pelvis to z-axis <-1.000000> speed <30.000000> / animSpeed; //delta=1.00
-			turn pelvis to y-axis <8.000000> speed <30.000009> / animSpeed; //delta=-1.00
+			move pelvis to x-axis [1.500000] speed [45.0] / animSpeed; //delta=1.50
+			turn pelvis to z-axis <-1.0> speed <30.0> / animSpeed; //delta=1.00
+			turn pelvis to y-axis <8.0> speed <30.0> / animSpeed; //delta=-1.00
 			turn rfoot to x-axis <27.823459> speed <313.271681> / animSpeed; //delta=-10.44
 			turn rleg to x-axis <0.366540> speed <322.342839> / animSpeed; //delta=10.74
 			turn rthigh to x-axis <-32.320732> speed <581.932527> / animSpeed; //delta=-19.40
@@ -377,10 +376,10 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:55
+		if (isMoving) { //Frame:55
 			emit-sfx 4096 + 3 from rtoe;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rtoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rtoe) & 0x0000ffff),   get HEADING(0));
-			turn antenna to x-axis <3.000000> speed <13.333340> / animSpeed; //delta=-0.44
+			turn antenna to x-axis <3.0> speed <13.333340> / animSpeed; //delta=-0.44
 			turn head to y-axis <1.777275> speed <102.526219> / animSpeed; //delta=-3.42
 			turn lfoot to x-axis <-61.831886> speed <568.779837> / animSpeed; //delta=18.96
 			turn lleg to x-axis <90.552681> speed <989.419837> / animSpeed; //delta=-32.98
@@ -390,9 +389,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-3.438399> speed <12.864279> / animSpeed; //delta=-0.43
 			turn lthigh to y-axis <-1.177225> speed <31.333948> / animSpeed; //delta=-1.04
 			turn ltoe to x-axis <-22.620757> speed <99.780816> / animSpeed; //delta=-3.33
-			move pelvis to x-axis [2.000000] speed [15.000000] / animSpeed; //delta=0.50
-			turn pelvis to z-axis <-1.500000> speed <15.000001> / animSpeed; //delta=0.50
-			turn pelvis to y-axis <5.000000> speed <90.000003> / animSpeed; //delta=-3.00
+			move pelvis to x-axis [2.0] speed [15.0] / animSpeed; //delta=0.50
+			turn pelvis to z-axis <-1.500000> speed <15.0> / animSpeed; //delta=0.50
+			turn pelvis to y-axis <5.0> speed <90.0> / animSpeed; //delta=-3.00
 			turn rfoot to x-axis <-15.893457> speed <1311.507482> / animSpeed; //delta=43.72
 			turn rleg to x-axis <48.171357> speed <1434.144511> / animSpeed; //delta=-47.80
 			turn rthigh to x-axis <-37.775481> speed <163.642487> / animSpeed; //delta=5.45
@@ -411,7 +410,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:60
+		if (isMoving) { //Frame:60
 			turn antenna to x-axis <2.222222> speed <23.333333> / animSpeed; //delta=0.78
 			turn head to y-axis <-0.062939> speed <55.206423> / animSpeed; //delta=-1.84
 			turn lfoot to x-axis <-41.607101> speed <606.743531> / animSpeed; //delta=-20.22
@@ -424,16 +423,16 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn ltoe to x-axis <-18.854283> speed <112.994210> / animSpeed; //delta=-3.77
 			move pelvis to x-axis [2.200000] speed [6.000001] / animSpeed; //delta=0.20
 			turn pelvis to z-axis <-1.750000> speed <7.499999> / animSpeed; //delta=0.25
-			turn pelvis to y-axis <0.000000> speed <149.999996> / animSpeed; //delta=-5.00
+			turn pelvis to y-axis <0.0> speed <149.999996> / animSpeed; //delta=-5.00
 			turn rfoot to x-axis <-38.750214> speed <685.702703> / animSpeed; //delta=22.86
 			turn rleg to x-axis <60.461859> speed <368.715058> / animSpeed; //delta=-12.29
 			turn rthigh to x-axis <-28.104044> speed <290.143106> / animSpeed; //delta=-9.67
 			turn rthigh to z-axis <-2.889263> speed <102.519562> / animSpeed; //delta=3.42
 			turn rthigh to y-axis <-1.099737> speed <40.221222> / animSpeed; //delta=-1.34
 			turn rtoe to x-axis <10.650076> speed <191.260878> / animSpeed; //delta=-6.38
-			turn torso to x-axis <-0.000000> speed <6.435585> / animSpeed; //delta=0.21
-			turn torso to z-axis <-0.000000> speed <5.608649> / animSpeed; //delta=-0.19
-			turn torso to y-axis <0.000000> speed <229.680590> / animSpeed; //delta=7.66
+			turn torso to x-axis <-0.0> speed <6.435585> / animSpeed; //delta=0.21
+			turn torso to z-axis <-0.0> speed <5.608649> / animSpeed; //delta=-0.19
+			turn torso to y-axis <0.0> speed <229.680590> / animSpeed; //delta=7.66
 			if (moveHands) {
 				turn lshoulder to x-axis <1.646872> speed <11.680734> / animSpeed; //delta=0.39
 				turn lshoulder to z-axis <2.590056> speed <15.330953> / animSpeed; //delta=0.51
@@ -448,7 +447,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			}
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:65
+		if (isMoving) { //Frame:65
 			turn antenna to x-axis <0.777777> speed <43.333347> / animSpeed; //delta=1.44
 			turn lfoot to x-axis <-7.727963> speed <1016.374154> / animSpeed; //delta=-33.88
 			turn lleg to x-axis <82.919726> speed <620.844320> / animSpeed; //delta=20.69
@@ -456,9 +455,9 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 			turn lthigh to z-axis <-14.983340> speed <282.060166> / animSpeed; //delta=9.40
 			turn lthigh to y-axis <-12.247465> speed <253.009831> / animSpeed; //delta=-8.43
 			turn ltoe to x-axis <-9.058824> speed <293.863758> / animSpeed; //delta=-9.80
-			move pelvis to x-axis [2.000000] speed [6.000001] / animSpeed; //delta=-0.20
+			move pelvis to x-axis [2.0] speed [6.000001] / animSpeed; //delta=-0.20
 			turn pelvis to z-axis <-1.500000> speed <7.499999> / animSpeed; //delta=-0.25
-			turn pelvis to y-axis <-5.000000> speed <149.999996> / animSpeed; //delta=-5.00
+			turn pelvis to y-axis <-5.0> speed <149.999996> / animSpeed; //delta=-5.00
 			turn rfoot to x-axis <-43.905911> speed <154.670897> / animSpeed; //delta=5.16
 			turn rleg to x-axis <49.670095> speed <323.752913> / animSpeed; //delta=10.79
 			turn rthigh to x-axis <-9.973088> speed <543.928697> / animSpeed; //delta=-18.13
@@ -503,28 +502,28 @@ ResetHands() {
 	turn ruparm to y-axis <-12.199999> speed <616.666703> / animSpeed;
 	turn ruparm to z-axis <17.599999> speed <473.333441> / animSpeed;
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move pelvis to x-axis [0.000000] speed [120.000000] / animSpeed;
-	move pelvis to y-axis [-3.000000] speed [-13.846154] / animSpeed;
-	move torso to y-axis [0.000000] speed [59.400001] / animSpeed;
+	move pelvis to x-axis [0.0] speed [120.0] / animSpeed;
+	move pelvis to y-axis [-3.0] speed [-13.846154] / animSpeed;
+	move torso to y-axis [0.0] speed [59.400001] / animSpeed;
 	turn antenna to x-axis <2.555555> speed <106.666678> / animSpeed;
 	turn head to x-axis <3.500000> speed <17.214920> / animSpeed;
-	turn head to y-axis <0.000000> speed <296.537380> / animSpeed;
+	turn head to y-axis <0.0> speed <296.537380> / animSpeed;
 	turn lfoot to x-axis <-14.351259> speed <2627.171168> / animSpeed;
 	turn lfoot to y-axis <3.493819> speed <209.517666> / animSpeed;
 	turn lfoot to z-axis <13.841419> speed <830.546646> / animSpeed;
 	turn lleg to x-axis <33.550695> speed <2962.141848> / animSpeed;
-	turn lleg to y-axis <0.000000> speed <7.998549> / animSpeed;
-	turn lleg to z-axis <0.000000> speed <8.002872> / animSpeed;
+	turn lleg to y-axis <0.0> speed <7.998549> / animSpeed;
+	turn lleg to z-axis <0.0> speed <8.002872> / animSpeed;
 	turn lthigh to x-axis <-21.590981> speed <2484.152130> / animSpeed;
 	turn lthigh to y-axis <7.740209> speed <1199.260461> / animSpeed;
 	turn lthigh to z-axis <-14.417635> speed <564.120333> / animSpeed;
 	turn ltoe to x-axis <-9.673080> speed <2606.395238> / animSpeed;
 	turn pelvis to x-axis <4.800000> speed <-22.153844> / animSpeed;
-	turn pelvis to y-axis <0.000000> speed <299.999991> / animSpeed;
-	turn pelvis to z-axis <0.000000> speed <90.000003> / animSpeed;
+	turn pelvis to y-axis <0.0> speed <299.999991> / animSpeed;
+	turn pelvis to z-axis <0.0> speed <90.0> / animSpeed;
 	turn rfoot to x-axis <-14.556038> speed <2623.014964> / animSpeed;
 	turn rfoot to y-axis <-3.408766> speed <204.574232> / animSpeed;
 	turn rfoot to z-axis <-13.336901> speed <800.205005> / animSpeed;
@@ -533,9 +532,9 @@ StopWalking() {
 	turn rthigh to y-axis <-8.329516> speed <518.059637> / animSpeed;
 	turn rthigh to z-axis <14.077916> speed <1025.653846> / animSpeed;
 	turn rtoe to x-axis <-9.803516> speed <2647.983591> / animSpeed;
-	turn torso to x-axis <0.000000> speed <12.871170> / animSpeed;
-	turn torso to y-axis <0.000000> speed <459.361180> / animSpeed;
-	turn torso to z-axis <0.000000> speed <11.217299> / animSpeed;
+	turn torso to x-axis <0.0> speed <12.871170> / animSpeed;
+	turn torso to y-axis <0.0> speed <459.361180> / animSpeed;
+	turn torso to z-axis <0.0> speed <11.217299> / animSpeed;
 	if (moveHands) {
 		call-script ResetHands();
 	}
@@ -557,17 +556,17 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-  set-signal-mask SIG_WALK;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -579,7 +578,7 @@ StopMoving(){
 #define UNITSIZE 12
 #define MAXTILT 70
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -591,18 +590,17 @@ Create()
 	hide aimy1;
 	myHeading=0;
 	moveHands = TRUE;
-	bMoving = FALSE;
-	bAiming = FALSE;
-	Static_Var_5 = 1;
+	isMoving = FALSE;
+	isAiming = FALSE;
 	animSpeed = 5;
 	gun_1 = 0;
 	gun_3 = 0;
 	restore_delay = 2000;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1;
+	restore_delay = reloadMS;
 }
 
 
@@ -615,17 +613,13 @@ ExecuteRestoreAfterDelay()
     
 	call-script ResetHands();
 	moveHands = TRUE;
-	turn aimy1 to y-axis <0.000000> speed <90.021978>;
-	turn head to y-axis <0.000000> speed <50.010989>;
-	//turn luparm to x-axis <0.000000> speed <50.010989>;
-	//turn ruparm to x-axis <0.000000> speed <50.010989>;
-	turn aimx1 to x-axis <0.000000> speed <120.027473>;
-	//wait-for-turn lshoulder around x-axis;
-	//wait-for-turn ruparm around x-axis;
-	//wait-for-turn lshoulder around y-axis;
-	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
-	bAiming = FALSE;
+	start-script CATT1_Restore();
+
+	turn head to y-axis <0.0> speed <50.010989>;
+
+	wpn1_lasthead = 0xbadface;
+	wpn2_lasthead = 0xbadface;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -636,7 +630,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2 | SIGNAL_AIM3;
 	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -658,39 +652,42 @@ AimHands() {
 	turn ruparm to z-axis <0> speed <473.333441> / animSpeed;
 }
 
-AimPrimary(heading, pitch) //hand cannons
+
+#define CATT1_PIECE_Y aimy1
+#define CATT1_PIECE_X aimx1
+
+#define CATT1_MAX_VELOCITY <3.0>
+#define CATT1_ACCELERATION <0.15>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <1.2>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_RESTORE_DELAY 1000
+
+#include "../constant_acceleration_turret_turning_1.h"
+
+AimWeapon1(heading, pitch) //hand cannons
 {
-	signal SIG_AIM;
-	call-script AimHands();
-	bAiming = TRUE;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	if (moveHands) call-script AimHands();
+	isAiming = TRUE;
 	myHeading = heading;
 	moveHands = FALSE;
-	turn aimx1 to x-axis 0 - pitch speed <120>;
-	turn aimy1 to y-axis heading speed <100.021978>;
-	while( !Static_Var_5 )
-	{
-		return(0);
-	}
 
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-	}
-	wpn1_lasthead = heading;
+	call-script CATT1_Aim(heading,pitch);
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimSecondary(heading, pitch) //HEAD LASER
+AimWeapon2(heading, pitch) //HEAD LASER
 {
-	signal SIG_AIM;
-	bAiming = TRUE;
-	turn turret to y-axis (heading - myHeading) speed <300.071429>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	signal SIGNAL_AIM1;
+	isAiming = TRUE;
+	turn turret to y-axis (heading - CATT1position) speed <300.071429>;
+
+	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
-		wpn2_lasthead = 1000000;
+		wpn2_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 	}
 	wpn2_lasthead = heading;
@@ -698,24 +695,24 @@ AimSecondary(heading, pitch) //HEAD LASER
 	return (1);
 }
 
-AimTertiary(heading, pitch) //MISSILE WEAPON
+AimWeapon3(heading, pitch) //MISSILE WEAPON
 {
-	bAiming = TRUE;
+	isAiming = TRUE;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 )
 	{
-		move lbarrel to z-axis [-2] speed [10.000000];
+		move lbarrel to z-axis [-2] speed [10.0];
 		emit-sfx 1024 from lflare;
 		sleep 180;
 		move lbarrel to z-axis [0] speed [2];
 	}
 	else
 	{
-		move rbarrel to z-axis [-2] speed [10.000000];
+		move rbarrel to z-axis [-2] speed [10.0];
 		emit-sfx 1024 from rflare;
 		sleep 180;
 		move rbarrel to z-axis [0] speed [2];
@@ -723,54 +720,37 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
-FireSecondary()
+AimFromWeapon1(pieceIndex)
 {
-	show laserflare;
-	sleep 150;
-	hide laserflare;
+	pieceIndex = torso;
 }
 
-FireTertiary()
+AimFromWeapon2(pieceIndex)
 {
-	//show missleflare;
-	//sleep 100;
-	//hide missleflare;
+	pieceIndex = turret;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = torso;
+	pieceIndex = missleflare;
 }
 
-AimFromSecondary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = rflare + gun_1;
 }
 
-AimFromTertiary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = missleflare;
+	pieceIndex = laserflare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	piecenum = rflare + gun_1;
+	pieceIndex = missleflare;
 }
 
-QuerySecondary(piecenum)
-{
-	piecenum = laserflare;
-}
 
-QueryTertiary(piecenum)
-{
-	piecenum = missleflare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
 
 Killed(severity, corpsetype)
 {
@@ -787,21 +767,11 @@ Killed(severity, corpsetype)
 		explode rfoot type BITMAPONLY | NOHEATCLOUD;
 		explode rtoe type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lshoulder type BITMAPONLY | NOHEATCLOUD;
-		//explode luparm type BITMAPONLY | NOHEATCLOUD;
-		//explode lloarm type BITMAPONLY | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type BITMAPONLY | NOHEATCLOUD;
-		//explode rshoulder type BITMAPONLY | NOHEATCLOUD;
-		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
-		//explode rloarm type BITMAPONLY | NOHEATCLOUD;
 		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type BITMAPONLY | NOHEATCLOUD;
 		explode antenna type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode laserflare type BITMAPONLY | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -818,19 +788,10 @@ Killed(severity, corpsetype)
 		explode rtoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lshoulder type FALL | NOHEATCLOUD;
 		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type FALL | NOHEATCLOUD;
-		//explode rshoulder type FALL | NOHEATCLOUD;
-		//explode ruparm type FALL | NOHEATCLOUD;
-		//explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode laserflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -846,21 +807,12 @@ Killed(severity, corpsetype)
 		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rtoe type SMOKE | FALL | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lshoulder type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode rshoulder type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode ruparm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode laserflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -874,20 +826,10 @@ Killed(severity, corpsetype)
 		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rtoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lshoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rshoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ruparm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode laserflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode missleflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

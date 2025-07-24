@@ -1,38 +1,7 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, base, thrust;
-
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
-
-// Signal definitions
-#define SIG_MOVE			2
-
-
-activatescr()
-{
-
-	sleep 518;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-
-	sleep 518;
-	return (0);
-}
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -40,122 +9,48 @@ InitState()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
+#define BARRELROLLSPEEED <200>
+#include "../air_barrelroll.h"
 
 Create()
 {
 	hide thrust;
 	hide flare2;
 	hide flare1;
-	call-script InitState();
 	start-script BarrelRoll();
-	return (0);
 }
 
 Activate()
 {
 	show thrust;
-	start-script RequestState(0);
-	return (0);
 }
 
 Deactivate()
 {
 	hide thrust;
-	start-script RequestState(1);
-	return (0);
 }
 
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		sleep 150;
-	}
-	return (0);
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	return (0);
-}
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare1;
-	return (0);
+	pieceIndex = flare1;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare2;
-	return (0);
+	pieceIndex = flare2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

@@ -14,14 +14,26 @@
 #define    FADESTART 2000
 #define    FADEEND 3000
 */
-layout (location = 0) in vec3 vertexPos;
-layout (location = 1) in vec3 vertexNormal;
-layout (location = 2) in vec3 stangent;
-layout (location = 3) in vec3 ttangent;
-layout (location = 4) in vec2 texcoords0;
-layout (location = 5) in vec2 texcoords1;
-layout (location = 6) in float pieceindex;
-layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+
+#if COMPACTVBO == 1
+
+  layout (location = 0) in vec4 pos_u;
+  layout (location = 1) in vec4 norm_v;
+
+  layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+  vec3 vertexPos = pos_u.xyz;
+  vec3 vertexNormal = norm_v.xyz;
+  vec2 texcoords0 = vec2(pos_u.w, norm_v.w);
+#else
+  layout (location = 0) in vec3 vertexPos;
+  layout (location = 1) in vec3 vertexNormal;
+  layout (location = 2) in vec3 stangent;
+  layout (location = 3) in vec3 ttangent;
+  layout (location = 4) in vec2 texcoords0;
+  layout (location = 5) in vec2 texcoords1;
+  layout (location = 6) in float pieceindex;
+  layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+#endif
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
 uniform float distanceMult; //yes this is the additional distance multiplier
@@ -35,15 +47,18 @@ uniform sampler2D losTex;
 uniform sampler2D heightmapTex;
 
 out DataVS {
-	vec3 worldPos;
+	//vec3 worldPos;
   //vec3 Normal;
-  vec2 texCoord0;
+  vec4 texCoord0;
   //vec3 Tangent;
   //vec3 Bitangent;
   vec4 mapColor; //alpha contains fog factor
   //vec4 grassNoise;
   vec4 instanceParamsVS; // x is distance from camera
-  vec4 debuginfo;
+  
+	#if DEBUG == 1 
+    vec4 debuginfo;
+  #endif
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -52,14 +67,23 @@ out DataVS {
 
 // pre vs opt pure vs load is 182 -> 155 fps
 void main() {
+  // Early bail visibility culling, if instancePosRotSize.xyz is not in camera frustum, skip it:
 
+  vec4 worldPos = vec4(instancePosRotSize.x, 0.0, instancePosRotSize.z, 1.0);
+  vec4 clipPos = cameraViewProj * vec4(worldPos.xyz, 1.0);
+  if (abs(clipPos.x / clipPos.w) > 1.1) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull by moving out of clip space
+    return;
+  }
 
   vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
   grassVertWorldPos.xz = (rotY * grassVertWorldPos).xz + instancePosRotSize.xz; // rotate Y and move to world pos
-
-  debuginfo.xyz = rotY*vertexNormal;
+  
+	#if DEBUG == 1 
+    debuginfo.xyz = rotY*vertexNormal;
+  #endif
   //--- Heightmap sampling
   vec2 ts = vec2(textureSize(heightmapTex, 0));
   vec2 uvHM =   vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
@@ -131,12 +155,10 @@ void main() {
 
 
   //--- ALPHA CULLING BASED ON QUAD NORMAL
-  // float cosnormal = dot(normalize(grassVertWorldPos.xyz - camPos.xyz), rotY * vertexNormal);
-  //instanceParamsVS.x *= clamp(cosnormal,0.0,1.0);
-  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
+  texCoord0.w  = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
 
   // ------------ dump the stuff for FS --------------------
-  texCoord0 = texcoords0;
+  texCoord0.xy = texcoords0.xy;
   //Normal = rotY * vertexNormal;
   //Tangent = rotY * ttangent;
   gl_Position = cameraViewProj * vec4(grassVertWorldPos.xyz, 1.0);

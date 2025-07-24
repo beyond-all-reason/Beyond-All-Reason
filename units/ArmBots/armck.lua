@@ -15,7 +15,7 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		health = 600,
+		health = 690,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.552,

@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, flare3, flare4, flare5, flare6, base, turret,
        barrel1, barrel2, barrel3, barrel4, barrel5, barrel6, sleeve1, sleeve2,
@@ -14,35 +12,36 @@ static-var global_heading;
 static-var recoiling;
 
 // Signal definitions
-#define SIG_AIM				2
-
-
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <35.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
+#define RECOIL_POWER 30000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <10.0> 
+#define TB_TILT_X <0.20>
+#define TB_BANK_Z <0.20> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 static-var weapon1_active_accuracy, weapon1_default_accuracy;
 static-var weapon1_active_range, weapon1_default_range, weapon2_default_range;
 Create()
 {
+
 	hide flare6;
 	hide flare3;
 	hide flare4;
 	hide flare1;
 	hide flare2;
 	hide flare5;
-	hide flare1;
-	hide flare2;
-	hide flare3;
-	hide flare4;
-	hide flare5;
-	hide flare6;
 	turn flare1 to x-axis <5> now;
 	turn flare2 to x-axis <-54> now;
 	turn flare3 to x-axis <-115> now;
@@ -56,12 +55,24 @@ Create()
     out_of_arc_count = 0;
 	weapon1_default_accuracy = 0;
 	weapon1_active_accuracy = 0;
-	weapon1_default_range = get WEAPON_RANGE(1);
-	weapon2_default_range = get WEAPON_RANGE(2);
-	get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
-	get WEAPON_RANGE(-2,get MIN(weapon1_default_range,weapon2_default_range));
-	return (0);
+	//weapon1_default_range = get WEAPON_RANGE(1);
+	//get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
+	call-script TB_Init();
 }
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -69,7 +80,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <20.000000>;
+	turn turret to y-axis <0.0> speed <20.0>;
 	global_pitch = -1000000;
 	global_heading = -1000000;
 }
@@ -86,43 +97,11 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-Activate()
-{
-	// signal kills any current aim animations
-	signal SIG_AIM;
-	// variable setting weapon state
-	fire_mode = 1;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	global_heading = -1000000;
-	global_pitch = -1000000;
-	get WEAPON_RANGE(-1,get MAX(weapon1_default_range,weapon2_default_range));
-	get WEAPON_RANGE(-2,get MAX(weapon1_default_range,weapon2_default_range));
-}
-
-Deactivate()
-{
-	// signal kills any current aim animations
-	signal SIG_AIM;
-	// variable setting weapon state
-	fire_mode = 0;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	global_heading = -1000000;
-	global_pitch = -1000000;
-	get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
-	get WEAPON_RANGE(-2,get MIN(weapon1_default_range,weapon2_default_range));
-}
-
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 
-	if( fire_mode == 1 )
-	{
-		return(0);
-	}
-
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
     // out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
@@ -141,12 +120,12 @@ AimPrimary(heading, pitch)
 	out_of_arc_count = 0;
 
 	// turn to face target
-	turn turret to y-axis heading speed <20.000000>;
+	turn turret to y-axis heading speed <20.0>;
 
 	// prespin the hex barrel spindle if the unit has not recently fired
-	// in FirePrimary, the spindle should be locked in place for a few frames
+	// in FireWeapon1, the spindle should be locked in place for a few frames
 	// after firing, then starts spinning the spindle into place 
-	// before the next AimPrimary call
+	// before the next AimWeapon1 call
 	if (recoiling == 0)
 	{
 		turn spindle to x-axis <60.005495> * gun_1 - pitch speed <360>;
@@ -164,58 +143,8 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
-{
 
-	if( fire_mode == 0 )
-	{
-		return(0);
-	}
-
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-
-    // out of firing arc aim calls happen during "preaiming" logic
-	// logic to reset gun to neutral if the target heading has been
-	// out of firing arc for ~3 seconds
-	if ( (heading < -24576) OR (heading > 24576) )
-	{
-		// assume reaim time is every 15 frames, 0.5 seconds
-		out_of_arc_count = out_of_arc_count + 1;
-		// after 6 aim checks, if target is still out of arc, restore gun to neutral
-		if (out_of_arc_count > 6)
-		{
-			start-script ExecuteRestoreAfterDelay();
-		}
-		return (0);
-	}
-	out_of_arc_count = 0;
-
-	// turn to face target
-	turn turret to y-axis heading speed <20.000000>;
-
-	// prespin the hex barrel spindle if the unit has not recently fired
-	// in FirePrimary, the spindle should be locked in place for a few frames
-	// after firing, then starts spinning the spindle into place 
-	// before the next AimPrimary call
-	if (recoiling == 0)
-	{
-		turn spindle to x-axis <60.005495> * gun_1 - pitch speed <360>;
-	}
-
-	// only wait-for-turn if it takes more than 3 frames to get into position
-	if ( (get ABS(pitch-global_pitch)>5400) OR (get ABS(heading-global_heading)>360) )
-	{
-		wait-for-turn turret around y-axis;
-		wait-for-turn spindle around x-axis;
-	}
-	global_pitch = pitch;
-	global_heading = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FirePrimary()
+FireWeapon1()
 {
 	recoiling = 1;
 	if( gun_1 == 0 )
@@ -223,7 +152,9 @@ FirePrimary()
 		move barrel1 to z-axis [-4.500000] now;
 		emit-sfx 1024 + 0 from flare1;
 		sleep 32;
-		move barrel1 to z-axis [0.000000] speed [5.000000];
+		move barrel1 to z-axis [0.0] speed [4.5];
+		move barrel5 to y-axis [0.0] speed [3.75];
+		move barrel5 to z-axis [0.0] speed [2.25];
 	}
 	if( gun_1 == 1 )
 	{
@@ -231,8 +162,8 @@ FirePrimary()
 		move barrel2 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare2;
 		sleep 32;
-		move barrel2 to y-axis [0.000000] speed [4.125];
-		move barrel2 to z-axis [0.000000] speed [2.475];
+		move barrel6 to y-axis [0.0] speed [3.75];
+		move barrel6 to z-axis [0.0] speed [2.25];
 	}
 	if( gun_1 == 2 )
 	{
@@ -240,15 +171,17 @@ FirePrimary()
 		move barrel3 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare3;
 		sleep 32;
-		move barrel3 to y-axis [0.000000] speed [4.125];
-		move barrel3 to z-axis [0.000000] speed [2.475];
+		move barrel1 to y-axis [0.0] speed [3.75];
+		move barrel1 to z-axis [0.0] speed [2.25];
 	}
 	if( gun_1 == 3 )
 	{
 		move barrel4 to z-axis [4.500000] now;
 		emit-sfx 1024 + 0 from flare4;
 		sleep 32;
-		move barrel4 to z-axis [0.000000] speed [5.000000];
+		move barrel4 to z-axis [0.0] speed [4.5];
+		move barrel2 to y-axis [0.0] speed [3.75];
+		move barrel2 to z-axis [0.0] speed [2.25];
 	}
 	if( gun_1 == 4 )
 	{
@@ -256,8 +189,8 @@ FirePrimary()
 		move barrel5 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare5;
 		sleep 32;
-		move barrel5 to y-axis [0.000000] speed [4.125];
-		move barrel5 to z-axis [0.000000] speed [2.475];
+		move barrel3 to y-axis [0.0] speed [3.75];
+		move barrel3 to z-axis [0.0] speed [2.25];
 	}
 	if( gun_1 == 5 )
 	{
@@ -265,8 +198,8 @@ FirePrimary()
 		move barrel6 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare6;
 		sleep 32;
-		move barrel6 to y-axis [0.000000] speed [4.125];
-		move barrel6 to z-axis [0.000000] speed [2.475];
+		move barrel4 to y-axis [0.0] speed [3.75];
+		move barrel4 to z-axis [0.0] speed [2.25];
 	}
 	++gun_1;
 	if( gun_1 == 6 )
@@ -279,109 +212,20 @@ FirePrimary()
 	return (0);
 }
 
-FireSecondary()
+
+QueryWeapon1(pieceIndex)
 {
-	recoiling = 1;
-	if( gun_1 == 0 )
-	{
-		move barrel1 to z-axis [-4.500000] now;
-		emit-sfx 1024 + 0 from flare1;
-		sleep 32;
-		move barrel1 to z-axis [0.000000] speed [5.000000];
-	}
-	if( gun_1 == 1 )
-	{
-		move barrel2 to y-axis [-3.750000] now;
-		move barrel2 to z-axis [-2.250000] now;
-		emit-sfx 1024 + 0 from flare2;
-		sleep 32;
-		move barrel2 to y-axis [0.000000] speed [4.125];
-		move barrel2 to z-axis [0.000000] speed [2.475];
-	}
-	if( gun_1 == 2 )
-	{
-		move barrel3 to y-axis [-3.750000] now;
-		move barrel3 to z-axis [2.250000] now;
-		emit-sfx 1024 + 0 from flare3;
-		sleep 32;
-		move barrel3 to y-axis [0.000000] speed [4.125];
-		move barrel3 to z-axis [0.000000] speed [2.475];
-	}
-	if( gun_1 == 3 )
-	{
-		move barrel4 to z-axis [4.500000] now;
-		emit-sfx 1024 + 0 from flare4;
-		sleep 32;
-		move barrel4 to z-axis [0.000000] speed [5.000000];
-	}
-	if( gun_1 == 4 )
-	{
-		move barrel5 to y-axis [3.750000] now;
-		move barrel5 to z-axis [2.250000] now;
-		emit-sfx 1024 + 0 from flare5;
-		sleep 32;
-		move barrel5 to y-axis [0.000000] speed [4.125];
-		move barrel5 to z-axis [0.000000] speed [2.475];
-	}
-	if( gun_1 == 5 )
-	{
-		move barrel6 to y-axis [3.750000] now;
-		move barrel6 to z-axis [-2.250000] now;
-		emit-sfx 1024 + 0 from flare6;
-		sleep 32;
-		move barrel6 to y-axis [0.000000] speed [4.125];
-		move barrel6 to z-axis [0.000000] speed [2.475];
-	}
-	++gun_1;
-	if( gun_1 == 6 )
-	{
-		gun_1 = flare1;
-	}
-	sleep 96;
-	turn spindle to x-axis <60.005495> * gun_1 - global_pitch speed <360>;
-	recoiling = 0;
+	pieceIndex = gun_1;
 	return (0);
 }
 
-TargetCleared(Func_Var_1)
+AimFromWeapon1(pieceIndex)
 {
-	if( Func_Var_1 == 1 )
-	{
-		signal SIG_AIM;
-		stop-spin turret around y-axis;
-	}
+	pieceIndex = spindle;
 	return (0);
 }
 
-QueryPrimary(piecenum)
-{
-	piecenum = gun_1;
-	return (0);
-}
 
-AimFromPrimary(piecenum)
-{
-	piecenum = spindle;
-	return (0);
-}
-
-QuerySecondary(piecenum)
-{
-	piecenum = gun_1;
-	return (0);
-}
-
-AimFromSecondary(piecenum)
-{
-	piecenum = spindle;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {
@@ -393,22 +237,6 @@ Killed(severity, corpsetype)
 		explode spindle type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve3 type BITMAPONLY | NOHEATCLOUD;
 		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare3 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve2 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel2 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve1 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve6 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel6 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare6 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve5 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel5 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare5 type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve4 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel4 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare4 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -419,22 +247,6 @@ Killed(severity, corpsetype)
 		explode spindle type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FALL | NOHEATCLOUD;
-		//explode sleeve6 type FALL | NOHEATCLOUD;
-		//explode barrel6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare6 type FALL | NOHEATCLOUD;
-		//explode sleeve5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel5 type FALL | NOHEATCLOUD;
-		//explode flare5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve4 type FALL | NOHEATCLOUD;
-		//explode barrel4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )

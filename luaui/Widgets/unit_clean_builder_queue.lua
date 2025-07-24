@@ -95,7 +95,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	local x, _, z = GetUnitPosition(unitID)
 
 	for builderID in pairs(trackedBuilders) do
-		if IsUnitRepeatOn(builderID) then
+		if not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
 			for i = #commands, 1, -1 do
 				local cmd = commands[i]

@@ -1,15 +1,38 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+
 
 piece  base, fan, d1,d2,d3,d4;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3;
+static-var  recentlyHit, wantOpen;
 
-activatescr()
+//#define DEBUG
+#include "../debug.h"
+
+#define SIGNAL_TURNON 4
+
+#include "../damagedsmoke.h"
+Create()
 {
-	set ACTIVATION to 100;
+	recentlyHit = 0;
+	wantOpen = 1;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
+}
+
+// open it on when built
+// close it up when hit
+// open it when time passed
+// dont open it while hit
+// dont reopen it if off after being hit !!!
+// dont let any of the above conflict in time.
+// dont change state while stunned
+// obey desired state changes while closed for hit
+
+
+
+Open()
+{
 	turn d1 to x-axis <90> speed <30>;
 	turn d3 to x-axis <-90> speed <30>;
 	turn d1 to y-axis <180> speed <60>;
@@ -19,11 +42,18 @@ activatescr()
 	turn d4 to z-axis <90> speed <30>;
 	turn d2 to y-axis <180> speed <60>;
 	turn d4 to y-axis <180> speed <60>;
+	wait-for-turn d1 around x-axis;
 	spin fan around y-axis speed <15> accelerate <0.1>;
+	
+	set ARMORED to 0;
+	set ACTIVATION to 100;
 }
 
-deactivatescr()
+Close()
 {
+	set ACTIVATION to 0;
+
+	stop-spin fan around y-axis decelerate <0.2>;
 
 	turn d1 to x-axis <0> speed <30>;
 	turn d3 to x-axis <0> speed <30>;
@@ -34,109 +64,46 @@ deactivatescr()
 	turn d4 to z-axis <0> speed <30>;
 	turn d2 to y-axis <0> speed <60>;
 	turn d4 to y-axis <0> speed <60>;
-	
-	stop-spin fan around y-axis decelerate <0.2>;
-}
+	wait-for-turn d1 around x-axis;
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( Static_Var_3 )
-	{
-		Static_Var_2 = requestedstate;
-		return (0);
-	}
-	Static_Var_3 = 1;
-	currentstate = Static_Var_2;
-	Static_Var_2 = requestedstate;
-	while( Static_Var_2 != currentstate )
-	{
-		if( Static_Var_2 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-	}
-	Static_Var_3 = 0;
-}
-
-Create()
-{
-	Static_Var_2 = 1;
-	Static_Var_3 = 0;
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
+	set ARMORED to 1;
 }
 
 Activate()
 {
-	if( Static_Var_1 )
+	if( recentlyHit )
 	{
-		set ACTIVATION to 0;
+		set ACTIVATION to 0; // dont open it while hit, feedback it
+		wantOpen = 1;
 		return (0);
 	}
-	set ARMORED to 0;
-	start-script RequestState(0);
+	call-script Open();
 }
 
 Deactivate()
 {
-	set ARMORED to 1;
-	start-script RequestState(1);
+	call-script Close();
 }
 
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
-		Static_Var_1 = 1;
+	if (!recentlyHit){
+		start-script Close(); 
+		recentlyHit = 1;
+		wantOpen = get ACTIVATION;
 	}
-	if( Static_Var_1 )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_1 = 0;
-		set ACTIVATION to 100;
+	// Signal after Close() so as not to interrupt it
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	sleep 8000;
+	recentlyHit = 0;
+	if (wantOpen){
+		start-script Open();
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

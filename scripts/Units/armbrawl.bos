@@ -1,39 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_AIM				2
-#define SIG_FIRE1 			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_SHOOT1 16
 piece  flare1, flare2, base, wingl, wingr, finl, finr, fan, flare3, flare4,pivot;
 
-static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1;
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		spin fan around y-axis speed <200> accelerate <20>;
-		sleep 998;
-	}
-	if( TRUE )
-	{
-		turn pivot to x-axis <90> speed <90>;
-		sleep 498;
-	}
-	if( TRUE )
-	{
-		turn finl to z-axis <90> speed <90>;
-		turn finr to z-axis <-90> speed <90>;
-		turn wingl to y-axis <-30> speed <30>;
-		turn wingr to y-axis <30> speed <30>;
-		sleep 998;
-	}
-	sleep 102;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
+#define SIGNAL_TURNON 4
 
 #define BASEPIECE base
 #define HITSPEED <100.0>
@@ -41,70 +15,11 @@ activatescr()
 #define UNITSIZE 3
 #define MAXTILT 100
 
-deactivatescr()
-{
-
-
-	if( TRUE )
-	{
-		turn pivot to x-axis <0> speed <90>;
-		sleep 498;
-	}	
-	if( TRUE )
-	{
-		turn finl to z-axis <0> speed <90>;
-		turn finr to z-axis <0> speed <90>;
-		turn wingl to y-axis <0> speed <30>;
-		turn wingr to y-axis <0> speed <30>;
-		sleep 998;
-	}
-	if( TRUE )
-	{
-		stop-spin fan around y-axis decelerate <1>;
-		sleep 998;
-	}
-	sleep 102;
-	return (0);
-}
-
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -114,6 +29,7 @@ ExecuteRestoreAfterDelay()
     }
 	turn pivot to x-axis <90> speed <180>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -126,6 +42,7 @@ RestoreAfterDelay()
 	sleep 500;
 	start-script ExecuteRestoreAfterDelay();
 }
+
 Create()
 {
 	hide flare1;
@@ -134,95 +51,92 @@ Create()
 	hide flare4;
 	hide pivot;
 	gun_1 = 0;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	spin fan around y-axis speed <200> accelerate <20>;
+	
+	turn pivot to x-axis <90> speed <90>;
+	wait-for-turn pivot around x-axis;
+
+	turn finl to z-axis <90> speed <90>;
+	turn finr to z-axis <-90> speed <90>;
+	turn wingl to y-axis <-30> speed <30>;
+	turn wingr to y-axis <30> speed <30>;
+	wait-for-turn finl around z-axis;
+	wait-for-turn wingl around y-axis;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	turn pivot to x-axis <0> speed <90>;
+	wait-for-turn pivot around x-axis;
+
+	turn finl to z-axis <0> speed <90>;
+	turn finr to z-axis <0> speed <90>;
+	turn wingl to y-axis <0> speed <30>;
+	turn wingr to y-axis <0> speed <30>;
+	wait-for-turn finl around z-axis;
+	wait-for-turn wingl around y-axis;
+
+	stop-spin fan around y-axis decelerate <1>;
 }
 
-SweetSpot(piecenum)
+FireWeapon1()
 {
-	piecenum = base;
 }
 
-FirePrimary()
+Shot1(shotIndex)
 {
-	return(1);
-}
-
-Shot1(zero)
-{
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
 	if( gun_1 == 0 )
 	{
-		emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		emit-sfx 1024 + 0 from flare3;
+		emit-sfx 1024 + 0 from flare2;
 	}
 	if( gun_1 == 2 )
 	{
-		emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from flare3;
 	}
 	if( gun_1 == 3 )
 	{
 		emit-sfx 1024 + 0 from flare4;
 	}
-	sleep 32;
 	++gun_1;
 	if(gun_1>=3)
 	{
 		gun_1=0;
 	}
-	return(1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare2;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare3;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 3 )
-	{
-		piecenum = flare4;
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn pivot to x-axis <0> speed <180>;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)

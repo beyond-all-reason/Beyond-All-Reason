@@ -1,12 +1,11 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, dish, blink;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
+
+#define SIGNAL_TURNON 4
 
 
 #define BASEPIECE base
@@ -15,10 +14,12 @@ static-var  Stunned;
 #define UNITSIZE 3
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Lights()
 {
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	while( TRUE )
 	{
 	    if (!Stunned) {
@@ -26,92 +27,38 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
-}
-
-Go()
-{
-	spin dish around z-axis speed <180.010989>;
-	spin turret around y-axis speed <15.027473>;
-	return (0);
-}
-
-Stop()
-{
-	spin dish around z-axis speed <0.000000>;
-	spin turret around y-axis speed <0.000000>;
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
 }
 
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
 }
 
 Create()
 {
 	hide blink;
-	call-script InitState();
 }
 
 Activate()
 {
 	start-script Lights();
-	start-script RequestState(0);
-	return (0);
+	spin dish around z-axis speed <180.010989>;
+	spin turret around y-axis speed <15.027473>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	signal SIGNAL_TURNON;
+	spin dish around z-axis speed <0.0>;
+	spin turret around y-axis speed <0.0>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

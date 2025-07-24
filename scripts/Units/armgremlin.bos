@@ -1,18 +1,18 @@
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdoor, ldoor, turret, sleeve, barrel, flare;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay,
-            statechg_DesiredState, statechg_StateChanging;
+#include "../opencloseanim.h"
+
+static-var  isOpen, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 
-
-OpenGun()
+Open()
 {
 	turn frleg   to x-axis <90>  speed <90>;
 	turn frtrack to x-axis <-90> speed <90>;
@@ -22,24 +22,25 @@ OpenGun()
 	turn brtrack to x-axis <90> speed <90>;
 	turn blleg   to x-axis <-90>  speed <90>;
 	turn bltrack to x-axis <90> speed <90>;
-	move barrel to z-axis [1.6] speed [1.6];
+	move barrel to z-axis [1.6] speed [1.5];
 	
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
 	move base to y-axis [1.8] speed [3.6];
-	sleep 500;
+	wait-for-turn rdoor around z-axis;
+
 	turn rdoor to z-axis <-180> speed <180>;
 	turn ldoor to z-axis <180> speed <180>;
-	move base to y-axis [3] speed [2];
-	
-	
-	
-	sleep 500;
+	move base to y-axis [8] speed [8];
+
+	wait-for-turn rdoor around z-axis;
+//	isOpen = TRUE;
 }
 
-FoldGun()
+Close()
 {
 
+//	isOpen = FALSE;
 	move barrel to z-axis [0] speed [1.6];
 	turn turret to y-axis <0> speed <360>;
 	turn sleeve to x-axis <0> speed <360>;
@@ -57,13 +58,13 @@ FoldGun()
 	
 	turn rdoor to z-axis <-90> speed <180>;
 	turn ldoor to z-axis <90> speed <180>;
-	move base to y-axis [1.8] speed [2.8];
-	sleep 500;
+	move base to y-axis [1.8] speed [3.6];
+	wait-for-turn rdoor around z-axis;
 	turn rdoor to z-axis <0> speed <180>;
 	turn ldoor to z-axis <0> speed <180>;
-	move base to y-axis [0] speed [3.6];
-	
-	sleep 500;
+	move base to y-axis [0] speed [8];
+
+	wait-for-turn rdoor around z-axis;
 }
 
 #define BASEPIECE base
@@ -71,138 +72,53 @@ FoldGun()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-#include "unit_hitbyweaponid_and_smoke.h"
+#define RECOIL_POWER 10000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
-Go()
-{
-	Static_Var_3 = 1;
-	if( !Static_Var_1 )
-	{
-		while( !Static_Var_4 )
-		{
-			sleep 150;
-		}
-		call-script OpenGun();
-		Static_Var_1 = 1;
-	}
-}
-
-Stop()
-{
-	if( Static_Var_1 )
-	{
-		Static_Var_1 = 0;
-		call-script FoldGun();
-	}
-	Static_Var_3 = 0;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		sleep 100;
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-MotionControl(moving, aiming, justmoved)
-{
-	justmoved = TRUE;
-	while( TRUE )
-	{
-		moving = bMoving;
-		aiming = Static_Var_3;
-		if( moving )
-		{
-			sleep 100;
-			if( aiming )
-			{
-				Static_Var_4 = 1;
-			}
-			else
-			{
-				Static_Var_4 = 0;
-			}
-			justmoved = TRUE;
-		}
-		else
-		{
-			Static_Var_4 = 1;
-			if( justmoved )
-			{
-
-				justmoved = FALSE;
-			}
-			sleep 300;
-		}
-	}
-}
-
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 Create()
 {
 	hide flare;
-	bMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
-	Static_Var_1 = 0;
-	restore_delay = 2000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script MotionControl();
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
+	isOpen = 0;
 	restore_delay = 6000;
+	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
+	//start-script Movement();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	bMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
+  	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
+
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <360.000000>;
-	turn sleeve to x-axis <0.000000> speed <360.000000>;
-	start-script RequestState(1);
+	turn turret to y-axis <0.0> speed <360.0>;
+	turn sleeve to x-axis <0.0> speed <360.0>;
+	start-script OpenCloseAnim(0);
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -216,24 +132,25 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+
+	while( !IsOpen )
 	{
 		sleep 200;
 	}
-	turn turret to y-axis heading speed <360.000000>;
-	turn sleeve to x-axis <0> - pitch speed <3600.000000>;
+	turn turret to y-axis heading speed <360.0>;
+	turn sleeve to x-axis <0> - pitch speed <3600.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {	
 	show flare;
 	move barrel to z-axis [0.4] now;
@@ -242,20 +159,16 @@ FirePrimary()
 	hide flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -265,18 +178,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode blleg type BITMAPONLY | NOHEATCLOUD;
 		explode bltrack type BITMAPONLY | NOHEATCLOUD;
-		//explode frleg type BITMAPONLY | NOHEATCLOUD;
-		//explode frtrack type BITMAPONLY | NOHEATCLOUD;
-		//explode flleg type BITMAPONLY | NOHEATCLOUD;
-		//explode fltrack type BITMAPONLY | NOHEATCLOUD;
-		//explode rdoor type BITMAPONLY | NOHEATCLOUD;
-		//explode brleg type BITMAPONLY | NOHEATCLOUD;
-		//explode brtrack type BITMAPONLY | NOHEATCLOUD;
-		//explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode ldoor type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -285,18 +186,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode blleg type FALL | NOHEATCLOUD;
 		explode bltrack type FALL | NOHEATCLOUD;
-		//explode frleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode frtrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flleg type FALL | NOHEATCLOUD;
-		//explode fltrack type FALL | NOHEATCLOUD;
-		//explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode brleg type FALL | NOHEATCLOUD;
-		//explode brtrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type FALL | NOHEATCLOUD;
-		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FALL | NOHEATCLOUD;
-		//explode ldoor type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -307,16 +196,6 @@ Killed(severity, corpsetype)
 		explode bltrack type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode frleg type SMOKE | FALL | NOHEATCLOUD;
 		explode frtrack type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode fltrack type SMOKE | FALL | NOHEATCLOUD;
-		//explode rdoor type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode brleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode brtrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode ldoor type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -325,15 +204,5 @@ Killed(severity, corpsetype)
 		explode bltrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode frleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode frtrack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode fltrack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode brleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode brtrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ldoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

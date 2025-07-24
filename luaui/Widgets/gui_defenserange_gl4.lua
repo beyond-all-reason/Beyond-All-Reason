@@ -311,6 +311,7 @@ local function initUnitList()
 		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
+		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },

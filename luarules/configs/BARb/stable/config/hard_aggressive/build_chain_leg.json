@@ -9,7 +9,7 @@
 	
 		"superweapon": {
 			"unit": {
-				"legion": ["leglupara",   	"legperdition", 	"leglrpc",  "legstarfall", 	"legfmd", "legsilo"]
+				"legion": ["leglupara",   	"legperdition", 	"leglrpc",  "legstarfall", 	"legabm", "legsilo"]
 			},
 			"weight":     	  [ 0.45,          	0.05,      		0.15,       0.15,      		0.10,     0.10],
 	

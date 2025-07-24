@@ -1,35 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, launcher, turret, hinge, door;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;			
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+#define SIGNAL_AIM1 256
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -37,19 +14,19 @@ RockOnWaves()
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
+
+#define WATER_ROCK_UNITSIZE 10
+#include "../floatmotion.h"
 
 
 Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
 static-var  Stunned;
@@ -58,8 +35,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn launcher to x-axis <0.000000> speed <50.010989>;
+	turn turret to y-axis <0.0> speed <90.021978>;
+	turn launcher to x-axis <0.0> speed <50.010989>;
 
 	turn hinge to x-axis <0> speed <270>;
 
@@ -79,10 +56,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move door to z-axis [3.5] speed [15];
 	turn hinge to x-axis <75> speed <270>;
 	turn turret to y-axis heading speed <80.016484>;
@@ -93,30 +70,26 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 256 | 3 from flare;
 	sleep 250;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = launcher;
+	pieceIndex = launcher;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

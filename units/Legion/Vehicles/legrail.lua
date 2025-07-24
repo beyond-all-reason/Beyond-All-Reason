@@ -111,7 +111,7 @@ return {
 			aa_railgun = {
 				areaofeffect = 16,
 				avoidfeature = true,
-				burnblow = true,
+				burnblow = false,
 				cegtag = "railgun",
 				collisionsize = 0.7,
 				craterareaofeffect = 0,
@@ -154,7 +154,7 @@ return {
 			railgun = {
 				areaofeffect = 16,
 				avoidfeature = true,
-				burnblow = true,
+				burnblow = false,
 				cegtag = "railgun",
 				collisionsize = 0.7,
 				craterareaofeffect = 0,

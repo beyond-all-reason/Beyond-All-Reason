@@ -30,7 +30,10 @@ local shaderTemplate = {
 	},
 }
 
-local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0"
+-- local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0" -- SKIN_SUPPORT is now always on since 1653
+local USEQUATERNIONS = (Engine.FeatureSupport.transformsInGL4 and "1") or "0"
+local SLERPQUATERIONS = nil-- "#define SLERPQUATERIONS 1" -- nil to disable slerping and just use lerp
+
 local defaultMaterialTemplate = {
 	--standardUniforms --locs, set by api_cus
 	--deferredUniforms --locs, set by api_cus
@@ -44,7 +47,6 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -58,10 +60,11 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define SHIFT_RGBHSV",
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
+		SLERPQUATERIONS,
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -75,10 +78,11 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define SHIFT_RGBHSV",
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
+		SLERPQUATERIONS,
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		[[
@@ -91,11 +95,11 @@ local defaultMaterialTemplate = {
 	#endif
 #endif
 ]],
-
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
+		SLERPQUATERIONS,
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -109,6 +113,8 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define REFLECT_DISCARD",
+		"#define USEQUATERNIONS "..USEQUATERNIONS,
+		SLERPQUATERIONS,
 	},
 
 	shaderOptions = {

@@ -22,7 +22,7 @@ return {
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAN.s3o",
-		script = "Units/CORCAN_clean.cob",
+		script = "Units/corcan.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 350,
@@ -99,6 +99,21 @@ return {
 			},
 		},
 		weapondefs = {
+			canhvylaserroar = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "Laserroar",
+				noselfdamage = true,
+				soundhitdry = "laserroar",
+				soundhitdryvolume = 16,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 			cor_canlaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -133,21 +148,6 @@ return {
 				damage = {
 					default = 275,
 					vtol = 25,
-				},
-			},
-			canhvylaserroar = {
-				areaofeffect = 0,
-				impactonly = 1,
-				name = "Laserroar",
-				noselfdamage = true,
-				soundhitdry = "laserroar",
-				soundhitdryvolume = 16,
-				weapontype = "Cannon",
-				customparams = {
-					noexplosionlight = 1,
-				},
-				damage = {
-					default = 0,
 				},
 			},
 		},

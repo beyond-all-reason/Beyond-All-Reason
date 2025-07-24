@@ -1,81 +1,35 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, dish;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
-
-
-Go()
-{
-	spin dish around y-axis speed <6.010989>;
-}
-
-Stop()
-{
-	stop-spin dish around y-axis;
-}
 
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+	    call-script Deactivate();
 	} else {
-	    call-script Go();
+	    call-script Activate();
 	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState)
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
-
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	spin dish around y-axis speed <6> accelerate <1>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin dish around y-axis;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

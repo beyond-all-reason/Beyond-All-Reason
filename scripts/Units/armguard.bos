@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 #include "smart_weapon_select.h"
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves, turretmidpoint;

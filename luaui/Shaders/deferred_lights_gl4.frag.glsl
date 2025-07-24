@@ -540,17 +540,26 @@ float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposit
 }
 
 
-// UNTESTED
+// Works fine, but 16 FMA
 vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from v_screenUV and depth
 	vec4 fragToScreen =  vec4( vec3(screen_uv * 2.0 - 1.0, depth),  1.0);
 	fragToScreen = cameraViewProjInv * fragToScreen;
 	return fragToScreen.xyz / fragToScreen.w;
 }
 
-// UNTESTED!
+// Works fine, but 16 FMA
 vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 	vec4 screenPosition = cameraViewProj * vec4(worldCoords,1.0);
 	return screenPosition.xyz / screenPosition.w;
+}
+
+// Interesting function, takes two depths in screen space, and given 
+// nxp2 = 2 * nearPlane * farplane 
+// fpn = nearPlane * farPlane
+// fmn = nearPlane - farPlane
+// return the delta in elmos between the two depths
+float depthToDeltaElmos(float depthCloser, float depthFarther, float nxp2, float fpn, float fmn){
+	return 36.0 * ( nxp2 / (fpn - (depthCloser* 2.0 - 1.0) * fmn) - nxp2 / (fpn - (depthFarther * 2.0 - 1.0) * fmn));
 }
 
 // Additional notes and reading:
@@ -901,55 +910,168 @@ void main(void)
 			// Collect occludedness in this variable
 			float occludedness = 0.0;
 			
-			// Set up the raytracing variables
-			vec3 rayStart = lightEmitPosition.xyz;
-			vec3 rayEnd = fragWorldPos.xyz;
-			vec3 rayStep = (rayEnd - rayStart) / (sampleCount);
-			float rayStepLength = length(rayStep);
-			float distanceToLight = 0; // squared distance to the light
-
-			for (int i = 0; i < sampleCount; i++){
-				float stepSize =  (float(i) + dot(threadMask, threadOffset) + randomOffset);
-				distanceToLight = stepSize * rayStepLength;
-
-				// Calculate the current ray position in both world and screenspace
-				vec3 rayWorldPos = rayStart + rayStep * stepSize; 
-				vec3 rayScreenPos = WorldToScreen(rayWorldPos);
-				// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
-				rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
+			#if 0 // This is deprecated for being slow in the WorldToScreen and ScreenToWorld conversions
 				
-				float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
+				// Set up the raytracing variables
+				vec3 rayStart = lightEmitPosition.xyz;
+				vec3 rayEnd = fragWorldPos.xyz;
+				vec3 rayStep = (rayEnd - rayStart) / (sampleCount);
+				float rayStepLength = length(rayStep);
+				float distanceToLight = 0; // squared distance to the light
 
-				// Assume that any sample outside of the edges of the screen will not occlude
-				if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
+				for (int i = 0; i < sampleCount; i++){ 
+					// Fun note: this is actually SM limited ! 
+					// mainly because of the ScreenToWorld and WorldToScreen conversions, as they are 16 FMA's each due to the matmul. 
+					// what if we were to step in screen space instead of world space? 
+					// screen space stepping would be better for cache coherence for sure. 
+
+					float stepSize =  (float(i) + dot(threadMask, threadOffset) + randomOffset);
+					distanceToLight = stepSize * rayStepLength;
+
+					// Calculate the current ray position in both world and screenspace
+					vec3 rayWorldPos = rayStart + rayStep * stepSize; 
+					vec3 rayScreenPos = WorldToScreen(rayWorldPos);
+					// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
+					rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
+					
+					float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
+
+					// Assume that any sample outside of the edges of the screen will not occlude
+					if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
+					
+					// Since modeldepth is zero where there is no model, we need to convert this to 1.0
+					if (rayScreenDepthSample < 0.01) rayScreenDepthSample = 1.0;
+
+					// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
+					
+					// Recover the world position of the sample from the depth buffer, and calculate the distance to the ray
+					vec3 sampleWorldPos = ScreenToWorld(rayScreenPos.xy, rayScreenDepthSample);
+					float sampleDistance = length(rayWorldPos - sampleWorldPos);
+					float sampleOcclusionStrength = 0.0;
+
+					// Assume that a ray that hits exactly occludes 0.5
+					if (rayScreenDepthSample < rayScreenPos.z) {
+						// If the sample actually occludes, then softly occlude it based on the distance from the light
+						if (sampleDistance > 48.0) // Very deep occluders dont occlude
+							sampleOcclusionStrength = 1.0 -  clamp((sampleDistance - 48.0) / (rayStepLength * 0.05), 0.0, 1.0);
+						else
+							sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;
+
+					}else{
+						// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
+						sampleOcclusionStrength = 0.5 - clamp(sampleDistance / (rayStepLength * 0.2), 0.0, 1.0) * 0.5;;
+					}
 				
-				// Since modeldepth is zero where there is no model, we need to convert this to 1.0
-				if (rayScreenDepthSample < 0.01) rayScreenDepthSample = 1.0;
-
-				// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
-				
-				// Recover the world position of the sample from the depth buffer, and calculate the distance to the ray
-				vec3 sampleWorldPos = ScreenToWorld(rayScreenPos.xy, rayScreenDepthSample);
-				float sampleDistance = length(rayWorldPos - sampleWorldPos);
-				float sampleOcclusionStrength = 0.0;
-
-				// Assume that a ray that hits exactly occludes 0.5
-				if (rayScreenDepthSample < rayScreenPos.z) {
-					// If the sample actually occludes, then softly occlude it based on the distance from the light
-					if (sampleDistance > 48.0) // Very deep occluders dont occlude
-						sampleOcclusionStrength = 1.0 -  clamp((sampleDistance - 48.0) / (rayStepLength * 0.05), 0.0, 1.0);
-					else
-						sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;
-
-				}else{
-					// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
-					sampleOcclusionStrength = 0.5 - clamp(sampleDistance / (rayStepLength * 0.2), 0.0, 1.0) * 0.5;;
+					occludedness += sampleOcclusionStrength;
+					
 				}
-			
-				occludedness += sampleOcclusionStrength;
+				//printf(occludedness);
+			#else 
+				// Steps in screen space
+							
+				// Set up the raytracing variables
+				vec3 rayStartScreen = WorldToScreen(lightEmitPosition.xyz);
+				vec3 rayEndScreen = WorldToScreen(fragWorldPos.xyz);
+				vec3 rayStepScreen = (rayEndScreen - rayStartScreen) / (sampleCount);
+				float rayStepWorldLength = length(lightEmitPosition.xyz - fragWorldPos.xyz) / sampleCount;
+				float threadRandom = dot(threadMask, threadOffset) + randomOffset;
 				
-			}
-			//printf(occludedness);
+				// Get the near and far planes from the viewProjection matrix:
+				float nearPlane = cameraProj[2][3] / (cameraProj[2][2] - 1.0);
+				float farPlane = cameraProj[2][3] / (cameraProj[2][2] + 1.0);
+				float nearplane_x_farplane_2 = 2.0 * nearPlane * farPlane;
+				float farplane_minus_nearplane = farPlane - nearPlane;
+				float farplane_plus_nearplane = farPlane + nearPlane;
+
+				// float LinearDepthGL(float z_s, float nearPlane, float farPlane){
+				//    float z_ndc   = z_s * 2.0 - 1.0;                // back-project to NDC
+    			// return (2.0 * nearPlane * farPlane) /  (farPlane + nearPlane - z_ndc * (farPlane - nearPlane));}
+				// same units as nearPlane & f
+				// Use the code below to verify the behavior of the depth buffer, and the linearity of the depth buffer
+				/*
+					float lightY = lightEmitPosition.y;
+					float groundY = fragWorldPos.y;
+					//printf(lightY);
+					//printf(groundY);
+					float dheight = lightY - groundY;
+					//printf(dheight);
+					//printf(nearPlane);
+					//printf(farPlane);
+
+					// For Proper debugging, we need to actually verify the Z distance between the light origin and the depth of the fragment at the cursor. 
+					float lightDistanceToCamera = 36.0 * nearplane_x_farplane_2 / (farplane_plus_nearplane - (rayStartScreen.z * 2.0 - 1.0) * farplane_minus_nearplane);
+
+					//printf(lightDistanceToCamera);
+
+					float fragDistance = 36.0 *  nearplane_x_farplane_2 / (farplane_plus_nearplane - (rayEndScreen.z * 2.0 - 1.0) * farplane_minus_nearplane);
+
+					//printf(fragDistance);
+
+					float elmoDistance = (lightDistanceToCamera - fragDistance); // Yup, 36.0 is the magic number that still provides decent linearity along the range. 
+					//printf(elmoDistance);
+
+					// Ok, elmodistance seems to be correct, now we need to simplify the above calculation
+					float nxp2 = 2.0 * nearPlane * farPlane;
+					float fmn  = farPlane - nearPlane;
+					float fpn  = farPlane + nearPlane;
+
+					float testDistance = depthToDeltaElmos(rayStartScreen.z, rayEndScreen.z, nearplane_x_farplane_2, farplane_plus_nearplane, farplane_minus_nearplane);
+					//printf(testDistance);	
+				*/
+
+				for (int i = 0; i < sampleCount; i++){ 
+					float stepSize =  (float(i) + threadRandom );
+
+					// Calculate the current ray position in screenspace only!
+
+					vec3 rayScreenPos = rayStartScreen + rayStepScreen * stepSize; 
+					// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
+					rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
+					
+					float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
+
+					// Assume that any sample outside of the edges of the screen will not occlude
+					if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
+					
+					// Since modeldepth is zero where there is no model, we need to convert this to 1.0
+					if (rayScreenDepthSample < 0.01) rayScreenDepthSample = 1.0;
+
+					// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
+					
+					float sampleDistance = depthToDeltaElmos(rayScreenPos.z, rayScreenDepthSample, nearplane_x_farplane_2, farplane_plus_nearplane, farplane_minus_nearplane);
+
+					// Occlude down to 48 elmos in depth. 
+					#if 1
+						//if (sampleDistance > 0.0 && sampleDistance < 48.0) {
+						//	occludedness += 1.0; // This is a fully occluded sample
+						//}
+						// We need a function centerered around 24, where its 1, and then goes down with rayStepWorldLength.  
+						#define OCCLUSIONWIDTH 32.0
+						#define OCCLUSIONSLOPE 0.3
+						occludedness += clamp( OCCLUSIONSLOPE *( OCCLUSIONWIDTH - abs(sampleDistance  + 1.0/(OCCLUSIONSLOPE) -  OCCLUSIONWIDTH)), 0.0, 1.0  );
+
+
+					#else
+						float sampleOcclusionStrength = 0.0;
+											// Assume that a ray that hits exactly occludes 0.5
+						if (sampleDistance > 0 ) {
+							// If the sample actually occludes, then softly occlude it based on the distance from the light
+							if (sampleDistance > 48.0) // Very deep occluders dont occlude
+								sampleOcclusionStrength = 1.0 -  clamp((sampleDistance - 48.0) / (rayStepWorldLength * 0.05), 0.0, 1.0);
+							else
+								sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepWorldLength * 0.05), 0.0, 1.0) * 0.5;
+
+						}else{
+							// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
+							sampleOcclusionStrength = 0.5 - clamp( -1 * sampleDistance / (rayStepWorldLength * 0.2), 0.0, 1.0) * 0.5;
+						}
+				
+						occludedness += sampleOcclusionStrength * 1.0;
+
+					#endif
+					
+				}
+			#endif
 
 			float prob = 0.56;
 

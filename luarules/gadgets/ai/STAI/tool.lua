@@ -48,7 +48,244 @@ Tool.COLOURS = {
 			white = {1,1,1,1},
 			black = {0,0,0,1}, --veh
 			}
+Tool._TABLES = {}
+Tool.tablerez = 0
+Tool.tablenew = 0
+function Tool:RezTable()
+	self:EchoDebug('#RezTable',#self._TABLES,self.tablerez,self.tablenew)
+	if self._TABLES[1] then
+		self.tablerez = self.tablerez +1
+		return table.remove(self._TABLES)
+	end
+	self.tablenew = self.tablenew + 1
+	return {}
+end
 
+
+-- Function to recursively process a table and discard everything that is not a table
+function Tool:KillTable(t)
+	
+	if not t or type(t) ~= 'table' then
+		self:EchoDebug("incorrect type in KillTable",t,type(t))    
+		return
+	end
+	--self:EchoDebug("SIT_TABLE: Before clearing", t)
+	--if type(t) == 'table' then
+		
+	
+	for key, value in pairs(t) do
+		
+		if type(value) == 'table' then
+			self:KillTable(value)
+		end
+		t[key] = nil
+		if  next(t) == nil then
+			table.insert(self._TABLES, t)
+			--t = nil
+		end
+	end
+	self:EchoDebug('#KillTable',#self._TABLES)
+	return nil
+end
+
+function Tool:ResetTable(t)
+	self:KillTable(t) 
+	return self:RezTable()
+end
+
+function Tool:StoreOrder (id,cmd,params,options,method)
+	if not id or not cmd or not params or not options or not method then
+		self:EchoDebug('storeorder failed :',id,cmd,params,options)
+		return
+	end
+	for i,v in pairs(params) do
+		params[i] = tonumber(v) or v
+	end
+	--self:EchoDebug('storeorder received :',id,cmd,params,opts)
+	game.orders = game.orders or game:RezTable()
+	game.lastGameFrame = game.lastGameFrame or 0
+	
+	local new = game:RezTable()
+	new.cmd = nil
+	new.params = game:RezTable()
+	new.options = game:RezTable()
+	
+	new.cmd = cmd
+	new.id = id
+	table.insert(new.params, params)
+	table.insert(new.options, options)
+	game.orders[id]=new
+	
+	local frame = game:Frame()
+	if frame < game.lastGameFrame + 30 then
+		
+		return
+	end
+	game.lastGameFrame = frame
+end
+		
+
+local serialized = ''
+function Tool:SerializeOrder(id,cmd,parameters,options,method)
+	
+	self:EchoDebug('SerializeOrder',id,cmd,parameters,options,method)
+	serialized = ''
+	local order = ''
+	order = order .. '&id:'
+	if type(id) == 'number' then
+		order = order .. tostring(id)
+	else
+		order = order .. self:TableToString(id)
+	end
+	self:EchoDebug('serialized oder id:',order)
+	serialized = ''
+	order = order .. '&cmd:'
+	if type(cmd) == 'number' then
+		order = order .. tostring(cmd)
+	else
+		order = order .. self:TableToString(cmd)
+	end
+	self:EchoDebug('serialized oder cmd',order)
+	serialized = ''
+	order = order .. '&parameters:'
+	if type(parameters) == 'number' then
+		order = order .. tostring(parameters)
+	else
+		order = order .. self:TableToString(parameters)
+	end
+	self:EchoDebug('serialized oder params',order)
+	serialized = ''
+	order = order .. '&options:'
+	if type(options) == 'number' then
+		order = order .. tostring(options)
+	else
+		order = order .. self:TableToString(options)
+	end
+	self:EchoDebug('serialized ordero ptions',order)
+	serialized = ''
+	order = order .. '&method:'.. method
+	self:EchoDebug('Serialized Order complete:',order)
+	serialized = ''
+	return order
+end
+
+function Tool:GiveOrder(id,cmd,parameters,options,method)
+	if not id or not cmd or not parameters or not options or not method then
+		self:EchoDebug('Serialize Order missing parameters',id,cmd,parameters,options,method)
+		return
+	end
+	--if type(id) ~= ('number' or 'table') or type(cmd) ~= ('number' or 'table') or type(parameters) ~= ('number' or 'table') or type(options) ~= ('number' or 'table') or type(method) ~= 'string' then
+	--	self:EchoDebug('Serialize Order wrong arg types',type(id),type(cmd),type(parameters),type(options),type(method))
+	--	return
+	--end
+	local order = self:SerializeOrder(id,cmd,parameters,options,method)
+	game:GiveOrder(order)
+
+end
+
+function Tool:DeserializeOrder(str)
+	if not str then
+		self:EchoDebug('Deserialize Order missing parameters')
+		return
+	end
+	if string.sub(str,1,4) ~= '[ST]' or string.sub(str,-4,-1) ~= '[ST]' then
+		self:EchoDebug(string.sub(str,1,4),string.sub(str,-4,-1))
+		return
+	else
+		str = string.sub(str,5,-5)
+	end
+	local order = {}
+	for s in string.gmatch(str, "([^&]+)") do
+		local key, value = string.match(s, "(%w+):(.+)")
+		if string.find(value,'|') or string.find(value,',') then
+			order[key] = self:StringToTable(value)
+		else
+			order[key] = tonumber(value) or value
+		end
+	end
+	self:EchoDebug('order',order)
+	return order
+end
+
+
+function Tool:TableToString(t)
+	if not t then
+		return
+	end
+	if t.x  and t.z and not t.y then
+		self:Warn('incomplete position in table to string')
+		return 
+	elseif t.x  and t.z and t.y then
+		serialized = serialized ..t.x ..','..t.y ..','..t.z ..','
+		if t[1] then
+			serialized = serialized .. t[1]
+		end
+	else
+		for k,v in pairs(t) do
+
+			if type(v) == 'number' then
+				serialized = serialized ..v ..','
+			else
+				self:TableToString(v)
+				serialized = serialized ..'|'
+			end
+		end
+	end
+    self:EchoDebug("Serialized:", serialized)
+    return serialized
+end
+
+function Tool:TableToStringBackup(t)
+	if not t then
+		return
+	end
+	if t.x  and t.z then
+		if not t.y then
+			return
+		end
+		table.insert(t,1,t.x)
+		table.insert(t,2,t.y)
+		table.insert(t,3,t.z)
+		table.x = nil
+		table.y = nil
+		table.z = nil
+	end
+    for k,v in pairs(t) do
+
+		if type(v) == 'number' then
+			serialized = serialized ..v ..','
+		else
+			self:TableToString(v)
+			serialized = serialized ..'|'
+		end
+	end
+	
+    self:EchoDebug("Serialized:", serialized)
+    return serialized
+end
+
+
+
+function Tool:StringToTable(str)
+	local t = {}
+	local i = 1
+	if string.find(str,'|') then
+		for s in string.gmatch(str, "([^|]+)") do
+			
+			t[i] = {}
+			for value in string.gmatch(s, "([^,]+)") do
+			table.insert(t[i],tonumber(value) or value)
+			end
+			i = i + 1
+		end
+	else
+		for value in string.gmatch(str, "([^,]+)") do
+			table.insert(t,tonumber(value) or value)
+		end
+	end
+	self:EchoDebug("Deserialized:", t)
+	return t
+end
 
 function Tool:RandomAway(pos, dist, opposite, angle)
 	if angle == nil then
@@ -133,7 +370,7 @@ function Tool:distance(POS1,POS2)
 end
 
 function Tool:sumPos(pos1, pos2)
-	pos = api.Position()
+	local pos = api.Position()
 	pos.x = pos1.x + pos2.x
 	pos.y = pos1.y + pos2.y
 	pos.z = pos1.z + pos2.z

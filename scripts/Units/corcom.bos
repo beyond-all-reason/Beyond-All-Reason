@@ -796,7 +796,7 @@ Create()
 	move crown to y-axis [100] speed [9999];
 	move medalgold to y-axis [100] speed [9999];
 	move medalsilver to y-axis [100] speed [9999];
-	move medalgold to y-axis [100] speed [9999];
+	move medalbronze to y-axis [100] speed [9999];
 
 	shotcount = 0;
 	idleTime = 0;

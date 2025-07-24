@@ -1,0 +1,1389 @@
+
+#include "../recoil_common_includes.h"
+#include "smart_weapon_select.h"
+
+piece  	
+    chassis,
+    legPivotL1,
+    legUpperL1,
+    legMidL1,
+    legLowerL1,
+    legFootL1,
+    legPivotL2,
+    legUpperL2,
+    legMidL2,
+    legLowerL2,
+    legFootL2,
+    legPivotL3,
+    legUpperL3,
+    legMidL3,
+    legLowerL3,
+    legFootL3,
+    legPivotR1,
+    legUpperR1,
+    legMidR1,
+    legLowerR1,
+    legFootR1,
+    legPivotR2,
+    legUpperR2,
+    legMidR2,
+    legLowerR2,
+    legFootR2,
+    legPivotR3,
+    legUpperR3,
+    legMidR3,
+    legLowerR3,
+    legFootR3,
+    turretHeadingPivot,
+    turretPitchPivot,
+    turret,
+    lowerBarrel,
+    upperBarrel,
+    barrelFlare1,
+    barrelFlare2,
+    padR,
+    padL,
+    turretPitchFake,
+    barrelSpinPivot,
+    rocketFlare1,
+    rocketFlare2,
+    rocketFlare3;
+
+static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, whichBarrel, whichMissile;
+
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+
+#define LOW_TRAJECTORY		0
+#define HIGH_TRAJECTORY		1
+
+
+// Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
+// Using https://github.com/Beherith/Skeletor_S3O
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+// For C:\Users\logst\Downloads\BAR\armvang anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+#define SIGNAL_MOVE 1
+Walk() {// For C:\Users\Dian\Desktop\BAR Development\Unit Modelling\Models\Bots\Tier 3\legeallterrainmech7finalANIM.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:1
+			move chassis to y-axis [0.587439] speed [5.718956] / animSpeed; 
+			turn legFootL1 to x-axis <20.113037> speed <75.283677> / animSpeed; 
+			turn legFootL1 to z-axis <17.727377> speed <45.955989> / animSpeed; 
+			turn legFootL1 to y-axis <44.203055> speed <23.192556> / animSpeed; 
+			turn legFootL2 to x-axis <-2.053091> speed <7.584788> / animSpeed; 
+			turn legFootL2 to z-axis <7.128094> speed <10.304489> / animSpeed; 
+			turn legFootL2 to y-axis <-8.485503> speed <40.222280> / animSpeed; 
+			turn legFootL3 to x-axis <-8.544533> speed <12.907060> / animSpeed; 
+			turn legFootL3 to z-axis <0.873292> speed <8.106486> / animSpeed; 
+			turn legFootL3 to y-axis <-20.123032> speed <30.810386> / animSpeed; 
+			turn legFootR1 to x-axis <11.033109> speed <17.676777> / animSpeed; 
+			turn legFootR1 to z-axis <-15.366479> speed <16.250096> / animSpeed; 
+			turn legFootR1 to y-axis <-37.358556> speed <22.807129> / animSpeed; 
+			turn legFootR2 to x-axis <5.257751> speed <9.165508> / animSpeed; 
+			turn legFootR2 to z-axis <-14.086770> speed <7.963864> / animSpeed; 
+			turn legFootR2 to y-axis <-22.237991> speed <30.904130> / animSpeed; 
+			turn legFootR3 to x-axis <-0.939182> speed <54.633456> / animSpeed; 
+			turn legFootR3 to z-axis <-16.097588> speed <13.150436> / animSpeed; 
+			turn legFootR3 to y-axis <42.403980> speed <10.565654> / animSpeed; 
+			turn legLowerL1 to z-axis <-8.391849> speed <158.629957> / animSpeed; 
+			turn legLowerL3 to x-axis <7.379154> speed <8.104557> / animSpeed; 
+			turn legLowerL3 to z-axis <-13.031572> speed <15.125573> / animSpeed; 
+			turn legLowerL3 to y-axis <2.076365> speed <3.171280> / animSpeed; 
+			turn legLowerR1 to z-axis <36.076892> speed <73.304288> / animSpeed; 
+			turn legLowerR2 to z-axis <25.582554> speed <45.553708> / animSpeed; 
+			turn legLowerR3 to x-axis <-5.832925> speed <27.305487> / animSpeed; 
+			turn legLowerR3 to z-axis <-12.817978> speed <102.105241> / animSpeed; 
+			turn legLowerR3 to y-axis <-4.367638> speed <53.881599> / animSpeed; 
+			turn legMidL1 to z-axis <-3.131711> speed <35.198210> / animSpeed; 
+			turn legMidL2 to z-axis <2.766280> speed <7.102831> / animSpeed; 
+			turn legMidL3 to z-axis <3.947906> speed <3.997518> / animSpeed; 
+			turn legMidR1 to z-axis <-7.445670> speed <25.543285> / animSpeed; 
+			turn legMidR2 to z-axis <-3.249797> speed <15.837838> / animSpeed; 
+			turn legMidR3 to z-axis <-4.149200> speed <4.861310> / animSpeed; 
+			turn legPivotL1 to y-axis <-49.413789> speed <51.179188> / animSpeed; 
+			turn legPivotL2 to y-axis <4.278168> speed <43.992531> / animSpeed; 
+			turn legPivotL3 to z-axis <1.596455> speed <3.954094> / animSpeed; 
+			turn legPivotL3 to y-axis <14.504340> speed <33.961323> / animSpeed; 
+			turn legPivotR1 to y-axis <36.330008> speed <26.535695> / animSpeed; 
+			turn legPivotR2 to y-axis <20.109701> speed <31.916159> / animSpeed; 
+			turn legPivotR3 to y-axis <-48.704829> speed <9.981775> / animSpeed; 
+			turn legUpperL1 to z-axis <-13.137737> speed <40.362243> / animSpeed; 
+			turn legUpperL1 to y-axis <-1.674003> speed <5.323770> / animSpeed; 
+			turn legUpperL2 to z-axis <9.026051> speed <3.850639> / animSpeed; 
+			turn legUpperL3 to z-axis <5.579977> speed <9.563038> / animSpeed; 
+			turn legUpperR1 to z-axis <-7.518534> speed <25.515418> / animSpeed; 
+			turn legUpperR2 to z-axis <-5.111632> speed <20.094895> / animSpeed; 
+			turn legUpperR3 to x-axis <-0.229014> speed <4.593214> / animSpeed; 
+			turn legUpperR3 to z-axis <37.795142> speed <75.775655> / animSpeed; 
+			turn legUpperR3 to y-axis <6.226017> speed <11.854523> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:6
+			move chassis to y-axis [-0.365721] speed [28.594780] / animSpeed; 
+			turn chassis to z-axis <-2.251313> speed <4.638546> / animSpeed; 
+			turn chassis to y-axis <2.912348> speed <12.866239> / animSpeed; 
+			turn legFootL1 to x-axis <32.660319> speed <376.418436> / animSpeed; 
+			turn legFootL1 to z-axis <25.386713> speed <229.780097> / animSpeed; 
+			turn legFootL1 to y-axis <48.068474> speed <115.962576> / animSpeed; 
+			turn legFootL2 to x-axis <-3.317222> speed <37.923930> / animSpeed; 
+			turn legFootL2 to z-axis <8.845510> speed <51.522469> / animSpeed; 
+			turn legFootL2 to y-axis <-15.189215> speed <201.111385> / animSpeed; 
+			turn legFootL3 to x-axis <-10.695711> speed <64.535350> / animSpeed; 
+			turn legFootL3 to z-axis <2.224373> speed <40.532427> / animSpeed; 
+			turn legFootL3 to y-axis <-25.258094> speed <154.051877> / animSpeed; 
+			turn legFootR1 to x-axis <8.086979> speed <88.383886> / animSpeed; 
+			turn legFootR1 to z-axis <-12.658132> speed <81.250428> / animSpeed; 
+			turn legFootR1 to y-axis <-33.557365> speed <114.035746> / animSpeed; 
+			turn legFootR2 to x-axis <3.730166> speed <45.827551> / animSpeed; 
+			turn legFootR2 to z-axis <-12.759458> speed <39.819345> / animSpeed; 
+			turn legFootR2 to y-axis <-17.087301> speed <154.520701> / animSpeed; 
+			turn legFootR3 to x-axis <8.166394> speed <273.167273> / animSpeed; 
+			turn legFootR3 to z-axis <-18.289326> speed <65.752131> / animSpeed; 
+			turn legFootR3 to y-axis <44.164918> speed <52.828166> / animSpeed; 
+			turn legLowerL1 to x-axis <0.309059> speed <7.051450> / animSpeed; 
+			turn legLowerL1 to z-axis <-34.830177> speed <793.149860> / animSpeed; 
+			turn legLowerL3 to x-axis <8.729911> speed <40.522710> / animSpeed; 
+			turn legLowerL3 to z-axis <-15.552503> speed <75.627918> / animSpeed; 
+			turn legLowerL3 to y-axis <2.604912> speed <15.856414> / animSpeed; 
+			turn legLowerR1 to z-axis <23.859502> speed <366.521697> / animSpeed; 
+			turn legLowerR1 to y-axis <-0.077455> speed <3.441705> / animSpeed; 
+			turn legLowerR2 to z-axis <17.990266> speed <227.768641> / animSpeed; 
+			turn legLowerR3 to x-axis <-10.383840> speed <136.527460> / animSpeed; 
+			turn legLowerR3 to z-axis <-29.835516> speed <510.526152> / animSpeed; 
+			turn legLowerR3 to y-axis <-13.347906> speed <269.408035> / animSpeed; 
+			turn legMidL1 to z-axis <2.734657> speed <175.991064> / animSpeed; 
+			turn legMidL2 to z-axis <1.582474> speed <35.514172> / animSpeed; 
+			turn legMidL3 to x-axis <1.007255> speed <5.151815> / animSpeed; 
+			turn legMidL3 to z-axis <4.614158> speed <19.987562> / animSpeed; 
+			turn legMidL3 to y-axis <1.224394> speed <4.805355> / animSpeed; 
+			turn legMidR1 to z-axis <-3.188457> speed <127.716407> / animSpeed; 
+			turn legMidR2 to z-axis <-0.610157> speed <79.189179> / animSpeed; 
+			turn legMidR3 to x-axis <1.709380> speed <10.210840> / animSpeed; 
+			turn legMidR3 to z-axis <-4.959420> speed <24.306577> / animSpeed; 
+			turn legMidR3 to y-axis <-0.114781> speed <8.793842> / animSpeed; 
+			turn legPivotL1 to x-axis <-2.088647> speed <10.825865> / animSpeed; 
+			turn legPivotL1 to z-axis <-0.731180> speed <8.569753> / animSpeed; 
+			turn legPivotL1 to y-axis <-57.943643> speed <255.895633> / animSpeed; 
+			turn legPivotL2 to x-axis <0.445436> speed <8.613147> / animSpeed; 
+			turn legPivotL2 to y-axis <11.610257> speed <219.962682> / animSpeed; 
+			turn legPivotL3 to x-axis <-0.951360> speed <4.689010> / animSpeed; 
+			turn legPivotL3 to z-axis <2.255471> speed <19.770478> / animSpeed; 
+			turn legPivotL3 to y-axis <20.164561> speed <169.806614> / animSpeed; 
+			turn legPivotR1 to y-axis <31.907396> speed <132.678371> / animSpeed; 
+			turn legPivotR2 to x-axis <0.562255> speed <3.947806> / animSpeed; 
+			turn legPivotR2 to y-axis <14.790343> speed <159.580745> / animSpeed; 
+			turn legPivotR3 to z-axis <-6.953209> speed <7.060102> / animSpeed; 
+			turn legPivotR3 to y-axis <-47.041200> speed <49.908875> / animSpeed; 
+			turn legUpperL1 to x-axis <-0.510505> speed <12.678014> / animSpeed; 
+			turn legUpperL1 to z-axis <-6.410698> speed <201.811151> / animSpeed; 
+			turn legUpperL1 to y-axis <-0.786708> speed <26.618842> / animSpeed; 
+			turn legUpperL2 to z-axis <8.384277> speed <19.253219> / animSpeed; 
+			turn legUpperL3 to x-axis <0.354047> speed <4.831340> / animSpeed; 
+			turn legUpperL3 to z-axis <3.986136> speed <47.815213> / animSpeed; 
+			turn legUpperL3 to y-axis <0.570064> speed <6.431683> / animSpeed; 
+			turn legUpperR1 to x-axis <0.263406> speed <11.475701> / animSpeed; 
+			turn legUpperR1 to z-axis <-3.265962> speed <127.577148> / animSpeed; 
+			turn legUpperR1 to y-axis <-0.399191> speed <14.759618> / animSpeed; 
+			turn legUpperR2 to x-axis <0.139633> speed <8.622751> / animSpeed; 
+			turn legUpperR2 to z-axis <-1.762483> speed <100.474444> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.217029> speed <11.927944> / animSpeed; 
+			turn legUpperR3 to x-axis <0.536521> speed <22.966067> / animSpeed; 
+			turn legUpperR3 to z-axis <50.424425> speed <378.878482> / animSpeed; 
+			turn legUpperR3 to y-axis <8.201772> speed <59.272655> / animSpeed; 
+			turn turretPitchPivot to x-axis <0.167551> speed <9.491698> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			move chassis to y-axis [-0.997580] speed [18.955765] / animSpeed; 
+			turn chassis to z-axis <-1.572927> speed <20.351600> / animSpeed; 
+			turn chassis to y-axis <1.279919> speed <48.972876> / animSpeed; 
+			turn legFootL1 to x-axis <34.084502> speed <42.725497> / animSpeed; 
+			turn legFootL1 to z-axis <26.808747> speed <42.661003> / animSpeed; 
+			turn legFootL1 to y-axis <49.597104> speed <45.858915> / animSpeed; 
+			turn legFootL2 to x-axis <-0.485404> speed <84.954540> / animSpeed; 
+			turn legFootL2 to z-axis <15.917983> speed <212.174192> / animSpeed; 
+			turn legFootL2 to y-axis <-5.956115> speed <276.993003> / animSpeed; 
+			turn legFootL3 to x-axis <-15.257191> speed <136.844411> / animSpeed; 
+			turn legFootL3 to z-axis <3.040770> speed <24.491921> / animSpeed; 
+			turn legFootL3 to y-axis <-30.142123> speed <146.520877> / animSpeed; 
+			turn legFootR1 to x-axis <4.883954> speed <96.090760> / animSpeed; 
+			turn legFootR1 to z-axis <-8.621781> speed <121.090520> / animSpeed; 
+			turn legFootR1 to y-axis <-29.330014> speed <126.820528> / animSpeed; 
+			turn legFootR2 to x-axis <2.122995> speed <48.215119> / animSpeed; 
+			turn legFootR2 to z-axis <-10.994746> speed <52.941377> / animSpeed; 
+			turn legFootR2 to y-axis <-11.318612> speed <173.060669> / animSpeed; 
+			turn legFootR3 to x-axis <10.104683> speed <58.148670> / animSpeed; 
+			turn legFootR3 to z-axis <-4.272638> speed <420.500639> / animSpeed; 
+			turn legFootR3 to y-axis <22.324817> speed <655.203057> / animSpeed; 
+			turn legLowerL1 to z-axis <-75.485290> speed <1219.653390> / animSpeed; 
+			turn legLowerL1 to y-axis <0.610139> speed <16.373597> / animSpeed; 
+			turn legLowerL2 to x-axis <-0.081396> speed <6.948115> / animSpeed; 
+			turn legLowerL2 to z-axis <10.380434> speed <823.055152> / animSpeed; 
+			turn legLowerL3 to x-axis <11.445076> speed <81.454975> / animSpeed; 
+			turn legLowerL3 to z-axis <-21.219653> speed <170.014490> / animSpeed; 
+			turn legLowerL3 to y-axis <4.440943> speed <55.080925> / animSpeed; 
+			turn legLowerR1 to z-axis <11.939619> speed <357.596492> / animSpeed; 
+			turn legLowerR2 to z-axis <12.480352> speed <165.297408> / animSpeed; 
+			turn legLowerR3 to x-axis <-8.055178> speed <69.859875> / animSpeed; 
+			turn legLowerR3 to z-axis <-14.846775> speed <449.662226> / animSpeed; 
+			turn legLowerR3 to y-axis <-3.305307> speed <301.277975> / animSpeed; 
+			turn legMidL1 to z-axis <25.947224> speed <696.377008> / animSpeed; 
+			turn legMidL2 to z-axis <-8.170880> speed <292.600626> / animSpeed; 
+			turn legMidL3 to x-axis <1.175837> speed <5.057463> / animSpeed; 
+			turn legMidL3 to z-axis <5.432752> speed <24.557804> / animSpeed; 
+			turn legMidL3 to y-axis <1.454163> speed <6.893059> / animSpeed; 
+			turn legMidR1 to z-axis <-0.919745> speed <68.061360> / animSpeed; 
+			turn legMidR2 to z-axis <0.472509> speed <32.480002> / animSpeed; 
+			turn legMidR3 to x-axis <1.165244> speed <16.324080> / animSpeed; 
+			turn legMidR3 to z-axis <-3.815014> speed <34.332176> / animSpeed; 
+			turn legMidR3 to y-axis <-0.619756> speed <15.149236> / animSpeed; 
+			turn legPivotL1 to x-axis <-1.537590> speed <16.531691> / animSpeed; 
+			turn legPivotL1 to z-axis <-0.491805> speed <7.181259> / animSpeed; 
+			turn legPivotL1 to y-axis <-60.164678> speed <66.631023> / animSpeed; 
+			turn legPivotL2 to x-axis <0.181977> speed <7.903788> / animSpeed; 
+			turn legPivotL2 to y-axis <6.729063> speed <146.435815> / animSpeed; 
+			turn legPivotL3 to x-axis <-1.374374> speed <12.690401> / animSpeed; 
+			turn legPivotL3 to z-axis <3.082152> speed <24.800419> / animSpeed; 
+			turn legPivotL3 to y-axis <26.304993> speed <184.212968> / animSpeed; 
+			turn legPivotR1 to x-axis <0.705687> speed <12.797320> / animSpeed; 
+			turn legPivotR1 to z-axis <-0.352165> speed <5.734927> / animSpeed; 
+			turn legPivotR1 to y-axis <28.347718> speed <106.790332> / animSpeed; 
+			turn legPivotR2 to x-axis <0.274651> speed <8.628115> / animSpeed; 
+			turn legPivotR2 to y-axis <10.257247> speed <135.992874> / animSpeed; 
+			turn legPivotR3 to x-axis <-2.657198> speed <46.584114> / animSpeed; 
+			turn legPivotR3 to z-axis <-3.187897> speed <112.959350> / animSpeed; 
+			turn legPivotR3 to y-axis <-24.760877> speed <668.409689> / animSpeed; 
+			turn legUpperL1 to x-axis <0.796156> speed <39.199810> / animSpeed; 
+			turn legUpperL1 to z-axis <8.503554> speed <447.427563> / animSpeed; 
+			turn legUpperL1 to y-axis <0.957242> speed <52.318499> / animSpeed; 
+			turn legUpperL2 to x-axis <-1.111838> speed <57.374380> / animSpeed; 
+			turn legUpperL2 to z-axis <-16.482093> speed <745.991127> / animSpeed; 
+			turn legUpperL2 to y-axis <-2.128391> speed <91.758042> / animSpeed; 
+			turn legUpperL3 to z-axis <3.363053> speed <18.692507> / animSpeed; 
+			turn legUpperR1 to x-axis <-0.047404> speed <9.324309> / animSpeed; 
+			turn legUpperR1 to z-axis <0.608045> speed <116.220210> / animSpeed; 
+			turn legUpperR1 to y-axis <0.075338> speed <14.235875> / animSpeed; 
+			turn legUpperR2 to x-axis <0.010016> speed <3.888503> / animSpeed; 
+			turn legUpperR2 to z-axis <-0.126851> speed <49.068967> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.015637> speed <6.041784> / animSpeed; 
+			turn legUpperR3 to x-axis <-0.924090> speed <43.818345> / animSpeed; 
+			turn legUpperR3 to z-axis <23.241305> speed <815.493595> / animSpeed; 
+			turn legUpperR3 to y-axis <3.768712> speed <132.991813> / animSpeed; 
+			turn turretPitchPivot to x-axis <1.959233> speed <53.750479> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:18
+			move chassis to y-axis [-0.233023] speed [22.936707] / animSpeed; 
+			turn chassis to z-axis <-0.289339> speed <38.507640> / animSpeed; 
+			turn chassis to y-axis <-0.845185> speed <63.753124> / animSpeed; 
+			turn legFootL1 to x-axis <27.946559> speed <184.138280> / animSpeed; 
+			turn legFootL1 to z-axis <24.966684> speed <55.261882> / animSpeed; 
+			turn legFootL1 to y-axis <47.985661> speed <48.343293> / animSpeed; 
+			turn legFootL2 to x-axis <5.768390> speed <187.613800> / animSpeed; 
+			turn legFootL2 to z-axis <21.935264> speed <180.518416> / animSpeed; 
+			turn legFootL2 to y-axis <10.105944> speed <481.861795> / animSpeed; 
+			turn legFootL3 to x-axis <-23.229987> speed <239.183884> / animSpeed; 
+			turn legFootL3 to z-axis <0.649658> speed <71.733369> / animSpeed; 
+			turn legFootL3 to y-axis <-34.148962> speed <120.205148> / animSpeed; 
+			turn legFootR1 to x-axis <1.679480> speed <96.134212> / animSpeed; 
+			turn legFootR1 to z-axis <-3.622421> speed <149.980811> / animSpeed; 
+			turn legFootR1 to y-axis <-24.912411> speed <132.528073> / animSpeed; 
+			turn legFootR2 to x-axis <0.491278> speed <48.951508> / animSpeed; 
+			turn legFootR2 to z-axis <-8.670402> speed <69.730323> / animSpeed; 
+			turn legFootR2 to y-axis <-5.684223> speed <169.031686> / animSpeed; 
+			turn legFootR3 to x-axis <0.968622> speed <274.081825> / animSpeed; 
+			turn legFootR3 to z-axis <-0.056691> speed <126.478394> / animSpeed; 
+			turn legFootR3 to y-axis <14.730128> speed <227.840665> / animSpeed; 
+			turn legLowerL1 to x-axis <0.073605> speed <4.128592> / animSpeed; 
+			turn legLowerL1 to z-axis <-80.363924> speed <146.359001> / animSpeed; 
+			turn legLowerL2 to z-axis <14.807357> speed <132.807692> / animSpeed; 
+			turn legLowerL3 to x-axis <15.334198> speed <116.673650> / animSpeed; 
+			turn legLowerL3 to z-axis <-33.985273> speed <382.968604> / animSpeed; 
+			turn legLowerL3 to y-axis <11.278743> speed <205.134004> / animSpeed; 
+			turn legLowerR1 to z-axis <5.764660> speed <185.248754> / animSpeed; 
+			turn legLowerR2 to z-axis <12.687681> speed <6.219861> / animSpeed; 
+			turn legLowerR3 to x-axis <-0.004974> speed <241.506106> / animSpeed; 
+			turn legLowerR3 to z-axis <-0.008348> speed <445.152814> / animSpeed; 
+			turn legLowerR3 to y-axis <0.000017> speed <99.159715> / animSpeed; 
+			turn legMidL1 to z-axis <30.157587> speed <126.310876> / animSpeed; 
+			turn legMidL2 to z-axis <-10.897894> speed <81.810409> / animSpeed; 
+			turn legMidL3 to x-axis <1.517143> speed <10.239181> / animSpeed; 
+			turn legMidL3 to z-axis <7.907214> speed <74.233855> / animSpeed; 
+			turn legMidL3 to y-axis <2.256604> speed <24.073228> / animSpeed; 
+			turn legMidR1 to z-axis <-1.556030> speed <19.088558> / animSpeed; 
+			turn legMidR2 to z-axis <-0.679870> speed <34.571364> / animSpeed; 
+			turn legMidR3 to x-axis <0.731120> speed <13.023715> / animSpeed; 
+			turn legMidR3 to z-axis <-2.976719> speed <25.148835> / animSpeed; 
+			turn legPivotL1 to x-axis <-0.374030> speed <34.906809> / animSpeed; 
+			turn legPivotL1 to z-axis <0.142628> speed <19.032967> / animSpeed; 
+			turn legPivotL1 to y-axis <-54.817432> speed <160.417375> / animSpeed; 
+			turn legPivotL2 to x-axis <-0.038532> speed <6.615251> / animSpeed; 
+			turn legPivotL2 to y-axis <-7.148824> speed <416.336623> / animSpeed; 
+			turn legPivotL3 to x-axis <-2.050873> speed <20.294975> / animSpeed; 
+			turn legPivotL3 to z-axis <3.593024> speed <15.326157> / animSpeed; 
+			turn legPivotL3 to y-axis <28.948640> speed <79.309407> / animSpeed; 
+			turn legPivotR1 to x-axis <0.093551> speed <18.364070> / animSpeed; 
+			turn legPivotR1 to z-axis <-0.170006> speed <5.464790> / animSpeed; 
+			turn legPivotR1 to y-axis <25.786957> speed <76.822826> / animSpeed; 
+			turn legPivotR2 to x-axis <0.032448> speed <7.266088> / animSpeed; 
+			turn legPivotR2 to y-axis <6.908202> speed <100.471348> / animSpeed; 
+			turn legPivotR3 to x-axis <-1.347290> speed <39.297265> / animSpeed; 
+			turn legPivotR3 to z-axis <-1.605431> speed <47.473988> / animSpeed; 
+			turn legPivotR3 to y-axis <-13.826207> speed <328.040103> / animSpeed; 
+			turn legUpperL1 to x-axis <1.292582> speed <14.892791> / animSpeed; 
+			turn legUpperL1 to z-axis <13.478320> speed <149.242972> / animSpeed; 
+			turn legUpperL1 to y-axis <1.488460> speed <15.936568> / animSpeed; 
+			turn legUpperL2 to x-axis <-1.383629> speed <8.153725> / animSpeed; 
+			turn legUpperL2 to z-axis <-26.258980> speed <293.306594> / animSpeed; 
+			turn legUpperL2 to y-axis <-3.542575> speed <42.425509> / animSpeed; 
+			turn legUpperL3 to x-axis <0.683322> speed <11.997303> / animSpeed; 
+			turn legUpperL3 to z-axis <7.956233> speed <137.795404> / animSpeed; 
+			turn legUpperL3 to y-axis <1.152985> speed <19.873653> / animSpeed; 
+			turn legUpperR1 to z-axis <0.215160> speed <11.786546> / animSpeed; 
+			turn legUpperR2 to x-axis <0.254577> speed <7.336812> / animSpeed; 
+			turn legUpperR2 to z-axis <-3.002962> speed <86.283318> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.358451> speed <10.284421> / animSpeed; 
+			turn legUpperR3 to x-axis <-0.342350> speed <17.452209> / animSpeed; 
+			turn legUpperR3 to z-axis <4.685421> speed <556.676507> / animSpeed; 
+			turn legUpperR3 to y-axis <0.708812> speed <91.796992> / animSpeed; 
+			turn turretPitchPivot to x-axis <3.413564> speed <43.629925> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:24
+			move chassis to y-axis [0.857721] speed [32.722321] / animSpeed; 
+			turn chassis to z-axis <1.104986> speed <41.829728> / animSpeed; 
+			turn chassis to y-axis <-2.645397> speed <54.006344> / animSpeed; 
+			turn legFootL1 to x-axis <20.794663> speed <214.556886> / animSpeed; 
+			turn legFootL1 to z-axis <21.843237> speed <93.703416> / animSpeed; 
+			turn legFootL1 to y-axis <44.753250> speed <96.972328> / animSpeed; 
+			turn legFootL2 to x-axis <9.781538> speed <120.394442> / animSpeed; 
+			turn legFootL2 to z-axis <19.794501> speed <64.222869> / animSpeed; 
+			turn legFootL2 to y-axis <22.955436> speed <385.484744> / animSpeed; 
+			turn legFootL3 to x-axis <-16.691895> speed <196.142781> / animSpeed; 
+			turn legFootL3 to z-axis <7.915074> speed <217.962492> / animSpeed; 
+			turn legFootL3 to y-axis <-36.019542> speed <56.117415> / animSpeed; 
+			turn legFootR1 to x-axis <3.425953> speed <52.394183> / animSpeed; 
+			turn legFootR1 to z-axis <-4.767872> speed <34.363540> / animSpeed; 
+			turn legFootR1 to y-axis <-27.258288> speed <70.376288> / animSpeed; 
+			turn legFootR2 to x-axis <-0.843256> speed <40.036038> / animSpeed; 
+			turn legFootR2 to z-axis <-6.869157> speed <54.037353> / animSpeed; 
+			turn legFootR2 to y-axis <0.486384> speed <185.118201> / animSpeed; 
+			turn legFootR3 to x-axis <-4.950096> speed <177.561531> / animSpeed; 
+			turn legFootR3 to y-axis <16.382152> speed <49.560741> / animSpeed; 
+			turn legLowerL1 to x-axis <0.218378> speed <4.343181> / animSpeed; 
+			turn legLowerL1 to z-axis <-64.658983> speed <471.148225> / animSpeed; 
+			turn legLowerL1 to y-axis <0.520110> speed <4.693568> / animSpeed; 
+			turn legLowerL2 to x-axis <0.042088> speed <4.155626> / animSpeed; 
+			turn legLowerL2 to z-axis <-4.732741> speed <586.202928> / animSpeed; 
+			turn legLowerL2 to y-axis <-0.011181> speed <3.208827> / animSpeed; 
+			turn legLowerL3 to x-axis <10.508346> speed <144.775567> / animSpeed; 
+			turn legLowerL3 to z-axis <-18.322546> speed <469.881805> / animSpeed; 
+			turn legLowerL3 to y-axis <2.057097> speed <276.649408> / animSpeed; 
+			turn legLowerR1 to x-axis <-0.061664> speed <3.435930> / animSpeed; 
+			turn legLowerR1 to z-axis <-6.983162> speed <382.434684> / animSpeed; 
+			turn legLowerR2 to z-axis <15.768407> speed <92.421783> / animSpeed; 
+			turn legLowerR3 to x-axis <4.775139> speed <143.403378> / animSpeed; 
+			turn legLowerR3 to z-axis <8.198799> speed <246.214404> / animSpeed; 
+			turn legLowerR3 to y-axis <-0.906954> speed <27.209126> / animSpeed; 
+			turn legMidL1 to z-axis <20.407408> speed <292.505361> / animSpeed; 
+			turn legMidL2 to z-axis <-5.814528> speed <152.500985> / animSpeed; 
+			turn legMidL3 to x-axis <1.276511> speed <7.218955> / animSpeed; 
+			turn legMidL3 to z-axis <5.034995> speed <86.166563> / animSpeed; 
+			turn legMidL3 to y-axis <1.186784> speed <32.094594> / animSpeed; 
+			turn legMidR1 to z-axis <1.690607> speed <97.399095> / animSpeed; 
+			turn legMidR2 to z-axis <-2.620547> speed <58.220331> / animSpeed; 
+			turn legMidR3 to z-axis <-3.292360> speed <9.469229> / animSpeed; 
+			turn legMidR3 to y-axis <-0.869300> speed <4.606097> / animSpeed; 
+			turn legPivotL1 to x-axis <0.700375> speed <32.232145> / animSpeed; 
+			turn legPivotL1 to z-axis <0.618011> speed <14.261512> / animSpeed; 
+			turn legPivotL1 to y-axis <-47.491548> speed <219.776500> / animSpeed; 
+			turn legPivotL2 to x-axis <0.365599> speed <12.123932> / animSpeed; 
+			turn legPivotL2 to z-axis <0.194014> speed <4.676522> / animSpeed; 
+			turn legPivotL2 to y-axis <-20.556083> speed <402.217751> / animSpeed; 
+			turn legPivotL3 to x-axis <-3.207769> speed <34.706885> / animSpeed; 
+			turn legPivotL3 to z-axis <5.396229> speed <54.096161> / animSpeed; 
+			turn legPivotL3 to y-axis <39.500613> speed <316.559187> / animSpeed; 
+			turn legPivotR1 to x-axis <-0.575828> speed <20.081373> / animSpeed; 
+			turn legPivotR1 to z-axis <-0.033039> speed <4.108996> / animSpeed; 
+			turn legPivotR1 to y-axis <28.792942> speed <90.179551> / animSpeed; 
+			turn legPivotR2 to y-axis <2.931093> speed <119.313258> / animSpeed; 
+			turn legPivotR3 to x-axis <-0.914708> speed <12.977438> / animSpeed; 
+			turn legPivotR3 to z-axis <-1.362257> speed <7.295215> / animSpeed; 
+			turn legPivotR3 to y-axis <-12.215472> speed <48.322035> / animSpeed; 
+			turn legUpperL1 to z-axis <13.144997> speed <9.999679> / animSpeed; 
+			turn legUpperL2 to x-axis <-0.828463> speed <16.654969> / animSpeed; 
+			turn legUpperL2 to z-axis <-12.646717> speed <408.367892> / animSpeed; 
+			turn legUpperL2 to y-axis <-1.649506> speed <56.792076> / animSpeed; 
+			turn legUpperL3 to x-axis <-0.518355> speed <36.050318> / animSpeed; 
+			turn legUpperL3 to z-axis <-9.443881> speed <522.003406> / animSpeed; 
+			turn legUpperL3 to y-axis <-1.501951> speed <79.648085> / animSpeed; 
+			turn legUpperR1 to x-axis <-0.743308> speed <21.775312> / animSpeed; 
+			turn legUpperR1 to z-axis <10.150490> speed <298.059910> / animSpeed; 
+			turn legUpperR1 to y-axis <1.283139> speed <37.707680> / animSpeed; 
+			turn legUpperR2 to x-axis <0.677647> speed <12.692106> / animSpeed; 
+			turn legUpperR2 to z-axis <-7.359205> speed <130.687303> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.837487> speed <14.371087> / animSpeed; 
+			turn legUpperR3 to x-axis <0.265662> speed <18.240341> / animSpeed; 
+			turn legUpperR3 to z-axis <-3.046851> speed <231.968163> / animSpeed; 
+			turn legUpperR3 to y-axis <-0.437955> speed <34.403001> / animSpeed; 
+			turn turretPitchPivot to x-axis <2.495683> speed <27.536416> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:30
+			move chassis to y-axis [0.747828] speed [3.296814] / animSpeed; 
+			turn chassis to z-axis <2.073994> speed <29.070240> / animSpeed; 
+			turn chassis to y-axis <-3.428910> speed <23.505402> / animSpeed; 
+			turn legFootL1 to x-axis <15.238214> speed <166.693482> / animSpeed; 
+			turn legFootL1 to z-axis <18.608837> speed <97.032007> / animSpeed; 
+			turn legFootL1 to y-axis <40.954077> speed <113.975196> / animSpeed; 
+			turn legFootL2 to x-axis <5.357956> speed <132.707468> / animSpeed; 
+			turn legFootL2 to z-axis <14.172457> speed <168.661319> / animSpeed; 
+			turn legFootL2 to y-axis <22.760572> speed <5.845908> / animSpeed; 
+			turn legFootL3 to x-axis <-0.554779> speed <484.113475> / animSpeed; 
+			turn legFootL3 to z-axis <16.105578> speed <245.715099> / animSpeed; 
+			turn legFootL3 to y-axis <-42.832854> speed <204.399353> / animSpeed; 
+			turn legFootR1 to x-axis <14.686030> speed <337.802329> / animSpeed; 
+			turn legFootR1 to z-axis <-14.555992> speed <293.643600> / animSpeed; 
+			turn legFootR1 to y-axis <-40.658842> speed <402.016636> / animSpeed; 
+			turn legFootR2 to x-axis <-1.899749> speed <31.694770> / animSpeed; 
+			turn legFootR2 to y-axis <7.811254> speed <219.746085> / animSpeed; 
+			turn legFootR3 to x-axis <-9.259857> speed <129.292843> / animSpeed; 
+			turn legFootR3 to z-axis <-0.844436> speed <21.377027> / animSpeed; 
+			turn legFootR3 to y-axis <20.506420> speed <123.728040> / animSpeed; 
+			turn legLowerL1 to z-axis <-48.653039> speed <480.178315> / animSpeed; 
+			turn legLowerL1 to y-axis <0.328571> speed <5.746145> / animSpeed; 
+			turn legLowerL2 to x-axis <0.219459> speed <5.321125> / animSpeed; 
+			turn legLowerL2 to z-axis <-26.446957> speed <651.426479> / animSpeed; 
+			turn legLowerL2 to y-axis <0.100253> speed <3.343013> / animSpeed; 
+			turn legLowerL3 to x-axis <-6.583389> speed <512.752043> / animSpeed; 
+			turn legLowerL3 to z-axis <13.258425> speed <947.429132> / animSpeed; 
+			turn legLowerL3 to y-axis <4.123053> speed <61.978697> / animSpeed; 
+			turn legLowerR1 to z-axis <-3.850850> speed <93.969358> / animSpeed; 
+			turn legLowerR2 to z-axis <17.117043> speed <40.459087> / animSpeed; 
+			turn legLowerR3 to x-axis <7.934320> speed <94.775445> / animSpeed; 
+			turn legLowerR3 to z-axis <14.136475> speed <178.130292> / animSpeed; 
+			turn legLowerR3 to y-axis <-2.435828> speed <45.866218> / animSpeed; 
+			turn legMidL1 to z-axis <12.251642> speed <244.672975> / animSpeed; 
+			turn legMidL2 to z-axis <3.554740> speed <281.078041> / animSpeed; 
+			turn legMidL3 to x-axis <1.403772> speed <3.817828> / animSpeed; 
+			turn legMidL3 to z-axis <4.231996> speed <24.089966> / animSpeed; 
+			turn legMidL3 to y-axis <0.423911> speed <22.886205> / animSpeed; 
+			turn legMidR1 to z-axis <5.053516> speed <100.887275> / animSpeed; 
+			turn legMidR2 to z-axis <-2.946495> speed <9.778425> / animSpeed; 
+			turn legMidR3 to x-axis <0.838960> speed <3.593146> / animSpeed; 
+			turn legMidR3 to z-axis <-4.032764> speed <22.212115> / animSpeed; 
+			turn legMidR3 to y-axis <-1.097915> speed <6.858441> / animSpeed; 
+			turn legPivotL1 to x-axis <1.267954> speed <17.027365> / animSpeed; 
+			turn legPivotL1 to z-axis <0.767064> speed <4.471575> / animSpeed; 
+			turn legPivotL1 to y-axis <-41.106018> speed <191.565906> / animSpeed; 
+			turn legPivotL2 to x-axis <0.705401> speed <10.194058> / animSpeed; 
+			turn legPivotL3 to x-axis <-4.123372> speed <27.468080> / animSpeed; 
+			turn legPivotL3 to z-axis <7.295445> speed <56.976469> / animSpeed; 
+			turn legPivotL3 to y-axis <49.366326> speed <295.971392> / animSpeed; 
+			turn legPivotR1 to x-axis <-1.546850> speed <29.130652> / animSpeed; 
+			turn legPivotR1 to z-axis <0.309800> speed <10.285162> / animSpeed; 
+			turn legPivotR1 to y-axis <43.887975> speed <452.850968> / animSpeed; 
+			turn legPivotR2 to x-axis <0.125266> speed <5.467158> / animSpeed; 
+			turn legPivotR2 to y-axis <-3.481067> speed <192.364807> / animSpeed; 
+			turn legPivotR3 to x-axis <-0.813167> speed <3.046248> / animSpeed; 
+			turn legPivotR3 to z-axis <-1.603616> speed <7.240781> / animSpeed; 
+			turn legPivotR3 to y-axis <-14.572839> speed <70.720991> / animSpeed; 
+			turn legUpperL1 to x-axis <0.904933> speed <9.492864> / animSpeed; 
+			turn legUpperL1 to z-axis <10.261336> speed <86.509819> / animSpeed; 
+			turn legUpperL1 to y-axis <1.198632> speed <8.590321> / animSpeed; 
+			turn legUpperL2 to x-axis <0.466779> speed <38.857254> / animSpeed; 
+			turn legUpperL2 to z-axis <5.584013> speed <546.921882> / animSpeed; 
+			turn legUpperL2 to y-axis <0.671289> speed <69.623840> / animSpeed; 
+			turn legUpperL3 to x-axis <-0.249685> speed <8.060088> / animSpeed; 
+			turn legUpperL3 to z-axis <-38.102555> speed <859.760239> / animSpeed; 
+			turn legUpperL3 to y-axis <-6.291236> speed <143.678563> / animSpeed; 
+			turn legUpperR1 to x-axis <-1.168127> speed <12.744581> / animSpeed; 
+			turn legUpperR1 to z-axis <17.470476> speed <219.599589> / animSpeed; 
+			turn legUpperR1 to y-axis <2.260795> speed <29.329699> / animSpeed; 
+			turn legUpperR2 to x-axis <0.880218> speed <6.077121> / animSpeed; 
+			turn legUpperR2 to z-axis <-9.185559> speed <54.790599> / animSpeed; 
+			turn legUpperR2 to y-axis <-1.016285> speed <5.363930> / animSpeed; 
+			turn legUpperR3 to x-axis <0.585160> speed <9.584956> / animSpeed; 
+			turn legUpperR3 to z-axis <-6.296255> speed <97.482140> / animSpeed; 
+			turn legUpperR3 to y-axis <-0.882670> speed <13.341477> / animSpeed; 
+			turn turretPitchPivot to x-axis <0.489647> speed <60.181091> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:36
+			move chassis to y-axis [-0.408873] speed [34.701004] / animSpeed; 
+			turn chassis to z-axis <2.247724> speed <5.211910> / animSpeed; 
+			turn chassis to y-axis <-2.896933> speed <15.959322> / animSpeed; 
+			turn legFootL1 to x-axis <10.994700> speed <127.305411> / animSpeed; 
+			turn legFootL1 to z-axis <15.063012> speed <106.374732> / animSpeed; 
+			turn legFootL1 to y-axis <37.273138> speed <110.428176> / animSpeed; 
+			turn legFootL2 to x-axis <3.576101> speed <53.455626> / animSpeed; 
+			turn legFootL2 to z-axis <12.631541> speed <46.227489> / animSpeed; 
+			turn legFootL2 to y-axis <16.537689> speed <186.686487> / animSpeed; 
+			turn legFootL3 to x-axis <9.931842> speed <314.598627> / animSpeed; 
+			turn legFootL3 to z-axis <17.718947> speed <48.401077> / animSpeed; 
+			turn legFootR1 to x-axis <28.742112> speed <421.682458> / animSpeed; 
+			turn legFootR1 to z-axis <-23.072258> speed <255.487973> / animSpeed; 
+			turn legFootR1 to y-axis <-47.420692> speed <202.855491> / animSpeed; 
+			turn legFootR2 to x-axis <-3.201994> speed <39.067367> / animSpeed; 
+			turn legFootR2 to z-axis <-9.261664> speed <71.362692> / animSpeed; 
+			turn legFootR2 to y-axis <15.232285> speed <222.630938> / animSpeed; 
+			turn legFootR3 to x-axis <-12.295183> speed <91.059775> / animSpeed; 
+			turn legFootR3 to z-axis <-2.385126> speed <46.220696> / animSpeed; 
+			turn legFootR3 to y-axis <26.301392> speed <173.849146> / animSpeed; 
+			turn legLowerL1 to z-axis <-31.686849> speed <508.985697> / animSpeed; 
+			turn legLowerL1 to y-axis <0.139476> speed <5.672861> / animSpeed; 
+			turn legLowerL2 to z-axis <-17.479948> speed <269.010262> / animSpeed; 
+			turn legLowerL3 to x-axis <-10.604646> speed <120.637730> / animSpeed; 
+			turn legLowerL3 to z-axis <31.396023> speed <544.127942> / animSpeed; 
+			turn legLowerL3 to y-axis <14.226692> speed <303.109179> / animSpeed; 
+			turn legLowerR1 to x-axis <0.226835> speed <7.758209> / animSpeed; 
+			turn legLowerR1 to z-axis <24.841331> speed <860.765455> / animSpeed; 
+			turn legLowerR2 to z-axis <14.317688> speed <83.980642> / animSpeed; 
+			turn legLowerR3 to x-axis <9.765794> speed <54.944227> / animSpeed; 
+			turn legLowerR3 to z-axis <17.684173> speed <106.430928> / animSpeed; 
+			turn legLowerR3 to y-axis <-3.313247> speed <26.322593> / animSpeed; 
+			turn legMidL1 to z-axis <5.391285> speed <205.810718> / animSpeed; 
+			turn legMidL2 to z-axis <0.462983> speed <92.752723> / animSpeed; 
+			turn legMidL3 to x-axis <1.727593> speed <9.714626> / animSpeed; 
+			turn legMidL3 to z-axis <5.009983> speed <23.339627> / animSpeed; 
+			turn legMidL3 to y-axis <0.101020> speed <9.686710> / animSpeed; 
+			turn legMidR1 to z-axis <0.587909> speed <133.968212> / animSpeed; 
+			turn legMidR2 to z-axis <-0.571557> speed <71.248141> / animSpeed; 
+			turn legMidR3 to x-axis <1.022907> speed <5.518417> / animSpeed; 
+			turn legMidR3 to z-axis <-4.769428> speed <22.099909> / animSpeed; 
+			turn legMidR3 to y-axis <-1.280229> speed <5.469416> / animSpeed; 
+			turn legPivotL1 to z-axis <0.666748> speed <3.009470> / animSpeed; 
+			turn legPivotL1 to y-axis <-36.412428> speed <140.807697> / animSpeed; 
+			turn legPivotL2 to x-axis <0.540408> speed <4.949802> / animSpeed; 
+			turn legPivotL2 to z-axis <0.163061> speed <3.198228> / animSpeed; 
+			turn legPivotL2 to y-axis <-14.213669> speed <191.870421> / animSpeed; 
+			turn legPivotL3 to z-axis <6.611898> speed <20.506396> / animSpeed; 
+			turn legPivotL3 to y-axis <45.095542> speed <128.123523> / animSpeed; 
+			turn legPivotR1 to x-axis <-2.016771> speed <14.097639> / animSpeed; 
+			turn legPivotR1 to z-axis <0.656157> speed <10.390727> / animSpeed; 
+			turn legPivotR1 to y-axis <55.412935> speed <345.748820> / animSpeed; 
+			turn legPivotR2 to x-axis <0.455152> speed <9.896570> / animSpeed; 
+			turn legPivotR2 to y-axis <-11.891734> speed <252.320016> / animSpeed; 
+			turn legPivotR3 to x-axis <-0.972938> speed <4.793149> / animSpeed; 
+			turn legPivotR3 to z-axis <-2.348192> speed <22.337261> / animSpeed; 
+			turn legPivotR3 to y-axis <-20.940199> speed <191.020806> / animSpeed; 
+			turn legUpperL1 to x-axis <0.437757> speed <14.015256> / animSpeed; 
+			turn legUpperL1 to z-axis <5.289533> speed <149.154094> / animSpeed; 
+			turn legUpperL1 to y-axis <0.639021> speed <16.788353> / animSpeed; 
+			turn legUpperL2 to x-axis <0.124124> speed <10.279642> / animSpeed; 
+			turn legUpperL2 to z-axis <1.570582> speed <120.402930> / animSpeed; 
+			turn legUpperL2 to y-axis <0.193587> speed <14.331059> / animSpeed; 
+			turn legUpperL3 to x-axis <0.509517> speed <22.776084> / animSpeed; 
+			turn legUpperL3 to z-axis <-50.604520> speed <375.058938> / animSpeed; 
+			turn legUpperL3 to y-axis <-8.230602> speed <58.180956> / animSpeed; 
+			turn legUpperR1 to x-axis <-0.678645> speed <14.684458> / animSpeed; 
+			turn legUpperR1 to z-axis <8.813702> speed <259.703241> / animSpeed; 
+			turn legUpperR1 to y-axis <1.095279> speed <34.965495> / animSpeed; 
+			turn legUpperR2 to x-axis <0.587421> speed <8.783904> / animSpeed; 
+			turn legUpperR2 to z-axis <-6.285228> speed <87.009904> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.708370> speed <9.237431> / animSpeed; 
+			turn legUpperR3 to x-axis <0.427060> speed <4.743006> / animSpeed; 
+			turn legUpperR3 to z-axis <-4.769685> speed <45.797097> / animSpeed; 
+			turn legUpperR3 to y-axis <-0.680070> speed <6.078008> / animSpeed; 
+			turn turretPitchPivot to x-axis <0.203890> speed <8.572702> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:42
+			move chassis to y-axis [-0.993231] speed [17.530746] / animSpeed; 
+			turn chassis to z-axis <1.558873> speed <20.665519> / animSpeed; 
+			turn chassis to y-axis <-1.253064> speed <49.316064> / animSpeed; 
+			turn legFootL1 to x-axis <7.169238> speed <114.763852> / animSpeed; 
+			turn legFootL1 to z-axis <10.860124> speed <126.086658> / animSpeed; 
+			turn legFootL1 to y-axis <33.931253> speed <100.256556> / animSpeed; 
+			turn legFootL2 to x-axis <1.988725> speed <47.621276> / animSpeed; 
+			turn legFootL2 to z-axis <10.888629> speed <52.287369> / animSpeed; 
+			turn legFootL2 to y-axis <10.738978> speed <173.961332> / animSpeed; 
+			turn legFootL3 to x-axis <9.497200> speed <13.039275> / animSpeed; 
+			turn legFootL3 to z-axis <2.874562> speed <445.331544> / animSpeed; 
+			turn legFootL3 to y-axis <-19.219855> speed <706.284454> / animSpeed; 
+			turn legFootR1 to x-axis <27.491834> speed <37.508342> / animSpeed; 
+			turn legFootR1 to z-axis <-22.592623> speed <14.389040> / animSpeed; 
+			turn legFootR1 to y-axis <-49.913182> speed <74.774691> / animSpeed; 
+			turn legFootR2 to x-axis <-0.057960> speed <94.321040> / animSpeed; 
+			turn legFootR2 to z-axis <-16.455533> speed <215.816057> / animSpeed; 
+			turn legFootR2 to y-axis <4.572543> speed <319.792253> / animSpeed; 
+			turn legFootR3 to x-axis <-17.401136> speed <153.178595> / animSpeed; 
+			turn legFootR3 to z-axis <-2.837544> speed <13.572549> / animSpeed; 
+			turn legFootR3 to y-axis <30.945132> speed <139.312192> / animSpeed; 
+			turn legLowerL1 to z-axis <-18.124214> speed <406.879048> / animSpeed; 
+			turn legLowerL2 to z-axis <-12.250272> speed <156.890282> / animSpeed; 
+			turn legLowerL3 to x-axis <-7.344206> speed <97.813210> / animSpeed; 
+			turn legLowerL3 to z-axis <13.228464> speed <545.026787> / animSpeed; 
+			turn legLowerL3 to y-axis <2.582014> speed <349.340349> / animSpeed; 
+			turn legLowerR1 to z-axis <60.028839> speed <1055.625219> / animSpeed; 
+			turn legLowerR1 to y-axis <-0.432452> speed <12.850325> / animSpeed; 
+			turn legLowerR2 to x-axis <-0.089014> speed <6.531835> / animSpeed; 
+			turn legLowerR2 to z-axis <-11.674102> speed <779.753717> / animSpeed; 
+			turn legLowerR3 to x-axis <12.678025> speed <87.366913> / animSpeed; 
+			turn legLowerR3 to z-axis <24.274634> speed <197.713844> / animSpeed; 
+			turn legLowerR3 to y-axis <-5.791974> speed <74.361787> / animSpeed; 
+			turn legMidL1 to z-axis <2.123228> speed <98.041711> / animSpeed; 
+			turn legMidL2 to z-axis <-0.529525> speed <29.775226> / animSpeed; 
+			turn legMidL3 to x-axis <1.019767> speed <21.234798> / animSpeed; 
+			turn legMidL3 to z-axis <3.432447> speed <47.326097> / animSpeed; 
+			turn legMidL3 to y-axis <0.606088> speed <15.152018> / animSpeed; 
+			turn legMidR1 to z-axis <-17.271359> speed <535.778038> / animSpeed; 
+			turn legMidR2 to z-axis <8.565914> speed <274.124107> / animSpeed; 
+			turn legMidR3 to x-axis <1.216837> speed <5.817896> / animSpeed; 
+			turn legMidR3 to z-axis <-5.785654> speed <30.486788> / animSpeed; 
+			turn legMidR3 to y-axis <-1.575496> speed <8.858005> / animSpeed; 
+			turn legPivotL1 to x-axis <0.803576> speed <13.683447> / animSpeed; 
+			turn legPivotL1 to z-axis <0.448925> speed <6.534700> / animSpeed; 
+			turn legPivotL1 to y-axis <-33.508649> speed <87.113394> / animSpeed; 
+			turn legPivotL2 to x-axis <0.257452> speed <8.488681> / animSpeed; 
+			turn legPivotL2 to y-axis <-9.686637> speed <135.810944> / animSpeed; 
+			turn legPivotL3 to x-axis <-2.398331> speed <52.724017> / animSpeed; 
+			turn legPivotL3 to z-axis <2.728827> speed <116.492129> / animSpeed; 
+			turn legPivotL3 to y-axis <21.652014> speed <703.305842> / animSpeed; 
+			turn legPivotR1 to x-axis <-1.477768> speed <16.170096> / animSpeed; 
+			turn legPivotR1 to z-axis <0.435241> speed <6.627490> / animSpeed; 
+			turn legPivotR1 to y-axis <57.693850> speed <68.427431> / animSpeed; 
+			turn legPivotR2 to x-axis <0.147785> speed <9.220985> / animSpeed; 
+			turn legPivotR2 to y-axis <-5.497161> speed <191.837188> / animSpeed; 
+			turn legPivotR3 to x-axis <-1.385917> speed <12.389372> / animSpeed; 
+			turn legPivotR3 to z-axis <-3.111726> speed <22.906034> / animSpeed; 
+			turn legPivotR3 to y-axis <-26.524271> speed <167.522171> / animSpeed; 
+			turn legUpperL1 to x-axis <0.101866> speed <10.076752> / animSpeed; 
+			turn legUpperL1 to z-axis <1.273713> speed <120.474615> / animSpeed; 
+			turn legUpperL1 to y-axis <0.156221> speed <14.483973> / animSpeed; 
+			turn legUpperL2 to x-axis <0.007878> speed <3.487379> / animSpeed; 
+			turn legUpperL2 to z-axis <0.099776> speed <44.124163> / animSpeed; 
+			turn legUpperL2 to y-axis <0.012300> speed <5.438629> / animSpeed; 
+			turn legUpperL3 to x-axis <-0.917689> speed <42.816201> / animSpeed; 
+			turn legUpperL3 to z-axis <-20.309171> speed <908.860454> / animSpeed; 
+			turn legUpperL3 to y-axis <-3.269131> speed <148.844123> / animSpeed; 
+			turn legUpperR1 to x-axis <0.850989> speed <45.889021> / animSpeed; 
+			turn legUpperR1 to z-axis <-9.040554> speed <535.627661> / animSpeed; 
+			turn legUpperR1 to y-axis <-1.013719> speed <63.269923> / animSpeed; 
+			turn legUpperR2 to x-axis <-1.178399> speed <52.974584> / animSpeed; 
+			turn legUpperR2 to z-axis <17.928680> speed <726.417243> / animSpeed; 
+			turn legUpperR2 to y-axis <2.328996> speed <91.120976> / animSpeed; 
+			turn turretPitchPivot to x-axis <2.038592> speed <55.041045> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:48
+			move chassis to y-axis [-0.187262] speed [24.179077] / animSpeed; 
+			turn chassis to z-axis <0.270215> speed <38.659762> / animSpeed; 
+			turn chassis to y-axis <0.873169> speed <63.786986> / animSpeed; 
+			turn legFootL1 to x-axis <3.276842> speed <116.771889> / animSpeed; 
+			turn legFootL1 to z-axis <5.826925> speed <150.995965> / animSpeed; 
+			turn legFootL1 to y-axis <30.488947> speed <103.269182> / animSpeed; 
+			turn legFootL2 to x-axis <0.378532> speed <48.305806> / animSpeed; 
+			turn legFootL2 to z-axis <8.592166> speed <68.893873> / animSpeed; 
+			turn legFootL2 to y-axis <5.073084> speed <169.976839> / animSpeed; 
+			turn legFootL3 to x-axis <1.074742> speed <252.673718> / animSpeed; 
+			turn legFootL3 to z-axis <-0.111350> speed <89.577352> / animSpeed; 
+			turn legFootL3 to y-axis <-13.813098> speed <162.202718> / animSpeed; 
+			turn legFootR1 to x-axis <21.382653> speed <183.275422> / animSpeed; 
+			turn legFootR1 to z-axis <-20.697894> speed <56.841859> / animSpeed; 
+			turn legFootR1 to y-axis <-47.090142> speed <84.691204> / animSpeed; 
+			turn legFootR2 to x-axis <6.440598> speed <194.956724> / animSpeed; 
+			turn legFootR2 to z-axis <-22.194409> speed <172.166307> / animSpeed; 
+			turn legFootR2 to y-axis <-11.544872> speed <483.522466> / animSpeed; 
+			turn legFootR3 to x-axis <-25.870346> speed <254.076275> / animSpeed; 
+			turn legFootR3 to z-axis <0.421523> speed <97.772015> / animSpeed; 
+			turn legFootR3 to y-axis <35.571608> speed <138.794293> / animSpeed; 
+			turn legLowerL1 to z-axis <-10.553486> speed <227.121856> / animSpeed; 
+			turn legLowerL2 to z-axis <-12.714231> speed <13.918756> / animSpeed; 
+			turn legLowerL3 to x-axis <-0.124719> speed <216.584618> / animSpeed; 
+			turn legLowerL3 to z-axis <0.209103> speed <390.580810> / animSpeed; 
+			turn legLowerL3 to y-axis <-0.000115> speed <77.463879> / animSpeed; 
+			turn legLowerR2 to z-axis <-14.252431> speed <77.349869> / animSpeed; 
+			turn legLowerR3 to x-axis <15.937676> speed <97.789543> / animSpeed; 
+			turn legLowerR3 to z-axis <38.366552> speed <422.757547> / animSpeed; 
+			turn legLowerR3 to y-axis <-14.097547> speed <249.167209> / animSpeed; 
+			turn legMidL1 to z-axis <2.308994> speed <5.572986> / animSpeed; 
+			turn legMidL2 to z-axis <0.685134> speed <36.439758> / animSpeed; 
+			turn legMidL3 to x-axis <0.686823> speed <9.988300> / animSpeed; 
+			turn legMidL3 to z-axis <2.808584> speed <18.715873> / animSpeed; 
+			turn legMidR1 to z-axis <-18.180604> speed <27.277351> / animSpeed; 
+			turn legMidR2 to z-axis <10.831987> speed <67.982196> / animSpeed; 
+			turn legMidR3 to x-axis <1.674561> speed <13.731706> / animSpeed; 
+			turn legMidR3 to z-axis <-9.048732> speed <97.892342> / animSpeed; 
+			turn legMidR3 to y-axis <-2.620078> speed <31.337477> / animSpeed; 
+			turn legPivotL1 to x-axis <0.093525> speed <21.301523> / animSpeed; 
+			turn legPivotL1 to z-axis <0.210627> speed <7.148938> / animSpeed; 
+			turn legPivotL1 to y-axis <-31.664323> speed <55.329757> / animSpeed; 
+			turn legPivotL2 to x-axis <0.027817> speed <6.889035> / animSpeed; 
+			turn legPivotL2 to y-axis <-6.330612> speed <100.680762> / animSpeed; 
+			turn legPivotL3 to x-axis <-1.263985> speed <34.030382> / animSpeed; 
+			turn legPivotL3 to z-axis <1.485790> speed <37.291110> / animSpeed; 
+			turn legPivotL3 to y-axis <12.884311> speed <263.031089> / animSpeed; 
+			turn legPivotR1 to x-axis <-0.333468> speed <34.329017> / animSpeed; 
+			turn legPivotR1 to z-axis <-0.152076> speed <17.619508> / animSpeed; 
+			turn legPivotR1 to y-axis <51.425048> speed <188.064068> / animSpeed; 
+			turn legPivotR2 to x-axis <-0.044690> speed <5.774259> / animSpeed; 
+			turn legPivotR2 to y-axis <8.714848> speed <426.360262> / animSpeed; 
+			turn legPivotR3 to x-axis <-2.054308> speed <20.051727> / animSpeed; 
+			turn legPivotR3 to z-axis <-3.574115> speed <13.871685> / animSpeed; 
+			turn legPivotR3 to y-axis <-28.795538> speed <68.138001> / animSpeed; 
+			turn legUpperL1 to z-axis <1.121886> speed <4.554807> / animSpeed; 
+			turn legUpperL2 to x-axis <0.265991> speed <7.743377> / animSpeed; 
+			turn legUpperL2 to z-axis <3.131005> speed <90.936865> / animSpeed; 
+			turn legUpperL2 to y-axis <0.373334> speed <10.831038> / animSpeed; 
+			turn legUpperL3 to x-axis <-0.325169> speed <17.775608> / animSpeed; 
+			turn legUpperL3 to z-axis <-4.407047> speed <477.063736> / animSpeed; 
+			turn legUpperL3 to y-axis <-0.665068> speed <78.121886> / animSpeed; 
+			turn legUpperR1 to x-axis <1.191624> speed <10.219065> / animSpeed; 
+			turn legUpperR1 to z-axis <-12.543330> speed <105.083289> / animSpeed; 
+			turn legUpperR1 to y-axis <-1.395407> speed <11.450645> / animSpeed; 
+			turn legUpperR2 to x-axis <-1.381077> speed <6.080361> / animSpeed; 
+			turn legUpperR2 to z-axis <26.218782> speed <248.703085> / animSpeed; 
+			turn legUpperR2 to y-axis <3.537479> speed <36.254486> / animSpeed; 
+			turn legUpperR3 to x-axis <0.869102> speed <13.790150> / animSpeed; 
+			turn legUpperR3 to z-axis <-9.848521> speed <152.525676> / animSpeed; 
+			turn legUpperR3 to y-axis <-1.412672> speed <21.671444> / animSpeed; 
+			turn turretPitchPivot to x-axis <3.424860> speed <41.588040> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:54
+			move chassis to y-axis [0.880838] speed [32.042999] / animSpeed; 
+			turn chassis to z-axis <-1.121804> speed <41.760571> / animSpeed; 
+			turn chassis to y-axis <2.663733> speed <53.716929> / animSpeed; 
+			turn legFootL1 to x-axis <6.801716> speed <105.746222> / animSpeed; 
+			turn legFootL1 to z-axis <8.370417> speed <76.304773> / animSpeed; 
+			turn legFootL1 to y-axis <34.141168> speed <109.566650> / animSpeed; 
+			turn legFootL2 to x-axis <-0.933523> speed <39.361643> / animSpeed; 
+			turn legFootL2 to z-axis <6.868460> speed <51.711174> / animSpeed; 
+			turn legFootL2 to y-axis <-1.133843> speed <186.207811> / animSpeed; 
+			turn legFootL3 to x-axis <-4.670986> speed <172.371857> / animSpeed; 
+			turn legFootL3 to z-axis <-0.003258> speed <3.242749> / animSpeed; 
+			turn legFootL3 to y-axis <-15.620427> speed <54.219886> / animSpeed; 
+			turn legFootR1 to x-axis <15.415450> speed <179.016099> / animSpeed; 
+			turn legFootR1 to z-axis <-18.145714> speed <76.565413> / animSpeed; 
+			turn legFootR1 to y-axis <-42.361079> speed <141.871874> / animSpeed; 
+			turn legFootR2 to x-axis <9.341307> speed <87.021289> / animSpeed; 
+			turn legFootR2 to z-axis <-18.955354> speed <97.171650> / animSpeed; 
+			turn legFootR2 to y-axis <-23.281928> speed <352.111654> / animSpeed; 
+			turn legFootR3 to x-axis <-16.692504> speed <275.335239> / animSpeed; 
+			turn legFootR3 to z-axis <-8.634310> speed <271.675000> / animSpeed; 
+			turn legFootR3 to y-axis <36.365836> speed <23.826842> / animSpeed; 
+			turn legLowerL1 to x-axis <-0.027892> speed <3.709977> / animSpeed; 
+			turn legLowerL1 to z-axis <3.143840> speed <410.919781> / animSpeed; 
+			turn legLowerL2 to z-axis <-15.874801> speed <94.817104> / animSpeed; 
+			turn legLowerL3 to x-axis <4.532064> speed <139.703500> / animSpeed; 
+			turn legLowerL3 to z-axis <-7.767578> speed <239.300439> / animSpeed; 
+			turn legLowerL3 to y-axis <0.830048> speed <24.904887> / animSpeed; 
+			turn legLowerR1 to z-axis <48.998831> speed <332.681678> / animSpeed; 
+			turn legLowerR1 to y-axis <-0.334554> speed <3.786704> / animSpeed; 
+			turn legLowerR2 to x-axis <0.063422> speed <4.707543> / animSpeed; 
+			turn legLowerR2 to z-axis <7.012687> speed <637.953547> / animSpeed; 
+			turn legLowerR2 to y-axis <0.011783> speed <3.099861> / animSpeed; 
+			turn legLowerR3 to x-axis <10.139084> speed <173.957772> / animSpeed; 
+			turn legLowerR3 to z-axis <17.539205> speed <624.820412> / animSpeed; 
+			turn legLowerR3 to y-axis <-1.660730> speed <373.104522> / animSpeed; 
+			turn legMidL1 to z-axis <-2.185365> speed <134.830777> / animSpeed; 
+			turn legMidL2 to z-axis <2.619512> speed <58.031328> / animSpeed; 
+			turn legMidL3 to z-axis <3.177149> speed <11.056934> / animSpeed; 
+			turn legMidL3 to y-axis <0.838780> speed <4.830760> / animSpeed; 
+			turn legMidR1 to z-axis <-12.876195> speed <159.132283> / animSpeed; 
+			turn legMidR2 to z-axis <4.816879> speed <180.453218> / animSpeed; 
+			turn legMidR3 to x-axis <1.255759> speed <12.564048> / animSpeed; 
+			turn legMidR3 to z-axis <-4.864153> speed <125.537383> / animSpeed; 
+			turn legMidR3 to y-axis <-1.122488> speed <44.927708> / animSpeed; 
+			turn legPivotL1 to x-axis <-0.726892> speed <24.612513> / animSpeed; 
+			turn legPivotL1 to z-axis <-0.006911> speed <6.526149> / animSpeed; 
+			turn legPivotL1 to y-axis <-36.002842> speed <130.155573> / animSpeed; 
+			turn legPivotL2 to y-axis <-2.309095> speed <120.645516> / animSpeed; 
+			turn legPivotL3 to x-axis <-0.864058> speed <11.997800> / animSpeed; 
+			turn legPivotL3 to z-axis <1.273389> speed <6.372041> / animSpeed; 
+			turn legPivotL3 to y-axis <11.469836> speed <42.434249> / animSpeed; 
+			turn legPivotR1 to x-axis <0.673635> speed <30.213077> / animSpeed; 
+			turn legPivotR1 to z-axis <-0.547889> speed <11.874389> / animSpeed; 
+			turn legPivotR1 to y-axis <43.329064> speed <242.879512> / animSpeed; 
+			turn legPivotR2 to x-axis <0.378318> speed <12.690243> / animSpeed; 
+			turn legPivotR2 to z-axis <-0.200668> speed <4.638637> / animSpeed; 
+			turn legPivotR2 to y-axis <20.980475> speed <367.968817> / animSpeed; 
+			turn legPivotR3 to x-axis <-3.243165> speed <35.665715> / animSpeed; 
+			turn legPivotR3 to z-axis <-5.530754> speed <58.699149> / animSpeed; 
+			turn legPivotR3 to y-axis <-40.323968> speed <345.852912> / animSpeed; 
+			turn legUpperL1 to x-axis <-0.780254> speed <26.186537> / animSpeed; 
+			turn legUpperL1 to z-axis <-10.761778> speed <356.509928> / animSpeed; 
+			turn legUpperL1 to y-axis <-1.364608> speed <45.007722> / animSpeed; 
+			turn legUpperL2 to x-axis <0.689701> speed <12.711308> / animSpeed; 
+			turn legUpperL2 to z-axis <7.477449> speed <130.393308> / animSpeed; 
+			turn legUpperL2 to y-axis <0.849974> speed <14.299210> / animSpeed; 
+			turn legUpperL3 to x-axis <0.272512> speed <17.930440> / animSpeed; 
+			turn legUpperL3 to z-axis <3.113161> speed <225.606226> / animSpeed; 
+			turn legUpperL3 to y-axis <0.446760> speed <33.354839> / animSpeed; 
+			turn legUpperR1 to x-axis <1.016560> speed <5.251921> / animSpeed; 
+			turn legUpperR1 to z-axis <-11.171879> speed <41.143523> / animSpeed; 
+			turn legUpperR1 to y-axis <-1.280290> speed <3.453493> / animSpeed; 
+			turn legUpperR2 to x-axis <-0.710791> speed <20.108599> / animSpeed; 
+			turn legUpperR2 to z-axis <10.451964> speed <473.004568> / animSpeed; 
+			turn legUpperR2 to y-axis <1.351219> speed <65.587774> / animSpeed; 
+			turn legUpperR3 to x-axis <-0.567147> speed <43.087484> / animSpeed; 
+			turn legUpperR3 to z-axis <10.775458> speed <618.719371> / animSpeed; 
+			turn legUpperR3 to y-axis <1.721139> speed <94.014329> / animSpeed; 
+			turn turretPitchPivot to x-axis <2.423119> speed <30.052222> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:60
+			move chassis to y-axis [0.715937] speed [4.947052] / animSpeed; 
+			turn chassis to z-axis <-2.082070> speed <28.807961> / animSpeed; 
+			turn chassis to y-axis <3.430579> speed <23.005375> / animSpeed; 
+			turn legFootL1 to x-axis <20.095849> speed <398.824001> / animSpeed; 
+			turn legFootL1 to z-axis <17.747080> speed <281.299890> / animSpeed; 
+			turn legFootL1 to y-axis <44.698459> speed <316.718706> / animSpeed; 
+			turn legFootL2 to x-axis <-2.002827> speed <32.079139> / animSpeed; 
+			turn legFootL2 to z-axis <6.988461> speed <3.600013> / animSpeed; 
+			turn legFootL2 to y-axis <-8.475120> speed <220.238296> / animSpeed; 
+			turn legFootL3 to x-axis <-8.681463> speed <120.314312> / animSpeed; 
+			turn legFootL3 to z-axis <0.783228> speed <23.594578> / animSpeed; 
+			turn legFootL3 to y-axis <-19.982553> speed <130.863778> / animSpeed; 
+			turn legFootR1 to x-axis <10.928047> speed <134.622081> / animSpeed; 
+			turn legFootR1 to z-axis <-15.362863> speed <83.485539> / animSpeed; 
+			turn legFootR1 to y-axis <-37.383801> speed <149.318351> / animSpeed; 
+			turn legFootR2 to x-axis <5.158078> speed <125.496876> / animSpeed; 
+			turn legFootR2 to z-axis <-13.997720> speed <148.729043> / animSpeed; 
+			turn legFootR2 to y-axis <-22.247722> speed <31.026151> / animSpeed; 
+			turn legFootR3 to x-axis <-0.639199> speed <481.599163> / animSpeed; 
+			turn legFootR3 to z-axis <-16.451113> speed <234.504095> / animSpeed; 
+			turn legFootR3 to y-axis <43.149713> speed <203.516312> / animSpeed; 
+			turn legLowerL1 to z-axis <-6.680304> speed <294.724317> / animSpeed; 
+			turn legLowerL2 to z-axis <-17.209580> speed <40.043384> / animSpeed; 
+			turn legLowerL3 to x-axis <7.518716> speed <89.599540> / animSpeed; 
+			turn legLowerL3 to z-axis <-13.313225> speed <166.369423> / animSpeed; 
+			turn legLowerL3 to y-axis <2.181523> speed <40.544259> / animSpeed; 
+			turn legLowerR1 to z-axis <36.349601> speed <379.476909> / animSpeed; 
+			turn legLowerR1 to y-axis <-0.192312> speed <4.267245> / animSpeed; 
+			turn legLowerR2 to x-axis <0.215455> speed <4.560994> / animSpeed; 
+			turn legLowerR2 to z-axis <25.804204> speed <563.745496> / animSpeed; 
+			turn legLowerR2 to y-axis <-0.095114> speed <3.206902> / animSpeed; 
+			turn legLowerR3 to x-axis <-6.725944> speed <505.950839> / animSpeed; 
+			turn legLowerR3 to z-axis <-13.694727> speed <937.017977> / animSpeed; 
+			turn legLowerR3 to y-axis <-4.361121> speed <81.011738> / animSpeed; 
+			turn legMidL1 to z-axis <-4.171767> speed <59.592058> / animSpeed; 
+			turn legMidL2 to z-axis <2.889640> speed <8.103847> / animSpeed; 
+			turn legMidL3 to x-axis <0.826425> speed <3.985731> / animSpeed; 
+			turn legMidL3 to z-axis <3.942352> speed <22.956101> / animSpeed; 
+			turn legMidL3 to y-axis <1.068444> speed <6.889941> / animSpeed; 
+			turn legMidR1 to z-axis <-7.494633> speed <161.446846> / animSpeed; 
+			turn legMidR2 to z-axis <-3.334954> speed <244.555006> / animSpeed; 
+			turn legMidR3 to x-axis <1.385400> speed <3.889225> / animSpeed; 
+			turn legMidR3 to z-axis <-4.164594> speed <20.986759> / animSpeed; 
+			turn legMidR3 to y-axis <-0.403063> speed <21.582756> / animSpeed; 
+			turn legPivotL1 to x-axis <-1.726613> speed <29.991639> / animSpeed; 
+			turn legPivotL1 to z-axis <-0.439459> speed <12.976426> / animSpeed; 
+			turn legPivotL1 to y-axis <-49.728917> speed <411.782235> / animSpeed; 
+			turn legPivotL2 to x-axis <0.149668> speed <5.854752> / animSpeed; 
+			turn legPivotL2 to y-axis <4.148592> speed <193.730619> / animSpeed; 
+			turn legPivotL3 to z-axis <1.557111> speed <8.511682> / animSpeed; 
+			turn legPivotL3 to y-axis <14.175580> speed <81.172333> / animSpeed; 
+			turn legPivotR1 to x-axis <1.156651> speed <14.490473> / animSpeed; 
+			turn legPivotR1 to y-axis <36.271607> speed <211.723707> / animSpeed; 
+			turn legPivotR2 to x-axis <0.690218> speed <9.356986> / animSpeed; 
+			turn legPivotR2 to y-axis <20.041621> speed <28.165617> / animSpeed; 
+			turn legPivotR3 to x-axis <-4.134559> speed <26.741817> / animSpeed; 
+			turn legPivotR3 to z-axis <-7.359344> speed <54.857719> / animSpeed; 
+			turn legPivotR3 to y-axis <-49.718392> speed <281.832696> / animSpeed; 
+			turn legUpperL1 to x-axis <-0.983802> speed <6.106436> / animSpeed; 
+			turn legUpperL1 to z-axis <-13.856269> speed <92.834719> / animSpeed; 
+			turn legUpperL1 to y-axis <-1.766345> speed <12.052088> / animSpeed; 
+			turn legUpperL2 to x-axis <0.883689> speed <5.819640> / animSpeed; 
+			turn legUpperL2 to z-axis <9.216770> speed <52.179640> / animSpeed; 
+			turn legUpperL2 to y-axis <1.019296> speed <5.079650> / animSpeed; 
+			turn legUpperL3 to x-axis <0.553725> speed <8.436392> / animSpeed; 
+			turn legUpperL3 to z-axis <5.974511> speed <85.840501> / animSpeed; 
+			turn legUpperL3 to y-axis <0.838516> speed <11.752674> / animSpeed; 
+			turn legUpperR1 to x-axis <0.670692> speed <10.376050> / animSpeed; 
+			turn legUpperR1 to z-axis <-7.822591> speed <100.478648> / animSpeed; 
+			turn legUpperR1 to y-axis <-0.928368> speed <10.557659> / animSpeed; 
+			turn legUpperR2 to x-axis <0.449171> speed <34.798843> / animSpeed; 
+			turn legUpperR2 to z-axis <-5.387292> speed <475.177682> / animSpeed; 
+			turn legUpperR2 to y-axis <-0.648459> speed <59.990363> / animSpeed; 
+			turn legUpperR3 to x-axis <-0.209802> speed <10.720373> / animSpeed; 
+			turn legUpperR3 to z-axis <38.771238> speed <839.873400> / animSpeed; 
+			turn legUpperR3 to y-axis <6.399093> speed <140.338632> / animSpeed; 
+			turn turretPitchPivot to x-axis <0.434769> speed <59.650512> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move chassis to y-axis [0] speed [57.835007] / animSpeed;
+	turn chassis to y-axis <0> speed <106.311644> / animSpeed;
+	turn chassis to z-axis <0> speed <69.716213> / animSpeed;
+	turn legFootL1 to x-axis <0> speed <752.836872> / animSpeed;
+	turn legFootL1 to y-axis <0> speed <527.864511> / animSpeed;
+	turn legFootL1 to z-axis <0> speed <468.833149> / animSpeed;
+	turn legFootL2 to x-axis <0> speed <312.689667> / animSpeed;
+	turn legFootL2 to y-axis <0> speed <803.102991> / animSpeed;
+	turn legFootL2 to z-axis <0> speed <353.623653> / animSpeed;
+	turn legFootL3 to x-axis <0> speed <806.855791> / animSpeed;
+	turn legFootL3 to y-axis <0> speed <1177.140756> / animSpeed;
+	turn legFootL3 to z-axis <0> speed <742.219240> / animSpeed;
+	turn legFootR1 to x-axis <0> speed <702.804097> / animSpeed;
+	turn legFootR1 to y-axis <0> speed <670.027726> / animSpeed;
+	turn legFootR1 to z-axis <0> speed <489.405999> / animSpeed;
+	turn legFootR2 to x-axis <0> speed <324.927873> / animSpeed;
+	turn legFootR2 to y-axis <0> speed <805.870776> / animSpeed;
+	turn legFootR2 to z-axis <0> speed <359.693428> / animSpeed;
+	turn legFootR3 to x-axis <0> speed <802.665272> / animSpeed;
+	turn legFootR3 to y-axis <0> speed <1092.005095> / animSpeed;
+	turn legFootR3 to z-axis <0> speed <700.834398> / animSpeed;
+	turn legLowerL1 to x-axis <0> speed <14.102901> / animSpeed;
+	turn legLowerL1 to y-axis <0> speed <27.289328> / animSpeed;
+	turn legLowerL1 to z-axis <0> speed <2032.755651> / animSpeed;
+	turn legLowerL2 to x-axis <0> speed <11.580192> / animSpeed;
+	turn legLowerL2 to y-axis <0> speed <5.571688> / animSpeed;
+	turn legLowerL2 to z-axis <0> speed <1371.758587> / animSpeed;
+	turn legLowerL3 to x-axis <0> speed <854.586738> / animSpeed;
+	turn legLowerL3 to y-axis <0> speed <582.233916> / animSpeed;
+	turn legLowerL3 to z-axis <0> speed <1579.048553> / animSpeed;
+	turn legLowerR1 to x-axis <0> speed <12.930349> / animSpeed;
+	turn legLowerR1 to y-axis <0> speed <21.417208> / animSpeed;
+	turn legLowerR1 to z-axis <0> speed <1759.375366> / animSpeed;
+	turn legLowerR2 to x-axis <0> speed <10.886391> / animSpeed;
+	turn legLowerR2 to y-axis <0> speed <5.344837> / animSpeed;
+	turn legLowerR2 to z-axis <0> speed <1299.589528> / animSpeed;
+	turn legLowerR3 to x-axis <0> speed <843.251398> / animSpeed;
+	turn legLowerR3 to y-axis <0> speed <621.840870> / animSpeed;
+	turn legLowerR3 to z-axis <0> speed <1561.696628> / animSpeed;
+	turn legMidL1 to z-axis <0> speed <1160.628347> / animSpeed;
+	turn legMidL2 to z-axis <0> speed <487.667711> / animSpeed;
+	turn legMidL3 to x-axis <0> speed <35.391330> / animSpeed;
+	turn legMidL3 to y-axis <0> speed <53.490989> / animSpeed;
+	turn legMidL3 to z-axis <0> speed <143.610939> / animSpeed;
+	turn legMidR1 to z-axis <0> speed <892.963396> / animSpeed;
+	turn legMidR2 to z-axis <0> speed <456.873512> / animSpeed;
+	turn legMidR3 to x-axis <0> speed <27.206799> / animSpeed;
+	turn legMidR3 to y-axis <0> speed <74.879513> / animSpeed;
+	turn legMidR3 to z-axis <0> speed <209.228971> / animSpeed;
+	turn legPivotL1 to x-axis <0> speed <58.178015> / animSpeed;
+	turn legPivotL1 to y-axis <-30> speed <686.303726> / animSpeed;
+	turn legPivotL1 to z-axis <0> speed <31.721612> / animSpeed;
+	turn legPivotL2 to x-axis <0> speed <20.206554> / animSpeed;
+	turn legPivotL2 to y-axis <0> speed <693.894371> / animSpeed;
+	turn legPivotL2 to z-axis <0> speed <7.794204> / animSpeed;
+	turn legPivotL3 to x-axis <0> speed <87.873361> / animSpeed;
+	turn legPivotL3 to y-axis <30> speed <1172.176404> / animSpeed;
+	turn legPivotL3 to z-axis <0> speed <194.153549> / animSpeed;
+	turn legPivotR1 to x-axis <0> speed <57.215029> / animSpeed;
+	turn legPivotR1 to y-axis <30> speed <754.751613> / animSpeed;
+	turn legPivotR1 to z-axis <0> speed <29.365847> / animSpeed;
+	turn legPivotR2 to x-axis <0> speed <21.150405> / animSpeed;
+	turn legPivotR2 to y-axis <0> speed <710.600437> / animSpeed;
+	turn legPivotR2 to z-axis <0> speed <7.731062> / animSpeed;
+	turn legPivotR3 to x-axis <0> speed <77.640190> / animSpeed;
+	turn legPivotR3 to y-axis <-30> speed <1114.016148> / animSpeed;
+	turn legPivotR3 to z-axis <0> speed <188.265584> / animSpeed;
+	turn legUpperL1 to x-axis <0> speed <65.333017> / animSpeed;
+	turn legUpperL1 to y-axis <0> speed <87.197498> / animSpeed;
+	turn legUpperL1 to z-axis <0> speed <745.712604> / animSpeed;
+	turn legUpperL2 to x-axis <0> speed <95.623966> / animSpeed;
+	turn legUpperL2 to y-axis <0> speed <152.930070> / animSpeed;
+	turn legUpperL2 to z-axis <0> speed <1243.318545> / animSpeed;
+	turn legUpperL3 to x-axis <0> speed <71.360336> / animSpeed;
+	turn legUpperL3 to y-axis <0> speed <248.073538> / animSpeed;
+	turn legUpperL3 to z-axis <0> speed <1514.767423> / animSpeed;
+	turn legUpperR1 to x-axis <0> speed <76.481702> / animSpeed;
+	turn legUpperR1 to y-axis <0> speed <105.449871> / animSpeed;
+	turn legUpperR1 to z-axis <0> speed <892.712768> / animSpeed;
+	turn legUpperR2 to x-axis <0> speed <88.290974> / animSpeed;
+	turn legUpperR2 to y-axis <0> speed <151.868293> / animSpeed;
+	turn legUpperR2 to z-axis <0> speed <1210.695405> / animSpeed;
+	turn legUpperR3 to x-axis <0> speed <73.030576> / animSpeed;
+	turn legUpperR3 to y-axis <0> speed <233.897720> / animSpeed;
+	turn legUpperR3 to z-axis <0> speed <1399.789000> / animSpeed;
+	turn turretPitchPivot to x-axis <0> speed <100.301819> / animSpeed;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 3.5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed>11) animSpeed = 11;
+		sleep 193;
+	}
+}
+
+StartMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+    animSpeed = 5;
+	start-script Walk();
+}
+
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
+}
+
+Steering(heading)
+{
+	while( 1 )
+	{
+		heading = get HEADING;
+
+		if ( heading < oldheading )	bSteering=TRUE;
+		if ( heading > oldheading )	bSteering=TRUE;
+		if (heading == oldheading ) bSteering=FALSE;
+
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+#define BASEPIECE chassis
+#define HITSPEED <35.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+RockUnit(anglex, anglez)
+{
+
+}
+
+Create()
+{	
+	isMoving = FALSE;
+	bSteering = FALSE;
+	oldHeading = get HEADING;
+	animSpeed = 5;
+    whichBarrel = 0;
+    whichMissile = 0;
+
+    move padR to y-axis [-5] now;
+    move padL to y-axis [-5] now;
+	
+	start-script Steering();
+	start-script UnitSpeed();
+	
+	turn legPivotR1 to y-axis <30> now;
+	turn legPivotL1 to y-axis <-30> now;
+	turn legPivotR3 to y-axis <-30> now;
+	turn legPivotL3 to y-axis <30> now;
+	speedmult = 70;
+	
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned)
+	{
+        return (1);
+    }
+	set-signal-mask 0;
+	turn turretHeadingPivot to y-axis <0.0> speed <36.0>;
+	turn turretPitchFake to x-axis <0.0> speed <30.0>;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+	wait-for-turn turretHeadingPivot around y-axis;
+	wait-for-turn turretPitchFake around x-axis;
+	wpn1_lasthead = 0xbadface;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep 8000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+fireCommon()
+{
+    if(whichBarrel == 0) {
+        emit-sfx 1024 + 0 from barrelFlare1;
+        sleep 1;
+        move upperBarrel to z-axis [-10] speed [1000];
+        whichBarrel = 1;
+        }
+    else if(whichBarrel == 1) {
+        emit-sfx 1024 + 0 from barrelFlare2;
+        sleep 1;
+        move lowerBarrel to z-axis [-10] speed [1000];
+        whichBarrel = 0;
+	    // sleep 751;
+        }
+    sleep 751;
+	move upperBarrel to z-axis [0.000000] speed [4.000000];
+    move lowerBarrel to z-axis [0.000000] speed [4.000000];
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turretPitchPivot;
+}
+
+QueryPrimary(piecenum)
+{
+    if(whichBarrel == 0) {
+        piecenum = barrelFlare1;
+        }
+    if(whichBarrel == 1) {
+        piecenum = barrelFlare2;
+    }
+}
+
+AimPrimary(heading, pitch)
+{
+	if (AimingState != AIMING_PRIORITY)
+	{
+		return(0);
+	}
+
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn turretHeadingPivot to y-axis heading speed <30.000000>;
+	turn turretPitchFake to x-axis <0.000000> - pitch speed <45.000000>;
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn turretPitchFake around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
+	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
+	return (1);
+}
+
+FirePrimary()
+{
+	call-script fireCommon();
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretPitchPivot;
+}
+
+QuerySecondary(piecenum)
+{
+    if(whichBarrel == 0) {
+        piecenum = barrelFlare1;
+        }
+    if(whichBarrel == 1) {
+        piecenum = barrelFlare2;
+    }
+}
+
+AimSecondary(heading, pitch)
+{
+	if (AimingState != AIMING_BACKUP)
+	{
+		return(0);
+	}
+	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn turretHeadingPivot to y-axis heading speed <30.000000>;
+	turn turretPitchFake to x-axis <0.000000> - pitch speed <45.000000>;
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn turretPitchFake around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
+	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+	return (1);
+}
+
+FireSecondary()
+{	
+	call-script fireCommon();
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = turret;
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
+}
+
+AimWeapon5(heading, pitch)
+{
+    return (0);
+}
+
+FireWeapon5()
+{
+	return (1);
+}
+
+AimFromWeapon5(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+QueryWeapon5(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+AimWeapon4(heading, pitch){
+    return (1);
+}
+
+AimFromWeapon4(pieceIndex){
+    pieceIndex = barrelSpinPivot;
+}
+
+QueryWeapon4(pieceIndex){
+    if(whichMissile == 0){
+        pieceIndex = rocketFlare1;
+    }
+    if(whichMissile == 1){
+        pieceIndex = rocketFlare2;
+    }
+    if(whichMissile == 2){
+        pieceIndex = rocketFlare3;
+    }
+}
+
+Shot4(zero) {
+    if (whichMissile == 0){
+        //emit-sfx 1024 + 0 from barrelFlare1;
+        whichMissile = 1;
+        emit-sfx 1024 + 1 from rocketFlare1;
+    }
+    if (whichMissile == 1){
+        //emit-sfx 1024 + 0 from barrelFlare2;
+        whichMissile = 2;
+        emit-sfx 1024 + 1 from rocketFlare2;
+    }
+    if (whichMissile == 2){
+        //emit-sfx 1024 + 0 from barrelFlare3;
+        whichMissile = 0;
+        emit-sfx 1024 + 1 from rocketFlare3;
+    }
+    if (whichMissile >= 3) whichMissile = 0;
+}
+
+FireWeapon4(){
+    spin barrelSpinPivot around y-axis speed <900>;
+    stop-spin barrelSpinPivot around y-axis decelerate <45>;
+    // if(whichMissile == 0){
+    //     whichMissile = 1;
+    // }
+    // else if(whichMissile == 1){
+    //     whichMissile = 2;
+    // }
+    // else if(whichMissile == 2){
+    //     whichMissile = 0;
+    // }
+    // sleep 1;
+
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode legPivotR1 type BITMAPONLY | NOHEATCLOUD;
+		explode legUpperL3 type BITMAPONLY | NOHEATCLOUD;
+		explode legFootR2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode upperBarrel type BITMAPONLY | NOHEATCLOUD;
+		explode lowerBarrel type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode legPivotR1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legUpperL3 type FALL | NOHEATCLOUD;
+		explode legFootR2 type FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode upperBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lowerBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode legPivotR1 type SMOKE | FALL | NOHEATCLOUD;
+		explode legUpperL3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode legFootR2 type SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode upperBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lowerBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode legPivotR1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legUpperL3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legFootR2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode upperBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lowerBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

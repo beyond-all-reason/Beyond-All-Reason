@@ -1,74 +1,28 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, fork1, fork2, ground, jam;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var recently_damaged, desired_activation;
 
 // Signal definitions
-#define SIG_MOVE			4
-#define SIG_ACTIVATE			2
-#define SIG_OFF 				8
+#define SIGNAL_MOVE 1
+#define SIGNAL_TURNON 4
+#define SIGNAL_OFF 8
 
 
-SetDirection(heading)
-{
-	var spd;
-	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
-	turn ground to y-axis heading speed spd;
-	turn base to y-axis 0-heading speed spd;
-	oldHead = heading;
-}
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn ground to x-axis rockAng speed rockSpeed*4;
-			wait-for-turn ground around x-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script RockOnWaves();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define RB_MASS 30
+#define RB_LENGTH 6
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 200
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 6
+#define RB_WAKE_PIECE ground
+#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_CEG 1024 + 0
+#define RB_ONHIT start-script OffOnHit();
+#include "../bar_ships_common.h"
 
 Create()
 {
@@ -76,14 +30,15 @@ Create()
 	hide jam;
 	recently_damaged = 0;
 	desired_activation = 1;
-	start-script SmokeUnit();
-	Static_Var_1 = 0;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	desired_activation = 1;
 	show jam;
 	// if we are in this function, the unit is already on
@@ -117,8 +72,8 @@ Deactivate()
 		//set desired state if deactivated and not recently damaged
 		desired_activation = 0;
 	}
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	stop-spin fork1 around z-axis decelerate <4>;
 	stop-spin fork2 around z-axis decelerate <4>;
 }
@@ -136,58 +91,21 @@ SetStunned(State)
 
 OffOnHit()
 {
-signal SIG_OFF;
-set-signal-mask SIG_OFF;
-recently_damaged = 1;
-set ACTIVATION to 0; // turn off unit
-sleep 8000; //hardcoded time to stay off after being hit
-recently_damaged = 0;
-set ACTIVATION to desired_activation;
+	signal SIGNAL_OFF;
+	set-signal-mask SIGNAL_OFF;
+	recently_damaged = 1;
+	set ACTIVATION to 0; // turn off unit
+	sleep 8000; //hardcoded time to stay off after being hit
+	recently_damaged = 0;
+	set ACTIVATION to desired_activation;
 }
 
-HitByWeapon(anglex, anglez)
+StartMoving(reversing)
 {
-	start-script OffOnHit();
-}
-
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-3.0> speed <3.0>;
-		move base to y-axis [0.35] speed [0.23];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <3.0>;
-		move base to y-axis [0.0] speed [0.23];
-		wait-for-turn base around x-axis;
-	}
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from ground;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 14000 / waketime;
-	}
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	turn base to x-axis <0.0> speed <3.0>;
-	move base to y-axis [0.0] speed [0.23];
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 Killed(severity, corpsetype)

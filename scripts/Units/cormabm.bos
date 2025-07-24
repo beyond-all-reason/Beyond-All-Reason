@@ -4,6 +4,8 @@
 piece  base, dbl, dbr, dtr, dtl, dummy, turret,
 greendbr, greendtr, greendtl, greendbl, orangelight;
 
+static-var  restore_delay, missiles_stockpiled;
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -28,6 +30,13 @@ static-var  Stunned;
 Create()
 {
 	call-script TB_Init();
+	restore_delay = 3000;
+	missiles_stockpiled = 0;
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
 }
 
 StartMoving(reversing)
@@ -58,6 +67,11 @@ ExecuteRestoreAfterDelay()
 	move dtl to z-axis [0] speed [1];
 	move dtr to x-axis [0] speed [1];
 	move dtr to z-axis [0] speed [1];
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
 }
 
 SetStunned(State)
@@ -100,6 +114,40 @@ QueryWeapon1(pieceIndex)
 {
 	pieceIndex = dummy;
 	return (0);
+}
+
+lights_orange()
+{
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greendbr;
+	show greendtl;
+	show greendtr;
+	show greendbl;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

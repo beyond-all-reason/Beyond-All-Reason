@@ -1,13 +1,11 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lflare, rflare, thrusta, thrustb;
 
 
 
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -24,10 +22,7 @@ Create()
 	hide rflare;
 	hide thrusta;
 	hide thrustb;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Activate()
@@ -42,74 +37,56 @@ Deactivate()
 	hide thrustb;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if (gun_1==0)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 		sleep 500;
 		gun_1=1;
 	}
 	else 
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 		sleep 500;
 		gun_1=0;
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
 	if (gun_1==0)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
 	else 
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	 	while( 255 > heading )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (0 - 1500 + get HEADING);
 			heading = heading + 1500;
 			sleep 1;
 		}
 		while( heading > 255 )
 		{
-			set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN_UNIT_VALUE(82);
+			set HEADING to (1500 + get HEADING);
 			heading = heading - 1500;
 			sleep 1;
 		}	
 	return (1);
 }
 
-PostFire()
+FireWeapon1()
 {
-    if (gun_1==0)
-	{
-		show lflare;
-		sleep 200;
-		hide lflare;
-	}
-	else 
-	{
-		show rflare;
-		sleep 200;
-		hide rflare;
-	}
-
-}
-
-FirePrimary()
-{
-	start-script PostFire();
-	return (1);
+	gun_1 = !gun_1;
 }
 
 Killed(severity, corpsetype)

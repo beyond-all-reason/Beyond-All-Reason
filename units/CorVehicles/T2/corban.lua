@@ -152,7 +152,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 720,
-
 				damage = {
 					default = 1000,
 					subs = 500,

@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
@@ -69,19 +68,18 @@ local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
-local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
 local interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
 local gameFrame = 0
 local serverFrame = 0
 local bossHasSpawned = false
 local playInterlude = false
+local isChangingTrack = false
 
 local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
@@ -370,8 +368,6 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local prevPlayedTime = playedTime
 
-local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
-
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
 if maxMusicVolume > 99 then
 	Spring.SetConfigInt("snd_volmusic", 99)
@@ -519,7 +515,7 @@ local function processTrackname(trackname)
 end
 
 local function drawBackground()
-	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTextureBg)
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil)
 	borderPadding = bgpadding
 	borderPaddingRight = borderPadding
 	if right >= vsx-0.2 then
@@ -560,13 +556,13 @@ local function drawContent()
 		end
 		trackname = text
 
-		glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		glTexture(false)
 
-		font:Begin()
-		font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+		font:Begin(useRenderToTexture)
+		font:SetOutlineColor(0.15,0.15,0.15,0.8)
 		font:Print("\255\225\225\225"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 		font:End()
 	else
@@ -588,7 +584,7 @@ local function drawContent()
 
 		local button = 'musicvolumeicon'
 		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-		glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		glTexture(false)
@@ -648,22 +644,22 @@ local function refreshUiDrawing()
 		end
 	end
 	if right-left >= 1 and top-bottom >= 1 then
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if not uiBgTex then
 				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-					gl.Translate(-left, -bottom, 0)
-					drawBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+						gl.Translate(-left, -bottom, 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
 		else
 			drawlist[1] = glCreateList( function()
@@ -678,15 +674,15 @@ local function refreshUiDrawing()
 					fbo = true,
 				})
 			end
-			gl.RenderToTexture(uiTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-				gl.Translate(-left, -bottom, 0)
-				drawContent()
-				gl.PopMatrix()
-			end)
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+					gl.Translate(-left, -bottom, 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
 		else
 			drawlist[2] = glCreateList( function()
 				local button = 'playpause'
@@ -723,13 +719,13 @@ local function refreshUiDrawing()
 				trackname = text
 
 				local button = 'playpause'
-				glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+				glColor(0.8,0.8,0.8,0.9)
 				glTexture(musicTex)
 				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 				glTexture(false)
 
-				font:Begin()
-				font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+				font:Begin(useRenderToTexture)
+				font:SetOutlineColor(0.15,0.15,0.15,0.8)
 				font:Print("\255\225\225\225"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 				font:End()
 			end)
@@ -740,7 +736,7 @@ local function refreshUiDrawing()
 
 				local button = 'musicvolumeicon'
 				local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-				glColor(0.8,0.8,0.8,useRenderToTexture and 1 or 0.9)
+				glColor(0.8,0.8,0.8,0.9)
 				glTexture(musicTex)
 				glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 				glTexture(false)
@@ -789,11 +785,11 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
+	isChangingTrack = false
 	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
 	end
 	ReloadMusicPlaylists()
-	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
@@ -919,7 +915,6 @@ function widget:Initialize()
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-		silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	end
 	WG['music'].RefreshTrackList = function()
 		Spring.StopSoundStream()
@@ -944,11 +939,11 @@ function widget:Shutdown()
 	end
 	if guishaderList then glDeleteList(guishaderList) end
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	WG['music'] = nil
@@ -970,28 +965,19 @@ function widget:ViewResize(newX,newY)
 	UiSlider = function(px, py, sx, sy)
 		local cs = (sy-py)*0.25
 		local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
-		if useRenderToTexture then
-			-- faint dark outline edge
-			RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.33 })
-			-- bottom
-			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.22 }, { 1, 1, 1, 0 })
-			-- top
-			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.4, 0.4, 0.4, 0.6 }, { 0.9,0.9,0.9, 0.6 })
-		else
-			-- faint dark outline edge
-			RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
-			-- bottom
-			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
-			-- top
-			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
-		end
+		-- faint dark outline edge
+		RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+		-- bottom
+		RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
+		-- top
+		RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
 	end
 
 	updateDrawing = true
 	if uiTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 end
@@ -1149,13 +1135,10 @@ function widget:DrawScreen()
 	end
 	prevShowTrackname = showTrackname
 
-	if useRenderToTextureBg then
+	if useRenderToTexture then
 		if uiBgTex then
 			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(uiBgTex)
-			gl.TexRect(left, bottom, right, top, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
 		end
 	elseif drawlist[1] then
 		glCallList(drawlist[1])
@@ -1163,10 +1146,7 @@ function widget:DrawScreen()
 	if useRenderToTexture then
 		if uiTex then
 			-- content
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(left, bottom, right, top, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
 		end
 	else
 		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
@@ -1214,7 +1194,11 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
+	if isChangingTrack then return end
+	isChangingTrack = true
+	
 	if Spring.GetConfigInt('music', 1) ~= 1 then
+		isChangingTrack = false
 		return
 	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
@@ -1222,11 +1206,6 @@ function PlayNewTrack(paused)
 	end
 	Spring.StopSoundStream()
 	fadeOutSkipTrack = false
-	if #interludeTracks > 0 or warMeter > warHighLevel then
-		silenceTimer = math.random(1,5)
-	else
-		silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-	end
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
@@ -1384,6 +1363,7 @@ function PlayNewTrack(paused)
 	end
 
 	updateDrawing = true
+	isChangingTrack = false
 end
 
 function widget:UnitDamaged(unitID, unitDefID, _, damage)
@@ -1394,10 +1374,6 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 			warMeter = math.ceil(warMeter + maxHealth)
 		else
 			warMeter = math.ceil(warMeter + damage)
-		end
-		if totalTime == 0 and silenceTimer >= 0 and damage and damage > 0 then
-			silenceTimer = silenceTimer - damage*0.001
-			--Spring.Echo("silenceTimer: ", silenceTimer)
 		end
 	end
 end
@@ -1463,15 +1439,6 @@ function widget:GameFrame(n)
 		end
 
 		local musicVolume = getMusicVolume()
-		--if musicVolume > 0 then
-		--	playing = true
-		--else
-		--	playing = false
-		--	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-		--	--Spring.PauseSoundStream()
-		--	Spring.StopSoundStream()
-		--	return
-		--end
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
@@ -1494,16 +1461,7 @@ function widget:GameFrame(n)
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if silenceTimerEnabled and not bossHasSpawned then
-					--Spring.Echo("silenceTimer: ", silenceTimer)
-					if silenceTimer > 0 then
-						silenceTimer = silenceTimer - 1
-					elseif silenceTimer <= 0 then
-						PlayNewTrack()
-					end
-				else
-					PlayNewTrack()
-				end
+				PlayNewTrack()
 			end
 		end
 	end
@@ -1531,20 +1489,11 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:UnitCreated(_, _, _, builderID)
-	if builderID and warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 1
-	end
-end
+--function widget:UnitCreated(_, _, _, builderID)
+--end
 
-function widget:UnitFinished()
-	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 2
-	end
-end
+--function widget:UnitFinished()
+--end
 
 --function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
---
 --end

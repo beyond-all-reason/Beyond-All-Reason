@@ -24,7 +24,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMAW.s3o",
 		radardistancejam = 8,
-		script = "Units/CORMAW_clean.cob",
+		script = "Units/cormaw.cob",
 		seismicsignature = 0,
 		selfdestructas = "flamethrowerSelfd",
 		sightdistance = 422,
@@ -152,14 +152,14 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 33,
 					default = 22,
 					subs = 5.5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

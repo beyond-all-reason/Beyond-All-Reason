@@ -56,7 +56,7 @@
 		"eps_step": 0.12
 	},
 	"riot": {
-		"vs":         ["raider", "skirmisher"],
+		"vs":         ["raider", "skirmish"],
 		"ratio":      [ 0.90,		0.40   ],
 		"importance": [ 5.00,		5.00 ],
 		"max_percent": 0.8,

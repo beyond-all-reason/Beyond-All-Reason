@@ -1,21 +1,16 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 
-static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading, dishturn, wpn1_lasthead;
+static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, dishturn, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE 			2
-#define SIG_AIM				4
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
 Steering(heading, steery, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -37,28 +32,33 @@ Steering(heading, steery, currentSpeed)
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+#define RECOIL_POWER 5000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-//#include "unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <0.2>
+#define TB_BANK_Z <0.3> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 Create()
 {
 	hide flare;
-	Static_Var_1 = 0;
 	dishturn = 1;
 	oldheading = get HEADING;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	hide flare;
 	turn rdrbar to x-axis <-15> now;
+	call-script TB_Init();
 }
 
-
-
-
-StartMoving()
+StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
     dishturn = 0;
     start-script Steering();
+	START_TILTBANK;
 }
 
 TurnTheDish()
@@ -74,21 +74,20 @@ TurnTheDish()
 
 StopMoving()
 {
-    signal SIG_MOVE;
+    signal SIGNAL_MOVE;
     stop-spin fwheel around x-axis;
     stop-spin bwheel around x-axis;
     dishturn = 1;
     start-script TurnTheDish();
+	STOP_TILTBANK;
 }
-
-
 
 
 //following block returns weapon in straight position after firing
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 	return (0);
 }
 
@@ -98,10 +97,9 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn gun to x-axis <0.000000> speed <50.000000>;
-	wait-for-turn turret around y-axis;
-	wpn1_lasthead = 1000000;
+	turn turret to y-axis <0.0> speed <90.0>;
+	turn gun to x-axis <0.0> speed <50.0>;
+	wpn1_lasthead = 0xbadface;
  }
 SetStunned(State)
 {
@@ -112,19 +110,19 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <300.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	signal SIGNAL_AIM1;
+	turn turret to y-axis heading speed <300.0>;
+	turn gun to x-axis <0.0> - pitch speed <300.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -132,28 +130,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = gun;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -30,10 +30,21 @@ return {
 	['   '] = singleplayer,		-- SPECIAL NAME/ADDITION: dont change it
 
 	['[teh]Flow'] = everything,
+	['Floris'] = everything,
 	['IceXuick'] = everything,
 	['[teh]Beherith'] = everything,
 	['PtaQ'] = everything,
 	['TarnishedKnight'] = everything,
 	['OPman'] = everything,
-	['Nightmare2512'] = everything
+	['Nightmare2512'] = everything,
+
+	['Shadhunter'] = moderator,
+	['DeviousNull'] = moderator,
+	['Fire[Z]torm_'] = moderator,
+	['Pooman'] = moderator,
+	['ScavengersOffenseAI'] = moderator,
+	['Steel'] = moderator,
+	['[BAC]SnekVonPess'] = moderator,
+	['[BAC]Bacchus'] = moderator,
+	['[FH]Amojini'] = moderator,
 }

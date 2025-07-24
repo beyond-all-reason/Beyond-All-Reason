@@ -7,8 +7,8 @@ Unit = class(AIBase)
 local function tracyZoneBeginMem() return end
 local function tracyZoneEndMem() return end
 
-if tracy then
-	Spring.Echo("Enabled Tracy support for STAI")
+if tracy and not tracy then
+	Spring.Echo("Enabled Tracy support for UNIT STAI")
 	tracyZoneBeginMem = function(fname)
 		if logRAM then lastGCinfo = gcinfo() end
 		tracy.ZoneBeginN(fname)
@@ -74,9 +74,9 @@ function Unit:Update()
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
 		--self.game:StartTimer(behaviour:Name() .. ' Unit')
-		tracyZoneBeginMem('STAI:'..behaviour:Name())
+		--tracyZoneBeginMem('STAI:'..behaviour:Name())
 		behaviour:Update()
-		tracyZoneEndMem('STAI:'..behaviour:Name())
+		--tracyZoneEndMem('STAI:'..behaviour:Name())
 		--self.game:StopTimer(behaviour:Name() .. ' Unit')
 	end
 --  		RAM = gcinfo() - RAM

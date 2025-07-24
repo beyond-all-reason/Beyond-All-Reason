@@ -1,52 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-
-#define SIG_BUILD		4	
-#define SIG_MOTION		8	
 piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-
-activatescr()
-{
-	signal SIG_MOTION;
-	set-signal-mask SIG_MOTION;
-	show thrust;
-	if( TRUE )
-	{
-
-		spin fan around y-axis speed <360> accelerate <10>;
-		sleep 998;
-	}
-	sleep 44;
-	return (0);
-}
-
-deactivatescr()
-{
-	signal SIG_MOTION;
-	set-signal-mask SIG_MOTION;
-	hide nanolight;
-	hide thrust;
-	if( TRUE )
-	{
-		turn arm to y-axis <0> speed <90>;
-		turn nano to x-axis <0> speed <90>;
-		move platform to y-axis [0] speed [90];
-		sleep 500;
-		move doorl to x-axis [0] speed [10];
-		move doorr to x-axis [0] speed [10];
-		//stop-spin fan around y-axis decelerate <20>; 
-		//^ could maybe stop on landing but when does that ever happen. when hovering it should stay on.
-		sleep 998;
-	}
-	sleep 44;
-	return (0);
-}
+#define SIGNAL_BUILD 2
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -57,124 +14,69 @@ deactivatescr()
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
-
-
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#include "../idlehover.h"
 
 Create()
 {
 	hide emit;
 	hide thrust;
 	hide nanolight;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
-	return (0);
 }
 
 Activate()
 {
 	show thrust;
-	start-script RequestState(0);
-	return (0);
+	spin fan around y-axis speed <360> accelerate <10>;
 }
 
 Deactivate()
 {
 	hide thrust;
-	start-script RequestState(1);
-	return (0);
+	stop-spin fan around y-axis decelerate <5>;
 }
-
-///moving. quite what or how is up for debate but /something/ is happening.
-MoveRate1() {
-	start-script RequestState(0);
-	return (0);
-}
-MoveRate2() {
-	start-script RequestState(0);
-	return (0);
-}
-
 
 StartBuilding(heading, pitch)
 {
-	show emit;
-	start-script RequestState(0);
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	move doorl to x-axis [-2.8] speed [10];
 	move doorr to x-axis [2.8] speed [10];
-	sleep 500;
+	wait-for-move doorl along x-axis;
+
 	move platform to y-axis [5] speed [10];
+
 	set INBUILDSTANCE to 1;
 	show nanolight;
+	show emit;
 }
 
 
 StopBuilding()
 {
 	hide emit;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
 	hide nanolight;
+	
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+
 	set INBUILDSTANCE to 0;
-	hide nano;
-	return (0);
+	move platform to y-axis [0] speed [90];
+	wait-for-move platform along y-axis;
+
+	move doorl to x-axis [0] speed [10];
+	move doorr to x-axis [0] speed [10];
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emit;
-	return (0);
+	pieceIndex = emit;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

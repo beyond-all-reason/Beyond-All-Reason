@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, turretHeadingPivot, turretPitchPivot, barrel, flare;
 
@@ -83,7 +81,12 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	spin barrel around z-axis speed <900.000000> accelerate <60>;
+}
+
+Shot1(zero)
+{
 	emit-sfx 1024 + 0 from flare;
+	return(1);
 }
 
 AimFromPrimary(piecenum)

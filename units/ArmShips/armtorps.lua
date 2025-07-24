@@ -24,7 +24,7 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/ARMMLS.s3o",
-		script = "Units/ARMMLS.cob",
+		script = "Units/ARMTORPS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 500,

@@ -1,18 +1,17 @@
 
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, mount, gunbase, guna, gunb, base;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -20,7 +19,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn gunbase to x-axis <-30> speed <25.00000>;
+    turn gunbase to x-axis <-30> speed <25.0>;
     spin mount around y-axis speed <25.0>;
 }
 SetStunned(State)
@@ -41,68 +40,50 @@ Create()
 	hide flare2;
 	hide flare1;
 	gun_1 = 0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	stop-spin mount around y-axis;
-	turn mount to y-axis heading speed <1200.000000>;
-	turn gunbase to x-axis <0.000000> - pitch speed <950.000000>;
+	turn mount to y-axis heading speed <1200.0>;
+	turn gunbase to x-axis <0.0> - pitch speed <950.0>;
 	wait-for-turn mount around y-axis;
 	wait-for-turn gunbase around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
 		move guna to z-axis [-3.999994] now;
-		wait-for-move guna along z-axis;
 		move guna to z-axis [0.000000] speed [15.000000];
-		gun_1 = 1;
-	} else {
-	    emit-sfx 1024 + 0 from flare2;
-		move gunb to z-axis [-3.999994] now;
-		wait-for-move gunb along z-axis;
-		move gunb to z-axis [0.000000] speed [15.000000];
-		gun_1 = 0;
-	}
-	
-	return (1);
-	
-}
-
-QueryPrimary(piecenum)
-{
-	if( gun_1 == 0 )
-	{
-		piecenum = flare2;//inverse, but needed
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
-	}
+	    emit-sfx 1024 + 0 from flare2;
+		move guna to z-axis [-3.999994] now;
+		move guna to z-axis [0.000000] speed [15.000000];
+	} 
+	gun_1 = !gun_1;
 }
 
-AimFromPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = mount;
+	pieceIndex = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = mount;
+	pieceIndex = mount;
 }
+
 
 Killed(severity, corpsetype)
 {

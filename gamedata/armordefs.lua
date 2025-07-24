@@ -305,6 +305,7 @@ local armorDefs = {
         "armspy",
 		"cormando",
 		"corspy",
+		"legaspy",
         "armdl",
 		"cordl",
 		"legctl",
@@ -543,6 +544,7 @@ local armorDefs = {
 		"cordroneold",
 		"legdrone",
 		"legheavydrone",
+		"legheavydronesmall",
 		"raptor_air_bomber_basic_t1_v1",
 		"raptor_air_bomber_basic_t2_v1",
 		"raptor_air_bomber_basic_t2_v2",
@@ -644,6 +646,7 @@ local armorDefs = {
 		"armbats",
 		"corbats",
 		"armepoch",
+		"corprince",
 		"corblackhy",
 	},
 

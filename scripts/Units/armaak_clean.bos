@@ -1,11 +1,14 @@
 
 #include "../recoil_common_includes.h"
 
-piece pelvis, rthigh, rleg, lthigh, lleg, torso, lfoot, rfoot, lturret, rturret, lflare1,lflare2,rflare1,rflare2, aimy1, aimx1;
+piece pelvis, rthigh, rleg, lthigh, lleg, torso, lfoot, rfoot, lturret, rturret, lflare1, lflare2, rflare1, rflare2, aimy1, aimx1;
 
 static-var isMoving, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var whichMissileTop, whichMissileBot;
 
 #define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 2
+#define SIGNAL_AIM2 4
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armaak_anim_walk.blend 
 	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
@@ -241,10 +244,10 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	animSpeed = 4;
+	whichMissileTop = 0;
+	whichMissileBot = 0;
 	return (0);
 }
-
-
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -253,7 +256,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn torso to y-axis <0> speed <250.0>;
+	turn aimy1 to y-axis <0> speed <250.0>;
 	turn lturret to x-axis <0> speed <400>;
 	turn rturret to x-axis <0> speed <400>;
 }
@@ -270,129 +273,86 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryWeapon1(pieceIndex)
-{
-	pieceIndex = lflare1;
+AimWeapon1(heading, pitch){
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn aimy1 to y-axis heading speed <200>;
+	turn lturret to x-axis (-1*pitch) speed <100>;
+	turn rturret to x-axis (-1*pitch) speed <100>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn rturret around x-axis;
+	start-script RestoreAfterDelay();
+	return(1);
 }
 
-AimFromWeapon1(pieceIndex)
-{
+AimFromWeapon1(pieceIndex){
 	pieceIndex = torso;
 }
 
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex=lflare2;
+FireWeapon1(){
+	++whichMissileTop;
+	if (whichMissileTop == 0){
+		emit-sfx 1024 + 0 from lflare1;
+	}
+	if (whichMissileTop == 1){
+		emit-sfx 1024 + 0 from rflare1;
+	}
+	if( whichMissileTop >= 2 )
+	{
+		whichMissileTop = 0;
+		emit-sfx 1024 + 0 from lflare1;
+	}
+	sleep 50;
 }
 
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex=torso;
+QueryWeapon1(pieceIndex){
+	if (whichMissileTop == 0){
+		pieceIndex = lflare1;
+		// emit-sfx 1024 + 0 from lflare1;
+		// sleep 1500;
+	}
+	if (whichMissileTop == 1){
+		pieceIndex = rflare1;
+	}
 }
 
-AimWeapon2(heading, pitch)
-{
-	signal 2;
-	set-signal-mask 2;
-	turn torso to y-axis heading speed <250.0>;
-	turn lturret to x-axis -1* pitch speed <400>;
-	turn rturret to x-axis -1* pitch speed <400>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lturret around x-axis;
-	wait-for-turn rturret around x-axis;
-	start-script RestoreAfterDelay();
+
+AimWeapon2(heading, pitch){
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	//turn torso to y-axis <120> speed <120>;
+	// turn aimx2 to x-axis (0-pitch) speed <100>;
+	// wait-for-turn aimx2 around x-axis;
 	return (1);
 }
 
-FireWeapon2()
-{
+FireWeapon2(){
+	++whichMissileBot;
+	if (whichMissileBot == 0){
+		emit-sfx 1024 + 0 from lflare2;
+	}
+	if (whichMissileBot == 1){
+		emit-sfx 1024 + 0 from rflare2;
+	}
+	if( whichMissileBot >= 2 )
+	{
+		whichMissileBot = 0;
+		emit-sfx 1024 + 0 from lflare2;
+	}
+	sleep 50;
 }
 
-QueryWeapon3(pieceIndex)
-{
-	pieceIndex=rflare2;
+QueryWeapon2(pieceIndex){
+	if (whichMissileBot == 0){
+		pieceIndex = lflare2;
+	}
+	if (whichMissileBot == 1){
+		pieceIndex = rflare2;
+	}
 }
 
-AimFromWeapon3(pieceIndex)
-{
-	pieceIndex=torso;
-}
-
-AimWeapon3(heading, pitch)
-{
-	signal 4;
-	set-signal-mask 4;
-	turn torso to y-axis heading speed <250.0>;
-	turn lturret to x-axis -1* pitch speed <400>;
-	turn rturret to x-axis -1* pitch speed <400>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lturret around x-axis;
-	wait-for-turn rturret around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon3()
-{
-}
-
-
-QueryWeapon4(pieceIndex)
-{
-	pieceIndex=rflare1;
-}
-
-AimFromWeapon4(pieceIndex)
-{
-	pieceIndex=torso;
-}
-
-
-AimWeapon4(heading, pitch)
-{
-	signal 8;
-	set-signal-mask 8;
-	turn torso to y-axis heading speed <250.0>;
-	turn lturret to x-axis -1* pitch speed <400>;
-	turn rturret to x-axis -1* pitch speed <400>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lturret around x-axis;
-	wait-for-turn rturret around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon4()
-{
-}
-
-
-QueryWeapon5(pieceIndex)
-{
-	pieceIndex=lflare2;
-}
-
-AimFromWeapon5(pieceIndex)
-{
-	pieceIndex=torso;
-}
-AimWeapon5(heading, pitch)
-{
-	signal 16;
-	set-signal-mask 16;
-	turn torso to y-axis heading speed <250.0>;
-	turn lturret to x-axis -1* pitch speed <400>;
-	turn rturret to x-axis -1* pitch speed <400>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lturret around x-axis;
-	wait-for-turn rturret around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon5()
-{
-	emit-sfx 1024 + 0 from lflare1;
+AimFromWeapon2(pieceIndex){
+	pieceIndex = torso;
 }
 
 Killed(severity, corpsetype)

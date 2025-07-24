@@ -111,8 +111,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					speceffect = "torpwaterpen",
 					noattackrangearc = 1,
+					speceffect = "torpwaterpen",
 				},
 				damage = {
 					commanders = 150,

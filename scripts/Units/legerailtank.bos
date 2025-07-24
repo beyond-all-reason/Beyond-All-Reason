@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAFlare, //5
 				leftBTurretBase, leftBTurret, leftBGun, leftBFlare, //9
@@ -276,10 +274,10 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIG_AIM_2;
 
 	if ((heading + <33.02>) > <-117.5> AND (heading + <33.02>) < <117.5>){
-		turn rightATurret to z-axis <0.000000> + pitch speed <50.000000>;
-		turn rightATurretBase to y-axis heading + <90> speed <100.000000>;
-		wait-for-turn rightATurret around x-axis;
-		wait-for-turn rightATurretBase around y-axis;
+		turn rightATurret to z-axis <0.000000> + pitch speed <120.000000>;
+		turn rightATurretBase to y-axis heading + <90> speed <120.000000>;
+		//wait-for-turn rightATurret around x-axis;
+		//wait-for-turn rightATurretBase around y-axis;
 		start-script RestoreAfterDelay2();
 		return (1);
 	}
@@ -317,10 +315,10 @@ AimWeapon3(heading, pitch)
 	set-signal-mask SIG_AIM_3;
 
 	if ((heading + <73.3>) > <-100> AND (heading + <73.3>) < <100>){
-		turn rightBTurret to z-axis <0.000000> + pitch speed <50.000000>;
-		turn rightBTurretBase to y-axis heading + <90> speed <100.000000>;
-		wait-for-turn rightBTurret around x-axis;
-		wait-for-turn rightBTurretBase around y-axis;
+		turn rightBTurret to z-axis <0.000000> + pitch speed <120.000000>;
+		turn rightBTurretBase to y-axis heading + <90> speed <120.000000>;
+		//wait-for-turn rightBTurret around x-axis;
+		//wait-for-turn rightBTurretBase around y-axis;
 		start-script RestoreAfterDelay2();
 		return (1);
 	}
@@ -361,10 +359,10 @@ AimWeapon4(heading, pitch)
 	set-signal-mask SIG_AIM_4;
 
 	if ((heading - <33.02>) > <-117.5> AND (heading - <33.02>) < <117.5>){
-		turn leftATurret to z-axis <0.000000> - pitch speed <50.000000>;
-		turn leftATurretBase to y-axis heading - <90> speed <100.000000>;
-		wait-for-turn leftATurret around x-axis;
-		wait-for-turn leftATurretBase around y-axis;
+		turn leftATurret to z-axis <0.000000> - pitch speed <120.000000>;
+		turn leftATurretBase to y-axis heading - <90> speed <120.000000>;
+		//wait-for-turn leftATurret around x-axis;
+		//wait-for-turn leftATurretBase around y-axis;
 		start-script RestoreAfterDelay2();
 		return (1);
 	}
@@ -403,10 +401,10 @@ AimWeapon5(heading, pitch)
 	set-signal-mask SIG_AIM_5;
 
 	if ((heading - <73.3>) > <-100> AND (heading - <73.3>) < <100>){
-		turn leftBTurret to z-axis <0.000000> - pitch speed <50.000000>;
-		turn leftBTurretBase to y-axis heading - <90> speed <100.000000>;
-		wait-for-turn leftBTurret around x-axis;
-		wait-for-turn leftBTurretBase around y-axis;
+		turn leftBTurret to z-axis <0.000000> - pitch speed <120.000000>;
+		turn leftBTurretBase to y-axis heading - <90> speed <120.000000>;
+		//wait-for-turn leftBTurret around x-axis;
+		//wait-for-turn leftBTurretBase around y-axis;
 		start-script RestoreAfterDelay2();
 		return (1);
 	}

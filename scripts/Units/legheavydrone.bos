@@ -21,8 +21,15 @@ static-var shotcount;
 Create()
 {
 	hide flare;
+	
+	turn flwing to y-axis <-30> now;
+	turn frwing to y-axis <30> now;
+	turn blwing to y-axis <30> now;
+	turn brwing to y-axis <-30> now;
+	
 	turn ringazimuth to y-axis <0> now;
 	turn ringelevation to x-axis <-90> now;
+	
 	SLEEP_UNTIL_UNITFINISHED;
 	call-script Activate();
 	start-script IdleHover();
@@ -36,15 +43,12 @@ Activate()
 	spin brblades around y-axis speed <600>;
 	spin blades around z-axis speed <200>;
 	
-	turn flwing to z-axis <-15> speed <60>;
-	turn frwing to z-axis <15> speed <60>;
-	turn blwing to z-axis <-15> speed <60>;
-	turn brwing to z-axis <15> speed <60>;
+	turn flwing to z-axis <-15> speed <120>;
+	turn frwing to z-axis <15> speed <120>;
+	turn blwing to z-axis <-15> speed <120>;
+	turn brwing to z-axis <15> speed <120>;
 	
-	turn flwing to y-axis <-15> speed <60>;
-	turn frwing to y-axis <15> speed <60>;
-	turn blwing to y-axis <15> speed <60>;
-	turn brwing to y-axis <-15> speed <60>;
+	move base to y-axis [0] speed [1];
 	
 	turn thruster to x-axis <0> speed <90>;
 	show thrusttrail;
@@ -58,15 +62,12 @@ Deactivate()
 	stop-spin brblades around y-axis decelerate <10>;
 	stop-spin blades around z-axis decelerate <10>;
 	
-	turn flwing to z-axis <30> speed <30>;
-	turn frwing to z-axis <-30> speed <30>;
-	turn blwing to z-axis <30> speed <30>;
-	turn brwing to z-axis <-30> speed <30>;
+	turn flwing to z-axis <45> speed <180>;
+	turn frwing to z-axis <-45> speed <180>;
+	turn blwing to z-axis <45> speed <180>;
+	turn brwing to z-axis <-45> speed <180>;
 	
-	turn flwing to y-axis <0> speed <60>;
-	turn frwing to y-axis <0> speed <60>;
-	turn blwing to y-axis <0> speed <60>;
-	turn brwing to y-axis <0> speed <60>;
+	move base to y-axis [2] speed [20];
 	
 	turn thruster to x-axis <-90> speed <90>;
 	hide thrusttrail;
