@@ -36,12 +36,12 @@ return {
 			[1] = "armhaca",
 			[2] = "armpnix",
 			[3] = "armlance",
-			[4] = "armhawk",
+			[4] = "armblade",
 			[5] = "armdfly",
 			[6] = "armbrawl",
 			[7] = "armstil",
 			[8] = "armliche",
-			[9] = "armawac",
+			[9] = "armawac"
 			},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

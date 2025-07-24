@@ -5,7 +5,7 @@ return {
 		buildtime = 61400,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "180 120 166",
+		collisionvolumescales = "256 80 221",
 		collisionvolumetype = "Box",
 		corpse = "ARMSHLT_DEAD",
 		energycost = 58000,
@@ -30,7 +30,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 600,
 		waterline = 1.5,
-		yardmap = "weeeeeeeeeew eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee weeeeeeeeeew",
+		yardmap = "weeeeeeeeeeeeew eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee weeeeeeeeeeeeew",
 		buildoptions = {
 			[1] = "armhacs",
 			[2] = "armserp",
@@ -40,8 +40,8 @@ return {
 			[6] = "armantiship",
 			[7] = "armbanth",
 			[8] = "armmar",
-			[9] = "armcroc",
-			[10] = "armlun",
+			[9] = "armlun",
+			[10] = "armaas"
 		},
 		customparams = {
 			model_author = "FireStorm",

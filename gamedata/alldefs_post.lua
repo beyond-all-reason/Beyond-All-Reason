@@ -2644,8 +2644,11 @@ function UnitDef_Post(name, uDef)
 			[2] = "armmship",
 			[3] = "armcrus",
 			[4] = "armsubk",
-			[5] = "armaas",
+			[5] = "armah",
 			[6] = "armlship",
+			[7] = "armcroc",
+			[8] = "armsh",
+			[9] = "armanac",
 		}
 
 		elseif name == "corasy" then
@@ -2656,6 +2659,9 @@ function UnitDef_Post(name, uDef)
 			[4] = "corarch",
 			[5] = "cormship",
 			[6] = "corfship",
+			[7] = "corah",
+			[8] = "corsala",
+			[9] = "corsnap"
 		}
 		
 
