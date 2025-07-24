@@ -35,11 +35,11 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			crashable = 0,
 			model_author = "Protar",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
-			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

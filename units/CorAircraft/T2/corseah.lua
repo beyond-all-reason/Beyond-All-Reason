@@ -38,12 +38,12 @@ return {
 		unloadspread = 0,
 		upright = true,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

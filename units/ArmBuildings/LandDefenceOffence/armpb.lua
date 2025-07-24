@@ -131,15 +131,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 675,
 					hvyboats = 472.5,
 					subs = 300,
 					vtol = 26,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

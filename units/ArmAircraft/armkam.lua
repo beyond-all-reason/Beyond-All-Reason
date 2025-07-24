@@ -36,15 +36,15 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:barrelshot-tiny",
-			},
 			crashexplosiongenerators = {
 				[1] = "crashing-small",
 				[2] = "crashing-small",
 				[3] = "crashing-small2",
 				[4] = "crashing-small3",
 				[5] = "crashing-small3",
+			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "airdeathceg2",

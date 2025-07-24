@@ -130,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					default = 420,
 					hvyboats = 420,
@@ -137,10 +141,6 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			cortoast_gun_high = {
 				accuracy = 450,
@@ -165,6 +165,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 420,
 					hvyboats = 420,
@@ -172,10 +176,6 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 450,
@@ -200,13 +200,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
-				}
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {
