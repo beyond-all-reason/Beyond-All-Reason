@@ -26,7 +26,7 @@ local maxIcons = 9
 local showRez = true
 local doUpdateForce = true
 local justSelected = false
-local listUpdated = {} -- listUpdated[unitDefID]: set to true when idle list is updated, set to false when idleList[unitDefID] is sorted
+local listSorted = {} -- listUpdated[unitDefID]: set to true when idle list is updated, set to false when idleList[unitDefID] is sorted
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -44,12 +44,14 @@ local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local myTeamID = Spring.GetMyTeamID()
+local spGetUnitPosition = Spring.GetUnitPosition
 
 local floor = math.floor
 local ceil = math.ceil
 local min = math.min
 local max = math.max
 local math_isInRect = math.isInRect
+local math_distance2dSquared = math.distance2dSquared
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -296,8 +298,8 @@ local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
 	local queue
+	listSorted = {}
 	for unitID, unitDefID in pairs(unitList) do
-		listUpdated[unitDefID] = true
 		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
@@ -739,15 +741,14 @@ function widget:MousePress(x, y, button)
 								end
 								num = (clicks[unitDefID]) % (#idleList[unitDefID]) + 1
 							end
-							if listUpdated[unitDefID] then
+							if not listSorted[unitDefID] then
 								local camX, _, camZ = Spring.GetCameraPosition()
-								Spring.Echo("sort")
 								table.sort(idleList[unitDefID], function (a, b)
-									local unitAX, _, unitAZ = Spring.GetUnitPosition(a)
-									local unitBX, _, unitBZ = Spring.GetUnitPosition(b)
-									return math.distance2d(unitAX, unitAZ, camX, camZ) < math.distance2d(unitBX, unitBZ, camX, camZ)
+									local unitAX, _, unitAZ = spGetUnitPosition(a)
+									local unitBX, _, unitBZ = spGetUnitPosition(b)
+									return math_distance2dSquared(unitAX, unitAZ, camX, camZ) < math_distance2dSquared(unitBX, unitBZ, camX, camZ)
 								end)
-								listUpdated[unitDefID] = false
+								listSorted[unitDefID] = true
 							end
 							units = { idleList[unitDefID][num] }
 						end
@@ -774,12 +775,8 @@ function widget:SelectionChanged(sel)
 		justSelected = false
 		return
 	end
-	for unitDefID, _ in pairs(idleList) do
-		listUpdated[unitDefID] = true
-	end
-	for unitDefID, _ in pairs(clicks) do
-		clicks[unitDefID] = -1
-	end
+	listSorted = {}
+	clicks = {}
 end
 
 
