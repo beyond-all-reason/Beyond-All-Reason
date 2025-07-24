@@ -112,20 +112,47 @@ local options = {
         step   	= 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
         section	= "options_main",
     },
+    {
+        key     = "deathmode",
+        name    = "Game End Mode",
+        desc    = "What it takes to eliminate a team",
+        type    = "list",
+        def     = "com",
+        section = "options_main",
+        items   = {
+            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
+            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
+            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
+            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
+            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
+            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
+        }
+    },
+
+    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
+    {
+        key     = "temp_enable_territorial_domination",
+        name    = "Territorial Domination V0.1",
+        desc    = "Enable experimental Territorial Domination gamemode",
+        hidden  = true,
+        type    = "bool",
+        section = "options_main",
+        unlock  = { "territorial_domination_config" },
+        def     = false,
+    },
 
     {
-        key		= "deathmode",
-        name	= "Game End Mode",
-        desc	= "What it takes to eliminate a team",
-        type	= "list",
-        def		= "com",
-        section	= "options_main",
-        items	= {
-            { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated"},
-            { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses"},
-            { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses" },
-            { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!"},
-            { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign."},
+        key     = "territorial_domination_config",
+        name    = "Territorial Domination Duration",
+        desc    =
+        "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+        type    = "list",
+        def     = "default",
+        section = "options_main",
+        items   = {
+            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
+            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
+            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
         }
     },
 
@@ -1450,7 +1477,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
@@ -1460,7 +1487,7 @@ local options = {
         name 	= "Factory Costs Test Patch",
         desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
