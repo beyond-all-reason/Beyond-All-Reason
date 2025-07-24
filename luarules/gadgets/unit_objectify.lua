@@ -46,7 +46,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
 
 	function gadget:Initialize()
-		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end

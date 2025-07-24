@@ -30,11 +30,11 @@ local function isNearGeo(x, z)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
-	return cmdID >= 0 or not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+		return not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)

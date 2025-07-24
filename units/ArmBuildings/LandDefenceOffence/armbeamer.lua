@@ -2,7 +2,7 @@ return {
 	armbeamer = {
 		buildangle = 32768,
 		buildpic = "armbeamer.DDS",
-		buildtime = 5320,
+		buildtime = 4800,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 0 -1",
