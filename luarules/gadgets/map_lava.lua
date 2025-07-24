@@ -296,9 +296,9 @@ if gadgetHandler:IsSyncedCode() then
 			local insertLevel = tonumber(tideParams[1])
 			local insertSpeed = tonumber(tideParams[2])
 			local insertRemain = tonumber(tideParams[3])
-			if (insertLevel and insertlevel >= 0 and insertlevel % 1 ~= 0) and
-				(insertSpeed and insertspeed > 0) and 
-				(insertRemain and insertRemain > 0 and insertRemain *30 % 1 ~= 0) then
+			if (insertLevel and insertLevel >= 0 and insertLevel % 1 == 0) and
+				(insertSpeed and insertSpeed > 0) and 
+				(insertRemain and insertRemain > 0 and insertRemain *30 % 1 == 0) then
 				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
 				Spring.Echo('Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
 				tideContinueFrame = gameframe + 1 
