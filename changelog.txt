@@ -1,3 +1,34 @@
+# July 2025
+• [T1 Mex] +41% hp
+• [Conbots] +15% hp
+• [T1 turrets (not aa, not popups)] -10% buildtime
+• [Commander] 25 -> 30 energymake
+• [T1 factories] -150 metalcost, -250 energycost, -1500 buildtime, 100 -> 150 buildpower
+• [Missile trucks] taller hitbox
+• [Grunt] -2,5% costs
+• [Blitz] 99 -> 101 speed
+• [Starlight] 13500 -> 18500 energycost
+• [Bull] 65.1 -> 60 speed
+• [Jaguar] 320 -> 300 range, -10% dps (lightning)
+• [Tzar] 22000 -> 28000 energycost
+• [Sprinter] -10% costs
+• [Termite] -10% costs, 48.3 -> 50 speed
+• [Juggernaut] 33.6 -> 37 speed
+• [T2 AA bots]
+   - New weapons.
+   - Longrange (1300) missile + flak for Cortex
+   - Longrange (1200) missile + shortrange missile for Armada
+   - ~Double health
+   - +30% energycost
+• [Flagships]
+   - Reduced firerate on big gun, slightly increased damage per shot. Together, ~25% dps nerf
+   - Bigger AoE and Impulse on big gun, reduced edgeeffectiveness to 0.15
+   - +17% costs
+
+# June 2025
+ [t2 flak turrets] increased footprint from 2x2 to 3x3
+ Warrior movement class from 2x2 to 3x3 (pawn to fido spacing)
+
 # June 2025
 • [Legion changes] 
    - 2 new T3 units added: Myrmidon T3 all-terrain mech, Charybdis T3 Hovertank

@@ -2,7 +2,6 @@ return {
 	cormoho = {
 		activatewhenbuilt = true,
 		buildangle = 2048,
-		buildingmask = 0,
 		buildpic = "CORMOHO.DDS",
 		buildtime = 14100,
 		canrepeat = false,

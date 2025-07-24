@@ -350,6 +350,7 @@ function ShieldSphereParticle:Initialize()
 		print(PRIO_MAJOR,"LUPS->Shield: critical shader error: "..gl.GetShaderLog())
 		return false
 	end
+	shieldShader:Initialize()
 
 	sphereList = gl.CreateList(DrawSphere, 0, 0, 0, 1, 30, false)
 end

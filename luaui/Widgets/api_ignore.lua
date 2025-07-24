@@ -9,7 +9,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
-		handler = true, --can use widgetHandler:x()
 	}
 end
 
@@ -83,17 +82,17 @@ end
 function widget:Initialize()
 	CheckPIDs()
 	WG.ignoredPlayers = ignoredPlayers
-	widgetHandler.actionHandler:AddAction(self, "ignoreplayer", ignoreplayerCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "unignoreplayer", unignoreplayerCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "toggleignore", toggleignoreCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "ignorelist", ignorelistCmd, nil, 't')
+	widgetHandler:AddAction("ignoreplayer", ignoreplayerCmd, nil, 't')
+	widgetHandler:AddAction("unignoreplayer", unignoreplayerCmd, nil, 't')
+	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, 't')
+	widgetHandler:AddAction("ignorelist", ignorelistCmd, nil, 't')
 end
 
 function widget:Shutdown()
-	widgetHandler.actionHandler:RemoveAction(self, "ignoreplayer")
-	widgetHandler.actionHandler:RemoveAction(self, "unignoreplayer")
-	widgetHandler.actionHandler:RemoveAction(self, "toggleignore")
-	widgetHandler.actionHandler:RemoveAction(self, "ignorelist")
+	widgetHandler:RemoveAction("ignoreplayer")
+	widgetHandler:RemoveAction("unignoreplayer")
+	widgetHandler:RemoveAction("toggleignore")
+	widgetHandler:RemoveAction("ignorelist")
 end
 
 function widget:PlayerChanged()

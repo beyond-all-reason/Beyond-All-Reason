@@ -2,7 +2,6 @@ return {
 	armamex = {
 		activatewhenbuilt = true,
 		buildangle = 6092,
-		buildingmask = 0,
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
 		canrepeat = false,

@@ -2,7 +2,6 @@ return {
 	cormexp = {
 		activatewhenbuilt = true,
 		buildangle = 2048,
-		buildingmask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		canattack = true,
@@ -138,15 +137,15 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 750,
-				damage = {
-					default = 260,
-					vtol = 45,
-				},
 				customparams = {
 					exclude_preaim = true,
 					overrange_distance = 748,
 					projectile_destruction_method = "descend",
-				}
+				},
+				damage = {
+					default = 260,
+					vtol = 45,
+				},
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,
@@ -177,13 +176,13 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 215,
 					vtol = 50,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

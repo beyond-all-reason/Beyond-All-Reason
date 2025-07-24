@@ -210,7 +210,7 @@ local instanceVBOCacheTable = {
 				0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 			}
 
-local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
+local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numVisibleUnits) end
 	if visibleUnits[unitID] then  -- already known
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsAdd", "tried to add existing unitID", unitID) end
@@ -236,7 +236,7 @@ local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	-- call all listeners:
 	if silent then return end
 	if Script.LuaUI('VisibleUnitAdded') then
-		Script.LuaUI.VisibleUnitAdded(unitID, unitDefID, unitTeam)
+		Script.LuaUI.VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	else
 		if debuglevel >= 1 then Spring.Echo("Script.LuaUI.VisibleUnitAdded() unavailable") end
 	end
@@ -383,7 +383,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 
 	-- visibleUnits
 	if visibleUnits[unitID] == nil then
-		visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
+		visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	end
 end
 

@@ -136,8 +136,8 @@ return {
 				weapontype = "Melee",
 				weaponvelocity = 100000,
 				customparams = {
-					nofire = true,
 					bogus = 1,
+					nofire = true,
 				},
 				damage = {
 					default = 0,

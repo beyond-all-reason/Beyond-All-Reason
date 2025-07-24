@@ -123,15 +123,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 290,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 70,
 					subs = 70,
 					vtol = 37,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
-
 			},
 		},
 		weapons = {

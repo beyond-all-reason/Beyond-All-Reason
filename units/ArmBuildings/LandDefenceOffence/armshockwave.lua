@@ -2,7 +2,6 @@ return {
 	armshockwave = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "ARMSHOCKWAVE.DDS",
 		buildtime = 15000,
 		canattack = true,
@@ -155,13 +154,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 540,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 800,
 					vtol = 0,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

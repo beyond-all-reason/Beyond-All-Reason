@@ -37,7 +37,7 @@ return {
 		wingangle = 0.06252,
 		wingdrag = 0.235,
 		customparams = {
-			fighter = 1,
+			attacksafetydistance = 300,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
