@@ -81,7 +81,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
          local tx,ty,tz = GetUnitPosition(unitID)
          local ux,_,uz = GetUnitPosition(cmdParams[1])
          local angle = math.atan2((tx-ux),(tz-uz))
-         if (cmdTag ~= "nr") then
+         if fromInsert == nil then
            ReissueOrder(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions, cmdTag, fromInsert)
            ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, optShift, cmdTag, fromInsert)
            watchList[unitID] = GetGameFrame() + 45
