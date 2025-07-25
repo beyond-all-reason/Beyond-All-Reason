@@ -2418,6 +2418,45 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 	table.mergeInPlace(unitGrids, scavUnitGrids)
 end
 
+-- Check for modoptions
+local modOptions = Spring.GetModOptions()
+function modOptionsGridLayouts(unitGrids, labGrids)
+	
+	---------------------------------
+	-- Tech Overhaul Gridmenu Changes
+	
+	if modOptions.techoverhaul then
+
+		-- Unit Grids
+
+		unitGrids["corack"] = {
+			{
+				{"corexp","coradvsol","corfus","",},
+				{"cormakr","","","",},
+				{"","","","",},
+			},
+			{
+				{"corhlt","cormaw","corpun","",},
+				{"cormadsam","corerad","","",},
+				{"corjuno","","","",},
+			},
+			{
+				{"cararad","corshroud","corsd","",},
+				{"","","","",},
+				{"","","","",},
+			},
+			{
+				{"corlab","coralab","","",},
+				{"","corhalab","","",},
+				{"","","","",},
+			},
+		}
+	end
+end
+
+modOptionsGridLayouts(unitGrids, labGrids)
+
+
 return {
 	LabGrids = labGrids,
 	UnitGrids = unitGrids,

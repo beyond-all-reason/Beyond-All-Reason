@@ -2078,9 +2078,8 @@ function UnitDef_Post(name, uDef)
 				[17] = "coreyes",
 				[18] = "cordrag",
 				[19] = "corllt",
-				[20] = "nil",
+				[20] = "",
 				[21] = "corrl",
-				[22] = "nil",
 				[23] = "corrad",
 				[24] = "cordl",
 				[25] = "corjamt",
@@ -2278,24 +2277,24 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "armacv" then
 			uDef.buildoptions = {
-			[1] = "armadvsol",
-			[2] = "armamex",
-			[3] = "armbeamer",
-			[4] = "armhlt",
-			[5] = "armguard",
-			[6] = "armferret",
-			[7] = "armcir",
-			[8] = "armjuno",
-			[9] = "armclaw",
-			[10] = "armarad",
-			[11] = "armfus",
-			[12] = "armgmm",
-			[13] = "armhavp",
-			[14] = "armvp",
-			[15] = "armavp",
-			[16] = "armveil",
-			[17] = "armsd",
-			[18] = "armmakr"
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armfus",
+				[12] = "armgmm",
+				[13] = "armhavp",
+				[14] = "armvp",
+				[15] = "armavp",
+				[16] = "armveil",
+				[17] = "armsd",
+				[18] = "armmakr"
 			}
 		
 		elseif name == "coracv" then

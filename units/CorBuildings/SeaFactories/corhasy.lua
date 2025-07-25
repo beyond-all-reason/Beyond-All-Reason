@@ -5,7 +5,7 @@ return {
 		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
-		collisionvolumescales = "196 110 196",
+		collisionvolumescales = "260 146 260",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 62500,
@@ -30,7 +30,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 600,
 		waterline = 1,
-		yardmap = "weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew",
+		yardmap = "weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
 			[1] = "corhacs",
 			[2] = "corssub",
