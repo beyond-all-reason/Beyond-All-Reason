@@ -999,100 +999,38 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
-		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
+		local selectedBlueprint = getSelectedBlueprint()
 
 		if not selectedBlueprint then
 			FeedbackForUser("[Blueprint] No active blueprint ready for placement.")
 			return false
 		end
 
-		local builders = table.filterArray(Spring.GetSelectedUnits(),
-			function(unitID)
-				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
-			end
-		)
-
-		local buildPositionsLimit = BLUEPRINT_ORDER_LIMIT / (#(selectedBlueprint.units) * #builders)
-
-		local buildings = {}
-
-		-- cache for each rotation of the blueprint, filled as needed
-		local blueprintRotations = {}
-
-		-- set up sorting for buildings within a blueprint
-		local buildingComparator
-		if #(state.buildPositions) > 1 and state.startPosition and state.endPosition then
-			-- sort in the direction the blueprint was placed
-			local delta = subtractPoints(state.endPosition, state.startPosition)
-			local xSort = delta[1] >= 0 and 1 or -1
-			local zSort = delta[3] >= 0 and 3 or -3
-			if math.abs(delta[1]) > math.abs(delta[3]) then
-				buildingComparator = createBuildingComparator({ xSort, zSort })
-			else
-				buildingComparator = createBuildingComparator({ zSort, xSort })
-			end
-		else
-			-- sort by (z ascending, x ascending)
-			buildingComparator = createBuildingComparator({ 3, 1 })
-		end
-
-		-- combine the units from all blueprints into a single list
-		for i, pos in ipairs(state.buildPositions) do
-			if i > buildPositionsLimit then
-				FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
-				break
-			end
-			local facing = pos[4] or 0
-			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
-					selectedBlueprint,
-					selectedBlueprint.facing + facing
-				)
-				if not selectedBlueprint.ordered then
-					table.sort(blueprintRotations[facing].units, buildingComparator)
-				end
-			end
-			local blueprint = blueprintRotations[facing]
-			table.append(buildings, table.map(blueprint.units, function(bpu)
-				local x = pos[1] + bpu.position[1]
-				local z = pos[3] + bpu.position[3]
-				local y = Spring.GetGroundHeight(x, z)
-
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
-
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = { sx, sy, sz },
-					facing = bpu.facing
-				}
-			end))
-		end
-
-		local newOpts = table.copy(cmdOpts)
-		newOpts.shift = true
-		local orders = table.map(buildings, function(bp, i)
-			return {
-				-bp.unitDefID,
-				{
-					bp.position[1],
-					bp.position[2],
-					bp.position[3],
-					bp.facing
-				},
-				i == 1 and cmdOpts or newOpts,
-			}
+		local builders = table.filterArray(Spring.GetSelectedUnits(), function(unitID)
+			return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
 		end)
 
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+		if #builders == 0 then
+			FeedbackForUser("[Blueprint] No builders selected.")
+			return false
+		end
 
-		local alt, ctrl, meta, shift = unpack(state.modKeys)
+		local _, _, _, shift = Spring.GetModKeyState()
+		local activeModifier = WG['build_split'] and WG['build_split'].isActive()
+		local isBuildSplit = shift and activeModifier
+
+		WG["api_blueprint"].placeBlueprint(
+			selectedBlueprint,
+			state.buildPositions,
+			builders,
+			isBuildSplit,
+			cmdOpts
+		)
+
 		if not shift then
 			setBlueprintPlacementActive(false)
 		end
 
-		-- successfully consumed the event
 		return true
 	end
 end

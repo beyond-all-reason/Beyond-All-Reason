@@ -67,9 +67,18 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
+
+	WG['build_split'] = {
+		isActive = function() return activeModifier end,
+	}
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
+	-- Don't handle blueprint commands (let cmd_blueprint handle those)
+	if cmdID == GameCMD.BLUEPRINT_PLACE or cmdID == GameCMD.BLUEPRINT_CREATE then
+		return false
+	end
+	
 	if not (cmdID < 0 and cmdOpts.shift and activeModifier) then
 		return false
 	end -- Note: All multibuilds require shift
@@ -102,58 +111,33 @@ function widget:Update()
 	local selUnits = spGetSelUnitsSorted()
 
 	local builders = {}
-	local builderCount = 0
 	for uDefID, uIDs in pairs(selUnits) do
-		local uBuilds = unitBuildOptions[uDefID]
-		if uBuilds then
-			for bi = 1, #uBuilds do
-				if uBuilds[bi] == buildID then
-					for ui = 1, #uIDs do
-						builderCount = builderCount + 1
-						builders[builderCount] = uIDs[ui]
-					end
-					break
+		local uDef = UnitDefs[uDefID]
+		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
+			for _, uID in ipairs(uIDs) do
+				local builderInfo = WG["api_blueprint"].getBuilderInfo(uID)
+				if builderInfo then
+					table.insert(builders, builderInfo)
 				end
 			end
 		end
 	end
 
-	if buildCount > builderCount then
-		local ratio = floor(buildCount / builderCount)
-		local excess = buildCount - builderCount * ratio -- == buildCount % builderCount
-		local buildingInd = 0
-		for bi = 1, builderCount do
-			for _ = 1, ratio do
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-			if bi <= excess then
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-		end
-	else
-		local ratio = floor(builderCount / buildCount)
-		local excess = builderCount - buildCount * ratio -- == builderCount % buildCount
-		local builderInd = 0
-
-		for bi = 1, buildCount do
-			local setUnits = {}
-			local setCount = 0
-			for _ = 1, ratio do
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-			if bi <= excess then
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-
-			spGiveOrderToUnitArray(setUnits, -buildID, buildLocs[bi], { "shift" })
-		end
+	local buildings = {}
+	for i = 1, buildCount do
+		table.insert(buildings, {
+			unitDefID = buildID,
+			position = buildLocs[i],
+			facing = buildLocs[i][4],
+			originalName = UnitDefs[buildID].name,
+		})
 	end
 
+	WG["api_blueprint"].splitBuildOrders(builders, buildings, { "shift" })
+
 	buildCount = 0
+end
+
+function widget:Shutdown()
+	WG['build_split'] = nil
 end
