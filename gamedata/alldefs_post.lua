@@ -2003,14 +2003,13 @@ function UnitDef_Post(name, uDef)
 			[1] = "corch",
 			[2] = "coracv",
 			[3] = "cormlv",
-			[4] = "corgarp",
-			[5] = "corsala",
-			[6] = "correap",
-			[7] = "cormart",
-			[8] = "corhal",
-			[9] = "cormh",
-			[10] = "corsnap",
-			[11] = "corah"
+			[4] = "corsala",
+			[5] = "correap",
+			[6] = "cormart",
+			[7] = "corhal",
+			[8] = "cormh",
+			[9] = "corsnap",
+			[10] = "corah"
 			}
 
 		elseif name == "legavp" then

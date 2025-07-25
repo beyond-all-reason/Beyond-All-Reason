@@ -2418,43 +2418,101 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 	table.mergeInPlace(unitGrids, scavUnitGrids)
 end
 
--- Check for modoptions
-local modOptions = Spring.GetModOptions()
-function modOptionsGridLayouts(unitGrids, labGrids)
-	
-	---------------------------------
-	-- Tech Overhaul Gridmenu Changes
-	
-	if modOptions.techoverhaul then
 
-		-- Unit Grids
+if Spring.GetModOptions().techoverhaul then
 
-		unitGrids["corack"] = {
-			{
-				{"corexp","coradvsol","corfus","",},
-				{"cormakr","","","",},
-				{"","","","",},
-			},
-			{
-				{"corhlt","cormaw","corpun","",},
-				{"cormadsam","corerad","","",},
-				{"corjuno","","","",},
-			},
-			{
-				{"cararad","corshroud","corsd","",},
-				{"","","","",},
-				{"","","","",},
-			},
-			{
-				{"corlab","coralab","","",},
-				{"","corhalab","","",},
-				{"","","","",},
-			},
-		}
-	end
+	-- Unit Grids
+	unitGrids["corack"] = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","coralab","","",},
+			{"","corhalab","","",},
+			{"","","","",},
+		},
+	}
+
+	-- Lab Grids
+
+	labGrids["armalab"] = {
+		"armack", "armspid", "armfast", "armspy",
+		"armfido", "armzeus", "armmav", "armsptk",
+		"armvader", "armamph", "armaak", "",
+	}
+
+	labGrids["coralab"] = {
+		"corack", "", "corpyro", "corspy",
+		"cormort", "corcan", "cormando", "cortermite",
+		"", "coramph", "coraak", "corhrk",
+	}
+
+	labGrids["legalab"] = {
+		"legack", "leginfestor", "legstr", "legaspy",
+		"leghrk", "legshot", "legbart", "",
+		"legsnapper", "legamph", "legadvaabot", "",
+	}
+
+	labGrids["armavp"] = {
+		"armacv", "armmlv", "armlatnk", "armgremlin",
+		"armmart", "armmanac", "armmh", "",
+		"armch", "armcroc", "armah", "",
+	}
+
+	labGrids["coravp"] = {
+		"coracv", "cormlv", "corsala", "",
+		"cormmart", "correap", "cormh", "corsnap",
+		"corch", "corhal", "corah", "",
+	}
+
+	labGrids["legavp"] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
 end
-
-modOptionsGridLayouts(unitGrids, labGrids)
 
 
 return {
