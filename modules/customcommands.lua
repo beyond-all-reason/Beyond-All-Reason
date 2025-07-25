@@ -76,6 +76,7 @@ local getCommandCode = function(cmdID)
 end
 
 local CMD_INSERT = CMD.INSERT
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 ---@param unitID integer
 ---@param cmdID integer|CMD
@@ -86,7 +87,7 @@ local CMD_INSERT = CMD.INSERT
 local function giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 	for i = #cmdParams, 1, -1 do cmdParams[i + 3] = cmdParams[i] end
 	cmdParams[1], cmdParams[2], cmdParams[3] = cmdTag, cmdID, cmdOptions.coded
-	Spring.GiveOrderToUnit(unitID, CMD_INSERT, cmdParams, fromInsert.coded)
+	spGiveOrderToUnit(unitID, CMD_INSERT, cmdParams, fromInsert.coded)
 end
 
 ---@param unitID integer
@@ -97,9 +98,9 @@ end
 ---@param fromInsert CommandOptions
 local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 	if fromInsert then
-		GiveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+		giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 	else
-		GiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
+		spGiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
 	end
 end
 
