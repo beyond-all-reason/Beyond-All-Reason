@@ -1,38 +1,11 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, wingl, wingr, finl, finr, flare1, flare2, fan;
 
-static-var  Static_Var_1, bMoving, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1;
 
 
-Go()
-{
-	spin fan around x-axis speed <200> accelerate <8>;
-	turn wingl to z-axis <60> speed <60>;
-	turn wingr to z-axis <-60> speed <60>;
-	turn finl to z-axis <60> speed <60>;
-	turn finr to z-axis <-60> speed <60>;
-
-	wait-for-turn wingl around z-axis;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-Stop()
-{
-
-	stop-spin fan around x-axis decelerate <8>;
-	turn wingl to z-axis <0> speed <60>;
-	turn wingr to z-axis <0> speed <60>;
-	turn finl to z-axis <0> speed <60>;
-	turn finr to z-axis <0> speed <60>;
-
-	wait-for-turn wingl around z-axis;
-	return (0);
-}
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -40,178 +13,61 @@ Stop()
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#include "../idlehover.h"
 
 Create()
 {
 	hide flare1;
 	hide flare2;
-	Static_Var_1 = 0;
 	gun_1 = base;
-	bMoving = FALSE;
-	call-script InitState();	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
-}
-
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	set-signal-mask 0;
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	sleep 0;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-MotionControl()
-{
-
 }
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	spin fan around x-axis speed <200> accelerate <8>;
+	turn wingl to z-axis <60> speed <60>;
+	turn wingr to z-axis <-60> speed <60>;
+	turn finl to z-axis <60> speed <60>;
+	turn finr to z-axis <-60> speed <60>;
+
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	stop-spin fan around x-axis decelerate <8>;
+	turn wingl to z-axis <0> speed <60>;
+	turn wingr to z-axis <0> speed <60>;
+	turn finl to z-axis <0> speed <60>;
+	turn finr to z-axis <0> speed <60>;
 }
 
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
-	return (0);
-}
-
-StartMoving()
-{
-	bMoving = TRUE;
-	return (0);
-}
-
-StopMoving()
-{
-	bMoving = FALSE;
-	return (0);
-}
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 150;
-		hide flare1;
-		gun_1 = 1;
-	//	start-script RestoreAfterDelay();
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 150;
-		hide flare2;
-		gun_1 = 0;
-		//start-script RestoreAfterDelay();
-		return (0);
-	}
+	gun_1 = !gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 Killed(severity, corpsetype)
 {

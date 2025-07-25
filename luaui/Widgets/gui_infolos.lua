@@ -210,7 +210,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if infoTexture then gl.DeleteTexture(infoTexture) end
+	for _, tex in pairs(infoTextures) do
+		gl.DeleteTexture(tex)
+	end
+	infoTextures = {}
 	WG['infolosapi'] = nil
 	widgetHandler:DeregisterGlobal('GetInfoLOSTexture')
 end

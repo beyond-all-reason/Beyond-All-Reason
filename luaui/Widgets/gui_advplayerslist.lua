@@ -64,7 +64,6 @@ end
 local vsx, vsy = Spring.GetViewGeometry()
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 local customScale = 1
 local pointDuration = 45
@@ -108,6 +107,7 @@ local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
@@ -957,11 +957,14 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListBgTex then
-		gl.DeleteTextureFBO(mainListBgTex)
+		gl.DeleteTexture(mainListBgTex)
+		mainListBgTex = nil
 	end
 	if mainListTex then
-		gl.DeleteTextureFBO(mainListTex)
-		gl.DeleteTextureFBO(mainList2Tex)
+		gl.DeleteTexture(mainListTex)
+		gl.DeleteTexture(mainList2Tex)
+		mainListTex = nil
+		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
@@ -1152,7 +1155,7 @@ function CreatePlayer(playerID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = GetDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         pingLvl = tpingLvl,
         cpuLvl = tcpuLvl,
@@ -1245,7 +1248,7 @@ function CreatePlayerFromTeam(teamID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = GetDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         totake = ttotake,
         dead = tdead,
@@ -1316,18 +1319,6 @@ function UpdatePlayerResources()
     updateFastRateMult = math.clamp(displayedPlayers*0.07, 1, 3.3)
 end
 
-function GetDark(red, green, blue)
-    -- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
-    --
-    -- Threshold was changed since the new SPADS colors include green and blue which were
-    -- just below the old threshold of 0.8
-    -- https://github.com/Yaribz/SPADS/commit/e95f4480b98aafd03420ba3de19feb5494ef0b7e
-    if red + green * 1.2 + blue * 0.4 < 0.65 then
-        return true
-    end
-    return false
-end
-
 ---------------------------------------------------------------------------------------------------
 --  Sorting player data
 -- note: SPADS ensures that order of playerIDs/teams/allyteams as appropriate reflects TS (mu) order
@@ -1385,7 +1376,7 @@ function SortList()
         end
     end
     local deadTeamSize = 0.66
-    playerScale = math.min(1, 37 / (aliveTeams+(deadTeams*deadTeamSize)))
+    playerScale = math.min(1, 35 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
@@ -1610,11 +1601,9 @@ function widget:DrawScreen()
 	--AdvPlayersListAtlas:DrawToScreen()
 
     -- draw the background element
-	if useRenderToTextureBg then
+	if useRenderToTexture then
 		if mainListBgTex then
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(mainListBgTex)
-			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+			gl.R2tHelper.BlendTexRect(mainListBgTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
 		end
 	else
 		if Background then
@@ -1625,16 +1614,12 @@ function widget:DrawScreen()
 	end
 
     if useRenderToTexture then
-		gl.Color(1,1,1,1)
 		if mainListTex then
-			gl.Texture(mainListTex)
-			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+			gl.R2tHelper.BlendTexRect(mainListTex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
 		end
     	if mainList2Tex then
-			gl.Texture(mainList2Tex)
-			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+			gl.R2tHelper.BlendTexRect(mainList2Tex, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], useRenderToTexture)
    		end
-		gl.Texture(false)
 	end
 
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
@@ -1789,17 +1774,17 @@ function CreateBackground()
         end
 		if useRenderToTexture then
 			if mainListTex then
-				gl.DeleteTextureFBO(mainListTex)
+				gl.DeleteTexture(mainListTex)
 				mainListTex = nil
 			end
 			if mainList2Tex then
-				gl.DeleteTextureFBO(mainList2Tex)
+				gl.DeleteTexture(mainList2Tex)
 				mainList2Tex = nil
 			end
 		end
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if mainListBgTex then
-				gl.DeleteTextureFBO(mainListBgTex)
+				gl.DeleteTexture(mainListBgTex)
 				mainListBgTex = nil
 			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
@@ -1809,14 +1794,11 @@ function CreateBackground()
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(mainListBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
-					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg)
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(mainListBgTex, function()
+					gl.LoadIdentity()
+					gl.Ortho(absLeft, absRight, absBottom, absTop, 0, 1000)
+					UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+				end, useRenderToTexture)
 			end
 		else
 			if Background then
@@ -2035,17 +2017,14 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 				end
             end
             if mainListTex then
-                gl.RenderToTexture(mainListTex, function()
-                    gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-                    gl.PushMatrix()
+                gl.R2tHelper.RenderToTexture(mainListTex, function()
                     gl.Translate(-1, -1, 0)
                     gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
                     gl.Scale(widgetScale, widgetScale, 0)
                     local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
                     gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
                     drawMainList()
-                    gl.PopMatrix()
-                end)
+                end, useRenderToTexture)
             end
         else
             if MainList then
@@ -2070,17 +2049,14 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 				end
             end
             if mainList2Tex then
-                gl.RenderToTexture(mainList2Tex, function()
-                    gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-                    gl.PushMatrix()
+                gl.R2tHelper.RenderToTexture(mainList2Tex, function()
                     gl.Translate(-1, -1, 0)
                     gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
                     gl.Scale(widgetScale, widgetScale, 0)
                     local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
                     gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
                     drawMainList2()
-                    gl.PopMatrix()
-                end)
+                end, useRenderToTexture)
             end
         else
 			if MainList2 then
@@ -2116,7 +2092,7 @@ function DrawLabel(text, vOffset, drawSeparator)
         text = string.sub(text, 0, 1)
     end
 
-    font:Begin()
+    font:Begin(useRenderToTexture)
     font:SetTextColor(0.88, 0.88, 0.88, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX, widgetPosY + widgetHeight - vOffset + 7.5, 12, "on")
@@ -2128,7 +2104,7 @@ function DrawLabelTip(text, vOffset, xOffset)
         text = string.sub(text, 0, 1)
     end
 
-    font:Begin()
+    font:Begin(useRenderToTexture)
     font:SetTextColor(0.8, 0.8, 0.8, useRenderToTexture and 1 or 0.75)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
@@ -2512,7 +2488,7 @@ function DrawIncome(energy, metal, posY, dead)
     local fontsize = (dead and 4.5 or 8.5) * math.clamp(1+((1-(vsy/1200))*0.4), 1, 1.15)
     local sizeMult = playerScale + ((1-playerScale)*0.22)
     fontsize = fontsize * sizeMult
-    font:Begin()
+    font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if energy > 0 then
         font:Print(
@@ -2712,7 +2688,7 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         DrawState(playerID, m_name.posX + widgetPosX, posY)
     end
 
-    font2:Begin()
+    font2:Begin(useRenderToTexture)
     local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
@@ -2782,7 +2758,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
   		alpha = alpha + ((1-alpha)*0.2)
 	end
 
-    font2:Begin()
+    font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), useRenderToTexture and 1 or 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
     font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
@@ -2807,7 +2783,7 @@ function DrawID(playerID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
-    font:Begin()
+    font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.7, 0.7, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
@@ -2816,7 +2792,7 @@ end
 
 function DrawSkill(skill, posY, dark)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
-    font:Begin()
+    font:Begin(useRenderToTexture)
     font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
@@ -2837,7 +2813,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
 
 
     -- display user fps
-    font:Begin()
+    font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if fps ~= nil then
         if fps > 99 then
@@ -3062,7 +3038,7 @@ function CreateShareSlider()
     ShareSlider = gl_CreateList(function()
 		gl_Color(1,1,1,1)
         if sliderPosition then
-            font:Begin()
+            font:Begin(useRenderToTexture)
             local posY
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
@@ -3588,7 +3564,7 @@ function CheckPlayersChange()
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
 				end
-                player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
+                player[i].dark = ColorIsDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
             end
