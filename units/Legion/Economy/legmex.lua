@@ -22,7 +22,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 194,
+		health = 275,
 		maxslope = 30,
 		metalstorage = 50,
 		objectname = "Units/LEGMEX.s3o",

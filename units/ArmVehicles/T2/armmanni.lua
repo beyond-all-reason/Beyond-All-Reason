@@ -7,7 +7,7 @@ return {
 		collisionvolumescales = "39 49 39",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		energycost = 13500,
+		energycost = 18500,
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,

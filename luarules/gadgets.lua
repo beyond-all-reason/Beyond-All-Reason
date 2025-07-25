@@ -1344,6 +1344,7 @@ end
 local bit_and = math.bit_and
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
+local CMD_BUILD = CMD.BUILD
 local CMD_INSERT = CMD.INSERT
 local OPT_INTERNAL = CMD.OPT_INTERNAL
 local OPT_ALT = CMD.OPT_ALT
@@ -1524,7 +1525,13 @@ function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 	end
 
 	local cmdKey = cmdID or CMD_NIL
-	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
+	if not allowCommandList[cmdKey] then
+		if type(cmdKey) == "number" and cmdKey < 0 then
+			cmdKey = CMD_BUILD
+		else
+			cmdKey = CMD_ANY
+		end
+	end
 
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(allowCommandList[cmdKey]) do
