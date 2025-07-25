@@ -22,48 +22,31 @@ if (not gadgetHandler:IsSyncedCode()) then
   return false
 end
 
-local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GetGameFrame = Spring.GetGameFrame
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitTeam = Spring.GetUnitTeam
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
 local CMD_REMOVE = CMD.REMOVE
+local ReissueOrder = Game.CustomCommands.ReissueOrder
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local watchList = {}
+local OPT_SHIFT = CMD.OPT_SHIFT
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
 	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
   if fromSynced then return true end
-  if (cmdID == CMD_INSERT) then
-     if watchList[unitID] then
-       return false
-     end
-     if (CMD_LOAD_UNITS == cmdParams[2]) then
-       return gadget:AllowCommand(unitID, unitDefID, teamID, CMD_LOAD_UNITS, {cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7]}, cmdOptions, "nr", playerID, false, false)
-     end
-     local cQueue = GetUnitCommands(unitID,20)
-     if (#cQueue > 0) then
-       for i=1,#cQueue do
-         local command = cQueue[i]
-         if (command.id == CMD_LOAD_UNITS) and (#command.params == 1) then
-           watchList[unitID] = GetGameFrame() + 30
-           return false
-         end
-       end
-     end
-  elseif (cmdID == CMD_REMOVE) then
+
+  if (cmdID == CMD_REMOVE) then
      if watchList[unitID] then
        return false
      end
@@ -83,8 +66,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
        local dist = math.sqrt(((cmdParams[1]-tx)*(cmdParams[1]-tx))+((cmdParams[3]-tz)*(cmdParams[3]-tz)))
        if (dist < math.max(100,cmdParams[4])) then
          local angle = (math.random()*6.28)-3.14
-         GiveOrderToUnit(unitID, CMD_MOVE, {cmdParams[1] + (math.sin(angle) * 120),ty, cmdParams[3] + (math.cos(angle) * 120)}, cmdOptions.coded)
-         GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, {"shift"})
+         ReissueOrder(unitID, CMD_MOVE, {cmdParams[1] + (math.sin(angle) * 120),ty, cmdParams[3] + (math.cos(angle) * 120)}, cmdOptions, cmdTag, fromInsert)
+         ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
          watchList[unitID] = GetGameFrame() + 45
          return false
        else
@@ -97,9 +80,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
          local tx,ty,tz = GetUnitPosition(unitID)
          local ux,_,uz = GetUnitPosition(cmdParams[1])
          local angle = math.atan2((tx-ux),(tz-uz))
-         if (cmdTag ~= "nr") then
-           GiveOrderToUnit(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions.coded)
-           GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, {"shift"})
+         if fromInsert == nil then
+           ReissueOrder(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions, cmdTag, fromInsert)
+           ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
            watchList[unitID] = GetGameFrame() + 45
          end
          return false
