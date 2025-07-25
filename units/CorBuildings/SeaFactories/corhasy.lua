@@ -30,7 +30,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 600,
 		waterline = 1,
-		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
+		yardmap = "weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew",
 		buildoptions = {
 			[1] = "corhacs",
 			[2] = "corssub",

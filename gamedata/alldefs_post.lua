@@ -1936,6 +1936,9 @@ function UnitDef_Post(name, uDef)
 				[6] = "legamph",
 				[7] = "legsnapper",
 				[8] = "legbart",
+				[9] = "leghrk",
+				[10] = "legaspy",
+
 			}
 
 		elseif name == "armvp" then
@@ -1963,7 +1966,8 @@ function UnitDef_Post(name, uDef)
 				[7] = "cormist",
 				[8] = "cormlv",
 				[9] = "corgarp",
-				[10] = "cormuskrat"
+				[10] = "cormuskrat",
+				[11] = "corsh"
 			}
 
 		elseif name == "legvp" then
@@ -1975,6 +1979,9 @@ function UnitDef_Post(name, uDef)
 				[5] = "leggat",
 				[6] = "legbar",
 				[7] = "legrail",
+				[8] = "legotter",
+				[9] = "legamphtank",
+				[10] = "legsh"
 			}
 
 		elseif name == "armavp" then
@@ -2009,14 +2016,16 @@ function UnitDef_Post(name, uDef)
 		elseif name == "legavp" then
 			uDef.buildoptions = {
 				[1] = "legacv",
-				[2] = "legotter",
-				[3] = "legamphtank",
+				[2] = "legch",
+				[3] = "legcar",
 				[4] = "legmlv",
 				[5] = "legmrv",
 				[6] = "legfloat",
 				[7] = "legaskirmtank",
 				[8] = "legamcluster",
 				[9] = "legvcarry",
+				[10] = "legner",
+				[11] = "legmh"
 			}
 
 
@@ -2656,12 +2665,12 @@ function UnitDef_Post(name, uDef)
 			[1] = "coracsub",
 			[2] = "corcrus",
 			[3] = "corshark",
-			[4] = "corarch",
-			[5] = "cormship",
-			[6] = "corfship",
-			[7] = "corah",
-			[8] = "corsala",
-			[9] = "corsnap"
+			[4] = "cormship",
+			[5] = "corfship",
+			[6] = "corah",
+			[7] = "corsala",
+			[8] = "corsnap",
+			[9] = "corsh"
 		}
 		
 

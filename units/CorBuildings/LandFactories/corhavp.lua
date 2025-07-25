@@ -45,8 +45,8 @@ return {
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 15,
-			buildinggrounddecalsizey = 15,
+			buildinggrounddecalsizex = 18,
+			buildinggrounddecalsizey = 18,
 			buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
 			model_author = "Mr Bob, Tharsis",
 			normaltex = "unittextures/cor_normal.dds",

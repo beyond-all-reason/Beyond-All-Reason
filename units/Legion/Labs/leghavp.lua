@@ -43,6 +43,7 @@ return {
 			[9] = "legavrad",
 			[10] = "legkeres",
 			[11] = "legerailtank",
+			[12] = "legehovertank",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
