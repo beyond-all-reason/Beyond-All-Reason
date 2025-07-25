@@ -223,6 +223,9 @@ local blueprintPlacementActive = false
 
 local lastExplicitlySelectedBlueprintIndex = nil
 
+-- Add build split state tracking
+local buildSplitActive = false
+
 local state = {
 	---@type Point|nil
 	---non-nil implies that we are dragging
@@ -939,6 +942,14 @@ local function handleSpacingAction(_, _, args)
 	end
 end
 
+-- Add build split action handlers
+local function handleBuildSplitAction(_, _, args)
+	buildSplitActive = args and args[1]
+end
+
+-- Helper functions for cross-faction building and order distribution
+-- These functions are now provided by the API layer
+
 function widget:MousePress(x, y, button)
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
@@ -999,7 +1010,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
 		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
 
 		if not selectedBlueprint then
@@ -1012,18 +1022,16 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
 			end
 		)
+		if #builders == 0 then
+			FeedbackForUser("[Blueprint] No builders selected for blueprint placement.")
+			return false
+		end
 
 		local buildPositionsLimit = BLUEPRINT_ORDER_LIMIT / (#(selectedBlueprint.units) * #builders)
-
 		local buildings = {}
-
-		-- cache for each rotation of the blueprint, filled as needed
 		local blueprintRotations = {}
-
-		-- set up sorting for buildings within a blueprint
 		local buildingComparator
 		if #(state.buildPositions) > 1 and state.startPosition and state.endPosition then
-			-- sort in the direction the blueprint was placed
 			local delta = subtractPoints(state.endPosition, state.startPosition)
 			local xSort = delta[1] >= 0 and 1 or -1
 			local zSort = delta[3] >= 0 and 3 or -3
@@ -1033,66 +1041,94 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				buildingComparator = createBuildingComparator({ zSort, xSort })
 			end
 		else
-			-- sort by (z ascending, x ascending)
 			buildingComparator = createBuildingComparator({ 3, 1 })
 		end
 
-		-- combine the units from all blueprints into a single list
-		for i, pos in ipairs(state.buildPositions) do
-			if i > buildPositionsLimit then
-				FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
-				break
-			end
-			local facing = pos[4] or 0
-			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
-					selectedBlueprint,
-					selectedBlueprint.facing + facing
-				)
-				if not selectedBlueprint.ordered then
-					table.sort(blueprintRotations[facing].units, buildingComparator)
+		-- Multi-faction aware distribution
+		local builderSides = {}
+		for _, builderID in ipairs(builders) do
+			local side = WG["api_blueprint"].getBuilderSide(builderID)
+			if side then builderSides[side] = true end
+		end
+		local numSides = 0
+		for _ in pairs(builderSides) do numSides = numSides + 1 end
+
+		local distributedOrders
+		if numSides > 1 then
+			distributedOrders = WG["api_blueprint"].distributeOrdersMultiFaction(builders, selectedBlueprint, state.buildPositions)
+			FeedbackForUser("[Blueprint] Using multi-faction mode - each builder group gets its own substituted blueprint")
+		else
+			-- Single-faction: expand buildings as before
+			buildings = {}
+			for i, pos in ipairs(state.buildPositions) do
+				if i > buildPositionsLimit then
+					FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
+					break
 				end
+				local facing = pos[4] or 0
+				if not blueprintRotations[facing] then
+					blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
+						selectedBlueprint,
+						selectedBlueprint.facing + facing
+					)
+					if not selectedBlueprint.ordered then
+						table.sort(blueprintRotations[facing].units, buildingComparator)
+					end
+				end
+				local blueprint = blueprintRotations[facing]
+				table.append(buildings, table.map(blueprint.units, function(bpu)
+					local x = pos[1] + bpu.position[1]
+					local z = pos[3] + bpu.position[3]
+					local y = Spring.GetGroundHeight(x, z)
+					local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+					return {
+						blueprintUnitID = bpu.blueprintUnitID,
+						unitDefID = bpu.unitDefID,
+						position = { sx, sy, sz },
+						facing = bpu.facing
+					}
+				end))
 			end
-			local blueprint = blueprintRotations[facing]
-			table.append(buildings, table.map(blueprint.units, function(bpu)
-				local x = pos[1] + bpu.position[1]
-				local z = pos[3] + bpu.position[3]
-				local y = Spring.GetGroundHeight(x, z)
-
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
-
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = { sx, sy, sz },
-					facing = bpu.facing
-				}
-			end))
+			if buildSplitActive then
+				distributedOrders = WG["api_blueprint"].distributeOrdersWithBuildSplit(builders, buildings)
+				FeedbackForUser("[Blueprint] Using build split mode (spacebar) - distributing orders across all builders")
+			else
+				distributedOrders = WG["api_blueprint"].distributeOrdersByFaction(builders, buildings)
+				FeedbackForUser("[Blueprint] Using cross-faction mode - builders will construct their faction's buildings")
+			end
 		end
 
 		local newOpts = table.copy(cmdOpts)
 		newOpts.shift = true
-		local orders = table.map(buildings, function(bp, i)
-			return {
-				-bp.unitDefID,
+		FeedbackForUser(string.format("[Blueprint] Distributing %d buildings among %d builders", #buildings, #builders))
+		for _, order in ipairs(distributedOrders) do
+			local building = order.building
+			local orderData = {
+				-building.unitDefID,
 				{
-					bp.position[1],
-					bp.position[2],
-					bp.position[3],
-					bp.facing
+					building.position[1],
+					building.position[2],
+					building.position[3],
+					building.facing
 				},
-				i == 1 and cmdOpts or newOpts,
+				newOpts,
 			}
-		end)
-
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+			if order.builderID then
+				Spring.GiveOrderToUnit(order.builderID, -building.unitDefID, {
+					building.position[1],
+					building.position[2],
+					building.position[3],
+					building.facing
+				}, newOpts)
+			elseif order.builderIDs then
+				Spring.GiveOrderArrayToUnitArray(order.builderIDs, {orderData}, false)
+			end
+		end
 
 		local alt, ctrl, meta, shift = unpack(state.modKeys)
 		if not shift then
 			setBlueprintPlacementActive(false)
 		end
-
-		-- successfully consumed the event
 		return true
 	end
 end
@@ -1233,6 +1269,8 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildsplit", handleBuildSplitAction, { true }, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildsplit", handleBuildSplitAction, { false }, "r")
 
 	widget:SelectionChanged(Spring.GetSelectedUnits())
 end
@@ -1259,5 +1297,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction(self, "blueprint_delete", "p")
 	widgetHandler:RemoveAction(self, "buildfacing", "p")
 	widgetHandler:RemoveAction(self, "buildspacing", "p")
+	widgetHandler:RemoveAction(self, "buildsplit", "p")
+	widgetHandler:RemoveAction(self, "buildsplit", "r")
 end
 
