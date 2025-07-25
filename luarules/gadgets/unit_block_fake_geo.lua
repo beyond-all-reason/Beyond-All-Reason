@@ -34,7 +34,7 @@ function gadget:Initialize()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-		return not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
+	return not UnitDefs[-cmdID].needGeo or isNearGeo(cmdParams[1], cmdParams[3])
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
