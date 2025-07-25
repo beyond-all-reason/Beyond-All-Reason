@@ -202,6 +202,7 @@ return {
 				badtargetcategory = "GROUNDSCOUT VTOL",
 				def = "SUPER_MISSILE",
 				fastautoretargeting = true,
+				fastquerypointupdate = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
