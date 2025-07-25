@@ -36,7 +36,7 @@ local ReissueOrder = Game.CustomCommands.ReissueOrder
 --------------------------------------------------------------------------------
 
 local watchList = {}
-local optShift = { coded = CMD.OPT_SHIFT }
+local OPT_SHIFT = CMD.OPT_SHIFT
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
@@ -67,7 +67,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
        if (dist < math.max(100,cmdParams[4])) then
          local angle = (math.random()*6.28)-3.14
          ReissueOrder(unitID, CMD_MOVE, {cmdParams[1] + (math.sin(angle) * 120),ty, cmdParams[3] + (math.cos(angle) * 120)}, cmdOptions, cmdTag, fromInsert)
-         ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, optShift, cmdTag, fromInsert)
+         ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
          watchList[unitID] = GetGameFrame() + 45
          return false
        else
@@ -82,7 +82,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
          local angle = math.atan2((tx-ux),(tz-uz))
          if fromInsert == nil then
            ReissueOrder(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions, cmdTag, fromInsert)
-           ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, optShift, cmdTag, fromInsert)
+           ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
            watchList[unitID] = GetGameFrame() + 45
          end
          return false
