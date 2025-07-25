@@ -78,6 +78,7 @@ end
 local CMD_INSERT = CMD.INSERT
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+---Efficiently repack a command's `cmdParams` table and send it in a `CMD_INSERT`.
 ---@param unitID integer
 ---@param cmdID integer|CMD
 ---@param cmdParams number[]|CMD[]
@@ -90,6 +91,7 @@ local function giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTa
 	spGiveOrderToUnit(unitID, CMD_INSERT, cmdParams, fromInsert.coded)
 end
 
+---Resend a command, repacking its `cmdParams` table if it was an inserted command.
 ---@param unitID integer
 ---@param cmdID integer|CMD
 ---@param cmdParams number[]|CMD[]
@@ -97,7 +99,7 @@ end
 ---@param cmdTag integer
 ---@param fromInsert CommandOptions
 local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
-	if fromInsert then
+	if fromInsert ~= nil then
 		giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
 	else
 		spGiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
@@ -110,4 +112,4 @@ return {
 	GetCommandCode = getCommandCode,
 	GiveInsertOrderToUnit = giveInsertOrderToUnit,
 	ReissueOrder = reissueOrder,
- }
+}
