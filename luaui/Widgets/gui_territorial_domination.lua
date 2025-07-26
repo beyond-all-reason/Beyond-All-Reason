@@ -595,7 +595,6 @@ end
 
 local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, defeatThreshold, barColor,
 							isDefeatThresholdPaused)
-	-- Safety check to prevent division by zero
 	if maxThreshold <= 0 then
 		maxThreshold = DEFAULT_MAX_THRESHOLD
 	end
@@ -930,7 +929,6 @@ local function calculateCountdownPosition(allyTeamID, barIndex)
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
 	
-	-- Safety check to prevent division by zero
 	if maxThreshold <= 0 then
 		maxThreshold = DEFAULT_MAX_THRESHOLD
 	end
