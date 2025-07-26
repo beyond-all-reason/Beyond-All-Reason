@@ -307,7 +307,6 @@ local function setAllyGridToGaia(allyID)
 end
 
 local function updateLivingTeamsData()
-	-- Store old ally teams to detect which ones disappeared
 	local oldAllyTeams = {}
 	for allyID in pairs(allyTeamsWatch) do
 		oldAllyTeams[allyID] = true
@@ -316,13 +315,11 @@ local function updateLivingTeamsData()
 	clearAllyTeamsWatch()
 	local newAllyCount, newHordeAllyCount = processLivingTeams()
 	
-	-- Find ally teams that disappeared (were alive, now dead)
 	local newAllyTeams = {}
 	for allyID in pairs(allyTeamsWatch) do
 		newAllyTeams[allyID] = true
 	end
-	
-	-- Reset territories for ally teams that are no longer alive
+
 	for oldAllyID in pairs(oldAllyTeams) do
 		if not newAllyTeams[oldAllyID] then
 			setAllyGridToGaia(oldAllyID)
