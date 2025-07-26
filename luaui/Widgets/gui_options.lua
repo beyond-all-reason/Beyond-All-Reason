@@ -4809,20 +4809,6 @@ function init()
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
 
 		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler'), type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "profiler_min_time", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_time'), type = "slider", min = 0, max = 0.05, step = 0.001, value = Spring.GetConfigFloat("profiler_min_time", 0.05), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-			Spring.SetConfigFloat("profiler_min_time", value)
-		end,
-		},
-		{ id = "profiler_min_memory", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_memory'), type = "slider", min = 0, max = 10, step = 1, value = Spring.GetConfigFloat("profiler_min_memory", 5), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-		  Spring.SetConfigFloat("profiler_min_memory", value)
-		end,
-		},
 		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = 'Affects both Widget Profiler and Gadget Profiler',
 		onchange = function(i, value)
 			Spring.SetConfigInt("profiler_sort_by_load", (value and '1' or '0'))

@@ -401,6 +401,7 @@ function widget:DrawScreen()
 		allOverTime = 0
 		allOverSpace = 0
 		local n = 1
+		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
 		for wname, callins in pairs(callinStats) do
 			local t = 0 -- would call it time, but protected
 			local cmax_t = 0
@@ -439,14 +440,18 @@ function widget:DrawScreen()
 			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
 			avgTLoad[wname] = ((avgTLoad[wname]*(frames-1)) + tLoad) / frames
 			local sLoad = spaceLoadAverages[wname]
-			if avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+			if not sortByLoad or avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
 				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 		end
-		table.sort(sortedList, SortFunc)
+		if sortByLoad then
+			table.sort(sortedList, SortFunc)
+		else
+			table.sort(sortedList, function(a, b) return a.plainname < b.plainname end)
+		end
 
 		for i = 1, #sortedList do
 			GetRedColourStrings(sortedList[i])

@@ -491,6 +491,7 @@ else
 
 		local sorted = {}
 
+		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
 		for gname, callins in pairs(stats) do
 			local t = 0 -- would call it time, but protected
 			local cmax_t = 0
@@ -532,15 +533,18 @@ else
 			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
 			avgTLoad[gname] = ((avgTLoad[gname]*(frames-1)) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if avgTLoad[gname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+			if not sortByLoad or avgTLoad[gname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
 				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 		end
-
-		table.sort(sorted, SortFunc)
+		if sortByLoad then
+			table.sort(sorted, SortFunc)
+		else
+			table.sort(sorted, function(a, b) return a.plainname < b.plainname end)
+		end
 
 		sorted.allOverTime = allOverTime
 		sorted.allOverSpace = allOverSpace
