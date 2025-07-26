@@ -3,6 +3,12 @@ local widget = widget ---@type Widget
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
 
+local SIDES = VFS.Include("gamedata/sides_enum.lua")
+local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+
+---@type table<Blueprint, SerializedBlueprint>
+local serializedInvalidBlueprints = {}
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -208,11 +214,17 @@ local BLUEPRINT_FILE_PATH = "LuaUI/Config/blueprints.json"
 ---@type Blueprint[]
 local blueprints = {}
 
+---@type SerializedBlueprint[]
+local filteredOutSerializedBlueprints = {}
+
 local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
 
 local lastExplicitlySelectedBlueprintIndex = nil
+
+-- Add build split state tracking
+local buildSplitActive = false
 
 local state = {
 	---@type Point|nil
@@ -283,21 +295,17 @@ local function setSelectedBlueprintIndex(index)
 end
 
 local function isValidBlueprint(blueprint)
-	if blueprint == nil then
+	if not blueprint or not blueprint.units or #blueprint.units == 0 then
 		return false
 	end
 
-	if blueprint.hasInvalidUnits then
-		return false
+	for _, unit in ipairs(blueprint.units) do
+		if unit.unitDefID and UnitDefs[unit.unitDefID] then
+			return true
+		end
 	end
 
-	local buildable, unbuildable = WG["api_blueprint"].getBuildableUnits(blueprint)
-
-	if buildable == 0 then
-		return false
-	end
-
-	return true
+	return false
 end
 
 local function getNextFilteredBlueprintIndex(startIndex)
@@ -377,9 +385,12 @@ local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
-		return UnitDefs[u.unitDefID].floatOnWater
+		return u.unitDefID and UnitDefs[u.unitDefID] and UnitDefs[u.unitDefID].floatOnWater
 	end)
 	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
+		if not u.unitDefID then
+			return acc
+		end
 		local w, h = WG["api_blueprint"].getBuildingDimensions(
 			u.unitDefID,
 			0
@@ -408,19 +419,6 @@ local function createBlueprint(unitIDs, ordered)
 		return
 	end
 
-	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(table.map(
-		buildableUnits,
-		function(unitID)
-			local x, y, z = SpringGetUnitPosition(unitID)
-			return {
-				position = { x, y, z },
-				unitDefID = Spring.GetUnitDefID(unitID),
-				facing = Spring.GetUnitBuildFacing(unitID),
-			}
-		end
-	))
-	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
-
 	local blueprint = {
 		spacing = 0,
 		facing = 0,
@@ -430,17 +428,33 @@ local function createBlueprint(unitIDs, ordered)
 			buildableUnits,
 			function(unitID)
 				local x, y, z = SpringGetUnitPosition(unitID)
-				local facing = Spring.GetUnitBuildFacing(unitID)
-
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitDef = UnitDefs[unitDefID]
+				local unitName = unitDef and unitDef.name or "unknown"
+				
 				return {
 					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = Spring.GetUnitDefID(unitID),
-					position = subtractPoints({ x, y, z }, center),
-					facing = facing
+					unitDefID = unitDefID,
+					position = { x, y, z },
+					facing = Spring.GetUnitBuildFacing(unitID),
+					originalName = unitName
 				}
 			end
 		)
 	}
+
+	if not isValidBlueprint(blueprint) then
+		FeedbackForUser("[Blueprint] no valid units to save")
+		return
+	end
+
+	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(blueprint.units)
+	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
+
+	-- Adjust positions relative to center
+	for _, unit in ipairs(blueprint.units) do
+		unit.position = subtractPoints(unit.position, center)
+	end
 
 	postProcessBlueprint(blueprint)
 
@@ -928,6 +942,14 @@ local function handleSpacingAction(_, _, args)
 	end
 end
 
+-- Add build split action handlers
+local function handleBuildSplitAction(_, _, args)
+	buildSplitActive = args and args[1]
+end
+
+-- Helper functions for cross-faction building and order distribution
+-- These functions are now provided by the API layer
+
 function widget:MousePress(x, y, button)
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
@@ -988,7 +1010,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		-- Get the blueprint data *as processed and displayed by the API* but keep the original variable name
 		local selectedBlueprint = WG["api_blueprint"].getActiveBlueprint()
 
 		if not selectedBlueprint then
@@ -1001,18 +1022,16 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
 			end
 		)
+		if #builders == 0 then
+			FeedbackForUser("[Blueprint] No builders selected for blueprint placement.")
+			return false
+		end
 
 		local buildPositionsLimit = BLUEPRINT_ORDER_LIMIT / (#(selectedBlueprint.units) * #builders)
-
 		local buildings = {}
-
-		-- cache for each rotation of the blueprint, filled as needed
 		local blueprintRotations = {}
-
-		-- set up sorting for buildings within a blueprint
 		local buildingComparator
 		if #(state.buildPositions) > 1 and state.startPosition and state.endPosition then
-			-- sort in the direction the blueprint was placed
 			local delta = subtractPoints(state.endPosition, state.startPosition)
 			local xSort = delta[1] >= 0 and 1 or -1
 			local zSort = delta[3] >= 0 and 3 or -3
@@ -1022,66 +1041,94 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				buildingComparator = createBuildingComparator({ zSort, xSort })
 			end
 		else
-			-- sort by (z ascending, x ascending)
 			buildingComparator = createBuildingComparator({ 3, 1 })
 		end
 
-		-- combine the units from all blueprints into a single list
-		for i, pos in ipairs(state.buildPositions) do
-			if i > buildPositionsLimit then
-				FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
-				break
-			end
-			local facing = pos[4] or 0
-			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
-					selectedBlueprint,
-					selectedBlueprint.facing + facing
-				)
-				if not selectedBlueprint.ordered then
-					table.sort(blueprintRotations[facing].units, buildingComparator)
+		-- Multi-faction aware distribution
+		local builderSides = {}
+		for _, builderID in ipairs(builders) do
+			local side = WG["api_blueprint"].getBuilderSide(builderID)
+			if side then builderSides[side] = true end
+		end
+		local numSides = 0
+		for _ in pairs(builderSides) do numSides = numSides + 1 end
+
+		local distributedOrders
+		if numSides > 1 then
+			distributedOrders = WG["api_blueprint"].distributeOrdersMultiFaction(builders, selectedBlueprint, state.buildPositions)
+			FeedbackForUser("[Blueprint] Using multi-faction mode - each builder group gets its own substituted blueprint")
+		else
+			-- Single-faction: expand buildings as before
+			buildings = {}
+			for i, pos in ipairs(state.buildPositions) do
+				if i > buildPositionsLimit then
+					FeedbackForUser(string.format("[Blueprint] limiting orders to no more than %d", BLUEPRINT_ORDER_LIMIT))
+					break
 				end
+				local facing = pos[4] or 0
+				if not blueprintRotations[facing] then
+					blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(
+						selectedBlueprint,
+						selectedBlueprint.facing + facing
+					)
+					if not selectedBlueprint.ordered then
+						table.sort(blueprintRotations[facing].units, buildingComparator)
+					end
+				end
+				local blueprint = blueprintRotations[facing]
+				table.append(buildings, table.map(blueprint.units, function(bpu)
+					local x = pos[1] + bpu.position[1]
+					local z = pos[3] + bpu.position[3]
+					local y = Spring.GetGroundHeight(x, z)
+					local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+					return {
+						blueprintUnitID = bpu.blueprintUnitID,
+						unitDefID = bpu.unitDefID,
+						position = { sx, sy, sz },
+						facing = bpu.facing
+					}
+				end))
 			end
-			local blueprint = blueprintRotations[facing]
-			table.append(buildings, table.map(blueprint.units, function(bpu)
-				local x = pos[1] + bpu.position[1]
-				local z = pos[3] + bpu.position[3]
-				local y = Spring.GetGroundHeight(x, z)
-
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
-
-				return {
-					blueprintUnitID = bpu.blueprintUnitID,
-					unitDefID = bpu.unitDefID,
-					position = { sx, sy, sz },
-					facing = bpu.facing
-				}
-			end))
+			if buildSplitActive then
+				distributedOrders = WG["api_blueprint"].distributeOrdersWithBuildSplit(builders, buildings)
+				FeedbackForUser("[Blueprint] Using build split mode (spacebar) - distributing orders across all builders")
+			else
+				distributedOrders = WG["api_blueprint"].distributeOrdersByFaction(builders, buildings)
+				FeedbackForUser("[Blueprint] Using cross-faction mode - builders will construct their faction's buildings")
+			end
 		end
 
 		local newOpts = table.copy(cmdOpts)
 		newOpts.shift = true
-		local orders = table.map(buildings, function(bp, i)
-			return {
-				-bp.unitDefID,
+		FeedbackForUser(string.format("[Blueprint] Distributing %d buildings among %d builders", #buildings, #builders))
+		for _, order in ipairs(distributedOrders) do
+			local building = order.building
+			local orderData = {
+				-building.unitDefID,
 				{
-					bp.position[1],
-					bp.position[2],
-					bp.position[3],
-					bp.facing
+					building.position[1],
+					building.position[2],
+					building.position[3],
+					building.facing
 				},
-				i == 1 and cmdOpts or newOpts,
+				newOpts,
 			}
-		end)
-
-		Spring.GiveOrderArrayToUnitArray(builders, orders, false)
+			if order.builderID then
+				Spring.GiveOrderToUnit(order.builderID, -building.unitDefID, {
+					building.position[1],
+					building.position[2],
+					building.position[3],
+					building.facing
+				}, newOpts)
+			elseif order.builderIDs then
+				Spring.GiveOrderArrayToUnitArray(order.builderIDs, {orderData}, false)
+			end
+		end
 
 		local alt, ctrl, meta, shift = unpack(state.modKeys)
 		if not shift then
 			setBlueprintPlacementActive(false)
 		end
-
-		-- successfully consumed the event
 		return true
 	end
 end
@@ -1089,23 +1136,22 @@ end
 -- saving/loading
 -- ==============
 
-local serializedInvalidBlueprints = {}
-
 ---@param blueprint Blueprint
 ---@return SerializedBlueprint
 local function serializeBlueprint(blueprint)
-	if serializedInvalidBlueprints[blueprint] ~= nil then
-		return serializedInvalidBlueprints[blueprint]
-	end
-
 	return {
 		name = blueprint.name,
 		spacing = blueprint.spacing,
 		facing = blueprint.facing,
 		ordered = blueprint.ordered,
 		units = table.map(blueprint.units, function(blueprintUnit)
+			local unitDef = UnitDefs[blueprintUnit.unitDefID]
+			local unitName = (unitDef and unitDef.name) or "unknown"
+			if blueprintUnit.originalName then
+				unitName = blueprintUnit.originalName
+			end
 			return {
-				unitName = UnitDefs[blueprintUnit.unitDefID].name,
+				unitName = unitName,
 				position = blueprintUnit.position,
 				facing = blueprintUnit.facing
 			}
@@ -1115,32 +1161,20 @@ end
 
 ---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
-local function deserializeBlueprint(serializedBlueprint)
-	local result = table.copy(serializedBlueprint)
-	result.hasInvalidUnits = false
-	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
-		local unit = {
-			blueprintUnitID = nextBlueprintUnitID(),
-			position = serializedBlueprintUnit.position,
-			facing = serializedBlueprintUnit.facing
-		}
+local function deserializeBlueprint(serializedBlueprint, index)
+	local blueprint = WG["api_blueprint"].createBlueprintFromSerialized(serializedBlueprint)
 
-		if UnitDefNames[serializedBlueprintUnit.unitName] then
-			unit.unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id
-		else
-			result.hasInvalidUnits = true
+	if not blueprint or not table.any(blueprint.units, function(u) return u.unitDefID ~= nil end) then
+		local name = serializedBlueprint.name
+		if not name or name == "" then
+			name = "#" .. tostring(index)
 		end
-
-		return unit
-	end)
-
-	if not result.hasInvalidUnits then
-		postProcessBlueprint(result)
-	else
-		serializedInvalidBlueprints[result] = serializedBlueprint
+		FeedbackForUser(string.format("[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.", name))
+		return nil
 	end
 
-	return result
+	postProcessBlueprint(blueprint)
+	return blueprint
 end
 
 local function loadBlueprintsFromFile()
@@ -1162,7 +1196,16 @@ local function loadBlueprintsFromFile()
 		decoded.savedBlueprints = {}
 	end
 
-	blueprints = table.map(decoded.savedBlueprints, deserializeBlueprint)
+	blueprints = {}
+	filteredOutSerializedBlueprints = {}
+	for i, serializedBlueprint in ipairs(decoded.savedBlueprints) do
+		local blueprint = deserializeBlueprint(serializedBlueprint, i)
+		if blueprint then
+			table.insert(blueprints, blueprint)
+		else
+			table.insert(filteredOutSerializedBlueprints, serializedBlueprint)
+		end
+	end
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
@@ -1179,15 +1222,17 @@ local function saveBlueprintsToFile()
 		return
 	end
 
-	local savedBlueprintsToWrite = blueprints
-	if #savedBlueprintsToWrite == 0 then
-		savedBlueprintsToWrite = 0
-	else
-		savedBlueprintsToWrite = table.map(savedBlueprintsToWrite, serializeBlueprint)
+	local activeSerializedBps = table.map(blueprints, serializeBlueprint)
+	local allSerializedBpsToSave = {}
+	table.append(allSerializedBpsToSave, activeSerializedBps)
+	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
+
+	if #allSerializedBpsToSave == 0 then
+		allSerializedBpsToSave = 0
 	end
 
 	local encoded = Json.encode({
-		savedBlueprints = savedBlueprintsToWrite
+		savedBlueprints = allSerializedBpsToSave
 	})
 
 	if encoded == nil then
@@ -1213,6 +1258,7 @@ function widget:Initialize()
 	WG['cmd_blueprint'] = {
 		reloadBindings = reloadBindings,
 	}
+	WG['cmd_blueprint'].nextBlueprintUnitID = nextBlueprintUnitID
 
 	loadBlueprintsFromFile()
 	loadedBlueprints = true
@@ -1223,6 +1269,8 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildsplit", handleBuildSplitAction, { true }, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildsplit", handleBuildSplitAction, { false }, "r")
 
 	widget:SelectionChanged(Spring.GetSelectedUnits())
 end
@@ -1244,9 +1292,12 @@ function widget:Shutdown()
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
-	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
+	widgetHandler:RemoveAction(self, "blueprint_next", "p")
+	widgetHandler:RemoveAction(self, "blueprint_prev", "p")
+	widgetHandler:RemoveAction(self, "blueprint_delete", "p")
+	widgetHandler:RemoveAction(self, "buildfacing", "p")
+	widgetHandler:RemoveAction(self, "buildspacing", "p")
+	widgetHandler:RemoveAction(self, "buildsplit", "p")
+	widgetHandler:RemoveAction(self, "buildsplit", "r")
 end
+

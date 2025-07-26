@@ -289,6 +289,7 @@ local BUILD_MODES = enum(
 )
 
 local function getBuildingDimensions(unitDefID, facing)
+	if not unitDefID then return 0, 0 end
 	local unitDef = UnitDefs[unitDefID]
 	if (facing % 2 == 1) then
 		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
@@ -305,6 +306,7 @@ local function getUnitsBounds(units)
 	local r = table.reduce(
 		units,
 		function(acc, unit)
+			if not unit.unitDefID then return acc end
 			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 			local bxMin = unit.position[1] - bw / 2
 			local bxMax = unit.position[1] + bw / 2
@@ -326,6 +328,10 @@ end
 
 local function getBlueprintDimensions(blueprint, facing)
 	local xMin, xMax, zMin, zMax = getUnitsBounds(blueprint.units)
+
+	if not xMin then
+		return 0, 0
+	end
 
 	if not facing or facing % 2 == 0 then
 		return xMax - xMin, zMax - zMin
@@ -577,55 +583,58 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 	end
 
 	for _, unit in ipairs(effectiveBlueprint.units) do
-		local x = copyPosition[1] + unit.position[1]
-		local z = copyPosition[3] + unit.position[3]
+		if unit.unitDefID then
+			local x = copyPosition[1] + unit.position[1]
+			local z = copyPosition[3] + unit.position[3]
 
-		local y = SpringGetGroundHeight(x, z)
+			local y = SpringGetGroundHeight(x, z)
 
-		local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
+			local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
 
-		local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
+			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 
-		local blocking = SpringTestBuildOrder(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing
-		)
-
-		local color
-		if blocking == 0 then
-			color = blockingColor
-		elseif activeBuilderBuildOptions[unit.unitDefID] then
-			color = buildableColor
-		else
-			color = unbuildableColor
-		end
-
-		-- outline
-		table.insert(instanceIDs[positionKey].outline, pushElementInstance(
-			outlineInstanceVBO,
-			{
+			local blocking = SpringTestBuildOrder(
+				unit.unitDefID,
 				sx, sy, sz,
-				bw, bh,
-				unpack(color),
-			},
-			nil,
-			true,
-			true
-		))
+				unit.facing
+			)
 
-		-- building
-		table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing * (math.pi / 2),
-			UNIT_ALPHA,
-			teamID,
-			nil,
-			nil,
-			nil,
-			widget:GetInfo().name
-		))
+			local color
+			if blocking == 0 then
+				color = blockingColor
+			elseif activeBuilderBuildOptions[unit.unitDefID] then
+				color = buildableColor
+			else
+				color = unbuildableColor
+			end
+
+			-- outline
+			local outlineInstanceID = pushElementInstance(
+				outlineInstanceVBO,
+				{
+					sx, sy, sz,
+					bw, bh,
+					unpack(color),
+				},
+				nil,
+				true,
+				true
+			)
+			table.insert(instanceIDs[positionKey].outline, outlineInstanceID)
+
+			-- building
+			table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
+				unit.unitDefID,
+				sx, sy, sz,
+				unit.facing * (math.pi / 2),
+				UNIT_ALPHA,
+				teamID,
+				nil,
+				nil,
+				nil,
+				widget:GetInfo().name
+			))
+		end
 	end
 end
 
@@ -712,9 +721,9 @@ local function setActiveBlueprint(bp)
 		return
 	end
 
-	local blueprintToProcess = table.copy(bp) 
+	local blueprintToProcess = table.copy(bp)
 	local sourceInfo = SubLogic.analyzeBlueprintSides(blueprintToProcess)
-	blueprintToProcess.sourceInfo = sourceInfo 
+	blueprintToProcess.sourceInfo = sourceInfo
 
 	local determinedTargetSide = currentAPITargetSide
 	local substitutionNeeded = false
@@ -725,19 +734,26 @@ local function setActiveBlueprint(bp)
 		end
 	end
 
-	if substitutionNeeded then 
-		Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
-			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
-		
-		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
-		
+	if substitutionNeeded then
+		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide)
+
 		if resultTable.substitutionFailed then
-			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
+			Spring.Log("BlueprintAPI", LOG.WARNING, resultTable.summaryMessage)
 		else
-			Spring.Log("BlueprintAPI", LOG.INFO, "[Blueprint API] " .. resultTable.summaryMessage)
+			Spring.Log("BlueprintAPI", LOG.INFO, resultTable.summaryMessage)
+		end
+
+		-- This allows partial substitutions to work even when some units fail to map
+		for _, unit in ipairs(blueprintToProcess.units) do
+			if unit.originalName then
+				local substitutedUnitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				if substitutedUnitDefID then
+					unit.unitDefID = substitutedUnitDefID
+				end
+			end
 		end
 	end
-	
+
 	activeBlueprint = rotateBlueprint(blueprintToProcess, blueprintToProcess.facing)
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
@@ -769,7 +785,7 @@ local function setActiveBuilders(unitIDs)
 		{}
 	)
 
-	currentAPITargetSide = nil 
+	currentAPITargetSide = nil
 	if unitIDs and #unitIDs > 0 then
 		local firstBuilderID = unitIDs[1]
 		local firstBuilderDefID = SpringGetUnitDefID(firstBuilderID)
@@ -787,19 +803,269 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
-local function getBuildableUnits(blueprint)
-	local buildable = 0
-	local unbuildable = 0
+local function createBlueprintFromSerialized(serializedBlueprint)
+	-- This function contains logic to handle blueprints with units that are not
+	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute
+	-- those units to a default faction (ARM) so that the blueprints can still be used.
+	if not serializedBlueprint or not serializedBlueprint.units then
+		return nil
+	end
 
-	for _, unit in ipairs(blueprint.units) do
-		if activeBuilderBuildOptions[unit.unitDefID] then
-			buildable = buildable + 1
+	local result = table.copy(serializedBlueprint)
+	result.units = {}
+
+	for _, serializedUnit in ipairs(serializedBlueprint.units) do
+		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
+		table.insert(result.units, {
+			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			position = serializedUnit.position,
+			facing = serializedUnit.facing,
+			unitDefID = unitDefID,
+			originalName = serializedUnit.unitName
+		})
+	end
+
+	if #result.units == 0 then
+		return nil
+	end
+
+	return result
+end
+
+-- Blueprint distribution functions
+local function getBuilderSide(builderID)
+	local unitDefID = Spring.GetUnitDefID(builderID)
+	if not unitDefID then return nil end
+	
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef or not unitDef.name then return nil end
+	
+	-- Use the same logic as the blueprint substitution system
+	if SubLogic and SubLogic.getSideFromUnitName then
+		return SubLogic.getSideFromUnitName(unitDef.name)
+	end
+	
+	return nil
+end
+
+local function canBuilderBuildUnit(builderID, unitDefID)
+	local builderDefID = Spring.GetUnitDefID(builderID)
+	if not builderDefID then return false end
+	
+	local builderDef = UnitDefs[builderDefID]
+	if not builderDef or not builderDef.buildOptions then return false end
+	
+	for _, buildOption in ipairs(builderDef.buildOptions) do
+		if buildOption == unitDefID then
+			return true
+		end
+	end
+	
+	return false
+end
+
+local function groupBuildersBySide(builders)
+	local buildersBySide = {}
+	local unassignedBuilders = {}
+	
+	for _, builderID in ipairs(builders) do
+		local side = getBuilderSide(builderID)
+		if side then
+			buildersBySide[side] = buildersBySide[side] or {}
+			table.insert(buildersBySide[side], builderID)
 		else
-			unbuildable = unbuildable + 1
+			table.insert(unassignedBuilders, builderID)
+		end
+	end
+	
+	return buildersBySide, unassignedBuilders
+end
+
+local function distributeOrdersWithBuildSplit(builders, buildings)
+	local orders = {}
+	
+	if #builders == 0 or #buildings == 0 then
+		return orders
+	end
+	
+	-- Simple round-robin distribution like the original build split
+	if #buildings > #builders then
+		local ratio = math.floor(#buildings / #builders)
+		local excess = #buildings - #builders * ratio
+		local buildingIndex = 0
+		
+		for builderIndex = 1, #builders do
+			for _ = 1, ratio do
+				buildingIndex = buildingIndex + 1
+				table.insert(orders, {
+					builderID = builders[builderIndex],
+					building = buildings[buildingIndex]
+				})
+			end
+			if builderIndex <= excess then
+				buildingIndex = buildingIndex + 1
+				table.insert(orders, {
+					builderID = builders[builderIndex],
+					building = buildings[buildingIndex]
+				})
+			end
+		end
+	else
+		local ratio = math.floor(#builders / #buildings)
+		local excess = #builders - #buildings * ratio
+		local builderIndex = 0
+		
+		for buildingIndex = 1, #buildings do
+			local builderGroup = {}
+			for _ = 1, ratio do
+				builderIndex = builderIndex + 1
+				table.insert(builderGroup, builders[builderIndex])
+			end
+			if buildingIndex <= excess then
+				builderIndex = builderIndex + 1
+				table.insert(builderGroup, builders[builderIndex])
+			end
+			
+			table.insert(orders, {
+				builderIDs = builderGroup,
+				building = buildings[buildingIndex]
+			})
+		end
+	end
+	
+	return orders
+end
+
+local function distributeOrdersByFaction(builders, buildings)
+	local orders = {}
+	local buildersBySide, unassignedBuilders = groupBuildersBySide(builders)
+	
+	-- Group buildings by their faction (using the substitution logic)
+	local buildingsBySide = {}
+	local unassignedBuildings = {}
+	
+	for _, building in ipairs(buildings) do
+		local unitDef = UnitDefs[building.unitDefID]
+		if unitDef and unitDef.name then
+			local side = SubLogic and SubLogic.getSideFromUnitName(unitDef.name)
+			if side then
+				buildingsBySide[side] = buildingsBySide[side] or {}
+				table.insert(buildingsBySide[side], building)
+			else
+				table.insert(unassignedBuildings, building)
+			end
+		else
+			table.insert(unassignedBuildings, building)
+		end
+	end
+	
+	-- Distribute buildings to builders of the same faction
+	for side, sideBuilders in pairs(buildersBySide) do
+		local sideBuildings = buildingsBySide[side] or {}
+		if #sideBuildings > 0 then
+			-- Use simple round-robin for same-faction distribution
+			for i, building in ipairs(sideBuildings) do
+				local builderIndex = ((i - 1) % #sideBuilders) + 1
+				table.insert(orders, {
+					builderID = sideBuilders[builderIndex],
+					building = building
+				})
+			end
+		end
+	end
+	
+	-- Distribute unassigned buildings to unassigned builders or any available builder
+	local allBuilders = {}
+	for _, builders in pairs(buildersBySide) do
+		table.append(allBuilders, builders)
+	end
+	table.append(allBuilders, unassignedBuilders)
+	
+	if #unassignedBuildings > 0 and #allBuilders > 0 then
+		for i, building in ipairs(unassignedBuildings) do
+			local builderIndex = ((i - 1) % #allBuilders) + 1
+			table.insert(orders, {
+				builderID = allBuilders[builderIndex],
+				building = building
+			})
+		end
+	end
+	
+	return orders
+end
+
+-- Multi-faction aware distribution
+local function distributeOrdersMultiFaction(builders, blueprint, buildPositions)
+	local orders = {}
+	if not builders or not blueprint or not buildPositions then return orders end
+
+	local buildersBySide, unassignedBuilders = groupBuildersBySide(builders)
+	local allBuilders = {}
+	for _, group in pairs(buildersBySide) do table.append(allBuilders, group) end
+	table.append(allBuilders, unassignedBuilders)
+
+	-- For each faction group, substitute the blueprint and assign buildings
+	for side, sideBuilders in pairs(buildersBySide) do
+		-- Substitute blueprint for this side
+		local bpCopy = table.copy(blueprint)
+		bpCopy.units = table.copy(blueprint.units)
+		local sourceInfo = SubLogic.analyzeBlueprintSides(bpCopy)
+		bpCopy.sourceInfo = sourceInfo
+		local resultTable = SubLogic.processBlueprintSubstitution(bpCopy, side)
+		-- After substitution, update unitDefIDs
+		for _, unit in ipairs(bpCopy.units) do
+			if unit.originalName then
+				local substitutedUnitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				if substitutedUnitDefID then
+					unit.unitDefID = substitutedUnitDefID
+				end
+			end
+		end
+
+		-- Generate the buildings for this group
+		local buildings = {}
+		for i, pos in ipairs(buildPositions) do
+			local facing = pos[4] or 0
+			local rotatedBp = WG.api_blueprint.rotateBlueprint(bpCopy, (bpCopy.facing or 0) + facing)
+			for _, bpu in ipairs(rotatedBp.units) do
+				local x = pos[1] + bpu.position[1]
+				local z = pos[3] + bpu.position[3]
+				local y = Spring.GetGroundHeight(x, z)
+				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
+				table.insert(buildings, {
+					blueprintUnitID = bpu.blueprintUnitID,
+					unitDefID = bpu.unitDefID,
+					position = { sx, sy, sz },
+					facing = bpu.facing
+				})
+			end
+		end
+
+		-- Filter buildings to only those this group can build
+		local buildableBuildings = {}
+		for _, building in ipairs(buildings) do
+			for _, builderID in ipairs(sideBuilders) do
+				if canBuilderBuildUnit(builderID, building.unitDefID) then
+					table.insert(buildableBuildings, building)
+					break
+				end
+			end
+		end
+
+		-- Distribute buildings among builders (round-robin)
+		for i, building in ipairs(buildableBuildings) do
+			local builderIndex = ((i - 1) % #sideBuilders) + 1
+			table.insert(orders, {
+				builderID = sideBuilders[builderIndex],
+				building = building
+			})
 		end
 	end
 
-	return buildable, unbuildable
+	-- Optionally, assign unassigned buildings to any available builder
+	-- (not implemented here, but could be added for edge cases)
+
+	return orders
 end
 
 function widget:Initialize()
@@ -836,16 +1102,22 @@ function widget:Initialize()
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
+		createBlueprintFromSerialized = createBlueprintFromSerialized,
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
-		getBuildableUnits = getBuildableUnits,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
+		getBuilderSide = getBuilderSide,
+		canBuilderBuildUnit = canBuilderBuildUnit,
+		groupBuildersBySide = groupBuildersBySide,
+		distributeOrdersWithBuildSplit = distributeOrdersWithBuildSplit,
+		distributeOrdersByFaction = distributeOrdersByFaction,
+		distributeOrdersMultiFaction = distributeOrdersMultiFaction,
 	}
 
 	if reportFunctions then
@@ -878,3 +1150,6 @@ function widget:Shutdown()
 	end
 	reportFunctions = nil
 end
+
+
+
