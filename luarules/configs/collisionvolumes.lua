@@ -375,6 +375,11 @@ pieceCollisionVolume['legmed'] = {
 	['1']={7,25,15,0,35,-5,2,1},
 }
 
+pieceCollisionVolume['legehovertank'] = {
+	['0']={63,32,63,0,-15,0,1,1},
+	['20']={25,12,37,0,0,-6,2,1},
+}
+
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
 --		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
 
