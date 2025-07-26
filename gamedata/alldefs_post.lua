@@ -1875,9 +1875,1231 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.commando_blaster.weaponvelocity = 600
 		end	
 	end
+
+	-------------------
+	-- Tech Overhaul --
+	-------------------
+
+	if modOptions.techoverhaul then
+    	-- Bot and Veh lab reworks
+		-- T2 lab cost will be increased to around 4k metal
+		-- New labs are created - "ha" for half-advanced, called enhanced (placeholder). Tier between T1 and T2
+		-- Enhanced labs are given amphibious vehicles and the most expensive T1 + least expensive T2.
+		-- Specialty T1 mexes are changed to enhanced mexes with 2x metal income + special aabilities (for faction differentiation)
+		if name == "corlab" then
+			uDef.buildoptions = {
+				[1] = "corck",
+				[2] = "corak",
+				[3] = "cornecro",
+				[4] = "corstorm",
+				[5] = "corthud",
+				[6] = "corcrash",
+				[7] = "corroach"
+			}
+
+		elseif name == "coralab" then
+			uDef.buildoptions = {
+				[1] = "corack",
+				[2] = "coraak",
+				[3] = "cormort",
+				[4] = "corcan",
+				[5] = "corpyro",
+				[6] = "corspy",
+				[7] = "coramph",
+				[8] = "cormando",
+				[9] = "cortermite",
+				[10] = "corhrk",
+			}
+
+		elseif name == "armalab" then
+			uDef.buildoptions = {
+			[1] = "armack",
+			[2] = "armfido",
+			[3] = "armaak",
+			[4] = "armzeus",
+			[5] = "armmav",
+			[6] = "armamph",
+			[7] = "armspid",
+			[8] = "armfast",
+			[9] = "armvader",
+			[10] = "armspy",
+			[11] = "armsptk",
+			}
+
+		elseif name == "legalab" then
+			uDef.buildoptions = {
+				[1] = "legack",
+				[2] = "legadvaabot",
+				[3] = "legstr",
+				[4] = "legshot",
+				[5] = "leginfestor",
+				[6] = "legamph",
+				[7] = "legsnapper",
+				[8] = "legbart",
+				[9] = "leghrk",
+				[10] = "legaspy",
+
+			}
+
+		elseif name == "armvp" then
+			uDef.buildoptions = {
+				[1] = "armcv",
+				[2] = "armfav",
+				[3] = "armflash",
+				[4] = "armstump",
+				[5] = "armart",
+				[6] = "armjanus",
+				[7] = "armsam",
+				[8] = "armbeaver",
+				[9] = "armpincer",
+				[10] = "armsh"
+			}
+
+		elseif name == "corvp" then
+			uDef.buildoptions = {
+				[1] = "corcv",
+				[2] = "corfav",
+				[3] = "corgator",
+				[4] = "corraid",
+				[5] = "corlevlr",
+				[6] = "corwolv",
+				[7] = "cormist",
+				[8] = "cormlv",
+				[9] = "corgarp",
+				[10] = "cormuskrat",
+				[11] = "corsh"
+			}
+
+		elseif name == "legvp" then
+			uDef.buildoptions = {
+				[1] = "legscout",
+				[2] = "legcv",
+				[3] = "leghades",
+				[4] = "leghelios",
+				[5] = "leggat",
+				[6] = "legbar",
+				[7] = "legrail",
+				[8] = "legotter",
+				[9] = "legamphtank",
+				[10] = "legsh"
+			}
+
+		elseif name == "armavp" then
+			uDef.buildoptions = {
+			[1] = "armacv",
+			[2] = "armch",
+			[3] = "armmlv",
+			[4] = "armcroc",
+			[5] = "armlatnk",
+			[6] = "armah",
+			[7] = "armmart",
+			[8] = "armgremlin",
+			[9] = "armmh",
+			[10] = "armanac",
+			}
+		
+		elseif name == "coravp" then
+			uDef.buildoptions = {
+			[1] = "corch",
+			[2] = "coracv",
+			[3] = "cormlv",
+			[4] = "corsala",
+			[5] = "correap",
+			[6] = "cormart",
+			[7] = "corhal",
+			[8] = "cormh",
+			[9] = "corsnap",
+			[10] = "corah"
+			}
+
+		elseif name == "legavp" then
+			uDef.buildoptions = {
+				[1] = "legacv",
+				[2] = "legch",
+				[3] = "legcar",
+				[4] = "legmlv",
+				[5] = "legmrv",
+				[6] = "legfloat",
+				[7] = "legaskirmtank",
+				[8] = "legamcluster",
+				[9] = "legvcarry",
+				[10] = "legner",
+				[11] = "legmh",
+				[12] = "legah"
+			}
+
+
+		-- Con Reworks
+		-- Late T1 and Early T2 buildings are given to enhanced constructors
+		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
+
+		elseif name == "armck" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armalab",
+				[9] = "armlab",
+				[10] = "armvp",
+				[11] = "armap",
+				[12] = "armhp",
+				[13] = "armnanotc",
+				[14] = "armeyes",
+				[15] = "armrad",
+				[16] = "armdrag",
+				[17] = "armllt",
+				[18] = "armrl",
+				[19] = "armdl",
+				[20] = "armjamt",
+				[21] = "armjuno",
+				[22] = "armsy",
+			}
+
+		elseif name == "corck" then
+			uDef.buildoptions = {
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[8] = "",
+				[11] = "corlab",
+				[12] = "coralab",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "",
+				[21] = "corrl",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
+			}
+
+		elseif name == "legck" then
+			uDef.buildoptions = {
+				[1]  = "legsolar",
+				[2]  = "legwin",
+				[3]  = "leggeo",
+				[4]  = "legmstor",
+				[5]  = "legestor",
+				[6]  = "legmex",
+				[7]  = "legeconv",
+				[9]  = "leglab",
+				[10] = "legalab",
+				[11] = "legvp",
+				[12] = "legap",
+				[13] = "leghp",
+				[14] = "legnanotc",
+				[15] = "legeyes",
+				[16] = "legrad",
+				[17] = "legdrag",
+				[18] = "leglht",
+				[20] = "legrl",
+				[21] = "legctl",
+				[22] = "legjam",
+				[23] = "corsy",
+			}
+
+		elseif name == "armack" then
+			uDef.buildoptions = {
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armveil",
+				[12] = "armfus",
+				[13] = "armgmm",
+				[14] = "armhalab",
+				[15] = "armlab",
+				[16] = "armalab",
+				[17] = "armsd",
+				[18] = "armmakr"
+			}
+
+		elseif name == "corack" then
+			uDef.buildoptions = {
+			[1] = "coradvsol",
+			[2] = "corexp",
+			[3] = "cormaw",
+			[4] = "corhllt",
+			[5] = "corpun",
+			[6] = "cormadsam",
+			[7] = "corerad",
+			[8] = "corjuno",
+			[9] = "corfus",
+			[10] = "corarad",
+			[11] = "corshroud",
+			[12] = "corsd",
+			[13] = "corlab",
+			[14] = "corhalab",
+			[15] = "coralab",
+			[16] = "cormkr"
+			}
+
+		elseif name == "legack" then
+			uDef.buildoptions = {
+			[1] = "legadvsol",
+			[2] = "legmext15",
+			[3] = "legdtr",
+			[4] = "legmg",
+			[5] = "legrhapsis",
+			[6] = "leglupara",
+			[7] = "legjuno",
+			[8] = "leghive",
+			[9] = "legfus",
+			[10] = "legarad",
+			[11] = "legajam",
+			[12] = "legsd",
+			[13] = "leglab",
+			[14] = "legalab",
+			[15] = "leghalab",
+			[16] = "legcluster",
+			[17] = "legeconv"
+		}
+
+		elseif name == "armcv" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armavp",
+				[9] = "armlab",
+				[10] = "armvp",
+				[11] = "armap",
+				[12] = "armhp",
+				[13] = "armnanotc",
+				[14] = "armeyes",
+				[15] = "armrad",
+				[16] = "armdrag",
+				[17] = "armllt",
+				[18] = "armrl",
+				[19] = "armdl",
+				[20] = "armjamt",
+				[21] = "armjuno",
+				[22] = "armsy",
+			}
+
+		elseif name == "corcv" then
+			uDef.buildoptions = {	
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[11] = "corlab",
+				[12] = "coravp",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "corrl",
+				[21] = "corrad",
+				[22] = "cordl",
+				[23] = "corjamt",
+				[24] = "corsy",
+			}
+
+		elseif name == "cormuskrat" then
+			uDef.buildoptions = {	
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[11] = "corlab",
+				[12] = "coravp",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[20] = "corrl",
+				[21] = "corrad",
+				[22] = "cordl",
+				[23] = "corjamt",
+				[24] = "corsy",
+			}
+
+		elseif name == "legcv" then
+			uDef.buildoptions = {
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "leglab",
+				[9] = "legavp",
+				[10] = "legvp",
+				[11] = "legap",
+				[12] = "leghp",
+				[13] = "legnanotc",
+				[14] = "legeyes",
+				[15] = "legrad",
+				[16] = "legdrag",
+				[17] = "leglht",
+				[18] = "legrl",
+				[19] = "legctl",
+				[20] = "legjam",
+				[21] = "corsy",
+			}
+		
+		elseif name == "armacv" then
+			uDef.buildoptions = {
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armfus",
+				[12] = "armgmm",
+				[13] = "armhavp",
+				[14] = "armvp",
+				[15] = "armavp",
+				[16] = "armveil",
+				[17] = "armsd",
+				[18] = "armmakr"
+			}
+		
+		elseif name == "coracv" then
+			uDef.buildoptions = {
+				[1] = "coradvsol",
+				[2] = "corexp",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corvp",
+				[14] = "corhavp",
+				[15] = "coravp",
+				[16] = "cormkr"
+			}
+		
+		elseif name == "legacv" then
+			uDef.buildoptions = {
+				[1] = "legadvsol",
+				[2] = "legmext15",
+				[3] = "legdtr",
+				[4] = "legmg",
+				[5] = "legrhapsis",
+				[6] = "leglupara",
+				[7] = "legjuno",
+				[8] = "leghive",
+				[9] = "legfus",
+				[10] = "legarad",
+				[11] = "legajam",
+				[12] = "legsd",
+				[13] = "leghavp",
+				[14] = "legavp",
+				[15] = "legvp",
+				[16] = "legcluster",
+				[17] = "legeconv"
+			}
+
+
+		-- t1.5 mexes -> enhanced mexes
+
+		-- legion gets powerful enhanced mexes in return for weak t1 mexes. 
+		-- Legion labs are also cheaper (to-do)
+		elseif name == "legmext15" then
+			uDef.metalcost = 450
+			uDef.energycost = 7500
+			uDef.buildtime = 7500
+			uDef.health = 900
+			uDef.metalstorage = 250
+			uDef.energyupkeep = 35
+			uDef.extractsmetal = 0.003
+			uDef.maxwaterdepth = 10000
+
+		elseif name == "armamex" then
+			uDef.metalcost = 220
+			uDef.buildtime = 5000
+			uDef.energycost = 5000
+			uDef.health = 1200
+			uDef.metalstorage = 150
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+			uDef.cancloak = false
+			uDef.explodeas = "mediumBuildingExplosionGeneric"
+			uDef.maxwaterdepth = 10000
+
+		elseif name == "corexp" then
+			uDef.metalcost = 235
+			uDef.energycost = 4000
+			uDef.buildtime = 5500
+			uDef.health = 1000
+			uDef.energyupkeep = 30
+			uDef.extractsmetal = 0.002
+			uDef.maxwaterdepth = 10000
+
+		-- T2 mexes rebalance
+		-- Mexes cost 60 E/s for 4x extraction
+		-- Legion pays a premium for 6x
+		elseif name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" or name == "legmoho"
+		then
+			uDef.energyupkeep = 60
+			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
+			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+
+		elseif name == "cormexp" then 
+			uDef.energyupkeep = 60
+
+		-- remove hovers from com
+		elseif name == "corcom" or name == "legcom" or name == "armcom" then
+			uDef.buildoptions[26] = ""
+			uDef.buildoptions[27] = ""
+
+		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 windc
+		elseif name == "armadvsol"
+		then
+			uDef.metalcost = 330
+			uDef.energycost = 2860
+
+		elseif name == "coradvsol"
+		then
+			uDef.metalcost = 360
+			uDef.energycost = 1460
+
+		elseif name == "legadvsol"
+		then
+			uDef.metalcost = 440
+			uDef.energycost = 1940
+			uDef.health = 1200
+
+		-- Bedbug T1 Rework
+
+		elseif name == "corroach" then
+			uDef.metalcost = 30
+			uDef.energycost = 600
+			uDef.buildtime = 800
+			uDef.health = 120
+			uDef.maxwaterdepth = 16
+			uDef.movementclass = "BOT1"
+			uDef.radardistance = 700
+			uDef.radaremitheight = 18
+			uDef.speed = 100
+			uDef.explodeas = "mediumExplosionGenericSelfd"
+			uDef.selfdestructas = "fb_blastsml"
+			uDef.customparams.techlevel = 1
+
+		-- Spybots
+		elseif name == "corspy" or name == "legaspy" or name == "armspy" then
+			uDef.buildtime = 12800
+
+		end
+
+		------------
+		-- Lab Costs
+
+		-- T1
+		-- T1 labs must be efficient enough to encourage players to build their own lab
+		if name == "armlab" or name == "armap" or name == "armsy" or name == "armvp" 
+		or name == "corap" or name == "corsy" or name == "corlab" or name == "corvp"
+		or name == "leglab" or name == "legap" or name == "legsy" or name == "legvp"
+		then 
+			uDef.workertime = 200
+
+		-- T2
+		elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
+		or name == "coraap" or name == "corasy" or name == "coralab" or name == "coravp"
+		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
+		then 
+			uDef.metalcost = uDef.metalcost - 1300
+			uDef.workertime = uDef.workertime * 2
+		end
+
+		------------
+    	-- Tech down
+
+		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
+		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
+		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
+		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
+		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
+		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		then
+			uDef.customparams.techlevel = 1
+		end
+
+		------------------------------
+		-- Armada and Cortex Air Split
+
+		-- Air Labs
+
+		if name == "armaap" then
+			uDef.buildoptions = {
+			[1] = "armaca",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armsehak",
+			[6] = "armsaber",
+			[7] = "armhvytrans",
+			}
+
+		elseif name == "coraap" then
+			uDef.buildoptions = {		
+			[1] = "coraca",
+			[2] = "corhunt",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+			[7] = "corhvytrans",
+			}
 	
+		elseif name == "armap" then
+			uDef.buildoptions = {
+			[1] = "armca",
+			[2] = "armpeep",
+			[3] = "armfig",
+			[4] = "armthund",
+			[5] = "armatlas",
+			[6] = "armkam",
+			}
+
+		elseif name == "corap" then
+			uDef.buildoptions = {
+			[1] = "corca",
+			[2] = "corfink",
+			[3] = "corveng",
+			[4] = "corshad",
+			[5] = "corvalk",
+			[6] = "corbw",
+		}
+
+		-- Air Cons
+
+		elseif name == "armca" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armgeo",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armaap",
+				[9] = "armlab",
+				[10] = "armvp",
+				[11] = "armap",
+				[12] = "armhp",
+				[13] = "armnanotc",
+				[14] = "armeyes",
+				[15] = "armrad",
+				[16] = "armdrag",
+				[17] = "armllt",
+				[18] = "armrl",
+				[19] = "armdl",
+				[20] = "armjamt",
+				[21] = "armjuno",
+				[22] = "armsy",
+			}
+
+		elseif name == "corca" then 
+			uDef.buildoptions = {
+				[1] = "corsolar",
+				[2] = "corwin",
+				[3] = "corgeo",
+				[4] = "cormstor",
+				[5] = "corestor",
+				[6] = "cormex",
+				[7] = "cormakr",
+				[11] = "corlab",
+				[12] = "coraap",
+				[13] = "corvp",
+				[14] = "corap",
+				[15] = "corhp",
+				[16] = "cornanotc",
+				[17] = "coreyes",
+				[18] = "cordrag",
+				[19] = "corllt",
+				[21] = "corrl",
+				[23] = "corrad",
+				[24] = "cordl",
+				[25] = "corjamt",
+				[26] = "corsy",
+			}
+
+		elseif name == "armaca" then
+			uDef.buildpic = "ARMCSA.DDS"
+			uDef.objectname = "Units/ARMCSA.s3o"
+			uDef.script = "Units/ARMCSA.cob"
+			uDef.buildoptions = {
+				[1] = "armadvsol",
+				[2] = "armamex",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armveil",
+				[12] = "armfus",
+				[13] = "armgmm",
+				[14] = "armhaap",
+				[15] = "armap",
+				[16] = "armaap",
+				[17] = "armsd",
+				[18] = "armmakr"
+			}
+		
+		elseif name == "coraca" then
+			uDef.buildpic = "CORCSA.DDS"
+			uDef.objectname = "Units/CORCSA.s3o"
+			uDef.script = "Units/CORCSA.cob"
+			uDef.buildoptions = {
+				[1] = "coradvsol",
+				[2] = "corexp",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corap",
+				[14] = "corhaap",
+				[15] = "coraap",
+				[16] = "cormakr"
+			}
+
+		elseif name == "legca" then
+			uDef.buildoptions = {
+				[1] = "legsolar",
+				[2] = "legwin",
+				[3] = "leggeo",
+				[4] = "legmstor",
+				[5] = "legestor",
+				[6] = "legmex",
+				[7] = "legeconv",
+				[8] = "legaap",
+				[9] = "leglab",
+				[10] = "legvp",
+				[11] = "legap",
+				[12] = "leghp",
+				[13] = "legnanotc",
+				[14] = "legeyes",
+				[15] = "legrad",
+				[16] = "legdrag",
+				[17] = "leglht",
+				[18] = "legrl",
+				[19] = "legctl",
+				[20] = "legjam",
+				[21] = "corsy",
+			}
+
+		
+		end
+
+		
+		------------
+		-- Sea Split
+
+		-- Sea Labs
+
+		if name == "armasy" then
+			uDef.buildoptions = {
+			[1] = "armacsub",
+			[2] = "armmship",
+			[3] = "armcrus",
+			[4] = "armsubk",
+			[5] = "armah",
+			[6] = "armlship",
+			[7] = "armcroc",
+			[8] = "armsh",
+			[9] = "armanac",
+		}
+
+		elseif name == "corasy" then
+			uDef.buildoptions = {		
+			[1] = "coracsub",
+			[2] = "corcrus",
+			[3] = "corshark",
+			[4] = "cormship",
+			[5] = "corfship",
+			[6] = "corah",
+			[7] = "corsala",
+			[8] = "corsnap",
+			[9] = "corsh"
+		}
+		
+
+		-- Sea Cons
+
+		elseif name == "armcs" then
+			uDef.buildoptions = {
+			[1] = "armmex",
+			[2] = "armvp",
+			[3] = "armap",
+			[4] = "armlab",
+			[5] = "armeyes",
+			[6] = "armdl",
+			[7] = "armdrag",
+			[8] = "armtide",
+			[9] = "armgeo",
+			[10] = "armuwgeo",
+			[11] = "armfmkr",
+			[12] = "armuwms",
+			[13] = "armuwes",
+			[14] = "armsy",
+			[15] = "armnanotcplat",
+			[16] = "armfhp",
+			[17] = "armasy",
+			[18] = "armfrad",
+			[19] = "armfdrag",
+			[20] = "armtl",
+			[21] = "armfrt",
+			}
+
+		elseif name == "corcs" then
+			uDef.buildoptions = {
+			[1] = "cormex",
+			[2] = "corvp",
+			[3] = "corap",
+			[4] = "corlab",
+			[5] = "coreyes",
+			[6] = "cordl",
+			[7] = "cordrag",
+			[8] = "cortide",
+			[9] = "corgeo",
+			[10] = "coruwgeo",
+			[11] = "corfmkr",
+			[12] = "coruwms",
+			[13] = "coruwes",
+			[14] = "corsy",
+			[15] = "cornanotcplat",
+			[16] = "corfhp",
+			[17] = "corasy",
+			[18] = "corfrad",
+			[19] = "corfdrag",
+			[20] = "cortl",
+			[21] = "corfrt",
+			}
+
+		elseif name == "armacsub" then
+			uDef.buildoptions = {
+			[1] = "armtide",
+			[2] = "armamex",
+			[3] = "armveil",
+			[4] = "armarad",
+			[5] = "armclaw",
+			[7] = "armasy",
+			[8] = "armguard",
+			[9] = "armfhlt",
+			[10] = "armhasy",
+			[11] = "armfmkr",
+			[12] = "armason",
+			[13] = "armuwfus",
+			[17] = "armkraken",
+			[18] = "armfdrag",
+			[19] = "armsy"
+		}
+
+		elseif name == "coracsub" then
+			uDef.buildoptions = {
+			[1] = "cortide",
+			[2] = "corexp",
+			[3] = "corshroud",
+			[4] = "corarad",
+			[5] = "cormaw",
+			[6] = "corsy",
+			[7] = "corasy",
+			[8] = "corhasy",
+			[9] = "corfhlt",
+			[10] = "corpun",
+			[11] = "corason",
+			[12] = "coruwfus",
+			[13] = "corfmkr",
+			[14] = "corfdoom",
+			[15] = "corfdrag",
+			}
+		
+
+		end
+
+		--------------------------
+		-- Legion Air Placeholders
+
+		if name == "legaca" then
+			uDef.buildoptions = {
+			[1] = "legadvsol",
+			[2] = "legmext15",
+			[3] = "legdtr",
+			[4] = "legmg",
+			[5] = "legrhapsis",
+			[6] = "leglupara",
+			[7] = "legjuno",
+			[8] = "leghive",
+			[9] = "legfus",
+			[10] = "legarad",
+			[11] = "legajam",
+			[12] = "legsd",
+			[13] = "legap",
+			[14] = "legaap",
+			[15] = "leghaap",
+			[16] = "legcluster",
+			[17] = "legeconv"
+		}
+
+		elseif name == "legaap" then
 
 
+
+		end		
+
+		-----------------------------------------
+		-- Hovers, Sea Planes and Amphibious Labs
+		
+
+		-- Hover Labs
+		-- Made by T1 cons
+		if name == "armhp" or name == "armfhp"
+		or name == "corhp" or name == "corfhp" 
+		or name == "leghp" or name == "legfhp" then
+			uDef.workertime = 400
+			
+		-- hover cons
+		elseif name == "armch" then
+			uDef.buildoptions = {
+			[1] = "armsolar",
+			[2] = "armadvsol",
+			[3] = "armwin",
+			[4] = "armgeo",
+			[5] = "armmstor",
+			[6] = "armestor",
+			[7] = "armmex",
+			[8] = "",
+			[9] = "armmakr",
+			[10] = "",
+			[11] = "",
+			[12] = "",
+			[13] = "armhp",
+			[14] = "armnanotc",
+			[15] = "armnanotcplat",
+			[16] = "armeyes",
+			[17] = "armrad",
+			[18] = "armdrag",
+			[19] = "armclaw",
+			[20] = "armllt",
+			[21] = "armbeamer",
+			[22] = "armhlt",
+			[23] = "armguard",
+			[24] = "armrl",
+			[25] = "armferret",
+			[26] = "armcir",
+			[27] = "armdl",
+			[28] = "armjamt",
+			[29] = "armjuno",
+			[30] = "armfhp",
+			[31] = "",
+			[32] = "armamsub",
+			[33] = "armplat",
+			[34] = "armtide",
+			[36] = "armfmkr",
+			[37] = "armuwms",
+			[38] = "armuwes",
+			[39] = "armfdrag",
+			[40] = "armfrad",
+			[41] = "armfhlt",
+			[42] = "armfrt",
+			[43] = "armtl",
+			[44] = "armhavp",
+			[45] = "armhasy",
+			[46] = "armuwgeo",
+			}
+
+		elseif name == "corch" then
+			uDef.buildoptions = {
+				[1] = "coradvsol",
+				[2] = "corexp",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corvp",
+				[14] = "corhavp",
+				[15] = "coravp",
+				[16] = "cormkr"
+			}
+
+		elseif name == "leghc" then 
+			uDef.buildoptions = {
+			[1] = "legsolar",
+			[2] = "legadvsol",
+			[3] = "legwin",
+			[4] = "leggeo",
+			[5] = "legmstor",
+			[6] = "legestor",
+			[7] = "legmex",
+			[8] = "",
+			[9] = "legeconv",
+			[10] = "",
+			[11] = "",
+			[12] = "",
+			[13] = "leghp",
+			[14] = "leghavp",
+			[15] = "legnanotc",
+			[16] = "legnanotcplat",
+			[17] = "legeyes",
+			[18] = "legrad",
+			[19] = "legdrag",
+			[20] = "legdtr",
+			[21] = "leglht",
+			[22] = "legmg",
+			[23] = "legcluster",
+			[24] = "legrl",
+			[25] = "legrhapsis",
+			[26] = "leglupara",
+			[27] = "legjuno",
+			[28] = "legctl",
+			[29] = "legjam",
+			[30] = "legfhp",
+			[31] = "legamphlab",
+			[32] = "legplat",
+			[33] = "",
+			[34] = "legtide",
+			[35] = "legfeconv",
+			[36] = "leguwmstore",
+			[37] = "leguwestore",
+			[38] = "legfdrag",
+			[39] = "legfrad",
+			[40] = "legfmg",
+			[41] = "legfrl",
+			[42] = "legtl",
+			[43] = "leguwgeo",
+			[44] = "leghasy",
+			[45] = "leghive",
+			[46] = "legfhive",
+			}
+		
+		-- Seaplane Platforms
+		-- Made by hover cons and enhanced ship cons 
+		-- Enhanced ships given seaplanes instead of static AA
+		elseif name == "armplat" then
+			uDef.workertime = 400
+			uDef.buildoptions = {
+			[1] = "armhaca",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armawac",
+			[6] = "armsaber",
+			[7] = "armhvytrans",
+			}
+
+		elseif name == "corplat" then
+			uDef.workertime = 400
+			uDef.buildoptions = {		
+			[1] = "corhaca",
+			[2] = "corhunt",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+			[7] = "corhvytrans",
+			}
+		end
+
+		----------------
+		-- Other Reworks
+
+		-- Aramada T1
+	
+		if name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.range = 700
+			uDef.weapondefs.arm_laserh1.damage.default = 580
+			uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
+			uDef.weapondefs.arm_laserh1.rgbcolor = "0.2 0.1 1.0"
+			uDef.weapondefs.arm_laserh1.beamburst = true
+			uDef.weapondefs.arm_laserh1.burst = 3
+			uDef.weapondefs.arm_laserh1.burstrate = 0.175
+			uDef.weapondefs.arm_laserh1.thickness = 4
+			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
+			uDef.weapondefs.arm_laserh1.beamtime = 0.04
+			uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
+			uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
+			uDef.weapondefs.arm_laserh1.soundtrigger = false
+			uDef.weapondefs.arm_laserh1.energypershot = 25
+			uDef.weapondefs.arm_laserh1.damage = {
+				commanders = 290.25,
+				default = 193.5,
+				vtol = 17.5,
+				}
+
+		elseif name == "armwar" then
+			uDef.speed = 61
+			uDef.health = math.ceil(uDef.health * 0.08) * 10
+			uDef.weapondefs.armwar_laser.range = 280
+			
+		
+		elseif name == "armham" then
+			uDef.weapondefs.arm_ham.name = "Light Gauss Cannon"
+			uDef.weapondefs.arm_ham.reloadtime = 0.87
+			uDef.weapondefs.arm_ham.weaponvelocity = 572
+			uDef.weapondefs.arm_ham.range = 360
+			uDef.weapondefs.arm_ham.damage = {
+				default = 52,
+				vtol = 11
+			}
+		
+		elseif name == "armart" then
+			uDef.weapondefs.tawf113_weapon.range = 740
+			uDef.health = 520
+
+		elseif name == "armrock" then
+			uDef.weapondefs.arm_bot_rocket.range = 600
+			uDef.weapondefs.arm_bot_rocket.damage.default = 95
+			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
+		
+		-- Armada T2
+
+		elseif name == "armmart" then
+			uDef.speed = 40
+			uDef.weapondefs.arm_artillery.range = 760
+			uDef.weapondefs.arm_artillery.areaofeffect = 160
+			uDef.weapondefs.arm_artillery.damage.default = 220
+			uDef.health = 750
+		
+		elseif name == "armsptk" then
+			uDef.metalcost = math.ceil(uDef.metalcost * 1.5)
+			uDef.energycost = math.ceil(uDef.energycost * 1.5)
+			uDef.buildtime = math.ceil(uDef.buildtime * 1.5)
+			uDef.weapondefs.adv_rocket.burst = 6
+			uDef.weapondefs.adv_rocket.burstrate = 0.15
+			uDef.weapondefs.adv_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.adv_rocket.smokesize = 3.25
+			uDef.weapondefs.adv_rocket.range = 750
+			uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
+
+		elseif name == "armfido" then
+			uDef.weapondefs.bfido.range = 600
+			uDef.health = 800
+			uDef.speed = 58
+			uDef.weapondefs.bfido.weaponvelocity = 450
+			uDef.weapondefs.bfido.reloadtime = 4
+			uDef.weapondefs.bfido.damage.default = 350
+
+		elseif name == "armlatnk" then
+			uDef.weapondefs.lightning.range = 300
+
+		-- Cortex T1
+
+		elseif name == "corthud" then
+			uDef.speed = 55
+			uDef.turnrate = 1200
+			uDef.turninplacespeedlimit = 1.8
+			uDef.sightdistance = 420
+			uDef.weapondefs.arm_ham.predictboost = 0.8
+			uDef.weapondefs.arm_ham.range = 340
+
+		elseif name == "corwolv" then
+			uDef.weapondefs.corwolv_gun.range = 740
+			uDef.health = 550
+
+		elseif name == "corstorm" then
+			uDef.weapondefs.cor_bot_rocket.name = "Light Solid-Fuel Rocket"
+			uDef.weapondefs.cor_bot_rocket.range = 500
+			uDef.weapondefs.cor_bot_rocket.burst = 3
+			uDef.weapondefs.cor_bot_rocket.burstrate = 0.05
+			uDef.weapondefs.cor_bot_rocket.mygravity = 0
+			uDef.weapondefs.cor_bot_rocket.model = "legsmallrocket.s3o"
+			uDef.weapondefs.cor_bot_rocket.damage = {
+				default = 52,
+			}
+			uDef.weapondefs.cor_bot_rocket.trajectoryheight = 0.25
+			uDef.weapondefs.cor_bot_rocket.startvelocity = 49
+			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 285
+			uDef.weapondefs.cor_bot_rocket.weaponacceleration = 236
+			uDef.weapondefs.cor_bot_rocket.flighttime = 2.05
+			uDef.weapondefs.cor_bot_rocket.wobble = 200
+			uDef.weapondefs.cor_bot_rocket.smokesize = 2.2
+			uDef.weapondefs.cor_bot_rocket.customparams.overrange_distance = 525
+			uDef.weapondefs.cor_bot_rocket.customparams.projectile_destruction_method = "descend"
+			uDef.weapondefs.cor_bot_rocket.customparams.place_target_on_ground = trueelseifname == ""
+
+			elseif name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.range = 700
+			uDef.weapondefs.cor_laserh1.reloadtime = 2.4
+			uDef.weapondefs.cor_laserh1.damage.default = 392
+
+			-- Cortex T2
+
+			elseif name == "cortermite" then
+			uDef.speed = 56
+			uDef.metalcost = 500
+			uDef.energycost = 7500
+			uDef.buildtime = 12500
+
+			elseif name == "cormart" then
+			uDef.speed = 40
+			uDef.weapondefs.cor_artillery.range = 750
+			uDef.weapondefs.cor_artillery.areaofeffect = 170
+			uDef.weapondefs.cor_artillery.damage.default = 390
+			uDef.health = 850
+
+			elseif name == "correap" then
+			uDef.health = 3000
+			uDef.buildtime = 6500
+			uDef.metalcost = 470
+			uDef.energycost = 7000
+
+		end
+	end
 
 
 	-- Multipliers Modoptions
@@ -2036,7 +3258,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 end
 
 local function ProcessSoundDefaults(wd)

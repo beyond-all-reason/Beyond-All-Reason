@@ -214,7 +214,69 @@ local labGrids = {
 		"corkorg", "corshiva", "corsala", "corparrow",              -- juggernaut, shiva, salamander, poison arrow
 		"corsok",                                                   -- cataphract
 	},
+	-- Split Tier Labs
+
+	corhalab = {
+		"corhack", "cordecom", "corsumo", "corvoyr",
+		"corcat", "cordemon", "", "corspec",
+		"corsktl", "corshiva", "corkarg", "", 
+	},
+
+	armhalab = {
+		"armhack", "armdecom", "armfast", "armmark",
+		"armvang", "armraz", "armsnipe", "armaser",
+		"", "armmar", "", "armscab",
+	},
+
+	leghalab = {
+		"leghack", "legdecom", "leginc", "legaradk",
+		"legsrail", "legeshotgunmech", "", "legajamk",
+		"", "legjav", "legeallterrainmech", "",
+	},
+
+	armhaap = {
+		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	corhaap = {
+		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	armhasy = {
+		"armhacs", "", "armmship", "",              
+		"armlship", "armcrus", "", "",              
+		"armsubk", "", "armaas", "",              
+	},
+
+	corhasy = {
+		"corhacs", "", "cormship", "",              
+		"corfship", "corcrus", "", "",              
+		"corshark", "", "corarch", "",              
+	},
+
+	armhavp = {
+		"armhacv", "", "armbull", "armseer",
+		"armmanni", "armthor", "armmerl", "armjam",
+		"", "armlun", "armyork", "",
+	},
+
+	corhavp = {
+		"corhacv", "cormabm", "corban", "corvrad",
+		"cortrem", "corgol", "corvroc", "coreter",
+		"corsok", "corparrow", "corsent", "",
+	},
+
+	leghavp = {
+		"leghacv", "cormabm", "legaheattank", "legavrad",
+		"legmed", "legkeres", "legavroc", "legavjam",
+		"legerailtank", "legehovertank", "legvflak", "leginf",
+	},
 }
+
 local unitGrids = {
 	-- Air assist drones
 	armassistdrone = {
@@ -1711,6 +1773,239 @@ local unitGrids = {
 		}
 	},
 
+	-- Split tier cons
+
+	armhaca = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armap","","","",},
+			{"","armaap","armhaap","",},
+			{"","","","",},
+		},
+	},
+
+	corhaca = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corap","","","",},
+			{"","coraap","corhaap","",},
+			{"","","","",},
+		},
+	},
+	
+	armhack = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armlab","","","",},
+			{"","armalab","armhalab","",},
+			{"","","","",},
+		},
+	},
+
+	corhack = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","","","",},
+			{"","coralab","corhalab","",},
+			{"","","","",},
+		},
+	},
+
+	leghack = {
+		{
+			{"legmext15","legadvsol","legfus","",},
+			{"legeconv","","","",},
+			{"","","","",},
+		},
+		{
+			{"legmg","legdtr","legcluster","leghive",},
+			{"legrhapsis","leglupara","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"lagarad","legajam","legsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"leglab","","","",},
+			{"","legalab","leghalab","",},
+			{"","","","",},
+		},
+	},
+
+	armhacv = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armvp","","","",},
+			{"","armavp","armhavp","",},
+			{"","","","",},
+		},
+	},
+
+	corhacv = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","","","",},
+			{"","coralab","corhalab","",},
+			{"","","","",},
+		},
+	},
+
+	leghacv = {
+		{
+			{"legmext15","legadvsol","legfus","",},
+			{"legeconv","","","",},
+			{"","","","",},
+		},
+		{
+			{"legmg","legdtr","legcluster","leghive",},
+			{"legrhapsis","leglupara","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"lagarad","legajam","legsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"legvp","","","",},
+			{"","legavp","leghavp","",},
+			{"","","","",},
+		},
+	},
+
+	armhacs = {
+		{
+			{"armamex", "armtide", "armuwfus", "",},
+			{"armfmkr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armfhlt", "armkraken", "armclaw", "armguard",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armason", "", "armfdrag", "", },
+			{"armarad", "armveil", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"armsy", "", "armplat", "", },
+			{"", "armasy", "armhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
+	corhacs = {
+		{
+			{"corexp", "cortide", "coruwfus", "",},
+			{"corfmkr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corfhlt", "corfdoom", "cormaw", "corpun",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corason", "", "corfdrag", "", },
+			{"corarad", "corshroud", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"corsy", "", "corplat", "", },
+			{"", "corasy", "corhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
+
 	--minelayers
 	armmlv = {
 		{
@@ -2123,6 +2418,103 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 	table.mergeInPlace(labGrids, scavLabGrids)
 	table.mergeInPlace(unitGrids, scavUnitGrids)
 end
+
+
+if Spring.GetModOptions().techoverhaul then
+
+	-- Unit Grids
+	unitGrids["corack"] = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","coralab","","",},
+			{"","corhalab","","",},
+			{"","","","",},
+		},
+	}
+
+	-- Lab Grids
+
+	labGrids["armalab"] = {
+		"armack", "armspid", "armfast", "armspy",
+		"armfido", "armzeus", "armmav", "armsptk",
+		"armvader", "armamph", "armaak", "",
+	}
+
+	labGrids["coralab"] = {
+		"corack", "cormort", "corpyro", "corspy",
+		"corhrk", "corcan", "cormando", "cortermite",
+		"", "coramph", "coraak", "",
+	}
+
+	labGrids["legalab"] = {
+		"legack", "leginfestor", "legstr", "legaspy",
+		"leghrk", "legshot", "legbart", "",
+		"legsnapper", "legamph", "legadvaabot", "",
+	}
+
+	labGrids["armavp"] = {
+		"armacv", "armmlv", "armlatnk", "armgremlin",
+		"armmart", "armmanac", "armmh", "",
+		"armch", "armcroc", "armah", "",
+	}
+
+	labGrids["coravp"] = {
+		"coracv", "cormlv", "corsala", "",
+		"cormart", "correap", "cormh", "corsnap",
+		"corch", "corhal", "corah", "",
+	}
+
+	labGrids["legavp"] = {
+		"legacv", "legmlv", "legmrv", "legvcarry",
+		"legamcluster", "legaskirmtank", "legmh", "legner",
+		"legch", "legfloat", "legah", "legcar",
+	}
+
+	labGrids["armaap"] = {
+		"armaca", "armsfig", "armsaber", "armsb",
+		"armsehak", "armhvytrans", "armseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["coraap"] = {
+		"coraca", "corsfig", "corcut", "corsb",
+		"corhunt", "corhvytrans", "corseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["armasy"] = {
+		"armacsub", "", "armanac", "armsh",
+		"armlship", "armcrus", "armmship", "",
+		"armsubk", "armcroc", "armah", "",
+	}
+
+	labGrids["corasy"] = {
+		"coracsub", "", "corsnap", "corsh",
+		"corfship", "corcrus", "cormship", "",
+		"corshark", "corsala", "corah", "",
+	}
+
+	labGrids[""] = {
+		"", "", "", "",
+		"", "", "", "",
+		"", "", "", "",
+	}
+end
+
 
 return {
 	LabGrids = labGrids,
