@@ -509,6 +509,16 @@
 				"role": ["anti_air"]
 			},
 
+			"legaspy": {
+				"role": ["scout"]
+			},
+
+			"legaradk": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -535,6 +545,12 @@
 			"legelrpcmech": {
 				"role": ["artillery", "heavy"],
 				"power": 2.0
+			},
+			"legeallterrainmech": {
+				"role": ["skirmish", "heavy"]
+			},
+			"legehovertank": {
+				"role": ["raider"]
 			},
 
 			// LEGION T1 VEHICLE - legvp
@@ -608,7 +624,13 @@
 			"legmos": {
 				"role": ["skirmish", "air"]
 			},
-	
+			"leglts": {
+				"role": ["support", "air"]
+			},
+			"legatrans": {
+				"role": ["support", "air"]
+			},
+
 			// LEGION ADV AIRCRAFT aircraft - legaap
 	
 			"legwhisper": {
@@ -623,11 +645,20 @@
 			"legphoenix": {
 				"role": ["bomber", "air"]
 			},
+			"legnap": {
+				"role": ["bomber", "air"]
+			},
+			"legmineb": {
+				"role": ["bomber", "air"]
+			},
 			"legstronghold": {
 				"role": ["assault", "air"]
 			},
 			"legfort": {
 				"role": ["heavy", "air"]
+			},
+			"legatorpbomber": {
+				"role": ["anti_sub", "air"]
 			},
 	
 			// LEGION HOVERS

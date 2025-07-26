@@ -399,6 +399,10 @@ local autocompleteCommands = {
 	'luarules waterlevel',
 	'luarules wreckunits',
 	'luarules xp',
+	'luarules transferunits',
+	'luarules playertoteam',
+	'luarules killteam',
+	'luarules globallos',
 
 	-- widgets
 	'luaui reload',
@@ -1204,14 +1208,11 @@ local function drawChatLine(i)
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		font3:Begin(useRenderToTexture)
-		if chatLines[i].textOutline then
-			font3:SetOutlineColor(1,1,1,1)
-		else
-			font3:SetOutlineColor(0,0,0,1)
-		end
+		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else
+		font:SetOutlineColor(0,0,0,1)
 		font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 	end
 	font:End()

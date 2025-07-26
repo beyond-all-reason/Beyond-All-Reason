@@ -138,3 +138,21 @@ Killed(severity, corpsetype)
 		explode bwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+Docked(customparam, dockpiece, carrierarg1, carrierarg2, carrierarg3)
+{
+	if(customparam == 1)
+	{
+		turn base to y-axis carrierarg1 now;
+		spin base around y-axis speed <10> accelerate <1>;
+		return 1;
+		
+	}
+}
+
+Undocked(customparam, dockpiece)
+{	
+	stop-spin base around y-axis;
+	turn base to y-axis <0> speed <600>;
+	return 1;
+}

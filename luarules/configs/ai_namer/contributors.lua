@@ -82,7 +82,7 @@ local ContributorAINames = {
     "TeeeeVeeeeOn",
     "Teifion",
     "Tharsy",
-	"Tim B",
+	"IceShotTheSheriff",
     "Tom Fyuri",
     "Vache",
     "Volshok",
@@ -127,7 +127,11 @@ local ContributorAINames = {
     "wilkubyk",
     "Whocanitbnow",
     "SuperKitowiec",
-
+	"Rippsy",
+	"Flameink",
+	"dakadaka",
+	"Attean",
+	"Hectate",
 }
 
 return ContributorAINames

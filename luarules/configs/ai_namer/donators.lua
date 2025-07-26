@@ -91,6 +91,8 @@ local DonatorAINames = {
 	"Chungus",
 	"Arkounay",
 	"Hallucynation",
+	"Buzzwellman",
+	"guilty_sock",
 }
 
 return DonatorAINames
