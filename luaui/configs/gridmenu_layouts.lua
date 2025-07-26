@@ -2456,8 +2456,8 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["coralab"] = {
 		"corack", "cormort", "corpyro", "corspy",
-		"corhrk", "corcan", "", "cortermite",
-		"", "coramph", "coraak", "cormando",
+		"corhrk", "corcan", "cormando", "cortermite",
+		"", "coramph", "coraak", "",
 	}
 
 	labGrids["legalab"] = {
