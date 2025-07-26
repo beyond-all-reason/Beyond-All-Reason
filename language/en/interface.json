@@ -142,7 +142,8 @@
 			"gameover": "Game over",
 			"bonus": "Bonus",
 			"scavengers": "Scavengers",
-			"raptors": "Raptors"
+			"raptors": "Raptors",
+			"interludes": "Interludes"
 		},
 		"playerTV": {
 			"playerTV": "TV",
@@ -544,7 +545,8 @@
 			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
-			"owncomends": "Losing your commander = losing control of your units / resigning"
+			"owncomends": "Losing your commander = losing control of your units / resigning",
+			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -701,6 +703,12 @@
 				"endless": "Endless"
 			}
 		},
+		"territorialDomination": {
+			"losingWarning1": "Allied retreat in %{seconds} seconds!",
+			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
+			"rank": "Rank %{rank}",
+			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
@@ -709,7 +717,7 @@
 			"ready": "Ready",
 			"unready": "Unready",
 			"readied": "Readied",
-			"lock": "Lock Position",
+			"lock": "Ready",
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
@@ -1368,8 +1376,12 @@
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
+				"advplayerlist_showallyid": "show Ally ID",
+				"advplayerlist_showallyid_descr": "show ally-team ID",
 				"advplayerlist_showid": "show Team ID",
 				"advplayerlist_showid_descr": "show team ID",
+				"advplayerlist_showplayerid": "show Player ID",
+				"advplayerlist_showplayerid_descr": "show player ID",
 				"advplayerlist_country": "country flag",
 				"advplayerlist_country_descr": "show country flag",
 				"advplayerlist_rank": "rank icon",
@@ -1451,6 +1463,9 @@
 				"enemyspotter_descr": "Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone",
 				"enemyspotter_opacity": "opacity",
 				"enemyspotter_opacity_descr": "Set the opacity of the enemy-spotter rings",
+				"ghosticons": "Ghost icons",
+				"ghosticons_brightness": "brightness",
+				"ghosticons_brightness_descr": "Brightness for the ghost icons when not under radar (0 to disable them completely)",
 				"selectedunits": "Selection",
 				"selectedunits_descr": "Draws a platter under selected units\n\nNOTE: this widget can be heavy when having lots of units selected",
 				"selectedunits_opacity": "base opacity",
@@ -1502,6 +1517,7 @@
 				"allycursors_lights_descr": "Adds a colored light to every ally cursor",
 				"allycursors_lightradius": "   radius",
 				"allycursors_lightstrength": "   strength",
+				"allycursors_selfshadowing": "   self shadowing",
 				"cursorlight": "Cursor light",
 				"cursorlight_descr": "Adds a light at/above your cursor position\n\nNeeds \"Lights\" (graphics option) to be enabled",
 				"cursorlight_lightradius": "radius",
@@ -1554,19 +1570,23 @@
 				"attackrange_numrangesmult": "Max units multiplier",
 				"attackrange_numrangesmult_descr": "Multiplier to the limit of max amount of units it will make attack ranges active for.",
 				"defrange": "Defense ranges",
-				"defrange_descr": "Displays range of defenses (enemy and ally)",
+				"defrange_descr": "Displays ranges of defenses (Enemy and Ally)",
 				"defrange_allyair": "Ally Air",
 				"defrange_allyair_descr": "Show Range For Ally Air",
 				"defrange_allyground": "Ally Ground",
-				"defrange_allyground_descr": "Show Range For Ally Ground",
+				"defrange_allyground_descr": "Show Range For Ally Ground, Water and Cannons",
 				"defrange_allynuke": "Ally Nuke",
-				"defrange_allynuke_descr": "Show Range For Ally Nuke",
+				"defrange_allynuke_descr": "Show Range For Ally Anti-Nuke",
+				"defrange_allylrpc": "Ally LRPC",
+				"defrange_allylrpc_descr": "Show Range For Ally Long Range Plasma Cannon",
 				"defrange_enemyair": "Enemy Air",
 				"defrange_enemyair_descr": "Show Range For Enemy Air",
 				"defrange_enemyground": "Enemy Ground",
-				"defrange_enemyground_descr": "Show Range For Enemy Ground",
+				"defrange_enemyground_descr": "Show Range For Enemy Ground, Water and Cannons",
 				"defrange_enemynuke": "Enemy Nuke",
-				"defrange_enemynuke_descr": "Show Range For Enemy Nuke",
+				"defrange_enemynuke_descr": "Show Range For Enemy Anti-Nuke",
+				"defrange_enemylrpc": "Enemy LRPC",
+				"defrange_enemylrpc_descr": "Show Range For Enemy Long Range Plasma Cannon",
 				"antiranges": "Anti-nuke ranges",
 				"antiranges_descr": "Displays the range of anti-nuke coverage",
 				"allyselunits_select": "select units",

@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "CORDL.DDS",
-		buildtime = 6800,
+		buildtime = 6200,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "38 52 38",

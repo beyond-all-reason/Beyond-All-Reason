@@ -191,7 +191,6 @@ return {
 					overrange_distance = 690,
 					projectile_destruction_method = "descend",
 					speceffect = "retarget",
-					when = "always",
 				},
 				damage = {
 					default = 180,

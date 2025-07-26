@@ -10,6 +10,12 @@ return {
 	FriendlyCommanderSelfD = {
 		delay = 1,
 	},
+	SpectatorCommanderDied = {
+		delay = 1,
+	},
+	SpectatorCommanderSelfD = {
+		delay = 1,
+	},
 	ComHeavyDamage = {
 		delay = 12,
 	},
@@ -104,6 +110,18 @@ return {
 	CalamityIsReady = {
 		delay = 30,
 	},
+	StarfallIsReady = {
+		delay = 30,
+	},
+	AstraeusIsReady = {
+		delay = 30,
+	},
+	SolinvictusIsReady = {
+		delay = 30,
+	},
+	JuggernautIsReady = {
+		delay = 30,
+	},
 	Tech3UnitReady = {
 		delay = 9999999,
 	},
@@ -113,6 +131,9 @@ return {
 		delay = 9999999,
 	},
 	T3Detected = {
+		delay = 9999999,
+	},
+	T4Detected = {
 		delay = 9999999,
 	},
 	AircraftSpotted = {
@@ -140,6 +161,9 @@ return {
 		delay = 60,
 	},
 	BehemothDetected = {
+		delay = 9999999,
+	},
+	SolinvictusDetected = {
 		delay = 9999999,
 	},
 	JuggernautDetected = {
@@ -189,6 +213,10 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+	BuildRadar = {
+		delay = 9999999,
+		tutorial = true,
+	},
 	FactoryAir = {
 		delay = 9999999,
 		tutorial = true,
@@ -217,6 +245,15 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+	BuildIntrusionCounterMeasure = {
+		delay = 9999999,
+		tutorial = true,
+	},
+	-- UpgradeMexT2 = {
+	-- 	delay = 9999999,
+	-- 	tutorial = true,
+	-- },
+	-- for the future
 	DuplicateFactory = {
 		delay = 9999999,
 		tutorial = true,

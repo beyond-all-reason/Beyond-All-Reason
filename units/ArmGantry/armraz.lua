@@ -23,7 +23,7 @@ return {
 		metalcost = 3800,
 		movementclass = "HBOT4",
 		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/armraz_clean.cob",
+		script = "Units/armraz.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 450,
@@ -32,7 +32,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,
-		turnrate = 768.20001,
+		turnrate = 600,
 		upright = true,
 		customparams = {
 			model_author = "PtaQ",

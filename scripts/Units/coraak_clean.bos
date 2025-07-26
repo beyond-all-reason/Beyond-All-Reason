@@ -5,8 +5,11 @@ piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso
 
 static-var  isMoving;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var whichMissile, restore_delay;
 
 #define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 2
+#define SIGNAL_AIM2 4
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\coraak_anim_walk.blend 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
@@ -249,158 +252,118 @@ Create()
 	hide aimy1;
 	animSpeed = 5;
 	isMoving = FALSE;
+	whichMissile = 0;
+	restore_delay = 5500;
 	turn aimx1 to x-axis <-15> speed <50>;
 	turn aimx2 to x-axis <-5> speed <50>;
 }
-
 
 #define BASEPIECE pelvis
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-RestoreAfterDelay()
-{
-	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2 | SIGNAL_AIM3 | SIGNAL_AIM4 | SIGNAL_AIM5 | SIGNAL_AIM6;
-	sleep 5000;
-	set-signal-mask 0;
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	turn aimx1 to x-axis <-15> speed <50>;
 	turn aimx2 to x-axis <-5> speed <50>;
 }
 
-QueryWeapon1(pieceIndex)
+SetStunned(State)
 {
-	pieceIndex = flare1;
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromWeapon1(pieceIndex)
-{
-	pieceIndex = flakgun;
+AimWeapon1(heading, pitch){
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn aimy1 to y-axis heading speed <200>;
+	turn aimx1 to x-axis (-1*pitch) speed <100>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimx1 around x-axis;
+	start-script RestoreAfterDelay();
+	return(1);
 }
 
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = flare1;
+FireWeapon1(){
+	++whichMissile;
+	if (whichMissile == 0){
+		emit-sfx 1024 + 0 from flare1;
+	}
+	if (whichMissile == 1){
+		emit-sfx 1024 + 0 from flare2;
+	}
+	if (whichMissile == 2){
+		emit-sfx 1024 + 0 from flare3;
+	}
+	if (whichMissile == 3){
+		emit-sfx 1024 + 0 from flare4;
+	}
+	if( whichMissile >= 4 )
+	{
+		whichMissile = 0;
+	}
+	sleep 100;
 }
 
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = flakgun;
+QueryWeapon1(pieceIndex){
+	if (whichMissile == 0){
+		pieceIndex = flare1;
+	}
+	if (whichMissile == 1){
+		pieceIndex = flare2;
+	}
+	if (whichMissile == 2){
+		pieceIndex = flare3;
+	}
+	if (whichMissile == 3){
+		pieceIndex = flare4;
+	}
 }
 
-AimWeapon2(heading, pitch)
-{
+
+AimWeapon2(heading, pitch){
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn aimy1 to y-axis heading speed <225.000000>;
-	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
-	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
-	wait-for-turn aimy1 around y-axis;
-	start-script RestoreAfterDelay();
+	//turn torso to y-axis <120> speed <120>;
+	turn aimx2 to x-axis (0-pitch) speed <100>;
+	wait-for-turn aimx2 around x-axis;
 	return (1);
 }
 
-FireWeapon2()
-{
+FireWeapon2(){
+	emit-sfx 1024 + 0 from flareflak;
+	move flakgun to z-axis [-3] speed [30];
+	wait-for-move flakgun along z-axis;
+	move flakgun to z-axis [0] speed [3];
 }
 
-QueryWeapon3(pieceIndex)
-{
-	pieceIndex = flare2;
-}
-
-AimFromWeapon3(pieceIndex)
-{
-	pieceIndex = flakgun;
-}
-
-AimWeapon3(heading, pitch)
-{
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
-	turn aimy1 to y-axis heading speed <225.000000>;
-	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
-	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
-	wait-for-turn aimy1 around y-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon3()
-{
-}
-
-QueryWeapon4(pieceIndex)
-{
-	pieceIndex = flare3;
-}
-
-AimFromWeapon4(pieceIndex)
-{
-	pieceIndex = flakgun;
-}
-
-AimWeapon4(heading, pitch)
-{
-	signal SIGNAL_AIM4;
-	set-signal-mask SIGNAL_AIM4;
-	turn aimy1 to y-axis heading speed <225.000000>;
-	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
-	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
-	wait-for-turn aimy1 around y-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon4()
-{
-}
-
-QueryWeapon5(pieceIndex)
-{
-	pieceIndex = flare4;
-}
-
-AimFromWeapon5(pieceIndex)
-{
-	pieceIndex = flakgun;
-}
-
-AimWeapon5(heading, pitch)
-{
-	signal SIGNAL_AIM5;
-	set-signal-mask SIGNAL_AIM5;
-	turn aimy1 to y-axis heading speed <225.000000>;
-	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
-	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
-	wait-for-turn aimy1 around y-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-QueryWeapon6(pieceIndex)
-{
+QueryWeapon2(pieceIndex){
 	pieceIndex = flareflak;
 }
 
-AimFromWeapon6(pieceIndex)
-{
+AimFromWeapon2(pieceIndex){
 	pieceIndex = flakgun;
 }
 
-AimWeapon6(heading, pitch)
-{
-	signal SIGNAL_AIM6;
-	set-signal-mask SIGNAL_AIM6;
-
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon6()
-{
-	emit-sfx 1024 from flareflak;
-}
 
 Killed(severity, corpsetype)
 {

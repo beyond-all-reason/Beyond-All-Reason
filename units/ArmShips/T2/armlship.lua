@@ -185,6 +185,7 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.5",
 					spark_maxunits = "2",

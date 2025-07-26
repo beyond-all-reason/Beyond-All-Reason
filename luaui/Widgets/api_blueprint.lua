@@ -1,5 +1,23 @@
 local widget = widget ---@type Widget
 
+local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
+
+
+local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+
+local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
+
+local reportFunctions = nil
+
+local activeBlueprint = nil
+
+-- makes the intent of our usage of Spring.Echo clear
+local FeedbackForUser = Spring.Echo
+
+local activeBuildPositions = {}
+local activeBuilderBuildOptions = {}
+local currentAPITargetSide = nil
+
 function widget:GetInfo()
 	return {
 		name = "Blueprint API",
@@ -113,7 +131,7 @@ local function rotateBlueprint(bp, facing)
 					facing = (bpu.facing + facing) % 4
 				}
 			end),
-			facing = (bp.facing + facing) % 4
+			facing = 0
 		}
 	)
 end
@@ -121,9 +139,12 @@ end
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 ---@language Glsl
 local vsSrc = [[
@@ -222,10 +243,10 @@ local function makeOutlineVBO()
 end
 
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
-	local vbo = makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
 	return vbo
 end
 
@@ -266,10 +287,6 @@ local BUILD_MODES = enum(
 	"BOX",
 	"AROUND"
 )
-
-local activeBlueprint = nil
-local activeBuildPositions = {}
-local activeBuilderBuildOptions = {}
 
 local function getBuildingDimensions(unitDefID, facing)
 	local unitDef = UnitDefs[unitDefID]
@@ -532,7 +549,7 @@ local instanceIDs = {}
 local function clearInstances()
 	if isHeadless then return end
 	if outlineInstanceVBO then
-		clearInstanceTable(outlineInstanceVBO)
+		InstanceVBOTable.clearInstanceTable(outlineInstanceVBO)
 	end
 
 	if WG.StopDrawUnitShapeGL4 then
@@ -650,7 +667,7 @@ local function updateInstances(blueprint, buildPositions, teamID)
 		end
 	end
 
-	uploadAllElements(outlineInstanceVBO)
+	InstanceVBOTable.uploadAllElements(outlineInstanceVBO)
 end
 
 local function drawOutlines()
@@ -688,12 +705,40 @@ end
 -- ===
 
 local function setActiveBlueprint(bp)
-	if bp then
-		bp = rotateBlueprint(bp, bp.facing)
+	if not bp then
+		activeBlueprint = nil
+		clearInstances()
+		updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
+		return
 	end
 
-	activeBlueprint = bp
+	local blueprintToProcess = table.copy(bp) 
+	local sourceInfo = SubLogic.analyzeBlueprintSides(blueprintToProcess)
+	blueprintToProcess.sourceInfo = sourceInfo 
 
+	local determinedTargetSide = currentAPITargetSide
+	local substitutionNeeded = false
+
+	if determinedTargetSide then
+		if sourceInfo.primarySourceSide ~= determinedTargetSide or sourceInfo.numSourceSides > 1 then
+			substitutionNeeded = true
+		end
+	end
+
+	if substitutionNeeded then 
+		Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
+			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
+		
+		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
+		
+		if resultTable.substitutionFailed then
+			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
+		else
+			Spring.Log("BlueprintAPI", LOG.INFO, "[Blueprint API] " .. resultTable.summaryMessage)
+		end
+	end
+	
+	activeBlueprint = rotateBlueprint(blueprintToProcess, blueprintToProcess.facing)
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
 end
@@ -713,53 +758,108 @@ local function setActiveBuilders(unitIDs)
 		unitIDs,
 		function(acc, cur)
 			local unitDefID = SpringGetUnitDefID(cur)
-			if unitDefID == nil then
-				return acc
-			end
-
+			if unitDefID == nil then return acc end
 			local unitDef = UnitDefs[unitDefID]
-			if unitDef == nil then
-				return acc
-			end
-
+			if unitDef == nil then return acc end
 			for _, buildOption in ipairs(unitDef.buildOptions) do
 				acc[buildOption] = true
 			end
-
 			return acc
 		end,
 		{}
 	)
+
+	currentAPITargetSide = nil 
+	if unitIDs and #unitIDs > 0 then
+		local firstBuilderID = unitIDs[1]
+		local firstBuilderDefID = SpringGetUnitDefID(firstBuilderID)
+		if firstBuilderDefID then
+			local firstBuilderDef = UnitDefs[firstBuilderDefID]
+			if firstBuilderDef and firstBuilderDef.name then
+				if SubLogic and SubLogic.getSideFromUnitName then
+					currentAPITargetSide = SubLogic.getSideFromUnitName(firstBuilderDef.name)
+					Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("setActiveBuilders determined currentAPITargetSide: %s from %s", tostring(currentAPITargetSide), firstBuilderDef.name))
+				else
+					Spring.Log("BlueprintAPI", LOG.WARNING, "setActiveBuilders: SubLogic or getSideFromUnitName not available for side detection.")
+				end
+			end
+		end
+	end
+end
+
+local function getBuildableUnits(blueprint)
+	local buildable = 0
+	local unbuildable = 0
+
+	for _, unit in ipairs(blueprint.units) do
+		if activeBuilderBuildOptions[unit.unitDefID] then
+			buildable = buildable + 1
+		else
+			unbuildable = unbuildable + 1
+		end
+	end
+
+	return buildable, unbuildable
 end
 
 function widget:Initialize()
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
+
 	if not isHeadless then
 		if not initGL4() then
-			-- shader compile failed
 			widgetHandler:RemoveWidget()
 			return
 		end
 	end
 
+	if ENABLE_REPORTS then
+		Spring.Log("BlueprintAPI", LOG.INFO, "Reports ARE enabled.")
+		local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
+		if VFS.FileExists(reportPath) then
+			local includedReports = VFS.Include(reportPath)
+			if includedReports and type(includedReports.SetDependencies) == 'function' then
+				includedReports.SetDependencies(SubLogic)
+				reportFunctions = includedReports
+				Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
+			else
+				Spring.Log("BlueprintAPI", LOG.ERROR, "Failed to load reports or SetDependencies is missing: " .. reportPath)
+			end
+		else
+			Spring.Log("BlueprintAPI", LOG.WARNING, "Report file not found: " .. reportPath)
+		end
+	else
+		Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
+	end
+
 	WG["api_blueprint"] = {
+		getActiveBlueprint = function() return activeBlueprint end,
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
-
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
+		getBuildableUnits = getBuildableUnits,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
 	}
+
+	if reportFunctions then
+		Spring.Log("BlueprintAPI", LOG.INFO, "Adding report actions...")
+		widgetHandler:AddAction("blueprintmapreport", reportFunctions.generateMappingReport, nil, "t")
+		widgetHandler:AddAction("blueprintcategorylist", reportFunctions.generateCategoryListReport, nil, "t")
+	else
+		Spring.Log("BlueprintAPI", LOG.INFO, "Skipping report action registration (reportFunctions not loaded).")
+	end
 end
 
 function widget:Shutdown()
 	WG["api_blueprint"] = nil
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then return end
 
@@ -772,4 +872,9 @@ function widget:Shutdown()
 	if outlineShader then
 		outlineShader:Finalize()
 	end
+	if reportFunctions and widgetHandler and widgetHandler.RemoveAction then
+		widgetHandler:RemoveAction("blueprintmapreport")
+		widgetHandler:RemoveAction("blueprintcategorylist")
+	end
+	reportFunctions = nil
 end

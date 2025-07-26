@@ -144,7 +144,7 @@ local function findTestFiles(directory, patterns, rootDirectory, result)
 		result = {}
 	end
 
-	for _, filename in ipairs(VFS.DirList(directory, "*", VFS.RAW_FIRST)) do
+	for _, filename in ipairs(VFS.DirList(directory, "*.lua", VFS.RAW_FIRST)) do
 		local relativePath = string.sub(filename, string.len(rootDirectory) + 1)
 		local withoutExtension = Util.removeFileExtension(relativePath)
 		if patterns == nil or #patterns == 0 or matchesPatterns(withoutExtension, patterns) then
@@ -492,6 +492,11 @@ local function startTests(patterns)
 		neededActions[#neededActions+1] = {'cheat',
 						   'Cheats are disabled; attempting to enable them...',
 						   'Could not enable cheats; tests cannot be run.'}
+	end
+	if not Spring.IsDevLuaEnabled() then
+		neededActions[#neededActions+1] = {'devlua',
+						   'DevLua mode disabled; attempting to enable it...',
+						   'Could not enable DevLua mode; tests cannot be run.'}
 	end
 	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
 		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
@@ -993,6 +998,7 @@ local function initializeTestEnvironment()
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,

@@ -1,0 +1,65 @@
+
+
+#include "../recoil_common_includes.h"
+
+piece  base, fanBase1, fanBase2, fanBase3, fanbase4, fan1, fan2, fan3, fan4;
+
+Create()
+{
+	turn fanBase1 to z-axis <35> now;
+	turn fanBase1 to x-axis <8> now;
+
+	turn fanBase2 to z-axis <35> now;
+	turn fanBase2 to x-axis <-8> now;
+
+	turn fanBase3 to z-axis <-35> now;
+	turn fanBase3 to x-axis <-8> now;
+
+	turn fanBase4 to z-axis <-35> now;
+	turn fanBase4 to x-axis <8> now;
+	SLEEP_UNTIL_UNITFINISHED;
+	spin fan1 around y-axis speed <100> accelerate <1>;
+	spin fan2 around y-axis speed <100> accelerate <1>;
+	spin fan3 around y-axis speed <100> accelerate <1>;
+	spin fan4 around y-axis speed <100> accelerate <1>;
+
+	while( TRUE )
+	{
+		emit-sfx 259 from fan1;
+		sleep 50;
+		emit-sfx 259 from fan2;
+		sleep 50;
+		emit-sfx 259 from fan3;
+		sleep 50;
+		emit-sfx 259 from fan4;
+		sleep 50;
+	}
+
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

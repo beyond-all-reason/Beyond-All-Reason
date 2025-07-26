@@ -79,20 +79,24 @@ uniform float sharpness;
 in vec2 viewPos;
 out vec4 fragColor;
 
+#define SAMPLES 5 // 9 or 5
+
 vec3 CASPass(ivec2 tc) {
 	// fetch a 3x3 neighborhood around the pixel 'e',
 	//  a b c
 	//  d(e)f
 	//  g h i
-	vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
 	vec3 b = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0, -1)).rgb;
-	vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
 	vec3 d = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  0)).rgb;
 	vec3 e = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  0)).rgb;
 	vec3 f = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  0)).rgb;
-	vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
 	vec3 h = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  1)).rgb;
-	vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	#if (SAMPLES == 9)
+		vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
+		vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
+		vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
+		vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	#endif
 
 	// Soft min and max.
 	//  a b c			 b
@@ -100,12 +104,18 @@ vec3 CASPass(ivec2 tc) {
 	//  g h i			 h
 	// These are 2.0x bigger (factored out the extra multiply).
 	vec3 mnRGB = min(min(min(d, e), min(f, b)), h);
-	vec3 mnRGB2 = min(mnRGB, min(min(a, c), min(g, i)));
-	mnRGB += mnRGB2;
+	
 
 	vec3 mxRGB = max(max(max(d, e), max(f, b)), h);
-	vec3 mxRGB2 = max(mxRGB, max(max(a, c), max(g, i)));
-	mxRGB += mxRGB2;
+	#if (SAMPLES == 9)
+		vec3 mnRGB2 = min(mnRGB, min(min(a, c), min(g, i)));
+		mnRGB += mnRGB2;
+		vec3 mxRGB2 = max(mxRGB, max(max(a, c), max(g, i))); 
+		mxRGB += mxRGB2;
+	#else
+		mxRGB *= 2.0;
+		mnRGB *= 2.0; 
+	#endif 
 
 	// Smooth minimum distance to signal limit divided by smooth max.
 	vec3 rcpMRGB = vec3(1.0) / mxRGB;
@@ -138,7 +148,7 @@ void main() {
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vpx, vpy
 local screenCopyTex
@@ -192,7 +202,7 @@ function widget:Initialize()
 		uniformInt = {
 			screenCopyTex = 0,
 		},
-	}, ": Contrast Adaptive Sharpen")
+	}, "Contrast Adaptive Sharpen")
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then

@@ -113,12 +113,13 @@ local cursorLightParams = {
 		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.7, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 0 
+		lifetime = 0, sustain = 0, selfshadowing = 0
 	}
 }
 
 local cursorLightAlpha = 0.5
 local cursorLightRadius = 0.85
+local cursorLightSelfShadowing = false
 
 -- This is for the player himself!
 local showPlayerCursorLight = false
@@ -133,7 +134,7 @@ local playerCursorLightParams = {
 		r = 1, g = 0.8, b = 0.6, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 8 
+		lifetime = 0, sustain = 0, selfshadowing = 8
 	}
 }
 
@@ -202,11 +203,26 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	SCREENSPACESHADOWS = 1, -- set to nil to disable completely
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local radiusMultiplier = 1.0
-local screenSpaceShadows = 2
 local intensityMultiplier = 1.0
+local screenSpaceShadows = 2
+
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+if isPotatoGpu then
+	screenSpaceShadows = 0
+elseif gpuMem and gpuMem > 0 and gpuMem < 5000 then
+	screenSpaceShadows = 1
+end
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
@@ -223,7 +239,7 @@ local examplePointLight = {
 	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-	lifetime = 0, sustain = 1, 	selfshadowing = 0 
+	lifetime = 0, sustain = 1, 	selfshadowing = 0
 }
 ]]--
 
@@ -293,10 +309,12 @@ local trackedProjectiles = {} -- used for finding out which projectiles can be c
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
 
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local deferredLightShader = nil
 
@@ -354,12 +372,12 @@ local function goodbye(reason)
 end
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetLightVBO = makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
+	local targetLightVBO = InstanceVBOTable.makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end
 	targetLightVBO.vertexVBO = vertexVBO
 	targetLightVBO.numVertices = numVertices
 	targetLightVBO.indexVBO = indexVBO
-	targetLightVBO.VAO = makeVAOandAttach(targetLightVBO.vertexVBO, targetLightVBO.instanceVBO, targetLightVBO.indexVBO)
+	targetLightVBO.VAO = InstanceVBOTable.makeVAOandAttach(targetLightVBO.vertexVBO, targetLightVBO.instanceVBO, targetLightVBO.indexVBO)
 	return targetLightVBO
 end
 
@@ -389,18 +407,18 @@ local function initGL4()
 			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, _, pointIndexVBO, _ = makeSphereVBO(8, 4, 1)
+	local pointVBO, _, pointIndexVBO, _ = InstanceVBOTable.makeSphereVBO(8, 4, 1)
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
-	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
+	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
 	coneLightVBO 			= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
 	unitConeLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
 	projectileConeLightVBO  = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Light VBO")
 
-	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
+	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamLightVBO 			= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
 	unitBeamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
 	projectileBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
@@ -887,7 +905,7 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			return popElementInstance(lightVBOMap[lightshape], instanceID)
 		else
 			if not noUpload then
-				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then 
+				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then
 					Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 				end
 			end
@@ -1059,9 +1077,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitPointLightVBO) -- clear all instances
-	clearInstanceTable(unitBeamLightVBO) -- clear all instances
-	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitPointLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitBeamLightVBO) -- clear all instances
+	InstanceVBOTable.clearInstanceTable(unitConeLightVBO) -- clear all instances
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -1449,10 +1467,11 @@ function widget:Update(dt)
 	if WG['allycursors'] and WG['allycursors'].getLights() then
 		sec = sec + dt
 		if sec >= 0.25 then
-			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() then
+			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() or cursorLightSelfShadowing ~= WG['allycursors'].getLightSelfShadowing() then
 				cursorLightAlpha = WG['allycursors'].getLightStrength()
 				cursorLightRadius = WG['allycursors'].getLightRadius()
-				clearInstanceTable(cursorPointLightVBO)
+				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
+				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
 		end
@@ -1468,6 +1487,7 @@ function widget:Update(dt)
 					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
 					params[12] = cursorLightAlpha * 0.2
+					params[20] = cursorLightSelfShadowing and 8 or 0
 					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
 				else
 					updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
@@ -1477,7 +1497,7 @@ function widget:Update(dt)
 		uploadAllElements(cursorPointLightVBO)
 	else
 		if cursorLights then
-			clearInstanceTable(cursorPointLightVBO)
+			InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 			cursorLights = nil
 		end
 	end
@@ -1520,7 +1540,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
-		coneLightVBO.usedElements > 0 then
+		coneLightVBO.usedElements > 0 or
+		cursorPointLightVBO.usedElements > 0
+		then
 
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
@@ -1571,7 +1593,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
 		local screenSpaceShadowSampleCount = 0
-		if screenSpaceShadows > 0 then 
+		if screenSpaceShadows > 0 then
 			screenSpaceShadowSampleCount = math.min(64, math.floor( math.pow(2, screenSpaceShadows) * 4) )
 		end
 		deferredLightShader:SetUniformInt("screenSpaceShadows",  screenSpaceShadowSampleCount)
@@ -1738,7 +1760,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end
 
-if autoupdate then 
+if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end

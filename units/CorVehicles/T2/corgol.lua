@@ -1,13 +1,13 @@
 return {
 	corgol = {
 		buildpic = "CORGOL.DDS",
-		buildtime = 26100,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
-		energycost = 22000,
+		energycost = 28000,
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,

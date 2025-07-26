@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT7",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
-		script = "Units/CORJUGG_CLEAN.cob",
+		script = "Units/corjugg.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,
@@ -135,6 +135,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 75,
 				},

@@ -10,7 +10,7 @@ function widget:GetInfo()
 		date      = "2021.04.26",
 		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -100,
-		enabled   = false,
+		enabled   = true,
 		depends   = {'gl4'},
 	}
 end
@@ -66,58 +66,93 @@ end
 
 ------------------ CONFIGURABLES --------------
 
+local autoReload = false
+
 local enabledAsSpec = true
 
 local buttonConfig = {
-	ally = { ground = true, air = true, nuke = true },
-	enemy = { ground = true, air = true, nuke = true }
+	ally = { ground = false, air = false, nuke = true , cannon = false, lrpc = false},
+	enemy = { ground = true, air = true, nuke = true , cannon = true, lrpc = false}
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
-    drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-    externalalpha = 0.70, -- alpha of outer rings
-    internalalpha = 0.0, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
-    distanceScaleEnd = 4000, -- Linewidth becomes 50% above this camera height
+    distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
+	drawAllyCategoryBuildQueue = true,
     ground = {
-        color = {1.0, 0.2, 0.0, 1.0},
-        fadeparams = { 2000, 5000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {1.3, 0.18, 0.04, 0.70},
+        fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
+        internallinethickness = 3.0, -- can be 1.8 if we can distiquish its looks from attackranges
+		stenciled = true,
+		cannonMode = false,
+		stencilMask = 1,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     air = {
-        color = {0.90, 0.45, 1.2, 1.0},
-        fadeparams = { 2000, 5000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {0.8, 0.44, 1.6, 0.70},
+        fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0,
+        internallinethickness = 3.0,
+		stenciled = true,
+		cannonMode = false,
+		stencilMask = 2,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
     },
     nuke = {
-        color = {0.7, 0.8, 1.0, 1.0},
-        fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
+        color = {1.05, 1.0, 0.2, 0.72},
+        fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0,
         internallinethickness = 2.0,
+		stenciled = true,
+		cannonMode = false,
+		stencilMask = 4,
+		externalalpha = 0.80, -- alpha of outer rings
+		internalalpha = 0.15, -- alpha of inner rings
     },
     cannon = {
-        color = {1.0, 0.6, 0.0, 1.0},
-        fadeparams = {3000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {1.3, 0.18, 0.04, 0.70}, --orange 1.2, 0.55, 0.08, 0.74
+        fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0,
+        internallinethickness = 2.5,
+		stenciled = true,
+		cannonMode = true,
+		stencilMask = 8,
+		externalalpha = 0.75, -- alpha of outer rings
+		internalalpha = 0.10, -- alpha of inner rings
+    },
+	lrpc = {
+        color = {1.3, 0.18, 0.04, 0.68},
+        fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 3.0,
+        internallinethickness = 1.5,
+		stenciled = false,
+		cannonMode = true,
+		externalalpha = 0.25, -- alpha of outer rings
     },
 }
 
+-- add a “water” variant so we can stay in the ground-stencil pass but colour blue
+colorConfig.ground_water = {
+    color      = {0.48, 0.67, 1.0, 0.30},      -- nice RGBA blue
+    fadeparams = colorConfig.ground.fadeparams, -- reuse the same fade curve
+}
 
 --- Camera Height based line shrinkage:
 
-
 ----------------------------------
-
-local buttonconfigmap ={'ground','air','nuke','ground'}
-local DEBUG = false --generates debug message
-local weaponTypeMap = {'ground','air','nuke','cannon'}
 
 local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific table:
 	-- a list of tables, ideally ranged from 0 where
+	-- consider that a unit can have any of multiple types
+--[[
+	-- unitDefRings[unitDefID] = {
+
+	}
+]]--
 
 local mobileAntiUnitDefs = {
 	[UnitDefNames.armscab.id ] = true,
@@ -154,27 +189,29 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		local range = weaponDef.range
-		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 		--Spring.Echo(weaponType)
-		if weaponType ~= nil and weaponType > 0 then
-			local damage = 0
-			if weaponType == 2 then --AA
-				damage = weaponDef.damages[vtoldamagetag]
-			elseif weaponType == 3 then -- antinuke
-				damage = 0
+		if weaponType ~= nil  then
+			if  weaponType == 'nuke' then -- antinuke
 				range = weaponDef.coverageRange
 				--Spring.Echo("init antinuke", range)
-			else
-				damage = weaponDef.damages[defaultdamagetag]
 			end
-			dps = damage * (weaponDef.salvoSize or 1) / (weaponDef.reload or 1)
-			local color = colorConfig[weaponTypeMap[weaponType]].color
-			local fadeparams =  colorConfig[weaponTypeMap[weaponType]].fadeparams
+			-- local color = colorConfig[weaponType].color
+			-- local fadeparams =  colorConfig[weaponType].fadeparams
 
-			local isCylinder = 1
-			if weaponType == 1 or weaponType == 4 then -- all non-cannon ground weapons are spheres, aa and antinuke are cyls
-				isCylinder = 0
+			-- pick blue for underwater weapons, otherwise fall back to normal
+	        local baseKey = weaponType
+	        local cfg    = colorConfig[baseKey]
+	        if (baseKey == "ground") and (weaponDef.waterWeapon) then
+	            cfg = colorConfig.ground_water
+	            --Spring.Echo("[DefenseRange] using water colour for:", weaponDef.name)
+	        end
+	        local color      = cfg.color
+	        local fadeparams = cfg.fadeparams
+
+			local isCylinder = 0
+			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
+				isCylinder = 1
 			end
 
 			local ringParams = {range, color[1],color[2], color[3], color[4],
@@ -191,86 +228,106 @@ end
 local function initUnitList()
 	local unitDefRingsNames = {
 		-- ARMADA
-		['armclaw'] = { weapons = { 1 } },
-		['armllt'] = { weapons = { 1 } },
-		['armbeamer'] = { weapons = { 1 } },
-		['armhlt'] = { weapons = { 1 } },
-		['armguard'] = { weapons = { 4} },
-		['armrl'] = { weapons = { 2 } }, --light aa
-		['armferret'] = { weapons = { 2 } },
-		['armcir'] = { weapons = { 2 } }, --chainsaw
-		['armdl'] = { weapons = { 1 } }, --depthcharge
-		['armjuno'] = { weapons = { 1 } },
-		['armtl'] = { weapons = { 1 } }, --torp launcher
-		['armfhlt'] = { weapons = { 1 } },  --floating hlt
-		['armfrt'] = { weapons = { 2 } },  --floating rocket laucher
-		['armfflak'] = { weapons = { 2 } },  --floating flak AA
-		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
+		['armclaw'] = { weapons = { 'ground' } },
+		['armllt'] = { weapons = { 'ground' } },
+		['armbeamer'] = { weapons = { 'ground' } },
+		['armhlt'] = { weapons = { 'ground' } },
+		['armguard'] = { weapons = { 'cannon'} },
+		['armrl'] = { weapons = { 'air' } }, --light aa
+		['armferret'] = { weapons = { 'air' } },
+		['armcir'] = { weapons = { 'air' } }, --chainsaw
+		['armdl'] = { weapons = { 'ground' } }, --depthcharge
+		['armjuno'] = { weapons = { 'ground' } },
+		['armtl'] = { weapons = { 'ground' } }, --torp launcher
+		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
+		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
+		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
+		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher  
 
-		['armamb'] = { weapons = { 4 } }, --ambusher
-		['armpb'] = { weapons = { 4 } }, --pitbull
-		['armanni'] = { weapons = { 1 } },
-		['armflak'] = { weapons = { 2 } },
-		['armmercury'] = { weapons = { 2 } },
-		['armemp'] = { weapons = { 1 } },
-		['armamd'] = { weapons = { 3 } }, --antinuke
+		['armamb'] = { weapons = { 'cannon' } }, --ambusher 'cannon'
+		['armpb'] = { weapons = { 'ground' } }, --pitbull 'cannon'
+		['armanni'] = { weapons = { 'ground' } },
+		['armflak'] = { weapons = { 'air' } },
+		['armmercury'] = { weapons = { 'air' } },
+		['armemp'] = { weapons = { 'ground' } },
+		['armamd'] = { weapons = { 'nuke' } }, --antinuke
 
-		['armbrtha'] = { weapons = { 4 } },
-		['armvulc'] = { weapons = { 4 } },
+		['armbrtha'] = { weapons = { 'lrpc' } },
+		['armvulc'] = { weapons = { 'lrpc' } },
 
 		-- CORTEX
-		['cormaw'] = { weapons = { 1 } },
-		['corexp'] = { weapons = { 1} },
-		['cormexp'] = { weapons = { 1,1 } },
-		['corllt'] = { weapons = { 1 } },
-		['corhllt'] = { weapons = { 1 } },
-		['corhlt'] = { weapons = { 1 } },
-		['corpun'] = { weapons = { 4} },
-		['corrl'] = { weapons = { 2 } },
-		['cormadsam'] = { weapons = { 2 } },
-		['corerad'] = { weapons = { 2 } },
-		['cordl'] = { weapons = { 1 } },
-		['corjuno'] = { weapons = { 1 } },
+		['cormaw'] = { weapons = { 'ground' } },
+		['corexp'] = { weapons = { 'ground'} },
+		['cormexp'] = { weapons = { 'ground','ground' } },
+		['corllt'] = { weapons = { 'ground' } },
+		['corhllt'] = { weapons = { 'ground' } },
+		['corhlt'] = { weapons = { 'ground' } },
+		['corpun'] = { weapons = { 'cannon'} },
+		['corrl'] = { weapons = { 'air' } },
+		['cormadsam'] = { weapons = { 'air' } },
+		['corerad'] = { weapons = { 'air' } },
+		['cordl'] = { weapons = { 'ground' } },
+		['corjuno'] = { weapons = { 'ground' } },
 
-		['corfhlt'] = { weapons = { 1 } },  --floating hlt
-		['cortl'] = { weapons = { 1 } }, --torp launcher
-		['coratl'] = { weapons = { 1 } }, --T2 torp launcher
-		['corfrt'] = { weapons = { 2 } }, --floating rocket laucher
-		['corenaa'] = { weapons = { 2 } }, --floating flak AA
+		['corfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['cortl'] = { weapons = { 'ground' } }, --torp launcher
+		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
+		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
+		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
+		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
-		['cortoast'] = { weapons = { 4 } },
-		['corvipe'] = { weapons = { 1 } },
-		['cordoom'] = { weapons = { 1, 1, 1} },
-		['corflak'] = { weapons = { 2 } },
-		['corscreamer'] = { weapons = { 2 } },
-		['cortron'] = { weapons = { 1 } },
-		['corfmd'] = { weapons = { 3 } },
-		['corint'] = { weapons = { 4 } },
-		['corbuzz'] = { weapons = { 4 } },
+		['cortoast'] = { weapons = { 'cannon' } },
+		['corvipe'] = { weapons = { 'ground' } },
+		['cordoom'] = { weapons = { 'ground', 'ground', 'ground'} },
+		['corflak'] = { weapons = { 'air' } },
+		['corscreamer'] = { weapons = { 'air' } },
+		['cortron'] = { weapons = { 'cannon' } },
+		['corfmd'] = { weapons = { 'nuke' } },
+		['corint'] = { weapons = { 'lrpc' } },
+		['corbuzz'] = { weapons = { 'lrpc' } },
 
-		['armscab'] = { weapons = { 3 } },
-		['armcarry'] = { weapons = { 3 } },
-		['cormabm'] = { weapons = { 3 } },
-		['corcarry'] = { weapons = { 3 } },
-		['armantiship'] = { weapons = { 3 } },
-		['corantiship'] = { weapons = { 3 } },
+		['armscab'] = { weapons = { 'nuke' } },
+		['armcarry'] = { weapons = { 'nuke' } },
+		['cormabm'] = { weapons = { 'nuke' } },
+		['corcarry'] = { weapons = { 'nuke' } },
+		['armantiship'] = { weapons = { 'nuke' } },
+		['corantiship'] = { weapons = { 'nuke' } },
 
 		-- LEGION
-		['legabm'] = { weapons = { 3 } }, --antinuke
-		['legrampart'] = { weapons = { 3 } }, --rampart
+		['legabm'] = { weapons = { 'nuke' } }, --antinuke
+		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
+		['leglht'] = { weapons = { 'ground' } }, --llt
+		['legcluster'] = { weapons = { 'cannon' } }, --short range arty T1
+		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
+		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
+		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
+		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
+		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
+		['legbastion'] = { weapons = { 'ground' } }, --T2 Heatray Tower
+		['legrl'] = { weapons = { 'air' } }, --T1 AA
+		['leglupara'] = { weapons = { 'air' } }, --T1.5 AA
+		['legrhapsis'] = { weapons = { 'air' } }, --T1.5 AA
+		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
+		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
+		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
+		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+
+		['legstarfall'] = { weapons = { 'lrpc' } },
+		['leglrpc'] = { weapons = { 'lrpc' } },
 
 		-- SCAVENGERS
-		['scavbeacon_t1_scav'] = { weapons = { 1 } },
-		['scavbeacon_t2_scav'] = { weapons = { 1 } },
-		['scavbeacon_t3_scav'] = { weapons = { 1 } },
-		['scavbeacon_t4_scav'] = { weapons = { 1 } },
+		['scavbeacon_t1_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t2_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t3_scav'] = { weapons = { 'ground' } },
+		['scavbeacon_t4_scav'] = { weapons = { 'ground' } },
 
-		['armannit3'] = { weapons = { 1 } },
-		['armminivulc'] = { weapons = { 1 } },
+		['armannit3'] = { weapons = { 'ground' } },
+		['armminivulc'] = { weapons = { 'ground' } },
 
-		['cordoomt3'] = { weapons = { 1 } },
-		['corhllllt'] = { weapons = { 1 } },
-		['corminibuzz'] = { weapons = { 1 } }
+		['cordoomt3'] = { weapons = { 'ground' } },
+		['corhllllt'] = { weapons = { 'ground' } },
+		['corminibuzz'] = { weapons = { 'ground' } }
 	}
 	-- convert unitname -> unitDefID
 	unitDefRings = {}
@@ -378,7 +435,12 @@ function widget:TextCommand(command)
 		if string.find(command, "+", nil, true) then
 			enabled = true
 		end
-		buttonConfig[ally][rangetype]=enabled
+		if rangetype == 'ground' then
+			buttonConfig[ally]['ground']=enabled
+			buttonConfig[ally]['cannon']=enabled
+		else
+			buttonConfig[ally][rangetype]=enabled
+		end
 		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
 		return true
 	end
@@ -387,9 +449,11 @@ function widget:TextCommand(command)
 end
 
 ------ GL4 THINGS  -----
+---
+
 -- nukes and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 512
+local largeCircleSegments = 1024
 
 -- others:
 local smallCircleVBO = nil
@@ -397,20 +461,58 @@ local smallCircleSegments = 128
 
 local weaponTypeToString = {"ground","air","nuke","cannon"}
 local allyenemypairs = {"ally","enemy"}
-local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
+local defenseRangeClasses = {}
+for allyenemy, ringclasses in pairs(buttonConfig) do
+	for ringclass, enabled in pairs(ringclasses) do
+			table.insert(defenseRangeClasses, allyenemy .. ringclass)
+	end
+end
+--local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
 local defenseRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
-		  {id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
+		  {id = 1, name = 'posscale', size = 4}, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 		  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
-		  {id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
-		  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
+		  {id = 3, name = 'visibility', size = 4}, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
+		  {id = 4, name = 'projectileParams', size = 4}, --- projectileSpeed, iscylinder, heightBoostFactor , heightMod
+		  {id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
+		  {id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT }, -- Currently unused within defense ranges, as they are forced-static
 		}
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local popElementInstance     = InstanceVBOTable.popElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 local defenseRangeShader = nil
+
+local shaderSourceCache = {
+	shaderName = 'Defense Range GL4',
+	vssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		DEBUG = autoReload and 1 or 0,
+		MOUSEOVERALPHAMULTIPLIER = 5.0,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losTex = 1,
+		mapNormalTex = 2,
+	},
+	uniformFloat = {
+		lineAlphaUniform = 1,
+		cannonmode = 0,
+		fadeDistOffset = 0,
+		drawMode = 0,
+		selBuilderCount = 1.0,
+		selUnitCount = 1.0,
+		inMiniMap = 0.0,
+		staticUnits = 1.0,
+	},
+}
 
 
 local function goodbye(reason)
@@ -418,284 +520,9 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget()
 end
 
-local function makeCircleVBO(circleSegments)
-	circleSegments  = circleSegments -1 -- for po2 buffers
-	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
-
-	local VBOLayout = {
-	 {id = 0, name = "position", size = 4},
-	}
-
-	local VBOData = {}
-
-	for i = 0, circleSegments  do -- this is +1
-		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) -- X
-		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) -- Y
-		VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
-		VBOData[#VBOData+1] = 0
-	end
-
-	circleVBO:Define(
-		circleSegments + 1,
-		VBOLayout
-	)
-	circleVBO:Upload(VBOData)
-	return circleVBO
-end
-
-local vsSrc = [[
-#version 420
-#line 10000
-
-//__DEFINES__
-
-layout (location = 0) in vec4 circlepointposition;
-layout (location = 1) in vec4 posscale;
-layout (location = 2) in vec4 color1;
-layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, EndAlpha
-layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
-
-uniform float lineAlphaUniform = 1.0;
-uniform float cannonmode = 0.0;
-
-uniform sampler2D heightmapTex;
-uniform sampler2D losTex; // hmm maybe?
-
-out DataVS {
-	flat vec4 blendedcolor;
-};
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-#line 11000
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =  heightmapUVatWorldPos(w);
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
-
-float GetRangeFactor(float projectileSpeed) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-	// on first run, with yDiff = 0, what do we get?
-	float speed2d = projectileSpeed * 0.707106;
-	float gravity =  120.0 	* (0.001111111);
-	return ((speed2d * speed2d) * 2.0 ) / (gravity);
-}
-
-float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float heightBoostFactor) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-	// on first run, with yDiff = 0, what do we get?
-
-	//float factor = 0.707106;
-	float smoothHeight = 100.0;
-	float speed2d = projectileSpeed*0.707106;
-	float speed2dSq = speed2d * speed2d;
-	float gravity = -1.0*  (120.0 /900);
-
-	if (heightBoostFactor < 0){
-		heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor);
-	}
-
-	if (yDiff < -100.0){
-		yDiff = yDiff * heightBoostFactor;
-	}else {
-		if (yDiff < 0.0) {
-			yDiff = yDiff * (1.0 + (heightBoostFactor - 1.0 ) * (-1.0 * yDiff) * 0.01);
-		}
-	}
-
-	float root1 = speed2dSq + 2 * gravity *yDiff;
-	if (root1 < 0.0 ){
-		return 0.0;
-	}else{
-		return rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-1.0 * gravity);
-	}
-}
-
-//float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
-//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
-
-//float heightBoostFactor default: -1.0
-//Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
-
-#define RANGE posscale.w
-#define PROJECTILESPEED projectileParams.x
-#define ISCYLINDER projectileParams.y
-#define HEIGHTBOOSTFACTOR projectileParams.z
-#define HEIGHTMOD projectileParams.w
-#define YGROUND posscale.y
-
-#define OUTOFBOUNDSALPHA alphaControl.y
-#define FADEALPHA alphaControl.z
-#define MOUSEALPHA alphaControl.w
-
-
-void main() {
-	// translate to world pos:
-	vec4 circleWorldPos = vec4(1.0);
-	circleWorldPos.xz = circlepointposition.xy * RANGE +  posscale.xz;
-
-	vec4 alphaControl = vec4(1.0);
-
-	// get heightmap
-	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-
-
-	if (cannonmode > 0.5){
-
-		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
-		// gravity we can assume to be linear
-
-		float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
-
-		float rangeFactor = RANGE /  GetRangeFactor(PROJECTILESPEED); //correct
-		if (rangeFactor > 1.0 ) rangeFactor = 1.0;
-		if (rangeFactor <= 0.0 ) rangeFactor = 1.0;
-		float radius = RANGE;// - heightDiff;
-		float adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-		float adjustment = radius * 0.5;
-		float yDiff = 0;
-		float adds = 0;
-		//for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-		for (int i = 0; i < 16; i ++){
-				if (adjRadius > radius){
-					radius = radius + adjustment;
-					adds = adds + 1;
-				}else{
-					radius = radius - adjustment;
-					adds = adds - 1;
-				}
-				adjustment = adjustment * 0.5;
-				circleWorldPos.xz = circlepointposition.xy * radius + posscale.xz;
-				float newY = heightAtWorldPos(circleWorldPos.xz );
-				yDiff = abs(circleWorldPos.y - newY);
-				circleWorldPos.y = max(0, newY);
-				heightDiff = circleWorldPos.y - posscale.y;
-				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-		}
-	}else{
-		if (ISCYLINDER < 0.5){ // isCylinder
-			//simple implementation, 4 samples per point
-			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){
-			for (int i = 0; i<8; i++){
-				// draw vector from centerpoint to new height point and normalize it to range length
-				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
-				tonew.y *= HEIGHTMOD;
-				tonew = normalize(tonew) * RANGE;
-				circleWorldPos.xz = posscale.xz + tonew.xz;
-				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-			}
-		}
-	}
-
-	circleWorldPos.y += 6; // lift it from the ground
-
-	// -- MAP OUT OF BOUNDS
-	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
-	float inboundsness = min(mymin.x, mymin.y);
-	OUTOFBOUNDSALPHA = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
-
-
-	//--- DISTANCE FADE ---
-	vec4 camPos = cameraViewInv[3];
-	float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam
-	// FadeStart, FadeEnd, StartAlpha, EndAlpha
-	float fadeDist = visibility.y - visibility.x;
-	FADEALPHA  = clamp((visibility.y - distToCam)/(fadeDist),0,1);//,visibility.z,visibility.w);
-
-	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
-	//seems pretty ok!
-	if (FADEALPHA < 0.001) {
-		circleWorldPos.xyz = posscale.xyz;
-	}
-
-	if (cannonmode > 0.5){
-	// cannons should fade distance based on their range
-		float cvmin = max(visibility.x, 2* RANGE);
-		float cvmax = max(visibility.y, 4* RANGE);
-		//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
-	}
-
-	blendedcolor = color1;
-
-	// -- DARKEN OUT OF LOS
-	vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
-	float inlos = dot(losTexSample.rgb,vec3(0.33));
-	inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
-	blendedcolor.rgb *= inlos;
-
-	// --- YES FOG
-	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-	float fogFactor = clamp((fogParams.y - fogDist) * fogParams.w, 0, 1);
-	blendedcolor.rgb = mix(fogColor.rgb, vec3(blendedcolor), fogFactor);
-
-
-	// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
-	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(posscale.xz - mouseWorldPos.xz));
-	// this will be positive if in mouse, negative else
-	float highightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	MOUSEALPHA = highightme;
-
-	// ------------ dump the stuff for FS --------------------
-	//worldPos = circleWorldPos;
-	//worldPos.a = RANGE;
-	alphaControl.x = circlepointposition.z; // save circle progress here
-	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-
-
-	//lets blend the alpha here, and save work in FS:
-	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);
-	blendedcolor.a *= outalpha ;
-	//blendedcolor.rgb = vec3(fract(distToCam/100));
-}
-]]
-
-local fsSrc =  [[
-#version 330
-
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-//_DEFINES__
-
-#line 20000
-
-
-//_ENGINEUNIFORMBUFFERDEFS__
-
-in DataVS {
-	flat vec4 blendedcolor;
-};
-
-out vec4 fragColor;
-
-void main() {
-	fragColor = blendedcolor; // now pared down to only this, all work is done in vertex shader now
-}
-]]
-
-
 local function makeShaders()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	defenseRangeShader =  LuaShader(
-	{
-		vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-		fragment = fsSrc,
-		--geometry = gsSrc, no geom shader for now
-		uniformInt = {
-			heightmapTex = 0,
-			losTex = 1,
-		},
-		uniformFloat = {
-			lineAlphaUniform = 1,
-			cannonmode = 0,
-		},
-	},
-	"defenseRangeShader GL4"
-	)
-	shaderCompiled = defenseRangeShader:Initialize()
-	if not shaderCompiled then
+	defenseRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	if not defenseRangeShader then
 		goodbye("Failed to compile defenseRangeShader GL4 ")
 		return false
 	end
@@ -703,18 +530,18 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
-		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
-		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) then
+		defenseRangeVAOs[defRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
+		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
 		else
 			defenseRangeVAOs[defRangeClass].vertexVBO = smallCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
+		local newVAO = InstanceVBOTable.makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
 		defenseRangeVAOs[defRangeClass].VAO = newVAO
 	end
 	return makeShaders()
@@ -734,7 +561,12 @@ function widget:Initialize()
 			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
 			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
 			WG['defrange']['set'..Ae..Wt] = function(value)
-				buttonConfig[ae][wt] = value
+				if wt == 'ground' then
+					buttonConfig[ae]['ground'] = value
+					buttonConfig[ae]['lrpc'] = value
+				else
+					buttonConfig[ae][wt] = value
+				end
 				Spring.Echo(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
 				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -758,7 +590,7 @@ local function hashPos(x,z)
 end
 
 local cacheTable = {}
-for i=1,16 do cacheTable[i] = 0 end
+for i=1,24 do cacheTable[i] = 0 end
 
 local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	if unitDefRings[unitDefID] == nil then return end -- no rings for this
@@ -775,26 +607,33 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	local addedrings = 0
 	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
 		local allystring = alliedUnit and "ally" or "enemy"
-		if buttonConfig[allystring][buttonconfigmap[weaponType]] then
+		-- We want to continue to maintain ally lists, because these ally lists will be 
+		if buttonConfig[allystring][weaponType] or (colorConfig.drawAllyCategoryBuildQueue and (allystring == "ally")) then 
+			
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-			cacheTable[1] = mpx
-			cacheTable[2] = mpy
-			cacheTable[3] = mpz
-			local vaokey = allystring .. weaponTypeToString[weaponType]
 
+			local weaponID = i
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
-			for i = 1,13 do
-				cacheTable[i+3] = ringParams[i]
+			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			--Spring.Echo("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+
+			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
+			-- so it only goes up with popups
+			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
+			ringParams[18] = turretHeight
+
+
+			cacheTable[1] = mpx
+			cacheTable[2] = turretHeight
+			cacheTable[3] = mpz
+			local vaokey = allystring .. weaponType
+
+			for j = 1,13 do
+				cacheTable[j+3] = ringParams[j]
 			end
-			if true then
-				local s = ' '
-				for i = 1,16 do
-					s = s .. "; " ..tostring(cacheTable[i])
-				end
-				--Spring.Echo("Adding rings for", unitID, x,z)
-				--Spring.Echo("added",vaokey,s)
-			end
-			local instanceID = 1000000 * weaponType + unitID
+
+			local instanceID = 1000000 * i + unitID
 			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
 			addedrings = addedrings + 1
 			if defenses[unitID] == nil then
@@ -839,13 +678,13 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	defensePosHash = {}
 	mobileAntiUnits = {}
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		clearInstanceTable(instanceTable) -- clear all instances
+		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		uploadAllElements(instanceTable) -- clear all instances
+		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
 	end
 end
 
@@ -967,11 +806,35 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
+local buildUnitDefID = nil
+local buildDrawOverride = { ground = false, air = false, nuke = false , cannon = false, lrpc = false}
+
 function widget:Update(dt)
 	--spec, fullview = spGetSpectatingState()
 	--if spec then
 	--	return
 	--end
+
+-- detect if our “myAllyTeam” has changed (e.g. a spec following a different player)
+   local currentAllyTeam = Spring.GetMyAllyTeamID()
+   if currentAllyTeam ~= myAllyTeam then
+     myAllyTeam = currentAllyTeam
+     -- clear out all the old rings
+     defenses, enemydefenses, defensePosHash, mobileAntiUnits = {}, {}, {}, {}
+     for _, ivt in pairs(defenseRangeVAOs) do
+       InstanceVBOTable.clearInstanceTable(ivt)
+     end
+     -- rebuild from whatever visibleUnits API you have
+     local extVisibleUnits = (WG.unittrackerapi and WG.unittrackerapi.visibleUnits)
+                           or (function()
+                                local t = {}
+                                for _, uid in ipairs(Spring.GetAllUnits()) do
+                                  t[uid] = spGetUnitDefID(uid)
+                                end
+                                return t
+                              end)()
+     widget:VisibleUnitsChanged(extVisibleUnits, nil)
+   end
 
 	if gameFrame >= lastUpdatedGameFrame + antiupdaterate then
 		lastUpdatedGameFrame = gameFrame
@@ -1020,6 +883,70 @@ function widget:Update(dt)
 		end
 		--Spring.Echo("removestep", removestep , scanned)
 	end
+	-- DRAW THE ATTACK RING FOR THE ACTIVELY BUILDING UNIT
+	local cmdID = select(2, Spring.GetActiveCommand())
+	-- remove from queue every frame cause mouse will probably move anyway
+	-- we kinda also need to remove if the allyenemy state changed
+	if (buildUnitDefID ~= nil)  then
+		local rings = unitDefRings[buildUnitDefID]
+		if rings then
+			-- find out which VBO to remove from:
+			local allystring = 'ally'
+			for i, weaponType in ipairs(rings['weapons']) do
+				buildDrawOverride[weaponType] = false
+				for j,allyenemy in ipairs(allyenemypairs) do -- remove from all
+					local vaokey = allyenemy .. weaponType
+					local instanceID = 2000000 + 100000* i +  buildUnitDefID
+					if defenseRangeVAOs[vaokey].instanceIDtoIndex[instanceID] then
+						popElementInstance(defenseRangeVAOs[vaokey], instanceID)
+					end
+				end
+			end
+		end
+		buildUnitDefID = nil
+	end
+
+	if (cmdID ~= nil and (cmdID < 0)) then 
+		buildUnitDefID = -1* cmdID
+		if unitDefRings[buildUnitDefID] then
+			local rings = unitDefRings[buildUnitDefID]
+			-- only add to ally, independent of buttonconfig (ugh) 
+			-- todo, this wont show the respective attack range ring if the button for it is off. 
+			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
+			-- instead of during the draw pass
+
+			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
+			local _, coords = Spring.TraceScreenRay(mx, my, true)
+			--Spring.Echo(cmdID, "Attempting to draw rings at") 
+			--Spring.Echo(mx, my, coords[1], coords[2], coords[3])
+			
+			if coords and coords[1] and coords[2] and coords[3] then 
+				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
+				local allystring = 'ally'
+				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
+                   local allystring = "ally"
+                   buildDrawOverride[weaponType] = true
+                   -- allow rings if either normal ally-rings are on, OR build-queue preview is explicitly enabled
+                   if buttonConfig[allystring][weaponType]
+                      or colorConfig.drawAllyCategoryBuildQueue
+                   then
+                       local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
+                       cacheTable[1] = bpx
+                       cacheTable[2] = ringParams[18]
+                       cacheTable[3] = bpz
+                       for j = 1,13 do
+                           cacheTable[j+3] = ringParams[j]
+                       end
+                       local vaokey    = allystring .. weaponType
+                       local instanceID = 2000000 + 100000 * i + buildUnitDefID
+                       pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
+                   end
+               end
+			end
+		end
+
+	end -- not build command
+
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -1045,80 +972,92 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 end
 
 local groundnukeair = {"ground","air","nuke"}
-local function DRAWRINGS(primitiveType, linethickness)
+local cannonlrpc = {"cannon","lrpc"}
+local allrings = {"ground","air","nuke", "cannon","lrpc"}
+local stenciledrings = {}
+local nonstenciledrings = {}
+for i, weaponType in ipairs(allrings) do
+	if colorConfig[weaponType].stenciled then
+		table.insert(stenciledrings, weaponType)
+	else
+		table.insert(nonstenciledrings, weaponType)
+	end
+end
+
+
+local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 	local stencilMask
-	defenseRangeShader:SetUniform("cannonmode",0)
 	for i,allyState in ipairs(allyenemypairs) do
-		for j, wt in ipairs(groundnukeair) do
+		for j, wt in ipairs(classes) do
 			local defRangeClass = allyState..wt
 			local iT = defenseRangeVAOs[defRangeClass]
-			stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
-			drawcounts[stencilMask] = iT.usedElements
-			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+
+			 -- if we might have queued buildings here, and we already discarded addition of unwanted rings based on buttonConfig in visibleUnitCreated
+				
+			if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then 
+				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
+				defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig[wt][alpha])
 				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
-				glStencilMask(stencilMask)  -- only allow these bits to get written
-				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
+				if colorConfig[wt].stencilMask then
+					stencilMask = colorConfig[wt].stencilMask * ( (i==1) and 1 or 16)
+					glStencilMask(stencilMask)  -- only allow these bits to get written
+					glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
+				end
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
 		end
 	end
-
-	defenseRangeShader:SetUniform("cannonmode",1)
-	for i,allyState in ipairs(allyenemypairs) do
-		local defRangeClass = allyState.."cannon"
-		local iT = defenseRangeVAOs[defRangeClass]
-		stencilMask = 2 ^ ( 4 * (i-1) + 3)
-		drawcounts[stencilMask] = iT.usedElements
-		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
-			if linethickness then
-				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
-			end
-			glStencilMask(stencilMask)
-			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
-			iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-		end
-	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	--if fullview and not enabledAsSpec then
 	--	return
 	--end
+
+	if autoReload then
+		defenseRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or defenseRangeShader
+	end
+
+
 	if chobbyInterface then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-
+		defenseRangeShader:Activate()
+		defenseRangeShader:SetUniform("staticUnits", 1.0)
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
 			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
 			glDepthTest(false) -- always draw
 			glColorMask(false, false, false, false) -- disable color drawing
+
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 
-			defenseRangeShader:Activate()
-			DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
+			DRAWRINGS(GL.TRIANGLE_FAN, nil, stenciledrings) -- FILL THE CIRCLES
 			--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true)	-- re-enable color drawing
 			glStencilMask(0)
 
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
-			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
+			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', stenciledrings, "externalalpha") -- DRAW THE OUTER RINGS
 			glStencilTest(false)
+			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
+			glClear(GL.STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
+			-- All the above are needed :O
 
 		end
 
-		if colorConfig.drawInnerRings then
-			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
-			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
-		end
+
+		DRAWRINGS(GL.LINE_LOOP, 'internallinethickness', stenciledrings, "internalalpha") -- DRAW THE INNER RINGS
+		DRAWRINGS(GL.LINE_LOOP, 'externallinethickness', nonstenciledrings, "externalalpha") -- DRAW THE INNER RINGS
+
 
 		defenseRangeShader:Deactivate()
 
@@ -1132,6 +1071,12 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 end
+if autoReload then
+    function widget:DrawScreen()
+        if defenseRangeShader.DrawPrintf then defenseRangeShader.DrawPrintf() end
+    end
+end
+
 
 --- SHIT THAT NEEDS TO BE IN CONFIG:
 
@@ -1144,8 +1089,6 @@ end
 -- nostencil mode
 
 
-
-
 --SAVE / LOAD CONFIG FILE
 function widget:GetConfigData()
 	local data = {}
@@ -1156,7 +1099,17 @@ end
 function widget:SetConfigData(data)
 	if data ~= nil then
 		if data["enabled"] ~= nil then
-			buttonConfig = data["enabled"]
+			local newconfig = data["enabled"]
+			local configstr = ""
+			for allyenemy, weapontypes in pairs(newconfig) do
+				for wt, enabledstate in pairs(weapontypes) do
+					buttonConfig[allyenemy][wt] = enabledstate
+					configstr = configstr .. tostring(allyenemy) .. tostring(wt) .. ":" .. tostring(enabledstate) .. ", "
+				end
+			end
+			if autoReload then
+				--Spring.Echo("defenserange gl4:", configstr)
+			end
 			--printDebug("enabled config found...")
 		end
 	end

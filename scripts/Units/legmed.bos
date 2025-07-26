@@ -13,7 +13,7 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving;
+static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving, stage1, stage2, stage3, stage4, ready;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -68,6 +68,11 @@ Create()
 	//hide smoke;
 	restore_delay = 3000;
 	weapon = 0;
+	stage1 = 1;
+	stage2 = 1;
+	stage3 = 1;
+	stage4 = 1;
+	ready = 0;
 	return (0);
 }
 
@@ -149,8 +154,10 @@ RestoreAfterDelay()
 
 Close()
 {
+	ready = 0;
 	opened = 0;
 	sleep 1000;
+	stage4 = 1;
 	move barrel1 to y-axis [-6] speed [12];
 	sleep 100;
 	move sleeve1 to y-axis [-2.8] speed [5.6];
@@ -171,18 +178,21 @@ Close()
 	sleep 100;
 	move sleeve6 to y-axis [-1.7] speed [3.4];
 	sleep 100;
+	stage3 = 1;
 	turn plateFrontLeft to z-axis <-30> speed <30>;
 	sleep 200;
 	turn plateMidLeft to z-axis <-30> speed <30>;
 	sleep 200;
 	turn plateRearLeft to z-axis <-30> speed <30>;
 	sleep 200;
+	stage2 = 1;
 	turn plateFrontRight to z-axis <30> speed <30>;
 	sleep 200;
 	turn plateMidRight to z-axis <30> speed <30>;
 	sleep 200;
 	turn plateRearRight to z-axis <30> speed <30>;
 	wait-for-turn plateRearRight around z-axis;
+	stage1 = 1;
 	move plateFrontLeft to z-axis [-1] speed [4];
 	sleep 50;
 	move plateRearLeft to z-axis [1] speed [4];
@@ -215,45 +225,62 @@ Open()
 		return (0);
 	}
 	opened = 1;
-	move plateFrontLeft to z-axis [0] speed [4];
-	sleep 50;
-	move plateRearLeft to z-axis [0] speed [4];
-	sleep 50;
-	move plateFrontRight to z-axis [0] speed [4];
-	sleep 50;
-	move plateRearRight to z-axis [0] speed [4];
-	wait-for-move plateRearRight along z-axis;
-	turn plateRearRight to z-axis <0> speed <30>;
-	sleep 200;
-	turn plateMidRight to z-axis <0> speed <30>;
-	sleep 200;
-	turn plateFrontRight to z-axis <0> speed <30>;
-	sleep 200;
-	turn plateRearLeft to z-axis <0> speed <30>;
-	sleep 200;
-	turn plateMidLeft to z-axis <0> speed <30>;
-	sleep 200;
-	turn plateFrontLeft to z-axis <0> speed <30>;
-	sleep 100;
-	move sleeve6 to y-axis [0] speed [3.4];
-	sleep 100;
-	move barrel6 to y-axis [0] speed [12];
-	move sleeve5 to y-axis [0] speed [3.4];
-	sleep 100;
-	move barrel5 to y-axis [0] speed [12];
-	move sleeve4 to y-axis [0] speed [3.4];
-	sleep 100;
-	move barrel4 to y-axis [0] speed [12];
-	move sleeve3 to y-axis [0] speed [3.4];
-	sleep 100;
-	move barrel3 to y-axis [0] speed [12];
-	move sleeve2 to y-axis [0] speed [3.4];
-	sleep 100;
-	move barrel2 to y-axis [0] speed [12];
-	turn sleeve1 to x-axis <0> speed <25>;
-	move sleeve1 to y-axis [0] speed [5.6];
-	sleep 100;
-	move barrel1 to y-axis [0] speed [12];
+	if (stage1 == 1)
+	{
+		move plateFrontLeft to z-axis [0] speed [4];
+		sleep 50;
+		move plateRearLeft to z-axis [0] speed [4];
+		sleep 50;
+		move plateFrontRight to z-axis [0] speed [4];
+		sleep 50;
+		move plateRearRight to z-axis [0] speed [4];
+		wait-for-move plateRearRight along z-axis;
+		stage1 = 0;
+	}
+	if (stage2 == 1)
+	{
+		turn plateRearRight to z-axis <0> speed <30>;
+		sleep 200;
+		turn plateMidRight to z-axis <0> speed <30>;
+		sleep 200;
+		turn plateFrontRight to z-axis <0> speed <30>;
+		sleep 200;
+		stage2 = 0;
+	}
+	if (stage3 == 1)
+	{
+		turn plateRearLeft to z-axis <0> speed <30>;
+		sleep 200;
+		turn plateMidLeft to z-axis <0> speed <30>;
+		sleep 200;
+		turn plateFrontLeft to z-axis <0> speed <30>;
+		sleep 100;
+		stage3 = 0;
+	}
+	if (stage4 == 1)
+	{
+		move sleeve6 to y-axis [0] speed [3.4];
+		sleep 100;
+		move barrel6 to y-axis [0] speed [12];
+		move sleeve5 to y-axis [0] speed [3.4];
+		sleep 100;
+		move barrel5 to y-axis [0] speed [12];
+		move sleeve4 to y-axis [0] speed [3.4];
+		sleep 100;
+		move barrel4 to y-axis [0] speed [12];
+		move sleeve3 to y-axis [0] speed [3.4];
+		sleep 100;
+		move barrel3 to y-axis [0] speed [12];
+		move sleeve2 to y-axis [0] speed [3.4];
+		sleep 100;
+		move barrel2 to y-axis [0] speed [12];
+		turn sleeve1 to x-axis <0> speed <25>;
+		move sleeve1 to y-axis [0] speed [5.6];
+		sleep 100;
+		move barrel1 to y-axis [0] speed [12];
+		stage4 = 0;
+	}
+	ready = 1;
 	// turn hatch5 to z-axis <90.000000> speed <90.000000>;
 	// sleep 400;
 	// turn hatch6 to z-axis <-90.000000> speed <90.000000>;
@@ -322,9 +349,13 @@ AimSecondary(heading, pitch)
 	{
 		start-script Open(0);
 	}
-	sleep 3000;
+	sleep 250;
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;														//Delay before the shot, making it look like the laser needs to lock on first (If reduced then hatch opening speed may need to be increased)
+	if(ready == 0)													
+	{
+		return (0);
+	}
 	return (1);
 }
 

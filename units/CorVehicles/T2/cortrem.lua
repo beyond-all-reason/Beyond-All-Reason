@@ -25,7 +25,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
-		script = "Units/cortrem_clean.cob",
+		script = "Units/cortrem.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 351,
@@ -137,7 +137,6 @@ return {
 					max_range_reduction = "0.30",
 					speceffect = "sector_fire",
 					spread_angle = "22",
-					when = "always",
 				},
 				damage = {
 					default = 200,

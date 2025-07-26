@@ -129,12 +129,16 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
+				metalpershot = 25,
+				energypershot = 600,
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 4,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
@@ -161,6 +165,10 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 16,
+					stockpilemetal = 25,
+					stockpileenergy = 600,
+					dronesusestockpile = true,
 				}
 			},
 			aamissile = {

@@ -27,6 +27,11 @@ local minGroupID = 0
 -- GL4 notes
 -- use drawprimitiveatunit!
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 -- Configurables:
 local groupNumberSize = 13
 local groupNumberHeight = 0

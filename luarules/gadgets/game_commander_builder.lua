@@ -63,7 +63,7 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
         end
     end
 	if spawnpadID then
-        Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz,0,0,0)
+        GG.ScavengersSpawnEffectUnitID(spawnpadID)
 		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
         Spring.SetUnitCosts(spawnpadID, {buildTime = 20000, metalCost = 100, energyCost = 1000})
 		--Spring.SetUnitBlocking(spawnpadID, false)

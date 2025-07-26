@@ -23,12 +23,16 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 local tractorDist = 100 ^ 2 -- default sqr tractor distance
 local isAirbase = {}
 local isAirUnit = {}
+local isAirCon = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isairbase then
 		isAirbase[unitDefID] = { tractorDist, unitDef.buildSpeed }
 	end
 	if unitDef.isAirUnit and unitDef.canFly then
 		isAirUnit[unitDefID] = true
+		if unitDef.isBuilder then
+    		isAirCon[unitDefID] = true
+		end
 	end
 end
 
@@ -654,7 +658,8 @@ else	-- Unsynced
 		else
 			local sUnits = spGetSelectedUnits()
 			for i = 1, #sUnits do
-				if isAirUnit[spGetUnitDefID(sUnits[i])] then
+				local unitDefID = spGetUnitDefID(sUnits[i])
+				if isAirUnit[unitDefID] and not isAirCon[unitDefID] then -- cons still default to their usual construction tasks
 					return CMD_LAND_AT_SPECIFIC_AIRBASE
 				end
 			end

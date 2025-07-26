@@ -39,13 +39,13 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
-			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

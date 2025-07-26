@@ -157,6 +157,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 300,
 					vtol = 65,

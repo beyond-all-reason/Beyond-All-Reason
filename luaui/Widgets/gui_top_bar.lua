@@ -57,7 +57,6 @@ local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-local currentResValue = { metal = 1000, energy = 1000 }
 local energyOverflowLevel, metalOverflowLevel
 local wholeTeamWastingMetalCount = 0
 local allyteamOverflowingMetal = false
@@ -104,7 +103,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 -- Graphics
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -156,6 +154,28 @@ local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
 local prevShowButtons = showButtons
 
+
+-- Smoothing
+local smoothedResources = {
+    metal = {0, 0, 0, 0, 0, 0},  -- Init
+    energy = {0, 0, 0, 0, 0, 0}  -- Init
+}
+local smoothingFactor = 0.5
+local function smoothResources()
+    local currentResources = r
+    for _, resType in ipairs({'metal', 'energy'}) do
+        for i = 1, 6 do
+            if smoothedResources[resType][i] == 0 then
+                smoothedResources[resType][i] = currentResources[resType][i]
+            else
+                smoothedResources[resType][i] = smoothingFactor * currentResources[resType][i] + (1 - smoothingFactor) * smoothedResources[resType][i]
+            end
+        end
+    end
+    return
+end
+
+
 -- Interactions
 local draggingShareIndicatorValue = {}
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
@@ -179,7 +199,7 @@ local blinkDirection = true
 local blinkProgress = 0
 local guishaderCheckUpdateRate = 0.5
 
-
+local nextSmoothUpdate = 0
 --------------------------------------------------------------------------------
 
 local function getPlayerLiveAllyCount()
@@ -223,9 +243,8 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), useRenderToTexture and 1.2+(outlineMult*0.2) or 1)
-	font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.7 or 1), 0.3 * (useRenderToTexture and outlineMult or 1), 1.4+(outlineMult*0.2))
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(2)
 
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
@@ -275,11 +294,11 @@ local function updateButtons()
 
 	if not gameIsOver and chobbyLoaded then
 		addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
-		if not spec and gameStarted and not isSinglePlayer then
-			addButton('resign', Spring.I18N('ui.topbar.button.resign'))
-		end
 	else
 		addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+	end
+	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
+		addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 	end
 
 	if WG['options'] then addButton('options', Spring.I18N('ui.topbar.button.settings')) end
@@ -302,7 +321,7 @@ local function updateButtons()
 
 	if dlistButtons then glDeleteList(dlistButtons) end
 	dlistButtons = glCreateList(function()
-		font2:Begin()
+		font2:Begin(useRenderToTexture)
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
 		for name, params in pairs(buttonsArea['buttons']) do
@@ -327,8 +346,9 @@ local function updateComs(forceText)
 
 		-- Text
 		if gameFrame > 0 or forceText then
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			local fontsize = (height / 2.85) * widgetScale
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print('\255\255\000\000' .. enemyComCount, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
 			fontSize = (height / 2.15) * widgetScale
 			font2:Print("\255\000\255\000" .. allyComs, area[1] + ((area[3] - area[1]) / 2), area[2] + ((area[4] - area[2]) / 2.05) - (fontSize / 5), fontSize, 'oc')
@@ -392,14 +412,16 @@ local function updateWind()
 			-- min and max wind
 			local fontsize = (height / 3.7) * widgetScale
 			if minWind+maxWind >= 0.5 then
-				font2:Begin()
+				font2:Begin(useRenderToTexture)
+				font2:SetOutlineColor(0,0,0,1)
 				font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
 				font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
 				-- uncomment below to display average wind speed on UI
 				-- font2:Print("\255\210\210\210" .. avgWindValue, area[1] + (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, '')
 				font2:End()
 			else
-				font2:Begin()
+				font2:Begin(useRenderToTexture)
+				font2:SetOutlineColor(0,0,0,1)
 				--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 				font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
@@ -448,7 +470,8 @@ local function updateTidal()
 		glPopMatrix()
 		if not useRenderToTexture then
 			local fontSize = (height / 2.66) * widgetScale
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 			font2:End()
 		end
@@ -460,7 +483,8 @@ local function updateTidal()
 end
 
 local function drawResbarPullIncome(res)
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
+	font2:SetOutlineColor(0,0,0,1)
 	-- Text: pull
 	font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 	-- Text: expense
@@ -471,7 +495,8 @@ local function drawResbarPullIncome(res)
 end
 
 local function drawResbarStorage(res)
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
+	font2:SetOutlineColor(0,0,0,1)
 	if res == 'metal' then
 		font2:SetTextColor(0.55, 0.55, 0.55, 1)
 	else
@@ -587,7 +612,7 @@ local function updateResbarText(res, force)
 						RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
 						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
 
-						font2:Begin()
+						font2:Begin(useRenderToTexture)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
 						font2:SetOutlineColor(0.2, 0, 0, 0.6)
 						font2:Print(text, resbarArea[res][3], resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
@@ -608,14 +633,14 @@ end
 
 local function drawResbarValue(res)
 	-- Text: current
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
 	if res == 'metal' then
 		font2:SetTextColor(0.95, 0.95, 0.95, 1)
 	else
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -691,18 +716,18 @@ local function updateResbar(res)
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 		local borderSize = 1
-		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, useRenderToTexture and 0.45 or 0.12 }, { 0,0,0, useRenderToTexture and 0.6 or 0.15 })
+		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.13 })
 
 		glTexture(noiseBackgroundTexture)
-		glColor(1,1,1, useRenderToTexture and 0.6 or 0.16)
+		glColor(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, useRenderToTexture and 0.25 or 0.1 }, { 0, 0, 0, useRenderToTexture and 0.25 or 0.1 })
-		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, useRenderToTexture and 0.45 or 0.2 }, { 0.8, 0.8, 0.8, useRenderToTexture and 0.35 or 0.16 })
+		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
+		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.17 }, { 0.8, 0.8, 0.8, 0.13 })
 		-- gloss
-		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, useRenderToTexture and 0.14 or 0.07 })
-		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, useRenderToTexture and 0.26 or 0.1 }, { 1, 1, 1, 0.0 })
+		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
+		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 
@@ -770,58 +795,59 @@ local function updateResbar(res)
 end
 
 local function updateResbarValues(res, update)
-	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local valueWidth = lastValueWidth[res]
-
 	if update then
+		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
+		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
 		updateRes[res][1] = true
-
-		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-		if r[res][1] > r[res][2] * 1.07 then cappedCurRes = r[res][2] * 1.07 end
+		local maxStorageRes = smoothedResources[res][2]
+		local cappedCurRes = smoothedResources[res][1]    -- limit so when production dies the value wont be much larger than what you can store
+		if cappedCurRes >maxStorageRes * 1.07 then cappedCurRes =maxStorageRes * 1.07 end
 		local barSize = barHeight * 0.2
-		valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
+		local valueWidth = math_floor(((cappedCurRes /maxStorageRes) * barWidth))
 		if valueWidth < math.ceil(barSize) then valueWidth = math.ceil(barSize) end
-		lastValueWidth[res] = valueWidth
+		if valueWidth ~= lastValueWidth[res] then  -- only recalc if the width changed
+			lastValueWidth[res] = valueWidth
 
-		-- resbar
-		dlistResValuesBar[res] = glCreateList(function()
-			local glowSize = barHeight * 7
-			local color1, color2, glowAlpha
+			-- resbar
+			if dlistResValuesBar[res] then  glDeleteList(dlistResValuesBar[res]) end
+			dlistResValuesBar[res] = glCreateList(function()
+				local glowSize = barHeight * 7
+				local color1, color2, glowAlpha
 
-			if res == 'metal' then
-				color1 = { 0.51, 0.51, 0.5, 1 }
-				color2 = { 0.95, 0.95, 0.95, 1 }
-				glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-			else
-				color1 = { 0.5, 0.45, 0, 1 }
-				color2 = { 0.8, 0.75, 0, 1 }
-				glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-			end
+				if res == 'metal' then
+					color1 = { 0.51, 0.51, 0.5, 1 }
+					color2 = { 0.95, 0.95, 0.95, 1 }
+					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+				else
+					color1 = { 0.5, 0.45, 0, 1 }
+					color2 = { 0.8, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+				end
 
-			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
-			local borderSize = 1
-			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+				RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
+				local borderSize = 1
+				RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
 
-			-- Bar value glow
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-			glTexture(barGlowCenterTexture)
-			DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-			glTexture(barGlowEdgeTexture)
-			DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-			DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-			glTexture(false)
-
-			if res == 'metal' then
-				glTexture(noiseBackgroundTexture)
-				glColor(1,1,1, 0.37)
-				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
+				-- Bar value glow
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+				glTexture(barGlowCenterTexture)
+				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+				glTexture(barGlowEdgeTexture)
+				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 				glTexture(false)
-			end
 
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end)
+				if res == 'metal' then
+					glTexture(noiseBackgroundTexture)
+					glColor(1,1,1, 0.37)
+					TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
+					glTexture(false)
+				end
+
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			end)
+		end
 
 		-- energy glow effect
 		if res == 'energy' then
@@ -846,7 +872,6 @@ local function updateResbarValues(res, update)
 		end
 
 		-- resbar text
-		currentResValue[res] = short(cappedCurRes)
 		if not useRenderToTexture then
 			if dlistResValues[res] then
 				glDeleteList(dlistResValues[res])
@@ -974,9 +999,10 @@ end
 
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
-
-	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
+	if n == 2 then
+		init()
+	end
 end
 
 local function updateAllyTeamOverflowing()
@@ -1042,6 +1068,8 @@ end
 function widget:Update(dt)
 	now = os.clock()
 
+	windRotation = windRotation + (currentWind * bladeSpeedMultiplier * dt * 30)
+
 	if now > nextStateCheck then
 		nextStateCheck = now + 0.0333
 
@@ -1055,7 +1083,7 @@ function widget:Update(dt)
 		mx, my = spGetMouseState()
 
 		hoveringTopbar = false
-		if my > topbarArea[2] then
+		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 			if hoveringTopbar then
 				Spring.SetMouseCursor('cursornormal')
@@ -1083,7 +1111,7 @@ function widget:Update(dt)
 
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
 		nextGuishaderCheck = now + guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI Shader"] ~= 0 then
+		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
 		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
@@ -1093,9 +1121,6 @@ function widget:Update(dt)
 
 	if now > nextResBarUpdate then
 		nextResBarUpdate = now + 0.05
-
-		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-
 		if not spec and not showQuitscreen then
 			if hoveringTopbar == 'energy' then
 				if not resbarHover then
@@ -1134,8 +1159,23 @@ function widget:Update(dt)
 		end
 	end
 
+	if now > nextSmoothUpdate then
+		nextSmoothUpdate = now + 0.07
+		smoothResources()
+	end
+
 	if now > nextSlowUpdate then
-		nextSlowUpdate = now + 0.5
+		nextSlowUpdate = now + 0.25
+		local prevR = r
+		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		-- check if we need to smooth the resources
+		if (r['metal'][7] > 1 and r['metal'][7] ~= prevR['metal'][7] and r['metal'][7] / r['metal'][2] > 0.05) or
+			(r['metal'][8] > 1 and r['metal'][8] ~= prevR['metal'][8] and r['metal'][8] / r['metal'][2] > 0.05) or
+			(r['energy'][7] > 1 and r['energy'][7] ~= prevR['energy'][7] and r['energy'][7] / r['energy'][2] > 0.05) or
+			(r['energy'][8] > 1 and r['energy'][8] ~= prevR['energy'][8] and r['energy'][8] / r['energy'][2] > 0.05)
+		then
+			smoothedResources = r
+		end
 
 		-- resbar values and overflow
 		updateAllyTeamOverflowing()
@@ -1187,7 +1227,9 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		glCallList(dlistResValuesBar[res]) -- res bar
+		if dlistResValuesBar[res] then
+			glCallList(dlistResValuesBar[res]) -- res bar
+		end
 		glCallList(dlistResbar[res][2]) -- sliders
 
 		if not useRenderToTexture then
@@ -1224,7 +1266,9 @@ local function drawResBars()
 		end
 
 		updateResbarValues(res, update)
-		glCallList(dlistResValuesBar[res]) -- res bar
+		if dlistResValuesBar[res] then
+			glCallList(dlistResValuesBar[res]) -- res bar
+		end
 		glCallList(dlistEnergyGlow)
 		glCallList(dlistResbar[res][2]) -- sliders
 
@@ -1239,95 +1283,88 @@ local function drawResBars()
 
 	if useRenderToTexture then
 		if update then
-			gl.RenderToTexture(uiTex, function()
-				gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
-				local res = 'metal'
-				if updateRes[res][1] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
-						(topbarArea[4]-topbarArea[2])*0.48,
-						resbarDrawinfo[res].textCurrent[4]*6,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				if updateRes[res][2] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-						0,
-						resbarDrawinfo[res].textPull[4]*3.5,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				if updateRes[res][3] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-						(topbarArea[4]-topbarArea[2])*0.48,
-						resbarDrawinfo[res].textStorage[4]*4.1,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				res = 'energy'
-				if updateRes[res][1] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
-						(topbarArea[4]-topbarArea[2])*0.48,
-						resbarDrawinfo[res].textCurrent[4]*6,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				if updateRes[res][2] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-						0,
-						resbarDrawinfo[res].textPull[4]*3.5,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				if updateRes[res][3] then
-					gl.Scissor(
-						(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-						(topbarArea[4]-topbarArea[2])*0.48,
-						resbarDrawinfo[res].textStorage[4]*4.1,
-						topbarArea[4]-topbarArea[2]
-					)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				end
-				gl.Scissor(false)
-				gl.Color(1,1,1,1)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-				gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+			local scissors = {}
+			res = 'metal'
+			if updateRes[res][1] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(topbarArea[4]-topbarArea[2])*0.48,
+					resbarDrawinfo[res].textCurrent[4]*6,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+			if updateRes[res][2] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
+					0,
+					resbarDrawinfo[res].textPull[4]*3.5,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+			if updateRes[res][3] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
+					(topbarArea[4]-topbarArea[2])*0.48,
+					resbarDrawinfo[res].textStorage[4]*4.1,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+			res = 'energy'
+			if updateRes[res][1] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(topbarArea[4]-topbarArea[2])*0.48,
+					resbarDrawinfo[res].textCurrent[4]*6,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+			if updateRes[res][2] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
+					0,
+					resbarDrawinfo[res].textPull[4]*3.5,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
+			if updateRes[res][3] then
+				scissors[#scissors+1] = {
+					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
+					(topbarArea[4]-topbarArea[2])*0.48,
+					resbarDrawinfo[res].textStorage[4]*4.1,
+					topbarArea[4]-topbarArea[2]
+				}
+			end
 
-				res = 'metal'
-				drawResbarValue(res)
-				if updateRes[res][2] then
-					updateRes[res][2] = false
-					drawResbarPullIncome(res)
-				end
-				if updateRes[res][3] then
-					updateRes[res][3] = false
-					drawResbarStorage(res)
-				end
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
 
-				res = 'energy'
-				drawResbarValue(res)
-				if updateRes[res][2] then
-					updateRes[res][2] = false
-					drawResbarPullIncome(res)
-				end
-				if updateRes[res][3] then
-					updateRes[res][3] = false
-					drawResbarStorage(res)
-				end
+					res = 'metal'
+					drawResbarValue(res)
+					if updateRes[res][2] then
+						updateRes[res][2] = false
+						drawResbarPullIncome(res)
+					end
+					if updateRes[res][3] then
+						updateRes[res][3] = false
+						drawResbarStorage(res)
+					end
 
-				gl.PopMatrix()
-			end)
+					res = 'energy'
+					drawResbarValue(res)
+					if updateRes[res][2] then
+						updateRes[res][2] = false
+						drawResbarPullIncome(res)
+					end
+					if updateRes[res][3] then
+						updateRes[res][3] = false
+						drawResbarStorage(res)
+					end
+				end,
+				useRenderToTexture, scissors
+			)
 		end
 	end
 end
@@ -1403,12 +1440,12 @@ local function drawQuitScreen()
 			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil)--, useRenderToTexture)
 			local color1, color2
 
-			font:Begin()
+			font:Begin(useRenderToTexture)
 			font:SetTextColor(0, 0, 0, 1)
 			font:Print(text, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4]-textTopPadding, fontSize, "cn")
 			font:End()
 
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			font2:SetTextColor(1, 1, 1, 1)
 			font2:SetOutlineColor(0, 0, 0, 0.23)
 
@@ -1486,22 +1523,22 @@ end
 
 local function drawUiBackground()
 	if resbarArea.energy[1] then
-		UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 	if resbarArea.metal[1] then
-		UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 	if comsArea[1] then
-		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 	if windArea[1] then
-		UiElement(windArea[1], windArea[2], windArea[3], windArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(windArea[1], windArea[2], windArea[3], windArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 	if displayTidalSpeed and tidalarea[1] then
-		UiElement(tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 	if showButtons and buttonsArea[1] then
-		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 	end
 end
 
@@ -1517,14 +1554,14 @@ local function drawUi()
 	-- min and max wind
 	local fontsize = (height / 3.7) * widgetScale
 	if minWind+maxWind >= 0.5 then
-		font2:Begin()
+		font2:Begin(useRenderToTexture)
 		font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
 		font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
 		-- uncomment below to display average wind speed on UI
 		-- font2:Print("\255\210\210\210" .. avgWindValue, area[1] + (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, '')
 		font2:End()
 	else
-		font2:Begin()
+		font2:Begin(useRenderToTexture)
 		--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
@@ -1534,7 +1571,7 @@ local function drawUi()
 	-- tidal speed
 	if displayTidalSpeed then
 		local fontSize = (height / 2.66) * widgetScale
-		font2:Begin()
+		font2:Begin(useRenderToTexture)
 		font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 		font2:End()
 	end
@@ -1551,8 +1588,7 @@ function widget:DrawScreen()
 	if useRenderToTexture then
 		if refreshUi then
 			if uiBgTex then
-				gl.DeleteTextureFBO(uiBgTex)
-				uiBgTex = nil
+				gl.DeleteTexture(uiBgTex)
 			end
 			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
 				target = GL.TEXTURE_2D,
@@ -1560,8 +1596,7 @@ function widget:DrawScreen()
 				fbo = true,
 			})
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
-				uiTex = nil
+				gl.DeleteTexture(uiTex)
 			end
 			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
@@ -1570,30 +1605,26 @@ function widget:DrawScreen()
 			})
 
 			if uiBgTex then
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.Color(1,1,1,1)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-					drawUiBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+						drawUiBackground()
+					end,
+					useRenderToTexture
+				)
 			end
 			if uiTex then
-				gl.RenderToTexture(uiTex, function()
-					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.Color(1,1,1,1)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-					drawUi()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+						drawUi()
+					end,
+					useRenderToTexture
+				)
 			end
 
 			if WG['guishader'] then
@@ -1610,9 +1641,10 @@ function widget:DrawScreen()
 		end
 
 		if uiBgTex then
-			gl.Color(1, 1, 1, ui_opacity * 1.1)
-			gl.Texture(uiBgTex)
-			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+			gl.R2tHelper.BlendTexRect(uiBgTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], useRenderToTexture)
+			-- gl.Color(1, 1, 1, ui_opacity * 1.1)
+			-- gl.Texture(uiBgTex)
+			-- gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 		end
 
 	else	-- not useRenderToTexture
@@ -1623,7 +1655,6 @@ function widget:DrawScreen()
 				drawUiBackground()
 				gl.Color(1, 1, 1, 1)	-- withouth this no guishader effects for other elements
 			end)
-
 			if WG['guishader'] then
 				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
 			end
@@ -1645,7 +1676,8 @@ function widget:DrawScreen()
 				if not dlistWindText[currentWind] then
 					local fontSize = (height / 2.66) * widgetScale
 					dlistWindText[currentWind] = glCreateList(function()
-						font2:Begin()
+						font2:Begin(useRenderToTexture)
+						font2:SetOutlineColor(0,0,0,1)
 						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
 						font2:End()
 					end)
@@ -1661,37 +1693,31 @@ function widget:DrawScreen()
 		glCallList(tidaldlist2)
 	end
 
-	if useRenderToTexture then
-		if uiTex then
-			gl.Color(1, 1, 1, 1)
-			gl.Texture(uiTex)
-			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
-			gl.Texture(false)
-		end
+	if useRenderToTexture and uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], useRenderToTexture)
 	end
 
 	-- current wind
 	if gameFrame > 0 and minWind+maxWind >= 0.5 then
 		if useRenderToTexture then
 			if currentWind ~= prevWind then
-				gl.RenderToTexture(uiTex, function()
-					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
-					gl.Scissor(windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4)
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.Scissor(false)
-					gl.Color(1,1,1,1)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+				prevWind = currentWind
 
-					local fontSize = (height / 2.66) * widgetScale
-					font2:Begin()
-					font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-					font2:End()
-					prevWind = currentWind
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+						local fontSize = (height / 2.66) * widgetScale
+						font2:Begin(useRenderToTexture)
+						font2:SetOutlineColor(0,0,0,1)
+						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+						font2:End()
+					end,
+					useRenderToTexture,
+					{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
+				)
 			end
 		end
 	end
@@ -1706,24 +1732,23 @@ function widget:DrawScreen()
 			if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
 				prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
 				comsDlistUpdate = nil
-				gl.RenderToTexture(uiTex, function()
-					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
-					gl.Scissor(comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2]))
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.Scissor(false)
-					gl.Color(1,1,1,1)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-					if allyComs == 1 and (gameFrame % 12 < 6) then
-						glColor(1, 0.6, 0, useRenderToTexture and 0.75 or 0.45)
-					else
-						glColor(1, 1, 1, useRenderToTexture and 0.6 or 0.22)
-					end
-					glCallList(dlistComs)
-					gl.PopMatrix()
-				end)
+
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+						if allyComs == 1 and (gameFrame % 12 < 6) then
+							glColor(1, 0.6, 0, 0.45)
+						else
+							glColor(1, 1, 1, 0.22)
+						end
+						glCallList(dlistComs)
+					end,
+					useRenderToTexture,
+					{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
+				)
 			end
 		else
 			if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -2022,12 +2047,19 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:PlayerChanged()
+	local prevMyTeamID = myTeamID
 	local prevSpec = spec
 	spec = spGetSpectatingState()
 	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then countComs(true) end
-	if spec then resbarHover = nil end
+	if spec then
+		resbarHover = nil
+		if prevMyTeamID ~= myTeamID then
+			r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+			smoothedResources = r
+		end
+	end
 
 	if not prevSpec and prevSpec ~= spec then
 		init()
@@ -2162,16 +2194,16 @@ function widget:Shutdown()
 	end
 
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 
 	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('topbar_background')
+		WG['guishader'].DeleteDlist('topbar_background')
 	end
 
 	if WG['tooltip'] then

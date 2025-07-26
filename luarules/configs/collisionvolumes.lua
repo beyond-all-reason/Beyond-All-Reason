@@ -370,6 +370,11 @@ pieceCollisionVolume['legcar'] = {
 	['4']={14,12,20,0,-2,-6,2,1},
 }
 
+pieceCollisionVolume['legmed'] = {
+	['0']={48,31,69,0,0,0,2,1},
+	['1']={7,25,15,0,35,-5,2,1},
+}
+
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
 --		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
 
@@ -388,10 +393,6 @@ pieceCollisionVolume['armshockwave'] = {
 pieceCollisionVolume['legmohoconct'] = {
 	['0']={70,30,70,0,-3,0,1,1},
 	['1']={21,16,30,0,-3,-1,2,1},
-}
-pieceCollisionVolume['leginfestor'] = {
-	['0']={38,23,45,0,7,0,1,1},
-	['16']={12,10,20,2,0,1,1,2},
 }
 
 for name, v in pairs(pieceCollisionVolume) do

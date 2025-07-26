@@ -46,6 +46,9 @@ local IsUnitIcon = Spring.IsUnitIcon
 local GetCameraPosition = Spring.GetCameraPosition
 local GetUnitPosition = Spring.GetUnitPosition
 
+
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
@@ -175,7 +178,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
-	if (r + g * 1.2 + b * 0.4) < 0.65 then
+	if ColorIsDark(r, g, b) then
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
@@ -217,7 +220,7 @@ local function createComnameList(attributes)
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
+		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
 			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
 		end
 		local name = attributes[1]
@@ -269,7 +272,7 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] then
+	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
 		if unitTeam ~= GaiaTeam then
 			comms[unitID] = GetCommAttributes(unitID, unitDefID)
 		end
@@ -303,11 +306,7 @@ local function CheckAllComs()
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local unitTeam = GetUnitTeam(unitID)
-		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
-		end
+		CheckCom(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 
@@ -334,11 +333,16 @@ function widget:Update(dt)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
-			-- new
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
+			end
 			myTeamID = Spring.GetMyTeamID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
+			end
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
 			end
 			CheckAllComs()
 			sec = 0
@@ -390,7 +394,7 @@ local function createComnameIconList(unitID, attributes)
 		x, z = Spring.WorldToScreenCoords(x, y, z)
 
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
+		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
@@ -492,11 +496,18 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
+	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
+
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
 	sec = 99
+
+	if spec and prevSpec ~= spec then
+		CheckedForSpec = true
+		CheckAllComs()
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)

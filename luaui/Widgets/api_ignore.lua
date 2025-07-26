@@ -9,7 +9,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
-		handler = true, --can use widgetHandler:x()
 	}
 end
 
@@ -37,9 +36,63 @@ function CheckPIDs()
 	end
 end
 
+local function ignoreplayerCmd(_, _, params)
+	for i=1, #params do
+		IgnorePlayer(token[i])
+	end
+end
+
+local function unignoreplayerCmd(_, _, params)
+	if params[1] then
+		for i=1, #params do
+			UnignorePlayer(params[i])
+		end
+	else
+		UnignoreAll()
+	end
+end
+
+local function toggleignoreCmd(_, _, params)
+	for i=1, #params do
+		local playerName = params[i]
+		if ignoredPlayers[playerName] then
+			UnignorePlayer(playerName)
+		else
+			IgnorePlayer(playerName)
+		end
+	end
+end
+
+local function ignorelistCmd(_, _, params)
+	local luaSucks = 0
+	for _, iHateLua in pairs(ignoredPlayers) do
+		luaSucks = 1
+		break
+	end
+	if luaSucks > 0 then
+		Spring.Echo("Ignored players:")
+		for playerName, _ in pairs(ignoredPlayers) do
+			Spring.Echo(colourPlayer(playerName) .. playerName)
+		end
+	else
+		Spring.Echo("No ignored players")
+	end
+end
+
 function widget:Initialize()
 	CheckPIDs()
 	WG.ignoredPlayers = ignoredPlayers
+	widgetHandler:AddAction("ignoreplayer", ignoreplayerCmd, nil, 't')
+	widgetHandler:AddAction("unignoreplayer", unignoreplayerCmd, nil, 't')
+	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, 't')
+	widgetHandler:AddAction("ignorelist", ignorelistCmd, nil, 't')
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("ignoreplayer")
+	widgetHandler:RemoveAction("unignoreplayer")
+	widgetHandler:RemoveAction("toggleignore")
+	widgetHandler:RemoveAction("ignorelist")
 end
 
 function widget:PlayerChanged()
@@ -64,65 +117,6 @@ function colourPlayer(playerName)
 	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
---ignore--
-function widget:TextCommand(s)
-	local token = {}
-	local n = 0
-	--for w in string.gmatch(s, "%a+") do
-	for w in string.gmatch(s, "%S+") do
-		n = n + 1
-		token[n] = w
-	end
-
-	--for i = 1,n do Spring.Echo (token[i]) end
-
-	if token[1] == "ignoreplayer" or token[1] == "ignoreplayers" then
-		for i = 2, n do
-			IgnorePlayer(token[i])
-		end
-	end
-
-	if token[1] == "unignoreplayer" or token[1] == "unignoreplayers" then
-		if n == 1 then
-			UnignoreAll()
-		else
-			for i = 2, n do
-				UnignorePlayer(token[i])
-			end
-		end
-	end
-
-	if token[1] == "toggleignore" and n >= 2 then
-		for i = 2, n do
-			local playerName = token[i]
-			if ignoredPlayers[playerName] then
-				UnignorePlayer(playerName)
-			else
-				IgnorePlayer(playerName)
-			end
-		end
-	end
-
-	if token[1] == "ignorelist" then
-		ignoreList()
-	end
-end
-
-function ignoreList ()
-	local luaSucks = 0
-	for _, iHateLua in pairs(ignoredPlayers) do
-		luaSucks = 1
-		break
-	end
-	if luaSucks > 0 then
-		Spring.Echo("Ignored players:")
-		for playerName, _ in pairs(ignoredPlayers) do
-			Spring.Echo(colourPlayer(playerName) .. playerName)
-		end
-	else
-		Spring.Echo("No ignored players")
-	end
-end
 
 function IgnorePlayer (playerName)
 	if playerName == myName then
