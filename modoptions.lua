@@ -1150,20 +1150,6 @@ local options = {
     },
 
     {
-        key 	= "quick_start",
-        name 	= "Quick Start",
-        desc   	= "Commanders instantly build structures until starting resources expire or they wander too far from their spawn point.",
-        type 	= "list",
-        def 	= "default",
-        section = "options_extra",
-        items 	= {
-            { key = "default", 	name = "Default" },
-            { key = "enabled", name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
-        }
-    },
-
-    {
         key 	= "evocom",
         name 	= "Evolving Commanders",
         desc   	= "Commanders evolve, gaining new weapons and abilities.",
@@ -1265,7 +1251,26 @@ local options = {
         type    = "separator",
     },
 
+    {
+        key 	= "quick_start",
+        name 	= "Quick Start",
+        desc   	= "Commanders instantly build structures until starting resources expire or they wander too far from their spawn point.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        items 	= {
+            { key = "default", 	name = "Default" },
+            { key = "enabled", name = "Enabled" },
+            { key = "disabled", name = "Disabled" },
+        }
+    },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+    
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
         name 	= "Commander Drones",

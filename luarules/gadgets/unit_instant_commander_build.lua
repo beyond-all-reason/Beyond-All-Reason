@@ -1,6 +1,3 @@
--- Handle both synced and unsynced parts
-
-
 function gadget:GetInfo()
 	return {
 		name = "Quick Start",
@@ -57,7 +54,6 @@ local function restoreTeamUnitCosts(teamID)
 				energyCost = originalCosts.energyCost,
 				metalCost = originalCosts.metalCost
 			})
-
 			modifiedUnits[unitID] = nil
 		end
 	end
@@ -76,7 +72,6 @@ local function disableInstantBuildForTeam(teamID)
 	if teamInstantBuild[teamID] then
 		teamInstantBuild[teamID] = false
 		restoreTeamUnitCosts(teamID)
-		
 		local disableGadget = checkIfNoMoreBoosts()
 		if disableGadget then
 			gadgetHandler:RemoveGadget(gadget)
@@ -86,31 +81,25 @@ end
 
 function gadget:GameStart()
 	local teamList = Spring.GetTeamList()
-	
 	for _, teamID in ipairs(teamList) do
 		if not nonPlayerTeams[teamID] then
 			local metalCurrent = spGetTeamResources(teamID, "metal")
 			local energyCurrent = spGetTeamResources(teamID, "energy")
-			
 			teamStartingResources[teamID] = {
 				metal = metalCurrent,
 				energy = energyCurrent
 			}
-			
 			teamResourcesSpent[teamID] = {
 				metal = 0,
 				energy = 0
 			}
-			
 			teamInstantBuild[teamID] = true
 		end
 	end
-	
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeam = spGetUnitTeam(unitID)
-		
 		if isInstantBuildCommander(unitDefID) and teamInstantBuild[unitTeam] then
 			local x, y, z = spGetUnitPosition(unitID)
 			if x then
@@ -132,52 +121,39 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if not builderID then
 		return
 	end
-	
 	local builderDefID = spGetUnitDefID(builderID)
 	if not isInstantBuildCommander(builderDefID) then
 		return
 	end
-	
 	local unitDef = UnitDefs[unitDefID]
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
 	local reducedEnergyCost = energyCost * ENERGY_REDUCTION_MULTIPLIER
-	
 	local metalRemaining = teamStartingResources[unitTeam].metal - teamResourcesSpent[unitTeam].metal
 	local energyRemaining = teamStartingResources[unitTeam].energy - teamResourcesSpent[unitTeam].energy
-
 	local metalPercentage = metalCost > 0 and math.min(1.0, metalRemaining / metalCost) or 1.0
 	local energyPercentage = reducedEnergyCost > 0 and math.min(1.0, energyRemaining / reducedEnergyCost) or 1.0
 	local resourcePercentage = math.min(metalPercentage, energyPercentage)
 
-
-
 	if resourcePercentage < 1.0 then
-
 		teamResourcesSpent[unitTeam].metal = teamStartingResources[unitTeam].metal
 		teamResourcesSpent[unitTeam].energy = teamStartingResources[unitTeam].energy
-
 		local currentHealth, maxHealth = spGetUnitHealth(unitID)
 		local healthForProgress = maxHealth * resourcePercentage
 		spSetUnitHealth(unitID, {build = resourcePercentage, health = healthForProgress})
-		
-
 		disableInstantBuildForTeam(unitTeam)
 		return
 	end
 
 	teamResourcesSpent[unitTeam].metal = teamResourcesSpent[unitTeam].metal + metalCost
 	teamResourcesSpent[unitTeam].energy = teamResourcesSpent[unitTeam].energy + reducedEnergyCost
-
 	local originalBuildTime = unitDef.buildTime or 1000
 	modifiedUnits[unitID] = {
 		buildTime = originalBuildTime,
 		energyCost = energyCost,
 		metalCost = metalCost
 	}
-
 	local reducedBuildTime = math.max(1, originalBuildTime * BUILD_TIME_REDUCTION_MULTIPLIER)
-
 	spSetUnitCosts(unitID, {
 		buildTime = reducedBuildTime,
 		energyCost = reducedEnergyCost,
@@ -187,9 +163,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if x then
 		Spring.SpawnCEG("botrailspawn", x, y, z, 0, 0, 0)
 	end
-	
-
-	
 	if teamResourcesSpent[unitTeam].metal >= teamStartingResources[unitTeam].metal or 
 	   teamResourcesSpent[unitTeam].energy >= teamStartingResources[unitTeam].energy then
 		disableInstantBuildForTeam(unitTeam)
@@ -200,7 +173,6 @@ function gadget:GameFrame(frameNumber)
 	if frameNumber % UPDATE_FRAMES ~= 0 then
 		return
 	end
-	
 	for unitID, startingPosition in pairs(commanderStartingPositions) do
 		if teamInstantBuild[startingPosition.teamID] then
 			local currentX, currentY, currentZ = spGetUnitPosition(unitID)
@@ -208,7 +180,6 @@ function gadget:GameFrame(frameNumber)
 				local dx = currentX - startingPosition.x
 				local dz = currentZ - startingPosition.z
 				local distance = mathDiag(dx, dz)
-				
 				if distance > MAX_RANGE then
 					disableInstantBuildForTeam(startingPosition.teamID)
 				end
@@ -226,15 +197,13 @@ function gadget:Initialize()
 	if Spring.GetGameFrame() > 0 then
 		gadget:GameStart()
 	end
-
 	nonPlayerTeams[Spring.GetGaiaTeamID()] = true
-
-    local scavTeamID = Spring.Utilities.GetScavTeamID()
-    if scavTeamID then
-        nonPlayerTeams[scavTeamID] = true
-    end
-    local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-    if raptorTeamID then
-        nonPlayerTeams[raptorTeamID] = true
-    end
+	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	if scavTeamID then
+		nonPlayerTeams[scavTeamID] = true
+	end
+	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+	if raptorTeamID then
+		nonPlayerTeams[raptorTeamID] = true
+	end
 end
