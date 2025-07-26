@@ -2024,7 +2024,8 @@ function UnitDef_Post(name, uDef)
 				[8] = "legamcluster",
 				[9] = "legvcarry",
 				[10] = "legner",
-				[11] = "legmh"
+				[11] = "legmh",
+				[12] = "legah"
 			}
 
 

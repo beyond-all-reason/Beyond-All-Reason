@@ -217,21 +217,21 @@ local labGrids = {
 	-- Split Tier Labs
 
 	corhalab = {
-		"corhack", "corsktl", "corsumo", "corshiva",
-		"corcat", "corkarg", "corvoyr", "corspec",
-		"corkorg", "cordecom", "cordemon", "", 
+		"corhack", "cordecom", "corsumo", "corvoyr",
+		"corcat", "cordemon", "", "corspec",
+		"corsktl", "corshiva", "corkarg", "", 
 	},
 
 	armhalab = {
-		"armhack", "armspid", "armfast", "armamph",
-		"armfido", "armzeus", "", "armvader",
-		"", "armmav", "armaak", "",
+		"armhack", "armdecom", "armfast", "armmark",
+		"armvang", "armraz", "armsnipe", "armaser",
+		"", "armmar", "", "armscab",
 	},
 
 	leghalab = {
-		"leghack", "leginfestor", "legstr", "legamph",
-		"legbart", "legshot", "", "legsnapper",
-		"", "", "legadvaabot", "",
+		"leghack", "legdecom", "leginc", "legaradk",
+		"legsrail", "legeshotgunmech", "", "legajamk",
+		"", "legjav", "legeallterrainmech", "",
 	},
 
 	armhaap = {
@@ -259,23 +259,24 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "armmlv", "armlatnk", "armpincer",
-		"armmart", "armcroc", "", "armgremlin",
-		"", "armbeaver", "", "",
+		"armhacv", "", "armbull", "armseer",
+		"armmanni", "armthor", "armmerl", "armjam",
+		"", "armlun", "armyork", "",
 	},
 
 	corhavp = {
-		"corhacv", "cormabm", "corban", "corgol",
-		"cortrem", "corsok", "corvrad", "coreter",
-		"corparrow", "corvroc", "corsent", "",
+		"corhacv", "cormabm", "corban", "corvrad",
+		"cortrem", "corgol", "corvroc", "coreter",
+		"corsok", "corparrow", "corsent", "",
 	},
 
 	leghavp = {
-		"leghacv", "legmlv", "legmrv", "legamphtank",
-		"legamcluster", "legaskirmtank", "", "legvcarry",
-		"legfloat", "legotter", "", "",
+		"leghacv", "cormabm", "legaheattank", "legavrad",
+		"legmed", "legkeres", "legavroc", "legavjam",
+		"legerailtank", "legehovertank", "legvflak", "leginf",
 	},
 }
+
 local unitGrids = {
 	-- Air assist drones
 	armassistdrone = {
@@ -2473,38 +2474,38 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["coravp"] = {
 		"coracv", "cormlv", "corsala", "",
-		"cormmart", "correap", "cormh", "corsnap",
+		"cormart", "correap", "cormh", "corsnap",
 		"corch", "corhal", "corah", "",
 	}
 
 	labGrids["legavp"] = {
-		"", "", "", "",
-		"", "", "", "",
+		"legacv", "legmlv", "legmrv", "legvcarry",
+		"legamcluster", "legaskirmtank", "legmh", "legner",
+		"legch", "legfloat", "legah", "legcar",
+	}
+
+	labGrids["armaap"] = {
+		"armaca", "armsfig", "armsaber", "armsb",
+		"armsehak", "armhvytrans", "armseap", "",
 		"", "", "", "",
 	}
 
-	labGrids[""] = {
-		"", "", "", "",
-		"", "", "", "",
-		"", "", "", "",
-	}
-
-	labGrids[""] = {
-		"", "", "", "",
-		"", "", "", "",
+	labGrids["coraap"] = {
+		"coraca", "corsfig", "corcut", "corsb",
+		"corhunt", "corhvytrans", "corseap", "",
 		"", "", "", "",
 	}
 
-	labGrids[""] = {
-		"", "", "", "",
-		"", "", "", "",
-		"", "", "", "",
+	labGrids["armasy"] = {
+		"armacsub", "", "armanac", "armsh",
+		"armlship", "armcrus", "armmship", "",
+		"armsubk", "armcroc", "armah", "",
 	}
 
-	labGrids[""] = {
-		"", "", "", "",
-		"", "", "", "",
-		"", "", "", "",
+	labGrids["corasy"] = {
+		"coracsub", "", "corsnap", "corsh",
+		"corfship", "corcrus", "cormship", "",
+		"corshark", "corsala", "corah", "",
 	}
 
 	labGrids[""] = {

@@ -31,17 +31,16 @@ return {
 		workertime = 1200,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
-			[1] = "corkorg",
-			[2] = "corkarg",
-			[3] = "corshiva",
-			[4] = "corcat",
-			[5] = "cordemon",
-			[6] = "corhack",
-			[7] = "corsumo",
-			[8] = "cordecom",
-			[9] = "corvoyr",
-			[10] = "corsktl",
-			[11] = "corspec"
+			[1] = "corkarg",
+			[2] = "corshiva",
+			[3] = "corcat",
+			[4] = "cordemon",
+			[5] = "corhack",
+			[6] = "corsumo",
+			[7] = "cordecom",
+			[8] = "corvoyr",
+			[9] = "corsktl",
+			[10] = "corspec"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

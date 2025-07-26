@@ -38,10 +38,9 @@ return {
 			[5] = "armaser",
 			[6] = "armdecom",
 			[7] = "armscab",
-			[8] = "armbanth",
-			[9] = "armraz",
-			[10] = "armmar",
-			[11] = "armvang",
+			[8] = "armraz",
+			[9] = "armmar",
+			[10] = "armvang",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
