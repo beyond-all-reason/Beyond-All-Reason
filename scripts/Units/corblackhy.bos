@@ -159,7 +159,7 @@ StopMoving()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = tur1;
+	pieceIndex = flare1a;
 }
 
 QueryWeapon1(pieceIndex)
