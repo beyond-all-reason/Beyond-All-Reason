@@ -1660,8 +1660,6 @@
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
 				"profiler": "Widget profiler",
-				"profiler_min_time": "Minimum Time",
-				"profiler_min_memory": "Minimum Memory",
 				"profiler_sort_by_load": "Sort By Load",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
