@@ -103,7 +103,7 @@ Activate()
 	turn head3 to y-axis <-45.0> speed <90>;
 	turn head4 to y-axis <45.0> speed <90>;
 	
-	move platform to y-axis [-10] speed [30];
+	move platform to y-axis [-24] speed [40];
 	
 	wait-for-turn head4 around y-axis;
 	
