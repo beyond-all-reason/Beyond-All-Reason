@@ -88,6 +88,8 @@ local FREEZE_DELAY_KEY = "territorialDominationPauseDelay"
 local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
 local RANK_RULES_KEY = "territorialDominationRank"
 
+local DEFAULT_MAX_THRESHOLD = 256
+
 local COLOR_WHITE = { 1, 1, 1, 1 }
 local COLOR_RED = { 1, 0, 0, 1 }
 local COUNTDOWN_COLOR = { 1, 0.2, 0.2, 1 }
@@ -118,7 +120,7 @@ local lastScore = -1
 local lastDifference = -1
 local scorebarWidth = 300
 local lineWidth = 2
-local maxThreshold = 256
+local maxThreshold = DEFAULT_MAX_THRESHOLD
 local currentTime = os.clock()
 local defeatTime = 0
 local gameSeconds = 0
@@ -163,7 +165,7 @@ local cachedPauseStatus = {
 
 local cachedGameState = {
 	defeatThreshold = 0,
-	maxThreshold = 256,
+	maxThreshold = DEFAULT_MAX_THRESHOLD,
 	lastUpdate = 0
 }
 
@@ -593,6 +595,11 @@ end
 
 local function drawScoreBar(scorebarLeft, scorebarRight, scorebarBottom, scorebarTop, score, defeatThreshold, barColor,
 							isDefeatThresholdPaused)
+	-- Safety check to prevent division by zero
+	if maxThreshold <= 0 then
+		maxThreshold = DEFAULT_MAX_THRESHOLD
+	end
+	
 	local barWidth = scorebarRight - scorebarLeft
 	local exceedsMaxThreshold = score > maxThreshold
 	local borderSize = 3
@@ -778,7 +785,10 @@ local function needsDisplayListUpdate()
 
 	local isDefeatThresholdPaused = cachedPauseStatus.isDefeatThresholdPaused
 	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or DEFAULT_MAX_THRESHOLD
+	if currentMaxThreshold <= 0 then
+		currentMaxThreshold = DEFAULT_MAX_THRESHOLD
+	end
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 
 	local currentScore, currentDifference, currentTeamID, currentRank
@@ -825,7 +835,10 @@ local function updateTrackingVariables()
 	local currentGameTime = spGetGameSeconds()
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	local currentMaxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or DEFAULT_MAX_THRESHOLD
+	if currentMaxThreshold <= 0 then
+		currentMaxThreshold = DEFAULT_MAX_THRESHOLD
+	end
 	local isDefeatThresholdPaused = (spGetGameRulesParam(FREEZE_DELAY_KEY) or 0) > currentGameTime
 
 	updateLastValues(nil, nil, defeatThreshold, currentMaxThreshold, isDefeatThresholdPaused, scorebarWidth,
@@ -916,6 +929,11 @@ end
 local function calculateCountdownPosition(allyTeamID, barIndex)
 	local minimapPosX, minimapPosY, minimapSizeX = spGetMiniMapGeometry()
 	local defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
+	
+	-- Safety check to prevent division by zero
+	if maxThreshold <= 0 then
+		maxThreshold = DEFAULT_MAX_THRESHOLD
+	end
 
 	if not barIndex then
 		local allyTeamScores = getAllyTeamDisplayData()
@@ -1222,7 +1240,10 @@ end
 
 local function updateCachedGameState()
 	cachedGameState.defeatThreshold = spGetGameRulesParam(THRESHOLD_RULES_KEY) or 0
-	cachedGameState.maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or 256
+	cachedGameState.maxThreshold = spGetGameRulesParam(MAX_THRESHOLD_RULES_KEY) or DEFAULT_MAX_THRESHOLD
+	if cachedGameState.maxThreshold <= 0 then
+		cachedGameState.maxThreshold = DEFAULT_MAX_THRESHOLD
+	end
 	cachedGameState.lastUpdate = gameSeconds
 end
 
@@ -1622,8 +1643,8 @@ function widget:Update(deltaTime)
 		updateDisplayLists()
 		
 		-- Hide tooltip when major state changes
-		if WG['tooltip'] and WG['tooltip'].HideTooltip then
-			WG['tooltip'].HideTooltip('territorialDomination')
+		if WG['tooltip'] and WG['tooltip'].RemoveTooltip then
+			WG['tooltip'].RemoveTooltip('territorialDomination')
 		end
 		
 		return
@@ -1673,9 +1694,11 @@ function widget:Update(deltaTime)
 	end
 	
 	-- Handle tooltip display
-	if WG['tooltip'] and WG['tooltip'].ShowTooltip then
+	if WG['tooltip'] and WG['tooltip'].ShowTooltip and WG['tooltip'].RemoveTooltip then
 		if isMouseOverAnyScoreBar() then
 			WG['tooltip'].ShowTooltip('territorialDomination', spI18N('ui.territorialDomination.scoreBarTooltip'))
+		else
+			WG['tooltip'].RemoveTooltip('territorialDomination')
 		end
 	end
 end
@@ -1684,7 +1707,7 @@ function widget:Shutdown()
 	cleanupDisplayLists()
 	
 	-- Clean up tooltip
-	if WG['tooltip'] and WG['tooltip'].HideTooltip then
-		WG['tooltip'].HideTooltip('territorialDomination')
+	if WG['tooltip'] and WG['tooltip'].RemoveTooltip then
+		WG['tooltip'].RemoveTooltip('territorialDomination')
 	end
 end
