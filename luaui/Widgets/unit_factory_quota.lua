@@ -133,6 +133,9 @@ end
 
 ----- handle toggle
 local function isOnQuotaBuildMode(unitID)
+    if not unitID or not factoryDefIDs[spGetUnitDefID(unitID)] then
+        return false
+    end
     local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
 	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
