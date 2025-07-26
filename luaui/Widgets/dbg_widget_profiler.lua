@@ -20,7 +20,7 @@ end
 local usePrefixedNames = true
 
 local tick = 0.1
-local averageTime = 0.5
+local averageTime = 2
 local retainSortTime = 10
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
