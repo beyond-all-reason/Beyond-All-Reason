@@ -139,6 +139,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "GATOR_LASER",
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
