@@ -50,21 +50,43 @@ local function blue_burst_lasersTweaks(name, uDef)
 			vtol = 7.5
 		}
 	elseif name == "armhlt" then
-		uDef.weapondefs.arm_laserh1.name = "Light g2g Burst Laser"
-		uDef.weapondefs.arm_laserh1.rgbcolor = "0.1 0.0 0.9"
-		uDef.weapondefs.arm_laserh1.beamburst = true
-		uDef.weapondefs.arm_laserh1.burst = 3
-		uDef.weapondefs.arm_laserh1.burstrate = 0.175
-		uDef.weapondefs.arm_laserh1.thickness = 6
-		uDef.weapondefs.arm_laserh1.reloadtime = 2.7
-		uDef.weapondefs.arm_laserh1.soundstart = "lasrlit3"
-		uDef.weapondefs.arm_laserh1.explosiongenerator = "custom:laserhit-medium-blue"
-		uDef.weapondefs.arm_laserh1.soundtrigger = false
-		uDef.weapondefs.arm_laserh1.energypershot = 25
-		uDef.weapondefs.arm_laserh1.damage = {
-			commanders = 290.25,
-			default = 193.5,
-			vtol = 17.5,}
+		uDef.weapondefs = {
+			arm_laserh1 = {
+				areaofeffect = 14,
+				avoidfeature = false,
+				beamtime = 0.15,
+				corethickness = 0.25,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				energypershot = 75,
+				explosiongenerator = "custom:laserhit-armmedium-green",
+				firestarter = 90,
+				impactonly = 1,
+				impulsefactor = 0,
+				laserflaresize = 9.9,
+				name = "Heavy g2g high energy laser",
+				noselfdamage = true,
+				range = 620,
+				reloadtime = 1.8,
+				rgbcolor = "0 1 0",
+				soundhitdry = "",
+				soundhitwet = "sizzle",
+				soundstart = "Lasrmas2",
+				soundtrigger = 1,
+				thickness = 3,
+				tolerance = 10000,
+				turret = true,
+				weapontype = "BeamLaser",
+				weaponvelocity = 2250,
+				damage = {
+					commanders = 580.5,
+					default = 387,
+					vtol = 35,
+				},
+			},
+		}
 			
     elseif name == "armcom" then
         uDef.weapondefs.armcomlaser.name = "Light g2g/g2a Burst Laser"
