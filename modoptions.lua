@@ -925,7 +925,7 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
@@ -941,17 +941,17 @@ local options = {
         items	= {
             { key= "default", 	name= "Default", desc= "Map Settings",
                 lock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
                 unlock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
                 lock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
                 lock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
         },
@@ -960,15 +960,16 @@ local options = {
 
     {
         key     = "map_lavatidemode",
-        name	= "Lava Start Position",
-        desc	= "Toggle whether lava starts at high or low tide",
+        name	= "Lava Tide Mode",
+        desc	= "Toggle whether lava starts at high or low tide, or uses the advanced settings",
         hidden	= false,
         type	= "list",
         def		= "lavastartlow",
         section	= "options_extra",
         items	= {
-            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
-            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+            { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
+            { key= "lavaadvanced", 	name= "Advanced",desc= "Lava tide rhythm follows the custom input" },
         }
     },
 
@@ -992,7 +993,7 @@ local options = {
         type 	= "number",
         def 	= 60,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
@@ -1018,10 +1019,20 @@ local options = {
         type 	= "number",
         def 	= 300,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
+    },
+
+    {
+        key 	= "map_tweaklava",
+        name 	= "Advanced Tide Rhythm",
+        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+        hint    = "{MapHeight, Rate , Dwell Time}",
+        type 	= "string",
+        def 	= "",
+        section = "options_extra",
     },
 
     { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
