@@ -14,6 +14,7 @@ end
 
 local lava = Spring.Lava
 local lavaMap = lava.isLavaMap
+local gameSpeed = Game.gameSpeed
 
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
@@ -33,13 +34,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
-	local lavaDamage = lava.damage * (DAMAGE_RATE / Game.gameSpeed)
+	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
 	if lavaDamageFeatures then
 		if not tonumber(lavaDamageFeatures) then
 			lavaDamageFeatures = 0.1
 		end
-		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / Game.gameSpeed)
+		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / gameSpeed)
 	end
 
 	-- ceg effects
@@ -102,7 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*30
+			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*gameSpeed
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
@@ -114,9 +115,9 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
-				lavaGrow = tideRhythm[tideIndex].speed
+				lavaGrow = tideRhythm[tideIndex].speed 
 			else
-				lavaGrow = -tideRhythm[tideIndex].speed
+				lavaGrow = -tideRhythm[tideIndex].speed 
 			end
 		end
 		_G.lavaGrow = lavaGrow
@@ -201,7 +202,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		updateLava()
-		lavaLevel = lavaLevel+lavaGrow
+		lavaLevel = lavaLevel+(lavaGrow/gameSpeed)
 		Spring.SetGameRulesParam("lavaLevel", lavaLevel)
 
 		-- burst and sound effects
