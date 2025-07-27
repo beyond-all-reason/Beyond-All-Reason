@@ -37,7 +37,7 @@ local commanderStartingPositions = {}
 
 local BUILD_TIME_REDUCTION_MULTIPLIER = 1/100
 local ENERGY_REDUCTION_MULTIPLIER = 1/10
-local MAX_RANGE = 750
+local MAX_RANGE = 1000
 local UPDATE_FRAMES = 30
 
 local function isBoostableCommander(unitDefinitionID)
