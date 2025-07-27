@@ -26,7 +26,7 @@ local maxIcons = 9
 local showRez = true
 local doUpdateForce = true
 local justSelected = false
-local listSorted = {} -- listSorted[unitDefID]: set to true when idle list is updated, set to false when idleList[unitDefID] is sorted
+local listSorted = {} -- listSorted[unitDefID]: set to nil when idle list is updated, set to true when idleList[unitDefID] is sorted
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
