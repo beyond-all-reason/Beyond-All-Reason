@@ -35,7 +35,7 @@ local unitsWithModifiedCosts = {}
 local nonPlayerTeams = {}
 local commanderStartingPositions = {}
 
-local BUILD_TIME_REDUCTION_MULTIPLIER = 0.01
+local BUILD_TIME_REDUCTION_MULTIPLIER = 1/100
 local ENERGY_REDUCTION_MULTIPLIER = 1/10
 local MAX_RANGE = 750
 local UPDATE_FRAMES = 30
