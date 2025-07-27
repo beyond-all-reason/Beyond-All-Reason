@@ -38,10 +38,9 @@ return {
 			[4] = "armbats",
 			[5] = "armepoch",
 			[6] = "armantiship",
-			[7] = "armbanth",
-			[8] = "armmar",
-			[9] = "armlun",
-			[10] = "armaas"
+			[7] = "armmar",
+			[8] = "armlun",
+			[9] = "armaas"
 		},
 		customparams = {
 			model_author = "FireStorm",

@@ -247,9 +247,9 @@ local labGrids = {
 	},
 
 	armhasy = {
-		"armhacs", "", "armmship", "",              
-		"armlship", "armcrus", "", "",              
-		"armsubk", "", "armaas", "",              
+		"armhacs", "armantiship", "armlun", "armsjam",              
+		"armepoch", "armbats", "", "",              
+		"armserp", "armmar", "armaas", "",              
 	},
 
 	corhasy = {
