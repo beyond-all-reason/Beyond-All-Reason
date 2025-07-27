@@ -193,7 +193,7 @@ end
 
 local function lavaModGen(modOptions)
 	if modOptions.map_lavatidemode == "lavaadvanced" then 
-		local modoptionAdvancedRaw = modOptions.map_advancedrhythm
+		local modoptionAdvancedRaw = modOptions.map_tweaklava
 		--Spring.Echo("Lava Advanced Raw Tide Rhythm Data: ", modoptionAdvancedRaw)
 		local advancedRhythm = validateTideRhythm(modoptionAdvancedRaw)
 		--Spring.Echo("Lava Advanced Processed Tide Rhythm Data: ", advancedRhythm)

@@ -1026,9 +1026,9 @@ local options = {
     },
 
     {
-        key 	= "map_advancedrhythm",
+        key 	= "map_tweaklava",
         name 	= "Advanced Tide Rhythm",
-        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 0.2, 60},{100, 0.1, 20}",
+        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
         hint    = "{MapHeight, Rate , Dwell Time}",
         type 	= "string",
         def 	= "",
