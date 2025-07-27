@@ -132,7 +132,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = sleeve;
+	pieceIndex = barrel;
 }
 
 QueryWeapon1(pieceIndex)

@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  flare1, flare2, base, turret, lwheel,rwheel, mlauncher;
+piece  flare1, flare2, base, turret, lwheel, rwheel, mlauncher;
 
 static-var  restore_delay, gun_1, fired, aiming;
 
@@ -111,7 +111,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = mlauncher;
+	pieceIndex = flare1;
 }
 
 QueryWeapon1(pieceIndex)
@@ -148,7 +148,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = mlauncher;
+	piecenum = flare1;
 }
 
 QueryWeapon2(piecenum)

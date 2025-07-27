@@ -124,7 +124,7 @@ QueryWeapon1(pieceIndex)
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = sleeves;
+	pieceIndex = barrel1;
 }
 
 

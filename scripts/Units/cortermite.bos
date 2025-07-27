@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1;
+piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, aimfrompiece;
 
 static-var  moving, firing, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
@@ -337,12 +337,12 @@ AimFromWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		pieceIndex = flare1;
+		pieceIndex = aimfrompiece;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare2;
+		pieceIndex = aimfrompiece;
 		return (0);
 	}
 }

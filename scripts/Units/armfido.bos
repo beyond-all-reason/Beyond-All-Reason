@@ -1482,7 +1482,7 @@ AimWeapon1(heading, pitch)
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = loturret;
+	pieceIndex = barrel;
 }
 
 
