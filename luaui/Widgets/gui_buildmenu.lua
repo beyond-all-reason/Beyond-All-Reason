@@ -15,18 +15,22 @@ end
 
 include("keysym.h.lua")
 
---- CHANGE START ---
--- 1. Localize Global Functions
 local pairs = pairs
 local ipairs = ipairs
 local tonumber = tonumber
 local string_format = string.format
 local table_invert = table.invert
 local pcall = pcall
-local table_wipe = table.wipe -- Assumes a modern Spring engine environment
+--- CHANGE START ---
+-- Helper function to clear a table without creating garbage, using the standard Lua method.
+local function clearTable(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+end
+--- CHANGE END ---
 
 SYMKEYS = table_invert(KEYSYMS)
---- CHANGE END ---
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
@@ -125,10 +129,7 @@ local height = 0
 local selectedBuilders = {}
 local selectedBuilderCount = 0
 local selectedFactoryCount = 0
---- CHANGE START ---
--- 2. Persistent cellRects Table
 local cellRects = {}
---- CHANGE END ---
 local cmds = {}
 local cmdsCount = 0
 local currentPage = 1
@@ -136,11 +137,8 @@ local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 
---- CHANGE START ---
--- 4. Pre-calculation Tables for Loops
 local unitDefToCellMap = {}
 local cellQuotas = {}
---- CHANGE END ---
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -273,8 +271,6 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 end
 
---- CHANGE START ---
--- 3. Cache Grid Geometry
 local function UpdateGridGeometry()
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
@@ -347,7 +343,6 @@ local function UpdateGridGeometry()
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
 end
---- CHANGE END ---
 
 local function RefreshCommands()
 	cmds = {}
@@ -414,17 +409,12 @@ local function RefreshCommands()
 	end
 	--[[ MODIFICATION END ]]
 
-	--- CHANGE START ---
-	-- 3. & 4. Pre-calculate geometry and lookup tables
 	UpdateGridGeometry()
 
-	if table_wipe then
-		table_wipe(unitDefToCellMap)
-		table_wipe(cellQuotas)
-	else
-		unitDefToCellMap = {}
-		cellQuotas = {}
-	end
+	--- CHANGE START ---
+	clearTable(unitDefToCellMap)
+	clearTable(cellQuotas)
+	--- CHANGE END ---
 
 	local numCellsPerPage = rows * colls
 	local startCellID = numCellsPerPage * (currentPage - 1)
@@ -449,7 +439,6 @@ local function RefreshCommands()
 			end
 		end
 	end
-	--- CHANGE END ---
 end
 
 local function clear()
@@ -540,12 +529,9 @@ function widget:ViewResize()
 	checkGuishader(true)
 	clear()
 	doUpdate = true
-	--- CHANGE START ---
-	-- 3. Recalculate geometry on resize
 	if cmdsCount > 0 then
 		UpdateGridGeometry()
 	end
-	--- CHANGE END ---
 end
 
 function widget:LanguageChanged()
@@ -772,8 +758,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		)
 	end
 
-	--- CHANGE START ---
-	-- 4. Use pre-calculated quota table
 	local quotaInfo = cellQuotas[uDefID]
 	if quotaInfo and quotaInfo.quota ~= 0 then
 		local quotaText = WG.Quotas.getUnitAmount(quotaInfo.builderID, uDefID) .. "/" .. quotaInfo.quota
@@ -797,12 +781,9 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			"ro"
 		)
 	end
-	--- CHANGE END ---
 end
 
 function drawBuildmenu()
-	--- CHANGE START ---
-	-- 3. Grid geometry is now pre-calculated, so this function is just a renderer
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -813,12 +794,8 @@ function drawBuildmenu()
 	local contentWidth = activeArea[3] - activeArea[1]
 	local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
 
-	-- 2. Reuse cellRects table
-	if table_wipe then
-		table_wipe(cellRects)
-	else
-		cellRects = {}
-	end
+	--- CHANGE START ---
+	clearTable(cellRects)
 	--- CHANGE END ---
 
 	local numCellsPerPage = rows * colls
@@ -1139,8 +1116,6 @@ function widget:DrawScreen()
 
 		-- draw builders buildoption progress
 		if showBuildProgress then
-			--- CHANGE START ---
-			-- 4. Use pre-calculated map to eliminate nested loops
 			for builderUnitID, _ in pairs(selectedBuilders) do
 				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 				if unitBuildID then
@@ -1155,7 +1130,6 @@ function widget:DrawScreen()
 					end
 				end
 			end
-			--- CHANGE END ---
 		end
 	end
 end
