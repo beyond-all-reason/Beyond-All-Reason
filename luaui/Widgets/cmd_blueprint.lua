@@ -1254,10 +1254,10 @@ function widget:Shutdown()
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_create", "p")
-	widgetHandler:RemoveAction(self, "blueprint_next", "p")
-	widgetHandler:RemoveAction(self, "blueprint_prev", "p")
-	widgetHandler:RemoveAction(self, "blueprint_delete", "p")
-	widgetHandler:RemoveAction(self, "buildfacing", "p")
-	widgetHandler:RemoveAction(self, "buildspacing", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
 end
 
