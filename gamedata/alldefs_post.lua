@@ -2661,6 +2661,41 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corcut" then
 			uDef.objectname = "Units/CORCUTBIG.s3o"
+			uDef.weapondefs.vtol_rocket2 = {
+				areaofeffect = 14,
+				avoidfeature = false,
+				beamtime = 0.15,
+				corethickness = 0.2,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				energypershot = 50,
+				explosiongenerator = "custom:laserhit-medium-green",
+				firestarter = 90,
+				impactonly = 1,
+				impulsefactor = 0,
+				laserflaresize = 8.8,
+				name = "High energy g2g laser",
+				noselfdamage = true,
+				range = 620,
+				reloadtime = 0.3,
+				rgbcolor = "0 1 0",
+				soundhitdry = "",
+				soundhitwet = "sizzle",
+				soundstart = "Lasrmas2",
+				soundtrigger = 1,
+				thickness = 2.7,
+				tolerance = 10000,
+				turret = true,
+				weapontype = "BeamLaser",
+				weaponvelocity = 2250,
+				damage = {
+					commanders = 392,
+					default = 261,
+					vtol = 35,
+				},
+			}
 			
 		elseif name == "corsb" then 
 			uDef.objectname = "Units/CORSBBIG.s3o"
