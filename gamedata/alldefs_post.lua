@@ -1952,7 +1952,6 @@ function UnitDef_Post(name, uDef)
 				[7] = "armsam",
 				[8] = "armbeaver",
 				[9] = "armpincer",
-				[10] = "armsh"
 			}
 
 		elseif name == "corvp" then
@@ -1967,7 +1966,6 @@ function UnitDef_Post(name, uDef)
 				[8] = "cormlv",
 				[9] = "corgarp",
 				[10] = "cormuskrat",
-				[11] = "corsh"
 			}
 
 		elseif name == "legvp" then
@@ -1996,6 +1994,7 @@ function UnitDef_Post(name, uDef)
 			[8] = "armgremlin",
 			[9] = "armmh",
 			[10] = "armanac",
+			[11] = "armsh"
 			}
 		
 		elseif name == "coravp" then
@@ -2009,7 +2008,8 @@ function UnitDef_Post(name, uDef)
 			[7] = "corhal",
 			[8] = "cormh",
 			[9] = "corsnap",
-			[10] = "corah"
+			[10] = "corah",
+			[11] = "corsh"
 			}
 
 		elseif name == "legavp" then
@@ -2472,14 +2472,13 @@ function UnitDef_Post(name, uDef)
 		if name == "armaap" then
 			uDef.buildoptions = {
 			[1] = "armaca",
-			[2] = "armpnix",
-			[3] = "armlance",
-			[4] = "armblade",
-			[5] = "armhvytrans",
-			[6] = "armbrawl",
-			[7] = "armstil",
-			[8] = "armliche",
-			[9] = "armawac"
+			[2] = "armhawk",
+			[3] = "armpnix",
+			[4] = "armlance",
+			[5] = "armawac",
+			[6] = "armhvytrans",
+			[7] = "armbrawl",
+			[8] = "armstil",
 			}
 
 		elseif name == "coraap" then
@@ -2490,8 +2489,7 @@ function UnitDef_Post(name, uDef)
 			[4] = "cortitan",
 			[5] = "corvamp",
 			[6] = "corhvytrans",
-			[7] = "corcrwh",
-			[8] = "corawac",
+			[7] = "corawac",
 			}
 	
 		elseif name == "armap" then
@@ -2590,9 +2588,6 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "coraca" then
-			uDef.buildpic = "CORCSA.DDS"
-			uDef.objectname = "Units/CORCSA.s3o"
-			uDef.script = "Units/CORCSA.cob"
 			uDef.buildoptions = {
 				[1] = "coradvsol",
 				[2] = "corexp",
@@ -2750,6 +2745,7 @@ function UnitDef_Post(name, uDef)
 			[7] = "armcroc",
 			[8] = "armsh",
 			[9] = "armanac",
+			[10] = "armch"
 		}
 
 		elseif name == "corasy" then
@@ -2762,7 +2758,8 @@ function UnitDef_Post(name, uDef)
 			[6] = "corah",
 			[7] = "corsala",
 			[8] = "corsnap",
-			[9] = "corsh"
+			[9] = "corsh",
+			[10] = "corch"
 		}
 		
 

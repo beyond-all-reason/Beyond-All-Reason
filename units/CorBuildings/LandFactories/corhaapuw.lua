@@ -2,7 +2,7 @@ return {
 	corhaapuw = {
 		activatewhenbuilt = true,
 		builder = true,
-		buildpic = "CORHAAP.DDS",
+		buildpic = "CORPLAT.DDS",
 		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 24 0",
@@ -23,7 +23,7 @@ return {
 		minwaterdepth = 30,
 		metalcost = 8400,
 		metalstorage = 800,
-		objectname = "Units/CORPLAT.s3o",
+		objectname = "Units/CORHAAP.s3o",
 		radardistance = 750,
 		radaremitheight = 50,
 		script = "Units/CORHAAPUW.cob",
@@ -41,6 +41,7 @@ return {
 			[5] = "corseap",
 			[6] = "corsfig",
 			[7] = "corseah",
+			[8] = "corcrwh",
 			},
 		customparams = {
 			airfactory = true,

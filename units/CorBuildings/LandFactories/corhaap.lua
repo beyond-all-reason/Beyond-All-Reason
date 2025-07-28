@@ -5,9 +5,6 @@ return {
 		buildpic = "CORHAAP.DDS",
 		buildtime = 67300,
 		canmove = true,
-		collisionvolumeoffsets = "0 24 0",
-		collisionvolumescales = "392 220 392",
-		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 62000,
 		energystorage = 1400,
@@ -41,6 +38,7 @@ return {
 			[5] = "corseap",
 			[6] = "corsfig",
 			[7] = "corseah",
+			[8] = "corcrwh",
 			},
 		customparams = {
 			airfactory = true,

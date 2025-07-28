@@ -43,7 +43,6 @@ local labGrids = {
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
 		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
 	},
-
 	corvp = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
@@ -237,25 +236,25 @@ local labGrids = {
 	armhaap = {
 		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
 		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "", "", "",                                     -- empty rows
+		"", "armliche", "armblade", "",                                     -- empty rows
 	},
 
 	armhaapuw = {
 		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
 		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "", "", "",                                     -- empty rows
+		"", "armliche", "armblade", "",                                     -- empty rows
 	},
 
 	corhaap = {
 		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "", "", "",                                     -- empty rows
+		"", "corcrwh", "", "",                                     -- empty rows
 	},
 
 	corhaapuw = {
 		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "", "", "",                                     -- empty rows
+		"", "corcrwh", "", "",                                     -- empty rows
 	},
 
 	armhasy = {
@@ -265,9 +264,9 @@ local labGrids = {
 	},
 
 	corhasy = {
-		"corhacs", "", "cormship", "",              
-		"corfship", "corcrus", "", "",              
-		"corshark", "", "corarch", "",              
+		"corhacs", "corantiship", "corsok", "corsjam",              
+		"corblackhy", "corbats", "corparrow", "",              
+		"corssub", "corshiva", "corarch", "",              
 	},
 
 	armhavp = {
@@ -2460,6 +2459,22 @@ if Spring.GetModOptions().techoverhaul then
 
 	-- Lab Grids
 
+	labGrids["armvp"] = {
+		"armcv", "armbeaver", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
+		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
+		"", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+	},
+	labGrids["corvp"] = {
+		"corcv", "cormuskrat", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
+		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
+		"", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+	},
+	labGrids["legvp"] = {
+		"legcv", "legotter", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
+		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
+		"", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
+	},
+
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armspy",
 		"armfido", "armmav", "armzeus", "armsptk",
@@ -2479,13 +2494,13 @@ if Spring.GetModOptions().techoverhaul then
 	}
 
 	labGrids["armavp"] = {
-		"armacv", "armmlv", "armlatnk", "armgremlin",
-		"armmart", "armmanac", "armmh", "",
+		"armacv", "armmlv", "armlatnk", "armsh",
+		"armmart", "armmanac", "armmh", "armgremlin",
 		"armch", "armcroc", "armah", "",
 	}
 
 	labGrids["coravp"] = {
-		"coracv", "cormlv", "corsala", "",
+		"coracv", "cormlv", "corsala", "corsh",
 		"cormart", "correap", "cormh", "corsnap",
 		"corch", "corhal", "corah", "",
 	}
@@ -2497,13 +2512,13 @@ if Spring.GetModOptions().techoverhaul then
 	}
 
 	labGrids["armasy"] = {
-		"armacsub", "", "armanac", "armsh",
+		"armacsub", "armch", "armanac", "armsh",
 		"armlship", "armcrus", "armmship", "",
 		"armsubk", "armcroc", "armah", "",
 	}
 
 	labGrids["corasy"] = {
-		"coracsub", "", "corsnap", "corsh",
+		"coracsub", "corch", "corsnap", "corsh",
 		"corfship", "corcrus", "cormship", "",
 		"corshark", "corsala", "corah", "",
 	}
