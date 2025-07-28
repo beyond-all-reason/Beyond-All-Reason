@@ -1,5 +1,5 @@
 return {
-	corhaap = {
+	corhaapuw = {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORHAAP.DDS",
@@ -26,13 +26,13 @@ return {
 		objectname = "Units/CORHAAP.s3o",
 		radardistance = 750,
 		radaremitheight = 50,
-		script = "Units/CORHAAP.cob",
+		script = "Units/CORHAAPUW.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		workertime = 600,
-		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
+		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		buildoptions = {		
 			[1] = "cohaca",
 			[2] = "corhunt",
@@ -44,16 +44,10 @@ return {
 			},
 		customparams = {
 			airfactory = true,
-			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 9,
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecaltype = "decals/coraap_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorBuildings/LandFactories",
-			techlevel = 3,
-			unitgroup = "buildert3",
-			usebuildinggrounddecal = true,
+			subfolder = "CorBuildings/SeaFactories",
+			unitgroup = "builder",
 		},
 		featuredefs = {
 			dead = {
