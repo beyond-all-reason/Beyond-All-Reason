@@ -26,7 +26,7 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
 local CMD_INSERT = CMD.INSERT
 
-local Game_extractorRadius = Game.extractorRadius
+local gExtractorRadius = Game.extractorRadius
 
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
@@ -48,7 +48,7 @@ function gadget:Initialize()
 end
 
 local function mexExists(spot, allyTeamID, cmdX, cmdZ)
-	local units = spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	local units = spGetUnitsInCylinder(spot.x, spot.z, gExtractorRadius)
 	for _, unit in ipairs(units) do
 		if isMex[spGetUnitDefID(unit)] then
 			local ux, _, uz = spGetUnitPosition(unit)
