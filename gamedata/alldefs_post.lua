@@ -2650,8 +2650,14 @@ function UnitDef_Post(name, uDef)
 			uDef.cruisealtitude = 250
 
 		elseif name == "corsfig" then
+			uDef.cruisealtitude = 250
 			uDef.objectname = "Units/CORSFIGBIG.s3o"
 			uDef.speed = 765
+			uDef.maxacc = 0.5
+			uDef.maxdec = 0.2
+			uDef.maxbank = 0.9
+			uDef.windangle = 0.6
+
 
 		elseif name == "corcut" then
 			uDef.objectname = "Units/CORCUTBIG.s3o"
