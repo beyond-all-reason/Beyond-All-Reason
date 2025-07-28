@@ -222,9 +222,9 @@ local labGrids = {
 	},
 
 	armhalab = {
-		"armhack", "armdecom", "armfast", "armmark",
-		"armvang", "armsnipe", "armraz", "armaser",
-		"", "armmar", "", "armscab",
+		"armhack", "armdecom", "armmar", "armmark",
+		"armvang", "armfboy", "armraz", "armaser",
+		"armscab", "armsnipe", "", "",
 	},
 
 	leghalab = {
@@ -271,8 +271,8 @@ local labGrids = {
 
 	armhavp = {
 		"armhacv", "", "armbull", "armseer",
-		"armmanni", "armthor", "armmerl", "armjam",
-		"", "armlun", "armyork", "",
+		"armmanni", "armlun", "armmerl", "armjam",
+		"", "armthor", "armyork", "",
 	},
 
 	corhavp = {
@@ -2463,17 +2463,17 @@ if Spring.GetModOptions().techoverhaul then
 		"armcv", "armbeaver", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
 		"", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
-	},
+	}
 	labGrids["corvp"] = {
 		"corcv", "cormuskrat", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
 		"", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
-	},
+	}
 	labGrids["legvp"] = {
 		"legcv", "legotter", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
 		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
 		"", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
-	},
+	}
 
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armspy",
@@ -2494,8 +2494,8 @@ if Spring.GetModOptions().techoverhaul then
 	}
 
 	labGrids["armavp"] = {
-		"armacv", "armmlv", "armlatnk", "armsh",
-		"armmart", "armmanac", "armmh", "armgremlin",
+		"armacv", "armmlv", "armlatnk", "armgremlin",
+		"armmart", "armmanac", "armmh", "armsh",
 		"armch", "armcroc", "armah", "",
 	}
 
