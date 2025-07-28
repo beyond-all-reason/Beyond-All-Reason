@@ -2566,9 +2566,6 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armaca" then
-			uDef.buildpic = "ARMCSA.DDS"
-			uDef.objectname = "Units/ARMCSA.s3o"
-			uDef.script = "Units/ARMCSA.cob"
 			uDef.buildoptions = {
 				[1] = "armadvsol",
 				[2] = "armamex",

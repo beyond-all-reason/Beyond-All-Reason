@@ -246,6 +246,12 @@ local labGrids = {
 		"", "", "", "",                                     -- empty rows
 	},
 
+	corhaapuw = {
+		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
 	armhasy = {
 		"armhacs", "armantiship", "armlun", "armsjam",              
 		"armepoch", "armbats", "", "",              
@@ -2487,12 +2493,6 @@ if Spring.GetModOptions().techoverhaul then
 	labGrids["armaap"] = {
 		"armaca", "armsfig", "armsaber", "armsb",
 		"armsehak", "armhvytrans", "armseap", "",
-		"", "", "", "",
-	}
-
-	labGrids["coraap"] = {
-		"coraca", "corsfig", "corcut", "corsb",
-		"corhunt", "corhvytrans", "corseap", "",
 		"", "", "", "",
 	}
 
