@@ -224,7 +224,7 @@ local labGrids = {
 
 	armhalab = {
 		"armhack", "armdecom", "armfast", "armmark",
-		"armvang", "armraz", "armsnipe", "armaser",
+		"armvang", "armsnipe", "armraz", "armaser",
 		"", "armmar", "", "armscab",
 	},
 
@@ -247,9 +247,9 @@ local labGrids = {
 	},
 
 	armhasy = {
-		"armhacs", "", "armmship", "",              
-		"armlship", "armcrus", "", "",              
-		"armsubk", "", "armaas", "",              
+		"armhacs", "armantiship", "armlun", "armsjam",              
+		"armepoch", "armbats", "", "",              
+		"armserp", "armmar", "armaas", "",              
 	},
 
 	corhasy = {
@@ -2450,7 +2450,7 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armspy",
-		"armfido", "armzeus", "armmav", "armsptk",
+		"armfido", "armmav", "armzeus", "armsptk",
 		"armvader", "armamph", "armaak", "",
 	}
 
