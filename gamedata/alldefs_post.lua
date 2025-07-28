@@ -2481,14 +2481,15 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "coraap" then
-			uDef.buildoptions = {		
+			uDef.buildoptions = {
 			[1] = "coraca",
-			[2] = "corhunt",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-			[7] = "corhvytrans",
+			[2] = "corape",
+			[3] = "corhurc",
+			[4] = "cortitan",
+			[5] = "corvamp",
+			[6] = "corhvytrans",
+			[7] = "corcrwh",
+			[8] = "corawac",
 			}
 	
 		elseif name == "armap" then
@@ -2639,6 +2640,32 @@ function UnitDef_Post(name, uDef)
 
 		
 		end
+
+		-------------------
+		-- Sea Plane Rework
+
+		if name == "corhunt" then
+			uDef.objectname = "Units/CORHUNTBIG.s3o"
+			uDef.speed = 500
+			uDef.cruisealtitude = 250
+
+		elseif name == "corsfig" then
+			uDef.objectname = "Units/CORSFIGBIG.s3o"
+			uDef.speed = 765
+
+		elseif name == "corcut" then
+			uDef.objectname = "Units/CORCUTBIG.s3o"
+			
+		elseif name == "corsb" then 
+			uDef.objectname = "Units/CORSBBIG.s3o"
+
+		elseif name == "corseap" then
+			uDef.objectname = "Units/CORSEAPBIG.s3o"
+
+		
+		end
+
+
 
 		
 		------------
