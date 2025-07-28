@@ -236,7 +236,13 @@ local labGrids = {
 
 	armhaap = {
 		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	armhaapuw = {
+		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
 
@@ -2488,12 +2494,6 @@ if Spring.GetModOptions().techoverhaul then
 		"legacv", "legmlv", "legmrv", "legvcarry",
 		"legamcluster", "legaskirmtank", "legmh", "legner",
 		"legch", "legfloat", "legah", "legcar",
-	}
-
-	labGrids["armaap"] = {
-		"armaca", "armsfig", "armsaber", "armsb",
-		"armsehak", "armhvytrans", "armseap", "",
-		"", "", "", "",
 	}
 
 	labGrids["armasy"] = {

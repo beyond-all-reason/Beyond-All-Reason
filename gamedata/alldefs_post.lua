@@ -2472,12 +2472,14 @@ function UnitDef_Post(name, uDef)
 		if name == "armaap" then
 			uDef.buildoptions = {
 			[1] = "armaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armsehak",
-			[6] = "armsaber",
-			[7] = "armhvytrans",
+			[2] = "armpnix",
+			[3] = "armlance",
+			[4] = "armblade",
+			[5] = "armhvytrans",
+			[6] = "armbrawl",
+			[7] = "armstil",
+			[8] = "armliche",
+			[9] = "armawac"
 			}
 
 		elseif name == "coraap" then
@@ -2639,9 +2641,35 @@ function UnitDef_Post(name, uDef)
 		end
 
 		-------------------
-		-- Sea Plane Rework
+		-- Sea Plane Rework\
 
-		if name == "corhunt" then
+		--Armada
+		if name == "armsehak" then
+			uDef.objectname = "Units/ARMSEHAKBIG.s3o"
+		
+		elseif name == "armsfig" then
+			uDef.objectname = "Units/ARMSFIGBIG.s3o"
+			uDef.speed = 765
+			uDef.cruisealtitude = 250
+			uDef.maxacc = 0.5
+			uDef.maxdec = 0.2
+			uDef.maxbank = 0.9
+			uDef.wingangle = 0.6
+
+		elseif name == "armsaber" then
+			uDef.objectname = "Units/ARMSABERBIG.s3o"
+
+		elseif name == "armsb" then
+			uDef.objectname = "Units/ARMSBBIG.s3o"
+
+		elseif name == "armseap" then
+			uDef.objectname = "Units/ARMSEAPBIG.s3o"
+
+		
+
+
+		-- Cortex
+		elseif name == "corhunt" then
 			uDef.objectname = "Units/CORHUNTBIG.s3o"
 			uDef.speed = 500
 			uDef.cruisealtitude = 250
@@ -2653,7 +2681,7 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = 0.5
 			uDef.maxdec = 0.2
 			uDef.maxbank = 0.9
-			uDef.windangle = 0.6
+			uDef.wingangle = 0.6
 
 
 		elseif name == "corcut" then

@@ -1,7 +1,7 @@
 return {
-	armhaap = {
+	armhaapuw = {
 		builder = true,
-		buildpic = "ARMHAAP.DDS",
+		buildpic = "ARMPLAT.DDS",
 		buildtime = 61400,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -21,11 +21,11 @@ return {
 		maxslope = 10,
 		metalcost = 7900,
 		metalstorage = 800,
-		maxwaterdepth = 0,
+		minwaterdepth = 30,
 		objectname = "Units/ARMHAAP.s3o",
 		radardistance = 750,
 		radaremitheight = 50,
-		script = "Units/ARMHAAP.cob",
+		script = "Units/ARMHAAPUW.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
