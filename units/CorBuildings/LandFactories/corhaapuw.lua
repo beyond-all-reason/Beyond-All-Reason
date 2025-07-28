@@ -2,7 +2,7 @@ return {
 	corhaapuw = {
 		activatewhenbuilt = true,
 		builder = true,
-		buildpic = "CORHAAP.DDS",
+		buildpic = "CORPLAT.DDS",
 		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 24 0",
@@ -20,7 +20,7 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
-		maxwaterdepth = 0,
+		minwaterdepth = 30,
 		metalcost = 8400,
 		metalstorage = 800,
 		objectname = "Units/CORHAAP.s3o",
@@ -34,13 +34,14 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		buildoptions = {		
-			[1] = "cohaca",
+			[1] = "corhaca",
 			[2] = "corhunt",
 			[3] = "corcut",
 			[4] = "corsb",
 			[5] = "corseap",
 			[6] = "corsfig",
 			[7] = "corseah",
+			[8] = "corcrwh",
 			},
 		customparams = {
 			airfactory = true,
