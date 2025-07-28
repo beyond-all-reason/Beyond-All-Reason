@@ -3,7 +3,7 @@ return {
 		blocking = false,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACA.DDS",
+		buildpic = "CORCSA.DDS",
 		buildtime = 12000,
 		canfly = true,
 		canmove = true,
