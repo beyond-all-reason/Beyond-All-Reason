@@ -27,10 +27,10 @@ local GetUnitSeparation = Spring.GetUnitSeparation
 local GetGameFrame = Spring.GetGameFrame
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitTeam = Spring.GetUnitTeam
+local GiveOrderToUnit = Spring.GiveOrderToUnit
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_MOVE = CMD.MOVE
 local CMD_REMOVE = CMD.REMOVE
-local ReissueOrder = Game.CustomCommands.ReissueOrder
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -66,8 +66,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
        local dist = math.sqrt(((cmdParams[1]-tx)*(cmdParams[1]-tx))+((cmdParams[3]-tz)*(cmdParams[3]-tz)))
        if (dist < math.max(100,cmdParams[4])) then
          local angle = (math.random()*6.28)-3.14
-         ReissueOrder(unitID, CMD_MOVE, {cmdParams[1] + (math.sin(angle) * 120),ty, cmdParams[3] + (math.cos(angle) * 120)}, cmdOptions, cmdTag, fromInsert)
-         ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
+         GiveOrderToUnit(unitID, CMD_MOVE, {cmdParams[1] + (math.sin(angle) * 120),ty, cmdParams[3] + (math.cos(angle) * 120)}, cmdOptions)
+         GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT)
          watchList[unitID] = GetGameFrame() + 45
          return false
        else
@@ -80,11 +80,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
          local tx,ty,tz = GetUnitPosition(unitID)
          local ux,_,uz = GetUnitPosition(cmdParams[1])
          local angle = math.atan2((tx-ux),(tz-uz))
-         if fromInsert == nil then
-           ReissueOrder(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions, cmdTag, fromInsert)
-           ReissueOrder(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT, cmdTag, fromInsert)
-           watchList[unitID] = GetGameFrame() + 45
-         end
+         GiveOrderToUnit(unitID, CMD_MOVE, {ux + (math.sin(angle) * 100),ty, uz + (math.cos(angle) * 100)}, cmdOptions)
+         GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, OPT_SHIFT)
+         watchList[unitID] = GetGameFrame() + 45
          return false
        else
          return true
