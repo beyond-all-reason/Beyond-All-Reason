@@ -2637,7 +2637,7 @@ function UnitDef_Post(name, uDef)
 
 		------------------
 		-- Fighter Reworks
-		
+
 		if name == "armfig" or name == "armhawk"
 		or name == "corveng" or  name == "corvamp"
 		then
@@ -2647,6 +2647,9 @@ function UnitDef_Post(name, uDef)
 			
 		end
 
+		if name == "armhawk" then
+			uDef.turnradius = 54
+		end
 		-------------------
 		-- Sea Plane Rework
 
@@ -2657,7 +2660,10 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = 0.4
 		
 		elseif name == "armsfig" then
+			uDef.health = math.ceil(uDef.health * 0.4) * 10
 			uDef.objectname = "Units/ARMSFIGBIG.s3o"
+			uDef.metalcost = 560
+			uDef.energycost = 22000
 			uDef.speed = 725
 			uDef.maxacc = 0.6
 			uDef.maxaileron = 0.08
@@ -2668,9 +2674,57 @@ function UnitDef_Post(name, uDef)
 			uDef.maxrudder = 0.00552
 			uDef.wingangle = 0.06252
 			uDef.wingdrag = 0.3
-			uDef.weapondefs.armsfig_weapon.burst = 4
+			uDef.weapondefs.armsfig_weapon = {
+				areaofeffect = 8,
+				avoidfeature = false,
+				avoidfriendly = false,
+				burnblow = true,
+				canattackground = false,
+				castshadow = false,
+				cegtag = "missiletrailfighter",
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-tiny-air",
+				firestarter = 0,
+				flighttime = 1.5,
+				impactonly = 1,
+				impulsefactor = 0,
+				metalpershot = 0,
+				model = "cormissile.s3o",
+				name = "High velocity a2a missile launcher",
+				noselfdamage = true,
+				range = 740,
+				reloadtime = 1.4,
+				smokecolor = 0.55,
+				smokeperiod = 4,
+				smokesize = 1.8,
+				smoketime = 8,
+				smoketrail = false,
+				smoketrailcastshadow = false,
+				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundstart = "Rocklit3",
+				startvelocity = 515,
+				texture1 = "null",
+				texture2 = "smoketrail",
+				tolerance = 8000,
+				tracks = true,
+				turnrate = 28000,
+				weaponacceleration = 450,
+				weapontimer = 7,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 970,
+				damage = {
+					commanders = 8,
+					default = 24,
+					vtol = 750,
+				},
+			}
 			uDef.weapons[1].mainDir = "0 0 1" 
-			uDef.weapons[1].maxangledif = 20
+			uDef.weapons[1].maxangledif = 40
 
 		elseif name == "armsaber" then
 			uDef.objectname = "Units/ARMSABERBIG.s3o"
@@ -2680,6 +2734,7 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "Units/ARMSBBIG.s3o"
 			uDef.speed = 425
 			uDef.maxbank = 0.4
+			uDef.maxrudder = 0.00252
 
 		elseif name == "armseap" then
 			uDef.objectname = "Units/ARMSEAPBIG.s3o"
