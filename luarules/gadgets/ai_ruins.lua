@@ -44,7 +44,7 @@ end
 math_random = math.random	-- not a local cause the includes below use it
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
+local blueprintController = VFS.Include('luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua')
 local scavConfig = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
@@ -561,24 +561,24 @@ function gadget:GameFrame(n)
 		-- 	seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
 		-- 	blueprintTierLevel = -1
 		if r > 98 and Spring.GetModOptions().ruins_only_t1 == false then -- elseif
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
+			landRuin = blueprintController.GetRandomLandBlueprint(4)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(4)
 			blueprintTierLevel = 4
 		elseif r > 95 and Spring.GetModOptions().ruins_only_t1 == false then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(3)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(3)
+			landRuin = blueprintController.GetRandomLandBlueprint(3)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(3)
 			blueprintTierLevel = 3
 		elseif r > 85 and Spring.GetModOptions().ruins_only_t1 == false then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
+			landRuin = blueprintController.GetRandomLandBlueprint(2)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(2)
 			blueprintTierLevel = 2
 		elseif r > 65 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
+			landRuin = blueprintController.GetRandomLandBlueprint(1)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(1)
 			blueprintTierLevel = 1
 		else
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
+			landRuin = blueprintController.GetRandomLandBlueprint(0)
+			seaRuin = blueprintController.GetRandomSeaBlueprint(0)
 			blueprintTierLevel = 0
 		end
 

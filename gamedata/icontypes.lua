@@ -315,6 +315,10 @@ local icontypes = {
 		bitmap = "icons/ship_t2_flagship.png",
 		size = 3.46499968
 	},
+	corprince = {
+		bitmap = "icons/t2_quad_artillery_ship.png",
+		size = 3.46499968
+	},
 	armestor = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
@@ -438,6 +442,10 @@ local icontypes = {
 	legdeflector = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
+	},
+	leggatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
 	},
 	armgatet3 = {
 		bitmap = "icons/shield.png",

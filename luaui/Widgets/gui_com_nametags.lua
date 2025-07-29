@@ -333,11 +333,16 @@ function widget:Update(dt)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
-			-- new
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
+			end
 			myTeamID = Spring.GetMyTeamID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
+			end
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
 			end
 			CheckAllComs()
 			sec = 0

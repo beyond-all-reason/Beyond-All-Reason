@@ -6,7 +6,6 @@ return {						--costs should be same as legmohoconct and legmohoconin
 		buildangle = 2048,
 		energycost = 14500,
 		metalcost = 1060,
-		buildingmask = 0,
 		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 19400,
 		canrepeat = false,

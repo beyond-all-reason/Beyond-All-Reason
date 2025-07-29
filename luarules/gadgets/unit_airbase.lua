@@ -658,11 +658,8 @@ else	-- Unsynced
 		else
 			local sUnits = spGetSelectedUnits()
 			for i = 1, #sUnits do
-				if isAirCon[spGetUnitDefID(sUnits[i])] then
-                	-- allows air constructors to target air repair pads
-                	-- although I don't think the CMD below is working as intended since you can't select
-                	-- air pads with other types of units
-				elseif isAirUnit[spGetUnitDefID(sUnits[i])] then
+				local unitDefID = spGetUnitDefID(sUnits[i])
+				if isAirUnit[unitDefID] and not isAirCon[unitDefID] then -- cons still default to their usual construction tasks
 					return CMD_LAND_AT_SPECIFIC_AIRBASE
 				end
 			end

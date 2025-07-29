@@ -8,7 +8,6 @@ function widget:GetInfo()
 		version = "2.0",
 		date = "Oct 23, 2010; last update: April 12, 2022",
 		license = "GNU GPL, v2 or later",
-		handler = true,
 		layer = -1, -- load before all widgets that need these mex/geo building tools
 		enabled = true
 	}

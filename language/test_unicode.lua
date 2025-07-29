@@ -1500,7 +1500,7 @@ return {
 				armsaber = "Seaplane Gunship",
 				armsam = "Missile Truck",
 				armsb = "Seaplane Bomber",
-				armscab = "Mobile Anti-Nuke",
+				armscab = "Mobile All-Terrain Anti-Nuke",
 				armsd = "Intrusion Countermeasure System - tracks down stealthy units",
 				armseap = "Torpedo Gunship",
 				armseer = "Radar Vehicle",

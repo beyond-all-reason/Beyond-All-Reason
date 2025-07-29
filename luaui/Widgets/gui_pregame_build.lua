@@ -12,7 +12,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -177,9 +176,9 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "stop", clearPregameBuildQueue, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
+	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
+	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Pregame Queue Initializing. Local SubLogic is assumed available.")
 
@@ -220,8 +219,8 @@ function widget:Initialize()
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
 	end
-	widgetHandler:RegisterGlobal(widget, "GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
-	widgetHandler:RegisterGlobal(widget, "GetBuildQueue", WG["pregame-build"].getBuildQueue)
+	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
+	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
 end
 
 local function GetBuildingDimensions(uDefID, facing)
@@ -431,7 +430,7 @@ function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
+		widgetHandler:RemoveCallIn("DrawWorld")
 		return
 	end
 
@@ -558,8 +557,8 @@ end
 function widget:GameFrame(n)
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if #buildQueue == 0 then
-		widgetHandler:RemoveWidgetCallIn("GameFrame", self)
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveCallIn("GameFrame")
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -636,9 +635,9 @@ function widget:GameStart()
 
 
 	-- Deattach pregame action handlers
-	widgetHandler.actionHandler:RemoveAction(self, "stop")
-	widgetHandler.actionHandler:RemoveAction(self, "buildfacing")
-	widgetHandler.actionHandler:RemoveAction(self, "buildmenu_pregame_deselect")
+	widgetHandler:RemoveAction("stop")
+	widgetHandler:RemoveAction("buildfacing")
+	widgetHandler:RemoveAction("buildmenu_pregame_deselect")
 end
 
 function widget:Shutdown()
@@ -648,8 +647,8 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
-	widgetHandler:DeregisterGlobal(widget, "GetPreGameDefID")
-	widgetHandler:DeregisterGlobal(widget, "GetBuildQueue")
+	widgetHandler:DeregisterGlobal("GetPreGameDefID")
+	widgetHandler:DeregisterGlobal("GetBuildQueue")
 
 	WG["pregame-build"] = nil
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
