@@ -21,7 +21,6 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 
 -- give permissions when in singleplayer
 if numPlayers <= 1 then
-
 	for _,playerID in ipairs(Spring.GetPlayerList()) do
 
 		local accountID = false
@@ -35,6 +34,8 @@ if numPlayers <= 1 then
 			powerusers[accountID] = singleplayerPermissions
 		end
 	end
+else
+	powerusers[-1] = nil
 end
 
 -- order by permission instead of playername
