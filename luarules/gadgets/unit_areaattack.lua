@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_AREAATTACK = 39954
+local CMD_AREAATTACK = Game.CustomCommands.GameCMD.AREAATTACK
 
 if gadgetHandler:IsSyncedCode() then
 
