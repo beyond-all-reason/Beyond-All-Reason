@@ -2339,60 +2339,18 @@ function UnitDef_Post(name, uDef)
 			}
 
 
-		-- t1.5 mexes -> T2 mexes
-		-- Lower startup costs for faster returns than T3 mexes, higher upkeep for lower efficiency
-		-- Each mex upgrade should be a significant decision, placing high demand on the player's economy.
-		-- Should be encouraged to make just a few T2 mexes rather than spamming them.
-		-- Transition from T2 to T3 should be possible once main base mexes are upgraded to T2
-		-- legion gets powerful T2 mexes for experimentation
-		elseif name == "legmext15" then
-			uDef.metalcost = 450
-			uDef.energycost = 7500
-			uDef.buildtime = 7500
-			uDef.health = 900
-			uDef.metalstorage = 250
-			uDef.energyupkeep = 60
-			uDef.extractsmetal = 0.004
-			uDef.maxwaterdepth = 10000
 
-		elseif name == "armamex" then
-			uDef.metalcost = 220
-			uDef.buildtime = 7500
-			uDef.energycost = 5000
-			uDef.health = 1200
-			uDef.metalstorage = 150
-			uDef.energyupkeep = 45
-			uDef.extractsmetal = 0.003
-			uDef.cancloak = false
-			uDef.explodeas = "mediumBuildingExplosionGeneric"
-			uDef.maxwaterdepth = 10000
 
-		elseif name == "corexp" then
-			uDef.metalcost = 235
-			uDef.energycost = 4000
-			uDef.buildtime = 8000
-			uDef.health = 1000
-			uDef.energyupkeep = 45
-			uDef.extractsmetal = 0.003
-			uDef.maxwaterdepth = 10000
-
-		-- T2 mexes -> T3 mexes 
-		-- More concentrated - higher investment for higher but more gradual returns
-		-- Eventually all mexes should be upgraded to T3, but only in the very late game. Upgrading mexes should be gradual
-		-- Should be a strategic decision to build rather than spammed. T3 can be paid for with 4 - 8 T3 mexes. supplemented by T2 and T1 mex expansions.
-		-- Tune startup costs to control payoff time and upkeep to control upgrade efficiency
-		-- Legion gets different mexes for experimentation
+		-- T2 mexes 
 		elseif name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" or name == "legmoho"
 		then
-			uDef.energyupkeep = 90
-			uDef.extractsmetal = 0.006
+			uDef.energyupkeep = 60
 			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
 			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
 
 		elseif name == "cormexp" then 
-			uDef.energyupkeep = 90
-			uDef.extractsmetal = 0.006
+			uDef.energyupkeep = 60
 
 		-- remove hovers from com
 		elseif name == "corcom" or name == "legcom" or name == "armcom" then
@@ -2444,14 +2402,6 @@ function UnitDef_Post(name, uDef)
 
 		------------
 		-- Lab Costs
-
-		-- T1
-		-- T1 labs must be efficient enough to encourage players to build their own lab
-		if name == "armlab" or name == "armap" or name == "armsy" or name == "armvp" 
-		or name == "corap" or name == "corsy" or name == "corlab" or name == "corvp"
-		or name == "leglab" or name == "legap" or name == "legsy" or name == "legvp"
-		then 
-			uDef.workertime = 200
 
 		-- T2
 		-- T2 labs are priced as t1.5
@@ -2880,12 +2830,7 @@ function UnitDef_Post(name, uDef)
 		-- Hovers, Sea Planes and Amphibious Labs
 		
 
-		-- Hover Labs
-		-- Made by T1 cons
-		if name == "armhp" or name == "armfhp"
-		or name == "corhp" or name == "corfhp" 
-		or name == "leghp" or name == "legfhp" then
-			uDef.workertime = 400
+		-- Hover labs removed
 			
 		-- hover cons
 		elseif name == "armch" then
@@ -3007,36 +2952,15 @@ function UnitDef_Post(name, uDef)
 			[46] = "legfhive",
 			}
 		
-		-- Seaplane Platforms
+		-- Seaplane Platforms removed, become T2 air labs. 
+		--- T2 air labs have sea variants
 		-- Made by hover cons and enhanced ship cons 
 		-- Enhanced ships given seaplanes instead of static AA
-		elseif name == "armplat" then
-			uDef.workertime = 400
-			uDef.buildoptions = {
-			[1] = "armhaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armawac",
-			[6] = "armsaber",
-			[7] = "armhvytrans",
-			}
-
-		elseif name == "corplat" then
-			uDef.workertime = 400
-			uDef.buildoptions = {		
-			[1] = "corhaca",
-			[2] = "corhunt",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-			[7] = "corhvytrans",
-			}
-		end
 
 		----------------
-		-- Other Reworks
+		-- Extra Reworks
+
+		-- These are purely meant for experimentation, not meant to be final
 
 		-- Aramada T1
 	
