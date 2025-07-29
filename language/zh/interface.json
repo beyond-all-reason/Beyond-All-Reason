@@ -1062,6 +1062,8 @@
 				"limitidlefps_descr": "切换到游戏外时限制帧率(通过把垂直同步设为一个高数值)\n游戏内视角移动时将会打破待机模式",
 				"msaa": "抗锯齿",
 				"msaa_descr": "启用多样本反锯齿  警告: 会消耗大量资源! ",
+				"supersampling": "超级采样",
+				"supersampling_descr": "启用超级采样抗锯齿。需要启用MSAA。\n\n警告: 会消耗大量资源! ",
 				"cas_sharpness": "锐化",
 				"cas_sharpness_descr": "对3D世界的锐化程度",
 				"sepiatone": "屏幕颜色调整",

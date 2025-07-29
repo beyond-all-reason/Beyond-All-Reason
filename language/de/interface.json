@@ -836,6 +836,8 @@
 				"limitidlefps_descr": "Reduziert die FPS im Ruhezustand (durch hohes VSYNC)\n(Vollbild und randloses Fenster benötigen keinen Engine-Fokus)\nVerringert die PC-Auslastung, wenn du Dinge außerhalb des Spiels tust\nKamerabewegungen beenden den Ruhezustand",
 				"msaa": "Kantenglättung",
 				"msaa_descr": "Aktiviert Kantenglättung. HINWEIS: Kann sehr viel Leistung benötigen!\n\nÄnderungen werden vor dem nächsten Spiel angewandt",
+				"supersampling": "Supersampling",
+				"supersampling_descr": "Aktiviert Supersampling-Kantenglättung.\nErfordert aktiviertes Kantenglättung.\n\nHINWEIS: Kann sehr leistungsintensiv sein!",
 				"cas_sharpness": "Schärfe",
 				"cas_sharpness_descr": "Wie stark soll der Schärfefilter in der 3D-Welt sein",
 				"sepiatone": "Farbfilter",
