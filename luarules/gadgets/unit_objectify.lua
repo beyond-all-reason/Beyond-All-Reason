@@ -161,7 +161,7 @@ else -- UNSYNCED
 			if isDecoration[uDefID] then
 				return CMD_MOVE -- ignore attack, guard, reclaim, repair
 			elseif isObject[uDefID] and myAllyTeamID == Spring.GetUnitAllyTeam(id) then
-				if select(5, Spring.GetUnitHealth(id)) == 1 then
+				if Spring.GetUnitIsBeingBuilt(id) == false then
 					return CMD_MOVE -- ignore guard
 				end
 			end
