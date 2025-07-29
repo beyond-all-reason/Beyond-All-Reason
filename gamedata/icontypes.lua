@@ -3731,6 +3731,10 @@ local icontypes = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 2.6
 	},
+	armhaapuw = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
 
 	armhalab = {
 		bitmap = "icons/factory_bot_t2.png",
@@ -3749,6 +3753,11 @@ local icontypes = {
 
 	
 	corhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+
+	corhaapuw = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 2.6
 	},
