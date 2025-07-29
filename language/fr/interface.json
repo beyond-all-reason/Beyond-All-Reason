@@ -897,8 +897,6 @@
 				"limitidlefps_descr": "Réduit les IPS lorsque vous avez été inactif depuis au moins une minute.\nDéplacer la caméra désactivera le mode inactif.",
 				"msaa": "Anticrénelage",
 				"msaa_descr": "Active l'anticrénelage multi-échantillon. Coûteux en ressources !",
-				"supersampling": "Suréchantillonnage",
-				"supersampling_descr": "Active l'anticrénelage par suréchantillonnage.\nNécessite que l'anticrénelage soit activé.\n\nTrès coûteux en ressources !",
 				"cas_sharpness": "Netteté",
 				"cas_sharpness_descr": "Définit l'intensité de la netteté à appliquer aux éléments 3D",
 				"sepiatone": "Filtres de couleur",
