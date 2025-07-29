@@ -34,13 +34,13 @@ return {
 		workertime = 200,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
-			[1] = "coraca",
-			[2] = "corape",
-			[3] = "corhurc",
-			[4] = "cortitan",
-			[5] = "corvamp",
-			[6] = "corhvytrans",
-			[7] = "corawac",
+			[1] = "armaca",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armsehak",
+			[6] = "armsaber",
+			[7] = "armhvytrans"
 		},
 		customparams = {
 			airfactory = true,

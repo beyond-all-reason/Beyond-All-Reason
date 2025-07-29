@@ -25,7 +25,7 @@ return {
 		objectname = "Units/ARMHAAP.s3o",
 		radardistance = 750,
 		radaremitheight = 50,
-		script = "Units/ARMHAAP.cob",
+		script = "Units/ARMAAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,

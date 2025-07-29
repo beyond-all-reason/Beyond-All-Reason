@@ -2489,6 +2489,7 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.buildinggrounddecaltype = "decals/armamsub_aoplane.dds"
 			uDef.customparams.buildinggrounddecalsizex = 13
 			uDef.customparams.buildinggrounddecalsizey = 13
+			uDef.featuredefs.dead["object"] = "Units/armaaplat_dead.s3o"
 			uDef.buildoptions = {
 			[1] = "armaca",
 			[2] = "armseap",			
@@ -2496,6 +2497,7 @@ function UnitDef_Post(name, uDef)
 			[4] = "armsfig",
 			[5] = "armsehak",
 			[6] = "armsaber",
+			[7] = "armhvytrans"
 			}
 			uDef.sfxtypes = {
 				explosiongenerators = {
@@ -2526,14 +2528,46 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "coraap" then
+			uDef.buildpic = "CORHAAP.DDS"
+			uDef.objectname = "Units/CORAAPLAT.s3o"
+			uDef.script = "Units/CORHAAP.cob"
 			uDef.buildoptions = {
 			[1] = "coraca",
-			[2] = "corape",
-			[3] = "corhurc",
-			[4] = "cortitan",
-			[5] = "corvamp",
-			[6] = "corhvytrans",
-			[7] = "corawac",
+			[2] = "corhunt",
+			[3] = "corcut",
+			[4] = "corsb",
+			[5] = "corseap",
+			[6] = "corsfig",
+			[7] = "corhvytrans",
+			[8] = "corawac",
+			}
+			uDef.featuredefs.dead["object"] = "Units/coraaplat_dead.s3o"
+			uDef.customparams.buildinggrounddecaltype = "decals/coraap_aoplane.dds"
+			uDef.customparams.buildinggrounddecalsizex = 6
+			uDef.customparams.buildinggrounddecalsizey = 6
+			uDef.customparams.sfxtypes = {
+				pieceexplosiongenerators = {
+					[1] = "deathceg2",
+					[2] = "deathceg3",
+					[3] = "deathceg4",
+				},
+			}
+			uDef.customparams.sounds = {
+				build = "seaplok2",
+				canceldestruct = "cancel2",
+				underattack = "warning1",
+				unitcomplete = "untdone",
+				count = {
+					[1] = "count6",
+					[2] = "count5",
+					[3] = "count4",
+					[4] = "count3",
+					[5] = "count2",
+					[6] = "count1",
+				},
+				select = {
+					[1] = "seaplsl2",
+				},
 			}
 	
 		elseif name == "armap" then
