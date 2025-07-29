@@ -12,7 +12,8 @@ function gadget:GetInfo()
 	}
 end
 
--- Custom counterpart to the engine's `CMD.AREA_ATTACK`, used by air units:
+-- Custom counterpart to the engine's `CMD.AREA_ATTACK`, used by air units.
+-- FIXME: See https://github.com/beyond-all-reason/RecoilEngine/issues/1032
 local CMD_AREA_ATTACK_GROUND = Game.CustomCommands.GameCMD.AREA_ATTACK_GROUND
 
 if gadgetHandler:IsSyncedCode() then
