@@ -12,7 +12,8 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_AREAATTACK = Game.CustomCommands.GameCMD.AREAATTACK
+-- Custom counterpart to the engine's `CMD.AREA_ATTACK`, used by air units:
+local CMD_AREA_ATTACK_GROUND = Game.CustomCommands.GameCMD.AREA_ATTACK_GROUND
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -36,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	local aadesc = {
 		name = "Area Attack",
 		action = "areaattack",
-		id = CMD_AREAATTACK,
+		id = CMD_AREA_ATTACK_GROUND,
 		type = CMDTYPE.ICON_AREA,
 		tooltip = "attack an area randomly",
 		cursor = "cursorattack",
@@ -58,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		-- accepts: CMD_AREAATTACK
+		-- accepts: CMD_AREA_ATTACK_GROUND
 		if canAreaAttack[unitDefID] then
 			return true
 		else
@@ -67,7 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
-		if cmd == CMD_AREAATTACK then
+		if cmd == CMD_AREA_ATTACK_GROUND then
 			local x,_,z = Spring.GetUnitPosition(u)
 			local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 			if dist <= range[ud] - param[4] then
@@ -88,14 +89,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:RegisterCMDID(CMD_AREAATTACK)
-		gadgetHandler:RegisterAllowCommand(CMD_AREAATTACK)
+		gadgetHandler:RegisterCMDID(CMD_AREA_ATTACK_GROUND)
+		gadgetHandler:RegisterAllowCommand(CMD_AREA_ATTACK_GROUND)
 	end
 
 else	-- UNSYNCED
 
 	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_AREAATTACK, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
+		Spring.SetCustomCommandDrawData(CMD_AREA_ATTACK_GROUND, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
 	end
 
 end
