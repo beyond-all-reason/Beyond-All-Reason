@@ -2635,30 +2635,57 @@ function UnitDef_Post(name, uDef)
 		
 		end
 
+		------------------
+		-- Fighter Reworks
+		
+		if name == "armfig" or name == "armhawk"
+		or name == "corveng" or  name == "corvamp"
+		then
+			uDef.speed = math.ceil(uDef.speed *0.15) * 10
+			uDef.weapons[1].mainDir = "0 0 1" 
+			uDef.weapons[1].maxangledif = 20
+			
+		end
+
 		-------------------
-		-- Sea Plane Rework\
+		-- Sea Plane Rework
 
 		--Armada
 		if name == "armsehak" then
 			uDef.objectname = "Units/ARMSEHAKBIG.s3o"
+			uDef.speed = 1025
+			uDef.maxacc = 0.4
 		
 		elseif name == "armsfig" then
 			uDef.objectname = "Units/ARMSFIGBIG.s3o"
-			uDef.speed = 765
-			uDef.cruisealtitude = 250
-			uDef.maxacc = 0.5
-			uDef.maxdec = 0.2
-			uDef.maxbank = 0.9
-			uDef.wingangle = 0.6
+			uDef.speed = 725
+			uDef.maxacc = 0.6
+			uDef.maxaileron = 0.08
+			uDef.maxbank = 1.2
+			uDef.maxdec = 0.1
+			uDef.maxelevator = 0.02002
+			uDef.maxpitch = 0.725
+			uDef.maxrudder = 0.00552
+			uDef.wingangle = 0.06252
+			uDef.wingdrag = 0.3
+			uDef.weapondefs.armsfig_weapon.burst = 4
+			uDef.weapons[1].mainDir = "0 0 1" 
+			uDef.weapons[1].maxangledif = 20
 
 		elseif name == "armsaber" then
 			uDef.objectname = "Units/ARMSABERBIG.s3o"
+			uDef.speed = 500
 
 		elseif name == "armsb" then
 			uDef.objectname = "Units/ARMSBBIG.s3o"
+			uDef.speed = 425
+			uDef.maxbank = 0.4
 
 		elseif name == "armseap" then
 			uDef.objectname = "Units/ARMSEAPBIG.s3o"
+			uDef.speed = 525
+			uDef.weapondefs.armseap_weapon1.burst = 12
+			uDef.weapondefs.armseap_weapon1.burstrate = 0.1
 
 		
 
@@ -2667,10 +2694,8 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corhunt" then
 			uDef.objectname = "Units/CORHUNTBIG.s3o"
 			uDef.speed = 500
-			uDef.cruisealtitude = 250
 
 		elseif name == "corsfig" then
-			uDef.cruisealtitude = 250
 			uDef.objectname = "Units/CORSFIGBIG.s3o"
 			uDef.speed = 765
 			uDef.maxacc = 0.5
