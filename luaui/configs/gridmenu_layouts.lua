@@ -43,6 +43,7 @@ local labGrids = {
 		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
 		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
 	},
+
 	corvp = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
@@ -222,9 +223,9 @@ local labGrids = {
 	},
 
 	armhalab = {
-		"armhack", "armdecom", "armmar", "armmark",
-		"armvang", "armfboy", "armraz", "armaser",
-		"armscab", "armsnipe", "", "",
+		"armhack", "armdecom", "armfast", "armmark",
+		"armvang", "armsnipe", "armraz", "armaser",
+		"", "armmar", "", "armscab",
 	},
 
 	leghalab = {
@@ -235,26 +236,14 @@ local labGrids = {
 
 	armhaap = {
 		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "armliche", "armblade", "",                                     -- empty rows
-	},
-
-	armhaapuw = {
-		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "armliche", "armblade", "",                                     -- empty rows
+		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
 	},
 
 	corhaap = {
 		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "corcrwh", "", "",                                     -- empty rows
-	},
-
-	corhaapuw = {
-		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
-		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "corcrwh", "", "",                                     -- empty rows
+		"", "", "", "",                                     -- empty rows
 	},
 
 	armhasy = {
@@ -264,15 +253,15 @@ local labGrids = {
 	},
 
 	corhasy = {
-		"corhacs", "corantiship", "corsok", "corsjam",              
-		"corblackhy", "corbats", "corparrow", "",              
-		"corssub", "corshiva", "corarch", "",              
+		"corhacs", "", "cormship", "",              
+		"corfship", "corcrus", "", "",              
+		"corshark", "", "corarch", "",              
 	},
 
 	armhavp = {
 		"armhacv", "", "armbull", "armseer",
-		"armmanni", "armlun", "armmerl", "armjam",
-		"", "armthor", "armyork", "",
+		"armmanni", "armthor", "armmerl", "armjam",
+		"", "armlun", "armyork", "",
 	},
 
 	corhavp = {
@@ -2459,22 +2448,6 @@ if Spring.GetModOptions().techoverhaul then
 
 	-- Lab Grids
 
-	labGrids["armvp"] = {
-		"armcv", "armbeaver", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
-	}
-	labGrids["corvp"] = {
-		"corcv", "cormuskrat", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
-		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
-	}
-	labGrids["legvp"] = {
-		"legcv", "legotter", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
-		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
-		"", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
-	}
-
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armspy",
 		"armfido", "armmav", "armzeus", "armsptk",
@@ -2495,12 +2468,12 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["armavp"] = {
 		"armacv", "armmlv", "armlatnk", "armgremlin",
-		"armmart", "armmanac", "armmh", "armsh",
+		"armmart", "armmanac", "armmh", "",
 		"armch", "armcroc", "armah", "",
 	}
 
 	labGrids["coravp"] = {
-		"coracv", "cormlv", "corsala", "corsh",
+		"coracv", "cormlv", "corsala", "",
 		"cormart", "correap", "cormh", "corsnap",
 		"corch", "corhal", "corah", "",
 	}
@@ -2511,14 +2484,26 @@ if Spring.GetModOptions().techoverhaul then
 		"legch", "legfloat", "legah", "legcar",
 	}
 
+	labGrids["armaap"] = {
+		"armaca", "armsfig", "armsaber", "armsb",
+		"armsehak", "armhvytrans", "armseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["coraap"] = {
+		"coraca", "corsfig", "corcut", "corsb",
+		"corhunt", "corhvytrans", "corseap", "",
+		"", "", "", "",
+	}
+
 	labGrids["armasy"] = {
-		"armacsub", "armch", "armanac", "armsh",
+		"armacsub", "", "armanac", "armsh",
 		"armlship", "armcrus", "armmship", "",
 		"armsubk", "armcroc", "armah", "",
 	}
 
 	labGrids["corasy"] = {
-		"coracsub", "corch", "corsnap", "corsh",
+		"coracsub", "", "corsnap", "corsh",
 		"corfship", "corcrus", "cormship", "",
 		"corshark", "corsala", "corah", "",
 	}

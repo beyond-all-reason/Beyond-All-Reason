@@ -37,11 +37,12 @@ return {
 			[3] = "corsjam",
 			[4] = "corbats",
 			[5] = "corblackhy",
-			[6] = "corshiva",
-			[7] = "corarch",
-			[8] = "corparrow",
-			[9] = "corsok",
-			[10] = "corantiship"
+			[6] = "corkorg",
+			[7] = "corshiva",
+			[8] = "corarch",
+			[9] = "corparrow",
+			[10] = "corsok",
+			[11] = "corcarry"
 		},
 		customparams = {
 			model_author = "Mr Bob",
