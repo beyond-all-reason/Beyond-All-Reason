@@ -650,15 +650,12 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	gun_1 = gun_1 + 1;
-	if (gun_1 > 4) gun_1 = 1;
 
 	if( gun_1 == 1 )
 	{
 		move rbarrel1 to z-axis [-2] speed [1000];
 		sleep 100;
 		move rbarrel1 to z-axis [0] speed [6];
-		//gun_1 = 1;
 		return (1);
 	}
 	if ( gun_1 == 2 )
@@ -666,7 +663,6 @@ FireWeapon1()
 		move lbarrel1 to z-axis [-2] speed [1000];
 		sleep 100;
 		move lbarrel1 to z-axis [0] speed [6];
-		//gun_1 = 2;
 		return (1);
 	}
 	if( gun_1 == 3 )
@@ -674,7 +670,6 @@ FireWeapon1()
 		move rbarrel2 to z-axis [-2] speed [1000];
 		sleep 100;
 		move rbarrel2 to z-axis [0] speed [6];
-		//gun_1 = 3;
 		return (1);
 	}
 	if ( gun_1 == 4 )
@@ -682,10 +677,15 @@ FireWeapon1()
 		move lbarrel2 to z-axis [-2] speed [1000];
 		sleep 100;
 		move lbarrel2 to z-axis [0] speed [6];
-		//gun_1 = 0;
 		return (1);
 	}
 	return (1);
+}
+
+EndBurst1()
+{
+	gun_1 = gun_1 + 1;
+	if (gun_1 > 4) gun_1 = 1;
 }
 
 AimFromWeapon2(pieceIndex)

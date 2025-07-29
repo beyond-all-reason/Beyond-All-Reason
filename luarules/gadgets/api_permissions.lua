@@ -15,22 +15,27 @@ end
 
 
 local powerusers = include("LuaRules/configs/powerusers.lua")
-local singleplayerPermissions = powerusers['   ']
-powerusers['   '] = nil
+local singleplayerPermissions = powerusers[-1]
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
 -- give permissions when in singleplayer
 if numPlayers <= 1 then
-
 	for _,playerID in ipairs(Spring.GetPlayerList()) do
-		local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID)
+
+		local accountID = false
+		local _, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+		if accountInfo and accountInfo.accountid then
+			accountID = tonumber(accountInfo.accountid)
+		end
 
 		-- dont give permissions to the spectators when there is a player is playing
 		if not spec or numPlayers == 0 then
-			powerusers[name] = singleplayerPermissions
+			powerusers[accountID] = singleplayerPermissions
 		end
 	end
+else
+	powerusers[-1] = nil
 end
 
 -- order by permission instead of playername

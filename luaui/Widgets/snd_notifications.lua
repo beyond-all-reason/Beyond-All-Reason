@@ -506,6 +506,12 @@ function widget:GameFrame(gf)
 				idleBuilder[unitID] = nil    -- do not repeat
 			end
 		end
+
+		-- max units check
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
+			queueNotification('MaxUnitsReached')
+		end
 	end
 
 	if gameframe % updateCommandersFrames == 0 then
@@ -620,7 +626,8 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -631,7 +638,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -642,7 +650,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 

@@ -297,13 +297,6 @@ local function updateAllyCountAndPauseTimer(newAllyCount)
 	end
 end
 
-local function updateLivingTeamsData()
-	clearAllyTeamsWatch()
-	local newAllyCount, newHordeAllyCount = processLivingTeams()
-	allyHordesCount = newHordeAllyCount
-	updateAllyCountAndPauseTimer(newAllyCount)
-end
-
 local function setAllyGridToGaia(allyID)
 	for gridID, data in pairs(captureGrid) do
 		if data.allyOwnerID == allyID then
@@ -311,6 +304,30 @@ local function setAllyGridToGaia(allyID)
 			data.progress = STARTING_PROGRESS
 		end
 	end
+end
+
+local function updateLivingTeamsData()
+	local oldAllyTeams = {}
+	for allyID in pairs(allyTeamsWatch) do
+		oldAllyTeams[allyID] = true
+	end
+	
+	clearAllyTeamsWatch()
+	local newAllyCount, newHordeAllyCount = processLivingTeams()
+	
+	local newAllyTeams = {}
+	for allyID in pairs(allyTeamsWatch) do
+		newAllyTeams[allyID] = true
+	end
+
+	for oldAllyID in pairs(oldAllyTeams) do
+		if not newAllyTeams[oldAllyID] then
+			setAllyGridToGaia(oldAllyID)
+		end
+	end
+	
+	allyHordesCount = newHordeAllyCount
+	updateAllyCountAndPauseTimer(newAllyCount)
 end
 
 local function createGridSquareData(x, z)
@@ -867,11 +884,6 @@ end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	flyingUnits[unitID] = nil
-end
-
-function gadget:TeamDied(teamID)
-	local allyID = select(6, Spring.GetTeamInfo(teamID))
-	setAllyGridToGaia(allyID)
 end
 
 function gadget:GameFrame(frame)

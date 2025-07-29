@@ -44,6 +44,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
 			attacksafetydistance = 300,
+			fighter = 1,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

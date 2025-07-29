@@ -155,6 +155,7 @@ return {
 				comment = "seems to have 40 deg burst limit arc limit w the burstcontrolwhenoutofarc = 2, fastautoretargeting, compounding",
 				def = "MECH_RAPIDLASER",
 				fastautoretargeting = true,
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

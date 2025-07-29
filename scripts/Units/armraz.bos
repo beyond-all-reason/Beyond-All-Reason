@@ -448,8 +448,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	// has to be up here or it uses both guns per burst
-	gun_1 = !gun_1;
 	
 	if( !gun_1 )
 	{
@@ -475,6 +473,11 @@ FireWeapon1()
 		call-script lua_UnitScriptLight(5, shotcount);
 		call-script lua_UnitScriptLight(6, shotcount);
 	}
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 QueryWeapon1(pieceIndex)

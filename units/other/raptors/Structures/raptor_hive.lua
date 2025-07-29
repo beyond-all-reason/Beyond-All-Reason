@@ -168,7 +168,7 @@ return {
 				metalpershot = 0,
 				model = "Raptors/greyrock2.s3o",
 				name = "Asteroid",
-				range = 29999,
+				range = 100,
 				reloadtime = 5,
 				smoketrail = 1,
 				soundhit = "nuke4",

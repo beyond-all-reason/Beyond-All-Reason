@@ -30,8 +30,9 @@ function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
 		return true
 	else
-		local playername = Spring.GetPlayerInfo(playerID, false)
-		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
+		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
 			end
