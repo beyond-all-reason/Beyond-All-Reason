@@ -2,7 +2,7 @@ return {
 	corhaap = {
 		activatewhenbuilt = true,
 		builder = true,
-		buildpic = "CORHAAP.DDS",
+		buildpic = "CORAAP.DDS",
 		buildtime = 67300,
 		canmove = true,
 		corpse = "DEAD",
@@ -43,8 +43,8 @@ return {
 		customparams = {
 			airfactory = true,
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 9,
-			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 12,
+			buildinggrounddecalsizey = 12,
 			buildinggrounddecaltype = "decals/coraap_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

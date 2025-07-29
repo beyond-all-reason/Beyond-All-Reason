@@ -2030,9 +2030,9 @@ function UnitDef_Post(name, uDef)
 
 
 		-- Con Reworks
-		-- Late T1 and Early T2 buildings are given to enhanced constructors
-		-- Since mobile radar and jammers are now in the more expensive T2 labs, the enhanced constructors can make stationary t2 radar
-
+		-- T1 constructors are given basic/low cost build options
+		-- T2 constructors get advanced/high cost build options
+		-- T3 constructors get experimental/expensive build options
 		elseif name == "armck" then
 			uDef.buildoptions = {
 				[1] = "armsolar",
@@ -2339,28 +2339,30 @@ function UnitDef_Post(name, uDef)
 			}
 
 
-		-- t1.5 mexes -> enhanced mexes
-
-		-- legion gets powerful enhanced mexes in return for weak t1 mexes. 
-		-- Legion labs are also cheaper (to-do)
+		-- t1.5 mexes -> T2 mexes
+		-- Lower startup costs for faster returns than T3 mexes, higher upkeep for lower efficiency
+		-- Each mex upgrade should be a significant decision, placing high demand on the player's economy.
+		-- Should be encouraged to make just a few T2 mexes rather than spamming them.
+		-- Transition from T2 to T3 should be possible once main base mexes are upgraded to T2
+		-- legion gets powerful T2 mexes for experimentation
 		elseif name == "legmext15" then
 			uDef.metalcost = 450
 			uDef.energycost = 7500
 			uDef.buildtime = 7500
 			uDef.health = 900
 			uDef.metalstorage = 250
-			uDef.energyupkeep = 35
-			uDef.extractsmetal = 0.003
+			uDef.energyupkeep = 60
+			uDef.extractsmetal = 0.004
 			uDef.maxwaterdepth = 10000
 
 		elseif name == "armamex" then
 			uDef.metalcost = 220
-			uDef.buildtime = 5000
+			uDef.buildtime = 7500
 			uDef.energycost = 5000
 			uDef.health = 1200
 			uDef.metalstorage = 150
-			uDef.energyupkeep = 30
-			uDef.extractsmetal = 0.002
+			uDef.energyupkeep = 45
+			uDef.extractsmetal = 0.003
 			uDef.cancloak = false
 			uDef.explodeas = "mediumBuildingExplosionGeneric"
 			uDef.maxwaterdepth = 10000
@@ -2368,31 +2370,38 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corexp" then
 			uDef.metalcost = 235
 			uDef.energycost = 4000
-			uDef.buildtime = 5500
+			uDef.buildtime = 8000
 			uDef.health = 1000
-			uDef.energyupkeep = 30
-			uDef.extractsmetal = 0.002
+			uDef.energyupkeep = 45
+			uDef.extractsmetal = 0.003
 			uDef.maxwaterdepth = 10000
 
-		-- T2 mexes rebalance
-		-- Mexes cost 60 E/s for 4x extraction
-		-- Legion pays a premium for 6x
+		-- T2 mexes -> T3 mexes 
+		-- More concentrated - higher investment for higher but more gradual returns
+		-- Eventually all mexes should be upgraded to T3, but only in the very late game. Upgrading mexes should be gradual
+		-- Should be a strategic decision to build rather than spammed. T3 can be paid for with 4 - 8 T3 mexes. supplemented by T2 and T1 mex expansions.
+		-- Tune startup costs to control payoff time and upkeep to control upgrade efficiency
+		-- Legion gets different mexes for experimentation
 		elseif name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" or name == "legmoho"
 		then
-			uDef.energyupkeep = 60
+			uDef.energyupkeep = 90
+			uDef.extractsmetal = 0.006
 			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
 			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
 
 		elseif name == "cormexp" then 
-			uDef.energyupkeep = 60
+			uDef.energyupkeep = 90
+			uDef.extractsmetal = 0.006
 
 		-- remove hovers from com
 		elseif name == "corcom" or name == "legcom" or name == "armcom" then
 			uDef.buildoptions[26] = ""
 			uDef.buildoptions[27] = ""
 
-		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 windc
+		-- Advanced Solar Buff - makes Asolar around the efficiency of constant 9 wind
+		-- This gives T2 a low level energy source (advanced solar) and a high level energy source (fusion)
+		-- This encourages players to build T2 energy sources instead of spamming T1 energy sources
 		elseif name == "armadvsol"
 		then
 			uDef.metalcost = 330
@@ -2410,13 +2419,15 @@ function UnitDef_Post(name, uDef)
 			uDef.health = 1200
 
 		-- Bedbug T1 Rework
+		-- This makes bedbugs a t1 scout for cortex bots. Fast moving and with radar instead of vision
+		-- Can self D to deal some damage, but won't trade positively with a t1 mex. Good against other scouts if timed well
+		-- Is mostly useful for scouting and assisting mobile armies with short range radar
 
 		elseif name == "corroach" then
 			uDef.metalcost = 30
 			uDef.energycost = 600
 			uDef.buildtime = 800
 			uDef.health = 120
-			uDef.maxwaterdepth = 16
 			uDef.movementclass = "BOT1"
 			uDef.radardistance = 700
 			uDef.radaremitheight = 18
@@ -2443,6 +2454,7 @@ function UnitDef_Post(name, uDef)
 			uDef.workertime = 200
 
 		-- T2
+		-- T2 labs are priced as t1.5
 		elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
 		or name == "coraap" or name == "corasy" or name == "coralab" or name == "coravp"
 		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
@@ -2453,6 +2465,7 @@ function UnitDef_Post(name, uDef)
 
 		------------
     	-- Tech down
+		-- This section is incomplete. Should change the tech levels for all rosters so the announcer is accurate.
 
 		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
 		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
@@ -2470,15 +2483,46 @@ function UnitDef_Post(name, uDef)
 		-- Air Labs
 
 		if name == "armaap" then
+			uDef.buildpic = "ARMHAAP.DDS"
+			uDef.objectname = "Units/ARMAAPLAT.s3o"
+			uDef.script = "Units/ARMHAAP.cob"
+			uDef.customparams.buildinggrounddecaltype = "decals/armamsub_aoplane.dds"
+			uDef.customparams.buildinggrounddecalsizex = 13
+			uDef.customparams.buildinggrounddecalsizey = 13
 			uDef.buildoptions = {
 			[1] = "armaca",
-			[2] = "armhawk",
-			[3] = "armpnix",
-			[4] = "armlance",
-			[5] = "armawac",
-			[6] = "armhvytrans",
-			[7] = "armbrawl",
-			[8] = "armstil",
+			[2] = "armseap",			
+			[3] = "armsb",
+			[4] = "armsfig",
+			[5] = "armsehak",
+			[6] = "armsaber",
+			}
+			uDef.sfxtypes = {
+				explosiongenerators = {
+					[1] = "custom:radarpulse_t1_slow",
+				},
+				pieceexplosiongenerators = {
+					[1] = "deathceg2",
+					[2] = "deathceg3",
+					[3] = "deathceg4",
+				},
+			}
+			uDef.sounds = {
+				build = "seaplok1",
+				canceldestruct = "cancel2",
+				underattack = "warning1",
+				unitcomplete = "untdone",
+				count = {
+					[1] = "count6",
+					[2] = "count5",
+					[3] = "count4",
+					[4] = "count3",
+					[5] = "count2",
+					[6] = "count1",
+				},
+				select = {
+					[1] = "seaplsl1",
+				},
 			}
 
 		elseif name == "coraap" then
@@ -2566,6 +2610,9 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armaca" then
+			uDef.buildpic = "ARMCSA.DDS"
+			uDef.objectname = "Units/ARMCSA.s3o"
+			uDef.script = "units/ARMCSA.cob"
 			uDef.buildoptions = {
 				[1] = "armadvsol",
 				[2] = "armamex",
@@ -2588,6 +2635,9 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "coraca" then
+			uDef.buildpic = "CORCSA.DDS"
+			uDef.objectname = "Units/CORCSA.s3o"
+			uDef.script = "units/CORCSA.cob"
 			uDef.buildoptions = {
 				[1] = "coradvsol",
 				[2] = "corexp",
