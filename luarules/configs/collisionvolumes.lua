@@ -225,14 +225,9 @@ pieceCollisionVolume['cortoast'] = {
 	['3']={22,22,22,0,10,0,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
 }
-pieceCollisionVolume['armveil'] = {
-	['1']={25,75,25,0,-15,0,1,1},
-	['3']={76,16,16,6,0,0,1,0},
-}
 pieceCollisionVolume['armbrtha'] = {
 	['1']={32,84,32,0,-20,0,1,1},
 	['3']={13,0,75,0,0,20,1,2},
-	['4']={8,8,42,0,1,70,1,2},
 }
 pieceCollisionVolume['corint'] = {
 	['1']={72,84,72,0,28,0,1,1},
@@ -368,6 +363,11 @@ pieceCollisionVolume['legfloat'] = {
 pieceCollisionVolume['legcar'] = {
 	['0']={34,16,46,0,-2.5,1,2,1},
 	['4']={14,12,20,0,-2,-6,2,1},
+}
+
+pieceCollisionVolume['legmed'] = {
+	['0']={48,31,69,0,0,0,2,1},
+	['1']={7,25,15,0,35,-5,2,1},
 }
 
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,

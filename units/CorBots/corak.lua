@@ -1,13 +1,13 @@
 return {
 	corak = {
 		buildpic = "CORAK.DDS",
-		buildtime = 1280,
+		buildtime = 1250,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "24 32 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energycost = 840,
+		energycost = 820,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -18,7 +18,7 @@ return {
 		maxdec = 0.7,
 		maxslope = 17,
 		maxwaterdepth = 25,
-		metalcost = 43,
+		metalcost = 42,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAK.s3o",
@@ -139,6 +139,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "GATOR_LASER",
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
