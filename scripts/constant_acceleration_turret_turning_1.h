@@ -77,7 +77,7 @@
 	#define WRAPDELTA(ang) (((ang + 98280) % 65520) - 32760)
 #endif
 
-static-var CATT1velocity, CATT1position, CATT1gameFrame, CanFire;
+static-var CATT1velocity, CATT1position, CATT1gameFrame;
 
 CATT1_Init(){
 	CATT1velocity = 0;
@@ -139,11 +139,12 @@ CATT1_Aim(heading, pitch){
 
 	delta = WRAPDELTA(heading - CATT1position);
 
-	while(ABSOLUTE_GREATER_THAN(delta, CATT1_PRECISION) OR ABSOLUTE_GREATER_THAN(CATT1velocity, CATT1_JERK)){
+	while(ABSOLUTE_GREATER_THAN(delta, CATT1_PRECISION) OR ABSOLUTE_GREATER_THAN(CATT1velocity,  CATT1_JERK)){
 		
 	//while( ( get ABS(delta) > CATT1_PRECISION ) OR (get ABS(CATT1velocity) > CATT1_JERK)){
 		if (CATT1gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
 			CATT1gameFrame = get(GAME_FRAME);
+
 
 			//Clamp CATT1position and CATT1delta between <-180>;<180>
 			CATT1position 	= WRAPDELTA(CATT1position);

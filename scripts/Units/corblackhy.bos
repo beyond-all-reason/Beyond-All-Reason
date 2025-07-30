@@ -174,7 +174,6 @@ QueryWeapon1(pieceIndex)
 // A high precision requirement can result in overshoots if desired 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
-//#define CATT1_PIECE_X sleeves1
 #define CATT1_PIECE_Y tur1
 
 #define CATT1_MAX_VELOCITY <3.0>
