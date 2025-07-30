@@ -1,4 +1,4 @@
-# July 
+# July, 30
 * gunslinger movement class changed to 3x3 and hitbox adjusted
 
 # July 2025
