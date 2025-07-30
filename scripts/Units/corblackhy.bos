@@ -174,7 +174,7 @@ QueryWeapon1(pieceIndex)
 // A high precision requirement can result in overshoots if desired 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
-#define CATT1_PIECE_X sleeves1
+//#define CATT1_PIECE_X sleeves1
 #define CATT1_PIECE_Y tur1
 
 #define CATT1_MAX_VELOCITY <3.0>
@@ -203,12 +203,20 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
+
+Shot1()
+{
 	if( gun_1 == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1a;
 		move barrel1a to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1a to z-axis [0.0] speed [3.0];
+		gun_1 = 1; 
+		// unfortunately, while the EndBurstX() habit prevents single shot units from swapping barrels after the Friendly-Fire check, 
+		// you still have to sleep at least 1 frame for per-burst-shot barrel swaps
 	}
 	else if( gun_1 == 1 )
 	{
@@ -216,6 +224,7 @@ FireWeapon1()
 		move barrel1b to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1b to z-axis [0.0] speed [3.0];
+		gun_1 = 2; 
 	}
 	else if( gun_1 == 2 )
 	{
@@ -223,6 +232,7 @@ FireWeapon1()
 		move barrel1c to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1c to z-axis [0.0] speed [3.0];
+		gun_1 = 3; 
 	}
 	else if( gun_1 == 3 )
 	{
@@ -230,9 +240,13 @@ FireWeapon1()
 		move barrel1d to z-axis [-2.0] speed [500.0];
 		sleep 100;
 		move barrel1d to z-axis [0.0] speed [3.0];
+		gun_1 = 0; 
 	}
-	gun_1 = (gun_1 + 1) % 4;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
+
+EndBurst1()
+{
+	gun_1 = 0; //Makes sure barrel is properly reset even if the burst is interrupted
 }
 
 AimFromWeapon2(pieceIndex)
