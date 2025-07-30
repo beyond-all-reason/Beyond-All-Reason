@@ -1811,23 +1811,23 @@ local unitGrids = {
 
 	corhaca = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{"cormoho","corfus","corafus","",},
+			{"cormmkr","corageo","cormexp","corbhmth",},
+			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"corvipe","cordoom","cortoast","cortron",},
+			{"corflak","corscreamer","corfmd","",},
+			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cararad","corshroud","corsd","",},
+			{"cortarg","corfort","","",},
 			{"","","","",},
-			{"","","","",},
+			{"corgate","","","",},
 		},
 		{
-			{"corap","","","",},
-			{"","coraap","corhaap","",},
+			{"","coraap","","",},
+			{"","","corhaap","",},
 			{"","","","",},
 		},
 	},
@@ -1857,23 +1857,23 @@ local unitGrids = {
 
 	corhack = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{"cormoho","corfus","corafus","",},
+			{"cormmkr","corageo","cormexp","corbhmth",},
+			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"corvipe","cordoom","cortoast","cortron",},
+			{"corflak","corscreamer","corfmd","",},
+			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cararad","corshroud","corsd","",},
+			{"cortarg","corfort","","",},
 			{"","","","",},
-			{"","","","",},
+			{"corgate","","","",},
 		},
 		{
-			{"corlab","","","",},
-			{"","coralab","corhalab","",},
+			{"","coralab","","",},
+			{"","","corhalab","",},
 			{"","","","",},
 		},
 	},
@@ -1926,23 +1926,23 @@ local unitGrids = {
 
 	corhacv = {
 		{
-			{"corexp","coradvsol","corfus","",},
-			{"cormakr","","","",},
-			{"","","","",},
+			{"cormoho","corfus","corafus","",},
+			{"cormmkr","corageo","cormexp","corbhmth",},
+			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corhlt","cormaw","corpun","",},
-			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"corvipe","cordoom","cortoast","cortron",},
+			{"corflak","corscreamer","corfmd","",},
+			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cararad","corshroud","corsd","",},
+			{"cortarg","corfort","","",},
 			{"","","","",},
-			{"","","","",},
+			{"corgate","","","",},
 		},
 		{
-			{"corlab","","","",},
-			{"","coralab","corhalab","",},
+			{"","coravp","","",},
+			{"","","corhavp","",},
 			{"","","","",},
 		},
 	},
@@ -1995,9 +1995,9 @@ local unitGrids = {
 
 	corhacs = {
 		{
-			{"corexp", "cortide", "coruwfus", "",},
-			{"corfmkr","","","",},
-			{"","","","",},
+			{"coruwmme", "coruwfus", "", "",},
+			{"coruwmmm","coruwagea","","",},
+			{"coruwadves","coruwadvms","","",},
 		},
 		{
 			{"corfhlt", "corfdoom", "cormaw", "corpun",},
@@ -2010,8 +2010,8 @@ local unitGrids = {
 			{"", "", "", "", },
 		},
 		{
-			{"corsy", "", "corplat", "", },
-			{"", "corasy", "corhasy", "", },
+			{"", "", "corasy", "", },
+			{"", "", "corhasy", "", },
 			{"", "", "", "", },
 		},
 	},
@@ -2646,7 +2646,7 @@ if Spring.GetModOptions().techoverhaul then
 		{
 			{ "armuwmme", "armtide", "armuwfus", },                       -- uw moho, uw fusion,
 			{ "armuwmmm", "armuwageo" },                       -- floating T2 converter, adv geo powerplant
-			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
+			{ "armuwes", "armuwms", },                   -- uw e stor, uw metal stor
 		},
 		{
 			{ "armatl", "armfhlt", "armkraken", },                        -- adv torp launcher, floating heavy platform
@@ -2853,9 +2853,9 @@ if Spring.GetModOptions().techoverhaul then
 
 	unitGrids["coracsub"] = {
 		{
-			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "coruwmmm", "coruwageo" },                       -- floating T2 converter, adv geo powerplant
-			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
+			{ "coruwmme", "cortide", "coruwfus", },                       -- uw moho, uw fusion,
+			{ "corfmakr", "coruwgeo" },                       -- floating T2 converter, adv geo powerplant
+			{ "coruwes", "coruwms", },                   -- uw e stor, uw metal stor
 		},
 		{
 			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
@@ -2867,7 +2867,7 @@ if Spring.GetModOptions().techoverhaul then
 			{ "", "", "", "" },                          -- Floating air repair pad
 		},
 		{
-			{ "corsy", "corasy" },                                      -- T1 shipyard
+			{ "corsy", "corasy", "coraaplat" },                                      -- T1 shipyard
 			{ "", "corhasy" },                         -- amphibious gantry, T2 shipyard
 			{ },                                               --
 		}

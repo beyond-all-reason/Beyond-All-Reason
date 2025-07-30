@@ -49,6 +49,8 @@ return {
 			[12] = "corenaa",
 			[13] = "corfdoom",
 			[14] = "coruwageo",
+			[15] = "corjugg",
+			[16] = "corkorg",
 		},
 		customparams = {
 			minesweeper = 600,

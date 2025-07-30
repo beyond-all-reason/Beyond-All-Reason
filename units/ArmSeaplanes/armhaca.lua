@@ -61,6 +61,7 @@ return {
 			[23] = "armdf",
 			[24] = "armaap",
 			[25] = "armhaap",
+			[26] = "armbanth",
 		},
 		customparams = {
 			model_author = "Flaka",

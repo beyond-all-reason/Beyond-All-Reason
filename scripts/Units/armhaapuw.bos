@@ -81,8 +81,8 @@ Activate()
 	turn plat1 to x-axis <90> speed <45>;
 	turn plat2 to x-axis <-90> speed <45>;
 
-	move nanotower3 to y-axis [9] speed [4.5];
-	move nanotower4 to y-axis [9] speed [4.5];
+	move nanotower3 to y-axis [6.75] speed [4.5];
+	move nanotower4 to y-axis [6.75] speed [4.5];
 	
 	wait-for-turn towercover around x-axis;
 	
@@ -90,7 +90,7 @@ Activate()
 	turn strut1 to x-axis <-30> speed <30>;
 	turn strut2 to x-axis <30> speed <30>;
 	
-	move tower to y-axis [53] speed [26];
+	move tower to y-axis [39] speed [26];
 	move nc1 to z-axis [-15] speed [7.5];
 	move nc2 to z-axis [15] speed [7.5];
 	wait-for-move tower along y-axis;

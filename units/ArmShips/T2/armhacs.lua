@@ -48,6 +48,7 @@ return {
 			[10] = "armfflak",
 			[11] = "armkraken",
 			[12] = "armuwageo",
+			[13] = "armbanth",
 		},
 		customparams = {
 			minesweeper = 600,

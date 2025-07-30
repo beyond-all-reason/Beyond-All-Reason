@@ -67,6 +67,7 @@ return {
 			[23] = "armdf",
 			[24] = "armavp",
 			[25] = "armhavp",
+			[26] = "armbanth",
 		},
 		customparams = {
 			model_author = "FireStorm",
