@@ -1400,6 +1400,16 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
+
+    {
+        key     = "techsplit",
+        name    = "T2 Split",
+        desc    = "Splits T2 into two tiers moving experimental to T4.",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+        hidden  = true,
+    },
 	
     {
         key    	= "shieldsrework",
