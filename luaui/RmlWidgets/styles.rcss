@@ -1,9 +1,67 @@
 body {
-    width: 100%;
+    /* width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; */
     font-family: "Exo 2";
     font-size: 16dp;
     pointer-events: none;
     position: relative;
+}
+
+div
+{
+	display: block;
+}
+
+p
+{
+	display: block;
+}
+
+h1
+{
+	display: block;
+}
+
+em
+{
+	font-style: italic;
+}
+
+strong
+{
+	font-weight: bold;
+}
+
+select
+{
+	text-align: left;
+}
+
+tabset tabs
+{
+	display: block;
+}
+
+table {
+	box-sizing: border-box;
+	display: table;
+}
+tr {
+	box-sizing: border-box;
+	display: table-row;
+}
+td {
+	box-sizing: border-box;
+	display: table-cell;
+}
+col {
+	box-sizing: border-box;
+	display: table-column;
+}
+colgroup {
+	display: table-column-group;
+}
+thead, tbody, tfoot {
+	display: table-row-group;
 }

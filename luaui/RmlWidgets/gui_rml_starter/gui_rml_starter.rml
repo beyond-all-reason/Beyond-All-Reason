@@ -1,83 +1,337 @@
 <rml>
 <head>
-    <title>Rml Starter</title>
+    <title>RML Widget Starter Template</title>
 
+    <!-- External stylesheets - order matters for cascading -->
     <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
     <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
     <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
-    <link rel="stylesheet" href="../palette-red.rcss" type="text/rcss" />
+    <!-- <link rel="stylesheet" href="../palette-red.rcss" type="text/rcss" /> -->
+    <!-- Using a more neutral palette instead of red for modern look -->
     <style>
+        /* ===========================================
+           WIDGET CONTAINER - Main positioning
+           =========================================== */
         #rml-starter-widget {
             pointer-events: auto;
-            width: 400dp;
+            width: 700dp; /* Increased width for tab system */
+            height: 80%;
             right: 0;
-            top: 50%;
-            transform: translateY(-90%);
+            top: 5%;
+            /* transform: translateY(-90%); */
             position: absolute;
             margin-right: 10dp;
+            display: flex;
+            flex-direction: row;
         }
         #main-content {
-            padding: 10dp;
-            border-radius: 8dp;
-            z-index: 1;
+            padding: 12dp;
+            border-radius: 2dp; /* Sharp, modern corners */
+            z-index: 3; /* Above expanding content and tabs */
+            flex: 1; /* Take remaining space after tabs */
+            position: relative; /* Establish stacking context */
         }
-        #expanding-content {
-            transform: translateY(0%);
-            transition: top 0.1s linear-in-out;
-            z-index: 0;
-            height: 100%;
+        .widget-container {
+            display: flex;
+            flex-direction: row;
             width: 100%;
-            position: absolute;
-            top: 0dp;
-            left: 0dp;
-            border-radius: 8dp;
+            height: 100%;
+            background-color: rgba(30, 30, 40, 220); /* Darker background for modern look */
+            border-radius: 2dp; /* Sharp corners */
+            /* overflow: hidden; Prevent overflow from tabs */
+        }
+
+        /* ===========================================
+           TAB SYSTEM - Left side navigation
+           =========================================== */
+        #tab-container {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 20dp;
+            width: 120dp;
+            margin-right: 1dp;
+            z-index: 3; /* Above expanding content */
+            position: relative; /* Establish stacking context */
         }
-        /* This is just a checkbox sitting above the entirety of the expanding content */
-        /* It is bound directly with data-checked attr to the expanded value */
-        #expanding-content>input {
-            height: 100%;
-            width: 100%;
-            z-index: 1;
-            position: absolute;
-            top: 0dp;
-            left: 0dp;
+
+        .tab-button {
+            border-radius: 2dp;
+            padding: 8dp;
+            margin-bottom: 4dp;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            min-height: 40dp;
+            transition: transform 0.1s;
+            border: 1dp rgba(100, 150, 200, 20);
         }
-        #expanding-content.expanded {
-            top: 90%;
+
+        .tab-button:hover {
+            background-color: rgba(60, 120, 180, 150);
+            border-color: rgba(100, 150, 200, 100);
+            transform: skew(-5deg, 0deg) translateX(-2dp) translateY(-1dp);
         }
-        #expanding-content:hover {
-            background-color: rgba(255, 0, 0, 125);
+
+        .tab-button.active {
+            background-color: rgba(60, 120, 180, 255);
+            border-color: rgba(100, 150, 200, 150);
+            transform: skew(-5deg, 0deg) translateX(-3dp) translateY(-1dp);
+            box-shadow: rgba(0, 0, 0, 100) 3px 3px 3px;
+        }
+
+        .tab-button:active {
+            background-color: rgba(60, 120, 180, 255);
+            /* border-color: rgba(100, 150, 200, 100); */
+        }
+
+        /* ===========================================
+           CONTENT SECTIONS
+           =========================================== */
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8dp;
+            margin-bottom: 15dp;
+        }
+
+        .code-highlight {
+            padding-left: 6dp;
+            padding-right: 6dp;
+            padding-top: 2dp;
+            padding-bottom: 2dp;
+            border-radius: 2dp;
+        }
+
+        /* Button styling for game overlay */
+        button {
+            border-radius: 2dp; /* Sharp, modern corners */
+            transition: background-color 0.2s ease;
         }
     </style>
 </head>
-<body>
-    <div id="rml-starter-widget" class="relative" data-model="starter_model">
-        <div id="main-content" class="flex flex-col gap-4 bg-surface">
-            <h1 class="text-primary">Welcome to an Rml Starter Widget</h1>
-            <p class="text-secondary m-1">This is a simple example of an RMLUI widget.</p>
-            <p class="text-secondary m-1">Each rml widget must reside in a folder of the same name in the <span class="pl-1 pr-1 text-white bg-accent rounded">luaui/RmlWidgets/</span> directory
-                and contain at least a <span class="text-white bg-accent rounded pl-1 pr-1">widget.lua</span> file and a
-                <span class="text-white bg-accent rounded pl-1 pr-1">widget.rml</span>file.
-            </p>
-            <p class="text-secondary m-1">
-                The widget.lua file is the main entry point for the widget and is responsible for loading the rml file and creating the widget.
-                The widget.rml file is the main layout file for the widget and contains the structure and styling of the widget.
-                The widget.lua file can also contain any additional logic or functionality that you want to add to your widget.
-            </p>
-            <div class="actions flex flex-row gap-2 h-10 m-1">
-                <button class="bg-primary text-center p-2" onclick="widget:Reload()">reload widget</button>
+<body id="rml-starter-widget">
+    <div class="widget-container" data-model="starter_model">
+        <!-- Left side tab navigation -->
+        <div id="tab-container">
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'getting-started'" 
+                 data-tab="getting-started" 
+                 data-event-click="activeTab = 'getting-started'">
+                Getting Started
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'overview'" 
+                 data-tab="overview" 
+                 data-event-click="activeTab = 'overview'">
+                Overview
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'data-binding'" 
+                 data-tab="data-binding" 
+                 data-event-click="activeTab = 'data-binding'">
+                Data Binding
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'events'" 
+                 data-tab="events" 
+                 data-event-click="activeTab = 'events'">
+                Events
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'styling'" 
+                 data-tab="styling" 
+                 data-event-click="activeTab = 'styling'">
+                Styling
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'convention'" 
+                 data-tab="convention" 
+                 data-event-click="activeTab = 'convention'">
+                Convention
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'performance'" 
+                 data-tab="performance" 
+                 data-event-click="activeTab = 'performance'">
+                Performance
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'tools'" 
+                 data-tab="tools" 
+                 data-event-click="activeTab = 'tools'">
+                Tools
+            </div>
+            <div class="tab-button text-white bg-game-darker border-game-tab" 
+                 data-class-active="activeTab == 'examples'" 
+                 data-tab="examples" 
+                 data-event-click="activeTab = 'examples'">
+                Examples
             </div>
         </div>
-        <div id="expanding-content" data-class-expanded="expanded" class="absolute bg-accent-50 flex flex-col items-end">
-            <input type="checkbox" value="expanded" data-checked="expanded"/>
-            <p>{{message}}</p>
-            <div class="actions flex flex-col gap-2 h-10 m-1">
-                <span data-for="test, i: testArray">name:{{test.name}} index:{{i}}</span>
+
+        <!-- Main content area with tab panels -->
+        <div id="main-content" class="flex flex-col gap-4 bg-game-dark border-game-subtle">
+            <div class="actions flex flex-row-reverse gap-2 h-10 m-1 flex-end">
+                <button class="bg-blue-500 text-white text-center p-2 bg-game-button border-game-button" onclick="widget:Reload()">
+                    Reload Widget
+                </button>
+                <button class="bg-purple-500 text-white text-center p-2 bg-game-button border-game-button" onclick="widget:ToggleDebugger()">
+                    {{debugMode ? 'Hide Debug' : 'Show Debug'}}
+                </button>
+            </div>
+
+            <!-- Getting Started Tab Panel -->
+            <div class="tab-panel" data-panel="getting-started" data-if="activeTab == 'getting-started'">
+                <div class="content-section">
+                    <h1 class="text-white">Getting Started with RML Widgets</h1>
+                    <p class="text-gray-600">Essential information for creating your first RML widget</p>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Required Files</h2>
+                    <p class="text-gray-600 m-1">Every RML widget needs exactly three files:</p>
+                    <ul class="text-gray-600 m-1 flex flex-col gap-1">
+                        <li>• <span class="code-highlight text-white bg-blue-500 rounded">gui_widgetname.lua</span> - Backend logic and data model</li>
+                        <li>• <span class="code-highlight text-white bg-blue-500 rounded">gui_widgetname.rml</span> - Frontend UI layout and markup</li>
+                        <li>• <span class="code-highlight text-white bg-blue-500 rounded">gui_widgetname.rcss</span> - Styling and visual appearance</li>
+                    </ul>
+                    <p class="text-gray-600 m-1">All three files must have the same base name (e.g., <span class="code-highlight text-white bg-blue-500 rounded">gui_rml_starter</span>)</p>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">File Placement</h2>
+                    <p class="text-gray-600 m-1">Widget files must be placed in:</p>
+                    <div class="code-highlight text-white m-1 bg-game-medium">luaui/RmlWidgets/widget_folder_name/</div>
+                    <p class="text-gray-600 m-1">Directory structure example:</p>
+                    <div class="flex flex-col code-highlight text-white m-1 bg-game-medium">
+                        <div>luaui/RmlWidgets/gui_rml_starter/</div>
+                        <div class="ml-4">gui_rml_starter.lua</div>
+                        <div class="ml-4">gui_rml_starter.rml</div>
+                        <div class="ml-4">gui_rml_starter.rcss</div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Core Functionality</h2>
+                    <p class="text-gray-600 m-1">A basic RML widget provides:</p>
+                    <ul class="text-gray-600 m-1 flex flex-col gap-1">
+                        <li>• <strong class="text-blue-300">Data Model</strong> - Variables that drive the UI state</li>
+                        <li>• <strong class="text-blue-300">Widget Lifecycle</strong> - Initialize, Update, Shutdown hooks</li>
+                        <li>• <strong class="text-blue-300">UI Layout</strong> - RML markup with data binding</li>
+                        <li>• <strong class="text-blue-300">Styling</strong> - RCSS for visual appearance</li>
+                        <li>• <strong class="text-blue-300">Interactivity</strong> - Event handling for user input</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Quick Start Steps</h2>
+                    <ol class="text-gray-600 m-1 flex flex-col gap-1">
+                        <li>1. Create a folder in <span class="code-highlight text-white bg-blue-500 rounded">luaui/RmlWidgets/</span></li>
+                        <li>2. Add your <span class="code-highlight text-white bg-blue-500 rounded">.lua</span> file with data model and lifecycle</li>
+                        <li>3. Add your <span class="code-highlight text-white bg-blue-500 rounded">.rml</span> file with layout and markup</li>
+                        <li>4. Add your <span class="code-highlight text-white bg-blue-500 rounded">.rcss</span> file with styling</li>
+                        <li>5. Use <span class="code-highlight text-white bg-blue-500 rounded">data-*</span> attributes for dynamic behavior</li>
+                        <li>6. Test with the reload button above</li>
+                    </ol>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Development Tips</h2>
+                    <ul class="text-gray-600 m-1">
+                        <li>• Use <span class="code-highlight text-white bg-blue-500 rounded">Spring.Echo()</span> for debugging output</li>
+                        <li>• Alpha values in RGBA colors use 0-255 range, not 0-1</li>
+                        <li>• Prefer data binding over manual DOM manipulation</li>
+                        <li>• Use the widget reload button for quick iteration</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Overview Tab Panel -->
+            <div class="tab-panel" data-panel="overview" data-if="activeTab == 'overview'">
+                <div class="content-section">
+                    <h1 class="text-white">Overview <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Widget architecture overview, best practices, and development workflow</p>
+                </div>
+            </div>
+
+            <!-- Data Binding Tab Panel -->
+            <div class="tab-panel" data-panel="data-binding" data-if="activeTab == 'data-binding'">
+                <div class="content-section">
+                    <h1 class="text-white">Data Binding <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Examples of data binding patterns, variable interpolation, and dynamic content</p>
+                </div>
+            </div>
+
+            <!-- Events Tab Panel -->
+            <div class="tab-panel" data-panel="events" data-if="activeTab == 'events'">
+                <div class="content-section">
+                    <h1 class="text-white">Event Handling <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Interactive elements, event handling patterns, and user input processing</p>
+                </div>
+            </div>
+
+            <!-- Styling Tab Panel -->
+            <div class="tab-panel" data-panel="styling" data-if="activeTab == 'styling'">
+                <div class="content-section">
+                    <h1 class="text-white">Styling <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: RCSS styling techniques, design patterns, and visual customization</p>
+                </div>
+            </div>
+
+            <!-- Convention Tab Panel -->
+            <div class="tab-panel" data-panel="convention" data-if="activeTab == 'convention'">
+                <div class="content-section">
+                    <h1 class="text-white">Convention <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Best practices, naming conventions, code organization, and development standards</p>
+                </div>
+            </div>
+
+            <!-- Performance Tab Panel -->
+            <div class="tab-panel" data-panel="performance" data-if="activeTab == 'performance'">
+                <div class="content-section">
+                    <h1 class="text-white">Performance <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Optimization techniques, memory management, rendering performance, and profiling tips</p>
+                </div>
+            </div>
+
+            <!-- Tools Tab Panel -->
+            <div class="tab-panel" data-panel="tools" data-if="activeTab == 'tools'">
+                <div class="content-section">
+                    <h1 class="text-white">Tools</h1>
+                    <p class="text-gray-600">Development tools and utilities for RML widget creation</p>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Widget Generator Script</h2>
+                    <p class="text-gray-600 m-1">Use the automated script to quickly scaffold new widgets:</p>
+                    <div class="code-highlight text-white m-1 bg-game-medium">./generate-widget.sh your_widget_name</div>
+                    <p class="text-gray-600 m-1">This script creates a complete widget template with:</p>
+                    <ul class="text-gray-600 m-1 flex flex-col gap-1">
+                        <li>• Pre-configured <span class="code-highlight text-white bg-blue-500 rounded">.lua</span> file with lifecycle functions</li>
+                        <li>• Basic <span class="code-highlight text-white bg-blue-500 rounded">.rml</span> layout with data binding</li>
+                        <li>• Starter <span class="code-highlight text-white bg-blue-500 rounded">.rcss</span> styles with debug controls</li>
+                        <li>• Built-in reload and debugger functionality</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="text-blue-300">Other Development Tools <span class="text-yellow-400">[WIP]</span></h2>
+                    <p class="text-gray-500 m-1">Coming soon: Additional tools, debugging utilities, and development helpers</p>
+                </div>
+            </div>
+
+            <!-- Examples Tab Panel -->
+            <div class="tab-panel" data-panel="examples" data-if="activeTab == 'examples'">
+                <div class="content-section">
+                    <h1 class="text-white">Examples <span class="text-yellow-400">[WIP]</span></h1>
+                    <p class="text-gray-600">This section is currently under development</p>
+                    <p class="text-gray-500 m-1">Coming soon: Real-world implementation patterns, code samples, and practical use cases</p>
+                </div>
             </div>
         </div>
     </div>
