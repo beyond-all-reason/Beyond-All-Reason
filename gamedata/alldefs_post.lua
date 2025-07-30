@@ -2807,12 +2807,17 @@ function UnitDef_Post(name, uDef)
 			[17] = "armfdrag",
 			[18] = "armsy",
 			[19] = "armuwmme",
+			[20] = "armatl",
+			[21] = "armkraken",
+			[22] = "armfrt",
+
+
 		}
 
 		elseif name == "coracsub" then
 			uDef.buildoptions = {
 			[1] = "cortide",
-			[2] = "corexp",
+			[2] = "coruwmme",
 			[3] = "corshroud",
 			[4] = "corarad",
 			[5] = "cormaw",
@@ -2824,8 +2829,10 @@ function UnitDef_Post(name, uDef)
 			[11] = "corason",
 			[12] = "coruwfus",
 			[13] = "corfmkr",
-			[14] = "corfdoom",
-			[15] = "corfdrag",
+			[14] = "corfdrag",
+			[15] = "corfrt",
+
+
 			}
 		
 

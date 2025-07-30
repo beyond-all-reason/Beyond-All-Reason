@@ -2851,6 +2851,28 @@ if Spring.GetModOptions().techoverhaul then
 		},
 	}
 
+	unitGrids["coracsub"] = {
+		{
+			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
+			{ "coruwmmm", "coruwageo" },                       -- floating T2 converter, adv geo powerplant
+			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
+		},
+		{
+			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
+			{ "corenaa", },                                    -- floating flak
+			{ },                                               --
+		},
+		{
+			{ "corason", "corfdrag", "corarad", "corshroud", },                         -- adv sonar, floating targeting facility
+			{ "", "", "", "" },                          -- Floating air repair pad
+		},
+		{
+			{ "corsy", "corasy" },                                      -- T1 shipyard
+			{ "", "corhasy" },                         -- amphibious gantry, T2 shipyard
+			{ },                                               --
+		}
+	}
+
 	-- Lab Grids
 
 	labGrids["armvp"] = {
@@ -2918,12 +2940,6 @@ if Spring.GetModOptions().techoverhaul then
 	}
 
 	labGrids["coraap"] = {
-		"coraca", "corsfig", "corcut", "corsb",
-		"corawac", "corhvytrans", "corseap", "",
-		"", "", "", "",
-	}
-
-	labGrids["corhaapuw"] = {
 		"coraca", "corsfig", "corcut", "corsb",
 		"corawac", "corhvytrans", "corseap", "",
 		"", "", "", "",
