@@ -41,7 +41,6 @@ return {
 			[3] = "coruwmme",
 			[4] = "coruwadves",
 			[5] = "coruwadvms",
-			[6] = "corgantuw",
 			[7] = "corhasy",
 			[8] = "corsy",
 			[10] = "corfatf",
