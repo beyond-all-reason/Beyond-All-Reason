@@ -1,5 +1,5 @@
 return {
-	corgant = {
+	corhalab = {
 		builder = true,
 		buildpic = "CORGANT.DDS",
 		buildtime = 67300,
@@ -8,7 +8,7 @@ return {
 		collisionvolumescales = "196 110 196",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 62000,
+		energycost = 52200,
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 12,
@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 8400,
+		metalcost = 8000,
 		metalstorage = 800,
 		objectname = "Units/CORGANT.s3o",
 		script = "Units/CORGANT.cob",
@@ -28,24 +28,19 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1200,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
-			[1] = "corkorg",
-			[2] = "corkarg",
-			[3] = "corjugg",
-			[4] = "corshiva",
-			[5] = "corcat",
-			[6] = "corsok",
-			[7] = "cordemon",
-			[1] = "corhack",
-			[2] = "corsumo",
-			[3] = "cortermite",
-			[4] = "corhrk",
-			[5] = "cordecom",
-			[6] = "corvoyr",
-			[7] = "corspy",
-			[8] = "corspec"
+			[1] = "corkarg",
+			[2] = "corshiva",
+			[3] = "corcat",
+			[4] = "cordemon",
+			[5] = "corhack",
+			[6] = "corsumo",
+			[7] = "cordecom",
+			[8] = "corvoyr",
+			[9] = "corsktl",
+			[10] = "corspec"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -122,3 +117,4 @@ return {
 		},
 	},
 }
+
