@@ -1,3 +1,6 @@
+# July, 30
+* gunslinger movement class changed to 3x3 and hitbox adjusted
+
 # July 2025
 • [T1 Mex] +41% hp
 • [Conbots] +15% hp
