@@ -216,15 +216,15 @@ local labGrids = {
 	-- Split Tier Labs
 
 	corhalab = {
-		"corhack", "cordecom", "corsumo", "corvoyr",
-		"corcat", "cordemon", "", "corspec",
+		"corhack", "cordecom", "cordemon", "corvoyr",
+		"corcat", "corsumo", "", "corspec",
 		"corsktl", "corshiva", "corkarg", "", 
 	},
 
 	armhalab = {
-		"armhack", "armdecom", "armmar", "armmark",
-		"armvang", "armfboy", "armraz", "armaser",
-		"armscab", "armsnipe", "", "",
+		"armhack", "armdecom", "armraz", "armmark",
+		"armvang", "armfboy", "armsnipe", "armaser",
+		"armscab", "armmar", "", "",
 	},
 
 	leghalab = {
@@ -234,27 +234,27 @@ local labGrids = {
 	},
 
 	armhaap = {
-		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "armliche", "armblade", "",                                     -- empty rows
+		"armhaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
+		"armawac", "armdfly", "armlance", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
+		"armliche", "armblade", "armstil",                                       -- empty rows
 	},
 
 	armhaapuw = {
 		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
-		"armsehak", "armdfly", "armseap", "",                      -- radar, torpedo, empty, empty
-		"", "armliche", "armblade", "",                                     -- empty rows
+		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
 	},
 
 	corhaap = {
-		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
-		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "corcrwh", "", "",                                     -- empty rows
+		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
+		"corawac", "corseah", "cortitan", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
+		"corcrw","corcrwh",                                    -- empty rows
 	},
 
 	corhaapuw = {
 		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
-		"", "corcrwh", "", "",                                     -- empty rows
+		"", "", "", "",                                     -- empty rows
 	},
 
 	armhasy = {
@@ -1979,7 +1979,7 @@ local unitGrids = {
 		{
 			{"armkraken", "", "", "",},
 			{"armfflak","","","",},
-			{"","","","",},
+			{"armatl","","","",},
 		},
 		{
 			{"armfatf", "", "", "", },
@@ -2000,9 +2000,9 @@ local unitGrids = {
 			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corfhlt", "corfdoom", "cormaw", "corpun",},
-			{"","","","",},
-			{"","","","",},
+			{"corfdoom", "", "", "",},
+			{"corenaa","","","",},
+			{"coratl","","","",},
 		},
 		{
 			{"corason", "", "corfdrag", "", },
@@ -2511,9 +2511,9 @@ if Spring.GetModOptions().techoverhaul then
 			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "", "", "", },  -- LLT, beamer, HLT, lightning turret
+			{ "armllt", "armtl", "", "", },  -- LLT, beamer, HLT, lightning turret
 			{ "armrl", "armfrt", "", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armtl", },                         -- coastal torp launcher, guardian
+			{ "armdl", "", },                         -- coastal torp launcher, guardian
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -2854,7 +2854,7 @@ if Spring.GetModOptions().techoverhaul then
 	unitGrids["coracsub"] = {
 		{
 			{ "coruwmme", "cortide", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "corfmakr", "coruwgeo" },                       -- floating T2 converter, adv geo powerplant
+			{ "corfmkr", "coruwgeo" },                       -- floating T2 converter, adv geo powerplant
 			{ "coruwes", "coruwms", },                   -- uw e stor, uw metal stor
 		},
 		{
@@ -2942,6 +2942,12 @@ if Spring.GetModOptions().techoverhaul then
 	labGrids["coraap"] = {
 		"coraca", "corsfig", "corcut", "corsb",
 		"corawac", "corhvytrans", "corseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["armaap"] = {
+		"armaca", "armsfig", "armsaber", "armsb",
+		"armsehak", "armhvytrans", "armseap", "",
 		"", "", "", "",
 	}
 

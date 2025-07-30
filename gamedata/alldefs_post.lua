@@ -1963,9 +1963,8 @@ function UnitDef_Post(name, uDef)
 				[5] = "corlevlr",
 				[6] = "corwolv",
 				[7] = "cormist",
-				[8] = "cormlv",
-				[9] = "corgarp",
-				[10] = "cormuskrat",
+				[8] = "corgarp",
+				[9] = "cormuskrat",
 			}
 
 		elseif name == "legvp" then
@@ -2152,7 +2151,8 @@ function UnitDef_Post(name, uDef)
 			[16] = "cormakr",
 			[17] = "coruwadvms",
 			[18] = "coruwadves",
-			[19] = "corgeo"
+			[19] = "corgeo",
+			[20] = "corhlt",
 			}
 
 		elseif name == "legack" then
@@ -2350,7 +2350,8 @@ function UnitDef_Post(name, uDef)
 				[16] = "cormakr",
 				[17] = "coruwadvms",
 				[18] = "coruwadves",
-				[19] = "corgeo"
+				[19] = "corgeo",
+				[20] = "corhlt",
 			}
 		
 		elseif name == "legacv" then
@@ -2436,17 +2437,52 @@ function UnitDef_Post(name, uDef)
 
 		end
 
-		------------
-		-- Lab Costs
+		-----------------
+		-- Adjusted Costs
 
-		-- T2
-		-- T2 labs are priced as t1.5
-		elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
-		or name == "coraap" or name == "corasy" or name == "coralab" or name == "coravp"
-		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
+		-- T1 labs are reduced in cost to support solo t1 basebuilding
+		if name == "armlab" or name == "armvp" or name == "armap" or name == "armsy"
+		or name == "corlab" or name == "corvp" or name == "corap" or name == "corsy"
+		or name == "leglab" or name == "legvp" or name == "legap" or name == "legsy"
+		then
+			uDef.metalcost = uDef.metalcost - 100
+		
+		-- T1 cons have slightly less functionality, therefore some cost reduction
+		-- amphib cons unchanged, given extra functionality
+		elseif name == "armck" or name == "armcv" or name == "armca" or name == "armcs"
+		or name == "corck" or name == "corcv" or name == "corca" or name == "corcs"
+		or name == "legck" or name == "legcv" or name == "legca" or name == "legcs"
+		then
+			uDef.metalcost = uDef.metalcost - 10
+			uDef.energycost = uDef.energycost - 100
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.9)
+
+
+		-- T2 labs are priced as t1.5 but require more BP
+		elseif name == "armaap" or name == "armhaapuw" or name == "armasy" or name == "armalab" or name == "armavp"
+		or name == "coraap" or name == "corhaapuw" or name == "corasy" or name == "coralab" or name == "coravp"
+		or name == "legaap" or name == "leghaapuw" or name == "legasy" or name == "legalab" or name == "legavp"
 		then 
 			uDef.metalcost = uDef.metalcost - 1300
-			uDef.workertime = uDef.workertime * 2
+			uDef.energycost = uDef.energycost - 5000
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
+		
+		-- T2 cons are priced as t1.5
+		elseif name == "armack" or name == "armacv" or name == "armaca" or name == "armcs"
+		or name == "corack" or name == "coracv" or name == "coraca" or name == "corcs"
+		or name == "legack" or name == "legacv" or name == "legaca" or name == "legcs"
+		then
+			uDef.metalcost = uDef.metalcost - 200
+			uDef.energycost = uDef.energycost - 2000
+			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+		
+		-- Hover cons are priced as t2
+		elseif name == "armhc" or name == "corhc" or name == "leghc"
+		then
+			uDef.metalcost = uDef.metalcost * 2
+			uDef.energycost = uDef.energycost * 2
+			uDef.buildtime = uDef.buildtime * 2
+			uDef.customparams.techlevel = 2
 		end
 
 		------------
@@ -2581,26 +2617,24 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions = {
 				[1] = "armsolar",
 				[2] = "armwin",
-				[3] = "armgeo",
-				[4] = "armmstor",
-				[5] = "armestor",
-				[6] = "armmex",
-				[7] = "armmakr",
-				[8] = "armaap",
-				[9] = "armlab",
-				[10] = "armvp",
-				[11] = "armap",
-				[12] = "armhp",
-				[13] = "armnanotc",
-				[14] = "armeyes",
-				[15] = "armrad",
-				[16] = "armdrag",
-				[17] = "armllt",
-				[18] = "armrl",
-				[19] = "armdl",
-				[20] = "armjamt",
-				[21] = "armjuno",
-				[22] = "armsy",
+				[3] = "armmstor",
+				[4] = "armestor",
+				[5] = "armmex",
+				[6] = "armmakr",
+				[7] = "armaap",
+				[8] = "armlab",
+				[9] = "armvp",
+				[10] = "armap",
+				[11] = "armnanotc",
+				[12] = "armeyes",
+				[13] = "armrad",
+				[14] = "armdrag",
+				[15] = "armllt",
+				[16] = "armrl",
+				[17] = "armdl",
+				[18] = "armjamt",
+				[19] = "armsy",
+				[20] = "armamex"
 			}
 
 		elseif name == "corca" then 
@@ -2678,7 +2712,8 @@ function UnitDef_Post(name, uDef)
 				[16] = "cormakr",
 				[17] = "coruwadvms",
 				[18] = "coruwadves",
-				[19] = "corgeo"
+				[19] = "corgeo",
+				[20] = "corhlt",
 			}
 
 		elseif name == "legca" then
@@ -2793,7 +2828,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armacsub" then
 			uDef.buildoptions = {
 				[1] = "armtide",
-				[2] = "armamex",
+				[2] = "armuwgeo",
 				[3] = "armveil",
 				[4] = "armarad",
 				[5] = "armclaw",
@@ -2812,6 +2847,7 @@ function UnitDef_Post(name, uDef)
 				[22] = "armfrt",
 				[23] = "armuwes",
 				[24] = "armuwms",
+				[25] = "armhaapuw",
 			}
 
 		elseif name == "coracsub" then
@@ -2974,7 +3010,7 @@ function UnitDef_Post(name, uDef)
 			[45] = "leghive",
 			[46] = "legfhive",
 			}
-		
+		end
 		-- Seaplane Platforms removed, become T2 air labs. 
 		-- T2 air labs have sea variants
 		-- Made by hover cons and enhanced ship cons 
