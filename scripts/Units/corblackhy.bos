@@ -262,7 +262,7 @@ AimWeapon2(heading, pitch)
 {
 	signal 4;
 	set-signal-mask 4;
-	if( heading < -29491 OR heading > 29491 OR heading > -3277 AND heading < 3277 )
+	if( heading < -29491 OR heading > 29491 )
 	{
 		return (0);
 	}
@@ -321,7 +321,7 @@ AimWeapon4(heading, pitch)
 {
 	signal 16;
 	set-signal-mask 16;
-	if( heading < -29491 OR heading > 29491 )
+	if( heading < -29491 OR heading > 29491 OR heading > -3277 AND heading < 3277 )
 	{
 		return (0);
 	}
