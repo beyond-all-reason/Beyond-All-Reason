@@ -36,8 +36,9 @@ return {
 			[3] = "corhurc",
 			[4] = "cortitan",
 			[5] = "corvamp",
-			[6] = "corhvytrans",
+			[6] = "corseah",
 			[7] = "corawac",
+			[8] = "corcrwh",
 		},
 		customparams = {
 			airfactory = true,

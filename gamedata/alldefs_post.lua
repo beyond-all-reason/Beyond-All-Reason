@@ -2037,7 +2037,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions = {
 				[1] = "armsolar",
 				[2] = "armwin",
-				[3] = "armgeo",
+				[3] = "armamex",
 				[4] = "armmstor",
 				[5] = "armestor",
 				[6] = "armmex",
@@ -2046,16 +2046,14 @@ function UnitDef_Post(name, uDef)
 				[9] = "armlab",
 				[10] = "armvp",
 				[11] = "armap",
-				[12] = "armhp",
-				[13] = "armnanotc",
-				[14] = "armeyes",
-				[15] = "armrad",
-				[16] = "armdrag",
-				[17] = "armllt",
-				[18] = "armrl",
-				[19] = "armdl",
-				[20] = "armjamt",
-				[21] = "armjuno",
+				[12] = "armnanotc",
+				[13] = "armeyes",
+				[14] = "armrad",
+				[15] = "armdrag",
+				[16] = "armllt",
+				[17] = "armrl",
+				[18] = "armdl",
+				[19] = "armjamt",
 				[22] = "armsy",
 			}
 
@@ -2063,27 +2061,24 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions = {
 				[1] = "corsolar",
 				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[8] = "",
-				[11] = "corlab",
-				[12] = "coralab",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "",
-				[21] = "corrl",
-				[23] = "corrad",
-				[24] = "cordl",
-				[25] = "corjamt",
-				[26] = "corsy",
+				[3] = "cormstor",
+				[4] = "corestor",
+				[5] = "cormex",
+				[6] = "cormakr",
+				[10] = "corlab",
+				[11] = "coralab",
+				[12] = "corvp",
+				[13] = "corap",
+				[14] = "cornanotc",
+				[15] = "coreyes",
+				[16] = "cordrag",
+				[17] = "corllt",
+				[18] = "corrl",
+				[19] = "corrad",
+				[20] = "cordl",
+				[21] = "corjamt",
+				[22] = "corsy",
+				[23] = "corexp",
 			}
 
 		elseif name == "legck" then
@@ -2130,13 +2125,17 @@ function UnitDef_Post(name, uDef)
 				[15] = "armlab",
 				[16] = "armalab",
 				[17] = "armsd",
-				[18] = "armmakr"
+				[18] = "armmakr",
+				[19] = "armestor",
+				[20] = "armmstor",
+				[21] = "armgeo",
+				[22] = "armmoho",
 			}
 
 		elseif name == "corack" then
 			uDef.buildoptions = {
 			[1] = "coradvsol",
-			[2] = "corexp",
+			[2] = "cormoho",
 			[3] = "cormaw",
 			[4] = "corhllt",
 			[5] = "corpun",
@@ -2150,7 +2149,10 @@ function UnitDef_Post(name, uDef)
 			[13] = "corlab",
 			[14] = "corhalab",
 			[15] = "coralab",
-			[16] = "cormkr"
+			[16] = "cormakr",
+			[17] = "coruwadvms",
+			[18] = "coruwadves",
+			[19] = "corgeo"
 			}
 
 		elseif name == "legack" then
@@ -2178,7 +2180,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions = {
 				[1] = "armsolar",
 				[2] = "armwin",
-				[3] = "armgeo",
+				[3] = "armamex",
 				[4] = "armmstor",
 				[5] = "armestor",
 				[6] = "armmex",
@@ -2187,67 +2189,95 @@ function UnitDef_Post(name, uDef)
 				[9] = "armlab",
 				[10] = "armvp",
 				[11] = "armap",
-				[12] = "armhp",
-				[13] = "armnanotc",
-				[14] = "armeyes",
-				[15] = "armrad",
-				[16] = "armdrag",
-				[17] = "armllt",
-				[18] = "armrl",
-				[19] = "armdl",
-				[20] = "armjamt",
-				[21] = "armjuno",
+				[12] = "armnanotc",
+				[13] = "armeyes",
+				[14] = "armrad",
+				[15] = "armdrag",
+				[16] = "armllt",
+				[17] = "armrl",
+				[18] = "armdl",
+				[19] = "armjamt",
 				[22] = "armsy",
 			}
 
+		elseif name == "armbeaver" then
+			uDef.buildoptions = {
+				[1] = "armsolar",
+				[2] = "armwin",
+				[3] = "armamex",
+				[4] = "armmstor",
+				[5] = "armestor",
+				[6] = "armmex",
+				[7] = "armmakr",
+				[8] = "armavp",
+				[9] = "armlab",
+				[10] = "armvp",
+				[11] = "armap",
+				[12] = "armnanotc",
+				[13] = "armeyes",
+				[14] = "armrad",
+				[15] = "armdrag",
+				[16] = "armllt",
+				[17] = "armrl",
+				[18] = "armdl",
+				[19] = "armjamt",
+				[22] = "armsy",
+				[23] = "armtide",
+				[24] = "armfmkr",
+				[25] = "armasy",
+				[26] = "armfrt",
+				[27] = "armtl",
+			}
+
 		elseif name == "corcv" then
-			uDef.buildoptions = {	
+			uDef.buildoptions = {
 				[1] = "corsolar",
 				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[11] = "corlab",
-				[12] = "coravp",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "corrl",
-				[21] = "corrad",
-				[22] = "cordl",
-				[23] = "corjamt",
-				[24] = "corsy",
+				[3] = "cormstor",
+				[4] = "corestor",
+				[5] = "cormex",
+				[6] = "cormakr",
+				[10] = "corlab",
+				[11] = "coravp",
+				[12] = "corvp",
+				[13] = "corap",
+				[14] = "cornanotc",
+				[15] = "coreyes",
+				[16] = "cordrag",
+				[17] = "corllt",
+				[18] = "corrl",
+				[19] = "corrad",
+				[20] = "cordl",
+				[21] = "corjamt",
+				[22] = "corsy",
+				[23] = "corexp",
 			}
 
 		elseif name == "cormuskrat" then
-			uDef.buildoptions = {	
+			uDef.buildoptions = {
 				[1] = "corsolar",
 				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[11] = "corlab",
-				[12] = "coravp",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[20] = "corrl",
-				[21] = "corrad",
-				[22] = "cordl",
-				[23] = "corjamt",
-				[24] = "corsy",
+				[3] = "cormstor",
+				[4] = "corestor",
+				[5] = "cormex",
+				[6] = "cormakr",
+				[10] = "corlab",
+				[11] = "coravp",
+				[12] = "corvp",
+				[13] = "corap",
+				[14] = "cornanotc",
+				[15] = "coreyes",
+				[16] = "cordrag",
+				[17] = "corllt",
+				[18] = "corrl",
+				[19] = "corrad",
+				[20] = "cordl",
+				[21] = "corjamt",
+				[22] = "corsy",
+				[23] = "corasy",
+				[24] = "corfmkr",
+				[25] = "corfrt",
+				[26] = "cortl",
 			}
 
 		elseif name == "legcv" then
@@ -2278,7 +2308,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armacv" then
 			uDef.buildoptions = {
 				[1] = "armadvsol",
-				[2] = "armamex",
+				[2] = "armmoho",
 				[3] = "armbeamer",
 				[4] = "armhlt",
 				[5] = "armguard",
@@ -2287,20 +2317,23 @@ function UnitDef_Post(name, uDef)
 				[8] = "armjuno",
 				[9] = "armclaw",
 				[10] = "armarad",
-				[11] = "armfus",
-				[12] = "armgmm",
-				[13] = "armhavp",
-				[14] = "armvp",
-				[15] = "armavp",
-				[16] = "armveil",
+				[11] = "armveil",
+				[12] = "armfus",
+				[13] = "armgmm",
+				[14] = "armhavp",
+				[15] = "armvp",
+				[16] = "armavp",
 				[17] = "armsd",
-				[18] = "armmakr"
+				[18] = "armmakr",
+				[19] = "armestor",
+				[20] = "armmstor",
+				[21] = "armgeo",
 			}
 		
 		elseif name == "coracv" then
 			uDef.buildoptions = {
 				[1] = "coradvsol",
-				[2] = "corexp",
+				[2] = "cormoho",
 				[3] = "cormaw",
 				[4] = "corhllt",
 				[5] = "corpun",
@@ -2314,7 +2347,10 @@ function UnitDef_Post(name, uDef)
 				[13] = "corvp",
 				[14] = "corhavp",
 				[15] = "coravp",
-				[16] = "cormkr"
+				[16] = "cormakr",
+				[17] = "coruwadvms",
+				[18] = "coruwadves",
+				[19] = "corgeo"
 			}
 		
 		elseif name == "legacv" then
@@ -2489,7 +2525,6 @@ function UnitDef_Post(name, uDef)
 			[5] = "corseap",
 			[6] = "corsfig",
 			[7] = "corhvytrans",
-			[8] = "corawac",
 			}
 			uDef.featuredefs.dead["object"] = "Units/coraaplat_dead.s3o"
 			uDef.customparams.buildinggrounddecaltype = "decals/coraap_aoplane.dds"
@@ -2572,25 +2607,24 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions = {
 				[1] = "corsolar",
 				[2] = "corwin",
-				[3] = "corgeo",
-				[4] = "cormstor",
-				[5] = "corestor",
-				[6] = "cormex",
-				[7] = "cormakr",
-				[11] = "corlab",
-				[12] = "coraap",
-				[13] = "corvp",
-				[14] = "corap",
-				[15] = "corhp",
-				[16] = "cornanotc",
-				[17] = "coreyes",
-				[18] = "cordrag",
-				[19] = "corllt",
-				[21] = "corrl",
-				[23] = "corrad",
-				[24] = "cordl",
-				[25] = "corjamt",
-				[26] = "corsy",
+				[3] = "cormstor",
+				[4] = "corestor",
+				[5] = "cormex",
+				[6] = "cormakr",
+				[10] = "corlab",
+				[11] = "coraap",
+				[12] = "corvp",
+				[13] = "corap",
+				[14] = "cornanotc",
+				[15] = "coreyes",
+				[16] = "cordrag",
+				[17] = "corllt",
+				[18] = "corrl",
+				[19] = "corrad",
+				[20] = "cordl",
+				[21] = "corjamt",
+				[22] = "corsy",
+				[23] = "corexp"
 			}
 
 		elseif name == "armaca" then
@@ -2599,7 +2633,7 @@ function UnitDef_Post(name, uDef)
 			uDef.script = "units/ARMCSA.cob"
 			uDef.buildoptions = {
 				[1] = "armadvsol",
-				[2] = "armamex",
+				[2] = "armmoho",
 				[3] = "armbeamer",
 				[4] = "armhlt",
 				[5] = "armguard",
@@ -2615,7 +2649,10 @@ function UnitDef_Post(name, uDef)
 				[15] = "armap",
 				[16] = "armaap",
 				[17] = "armsd",
-				[18] = "armmakr"
+				[18] = "armmakr",
+				[19] = "armestor",
+				[20] = "armmstor",
+				[21] = "armgeo",
 			}
 		
 		elseif name == "coraca" then
@@ -2624,7 +2661,7 @@ function UnitDef_Post(name, uDef)
 			uDef.script = "units/CORCSA.cob"
 			uDef.buildoptions = {
 				[1] = "coradvsol",
-				[2] = "corexp",
+				[2] = "cormoho",
 				[3] = "cormaw",
 				[4] = "corhllt",
 				[5] = "corpun",
@@ -2638,7 +2675,10 @@ function UnitDef_Post(name, uDef)
 				[13] = "corap",
 				[14] = "corhaap",
 				[15] = "coraap",
-				[16] = "cormakr"
+				[16] = "cormakr",
+				[17] = "coruwadvms",
+				[18] = "coruwadves",
+				[19] = "corgeo"
 			}
 
 		elseif name == "legca" then
@@ -2715,19 +2755,17 @@ function UnitDef_Post(name, uDef)
 			[6] = "armdl",
 			[7] = "armdrag",
 			[8] = "armtide",
-			[9] = "armgeo",
-			[10] = "armuwgeo",
-			[11] = "armfmkr",
-			[12] = "armuwms",
-			[13] = "armuwes",
-			[14] = "armsy",
-			[15] = "armnanotcplat",
-			[16] = "armfhp",
-			[17] = "armasy",
-			[18] = "armfrad",
-			[19] = "armfdrag",
-			[20] = "armtl",
-			[21] = "armfrt",
+			[9] = "armuwgeo",
+			[10] = "armfmkr",
+			[11] = "armuwms",
+			[12] = "armuwes",
+			[13] = "armsy",
+			[14] = "armnanotcplat",
+			[15] = "armasy",
+			[16] = "armfrad",
+			[17] = "armfdrag",
+			[18] = "armtl",
+			[19] = "armfrt",
 			}
 
 		elseif name == "corcs" then
@@ -2740,19 +2778,16 @@ function UnitDef_Post(name, uDef)
 			[6] = "cordl",
 			[7] = "cordrag",
 			[8] = "cortide",
-			[9] = "corgeo",
-			[10] = "coruwgeo",
-			[11] = "corfmkr",
-			[12] = "coruwms",
-			[13] = "coruwes",
-			[14] = "corsy",
-			[15] = "cornanotcplat",
-			[16] = "corfhp",
-			[17] = "corasy",
-			[18] = "corfrad",
-			[19] = "corfdrag",
-			[20] = "cortl",
-			[21] = "corfrt",
+			[9] = "corfmkr",
+			[10] = "coruwms",
+			[11] = "coruwes",
+			[12] = "corsy",
+			[13] = "cornanotcplat",
+			[14] = "corasy",
+			[15] = "corfrad",
+			[16] = "corfdrag",
+			[17] = "cortl",
+			[18] = "corfrt",
 			}
 
 		elseif name == "armacsub" then
@@ -2769,9 +2804,9 @@ function UnitDef_Post(name, uDef)
 			[11] = "armfmkr",
 			[12] = "armason",
 			[13] = "armuwfus",
-			[17] = "armkraken",
-			[18] = "armfdrag",
-			[19] = "armsy"
+			[17] = "armfdrag",
+			[18] = "armsy",
+			[19] = "armuwmme",
 		}
 
 		elseif name == "coracsub" then
@@ -2833,59 +2868,35 @@ function UnitDef_Post(name, uDef)
 		-- Hover labs removed
 			
 		-- hover cons
-		elseif name == "armch" then
+		if name == "armch" then
 			uDef.buildoptions = {
-			[1] = "armsolar",
-			[2] = "armadvsol",
-			[3] = "armwin",
-			[4] = "armgeo",
-			[5] = "armmstor",
-			[6] = "armestor",
-			[7] = "armmex",
-			[8] = "",
-			[9] = "armmakr",
-			[10] = "",
-			[11] = "",
-			[12] = "",
-			[13] = "armhp",
-			[14] = "armnanotc",
-			[15] = "armnanotcplat",
-			[16] = "armeyes",
-			[17] = "armrad",
-			[18] = "armdrag",
-			[19] = "armclaw",
-			[20] = "armllt",
-			[21] = "armbeamer",
-			[22] = "armhlt",
-			[23] = "armguard",
-			[24] = "armrl",
-			[25] = "armferret",
-			[26] = "armcir",
-			[27] = "armdl",
-			[28] = "armjamt",
-			[29] = "armjuno",
-			[30] = "armfhp",
-			[31] = "",
-			[32] = "armamsub",
-			[33] = "armplat",
-			[34] = "armtide",
-			[36] = "armfmkr",
-			[37] = "armuwms",
-			[38] = "armuwes",
-			[39] = "armfdrag",
-			[40] = "armfrad",
-			[41] = "armfhlt",
-			[42] = "armfrt",
-			[43] = "armtl",
-			[44] = "armhavp",
-			[45] = "armhasy",
-			[46] = "armuwgeo",
+				[1] = "armadvsol",
+				[2] = "armmoho",
+				[3] = "armbeamer",
+				[4] = "armhlt",
+				[5] = "armguard",
+				[6] = "armferret",
+				[7] = "armcir",
+				[8] = "armjuno",
+				[9] = "armclaw",
+				[10] = "armarad",
+				[11] = "armveil",
+				[12] = "armfus",
+				[13] = "armgmm",
+				[14] = "armhavp",
+				[15] = "armvp",
+				[16] = "armavp",
+				[17] = "armsd",
+				[18] = "armmakr",
+				[19] = "armestor",
+				[20] = "armmstor",
+				[21] = "armgeo",
 			}
 
 		elseif name == "corch" then
 			uDef.buildoptions = {
 				[1] = "coradvsol",
-				[2] = "corexp",
+				[2] = "cormoho",
 				[3] = "cormaw",
 				[4] = "corhllt",
 				[5] = "corpun",
@@ -2899,7 +2910,10 @@ function UnitDef_Post(name, uDef)
 				[13] = "corvp",
 				[14] = "corhavp",
 				[15] = "coravp",
-				[16] = "cormkr"
+				[16] = "cormkr",
+				[17] = "coruwadvms",
+				[18] = "coruwadves",
+				[19] = "corgeo"
 			}
 
 		elseif name == "leghc" then 
@@ -2953,7 +2967,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		-- Seaplane Platforms removed, become T2 air labs. 
-		--- T2 air labs have sea variants
+		-- T2 air labs have sea variants
 		-- Made by hover cons and enhanced ship cons 
 		-- Enhanced ships given seaplanes instead of static AA
 
