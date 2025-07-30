@@ -467,7 +467,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	gun_1 = !gun_1;
 	if( gun_1 == 1 )
 	{
 		move lgun to z-axis [-2.0] now;
@@ -484,6 +483,11 @@ FireWeapon1()
 		move rgun to z-axis [0.0] speed [4.0];
 		wait-for-move rgun along z-axis;
 	}
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 // For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
