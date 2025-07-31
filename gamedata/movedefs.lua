@@ -165,7 +165,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
+	-- cormlv armmflash corgator legmrv  leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -179,7 +179,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
+	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin armmlv
 	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
