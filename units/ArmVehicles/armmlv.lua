@@ -28,7 +28,7 @@ return {
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 57,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMLV.s3o",
 		radardistancejam = 64,
