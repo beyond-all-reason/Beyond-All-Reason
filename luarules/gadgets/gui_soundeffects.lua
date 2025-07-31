@@ -33,6 +33,9 @@ local AllyUnitFinishedSoundDelayFrames = 1
 local AllyUnitCreatedSoundDelayFrames = 1
 local AllyCommandUnitDelayFrames = 1
 
+-- Command sounds are limited by both game frames and by game time
+-- So we reuse the time per frame for when the game is paused:
+local commandSoundTimer = 1 / Game.gameSpeed
 local commandSoundLimit = 20
 local commandSoundCount = commandSoundLimit
 
@@ -167,20 +170,21 @@ function gadget:Initialize()
 	end
 end
 
-local sec, cmd = 0, 0
+local slowTimer, fastTimer = 0, 0
 function gadget:Update()
 	local dt = Spring.GetLastUpdateSeconds()
-	sec = sec + dt
-	cmd = cmd + dt
-	if sec > 0.5 then
-		sec = 0
+	fastTimer = fastTimer + dt
+	if fastTimer > commandSoundTimer then
+		fastTimer = 0
+		commandSoundCount = commandSoundLimit
+	end
+	slowTimer = slowTimer + dt
+	if slowTimer > 0.5 then
+		slowTimer = 0
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
 		spectator, fullview = Spring.GetSpectatingState()
 		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
-	end
-	if cmd > 1 / 30 then
-		commandSoundCount = commandSoundLimit
 	end
 end
 
