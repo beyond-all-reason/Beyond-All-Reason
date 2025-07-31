@@ -2,6 +2,8 @@
 * gunslinger movement class changed to 3x3 and hitbox adjusted
 * Sprinter movement class changed to 3x3 and colvol adjusted to cover the funit fully at all angles
 * Welder movement class changed to 3x3 and footprint adjusted
+* Bulls movement class changed to 4x4 and slight increase in crush damage
+* arm minelayer movement class changed to 3x3
 
 # July 2025
 • [T1 Mex] +41% hp
