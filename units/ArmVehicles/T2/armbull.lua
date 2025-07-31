@@ -20,7 +20,7 @@ return {
 		maxslope = 12,
 		maxwaterdepth = 15,
 		metalcost = 950,
-		movementclass = "MTANK4",
+		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBULL.s3o",
 		script = "Units/ARMBULL.cob",
