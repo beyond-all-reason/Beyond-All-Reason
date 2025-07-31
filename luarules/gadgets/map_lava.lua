@@ -115,9 +115,9 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
-				lavaGrow = tideRhythm[tideIndex].speed 
+				lavaGrow = tideRhythm[tideIndex].speed
 			else
-				lavaGrow = -tideRhythm[tideIndex].speed 
+				lavaGrow = -tideRhythm[tideIndex].speed
 			end
 		end
 		_G.lavaGrow = lavaGrow
@@ -194,7 +194,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(f)
 		gameframe = f
-		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
+		_G.lavaLevel = lavaLevel+math.sin(f/gameSpeed)*0.5
 		--_G.lavaLevel = lavaLevel + clamp(math.sin(f / 30), -0.95, 0.95) * 0.5 -- clamp to avoid jittering when sin(x) is around +-1
 
 		if f % DAMAGE_RATE == 0 then
