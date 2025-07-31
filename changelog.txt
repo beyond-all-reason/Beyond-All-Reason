@@ -1,6 +1,7 @@
 # July, 30
 * gunslinger movement class changed to 3x3 and hitbox adjusted
 * Sprinter movement class changed to 3x3 and colvol adjusted to cover the funit fully at all angles
+* Welder movement class changed to 3x3 and footprint adjusted
 
 # July 2025
 • [T1 Mex] +41% hp
