@@ -253,7 +253,7 @@ local moveDatas = {
 		}
 	},
 
-	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -266,7 +266,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr corhrk armmav
+	--  armfido leggstr corhrk armmav armfast
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
