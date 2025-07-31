@@ -91,12 +91,6 @@ for name, defs in pairs(GUIUnitSoundEffects) do
 		if UnitDefNames[name..'_scav'] then
 			newGUIUnitSoundEffects[UnitDefNames[name..'_scav'].id] = defs
 		end
-		-- only use sub-tables for selecting multiple sounds
-		for key, value in pairs(defs) do
-			if type(value) == "table" and #value == 1 then
-				defs[key] = value[1]
-			end
-		end
 		-- ensure activate-able units have deactivate sounds
 		if not defs.BaseSoundDeactivate and defs.BaseSoundActivate then
 			defs.BaseSoundDeactivate = defs.BaseSoundActivate
