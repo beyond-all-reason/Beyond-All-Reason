@@ -65,7 +65,7 @@ local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set am
 ---  each row is: { HeightLevel (elmo), Speed (elmo/second), Delay for next TideRhythm (seconds) }
 ---  first element needs to be -1 than pre-game lava level when present
 local tideRhythm = {}
-local defaultTide = { 4, 1.5, 5*6000 }
+local defaultTide = {4, 1.5, 5*6000}
 
 
 ----------------------------------------
@@ -202,7 +202,7 @@ local function lavaModGen(modOptions)
 			grow = tideRhythm[1][2]
 		else 
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
-			if not tideRhythm then 
+			if next(tideRhythm) == nil then 
 				level = defaultTide[1]
 				tideRhythm = { defaultTide }
 			end
