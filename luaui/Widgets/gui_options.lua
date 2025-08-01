@@ -2278,6 +2278,12 @@ function init()
 		  end,
 		},
 
+		{ id = "supersampling", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.supersampling'), type = "bool", restart = false, value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0), description = Spring.I18N('ui.settings.option.supersampling_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
+		  end,
+		},
+
 		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.cas_sharpness'), min = 0.5, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = Spring.I18N('ui.settings.option.cas_sharpness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
