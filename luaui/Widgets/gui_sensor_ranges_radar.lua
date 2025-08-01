@@ -152,6 +152,14 @@ function widget:DrawGenesis()
     gl.RenderToTexture(radarStencilTexture, DrawLOSStencil)
 end
 
+function widget:GamePaused(playerID, paused)
+	if paused then
+		widgetHandler:RemoveCallIn("DrawGenesis")
+	else
+		widgetHandler:UpdateCallIn("DrawGenesis")
+	end
+end
+
 -- This shows the debug stencil texture in the bottom left corner of the screen
 if debugmode then 
 	function widget:DrawScreen()	
