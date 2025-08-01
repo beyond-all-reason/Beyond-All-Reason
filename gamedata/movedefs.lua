@@ -55,8 +55,8 @@ local moveDatas = {
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
+		footprintx = 3,
+		footprintz = 3,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
@@ -101,8 +101,8 @@ local moveDatas = {
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = 252,
-		footprintx = 8,
-		footprintz = 8,
+		footprintx = 9,
+		footprintz = 9,
 		minwaterdepth = 15,
 	},
 
