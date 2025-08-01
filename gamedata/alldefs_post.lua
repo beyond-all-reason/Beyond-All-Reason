@@ -842,7 +842,9 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 50
 				uDef.speedtofront = 0.06
-				uDef.cruisealtitude = 220
+				if not uDef.customparams.raptorcruisealtitude then
+					uDef.cruisealtitude = 220
+				end
 				--uDef.attackrunlength = 32
 			else
 				uDef.maxacc = 1
@@ -860,7 +862,9 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 1600
 				uDef.speedtofront = 0.01
-				uDef.cruisealtitude = 220
+				if not uDef.customparams.raptorcruisealtitude then
+					uDef.cruisealtitude = 220
+				end
 				--uDef.attackrunlength = 32
 			end
 		end
