@@ -203,7 +203,7 @@ local function lavaModGen(modOptions)
 		else 
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
 			if not tideRhythm then 
-				level = 4
+				level = defaultTide[1]
 				tideRhythm = { defaultTide }
 			end
 		end
@@ -231,9 +231,10 @@ if mapLavaConfig and (not voidWaterMap) then
 	if modTideRhythm == "enabled" then
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhythm == "disabled" then
-		level = level 
 		tideRhythm = {tideRhythm[1]} -- only the first (starting) tide level is used
 		tideRhythm[1][3] = 5*6000 -- extend the first tide 
+		level = tideRhythm[1][1] 
+		grow = tideRhythm[1][2]
 	end
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
@@ -267,7 +268,7 @@ elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	if modTideRhythm == "enabled" then
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhythm == "disabled" or modTideRhythm == "default" then
-		level = 4
+		level = defaultTide[1]
 		tideRhythm = { defaultTide }
 	end
 end
