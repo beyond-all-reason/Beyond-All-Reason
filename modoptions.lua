@@ -925,7 +925,7 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
@@ -941,17 +941,17 @@ local options = {
         items	= {
             { key= "default", 	name= "Default", desc= "Map Settings",
                 lock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
                 unlock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava", "sub_header_lava3", "sub_header_lava4"},
                 lock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
                 lock = 
-                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_advancedrhythm", "sub_header_lava3", "sub_header_lava4"},
+                {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
         },

@@ -65,6 +65,7 @@ local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set am
 ---  each row is: { HeightLevel (elmo), Speed (elmo/second), Delay for next TideRhythm (seconds) }
 ---  first element needs to be -1 than pre-game lava level when present
 local tideRhythm = {}
+local defaultTide = { 4, 1.5, 5*6000 }
 
 
 ----------------------------------------
@@ -193,10 +194,8 @@ end
 
 local function lavaModGen(modOptions)
 	if modOptions.map_lavatidemode == "lavaadvanced" then 
-		local modoptionAdvancedRaw = modOptions.map_tweaklava
-		--Spring.Echo("Lava Advanced Raw Tide Rhythm Data: ", modoptionAdvancedRaw)
-		local advancedRhythm = validateTideRhythm(modoptionAdvancedRaw)
-		--Spring.Echo("Lava Advanced Processed Tide Rhythm Data: ", advancedRhythm)
+		local tweakLavaRaw = modOptions.map_tweaklava
+		local advancedRhythm = validateTideRhythm(tweakLavaRaw)
 		if advancedRhythm then 
 			tideRhythm = advancedRhythm
 			level = tideRhythm[1][1] + 1
@@ -205,7 +204,7 @@ local function lavaModGen(modOptions)
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
 			if not tideRhythm then 
 				level = 4
-				tideRhythm = { { 4, 1.5, 5*6000 } }
+				tideRhythm = { defaultTide }
 			end
 		end
 	else 
@@ -260,7 +259,7 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 	fogHeight = 20
 	fogAbove = 0.1
 	fogDistortion = 1
-	tideRhythm = { { 4, 1.5, 5*6000 } }
+	tideRhythm = { defaultTide }
 	--tideRhythm = { { 1, 7.5, 5*6000 } }
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
@@ -269,7 +268,7 @@ elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhythm == "disabled" or modTideRhythm == "default" then
 		level = 4
-		tideRhythm = { { 4, 1.5, 5*6000 } }
+		tideRhythm = { defaultTide }
 	end
 end
 
