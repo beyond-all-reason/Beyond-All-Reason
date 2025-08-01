@@ -365,7 +365,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- register allowcommand callin
 		gadgetHandler:RegisterAllowCommand(CMD_STOP)
 		gadgetHandler:RegisterAllowCommand(CMD_DGUN)
-		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
@@ -627,9 +626,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
-		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
 			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua) then
 				--tracy.ZoneEnd()
@@ -643,9 +640,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif cmdID == CMD_DGUN then
 				pauseTargetting(unitID)
-			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
-				pauseTargetting(unitID)
-				waitingForInsertRemoval[unitID] = true
+
+				if fromInsert ~= nil then
+					waitingForInsertRemoval[unitID] = true
+				end
 			end
 		end
 		--tracy.ZoneEnd()
