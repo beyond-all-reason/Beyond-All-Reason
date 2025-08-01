@@ -2699,6 +2699,10 @@ local icontypes = {
 		bitmap = "icons/leglrpc.png",
 		size = 2.41499972
 	},
+	legmabm = {
+		bitmap = "icons/antinukevehicle.png",
+		size = 1.46999991
+	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
 		size = 1.85
