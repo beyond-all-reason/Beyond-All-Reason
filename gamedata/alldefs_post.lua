@@ -842,7 +842,9 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 50
 				uDef.speedtofront = 0.06
-				if not uDef.customparams.raptorcruisealtitude then
+				if uDef.customparams.raptorcruisealtitude then
+					uDef.cruisealtitude = tonumber(uDef.customparams.raptorcruisealtitude)
+				else
 					uDef.cruisealtitude = 220
 				end
 				--uDef.attackrunlength = 32
@@ -862,7 +864,9 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 1600
 				uDef.speedtofront = 0.01
-				if not uDef.customparams.raptorcruisealtitude then
+				if uDef.customparams.raptorcruisealtitude then
+					uDef.cruisealtitude = tonumber(uDef.customparams.raptorcruisealtitude)
+				else
 					uDef.cruisealtitude = 220
 				end
 				--uDef.attackrunlength = 32
