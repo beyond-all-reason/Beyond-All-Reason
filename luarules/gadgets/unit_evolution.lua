@@ -335,6 +335,14 @@ if gadgetHandler:IsSyncedCode() then
 		return nToCheckUnitIDs == 0
 	end
 
+	local function getTotalUnitCount()
+		local totalUnits = 0
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+		end
+		return totalUnits
+	end
+
 	local function unitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
 		value = math.clamp(value, minLoadUnits, maxLoadUnits)
 		local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
@@ -378,7 +386,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		local batchSize = 0
 		local currentTime = spGetGameSeconds()
-		local clampedBatchSize = unitsToBatchSizeInterpolation(#Spring.GetAllUnits(), 600, 4000, 200, 15)
+
+		-- very hard to crash below 600 and very hard to not crash above 4000
+		-- 200 and 15 output values adjusted to do as much as possible while minimizing the freeze time for respective input
+		local clampedBatchSize = unitsToBatchSizeInterpolation(getTotalUnitCount(), 600, 4000, 200, 15)
 
 		for _, power in pairs(teamPowerList) do
 			highestTeamPower = math.max(power, highestTeamPower)
