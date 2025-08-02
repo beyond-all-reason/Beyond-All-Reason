@@ -14,14 +14,14 @@ function widget:GetInfo()
 end
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
-local CMD_GUARD = CMD.GUARD
-local CMD_PATROL = CMD.PATROL
+local CMD_INSERT = CMD.INSERT
+local COMMAND_CANCEL_DIST = 17 -- see CommandAI.cpp
 
 local removableCommand = {
-	[CMD_GUARD] = true,
-	[CMD_PATROL] = true,
+	[CMD.GUARD] = true,
+	[CMD.PATROL] = true,
 }
 
 -- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
@@ -35,29 +35,62 @@ for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
-function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
-
-	if not cmdOpts.shift then
+local function shouldCancelParams(c1, c2, c3, p1, p2, p3)
+	if c1 == p1 and c2 == p2 and c3 == p3 then
+		return true
+	elseif c3 == nil and p3 == nil then
 		return false
+	else
+		return math.distance3dSquared(c1, c2, c3, p1, p2, p3) <= COMMAND_CANCEL_DIST * COMMAND_CANCEL_DIST
 	end
+end
 
-	if recentUnits[unitID] then
-		return false
-	end
+local function removeDedupedCommands(unitID, cmdID, c1, c2, c3)
+	local tags = {}
+	local index = Spring.GetUnitCommandCount(unitID)
+	local first = true
 
-	if validUnit[unitDefID] then
-		recentUnits[unitID] = spGetGameFrame()
-		local cmd = spGetUnitCommands(unitID, 2)
-		if cmd then
-			for c = 1, #cmd do
-				if removableCommand[cmd[c].id] then
-					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
-				end
+	-- The engine cancels the first dupe from the end. See `CommandAI:GetCancelQueued`.
+	-- From there, search exhaustively for all non-duplicate, non-terminating commands.
+	while index > 0 do
+		local command, _, tag, p1, p2, p3 = spGetUnitCurrentCommand(unitID, index)
+		index = index - 1
+
+		if command >= 0 and removableCommand[command] then
+			if first and cmdID == command and shouldCancelParams(c1, c2, c3, p1, p2, p3) then
+				first = false
+			else
+				tags[#tags + 1] = tag
 			end
 		end
 	end
 
-	return false
+	if tags[1] ~= nil then
+		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
+	end
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if not cmdOpts.shift or recentUnits[unitID] or not validUnit[unitDefID] then
+		return
+	else
+		recentUnits[unitID] = spGetGameFrame()
+	end
+
+	local fromInsert = cmdID == CMD_INSERT
+
+	if fromInsert then
+		cmdID = cmdParams[2]
+	end
+
+	if not removableCommand[cmdID] then
+		return
+	end
+
+	local skip = fromInsert and 3 or 0
+	local p1, p2, p3 = cmdParams[1 + skip], cmdParams[2 + skip], cmdParams[3 + skip]
+
+	removeDedupedCommands(unitID, cmdID, p1, p2, p3)
 end
 
 function widget:Update(dt)
