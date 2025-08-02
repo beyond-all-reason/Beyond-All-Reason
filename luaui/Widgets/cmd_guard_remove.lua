@@ -13,8 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-include("keysym.h.lua")
-
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitCommands = Spring.GetUnitCommands
 
