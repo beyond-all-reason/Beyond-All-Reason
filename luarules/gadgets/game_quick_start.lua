@@ -121,7 +121,6 @@ local function createPixiesForCommander(commanderID, teamID, startingMetal, star
 	commanderMetaList[commanderID] = {
 		teamID = teamID,
 		pixieList = {},
-		pixieExcess = 0,
 		lastCommandCheck = 0,
 		currentBuildCommand = nil
 	}
@@ -160,7 +159,6 @@ end
 local function assignPixiesToBuild(commanderID, cmd)
 	local buildDefID = -cmd.id
 	local buildCostRemaining = unitCosts[buildDefID]
-	local excess = commanderMetaList[commanderID].pixieExcess
 	if not buildCostRemaining then
 		return false
 	end
@@ -200,10 +198,8 @@ local function assignPixiesToBuild(commanderID, cmd)
 			spGiveOrderToUnit(pixieID, CMD.GUARD, {chosenBuilderID}, 0)
 		end
 
-		buildCostRemaining = buildCostRemaining - pixieData.value - excess
-		excess = 0
+		buildCostRemaining = buildCostRemaining - pixieData.value
 		if buildCostRemaining <= 0 then
-			excess = math.abs(buildCostRemaining)
 			break
 		end
 	end
@@ -236,8 +232,38 @@ local function depletePixies(pixies)
 	end
 end
 
-local function applyPixieBoostToBuilding(buildingUnitID)
-	spSetUnitHealth(buildingUnitID, {build = 1, health = UnitDefs[spGetUnitDefID(buildingUnitID)].health})
+local function applyPixieBoostToBuilding(buildingUnitID, pixies)
+	local originalCost = unitCosts[spGetUnitDefID(buildingUnitID)]
+	local remainingCost = originalCost
+	local buildProgress = 0
+	local healthToApply = 0
+	for _, pixieID in ipairs(pixies) do
+		local pixieData = pixieMetaList[pixieID]
+		Spring.Echo("pixieID: " .. pixieID .. "before if")
+		if pixieData then
+			Spring.Echo("pixieData.value: " .. pixieData.value)
+			remainingCost = remainingCost - pixieData.value
+			if remainingCost == 0 then
+				break
+			elseif remainingCost < 0 then
+				pixieData.value = pixieData.value + remainingCost
+				remainingCost = 0
+				break
+			end
+			Spring.Echo("pixieID: " .. pixieID .. "after if")
+		end
+	end
+	local maxHealth = UnitDefs[spGetUnitDefID(buildingUnitID)].health
+	Spring.Echo("remainingCost: " .. remainingCost)
+	if remainingCost > 0 then
+		buildProgress = 1 - remainingCost / originalCost
+		healthToApply = math.ceil(maxHealth * buildProgress)
+	else
+		buildProgress = 1
+		healthToApply = maxHealth
+	end
+
+	spSetUnitHealth(buildingUnitID, {build = buildProgress, health = healthToApply})
 end
 
 local function isBuildCommand(cmdID)
@@ -377,24 +403,31 @@ function gadget:GameFrame(frameNumber)
 					else
 						local allReady = true
 						local buildingUnitID = nil
+						local allPixies = {builderPixieID}
 						for guardingPixieID, _ in pairs(guardingPixies) do
+							table.insert(allPixies, guardingPixieID)
 							eraseCluster = spGetUnitIsDead(guardingPixieID) or not spValidUnitID(guardingPixieID)
 							allReady = allReady and Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
 						end
 						buildingUnitID = Spring.GetUnitIsBuilding(builderPixieID)
 						allReady = allReady and buildingUnitID ~= nil
 						if allReady and buildingUnitID then
-							applyPixieBoostToBuilding(buildingUnitID)
+							applyPixieBoostToBuilding(buildingUnitID, allPixies)
 							-- Clean up cluster metadata BEFORE destroying units to prevent double cleanup
 							erasePixieBuildCluster(commanderID, builderPixieID)
-							depletePixies({builderPixieID})
-							depletePixies(guardingPixies)
 						elseif eraseCluster then
 							erasePixieBuildCluster(commanderID, builderPixieID) -- not enough pixies to build, probably died or construction cancelled.
 						end
 					end
 				end
 			end
+		end
+	end
+
+	--deplete pixies that have no value left
+	for pixieID, pixieData in pairs(pixieMetaListCopy) do
+		if pixieData.value <= 0 then
+			depletePixies({pixieID})
 		end
 	end
 
