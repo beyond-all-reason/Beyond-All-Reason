@@ -187,9 +187,13 @@ local function assignPixiesToBuild(commanderID, cmd)
 			spGiveOrderToUnit(pixieID, CMD.GUARD, {chosenBuilderID}, 0)
 		end
 
+		Spring.Echo("Debug: pixieData.value", pixieData.value)
+		Spring.Echo("Debug: excess", excess)
+		Spring.Echo("Debug: buildCostRemaining", buildCostRemaining)
+
 		buildCostRemaining = buildCostRemaining - pixieData.value - excess
 		excess = 0
-		if buildCostRemaining >= 0 then
+		if buildCostRemaining <= 0 then
 			excess = math.abs(buildCostRemaining)
 			break
 		end
@@ -306,7 +310,7 @@ function gadget:GameFrame(frameNumber)
 			if buildClusters then
 				for builderPixieID, guardingPixies in pairs(buildClusters) do
 					local eraseCluster = false
-					local builderPixieCMD = spGetUnitCurrentCommand(builderPixieID) and Spring.GetUnitIsDead(builderPixieID) and Spring.ValidUnitID(builderPixieID)
+					local builderPixieCMD = spGetUnitCurrentCommand(builderPixieID) and not Spring.GetUnitIsDead(builderPixieID) and Spring.ValidUnitID(builderPixieID)
 					if not builderPixieCMD or not isBuildCommand(builderPixieCMD.id) then
 						eraseCluster = true
 					else
@@ -322,6 +326,7 @@ function gadget:GameFrame(frameNumber)
 							depletePixies({builderPixieID})
 							depletePixies(guardingPixies)
 						end
+						Spring.Echo("Debug: allReady", allReady)
 					end
 					if eraseCluster then
 						erasePixieBuildCluster(commanderID, builderPixieID) -- not enough pixies to build, probably died or construction cancelled.
@@ -335,7 +340,7 @@ function gadget:GameFrame(frameNumber)
 	for pixieID, pixieData in pairs(pixieMetaList) do
 		if pixieData.state ~= STATES.ORBITING then
 			local cmdID = Spring.GetUnitCurrentCommand(pixieID)
-			if cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
+			if not cmdID or cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
 				pixieData.state = STATES.ORBITING
 			end
 		end
