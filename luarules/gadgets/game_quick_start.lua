@@ -57,6 +57,7 @@ local PIXIE_COMBO_COST = PIXIE_METAL_COST + PIXIE_ENERGY_COST/ENERGY_VALUE_CONVE
 local COMMAND_STEAL_RANGE = 700 --same as com's radardistance
 local PIXIE_ORBIT_RADIUS = 150
 local PIXIE_HOVER_HEIGHT = 50
+local ALL_COMMANDS = -1
 local UPDATE_FRAMES = 15
 local PIXIE_UNIT_NAME = "armassistdrone"
 local PI = math.pi
@@ -364,9 +365,9 @@ function gadget:GameFrame(frameNumber)
 	-- Update all active commanders and their pixies
 	for commanderID, commanderData in pairs(commanderMetaList) do
 		if teamsToBoost[commanderData.teamID] then
-
 			--check and assign build commands for pixies
-			local commands = spGetUnitCommands(commanderID, 1)
+			local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
+			Spring.Echo("[Quick Start Debug] Commander " .. commanderID .. " has " .. #commands .. " commands")
 			if next(commands) then
 				for _, cmd in ipairs(commands) do
 					local pixiesCanBuildCompletely = false
@@ -375,7 +376,8 @@ function gadget:GameFrame(frameNumber)
 						pixiesCanBuildCompletely = assignPixiesToBuild(commanderID, cmd)
 					end
 					if pixiesCanBuildCompletely then
-						spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
+						Spring.Echo("[Quick Start Debug] Pixies can build completely! Marking command for removal.")
+						--spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
 					end
 				end
 			end
@@ -459,7 +461,7 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:Initialize()
-	if Spring.GetGameFrame() > 0 then
+	if Spring.GetGameFrame() > 1 then
 		gadget:GameStart()
 	end
 	nonPlayerTeams[Spring.GetGaiaTeamID()] = true
