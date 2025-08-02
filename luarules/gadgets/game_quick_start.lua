@@ -49,7 +49,10 @@ local mathRandom = math.random
 local mathCos = math.cos
 local mathSin = math.sin
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
 -- Constants
+local RESOURCES_RATIO_TO_BE_CLAIMED_BY_PIXIES = 0.95
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local PIXIE_METAL_COST = 50
 local PIXIE_ENERGY_COST = 500
@@ -60,7 +63,7 @@ local PIXIE_HOVER_HEIGHT = 50
 local FALLBACK_RESOURCES = 1000
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = 15
-local PREGAME_DELAY = 150
+local PREGAME_DELAY_FRAMES = 150
 local PIXIE_UNIT_NAME = "armassistdrone"
 local PI = math.pi
 local PRIVATE = { private = true }
@@ -96,6 +99,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCosts[unitDefID] = calculateUnitCost(unitDef)
 end
 
+local function getUnitCosts(buildingUnitID)
+	local originalCost = unitCosts[spGetUnitDefID(buildingUnitID)]
+	local currentBuildProgress = select(4, spGetUnitHealth(buildingUnitID))
+	return originalCost,  originalCost - (originalCost * currentBuildProgress)
+end
+
 local function getRandomMoveLocation(centerX, centerZ, maxDistance)
 	local angle = mathRandom() * 2 * PI
 	local distance = mathRandom() * maxDistance
@@ -105,15 +114,19 @@ local function getRandomMoveLocation(centerX, centerZ, maxDistance)
 end
 
 local function createPixiesForCommander(commanderID, teamID, startingMetal, startingEnergy)
-	local totalCombinedResources = startingMetal + startingEnergy / ENERGY_VALUE_CONVERSION_DIVISOR
+	local convertedEnergy = startingEnergy / ENERGY_VALUE_CONVERSION_DIVISOR
+	local convertedMetal = startingMetal
+	local totalCombinedResources = convertedMetal + convertedEnergy * RESOURCES_RATIO_TO_BE_CLAIMED_BY_PIXIES
 	local totalPixies = math.floor(totalCombinedResources / PIXIE_COMBO_COST)
 	
 	if totalPixies <= 0 or not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
 		return
 	end
 	
-	Spring.SetTeamResource(teamID, "metal", 0)
-	Spring.SetTeamResource(teamID, "energy", 0)
+	local currentMetal = spGetTeamResources(teamID, "metal")
+	local currentEnergy = spGetTeamResources(teamID, "energy")
+	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - convertedMetal))
+	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - convertedEnergy))
 
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
@@ -214,26 +227,21 @@ local function depletePixies(pixies)
 		-- Array-style table, use ipairs
 		for i, pixieID in ipairs(pixies) do
 			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
-				local x, y, z = spGetUnitPosition(pixieID)
-				spDestroyUnit(pixieID, false, true)
-				Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
+				Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
 			end
 		end
 	else
 		-- Hash-style table, use pairs
 		for pixieID, _ in pairs(pixies) do
 			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
-				local x, y, z = spGetUnitPosition(pixieID)
-				spDestroyUnit(pixieID, false, true)
-				Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
+				Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
 			end
 		end
 	end
 end
 
 local function applyPixieBoostToBuilding(buildingUnitID, pixies)
-	local originalCost = unitCosts[spGetUnitDefID(buildingUnitID)]
-	local remainingCost = originalCost
+	local originalCost, remainingCost = getUnitCosts(buildingUnitID)
 	local buildProgress = 0
 	local healthToApply = 0
 	for _, pixieID in ipairs(pixies) do
@@ -259,6 +267,14 @@ local function applyPixieBoostToBuilding(buildingUnitID, pixies)
 	else
 		buildProgress = 1
 		healthToApply = maxHealth
+	end
+
+	local buildingX, buildingY, buildingZ = spGetUnitPosition(buildingUnitID)
+	Spring.SpawnCEG("quickstart-spawn-pulse-large", buildingX, buildingY + 10, buildingZ)
+
+	for _, pixieID in ipairs(pixies) do
+		local pixieX, pixieY, pixieZ = spGetUnitPosition(pixieID)
+		Spring.SpawnCEG("botrailspawn", pixieX, pixieY - 20, pixieZ)
 	end
 
 	spSetUnitHealth(buildingUnitID, {build = buildProgress, health = healthToApply})
@@ -323,11 +339,8 @@ end
 
 local initialized = false
 function gadget:GameFrame(frame)
-	Spring.Echo("quickstart fframe", frame)
-	if frame > 150 and not initialized then
-		Spring.Echo("quickstart initialized")
+	if not initialized and frame > PREGAME_DELAY_FRAMES then
 		for unitID, teamID in pairs(queuePixieCreation) do
-			Spring.Echo("[Quick Start Debug] Creating pixies for commander " .. unitID .. " on team " .. teamID)
 			createPixiesForCommander(unitID, teamID, modOptions.startmetal or FALLBACK_RESOURCES, modOptions.startenergy or FALLBACK_RESOURCES)
 		end
 		queuePixieCreation = {}
