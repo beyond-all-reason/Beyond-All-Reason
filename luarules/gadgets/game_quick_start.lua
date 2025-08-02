@@ -44,7 +44,10 @@ local mathCos = math.cos
 local mathSin = math.sin
 
 -- Constants
-local PIXIE_COST_VALUE = 50 + 500/10  -- 50 metal + 500 energy / 60 = ~58.33 total cost
+local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local PIXIE_METAL_COST = 50
+local PIXIE_ENERGY_COST = 500
+local PIXIE_COMBO_COST = PIXIE_METAL_COST + PIXIE_ENERGY_COST/ENERGY_VALUE_CONVERSION_DIVISOR
 local COMMAND_STEAL_RANGE = 750
 local PIXIE_ORBIT_RADIUS = 150
 local PIXIE_HOVER_HEIGHT = 50
@@ -52,6 +55,13 @@ local UPDATE_FRAMES = 15
 local PIXIE_UNIT_NAME = "armassistdrone"
 local PI = math.pi
 local PRIVATE = { private = true }
+
+local STATES = {
+	EMPTY = 0,
+	ORBITING = 1,
+	BUILDING = 2,
+	GUARDING = 3,
+}
 
 -- Helper function to calculate unit cost using the same formula
 local function calculateUnitCost(unitDef)
@@ -62,499 +72,188 @@ end
 
 -- Data structures
 local teamsToBoost = {}
-local teamPixieCount = {}
 local commanderMetaList = {}
 local pixieMetaList = {}
 local nonPlayerTeams = {}
+local boostableCommanders = {}
+local unitCosts = {}
+local pixieBuildClusters = {} -- zzz when we assign a builder pixie to start a structure, we iterate over its stored guardians and make sure they're all nanolathing. If they are, then we can trigger instabuild.
 
-local function isBoostableCommander(unitDefinitionID)
-	local unitDefinition = UnitDefs[unitDefinitionID]
-	return unitDefinition and unitDefinition.customParams and unitDefinition.customParams.iscommander == "1"
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams and unitDef.customParams.iscommander then
+		boostableCommanders[unitDefID] = true
+	end
+	unitCosts[unitDefID] = calculateUnitCost(unitDef)
 end
 
-local function createPixiesForCommander(commanderID, teamID, metalResources, energyResources)
-	-- Calculate how many pixies based on starting resources using cost formula
-	-- Pixie cost: 5 metal + 50 energy (1/10th of their value)
-	local pixiePurchaseCost = 5 + 50/60  -- 5 metal + 50 energy / 60 = ~5.83 total cost
-	local totalAvailableCost = metalResources + energyResources / 60
-	local totalPixies = math.floor(totalAvailableCost / pixiePurchaseCost)
+local function getRandomMoveLocation(centerX, centerZ, maxDistance)
+	local angle = mathRandom() * 2 * PI
+	local distance = mathRandom() * maxDistance
+	local offsetX = mathCos(angle) * distance
+	local offsetZ = mathSin(angle) * distance
+	return centerX + offsetX, centerZ + offsetZ
+end
+
+local function createPixiesForCommander(commanderID, teamID, startingMetal, startingEnergy)
+	local totalCombinedResources = startingMetal + startingEnergy / ENERGY_VALUE_CONVERSION_DIVISOR
+	local totalPixies = math.floor(totalCombinedResources / PIXIE_COMBO_COST)
 	
-	if totalPixies <= 0 then
+	if totalPixies <= 0 or not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
 		return
 	end
 	
-	-- Deduct the total cost from team resources (proportionally)
-	local totalPurchaseCost = totalPixies * pixiePurchaseCost
-	local metalPortion = 5 / pixiePurchaseCost -- How much of cost is metal
-	local energyPortion = (50/60) / pixiePurchaseCost -- How much of cost is energy
-	
-	local totalMetalCost = totalPurchaseCost * metalPortion
-	local totalEnergyCost = totalPurchaseCost * energyPortion * 60 -- Convert back to energy units
-	
-	spUseTeamResource(teamID, "metal", totalMetalCost)
-	spUseTeamResource(teamID, "energy", totalEnergyCost)
-		
+	Spring.SetTeamResource(teamID, "metal", 0)
+	Spring.SetTeamResource(teamID, "energy", 0)
+
+
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-	if not commanderX then
-		return
-	end
-	
-	teamPixieCount[teamID] = totalPixies
 	commanderMetaList[commanderID] = {
 		teamID = teamID,
 		pixieList = {},
+		pixieExcess = 0,
 		lastCommandCheck = 0,
 		currentBuildCommand = nil
 	}
 	
-	-- Create pixies in orbit around commander
 	for i = 1, totalPixies do
-		local angle = (i / totalPixies) * 2 * PI
-		local offsetX = mathCos(angle) * PIXIE_ORBIT_RADIUS
-		local offsetZ = mathSin(angle) * PIXIE_ORBIT_RADIUS
-		local pixieX = commanderX + offsetX
-		local pixieY = spGetGroundHeight(pixieX, commanderZ + offsetZ) + PIXIE_HOVER_HEIGHT
-		local pixieZ = commanderZ + offsetZ
+		local pixieY = spGetGroundHeight(commanderX, commanderZ) + PIXIE_HOVER_HEIGHT
 		
-		local pixieID = spCreateUnit(PIXIE_UNIT_NAME, pixieX, pixieY, pixieZ, 0, teamID)
+		local pixieID = spCreateUnit(PIXIE_UNIT_NAME, commanderX, pixieY, commanderZ, 0, teamID)
 		if pixieID then
 			spSetUnitNoSelect(pixieID, true)
 			spSetUnitRulesParam(pixieID, "is_pixie", 1, PRIVATE)
-			spSetUnitRulesParam(pixieID, "commander_id", commanderID, PRIVATE)
-			
-			-- Debug: Show pixie build options
-			local pixieDefID = spGetUnitDefID(pixieID)
-			local pixieDef = UnitDefs[pixieDefID]
-			if pixieDef then
-				for i, buildOption in ipairs(pixieDef.buildOptions) do
-					if i <= 5 then -- Only show first 5 to avoid spam
-						local optionDef = UnitDefs[buildOption]
-					end
-				end
-				if #pixieDef.buildOptions > 5 then
-				end
-				
-				spSetUnitCosts(pixieID, {
-					buildTime = 1,
-					energyCost = 1,
-					metalCost = 1
-				})
-			end
+			spSetUnitRulesParam(pixieID, "pixie_commander_id", commanderID, PRIVATE)
 			
 			pixieMetaList[pixieID] = {
 				commanderID = commanderID,
-				costValue = PIXIE_COST_VALUE,
-				state = "orbiting", -- orbiting, moving, building, assisting, depleted
-				targetCommand = nil,
-				orbitAngle = angle,
-				buildTarget = nil,
-				assistTarget = nil,
-				hasAppliedBoost = false -- Track if pixie has applied its boost
+				value = PIXIE_COMBO_COST,
+				state = STATES.ORBITING,
+				stateData = {},
 			}
 			
 			commanderMetaList[commanderID].pixieList[pixieID] = true
 			
-			-- Give initial orbit command
-			spGiveOrderToUnit(pixieID, CMD.MOVE, {pixieX, pixieY, pixieZ}, 0)
+			local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
+			spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, pixieY, moveZ}, 0)
 		end
 	end
 end
 
-local function getAvailablePixiesForCommand(commanderID, unitCost)
-	if not commanderMetaList[commanderID] then
-		return {}
-	end
+local function assignBuildCommand(pixieID, cmd)
+	local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
+	local unitDefID = cmd.id
 	
-	local availablePixies = {}
-	local totalCost = 0
-	
-	for pixieID, _ in pairs(commanderMetaList[commanderID].pixieList) do
-		if pixieMetaList[pixieID] and pixieMetaList[pixieID].state == "orbiting" then
-			totalCost = totalCost + pixieMetaList[pixieID].costValue
-			availablePixies[#availablePixies + 1] = pixieID
-			
-			if totalCost >= unitCost then
-				break
-			end
-		end
-	end
-	
-	if totalCost >= unitCost then
-		return availablePixies
-	else
-		return {}
-	end
+	spGiveOrderToUnit(pixieID, unitDefID, {buildX, buildY, buildZ}, {})
 end
 
-local function assignPixiesToBuild(commanderID, buildCommand, targetX, targetY, targetZ, unitDefName, cmdTag)
-	local unitDef = UnitDefNames[unitDefName]
-	if not unitDef then
-		Spring.Echo("DEBUG: Unit def not found for: " .. (unitDefName or "nil"))
+local function assignPixiesToBuild(commanderID, cmd)
+	local buildDefID = -cmd.id
+	local buildCostRemaining = unitCosts[buildDefID]
+	local excess = commanderMetaList[commanderID].pixieExcess
+	if not buildCostRemaining then
 		return false
 	end
 	
-	local unitCost = calculateUnitCost(unitDef)
+	local pixies = commanderMetaList[commanderID].pixieList
+	local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
 	
-	local availablePixies = getAvailablePixiesForCommand(commanderID, unitCost)
-	if #availablePixies == 0 then
-		return false
-	end
-	
-	-- Remove the build command using its tag
-	if cmdTag then
-		spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmdTag}, 0)
-	end
-	
-	-- Assign available pixies to build this structure
-	local assignedPixies = {}
-	
-	for _, pixieID in ipairs(availablePixies) do
-		local pixie = pixieMetaList[pixieID]
-		if pixie then
-			pixie.state = "moving"
-			pixie.targetCommand = buildCommand
-			pixie.buildTarget = {
-				x = targetX,
-				y = targetY,
-				z = targetZ,
-				unitDefName = unitDefName
-			}
-			
-			assignedPixies[#assignedPixies + 1] = pixieID
-			
-			-- Move pixie to build location
-			spGiveOrderToUnit(pixieID, CMD.MOVE, {targetX, targetY, targetZ}, 0)
+	local pixieDistances = {}
+	for pixieID, _ in pairs(pixies) do
+		local pixieData = pixieMetaList[pixieID]
+		if pixieData.state == STATES.ORBITING then
+			local pixieX, pixieY, pixieZ = spGetUnitPosition(pixieID)
+			local distance = mathDiag(pixieX - buildX, pixieZ - buildZ)
+			table.insert(pixieDistances, {pixieID = pixieID, distance = distance})
 		end
 	end
 	
-	return true
-end
-
-local function updatePixieOrbits(commanderID)
-	local commanderData = commanderMetaList[commanderID]
-	if not commanderData then
-		return
-	end
+	table.sort(pixieDistances, function(a, b) return a.distance < b.distance end)
 	
-	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-	if not commanderX then
-		return
-	end
-	
-	for pixieID, _ in pairs(commanderData.pixieList) do
-		local pixie = pixieMetaList[pixieID]
-		if pixie and pixie.state == "orbiting" then
-			-- Update orbit position
-			pixie.orbitAngle = pixie.orbitAngle + 0.02
-			local offsetX = mathCos(pixie.orbitAngle) * PIXIE_ORBIT_RADIUS
-			local offsetZ = mathSin(pixie.orbitAngle) * PIXIE_ORBIT_RADIUS
-			local newX = commanderX + offsetX
-			local newY = spGetGroundHeight(newX, commanderZ + offsetZ) + PIXIE_HOVER_HEIGHT
-			local newZ = commanderZ + offsetZ
-			
-			-- Only give new move command occasionally to avoid spam
-			if mathRandom() < 0.1 then
-				spGiveOrderToUnit(pixieID, CMD.MOVE, {newX, newY, newZ}, 0)
-			end
-		end
-	end
-end
-
-local function checkPixieBuildProgress(pixieID)
-	local pixie = pixieMetaList[pixieID]
-	if not pixie then
-		return
-	end
-	
-	local pixieX, pixieY, pixieZ = spGetUnitPosition(pixieID)
-	if not pixieX then
-		return
-	end
-	
-	if pixie.state == "moving" and pixie.buildTarget then
-		local target = pixie.buildTarget
-		local distance = mathDiag(pixieX - target.x, pixieZ - target.z)
+	local chosenBuilderID = nil
+	for _, pixieInfo in ipairs(pixieDistances) do
+		local pixieID = pixieInfo.pixieID
+		local pixieData = pixieMetaList[pixieID]
 		
-		if distance < 100 then -- Within build range
-			pixie.state = "building"
-			
-			-- Check if pixie can build this unit type and give the build command
-			local unitDef = UnitDefNames[target.unitDefName]
-			if unitDef then
-				-- Check if pixie can build this unit type
-				local pixieDefID = spGetUnitDefID(pixieID)
-				local pixieDef = UnitDefs[pixieDefID]
-				local canBuild = false
-				
-				if pixieDef and pixieDef.buildOptions then
-					for _, buildOption in ipairs(pixieDef.buildOptions) do
-						if buildOption == unitDef.id then
-							canBuild = true
-							break
-						end
-					end
-				end
-				
-				if canBuild then
-					-- Use proper build positioning
-					local bx, by, bz = Spring.Pos2BuildPos(unitDef.id, target.x, target.y, target.z, 0)
-					local buildCmdID = -unitDef.id  -- Build commands are negative unitDefID
-					local buildParams = {bx, by, bz, 0} -- x, y, z, facing
-					
-					-- Test if build position is valid
-					local buildTest = Spring.TestBuildOrder(unitDef.id, bx, by, bz, 0)
-					if buildTest ~= 0 then
-						spGiveOrderToUnit(pixieID, buildCmdID, buildParams, 0)
-					else
-						-- Check if there's already a structure being built at this location
-						local radius = 150 -- Increase radius to find nearby structures
-						local nearbyUnits = Spring.GetUnitsInCylinder(bx, bz, radius)
-						local assistTarget = nil
-						
-						for _, nearbyID in ipairs(nearbyUnits) do
-							local nearbyDefID = spGetUnitDefID(nearbyID)
-							local nearbyDef = UnitDefs[nearbyDefID]
-							
-							if nearbyDefID == unitDef.id then
-								local health, maxHealth, _, _, buildProgress = spGetUnitHealth(nearbyID)
-								if buildProgress and buildProgress < 1.0 then -- Under construction
-									assistTarget = nearbyID
-									break
-								end
-							end
-						end
-						
-						if assistTarget then
-							-- Give assist command (guard the structure)
-							spGiveOrderToUnit(pixieID, CMD.GUARD, {assistTarget}, 0)
-							pixie.assistTarget = assistTarget
-							pixie.state = "assisting"
-						else
-							-- If no structure to build or assist, mark pixie as depleted since it has no work
-							pixie.state = "depleted"
-							pixie.buildTarget = nil
-							pixie.assistTarget = nil
-						end
-					end
-				else
-					-- Return to orbiting if can't build this unit type
-					pixie.state = "orbiting"
-					pixie.buildTarget = nil
-					pixie.assistTarget = nil
-				end
-			end
-		end
-	elseif pixie.state == "building" then
-		-- Check if pixie is actively building something
-		local commands = spGetUnitCommands(pixieID, 1)
-		local buildingUnitID = nil
-		
-		if commands and #commands > 0 then
-			local cmd = commands[1]
-			if cmd.id < 0 then -- Has a build command
-				-- Find what unit they're building/assisting
-				local allUnits = Spring.GetUnitsInCylinder(pixieX, pixieZ, 150)
-				for _, unitID in ipairs(allUnits) do
-					local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-					if buildProgress and buildProgress < 1.0 then
-						buildingUnitID = unitID
-						break
-					end
-				end
-			end
-		end
-		
-		if buildingUnitID and not pixie.hasAppliedBoost then
-			-- Pixie is building something - instantly apply its value (only once)
-			local _, maxHealth, _, _, buildProgress = spGetUnitHealth(buildingUnitID)
-			local unitDefID = spGetUnitDefID(buildingUnitID)
-			local unitDef = UnitDefs[unitDefID]
-			local unitCost = calculateUnitCost(unitDef)
-			
-			-- Calculate how much progress this pixie can contribute (dump all resources immediately)
-			local progressToAdd = math.min(pixie.costValue / unitCost, 1.0 - buildProgress)
-			
-			if progressToAdd > 0 then
-				-- Apply the progress instantly
-				local newBuildProgress = buildProgress + progressToAdd
-				local newHealth = maxHealth * newBuildProgress
-				spSetUnitHealth(buildingUnitID, {build = newBuildProgress, health = newHealth})
-				
-				-- Deduct the used cost from pixie and mark as having applied boost
-				local costUsed = progressToAdd * unitCost
-				pixie.costValue = math.max(0, pixie.costValue - costUsed)
-				pixie.hasAppliedBoost = true
-				
-				-- Check if pixie is depleted
-				if pixie.costValue <= 0.1 then
-					pixie.state = "depleted"
-					pixie.buildTarget = nil
-					pixie.assistTarget = nil
-				elseif newBuildProgress >= 1.0 then
-					-- Structure complete, mark pixie as depleted since it used its boost
-					pixie.state = "depleted"
-					pixie.buildTarget = nil
-					pixie.assistTarget = nil
-				end
-			end
-		elseif buildingUnitID == nil and pixie.hasAppliedBoost then
-			-- Pixie was building but unit no longer exists, mark as depleted
-			pixie.state = "depleted"
-			pixie.buildTarget = nil
-			pixie.assistTarget = nil
+		if not chosenBuilderID then
+			chosenBuilderID = pixieID
+			pixieBuildClusters[chosenBuilderID] = {}
+			assignBuildCommand(pixieID, cmd)
+			pixieData.state = STATES.BUILDING
 		else
-			-- Not actively building, return to orbiting
-			pixie.state = "orbiting"
-			pixie.buildTarget = nil
-			pixie.assistTarget = nil
-			spGiveOrderToUnit(pixieID, CMD.STOP, {}, 0)
+			pixieBuildClusters[chosenBuilderID][pixieID] = true
+			pixieData.state = STATES.GUARDING
+			pixieData.stateData = {builderID = chosenBuilderID}
+			spGiveOrderToUnit(pixieID, CMD.GUARD, {chosenBuilderID}, 0)
 		end
-	elseif pixie.state == "assisting" and pixie.assistTarget then
-		-- Check if pixie is still assisting the target structure
-		local assistTarget = pixie.assistTarget
-		local targetExists = spValidUnitID(assistTarget)
-		
-		if targetExists and not pixie.hasAppliedBoost then
-			local _, maxHealth, _, _, buildProgress = spGetUnitHealth(assistTarget)
-			
-			if buildProgress and buildProgress < 1.0 then
-				-- Structure still under construction - apply pixie value (only once)
-				local unitDefID = spGetUnitDefID(assistTarget)
-				local unitDef = UnitDefs[unitDefID]
-				local unitCost = calculateUnitCost(unitDef)
-				
-				-- Calculate how much progress this pixie can contribute (dump all resources immediately)
-				local progressToAdd = math.min(pixie.costValue / unitCost, 1.0 - buildProgress)
-				
-				if progressToAdd > 0 then
-					-- Apply the progress instantly
-					local newBuildProgress = buildProgress + progressToAdd
-					local newHealth = maxHealth * newBuildProgress
-					spSetUnitHealth(assistTarget, {build = newBuildProgress, health = newHealth})
-					
-					-- Deduct the used cost from pixie and mark as having applied boost
-					local costUsed = progressToAdd * unitCost
-					pixie.costValue = math.max(0, pixie.costValue - costUsed)
-					pixie.hasAppliedBoost = true
-					
-					-- Check if pixie is depleted
-					if pixie.costValue <= 0.1 then
-						pixie.state = "depleted"
-						pixie.buildTarget = nil
-						pixie.assistTarget = nil
-					elseif newBuildProgress >= 1.0 then
-						-- Structure complete, mark pixie as depleted since it used its boost
-						pixie.state = "depleted"
-						pixie.buildTarget = nil
-						pixie.assistTarget = nil
-					end
-				end
-			else
-				-- Structure complete, mark pixie as depleted since it has no more work
-				pixie.state = "depleted"
-				pixie.buildTarget = nil
-				pixie.assistTarget = nil
-			end
-		elseif targetExists and pixie.hasAppliedBoost then
-			-- Pixie already applied boost, mark as depleted
-			pixie.state = "depleted"
-			pixie.buildTarget = nil
-			pixie.assistTarget = nil
-		else
-			-- Assist target no longer exists, mark pixie as depleted
-			pixie.state = "depleted"
-			pixie.buildTarget = nil
-			pixie.assistTarget = nil
-		end
-	end
-	
-	-- Remove pixie if depleted or very low resources
-	if pixie.state == "depleted" or pixie.costValue <= 0.1 then
-		local commanderData = commanderMetaList[pixie.commanderID]
-		if commanderData then
-			commanderData.pixieList[pixieID] = nil
-		end
-		pixieMetaList[pixieID] = nil
-		spDestroyUnit(pixieID, false, true)
-	end
-end
 
-local function monitorCommanderCommands(commanderID)
-	local commanderData = commanderMetaList[commanderID]
-	if not commanderData then
-		return
-	end
-	
-	-- Get the command queue instead of just current command
-	local commands = spGetUnitCommands(commanderID, 1) -- Get first command only
-	if not commands or #commands == 0 then
-		return
-	end
-	
-	local cmd = commands[1]
-	local cmdID = cmd.id
-	local cmdParams = cmd.params
-	local cmdTag = cmd.tag
-	
-	local paramsStr = cmdParams and table.concat(cmdParams, ", ") or "none"
-	
-	-- Build commands have negative IDs (cmdID = -unitDefID)
-	if cmdID < 0 then
-		local unitDefID = -cmdID  -- Convert back to positive unitDefID
-		
-		-- Check if commander is within range of build target
-		local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-		if not commanderX then
-			return
-		end
-		
-		-- Build command params are {x, y, z, facing}
-		if not cmdParams or #cmdParams < 3 then
-			return
-		end
-		
-		local targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
-		local distance = mathDiag(commanderX - targetX, commanderZ - targetZ)
-		
-		if distance <= COMMAND_STEAL_RANGE then
-			local unitDef = UnitDefs[unitDefID]
-			if unitDef then
-				local success = assignPixiesToBuild(commanderID, cmdID, targetX, targetY, targetZ, unitDef.name, cmdTag)
-				if success then
-					commanderData.currentBuildCommand = {
-						cmdID = cmdID,
-						unitDefName = unitDef.name,
-						x = targetX,
-						y = targetY,
-						z = targetZ,
-						tag = cmdTag
-					}
-				end
-			else
-			end
+		buildCostRemaining = buildCostRemaining - pixieData.value - excess
+		excess = 0
+		if buildCostRemaining >= 0 then
+			excess = math.abs(buildCostRemaining)
+			break
 		end
 	end
-end
 
-
-
-local function checkIfTeamFinished(teamID)
-	local pixieCount = 0
-	for commanderID, data in pairs(commanderMetaList) do
-		if data.teamID == teamID then
-			for pixieID, _ in pairs(data.pixieList) do
-				if pixieMetaList[pixieID] then
-					pixieCount = pixieCount + 1
-				end
-			end
-		end
-	end
-	
-	if pixieCount == 0 then
-		teamsToBoost[teamID] = false
+	if buildCostRemaining <= 0 then
+		spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
 		return true
 	end
 	return false
+end
+
+local function depletePixies(pixies)
+	for pixieID, _ in pairs(pixies) do
+		pixieMetaList[pixieID] = nil
+		spDestroyUnit(pixieID, false, true)
+		Spring.SpawnCEG("smallExplosionGenericSelfd", pixieID)
+	end
+end
+
+local function applyPixieBoostToBuilding(buildingUnitID)
+	spSetUnitHealth(buildingUnitID, {build = 1, health = UnitDefs[spGetUnitDefID(buildingUnitID)].health})
+end
+
+local function isBuildCommand(cmdID)
+	if not cmdID then
+		return false
+	end
+	return cmdID < 0
+end
+
+local function isCommanderInRange(commanderID, targetX, targetZ)
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	if not commanderX then
+		return false
+	end
+	
+	local distance = mathDiag(commanderX - targetX, commanderZ - targetZ)
+	return distance <= COMMAND_STEAL_RANGE
+end
+
+local function erasePixieBuildCluster(commanderID, builderPixieID)
+	for pixieID, _ in pairs(pixieBuildClusters[commanderID][builderPixieID]) do
+		local pixieData = pixieMetaList[pixieID]
+		if pixieData then
+			pixieData.state = STATES.ORBITING
+		end
+	end
+	if pixieBuildClusters[commanderID] and pixieBuildClusters[commanderID][builderPixieID] then
+		pixieBuildClusters[commanderID][builderPixieID] = nil
+	end
+end
+
+local function arePixiesAllGone()
+	local pixieCount = 0
+	for commanderID, data in pairs(commanderMetaList) do
+		for pixieID, _ in pairs(data.pixieList) do
+			if pixieMetaList[pixieID] and not Spring.GetUnitIsDead(pixieID) and Spring.ValidUnitID(pixieID) then
+				pixieCount = pixieCount + 1
+			end
+		end
+	end
+	
+	return pixieCount == 0
 end
 
 function gadget:GameStart()
@@ -569,13 +268,14 @@ function gadget:GameStart()
 	for _, unitID in ipairs(allUnits) do
 		local unitDefinitionID = spGetUnitDefID(unitID)
 		local unitTeam = spGetUnitTeam(unitID)
-		if isBoostableCommander(unitDefinitionID) and teamsToBoost[unitTeam] then
-			local metalAmount = spGetTeamResources(unitTeam, "metal")
-			local energyAmount = spGetTeamResources(unitTeam, "energy")
-			createPixiesForCommander(unitID, unitTeam, metalAmount, energyAmount)
+		if teamsToBoost[unitTeam] and boostableCommanders[unitDefinitionID] then
+			local fallbackResources = 1000
+			createPixiesForCommander(unitID, unitTeam, modOptions.startmetal or fallbackResources, modOptions.startenergy or fallbackResources)
 		end
 	end
 end
+
+
 
 function gadget:GameFrame(frameNumber)
 	if frameNumber % UPDATE_FRAMES ~= 0 then
@@ -585,53 +285,100 @@ function gadget:GameFrame(frameNumber)
 	-- Update all active commanders and their pixies
 	for commanderID, commanderData in pairs(commanderMetaList) do
 		if teamsToBoost[commanderData.teamID] then
-			local numPixies = 0
-			for pixieID, _ in pairs(commanderData.pixieList) do
-				if pixieMetaList[pixieID] then
-					numPixies = numPixies + 1
+
+			--check and assign build commands for pixies
+			local commands = spGetUnitCommands(commanderID, 1)
+			if next(commands) then
+				for _, cmd in ipairs(commands) do
+					local pixiesCanBuildCompletely = false
+					local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
+					if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) then
+						pixiesCanBuildCompletely = assignPixiesToBuild(commanderID, cmd)
+					end
+					if pixiesCanBuildCompletely then
+						spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
+					end
 				end
 			end
-			
-			monitorCommanderCommands(commanderID)
-			updatePixieOrbits(commanderID)
+
+			--check if any pixies currently are nanolathing (for synced instabuild effects)
+			local buildClusters = pixieBuildClusters[commanderID]
+			if buildClusters then
+				for builderPixieID, guardingPixies in pairs(buildClusters) do
+					local eraseCluster = false
+					local builderPixieCMD = spGetUnitCurrentCommand(builderPixieID) and Spring.GetUnitIsDead(builderPixieID) and Spring.ValidUnitID(builderPixieID)
+					if not builderPixieCMD or not isBuildCommand(builderPixieCMD.id) then
+						eraseCluster = true
+					else
+						local allReady = true
+						for guardingPixieID, _ in pairs(guardingPixies) do
+							eraseCluster = Spring.GetUnitIsDead(guardingPixieID) or not Spring.ValidUnitID(guardingPixieID)
+							allReady = Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
+						end
+						allReady = allReady and Spring.GetUnitIsBuilding(builderPixieID) ~= nil
+						if allReady then
+							applyPixieBoostToBuilding(builderPixieID)
+							eraseCluster = true
+							depletePixies({builderPixieID})
+							depletePixies(guardingPixies)
+						end
+					end
+					if eraseCluster then
+						erasePixieBuildCluster(commanderID, builderPixieID) -- not enough pixies to build, probably died or construction cancelled.
+					end
+				end
+			end
 		end
 	end
-	
-	-- Update all pixies (moving and building states)
+
+	-- if pixies currently have move command, switch back to orbiting
 	for pixieID, pixieData in pairs(pixieMetaList) do
-		if pixieData.state == "moving" or pixieData.state == "building" then
-			checkPixieBuildProgress(pixieID)
+		if pixieData.state ~= STATES.ORBITING then
+			local cmdID = Spring.GetUnitCurrentCommand(pixieID)
+			if cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
+				pixieData.state = STATES.ORBITING
+			end
 		end
 	end
-	
-	-- Check if any teams are finished
-	for teamID, isActive in pairs(teamsToBoost) do
-		if isActive then
-			checkIfTeamFinished(teamID)
+
+	--move idle pixies around the commander
+	for pixieID, pixieData in pairs(pixieMetaList) do
+		if pixieData.state == STATES.ORBITING then
+			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
+			local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
+			local moveY = spGetGroundHeight(moveX, moveZ)
+			spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, moveY, moveZ}, 0)
 		end
+	end
+
+	local removeGadget = arePixiesAllGone()
+	if removeGadget then
+		gadgetHandler:RemoveGadget()
 	end
 end
 
 function gadget:UnitDestroyed(unitID)
-	-- Clean up commander data
-	if commanderMetaList[unitID] then
-		-- Destroy all pixies belonging to this commander
-		for pixieID, _ in pairs(commanderMetaList[unitID].pixieList) do
-			if pixieMetaList[pixieID] then
-				pixieMetaList[pixieID] = nil
-				spDestroyUnit(pixieID, false, true)
-			end
+
+	if commanderMetaList[unitID] then --commander died
+		for pixieID, _ in pairs(pixies) do
+			pixieMetaList[pixieID] = nil
+			depletePixies({commanderMetaList[unitID].pixieList})
 		end
 		commanderMetaList[unitID] = nil
-	end
-	
-	-- Clean up pixie data
-	if pixieMetaList[unitID] then
-		local commanderID = pixieMetaList[unitID].commanderID
+	elseif pixieMetaList[unitID] then --pixie died
+		local pixieData = pixieMetaList[unitID]
+		local commanderID = pixieData.commanderID
 		if commanderMetaList[commanderID] then
 			commanderMetaList[commanderID].pixieList[unitID] = nil
 		end
-		pixieMetaList[unitID] = nil
+		if pixieData.state == STATES.BUILDING then
+			erasePixieBuildCluster(commanderID, unitID)
+		else
+			local builderID = pixieData.stateData.builderID
+			if builderID then
+				pixieBuildClusters[commanderID][builderID][unitID] = nil
+			end
+		end
 	end
 end
 
