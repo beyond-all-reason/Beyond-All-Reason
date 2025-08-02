@@ -13,9 +13,9 @@ end
 
 --[[
 todo:
-commander radar range should be read dynamically from the unitdef and made the range of the pixies steal range
-
-something about the way I detect and remove commands from the commander's command queue causes pre-queued commands to fail.
+the boosting straight up doesn't work for the other teamID's besides team 0
+when I create the drones they must have a defined reclaim speed and a workertime of 0.
+I might need to explore how to prevent the AI from controlling these drones.
 ]]
 
 local isSynced = gadgetHandler:IsSyncedCode()
@@ -54,15 +54,16 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 -- Constants
 local RESOURCES_RATIO_TO_BE_CLAIMED_BY_PIXIES = 0.95
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local PIXIE_COMBO_VALUE_MULTIPLIER = 1.25
 local PIXIE_METAL_COST = 50
 local PIXIE_ENERGY_COST = 500
 local PIXIE_COMBO_COST = PIXIE_METAL_COST + PIXIE_ENERGY_COST/ENERGY_VALUE_CONVERSION_DIVISOR
 local COMMAND_STEAL_RANGE = 700 --same as com's radardistance
-local PIXIE_ORBIT_RADIUS = 150
+local PIXIE_ORBIT_RADIUS = 300
 local PIXIE_HOVER_HEIGHT = 50
 local FALLBACK_RESOURCES = 1000
 local ALL_COMMANDS = -1
-local UPDATE_FRAMES = 15
+local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 91 -- after pregame build que widget
 local RANDOMIZED_SPAWN_SPREAD_FRAMES = 45
 local PIXIE_UNIT_NAME = "armassistdrone"
@@ -171,16 +172,15 @@ end
 local function getRandomMoveLocation(centerX, centerZ, maxDistance)
 	local height = spGetGroundHeight(centerX, centerZ) + PIXIE_HOVER_HEIGHT
 	local angle = mathRandom() * 2 * PI
-	local distance = mathRandom() * maxDistance
-	local offsetX = mathCos(angle) * distance
-	local offsetZ = mathSin(angle) * distance
+	local offsetX = mathCos(angle) * maxDistance
+	local offsetZ = mathSin(angle) * maxDistance
 	return centerX + offsetX, height, centerZ + offsetZ
 end
 
 local function createPixiesForCommander(commanderID, teamID, startingMetal, startingEnergy)
 	local convertedEnergy = startingEnergy / ENERGY_VALUE_CONVERSION_DIVISOR
 	local convertedMetal = startingMetal
-	local totalCombinedResources = convertedMetal + convertedEnergy * RESOURCES_RATIO_TO_BE_CLAIMED_BY_PIXIES
+	local totalCombinedResources = (convertedMetal + convertedEnergy * RESOURCES_RATIO_TO_BE_CLAIMED_BY_PIXIES) * PIXIE_COMBO_VALUE_MULTIPLIER
 	local totalPixies = math.floor(totalCombinedResources / PIXIE_COMBO_COST)
 	
 	if totalPixies <= 0 or not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
@@ -219,9 +219,9 @@ end
 
 local function assignBuildCommand(pixieID, cmd)
 	local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
-	local unitDefID = cmd.id
+	local buildDefID = cmd.id
 	
-	spGiveOrderToUnit(pixieID, unitDefID, {buildX, buildY, buildZ}, {})
+	spGiveOrderToUnit(pixieID, buildDefID, {buildX, buildY, buildZ}, {})
 end
 
 local function assignPixiesToBuild(commanderID, cmd)
@@ -283,14 +283,16 @@ local function depletePixies(pixies)
 		-- Array-style table, use ipairs
 		for i, pixieID in ipairs(pixies) do
 			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
-				Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
+				--Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
+				Spring.DestroyUnit(pixieID, false, true)
 			end
 		end
 	else
 		-- Hash-style table, use pairs
 		for pixieID, _ in pairs(pixies) do
 			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
-				Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
+				--Spring.AddUnitDamage(pixieID, select(1, spGetUnitHealth(pixieID)), 0, gaiaTeamID, 0)
+				Spring.DestroyUnit(pixieID, false, true)
 			end
 		end
 	end
@@ -445,7 +447,7 @@ function gadget:GameFrame(frame)
 
 	--move idle pixies around the commander
 	for pixieID, pixieData in pairs(pixieMetaList) do
-		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) and pixieData.state == STATES.ORBITING then
+		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) and pixieData.state == STATES.ORBITING and not Spring.GetUnitCurrentCommand(pixieID) then
 			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
 			if commanderX then
 				local moveX, moveY, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
