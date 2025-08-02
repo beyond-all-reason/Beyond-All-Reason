@@ -63,9 +63,12 @@ local PIXIE_HOVER_HEIGHT = 50
 local FALLBACK_RESOURCES = 1000
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = 15
-local PREGAME_DELAY_FRAMES = 150
+local PREGAME_DELAY_FRAMES = 91 -- after pregame build que widget
+local RANDOMIZED_SPAWN_SPREAD_FRAMES = 45
 local PIXIE_UNIT_NAME = "armassistdrone"
 local PI = math.pi
+local MINIMUM_INSTANT_BUILD_DISTANCE = 150
+local pixieActivationFrame = 0
 local PRIVATE = { private = true }
 
 local STATES = {
@@ -74,14 +77,6 @@ local STATES = {
 	BUILDING = 2,
 	GUARDING = 3,
 }
-
--- Helper function to calculate unit cost using the same formula
-local function calculateUnitCost(unitDef)
-	local metalCost = unitDef.metalCost or 0
-	local energyCost = unitDef.energyCost or 0
-	return metalCost + energyCost / 60
-end
-
 -- Data structures
 local teamsToBoost = {}
 local commanderMetaList = {}
@@ -91,6 +86,74 @@ local boostableCommanders = {}
 local unitCosts = {}
 local pixieBuildClusters = {} -- zzz when we assign a builder pixie to start a structure, we iterate over its stored guardians and make sure they're all nanolathing. If they are, then we can trigger instabuild.
 local queuePixieCreation = {}
+local spawnQueue = {}
+
+
+-- Helper function to calculate unit cost using the same formula
+local function calculateUnitCost(unitDef)
+	local metalCost = unitDef.metalCost or 0
+	local energyCost = unitDef.energyCost or 0
+	return metalCost + energyCost / 60
+end
+
+local function getClosestMapCorner(x, y, z)
+	local mapX = Game.mapSizeX
+	local mapZ = Game.mapSizeZ
+	
+	local corners = {
+		{0, 0},           -- bottom-left
+		{mapX, 0},        -- bottom-right
+		{0, mapZ},        -- top-left
+		{mapX, mapZ}      -- top-right
+	}
+	
+	local closestCorner = corners[1]
+	local closestDistance = mathDiag(x - closestCorner[1], z - closestCorner[2])
+	
+	for i = 2, 4 do
+		local corner = corners[i]
+		local distance = mathDiag(x - corner[1], z - corner[2])
+		if distance < closestDistance then
+			closestDistance = distance
+			closestCorner = corner
+		end
+	end
+	
+	return closestCorner[1], y, closestCorner[2]
+end
+
+-- Helper function to get random coordinate in skewed column toward closest corner
+local function getRandomCoordinateInSkewedColumn(x, y, z)
+	local cornerX, cornerY, cornerZ = getClosestMapCorner(x, y, z)
+	
+	local maxHeight = 600
+	local columnRadius = 75
+	local skewDistance = maxHeight * 0.2
+
+	local deltaX = cornerX - x
+	local deltaZ = cornerZ - z
+	local distance = mathDiag(deltaX, deltaZ)
+	
+	if distance == 0 then
+		return x, y, z
+	end
+	
+	local skewAngle = math.atan2(deltaZ, deltaX)
+	local skewX = x + mathCos(skewAngle) * skewDistance
+	local skewZ = z + mathSin(skewAngle) * skewDistance
+	
+	local randomAngle = mathRandom() * 2 * PI
+	local randomDistance = mathRandom() * columnRadius
+	local offsetX = mathCos(randomAngle) * randomDistance
+	local offsetZ = mathSin(randomAngle) * randomDistance
+	
+	local finalX = skewX + offsetX
+	local finalZ = skewZ + offsetZ
+	local finalY = y + PIXIE_HOVER_HEIGHT + mathRandom() * maxHeight
+	
+	return finalX, finalY, finalZ
+end
+
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.iscommander then
@@ -106,11 +169,12 @@ local function getUnitCosts(buildingUnitID)
 end
 
 local function getRandomMoveLocation(centerX, centerZ, maxDistance)
+	local height = spGetGroundHeight(centerX, centerZ) + PIXIE_HOVER_HEIGHT
 	local angle = mathRandom() * 2 * PI
 	local distance = mathRandom() * maxDistance
 	local offsetX = mathCos(angle) * distance
 	local offsetZ = mathSin(angle) * distance
-	return centerX + offsetX, centerZ + offsetZ
+	return centerX + offsetX, height, centerZ + offsetZ
 end
 
 local function createPixiesForCommander(commanderID, teamID, startingMetal, startingEnergy)
@@ -136,28 +200,20 @@ local function createPixiesForCommander(commanderID, teamID, startingMetal, star
 		lastCommandCheck = 0,
 		currentBuildCommand = nil
 	}
-	
+	local frame = Spring.GetGameFrame()
+	local spawnName = PIXIE_UNIT_NAME
 	for i = 1, totalPixies do
-		local pixieY = spGetGroundHeight(commanderX, commanderZ) + PIXIE_HOVER_HEIGHT
-		
-		local pixieID = spCreateUnit(PIXIE_UNIT_NAME, commanderX, pixieY, commanderZ, 0, teamID)
-		if pixieID then
-			spSetUnitNoSelect(pixieID, true)
-			spSetUnitRulesParam(pixieID, "is_pixie", 1, PRIVATE)
-			spSetUnitRulesParam(pixieID, "pixie_commander_id", commanderID, PRIVATE)
-			
-			pixieMetaList[pixieID] = {
-				commanderID = commanderID,
-				value = PIXIE_COMBO_COST,
-				state = STATES.ORBITING,
-				stateData = {},
-			}
-			
-			commanderMetaList[commanderID].pixieList[pixieID] = true
-			
-			local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
-			spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, pixieY, moveZ}, 0)
-		end
+		local spawnFrame = frame + math.floor(mathRandom() * RANDOMIZED_SPAWN_SPREAD_FRAMES)
+		spawnQueue[spawnFrame] = spawnQueue[spawnFrame] or {}
+		local pixieX, pixieY, pixieZ = getRandomCoordinateInSkewedColumn(commanderX, commanderY, commanderZ)
+		table.insert(spawnQueue[spawnFrame], {
+			spawnName = spawnName,
+			commanderID = commanderID,
+			teamID = teamID,
+			pixieX = pixieX,
+			pixieY = pixieY,
+			pixieZ = pixieZ,
+		})
 	end
 end
 
@@ -346,6 +402,34 @@ function gadget:GameFrame(frame)
 		queuePixieCreation = {}
 		initialized = true
 	end
+
+	local spawnTable = spawnQueue[frame]
+	if spawnTable then
+		for i = 1, #spawnTable do
+			local spawnData = spawnTable[i]
+			local pixieID = spCreateUnit(spawnData.spawnName, spawnData.pixieX, spawnData.pixieY, spawnData.pixieZ, 0, spawnData.teamID)
+			if pixieID then
+				spGiveOrderToUnit(pixieID, CMD.IDLEMODE, {0}, {})
+				spSetUnitNoSelect(pixieID, true)
+				spSetUnitRulesParam(pixieID, "is_pixie", 1, PRIVATE)
+				spSetUnitRulesParam(pixieID, "pixie_commander_id", spawnData.commanderID, PRIVATE)
+				Spring.SpawnCEG("botrailspawn", spawnData.pixieX, spawnData.pixieY, spawnData.pixieZ)
+				
+				pixieMetaList[pixieID] = {
+					commanderID = spawnData.commanderID,
+					value = PIXIE_COMBO_COST,
+					state = STATES.ORBITING,
+					stateData = {},
+				}
+				
+				commanderMetaList[spawnData.commanderID].pixieList[pixieID] = true
+				local commanderX, commanderY, commanderZ = spGetUnitPosition(spawnData.commanderID)
+				local moveX, moveY, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
+				spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, moveY, moveZ}, 0)
+			end
+		end
+	end
+
 	if frame % UPDATE_FRAMES ~= 0 then return end
 	-- if pixies currently have move command, switch back to orbiting
 	for pixieID, pixieData in pairs(pixieMetaList) do
@@ -364,8 +448,7 @@ function gadget:GameFrame(frame)
 		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) and pixieData.state == STATES.ORBITING then
 			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
 			if commanderX then
-				local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
-				local moveY = spGetGroundHeight(moveX, moveZ)
+				local moveX, moveY, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
 				spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, moveY, moveZ}, 0)
 			end
 		end
@@ -380,7 +463,7 @@ function gadget:GameFrame(frame)
 				for _, cmd in ipairs(commands) do
 					local pixiesCanBuildCompletely = false
 					local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
-					if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) then
+					if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) and frame > pixieActivationFrame then
 						pixiesCanBuildCompletely = assignPixiesToBuild(commanderID, cmd)
 					end
 					if pixiesCanBuildCompletely then
@@ -402,13 +485,32 @@ function gadget:GameFrame(frame)
 						local allReady = true
 						local buildingUnitID = nil
 						local allPixies = {builderPixieID}
-						for guardingPixieID, _ in pairs(guardingPixies) do
-							table.insert(allPixies, guardingPixieID)
-							eraseCluster = spGetUnitIsDead(guardingPixieID) or not spValidUnitID(guardingPixieID)
-							allReady = allReady and Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
-						end
+						
 						buildingUnitID = Spring.GetUnitIsBuilding(builderPixieID)
 						allReady = allReady and buildingUnitID ~= nil
+						
+						if allReady and buildingUnitID then
+							local buildSiteX, buildSiteY, buildSiteZ = spGetUnitPosition(buildingUnitID)
+							
+							for guardingPixieID, _ in pairs(guardingPixies) do
+								table.insert(allPixies, guardingPixieID)
+								eraseCluster = spGetUnitIsDead(guardingPixieID) or not spValidUnitID(guardingPixieID)
+								allReady = allReady and Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
+								
+								if allReady and not eraseCluster then
+									local pixieX, pixieY, pixieZ = spGetUnitPosition(guardingPixieID)
+									local distance = math.distance3d(pixieX, pixieY, pixieZ, buildSiteX, buildSiteY, buildSiteZ)
+									allReady = allReady and distance <= MINIMUM_INSTANT_BUILD_DISTANCE
+								end
+							end
+							
+							if allReady then
+								local buildingX, buildingY, buildingZ = spGetUnitPosition(buildingUnitID)
+								local buildingDistance = math.distance3d(buildingX, buildingY, buildingZ, buildSiteX, buildSiteY, buildSiteZ)
+								allReady = allReady and buildingDistance <= MINIMUM_INSTANT_BUILD_DISTANCE
+							end
+						end
+						
 						if allReady and buildingUnitID then
 							applyPixieBoostToBuilding(buildingUnitID, allPixies)
 							-- Clean up cluster metadata BEFORE destroying units to prevent double cleanup
@@ -434,7 +536,7 @@ function gadget:GameFrame(frame)
 		depletePixies(pixiesToDeplete)
 	end
 
-	local removeGadget = arePixiesAllGone() and initialized
+	local removeGadget = initialized and arePixiesAllGone() and frame > pixieActivationFrame
 	if removeGadget then
 		gadgetHandler:RemoveGadget()
 	end
@@ -468,7 +570,10 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:Initialize()
-	if Spring.GetGameFrame() > 1 then
+	local frame = Spring.GetGameFrame()
+	pixieActivationFrame = math.max(frame, PREGAME_DELAY_FRAMES) + RANDOMIZED_SPAWN_SPREAD_FRAMES + 1
+
+	if frame > 1 then
 		local teamList = Spring.GetTeamList()
 		for _, teamID in ipairs(teamList) do
 			if not nonPlayerTeams[teamID] then
