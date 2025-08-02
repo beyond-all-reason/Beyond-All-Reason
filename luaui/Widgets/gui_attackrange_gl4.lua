@@ -56,7 +56,7 @@ local autoReload = false
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
 local cursor_unit_range = true -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 90	-- turns off when selection is above this number
+local selectionDisableThreshold = 512	-- turns off when selection is above this number
 local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -69,11 +69,11 @@ local buttonConfig = {
 
 local colorConfig = {
 	drawStencil = true,  -- whether to draw the outer, merged rings (quite expensive!)
-	cannon_separate_stencil = true, -- set to true to have cannon and ground be on different stencil mask
+	cannon_separate_stencil = false, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.75, -- alpha of outer rings
-	internalalpha = 0.15, -- alpha of inner rings
+	internalalpha = 0.12, -- alpha of inner rings
 	fill_alpha = 0.12, -- this is the solid color in the middle of the stencil
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
@@ -121,6 +121,50 @@ local colorConfig = {
 		minimapexternallinethickness = 2.0,
 		minimapinternallinethickness = 0.5,
 	},
+	-- ground_water = {
+	-- 	color       = { 0.2, 0.5, 1.0, 0.60 },  -- RGBA blue
+	-- 	fadeparams  = colorConfig.ground.fadeparams,
+	-- 	groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
+	-- 	externallinethickness      = colorConfig.ground.externallinethickness,
+	-- 	internallinethickness      = colorConfig.ground.internallinethickness,
+	-- 	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	-- 	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+	-- },
+}
+
+-- Sub WEAPON types:
+
+-- DGUN
+colorConfig.ground_dgun = {
+    color                       = colorConfig.ground.color,       -- reuse ground colour
+    fadeparams                  = colorConfig.ground.fadeparams,  -- same fade curve
+    groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
+    externallinethickness      = colorConfig.ground.externallinethickness,
+	internallinethickness      = colorConfig.ground.internallinethickness,
+	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+}
+
+-- WATER WEAPONS
+colorConfig.ground_water = {
+  color                      = {0.32, 0.48, 1.0, 0.30},
+  fadeparams                 = colorConfig.ground.fadeparams,
+  groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
+  externallinethickness      = colorConfig.ground.externallinethickness,
+  internallinethickness      = colorConfig.ground.internallinethickness,
+  minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+  minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+}
+
+-- EMP (paralyzer) weapons
+colorConfig.ground_emp = {
+  color                       = { 0.72, 0.72, 1.0, 0.60 },    -- EMP light blue
+  fadeparams                  = colorConfig.ground.fadeparams,
+  groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
+  externallinethickness       = colorConfig.ground.externallinethickness,
+  internallinethickness       = colorConfig.ground.internallinethickness,
+  minimapexternallinethickness= colorConfig.ground.minimapexternallinethickness,
+  minimapinternallinethickness= colorConfig.ground.minimapinternallinethickness,
 }
 
 ----------------------------------
@@ -133,6 +177,9 @@ local vtoldamagetag = Game.armorTypes['vtol']
 local defaultdamagetag = Game.armorTypes['default']
 
 -- globals
+local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = minimapUtils.ROTATION
 local selUnitCount = 0
 local selBuilderCount = 0 -- we need builder count separately
 local shifted = false
@@ -216,6 +263,12 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 
+		-- ── your debug & color‐pick here ──
+    -- Spring.Echo(string.format(
+    --   "[AttackRange] %s.waterweapon = %s",
+    --   weaponDef.name, tostring(weaponDef.waterweapon)
+    -- ))
+
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
@@ -228,17 +281,45 @@ local function initializeUnitDefRing(unitDefID)
 				damage = weaponDef.damages[defaultdamagetag]
 			end
 			dps = damage * (weaponDef.salvoSize or 1) / (weaponDef.reload or 1)
-			local color = colorConfig[weaponTypeMap[weaponType]].color
-			local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
+			-- local color = colorConfig[weaponTypeMap[weaponType]].color
+			-- local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
 
-			local isCylinder = 0 
+			-- after you have `weaponDef` and `weaponType`…
+		local baseKey = weaponTypeMap[ weaponType ]      -- e.g. "ground", "AA", etc.
+		local cfgKey  = baseKey
+
+		-- 1) paralyzer/EMP weapons
+		if weaponDef.paralyzer then
+			cfgKey = baseKey .. "_emp"
+			Spring.Echo("[AttackRange] using EMP colour for:", weaponDef.name)
+  		-- 2) DGun override
+		elseif weaponDef.type == "DGun" then
+			cfgKey = baseKey .. "_dgun"
+			--Spring.Echo("[AttackRange] using DGun style for:", weaponDef.name)
+		-- 2) then water override
+		elseif weaponDef.waterWeapon
+			or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
+		then
+			cfgKey = baseKey .. "_water"
+			--Spring.Echo("[AttackRange] using water style for:", weaponDef.name)
+		end
+
+    -- safety fallback if you typo the key
+    if not colorConfig[cfgKey] then
+        cfgKey = baseKey
+    end
+
+    local color      = colorConfig[cfgKey].color
+    local fadeparams = colorConfig[cfgKey].fadeparams
+
+			local isCylinder = 0
 			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
 				isCylinder = 1
-			end	
+			end
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
 			local wName = weaponDef.name
-			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus then
+			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus or weaponDef.customParams.norangering then
 				range = 0
 			end
 			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
@@ -293,7 +374,7 @@ local function initializeUnitDefRing(unitDefID)
 					maxangledif = maxangledif  + difffract
 				else
 
-				end 
+				end
 
 
 
@@ -311,11 +392,11 @@ local function initializeUnitDefRing(unitDefID)
 				weaponDef.projectilespeed or 1, --10
 				isCylinder,-- and 1 or 0, (11)
 				weaponDef.heightBoostFactor or 0, --12
-				weaponDef.heightMod or 0, --13 
+				weaponDef.heightMod or 0, --13
 				groupselectionfadescale, --14
 				weaponType, --15
 				isDgun, --16
-				maxangledif  --17 
+				maxangledif  --17
 			}
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 		end
@@ -378,6 +459,7 @@ local GL_REPLACE            = GL.REPLACE --GL.KEEP
 
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
+local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
 local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
@@ -442,9 +524,11 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 local attackRangeShader = nil
 
 local shaderSourceCache = {
@@ -469,7 +553,7 @@ local shaderSourceCache = {
 		drawMode = 0,
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
-		inMiniMap = 0.0, 
+		inMiniMap = 0.0,
 	},
 }
 
@@ -526,9 +610,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					if weaponDef.range < 700 then 
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
-					elseif weaponDef.range > 2600 then 
+					-- if weaponDef.range < 700 then
+					-- 	entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					if weaponDef.range > 2600 then
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
@@ -536,9 +620,9 @@ local function AddSelectedUnit(unitID, mouseover)
 				elseif weaponDef.type == "Melee" then
 					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				else
-					if weaponDef.range < 700 then 
-						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
-					elseif weaponDef.range > 2600 then 
+					if weaponDef.range < 700 then
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground
+					elseif weaponDef.range > 2600 then
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
@@ -595,16 +679,15 @@ local function AddSelectedUnit(unitID, mouseover)
 		local ringParams = unitDefRings[unitDefID]['rings'][j]
 		if drawIt and ringParams[1] > 0 then
 
-			local weaponID = j 
+			local weaponID = j
 			-- TODO:
 			-- Weapons aim from their WPY positions, but that can change for e.g. popups!
 			-- This is quite important to pass in as posscale.y!
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
-			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
 			--Spring.Echo("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
-			
+
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
 			-- so it only goes up with popups
 			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
@@ -700,11 +783,11 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
 		attackRangeVAOs
-		[atkRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
+		[atkRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
 		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
 			attackRangeVAOs
 			[atkRangeClass].vertexVBO = largeCircleVBO
@@ -716,7 +799,7 @@ local function initGL4()
 			attackRangeVAOs
 			[atkRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(attackRangeVAOs
+		local newVAO = InstanceVBOTable.makeVAOandAttach(attackRangeVAOs
 			[atkRangeClass].vertexVBO, attackRangeVAOs
 			[atkRangeClass].instanceVBO)
 		attackRangeVAOs
@@ -988,7 +1071,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local drawcounts = {} 
+local drawcounts = {}
 
 local cameraHeightFactor = 0
 
@@ -1023,7 +1106,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 	attackRangeShader:SetUniform("cannonmode", 1)
 	for i, allyState in ipairs(allyenemypairs) do
 		for j, wt in ipairs(cannonlrpc) do
-			if linethickness or wt == 'cannon' then 
+			if linethickness or wt == 'cannon' then
 				local atkRangeClass = allyState .. wt
 				local iT = attackRangeVAOs[atkRangeClass]
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
@@ -1048,19 +1131,19 @@ function widget:DrawWorld(inMiniMap)
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
 	end
 
-	if chobbyInterface then return end
+	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-		glTexture(2, '$normals')
+		-- glTexture(2, '$normals')
 		-- Stencil Setup
 		-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
 			glClear(GL_STENCIL_BUFFER_BIT)   -- clear previous stencil
 			glDepthTest(false)               -- always draw, ignore depth test
 
-			-- Draw the filled circles onto the stencil buffer 
+			-- Draw the filled circles onto the stencil buffer
 			glStencilTest(true)              -- enable stencil test
 			glStencilMask(255)               -- set all 8 bits to writeable
 
@@ -1074,6 +1157,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
 			attackRangeShader:SetUniform("drawMode", 0.0)
 			attackRangeShader:SetUniform("inMiniMap", inMiniMap and 1.0 or 0.0)
+			attackRangeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
@@ -1082,7 +1166,7 @@ function widget:DrawWorld(inMiniMap)
 			-- Draw the outside rings by testing the stencil buffer
 			glLineWidth(math.max(0.1, 4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true) -- re-enable color drawing
-			glStencilMask(0) 
+			glStencilMask(0)
 			glDepthTest(GL_LEQUAL) -- test for depth on these outside cases
 
 			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.externalalpha)
@@ -1090,14 +1174,14 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawAlpha", 1.0)
 
 			DRAWRINGS(GL_LINE_LOOP, inMiniMap and 'minimapexternallinethickness' or 'externallinethickness') -- DRAW THE OUTER RINGS
-			
+
 			-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 			glStencilTest(false) -- Disable the stencil test
 			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
 			glClear(GL_STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
 			-- All the above are needed :O
-		end 
+		end
 
 		-- After all the stenciled drawings, we have disabled the stencil test, so we can draw the inner rings
 		if colorConfig.drawInnerRings then
@@ -1118,7 +1202,7 @@ end
 function widget:DrawInMiniMap()
 	-- TODO:
 	-- do a sanity check and dont draw here if there are too many units selected...
-	widget:DrawWorld(true) 
+	widget:DrawWorld(true)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -1137,7 +1221,7 @@ end
 
 
 
-if autoReload then 
+if autoReload then
     function widget:DrawScreen()
         if attackRangeShader.DrawPrintf then attackRangeShader.DrawPrintf(0, 64) end
     end

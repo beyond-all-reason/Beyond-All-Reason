@@ -20,6 +20,7 @@ uniform float lineAlphaUniform = 1.0;
 uniform float cannonmode = 0.0;
 uniform float fadeDistOffset = 0.0;
 uniform float inMiniMap = 0.0;
+uniform int rotationMiniMap = 0;
 
 
 uniform float selUnitCount = 1.0;
@@ -449,7 +450,15 @@ void main() {
 		//pull 16 elmos forward in Z:
 		gl_Position.z = (gl_Position.z) - 128.0 / (gl_Position.w); // send 16 elmos forward in Z
 	} else {
-		gl_Position = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+		vec4 ndcxy = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+		if (rotationMiniMap == 1) {
+			ndcxy.xy = vec2(-ndcxy.y, ndcxy.x);
+		}else if (rotationMiniMap == 2) {
+			ndcxy.xy = -ndcxy.xy;
+		}else if (rotationMiniMap == 3) {
+			ndcxy.xy = vec2(ndcxy.y, -ndcxy.x);
+		}
+		gl_Position = ndcxy;
 	}
 
 	//lets blend the alpha here, and save work in FS:

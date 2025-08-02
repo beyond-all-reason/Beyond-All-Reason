@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 26000,
-		energymake = 25,
+		energymake = 30,
 		energystorage = 500,
 		explodeas = "commanderexplosion",
 		footprintx = 3,
@@ -238,6 +238,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					norangering= 1,
+				},
 				damage = {
 					default = 200,
 					subs = 100,

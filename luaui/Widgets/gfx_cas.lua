@@ -148,7 +148,7 @@ void main() {
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vpx, vpy
 local screenCopyTex
@@ -202,7 +202,7 @@ function widget:Initialize()
 		uniformInt = {
 			screenCopyTex = 0,
 		},
-	}, ": Contrast Adaptive Sharpen")
+	}, "Contrast Adaptive Sharpen")
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then

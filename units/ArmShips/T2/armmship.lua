@@ -189,13 +189,12 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
-					def = "armmship_rocket_split",
 					model = "airbomb",
+					noattackrangearc = 1,
 					number = "6",
 					speceffect = "split",
+					speceffect_def = "armmship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
-					when = "yvel<0",
-					noattackrangearc= 1,
 				},
 				damage = {
 					commanders = 350,

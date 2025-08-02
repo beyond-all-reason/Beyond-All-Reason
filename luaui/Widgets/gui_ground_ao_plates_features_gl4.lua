@@ -81,7 +81,12 @@ end
 ---- GL4 Backend Stuff----
 local groundPlateVBO = nil
 local groundPlateShader = nil
+
 local luaShaderDir = "LuaUI/Include/"
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -119,13 +124,13 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 end
 
 local function ProcessAllFeatures()
-	clearInstanceTable(groundPlateVBO)
+	InstanceVBOTable.clearInstanceTable(groundPlateVBO)
 	local features = Spring.GetAllFeatures()
 	--Spring.Echo("Refreshing Ground Plates", #features)
 	for _, featureID in ipairs(features) do
 		AddPrimitiveAtUnit(featureID, nil, true)
 	end
-	uploadAllElements(groundPlateVBO)
+	InstanceVBOTable.uploadAllElements(groundPlateVBO)
 end
 local firstRun = true
 function widget:DrawWorldPreUnit()
@@ -301,4 +306,4 @@ function widget:GameFrame()
 	end
 end
 
-	
+

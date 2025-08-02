@@ -9,7 +9,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -99999, -- run before gui_options, so that we can appropriately transform stuff here when keybind changes happen
 		enabled = true,
-		handler = true,
 	}
 end
 

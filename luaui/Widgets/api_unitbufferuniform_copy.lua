@@ -11,8 +11,8 @@ function widget:GetInfo()
   }
 end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+
 local cmpShader
 
 -- The compute shader is reponsible for updating the position, velocity, and color of each particle 
@@ -20,10 +20,6 @@ local cmpSrc = [[
 #version 430 core
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
-
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-	mat4 mat[];
-};
 
 struct SUniformsBuffer {
 	uint composite; //     u8 drawFlag; u8 unused1; u16 id;

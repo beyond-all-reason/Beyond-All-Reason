@@ -114,7 +114,7 @@ void main()
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vsx, vsy, vpx, vpy
 local screenCopyTex
@@ -220,6 +220,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteTexture(screenCopyTex)
+	screenCopyTex = nil
 	if sepiaShader then
 		sepiaShader:Finalize()
 	end

@@ -1915,6 +1915,29 @@ local definitions = {
       },
     },
 
+    groundflash_anim = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 0,
+            air                = false,
+            ground             = true,
+            water              = false,
+            underwater         = false,
+            unit               = true,
+            properties = {
+                colormap           = [[0.62 0.65 0.65 0.6   1 1 1 0.8  1 0.85 0.85 0.7  0.75 0.45 0.45 0.5  0.35 0.35 0.35 0.3     0 0 0 0.01]],
+                --colormap           = [[1 0.93 0.75 0.62    0.3 0.2 0.15 0.3   0 0 0 0.01]],
+                size               = [[13 r40]],
+                sizegrowth         = 0.1,
+                --sizemod            = 0.95,
+                ttl                = 18,
+                --sizegrowth         = 10,
+                pos                = [[0, 15, 0]],
+                rotParams          = [[-4 r8, -4 r8, -180 r360]],
+                texture            = [[barshockwave]],
+                animParams         = [[8,12,18 r5]],
+            },
+        },
+
     outerflash = {
       air                = true,
       class              = [[CHeatCloudProjectile]],
@@ -2559,7 +2582,7 @@ local definitions = {
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.05,
         fronttexture       = [[none]],
-        length             = [[47 r14]],
+        length             = [[53 r24]],
         sidetexture        = [[flamestream]],
         size               = [[36 r11]],
         sizegrowth         = 1.1,
@@ -2570,6 +2593,28 @@ local definitions = {
         castShadow         = true,
       },
     },
+    groundflash_anim = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 0,
+            air                = false,
+            ground             = true,
+            water              = false,
+            underwater         = false,
+            unit               = true,
+            properties = {
+                colormap           = [[0.62 0.65 0.65 0.6   1 1 1 0.8  1 0.85 0.85 0.7  0.75 0.45 0.45 0.5  0.35 0.35 0.35 0.3     0 0 0 0.01]],
+                --colormap           = [[1 0.93 0.75 0.62    0.3 0.2 0.15 0.3   0 0 0 0.01]],
+                size               = [[18 r70]],
+                sizegrowth         = 0.2,
+                --sizemod            = 0.95,
+                ttl                = 20,
+                --sizegrowth         = 10,
+                pos                = [[0, 15, 0]],
+                rotParams          = [[-4 r8, -4 r8, -180 r360]],
+                texture            = [[barshockwave]],
+                animParams         = [[8,12,20 r5]],
+            },
+        },
     --kickedupwater = {
     --  class              = [[CSimpleParticleSystem]],
     --  count              = 1,
@@ -4463,6 +4508,27 @@ local definitions = {
         castShadow         = true,
       },
     },
+    groundflash_anim = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 1,
+            air                = false,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                colormap           = [[0.9 0.85 0.65 1   1 0.8 0.5 1.0    0.85 0.65 0.35 0.7   0.45 0.45 0.45 0.4   0.35 0.35 0.35 0.12    0 0 0 0.01]],
+                --colormap           = [[1 0.93 0.75 0.62    0.3 0.2 0.15 0.3   0 0 0 0.01]],
+                size               = [[60 r30]],
+                sizegrowth         = [[0.4 r0.4]],
+                --sizemod            = 0.95,
+                ttl                = 32,
+                --sizegrowth         = 10,
+                pos                = [[0, 75, 0]],
+                rotParams          = [[0, 0, -180 r360]],
+                texture            = [[barshockwave]],
+                animParams         = [[8,12,40]],
+            },
+        },
     --grounddust = {
     --  air                = false,
     --  class              = [[CSimpleParticleSystem]],
@@ -4636,6 +4702,7 @@ local colors = {
     outersmoke = {properties={colormap=[[1 0.58 0.36 0.4    0.48 0.24 0.14 0.45   0.26 0.16 0.13 0.4    0.2 0.16 0.14 0.35   0.1 0.09 0.088 0.25   0.07 0.063 0.058 0.17    0 0 0 0.01]]}},
     dustparticles = {properties={numparticles=10}},
     shockwave = {count=1},
+    groundflash_anim = {count=1},
     dirtrush = {count=1},
     bigsmoketrails = {count=4, properties={ttl=[[33 r5]], length=[[38 r14]]}},
     groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
@@ -4657,6 +4724,9 @@ end
 definitions[root.."-large-bomb"].bigsmoketrails.properties.length = [[52 r24]]
 definitions[root.."-large-bomb"].bigsmoketrails.properties.dir = [[-0.55 r1.1, 0.5 r0.40, 0 r-0.55]]
 definitions[root.."-large-bomb"].sparks.properties.numparticles = 3
+definitions[root.."-large-bomb"].groundflash_anim.count = 1
+
+
 
 -- adjust ceg used for flak
 definitions[root.."-large-aa"].explosion.properties.particlesize = definitions[root.."-large-aa"].explosion.properties.particlesize * 0.5

@@ -1,5 +1,8 @@
 local widget = widget ---@type Widget
 
+-- Include the substitution logic directly with a shorter alias
+local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+
 function widget:GetInfo()
 	return {
 		name = "Pregame Queue",
@@ -9,7 +12,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -27,121 +29,6 @@ local prevStartDefID = startDefID
 local metalMap = false
 
 local unitshapes = {}
-
-local corNames = {
-	"cormex",
-	"corsolar",
-	"corwin",
-	"cortide",
-	"corllt",
-	"corrad",
-	"corrl",
-	"cortl",
-	"corfrt",
-	"corlab",
-	"corvp",
-	"corsy",
-	"cormstor",
-	"corestor",
-	"cormakr",
-	"coreyes",
-	"cordrag",
-	"cordl",
-	"corap",
-	"corfrad",
-	"coruwms",
-	"coruwes",
-	"corfmkr",
-	"corfdrag",
-	"corhp",
-	"corfhp",
-}
-local armNames = {
-	"armmex",
-	"armsolar",
-	"armwin",
-	"armtide",
-	"armllt",
-	"armrad",
-	"armrl",
-	"armtl",
-	"armfrt",
-	"armlab",
-	"armvp",
-	"armsy",
-	"armmstor",
-	"armestor",
-	"armmakr",
-	"armeyes",
-	"armdrag",
-	"armdl",
-	"armap",
-	"armfrad",
-	"armuwms",
-	"armuwes",
-	"armfmkr",
-	"armfdrag",
-	"armhp",
-	"armfhp",
-}
-local legNames = {
-	"legmex",
-	"legsolar",
-	"legwin",
-	"legtide",
-	"leglht",
-	"legrad",
-	"legrl",
-	"cortl",
-	"corfrt",
-	"leglab",
-	"legvp",
-	"corsy",
-	"legmstor",
-	"legestor",
-	"legeconv",
-	"legeyes",
-	"legdrag",
-	"cordl",
-	"legap",
-	"corfrad",
-	"coruwms",
-	"coruwes",
-	"legfmkr",
-	"corfdrag",
-	"leghp",
-	"legfhp",
-}
-
--- convert unitname -> unitDefID
-local indexToDefs = {corcom = {}, armcom = {}, legcom = {}}
-for index, corUnitName in ipairs(corNames) do
-	if UnitDefNames[corUnitName] then
-		indexToDefs['corcom'][index] = UnitDefNames[corUnitName].id
-	end
-end
-for index, armUnitName in ipairs(armNames) do
-	if UnitDefNames[armUnitName] then
-		indexToDefs['armcom'][index] = UnitDefNames[armUnitName].id
-	end
-end
-for index, legUnitName in ipairs(legNames) do
-	if UnitDefNames[legUnitName] then
-		indexToDefs['legcom'][index] = UnitDefNames[legUnitName].id
-	end
-end
-
-corNames = nil
-armNames = nil
-legNames = nil
-
-local defsToIndex = {}
-for k, v in pairs(indexToDefs) do
-	defsToIndex[k] = table.invert(v)
-end
-
-indexToDefs['dummycom'] = indexToDefs['armcom']
-defsToIndex['dummycom'] = defsToIndex['armcom']
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -200,6 +87,8 @@ local function setPreGamestartDefID(uDefID)
 	elseif Spring.GetMapDrawMode() == "metal" then
 		Spring.SendCommands("ShowStandard")
 	end
+
+	return true
 end
 
 local function GetUnitCanCompleteQueue(uID)
@@ -246,31 +135,52 @@ local function buildmenuPregameDeselectHandler()
 	return true
 end
 
-local function unitDefsToIndexes(oldDefID, newDefID)
-	local prevFaction = UnitDefs[prevStartDefID].name
-	local currentFaction = UnitDefs[startDefID].name
-	return defsToIndex[prevFaction], indexToDefs[currentFaction]
+local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
+	Spring.Log("gui_pregame_build", LOG.DEBUG, string.format("Calling SubLogic.processBuildQueueSubstitution (in-place) from %s to %s for %d queue items.", previousFactionSide, currentFactionSide, #buildQueue))
+	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
+	
+	if result.substitutionFailed then
+		Spring.Echo(string.format("[gui_pregame_build] %s", result.summaryMessage))
+	end
 end
 
-local function convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
-	for b = 1, #buildQueue do
-		local buildData = buildQueue[b]
-		local buildDataId = buildData[1]
-		if buildDataId > 0 then
-			buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
-			buildQueue[b] = buildData
+local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide, currentFactionSide, currentSelBuildData)
+	if not currentSelDefID then 
+		Spring.Log("gui_pregame_build", LOG.WARNING, "handleSelectedBuildingConversion: Called with nil currentSelDefID.")
+		return currentSelDefID 
+	end
+
+	local newSelDefID = SubLogic.getEquivalentUnitDefID(currentSelDefID, currentFactionSide)
+
+	if newSelDefID ~= currentSelDefID then
+		setPreGamestartDefID(newSelDefID)
+		if currentSelBuildData then
+			currentSelBuildData[1] = newSelDefID
+		end
+		local newUnitDef = UnitDefs[newSelDefID]
+		local successMsg = "[Pregame Build] Selected item converted to " .. (newUnitDef and (newUnitDef.humanName or newUnitDef.name) or ("UnitDefID " .. tostring(newSelDefID)))
+		Spring.Echo(successMsg)
+	else
+		if prevFactionSide ~= currentFactionSide then
+			local originalUnitDef = UnitDefs[currentSelDefID]
+			local originalUnitName = originalUnitDef and (originalUnitDef.humanName or originalUnitDef.name) or ("UnitDefID " .. tostring(currentSelDefID))
+			Spring.Log("gui_pregame_build", LOG.INFO, string.format("Selected item '%s' remains unchanged for %s faction (or was already target faction).", originalUnitName, currentFactionSide))
+		else
+			Spring.Log("gui_pregame_build", LOG.DEBUG, string.format("selBuildQueueDefID %s remained unchanged (sides were the same: %s).", tostring(currentSelDefID), currentFactionSide))
 		end
 	end
+	return newSelDefID
 end
 
 ------------------------------------------
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
-	-- For some reason when handler = true widgetHandler:AddAction is not available
-	widgetHandler.actionHandler:AddAction(self, "stop", clearPregameBuildQueue, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
+	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
+	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Pregame Queue Initializing. Local SubLogic is assumed available.")
 
 	-- Get our starting unit
 	if preGamestartPlayer then
@@ -287,9 +197,14 @@ function widget:Initialize()
 	end
 	WG["pregame-build"].setPreGamestartDefID = function(value)
 		local inBuildOptions = {}
-		for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
-			inBuildOptions[opt] = true
-		end
+		-- Ensure startDefID is valid before trying to access UnitDefs[startDefID]
+		if startDefID and UnitDefs[startDefID] and UnitDefs[startDefID].buildOptions then
+		    for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+			    inBuildOptions[opt] = true
+		    end
+		else
+		    Spring.Log(widget:GetInfo().name, LOG.WARNING, "setPreGamestartDefID: startDefID is nil or invalid, cannot determine build options.")
+        end
 
 		if inBuildOptions[value] then
 			setPreGamestartDefID(value)
@@ -304,8 +219,8 @@ function widget:Initialize()
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
 	end
-	widgetHandler:RegisterGlobal(widget, "GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
-	widgetHandler:RegisterGlobal(widget, "GetBuildQueue", WG["pregame-build"].getBuildQueue)
+	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
+	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
 end
 
 local function GetBuildingDimensions(uDefID, facing)
@@ -515,7 +430,7 @@ function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
+		widgetHandler:RemoveCallIn("DrawWorld")
 		return
 	end
 
@@ -549,8 +464,11 @@ function widget:DrawWorld()
 		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
-	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
-	local startChosen = (sx ~= -100)
+
+	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns 0, 0, 0 when none chosen (was -100, -100, -100 previously)
+	--should startposition not match 0,0,0 and no commander is placed, then there is a green circle on the map till one is placed
+	--TODO: be based on the map, if position is changed from default(?)
+	local startChosen = (sx ~= 0) or (sy ~=0) or (sz~=0)
 	if startChosen and startDefID then
 		-- Correction for start positions in the air
 		sy = Spring.GetGroundHeight(sx, sz)
@@ -562,18 +480,26 @@ function widget:DrawWorld()
 
 	-- Check for faction change
 	if prevStartDefID ~= startDefID then
-		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
+        local prevDefName = prevStartDefID and UnitDefs[prevStartDefID] and UnitDefs[prevStartDefID].name
+        local currentDefName = startDefID and UnitDefs[startDefID] and UnitDefs[startDefID].name
 
-		if prevFactionToIndex and indexToCurrentFaction then
-			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
+        local previousFactionSide = prevDefName and SubLogic.getSideFromUnitName(prevDefName)
+        local currentFactionSide = currentDefName and SubLogic.getSideFromUnitName(currentDefName)
 
-			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
-			if selBuildData and selBuildQueueDefIDConverted ~= nil then
-				selBuildData[1] = selBuildQueueDefIDConverted
-				selBuildQueueDefID = selBuildQueueDefIDConverted
-			end
-		end
-		prevStartDefID = startDefID
+        if previousFactionSide and currentFactionSide and previousFactionSide ~= currentFactionSide then
+            convertBuildQueueFaction(previousFactionSide, currentFactionSide) 
+            if selBuildQueueDefID then
+                selBuildQueueDefID = handleSelectedBuildingConversion(selBuildQueueDefID, previousFactionSide, currentFactionSide, selBuildData)
+            end
+        elseif previousFactionSide and currentFactionSide and previousFactionSide == currentFactionSide then
+            Spring.Log(widget:GetInfo().name, LOG.DEBUG, string.format(
+                "Sides determined but are the same (%s), no conversion needed.", currentFactionSide))
+        else
+            Spring.Log(widget:GetInfo().name, LOG.WARNING, string.format(
+                "Could not determine sides for conversion: prevDefID=%s (name: %s), currentDefID=%s (name: %s). Names might be unhandled by SubLogic.getSideFromUnitName, or SubLogic itself might be incomplete from a non-critical load error.", 
+                tostring(prevStartDefID), tostring(prevDefName), tostring(startDefID), tostring(currentDefName)))
+        end
+        prevStartDefID = startDefID
 	end
 
 	-- Draw all the buildings
@@ -631,8 +557,8 @@ end
 function widget:GameFrame(n)
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if #buildQueue == 0 then
-		widgetHandler:RemoveWidgetCallIn("GameFrame", self)
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveCallIn("GameFrame")
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -683,22 +609,35 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	-- Ensure startDefID is current for GameStart logic, though DrawWorld might have already updated prevStartDefID
+	local currentStartDefID_GS = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	if startDefID ~= currentStartDefID_GS then
+	    Spring.Log("gui_pregame_build", LOG.DEBUG, string.format("GameStart: startDefID (%s) differs from current rules param (%s). Updating.", tostring(startDefID), tostring(currentStartDefID_GS)))
+	    startDefID = currentStartDefID_GS
+	end
 
 	if prevStartDefID ~= startDefID then
-		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
+		local prevDefName = prevStartDefID and UnitDefs[prevStartDefID] and UnitDefs[prevStartDefID].name
+		local currentDefName = startDefID and UnitDefs[startDefID] and UnitDefs[startDefID].name
 
-		if prevFactionToIndex and indexToCurrentFaction then
-			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
+		local previousFactionSide = prevDefName and SubLogic.getSideFromUnitName(prevDefName)
+		local currentFactionSide = currentDefName and SubLogic.getSideFromUnitName(currentDefName)
+
+		if previousFactionSide and currentFactionSide and previousFactionSide ~= currentFactionSide then
+			convertBuildQueueFaction(previousFactionSide, currentFactionSide)
+		elseif previousFactionSide and currentFactionSide and previousFactionSide == currentFactionSide then
+			-- Sides are the same, no conversion needed.
+		else
+			Spring.Log("gui_pregame_build", LOG.WARNING, string.format("Could not determine sides for conversion in GameStart: prevDefID=%s, currentDefID=%s", tostring(prevStartDefID), tostring(startDefID)))
 		end
 		prevStartDefID = startDefID
 	end
 
 
 	-- Deattach pregame action handlers
-	widgetHandler.actionHandler:RemoveAction(self, "stop")
-	widgetHandler.actionHandler:RemoveAction(self, "buildfacing")
-	widgetHandler.actionHandler:RemoveAction(self, "buildmenu_pregame_deselect")
+	widgetHandler:RemoveAction("stop")
+	widgetHandler:RemoveAction("buildfacing")
+	widgetHandler:RemoveAction("buildmenu_pregame_deselect")
 end
 
 function widget:Shutdown()
@@ -708,8 +647,8 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
-	widgetHandler:DeregisterGlobal(widget, "GetPreGameDefID")
-	widgetHandler:DeregisterGlobal(widget, "GetBuildQueue")
+	widgetHandler:DeregisterGlobal("GetPreGameDefID")
+	widgetHandler:DeregisterGlobal("GetBuildQueue")
 
 	WG["pregame-build"] = nil
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then

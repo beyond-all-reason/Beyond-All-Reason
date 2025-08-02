@@ -46,18 +46,26 @@ if gadgetHandler:IsSyncedCode() then
 			dgunDef[weaponDefID] = true
 		end
 	end
-	local undgunableUnits = {}
+
+	local safeguardedUnits = {}
+	local weaponUnitSelfd = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams and tonumber(unitDef.customParams.techlevel) > 1 then
 			if unitDef.isBuilding then
-				undgunableUnits[unitDefID] = true
+				safeguardedUnits[unitDefID] = true
 			end
 			if unitDef.metalMake > 0.5 or unitDef.energyMake > 5 or unitDef.energyUpkeep < 0 or unitDef.windGenerator > 0 or unitDef.customParams.solar or unitDef.tidalGenerator > 0 or unitDef.customParams.energyconv_capacity then
-				undgunableUnits[unitDefID] = true
+				safeguardedUnits[unitDefID] = true
 			end
 		end
 		if unitDef.customParams.energyconv_capacity then
-			undgunableUnits[unitDefID] = true
+			safeguardedUnits[unitDefID] = true
+		end
+		if unitDef.selfDExplosion then
+			local wDef = WeaponDefNames[unitDef.selfDExplosion]
+			if wDef then
+				weaponUnitSelfd[wDef.id] = unitDefID
+			end
 		end
 	end
 
@@ -171,34 +179,73 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
-			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 			local authorized = false
-			if _G.permissions.undo[playername] then
+			if _G.permissions.undo[accountID] then
 				authorized = true
 			end
-			if playername ~= "UnnamedPlayer" then
-				if not authorized then
-					--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
-					return
-				end
-				--if authorized and not spec then
-				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
-				--	return
-				--end
-				--if startPlayers[playername] ~= nil then
-				--	Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
-				--	return
-				--end
+			if authorized then
+				local params = string.split(msg, ':')
+				restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
+				return true
 			end
-			local params = string.split(msg, ':')
-			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
-			return true
+		end
+	end
+
+	local function notify(message)
+		for _,playerID in pairs(Spring.GetPlayerList()) do
+			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			if _G.permissions.undo[accountID] then
+				Spring.SendMessageToPlayer(playerID, message)
+			end
 		end
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if dgunDef[weaponID] and undgunableUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
-			return 0, 0
+		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
+			if dgunDef[weaponID] or weaponUnitSelfd[weaponID] or not Spring.GetUnitNearestEnemy(unitID, 1000) then
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local name = Spring.GetPlayerInfo(playerID,false)
+				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
+					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'
+				end
+				name = name or '---'
+				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local attackerName = Spring.GetPlayerInfo(attackerPlayerID,false)
+				if attackerIsAi and Spring.GetGameRulesParam('ainame_' .. attackerTeam) then
+					attackerName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)..' (AI)'
+				end
+				attackerName = attackerName or '---'
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				local unitName = UnitDefs[unitDefID].name
+				local atPosition = not x and '' or "   (pos: "..math.floor(math.floor(x/100)*100)..", "..math.floor(math.floor(z/100)*100)..")"
+				--if not attackerIsAi then
+				if dgunDef[weaponID] then
+					if name == attackerName then
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to DGUN their own "..unitName..atPosition)
+					else
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to DGUN "..name.."'s "..unitName..atPosition)
+					end
+					return 0, 0
+				elseif weaponUnitSelfd[weaponID] then
+					if name == attackerName then
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage their own "..unitName.." (via a SELFD)"..atPosition)
+					else
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." (via a SELFD)"..atPosition)
+					end
+					return 0, 0
+				elseif not Spring.GetUnitNearestEnemy(unitID, 1000) then
+					if name == attackerName then
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage their own "..unitName.." without nearby enemy"..atPosition)
+					else
+						notify("\255\255\100\100 -- ALERT --   "..attackerName.." tried to damage "..name.."'s "..unitName.." without nearby enemy"..atPosition)
+					end
+					return 0, 0
+				end
+				-- end
+			end
 		end
 		return damage, 1
 	end

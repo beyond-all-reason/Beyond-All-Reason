@@ -38,8 +38,6 @@ local CMD_FIGHT  = CMD.FIGHT
 local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
 local LOS_ACCESS = {inlos = true}
 
-include("LuaRules/Configs/customcmds.h.lua")
-
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local attritionWeaponDefs, MAX_SLOW_FACTOR, DEGRADE_TIMER, DEGRADE_FACTOR, UPDATE_PERIOD = include("LuaRules/Configs/timeslow_defs.lua")

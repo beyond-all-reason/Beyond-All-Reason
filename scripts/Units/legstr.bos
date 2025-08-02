@@ -427,10 +427,10 @@ AimPrimary(heading, pitch)
 	turn aimy to y-axis heading speed <180.0>;
 	turn aimx to x-axis 0 - pitch speed <360>;
 	
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy around y-axis;
+		// seems to take 3 frames for wait-for-turn to process
+        wait-for-turn aimy around y-axis;
 		wait-for-turn aimx around x-axis;
 	}
 	wpn1_lasthead = heading;

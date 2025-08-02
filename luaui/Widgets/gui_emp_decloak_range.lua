@@ -89,7 +89,8 @@ for udid, ud in pairs(UnitDefs) do
         end
     end
     if name:find("armgremlin") or name:find("armamb") or name:find("armpb") or name:find("armferret")
-       or name:find("armckfus") or name:find("armsnipe") or name:find("eyes") or name:find("mine")
+       or name:find("armckfus") or name:find("armsnipe") or name:find("armshockwave")
+       or name:find("eyes") or name:find("mine")
        or name:find("armcom") or name:find("corcom") or name:find("legcom") then
         isGremlin[udid] = decloakDist
     end

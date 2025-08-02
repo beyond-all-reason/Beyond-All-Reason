@@ -1,5 +1,5 @@
 
-if not Spring.TransferUnitLimit then
+if not Spring.TransferTeamMaxUnits then
 	return
 end
 
@@ -37,7 +37,7 @@ function gadget:TeamDied(teamID)
 	local portionSize = math.floor(redistributionAmount / aliveTeams)
 	for i = 1, #teams do
 		if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead
-			Spring.TransferUnitLimit(teamID, teams[i], portionSize)
+			Spring.TransferTeamMaxUnits(teamID, teams[i], portionSize)
 		end
 	end
 
@@ -52,7 +52,7 @@ function gadget:TeamDied(teamID)
 		local portionSize = math.floor(redistributionAmount / aliveTeams)
 		for i = 1, #teams do
 			if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead
-				Spring.TransferUnitLimit(teamID, teams[i], portionSize)
+				Spring.TransferTeamMaxUnits(teamID, teams[i], portionSize)
 			end
 		end
 	end

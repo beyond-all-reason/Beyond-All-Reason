@@ -211,8 +211,8 @@ bind sc_c buildunit_corvipe
 bind Shift+sc_c buildunit_corvipe
 bind sc_c buildunit_corflak
 bind Shift+sc_c buildunit_corflak
-bind sc_c buildunit_legbombard
-bind Shift+sc_c buildunit_legbombard
+bind sc_c buildunit_legapopupdef
+bind Shift+sc_c buildunit_legapopupdef
 bind sc_c buildunit_legflak
 bind Shift+sc_c buildunit_legflak
 bind sc_c buildunit_armgplat

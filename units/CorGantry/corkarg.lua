@@ -191,7 +191,6 @@ return {
 					overrange_distance = 690,
 					projectile_destruction_method = "descend",
 					speceffect = "retarget",
-					when = "always",
 				},
 				damage = {
 					default = 180,
@@ -203,6 +202,7 @@ return {
 				badtargetcategory = "GROUNDSCOUT VTOL",
 				def = "SUPER_MISSILE",
 				fastautoretargeting = true,
+				fastquerypointupdate = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

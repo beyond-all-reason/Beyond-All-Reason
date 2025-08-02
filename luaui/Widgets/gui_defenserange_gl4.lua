@@ -81,7 +81,7 @@ local colorConfig = { --An array of R, G, B, Alpha
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
 	drawAllyCategoryBuildQueue = true,
     ground = {
-        color = {1.3, 0.18, 0.04, 0.74},
+        color = {1.3, 0.18, 0.04, 0.70},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
         internallinethickness = 3.0, -- can be 1.8 if we can distiquish its looks from attackranges
@@ -92,7 +92,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.10, -- alpha of inner rings
     },
     air = {
-        color = {0.8, 0.44, 1.6, 0.74},
+        color = {0.8, 0.44, 1.6, 0.70},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0,
         internallinethickness = 3.0,
@@ -103,7 +103,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.10, -- alpha of inner rings
     },
     nuke = {
-        color = {1.05, 1.0, 0.2, 0.76},
+        color = {1.05, 1.0, 0.2, 0.72},
         fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0,
         internallinethickness = 2.0,
@@ -114,7 +114,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.15, -- alpha of inner rings
     },
     cannon = {
-        color = {1.3, 0.18, 0.04, 0.74}, --orange 1.2, 0.55, 0.08, 0.74
+        color = {1.3, 0.18, 0.04, 0.70}, --orange 1.2, 0.55, 0.08, 0.74
         fadeparams = {2000, 8000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 5.0,
         internallinethickness = 2.5,
@@ -125,7 +125,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 		internalalpha = 0.10, -- alpha of inner rings
     },
 	lrpc = {
-        color = {1.3, 0.18, 0.04, 0.7},
+        color = {1.3, 0.18, 0.04, 0.68},
         fadeparams = {9000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 3.0,
         internallinethickness = 1.5,
@@ -135,6 +135,11 @@ local colorConfig = { --An array of R, G, B, Alpha
     },
 }
 
+-- add a “water” variant so we can stay in the ground-stencil pass but colour blue
+colorConfig.ground_water = {
+    color      = {0.48, 0.67, 1.0, 0.30},      -- nice RGBA blue
+    fadeparams = colorConfig.ground.fadeparams, -- reuse the same fade curve
+}
 
 --- Camera Height based line shrinkage:
 
@@ -191,8 +196,18 @@ local function initializeUnitDefRing(unitDefID)
 				range = weaponDef.coverageRange
 				--Spring.Echo("init antinuke", range)
 			end
-			local color = colorConfig[weaponType].color
-			local fadeparams =  colorConfig[weaponType].fadeparams
+			-- local color = colorConfig[weaponType].color
+			-- local fadeparams =  colorConfig[weaponType].fadeparams
+
+			-- pick blue for underwater weapons, otherwise fall back to normal
+	        local baseKey = weaponType
+	        local cfg    = colorConfig[baseKey]
+	        if (baseKey == "ground") and (weaponDef.waterWeapon) then
+	            cfg = colorConfig.ground_water
+	            --Spring.Echo("[DefenseRange] using water colour for:", weaponDef.name)
+	        end
+	        local color      = cfg.color
+	        local fadeparams = cfg.fadeparams
 
 			local isCylinder = 0
 			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
@@ -227,7 +242,8 @@ local function initUnitList()
 		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
-		['armatl'] = { weapons = { 'ground' } },  --adv torpedo launcher
+		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
+		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher  
 
 		['armamb'] = { weapons = { 'cannon' } }, --ambusher 'cannon'
 		['armpb'] = { weapons = { 'ground' } }, --pitbull 'cannon'
@@ -259,6 +275,7 @@ local function initUnitList()
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
+		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
 		['cortoast'] = { weapons = { 'cannon' } },
 		['corvipe'] = { weapons = { 'ground' } },
@@ -281,8 +298,9 @@ local function initUnitList()
 		['legabm'] = { weapons = { 'nuke' } }, --antinuke
 		['legrampart'] = { weapons = { 'nuke', 'ground' } }, --rampart
 		['leglht'] = { weapons = { 'ground' } }, --llt
-		['legcluster'] = { weapons = { 'ground' } }, --short range arty T1
-		['legacluster'] = { weapons = { 'ground' } }, --T2 arty
+		['legcluster'] = { weapons = { 'cannon' } }, --short range arty T1
+		['legacluster'] = { weapons = { 'cannon' } }, --T2 arty
+		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
 		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
 		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
@@ -293,6 +311,7 @@ local function initUnitList()
 		['legflak'] = { weapons = { 'air' } }, --T2 AA FLAK
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
+		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
@@ -460,9 +479,13 @@ local circleInstanceVBOLayout = {
 		  {id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT }, -- Currently unused within defense ranges, as they are forced-static
 		}
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local popElementInstance     = InstanceVBOTable.popElementInstance
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 local defenseRangeShader = nil
 
 local shaderSourceCache = {
@@ -507,10 +530,10 @@ local function makeShaders()
 end
 
 local function initGL4()
-	smallCircleVBO = makeCircleVBO(smallCircleSegments)
-	largeCircleVBO = makeCircleVBO(largeCircleSegments)
+	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
+	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
-		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
+		defenseRangeVAOs[defRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
 		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
@@ -518,7 +541,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO = smallCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
+		local newVAO = InstanceVBOTable.makeVAOandAttach(defenseRangeVAOs[defRangeClass].vertexVBO,defenseRangeVAOs[defRangeClass].instanceVBO)
 		defenseRangeVAOs[defRangeClass].VAO = newVAO
 	end
 	return makeShaders()
@@ -655,13 +678,13 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	defensePosHash = {}
 	mobileAntiUnits = {}
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		clearInstanceTable(instanceTable) -- clear all instances
+		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		uploadAllElements(instanceTable) -- clear all instances
+		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
 	end
 end
 
@@ -791,6 +814,27 @@ function widget:Update(dt)
 	--if spec then
 	--	return
 	--end
+
+-- detect if our “myAllyTeam” has changed (e.g. a spec following a different player)
+   local currentAllyTeam = Spring.GetMyAllyTeamID()
+   if currentAllyTeam ~= myAllyTeam then
+     myAllyTeam = currentAllyTeam
+     -- clear out all the old rings
+     defenses, enemydefenses, defensePosHash, mobileAntiUnits = {}, {}, {}, {}
+     for _, ivt in pairs(defenseRangeVAOs) do
+       InstanceVBOTable.clearInstanceTable(ivt)
+     end
+     -- rebuild from whatever visibleUnits API you have
+     local extVisibleUnits = (WG.unittrackerapi and WG.unittrackerapi.visibleUnits)
+                           or (function()
+                                local t = {}
+                                for _, uid in ipairs(Spring.GetAllUnits()) do
+                                  t[uid] = spGetUnitDefID(uid)
+                                end
+                                return t
+                              end)()
+     widget:VisibleUnitsChanged(extVisibleUnits, nil)
+   end
 
 	if gameFrame >= lastUpdatedGameFrame + antiupdaterate then
 		lastUpdatedGameFrame = gameFrame

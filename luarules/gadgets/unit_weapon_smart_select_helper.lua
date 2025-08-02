@@ -54,6 +54,8 @@ local backupSwitchThreshold = backupAutoAggro * 1.2 * -1 --the aggro at which ba
 local priorityCooldownFrames = Game.gameSpeed * 1.5 -- so that no matter how the aggro weights are set, the mode switches will happen no sooner than this.
 local backupCooldownFrames = Game.gameSpeed * 4
 
+local CMD_SMART_TOGGLE = GameCMD.SMART_TOGGLE
+
 local PRIORITY_AIMINGSTATE = 0
 local BACKUP_AIMINGSTATE = 1
 local AUTO_TOGGLESTATE = 2
@@ -81,8 +83,6 @@ local modeSwitchFrames = {}
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-
-include("luarules/configs/customcmds.h.lua")
 
 local trajectoryCmdDesc = {
     id = CMD_SMART_TOGGLE,

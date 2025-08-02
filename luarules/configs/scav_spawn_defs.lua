@@ -1,4 +1,3 @@
-
 local difficulties = {
 	veryeasy = 1,
 	easy 	 = 2,
@@ -383,6 +382,7 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 4,
 			["corkarg_scav"] = 4,
+			["legeallterrainmech_scav"] = 4,
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
@@ -390,6 +390,7 @@ local LandUnitsList = {
 			["legkeres_scav"] = 4,
 			["legeshotgunmech_scav"] = 2,
 			["legbunk_scav"] = 2,
+			["legehovertank_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -497,7 +498,7 @@ local LandUnitsList = {
 			--Armada
 
 			--Cortex
-
+			["CorPrince_scav"] = 2,
 			--Legion
 			["legsrailt4_scav"] = 2,
 		},
@@ -738,6 +739,7 @@ local SeaUnitsList = {
 			["armserpt3_scav"] = 2,
 			--Cortex
 			["coresuppt3_scav"] = 2,
+			["corprince_scav"] = 3,
 		},
 	},
 	Support = {
@@ -991,6 +993,7 @@ local AirUnitsList = {
 			["legstronghold_scav"] = 2,
 			["legvenator_scav"] = 3,
 			["legionnaire_scav"] = 3,
+			["legafigdef_scav"] = 3,
 			["legnap_scav"] = 3,
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,

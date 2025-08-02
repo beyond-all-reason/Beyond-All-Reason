@@ -545,7 +545,8 @@
 			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
-			"owncomends": "Losing your commander = losing control of your units / resigning"
+			"owncomends": "Losing your commander = losing control of your units / resigning",
+			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -702,6 +703,12 @@
 				"endless": "Endless"
 			}
 		},
+		"territorialDomination": {
+			"losingWarning1": "Allied retreat in %{seconds} seconds!",
+			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
+			"rank": "Rank %{rank}",
+			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
@@ -710,7 +717,7 @@
 			"ready": "Ready",
 			"unready": "Unready",
 			"readied": "Readied",
-			"lock": "Lock Position",
+			"lock": "Ready",
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
@@ -1369,8 +1376,12 @@
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
+				"advplayerlist_showallyid": "show Ally ID",
+				"advplayerlist_showallyid_descr": "show ally-team ID",
 				"advplayerlist_showid": "show Team ID",
 				"advplayerlist_showid_descr": "show team ID",
+				"advplayerlist_showplayerid": "show Player ID",
+				"advplayerlist_showplayerid_descr": "show player ID",
 				"advplayerlist_country": "country flag",
 				"advplayerlist_country_descr": "show country flag",
 				"advplayerlist_rank": "rank icon",
@@ -1648,10 +1659,13 @@
 				"devmode_descr": "Toggle between how a developer or player see the UI",
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
-				"profiler": "Widget profiler",
-				"profiler_min_time": "Minimum Time",
-				"profiler_min_memory": "Minimum Memory",
-				"profiler_sort_by_load": "Sort By Load",
+				"profiler": "Profiler",
+				"profiler_widget": "widget",
+				"profiler_gadget": "gadget",
+				"profiler_sort_by_load": "sort by load",
+				"profiler_sort_by_load_descr": "Applies to both Widget Profiler and Gadget Profiler",
+				"profiler_averagetime": "time averaging",
+				"profiler_averagetime_descr": "The duration of averaging the time taken by each widget/gadget",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",

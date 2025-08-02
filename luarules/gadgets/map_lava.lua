@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Map Lava Gadget 2.5",
 		desc      = "lava",
-		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
+		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam, Chronographer",
 		date      = "Feb 2011, Nov 2013, 2022!",
 		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -3,
@@ -28,6 +28,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
+
+	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -54,7 +56,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
-	local spSetUnitVelocity = Spring.SetUnitVelocity
+	local spGetMoveData = Spring.GetUnitMoveTypeData
+	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
@@ -63,10 +66,17 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
+	local speedDefs = {}
+	local turnDefs = {}
+	local accDefs = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		unitMoveDef[unitDefID] = unitDef.moveDef
+		unitMoveDef[unitDefID] = unitDef.moveDef -- Will remove this when decision on hovercraft is made
 		if unitDef.canFly then
 			canFly[unitDefID] = true
+		else 
+			speedDefs[unitDefID] = unitDef.speed
+			turnDefs[unitDefID] = unitDef.turnRate
+			accDefs[unitDefID] = unitDef.maxAcc
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -117,16 +127,36 @@ if gadgetHandler:IsSyncedCode() then
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local all_units = spGetAllUnits()
 		for _, unitID in ipairs(all_units) do
-			local UnitDefID = spGetUnitDefID(unitID)
-			if not canFly[UnitDefID] then
-				x,y,z = spGetUnitBasePosition(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
+			if not canFly[unitDefID] then
+				local x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
-					spSpawnCEG(lavaEffectDamage, x, y+5, z)
-					lavaUnits[unitID] = clamp(1-((lavaLevel-y) / unitHeight[UnitDefID]), 0.2, 0.9)
-					--Spring.Echo(lavaUnits[unitID])
-				elseif lavaUnits[unitID] then
-					lavaUnits[unitID] = nil
+					local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow) , 1-lavaSlow , .9)
+					if not lavaUnits[unitID] then -- first entry into lava
+						local moveType = spGetMoveData(unitID).name
+						local maxSpeed = speedDefs[unitDefID]
+						local turnRate = turnDefs[unitDefID]
+						local accelRate = accDefs[unitDefID]
+						if (moveType == "ground") and (maxSpeed and maxSpeed ~= 0) and (turnRate and turnRate ~= 0) and (accelRate and accelRate ~= 0)then
+							lavaUnits[unitID] = {currentSlow = 1, slowed = true} 
+						else
+							lavaUnits[unitID] = {slowed = false}
+						end
+					end
+					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
+						local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
+						local slowedTurnRate = turnDefs[unitDefID] * unitSlow
+						local slowedAccRate = accDefs[unitDefID] * unitSlow
+						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+						lavaUnits[unitID].currentSlow = unitSlow
+					end
+				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
+				spSpawnCEG(lavaEffectDamage, x, y+5, z)
+				elseif lavaUnits[unitID] then -- unit exited lava
+					if lavaUnits[unitID].slowed then
+						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
+					end
+				lavaUnits[unitID] = nil
 				end
 			end
 		end
@@ -168,10 +198,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if f % DAMAGE_RATE == 0 then
 			lavaObjectsCheck()
-		end
-
-		for unitID, speed in pairs(lavaUnits) do
-			spSetUnitVelocity(unitID, speed, speed, speed)
 		end
 
 		updateLava()
@@ -247,9 +273,9 @@ if gadgetHandler:IsSyncedCode() then
 			   return damage, 1.0
 		end
 		local moveDef = unitMoveDef[unitDefID]
-		if moveDef == nil or moveDef.family ~= "hover" then
-			  -- not a hovercraft, do not modify
-			  return damage, 1.0
+		if moveDef == nil or moveDef.family ~= "hover" then -- Out of date use of family to be removed post GDT discussion
+			-- not a hovercraft, do not modify
+			return damage, 1.0
 		end
 		return 0.0, 1.0
 	end
@@ -286,10 +312,9 @@ else  -- UNSYCNED
 
 
 	local autoreload = false -- set to true to reload the shader every time it is edited
-	local luaShaderDir = "LuaUI/Include/"
-	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-	VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the plane maker func of this
 
+	local LuaShader = gl.LuaShader
+	local InstanceVBOTable = gl.InstanceVBOTable
 
 	local unifiedShaderConfig = {
 		-- for lavaplane
@@ -407,8 +432,8 @@ else  -- UNSYCNED
 		-- numverts = 128 * 384 * 384 *2 tris then we will get 280k tris ....
 		local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 		local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-		local vertexBuffer, vertexBufferSize = makePlaneVBO(1, 1,  xsquares, zsquares)
-		local indexBuffer, indexBufferSize = makePlaneIndexVBO(xsquares, zsquares)
+		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1,  xsquares, zsquares)
+		local indexBuffer, indexBufferSize = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)

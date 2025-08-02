@@ -30,6 +30,12 @@ local mapHasWater = (Spring.GetGroundExtremes() < 0)
 local selectShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
+
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc
