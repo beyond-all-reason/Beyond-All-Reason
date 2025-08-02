@@ -1,0 +1,47 @@
+/* === PRIMARY GREEN (#7eb141) === */
+.bg-primary { background-color: #7eb141; }
+.text-primary { color: #7eb141; }
+.border-primary { border-color: #7eb141; }
+.bg-primary-alpha { background-color: #7eb14180; }
+.text-primary-alpha { color: #7eb14180; }
+.border-primary-alpha { border-color: #7eb14180; }
+
+/* === SECONDARY GREEN (#9bc966) === */
+.bg-secondary { background-color: #9bc966; }
+.text-secondary { color: #9bc966; }
+.border-secondary { border-color: #9bc966; }
+.bg-secondary-alpha { background-color: #9bc96680; }
+.text-secondary-alpha { color: #9bc96680; }
+.border-secondary-alpha { border-color: #9bc96680; }
+
+/* === ACCENT GREEN (#5a8030) === */
+.bg-accent { background-color: #5a8030; }
+.text-accent { color: #5a8030; }
+.border-accent { border-color: #5a8030; }
+.bg-accent-alpha { background-color: #5a803080; }
+.text-accent-alpha { color: #5a803080; }
+.border-accent-alpha { border-color: #5a803080; }
+
+/* === MUTED GREEN (#b4d48a) === */
+.bg-muted { background-color: #b4d48a; }
+.text-muted { color: #b4d48a; }
+.border-muted { border-color: #b4d48a; }
+.bg-muted-alpha { background-color: #b4d48a80; }
+.text-muted-alpha { color: #b4d48a80; }
+.border-muted-alpha { border-color: #b4d48a80; }
+
+/* === SURFACE GREEN (#d9e8c7) === */
+.bg-surface { background-color: #d9e8c7; }
+.text-surface { color: #d9e8c7; }
+.border-surface { border-color: #d9e8c7; }
+.bg-surface-alpha { background-color: #d9e8c780; }
+.text-surface-alpha { color: #d9e8c780; }
+.border-surface-alpha { border-color: #d9e8c780; }
+
+/* === DARK GREEN (#3e5a22) === */
+.bg-dark { background-color: #3e5a22; }
+.text-dark { color: #3e5a22; }
+.border-dark { border-color: #3e5a22; }
+.bg-dark-alpha { background-color: #3e5a2280; }
+.text-dark-alpha { color: #3e5a2280; }
+.border-dark-alpha { border-color: #3e5a2280; }

@@ -1,7 +1,4 @@
 body {
-    /* width: 100%;
-    height: 100%;
-    overflow: hidden; */
     font-family: "Exo 2";
     font-size: 16dp;
     pointer-events: none;
@@ -21,6 +18,22 @@ p
 h1
 {
 	display: block;
+	font-size: 24dp;
+	font-weight: bold;
+}
+
+h2
+{
+	display: block;
+	font-size: 20dp;
+	font-weight: bold;
+}
+
+h3
+{
+	display: block;
+	font-size: 18dp;
+	font-weight: bold;
 }
 
 em
@@ -33,35 +46,55 @@ strong
 	font-weight: bold;
 }
 
-select
-{
-	text-align: left;
-}
-
 tabset tabs
 {
 	display: block;
 }
 
-table {
-	box-sizing: border-box;
-	display: table;
+scrollbarvertical
+{
+	width: 6dp;
 }
-tr {
-	box-sizing: border-box;
-	display: table-row;
+
+slidertrack
+{
+	background-color: rgba(100,100,100, 255);
 }
-td {
-	box-sizing: border-box;
-	display: table-cell;
+
+sliderbar
+{
+	background-color: rgba(200,200,200, 255);
+	border-radius: 2dp;
 }
-col {
-	box-sizing: border-box;
-	display: table-column;
+
+sliderbar:hover,
+sliderbar:active
+{
+	background-color: rgba(220,220,255, 255);
 }
-colgroup {
-	display: table-column-group;
+
+sliderarrowdec
+{
+	width: 6dp;
+	height: 6dp;
+	background-color: rgba(100,100,100, 255);
+	border-top-left-radius: 5dp;
+	border-top-right-radius: 5dp;
+	margin-bottom: 2dp;
 }
-thead, tbody, tfoot {
-	display: table-row-group;
+
+sliderarrowinc
+{
+	width: 9dp;
+	height: 9dp;
+	background-color: rgba(100,100,100, 255);
+	border-bottom-left-radius: 5dp;
+	border-bottom-right-radius: 5dp;
+	margin-top: 2dp;
+}
+
+sliderarrowinc:hover,
+sliderarrowdec:hover
+{
+	background-color: rgba(150,150,150, 255);
 }

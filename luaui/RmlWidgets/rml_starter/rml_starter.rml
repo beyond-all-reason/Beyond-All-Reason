@@ -1,0 +1,418 @@
+<rml>
+
+    <head>
+        <title>RML Widget Starter Template</title>
+
+        <!-- External stylesheets - order matters for cascading -->
+        <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
+        <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
+        <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
+        <link rel="stylesheet" href="../palette-base.rcss" type="text/rcss" />
+        <!-- <link rel="stylesheet" href="../palette-cortex.rcss" type="text/rcss" /> -->
+        <!-- <link rel="stylesheet" href="../palette-armada.rcss" type="text/rcss" /> -->
+        <!-- <link rel="stylesheet" href="../palette-legion.rcss" type="text/rcss" /> -->
+        <style>
+            /* ===========================================
+                WIDGET POSITIONING
+            =========================================== */
+            #rml-starter-widget {
+                pointer-events: auto;
+                width: 700dp;
+                height: 80%;
+                right: 0;
+                top: 5%;
+                position: absolute;
+                margin-right: 10dp;
+                display: flex;
+                flex-direction: row;
+            }
+
+            #main-content {
+                border-radius: 2dp;
+                z-index: 3;
+                flex: 1;
+                position: relative;
+                padding-left: 5dp;
+            }
+
+            .widget-container {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: 100%;
+                border-radius: 2dp;
+            }
+
+            .actions {
+                min-height: 36dp;
+            }
+
+            /* ===========================================
+                TAB SYSTEM - Left side navigation
+            =========================================== */
+            #tab-container {
+                display: flex;
+                flex-direction: column;
+                width: 120dp;
+                margin-right: 1dp;
+                z-index: 10;
+                position: relative;
+            }
+
+            .tab-button {
+                border-radius: 2dp;
+                padding: 8dp;
+                margin-bottom: 2dp;
+                cursor: pointer;
+                transition: transform 0.2s, background-color 0.2s;
+                text-align: center;
+                min-height: 40dp;
+                display: flex;
+                font-weight: bold;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .tab-button:hover {
+                transform: translateY(-2dp);
+                filter: brightness(1.1);
+            }
+
+            .tab-button.active {
+                transform: skew(-5deg, 0deg) translateX(5dp) translateY(-2dp);
+                box-shadow: rgba(0, 0, 0, 100) 3dp 3dp 3dp;
+            }
+
+            /* ===========================================
+                CONTENT SECTIONS
+            =========================================== */
+            .content-section {
+                display: flex;
+                flex-direction: column;
+                gap: 8dp;
+                margin-bottom: 15dp;
+            }
+
+            .code-highlight {
+                padding-left: 3dp;
+                padding-right: 3dp;
+                border-radius: 2dp;
+            }
+
+            .tab-panel {
+                clip: always;
+                overflow: hidden scroll;
+                width: 100%;
+                display: block;
+                flex-direction: column;
+                padding-left: 5dp;
+            }
+
+            /* Button styling for game overlay */
+            button {
+                border-radius: 2dp;
+                transition: background-color 0.2s;
+            }
+        </style>
+    </head>
+
+    <body id="rml-starter-widget">
+        <div class="widget-container" data-model="starter_model">
+            <!-- Left side tab navigation -->
+            <div id="tab-container">
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'getting-started'" data-class-bg-primary="activeTab == 'getting-started'"
+                    data-class-border-primary="activeTab == 'getting-started'"
+                    data-class-text-darkest="activeTab == 'getting-started'" data-tab="getting-started"
+                    data-event-click="activeTab = 'getting-started'">
+                    <span class="text-glow-light">Getting Started</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'overview'" data-class-bg-primary="activeTab == 'overview'"
+                    data-class-border-primary="activeTab == 'overview'"
+                    data-class-text-darkest="activeTab == 'overview'" data-tab="overview"
+                    data-event-click="activeTab = 'overview'">
+                    <span class="text-glow-light">Overview</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'data-binding'" data-class-bg-primary="activeTab == 'data-binding'"
+                    data-class-border-primary="activeTab == 'data-binding'"
+                    data-class-text-darkest="activeTab == 'data-binding'" data-tab="data-binding"
+                    data-event-click="activeTab = 'data-binding'">
+                    <span class="text-glow-light">Data Binding</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'events'" data-class-bg-primary="activeTab == 'events'"
+                    data-class-border-primary="activeTab == 'events'" data-class-text-darkest="activeTab == 'events'"
+                    data-tab="events" data-event-click="activeTab = 'events'">
+                    <span class="text-glow-light">Events</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'styling'" data-class-bg-primary="activeTab == 'styling'"
+                    data-class-border-primary="activeTab == 'styling'" data-class-text-darkest="activeTab == 'styling'"
+                    data-tab="styling" data-event-click="activeTab = 'styling'">
+                    <span class="text-glow-light">Styling</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'convention'" data-class-bg-primary="activeTab == 'convention'"
+                    data-class-border-primary="activeTab == 'convention'"
+                    data-class-text-darkest="activeTab == 'convention'" data-tab="convention"
+                    data-event-click="activeTab = 'convention'">
+                    <span class="text-glow-light">Convention</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'performance'" data-class-bg-primary="activeTab == 'performance'"
+                    data-class-border-primary="activeTab == 'performance'"
+                    data-class-text-darkest="activeTab == 'performance'" data-tab="performance"
+                    data-event-click="activeTab = 'performance'">
+                    <span class="text-glow-light">Performance</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'tools'" data-class-bg-primary="activeTab == 'tools'"
+                    data-class-border-primary="activeTab == 'tools'" data-class-text-darkest="activeTab == 'tools'"
+                    data-tab="tools" data-event-click="activeTab = 'tools'">
+                    <span class="text-glow-light">Tools</span>
+                </div>
+                <div class="tab-button text-white bg-darkest-alpha"
+                    data-class-active="activeTab == 'examples'" data-class-bg-primary="activeTab == 'examples'"
+                    data-class-border-primary="activeTab == 'examples'"
+                    data-class-text-darkest="activeTab == 'examples'" data-tab="examples"
+                    data-event-click="activeTab = 'examples'">
+                    <span class="text-glow-light">Examples</span>
+                </div>
+            </div>
+
+            <!-- Main content area with tab panels -->
+            <div id="main-content" class="bg-black-semi-alpha flex flex-col gap-4">
+                <div class="actions flex flex-row-reverse gap-2 m-1 flex-end border-bottom">
+                    <button class="bg-primary text-darkest text-center p-2" onclick="widget:Reload()">
+                        Reload Widget
+                    </button>
+                    <button class="bg-primary text-darkest text-center p-2" onclick="widget:ToggleDebugger()">
+                        {{debugMode ? 'Hide Debug' : 'Show Debug'}}
+                    </button>
+                </div>
+
+                <div data-if="activeTab == ''" class="landing">
+                    <div class="content-section p-10">
+                        <h1 class="text-white">RML Starter Widget</h1>
+                        <h2>What is this?</h2>
+                        <p class="text-light">This widget is one part documentation and one part connected example, and hopefully demonstrates key concepts
+                            and best practices for creating, and working with RML widgets.</p>
+                        <p class="text-light">Use the tabs on the left to navigate and learn about RML widget development in BAR but keep in mind
+                            that this widget is itself an example of an RML widget. As such, if you see something you want to understand better,
+                            explore the code, edit values, and see how it all fits together. Be sure you don't commit any of your changes though!
+                        </p>
+                        <h2>Widget Actions</h2>
+                        <p class="text-light">Click the "Reload Widget" button to refresh the widget and apply any changes
+                            you might have made in your IDE. RML Widgets do not currently have hot-reloading support,
+                            a reload is required to see changes made to .rml and .rcss files.</p>
+                        <p class="text-light">Use the "Toggle Debugger" button to show or hide the RmlUi debugger.
+                            The debugger provides invaluable real-time insights into the context's documents, data models, event handling, styling,
+                            and importantly, the state of the DOM.
+                        </p>
+                        <h2>Skip to the Good Stuff</h2>
+                        <p class="text-light">If you just want to get started quickly, check out the Tools tab and make use of the
+                            widget generator script. The generated widget
+                            should embody best practices and common patterns for RML development, regarding file structure, naming conventions,
+                            and initial component organization.</p>
+                        <p class="text-light">Don't hesitate to reach out for help, share your progress. Make use of the RMLUI documentation.... always, it is your best friend.</p>
+                        <p class="text-primary text-shadow font-bold p-4">Now get building!</p>
+                    </div>
+                </div>
+
+                <!-- Getting Started Tab Panel -->
+                <div class="tab-panel" data-panel="getting-started" data-if="activeTab == 'getting-started'">
+                    <div class="content-section">
+                        <h1 class="text-white">Getting Started with RML Widgets</h1>
+                        <p class="text-light">Essential information for creating your first RML widget</p>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Required Files</h2>
+                        <p class="text-light m-1">Every RML widget needs three files:</p>
+                        <ul class="text-light m-1 flex flex-col gap-1">
+                            <li>• <span class="code-highlight text-white bg-primary rounded">widgetname.lua</span> -
+                                Backend logic and data model</li>
+                            <li>• <span class="code-highlight text-white bg-primary rounded">widgetname.rml</span> -
+                                Frontend UI layout and markup</li>
+                            <li>• <span class="code-highlight text-white bg-primary rounded">widgetname.rcss</span> -
+                                Styling and visual appearance</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">File Placement</h2>
+                        <p class="text-light m-1">Widget files must be placed in:</p>
+                        <div class="code-highlight text-white m-1 bg-game-medium">luaui/RmlWidgets/widget_folder_name/
+                        </div>
+                        <p class="text-light m-1">Directory structure example:</p>
+                        <div class="flex flex-col code-highlight text-white m-1 bg-game-medium">
+                            <div>luaui/RmlWidgets/rml_starter/</div>
+                            <div class="ml-4">rml_starter.lua</div>
+                            <div class="ml-4">rml_starter.rml</div>
+                            <div class="ml-4">rml_starter.rcss</div>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Core Functionality</h2>
+                        <p class="text-light m-1">A basic RML widget provides:</p>
+                        <ul class="text-light m-1 flex flex-col gap-1">
+                            <li>• <strong class="text-secondary">Data Model</strong> - Variables that drive the UI state
+                            </li>
+                            <li>• <strong class="text-secondary">Widget Lifecycle</strong> - Initialize, Update,
+                                Shutdown hooks</li>
+                            <li>• <strong class="text-secondary">UI Layout</strong> - RML markup with data binding</li>
+                            <li>• <strong class="text-secondary">Styling</strong> - RCSS for visual appearance</li>
+                            <li>• <strong class="text-secondary">Interactivity</strong> - Event handling for user input
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Quick Start Steps</h2>
+                        <div class="bg-darkest-alpha rounded p-3 mb-2">
+                            <p class="text-white font-bold">Recommended: Use the Widget Generator</p>
+                            <p class="text-light">Run the automated script to create a complete widget template:</p>
+                            <div class="code-highlight text-white bg-dark rounded mt-1 p-2">./generate-widget.sh your_widget_name</div>
+                            <p class="text-light mt-1">See the <strong class="text-white">Tools</strong> tab for full details.</p>
+                        </div>
+                        <p class="text-light m-1">Or create manually:</p>
+                        <ol class="text-light m-1 flex flex-col gap-1">
+                            <li>1. Create a folder in <span
+                                    class="code-highlight text-white bg-primary rounded">luaui/RmlWidgets/</span></li>
+                            <li>2. Add your <span class="code-highlight text-white bg-primary rounded">.lua</span> file
+                                with data model and lifecycle</li>
+                            <li>3. Add your <span class="code-highlight text-white bg-primary rounded">.rml</span> file
+                                with layout and markup</li>
+                            <li>4. Add your <span class="code-highlight text-white bg-primary rounded">.rcss</span> file
+                                with styling</li>
+                            <li>5. Use <span class="code-highlight text-white bg-primary rounded">data-*</span>
+                                attributes for dynamic behavior</li>
+                            <li>6. Test with the reload button above</li>
+                        </ol>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Development Tips</h2>
+                        <ul class="text-light m-1 flex flex-col gap-1">
+                            <li>• Use <span class="code-highlight text-white bg-primary rounded">Spring.Echo()</span>
+                                for debugging output</li>
+                            <li>• Alpha values in RGBA colors use 0-255 range, not 0-1</li>
+                            <li>• RMLUI is adherent to the CSS2 specification, but offers additional more modern css3 equivalents.
+                                always refer to the <a href="https://rmlui.com/docs/" class="text-primary">RMLUI documentation</a> for details.
+                            </li>
+                            <li>• Prefer data binding over manual DOM manipulation</li>
+                            <li>• Use or create a widget reload button for quick iteration</li>
+                            <li>• Leverage the RmlUi debugger for real-time insights</li>
+                            <li>• Follow naming conventions for clarity and consistency</li>
+                            <li>• Use the <span class="code-highlight text-white bg-primary rounded">rml-utils.rcss</span> file for a tailwind-like approach to styling</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Overview Tab Panel -->
+                <div class="tab-panel" data-panel="overview" data-if="activeTab == 'overview'">
+                    <div class="content-section">
+                        <h1 class="text-white">Overview <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark-light m-1">Coming soon: Widget architecture overview, best
+                            practices, and development workflow</p>
+                    </div>
+                </div>
+
+                <!-- Data Binding Tab Panel -->
+                <div class="tab-panel" data-panel="data-binding" data-if="activeTab == 'data-binding'">
+                    <div class="content-section">
+                        <h1 class="text-white">Data Binding <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark-light m-1">Coming soon: Examples of data binding patterns, variable
+                            interpolation, and dynamic content</p>
+                    </div>
+                </div>
+
+                <!-- Events Tab Panel -->
+                <div class="tab-panel" data-panel="events" data-if="activeTab == 'events'">
+                    <div class="content-section">
+                        <h1 class="text-white">Event Handling <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark m-1">Coming soon: Interactive elements, event handling
+                            patterns, and user input processing</p>
+                    </div>
+                </div>
+
+                <!-- Styling Tab Panel -->
+                <div class="tab-panel" data-panel="styling" data-if="activeTab == 'styling'">
+                    <div class="content-section">
+                        <h1 class="text-white">Styling <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark m-1">Coming soon: RCSS styling techniques, design patterns,
+                            and visual customization</p>
+                    </div>
+                </div>
+
+                <!-- Convention Tab Panel -->
+                <div class="tab-panel" data-panel="convention" data-if="activeTab == 'convention'">
+                    <div class="content-section">
+                        <h1 class="text-white">Convention <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark m-1">Coming soon: Best practices, naming conventions, code
+                            organization, and development standards</p>
+                    </div>
+                </div>
+
+                <!-- Performance Tab Panel -->
+                <div class="tab-panel" data-panel="performance" data-if="activeTab == 'performance'">
+                    <div class="content-section">
+                        <h1 class="text-white">Performance <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-dark">This section is currently under development</p>
+                        <p class="text-dark m-1">Coming soon: Optimization techniques, memory management,
+                            rendering performance, and profiling tips</p>
+                    </div>
+                </div>
+
+                <!-- Tools Tab Panel -->
+                <div class="tab-panel" data-panel="tools" data-if="activeTab == 'tools'">
+                    <div class="content-section">
+                        <h1 class="text-white">Tools</h1>
+                        <p class="text-neutral-dark">Development tools and utilities for RML widget creation</p>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Widget Generator Script</h2>
+                        <p class="text-medium m-1">Use the automated script to quickly scaffold new widgets:</p>
+                        <div class="code-highlight text-white m-1 bg-game-medium">./generate-widget.sh your_widget_name
+                        </div>
+                        <p class="text-light m-1">This script creates a complete widget template with:</p>
+                        <ul class="text-white m-1 flex flex-col gap-1">
+                            <li>• Pre-configured <span class="code-highlight bg-primary rounded">.lua</span>
+                                file with lifecycle functions</li>
+                            <li>• Basic <span class="code-highlight bg-primary rounded">.rml</span> layout
+                                with data binding</li>
+                            <li>• Starter <span class="code-highlight bg-primary rounded">.rcss</span> styles
+                                with debug controls</li>
+                            <li>• Built-in reload and debugger functionality</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="text-secondary">Other Development Tools <span class="text-warning">[WIP]</span></h2>
+                        <p class="text-neutral-dark-light m-1">Coming soon: Additional tools, debugging utilities, and
+                            development helpers</p>
+                    </div>
+                </div>
+
+                <!-- Examples Tab Panel -->
+                <div class="tab-panel" data-panel="examples" data-if="activeTab == 'examples'">
+                    <div class="content-section">
+                        <h1 class="text-white">Examples <span class="text-warning">[WIP]</span></h1>
+                        <p class="text-neutral-dark">This section is currently under development</p>
+                        <p class="text-neutral-dark-light m-1">Coming soon: Real-world implementation patterns, code
+                            samples, and practical use cases</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</rml>

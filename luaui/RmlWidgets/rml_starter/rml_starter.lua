@@ -19,13 +19,13 @@ end
 -- Constants
 local WIDGET_NAME = "RML Starter"
 local MODEL_NAME = "starter_model"
-local RML_PATH = "luaui/rmlwidgets/gui_rml_starter/gui_rml_starter.rml"
+local RML_PATH = "luaui/rmlwidgets/rml_starter/rml_starter.rml"
 
 -- Widget state
 local document
 local dm_handle
 
--- Initial data model - demonstrates various data types and structures
+-- Initial data model - Used only for setting the initial state of the model, not for updates, for this use the dm_handle.
 local init_model = {
     -- String data with dynamic content
     message = "Hello! This text comes from the Lua data model and demonstrates variable binding.",
@@ -39,8 +39,8 @@ local init_model = {
     },
     
     -- Tab system state (controlled by data binding)
-    activeTab = "getting-started",
-    
+    activeTab = "", -- Start empty for landing page.
+
     -- Current time for demonstrations
     currentTime = os.date("%H:%M:%S"),
     
@@ -85,9 +85,6 @@ function widget:Initialize()
     document:Show()
     
     Spring.Echo(WIDGET_NAME .. ": Widget initialized successfully")
-    
-    -- Optional: Enable debugger for development
-    -- RmlUi.SetDebugContext('shared')
     
     return true
 end

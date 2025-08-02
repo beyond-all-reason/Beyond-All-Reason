@@ -211,23 +211,24 @@
 .text-center { text-align: center; }
 .text-right { text-align: right; }
 
+/* === Text Shadow === */
+.text-shadow { font-effect: shadow( 1px 1px rgb(90, 90, 90) ); }
+.text-glow-light { font-effect: glow(2px 6px 1px 1px rgba(130, 130, 130, 100)); }
+
 /* === Border === */
 .border { border: 1dp #e5e7eb; }
 .border-0 { border: 0dp transparent; }
+
+.border-sm { border-width: 1dp; }
+.border-md { border-width: 2dp; }
+.border-lg { border-width: 4dp; }
 
 .rounded { border-radius: 4dp; }
 .rounded-md { border-radius: 6dp; }
 .rounded-lg { border-radius: 8dp; }
 
 /* === Overflow === */
-/* .overflow-hidden { overflow: hidden; }
-.overflow-scroll { overflow: scroll; }
-.overflow-auto { overflow: auto; } */
 .clip { clip: always; }
-
-/* === Transition === */
-/* .transition { transition: all 0.2s ease-in-out; }
-.duration-300 { transition-duration: 300ms; } */
 
 /* === Z-Index === */
 .z-0 { z-index: 0; }

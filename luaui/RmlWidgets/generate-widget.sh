@@ -10,7 +10,7 @@ if [ $# -eq 0 ]; then
 fi
 
 WIDGET_NAME="$1"
-WIDGET_DIR="gui_${WIDGET_NAME}"
+WIDGET_DIR="${WIDGET_NAME}"
 
 # Check if widget directory already exists
 if [ -d "$WIDGET_DIR" ]; then
@@ -25,7 +25,7 @@ echo "Creating directory: $WIDGET_DIR"
 mkdir "$WIDGET_DIR"
 
 # Generate the Lua file
-cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.lua" << 'EOF'
+cat > "$WIDGET_DIR/${WIDGET_NAME}.lua" << 'EOF'
 if not RmlUi then
     return
 end
@@ -47,7 +47,7 @@ end
 -- Constants
 local WIDGET_NAME = "WIDGET_NAME_PLACEHOLDER"
 local MODEL_NAME = "WIDGET_NAME_PLACEHOLDER_model"
-local RML_PATH = "luaui/rmlwidgets/gui_WIDGET_NAME_PLACEHOLDER/gui_WIDGET_NAME_PLACEHOLDER.rml"
+local RML_PATH = "luaui/rmlwidgets/WIDGET_NAME_PLACEHOLDER/WIDGET_NAME_PLACEHOLDER.rml"
 
 -- Widget state
 local document
@@ -148,7 +148,7 @@ end
 EOF
 
 # Generate the RML file
-cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rml" << 'EOF'
+cat > "$WIDGET_DIR/${WIDGET_NAME}.rml" << 'EOF'
 <rml>
 <head>
     <title>WIDGET_NAME_PLACEHOLDER Widget</title>
@@ -156,10 +156,11 @@ cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rml" << 'EOF'
     <!-- External stylesheets -->
     <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
     <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
-    <link rel="stylesheet" href="gui_WIDGET_NAME_PLACEHOLDER.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="WIDGET_NAME_PLACEHOLDER.rcss" type="text/rcss" />
 </head>
-<body>
-    <div id="WIDGET_NAME_PLACEHOLDER-widget" class="widget-container" data-model="WIDGET_NAME_PLACEHOLDER_model">
+<body id="WIDGET_NAME_PLACEHOLDER-widget">
+    <div class="widget-container" data-model="WIDGET_NAME_PLACEHOLDER_model">
         <!-- Small floating debug buttons -->
         <div class="debug-controls">
             <button class="debug-btn text-white" onclick="widget:Reload()" title="Reload Widget">R</button>
@@ -178,10 +179,9 @@ cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rml" << 'EOF'
 EOF
 
 # Generate the RCSS file
-cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rcss" << 'EOF'
+cat > "$WIDGET_DIR/${WIDGET_NAME}.rcss" << 'EOF'
 /* WIDGET_NAME_PLACEHOLDER Widget Styles */
-
-.widget-container {
+#WIDGET_NAME_PLACEHOLDER-widget {
     pointer-events: auto;
     position: absolute;
     top: 10%;
@@ -193,6 +193,15 @@ cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rcss" << 'EOF'
     border: 1px rgba(100, 120, 140, 80);
     border-radius: 2dp;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-container {
+    /* Flexbox layout for the widget content */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 /* Small floating debug controls */
@@ -253,18 +262,18 @@ cat > "$WIDGET_DIR/gui_${WIDGET_NAME}.rcss" << 'EOF'
 EOF
 
 # Replace placeholders in all files
-sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/gui_${WIDGET_NAME}.lua"
-sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/gui_${WIDGET_NAME}.rml"
-sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/gui_${WIDGET_NAME}.rcss"
+sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/${WIDGET_NAME}.lua"
+sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/${WIDGET_NAME}.rml"
+sed -i "s/WIDGET_NAME_PLACEHOLDER/$WIDGET_NAME/g" "$WIDGET_DIR/${WIDGET_NAME}.rcss"
 
 echo ""
 echo "✅ RML Widget '$WIDGET_NAME' generated successfully!"
 echo ""
 echo "Files created:"
 echo "  📁 $WIDGET_DIR/"
-echo "  📄 $WIDGET_DIR/gui_${WIDGET_NAME}.lua"
-echo "  📄 $WIDGET_DIR/gui_${WIDGET_NAME}.rml"
-echo "  📄 $WIDGET_DIR/gui_${WIDGET_NAME}.rcss"
+echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.lua"
+echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.rml"
+echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.rcss"
 echo ""
 echo "The widget includes:"
 echo "  • Basic data model with message and currentTime"

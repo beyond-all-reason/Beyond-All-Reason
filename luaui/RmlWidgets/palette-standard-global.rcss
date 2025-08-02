@@ -1,93 +1,101 @@
-/* === Standard Backgrounds === */
-.bg-blue-500 { background-color: #3b82f6; }
-.bg-blue-300 { background-color: #93c5fd; }
-.bg-indigo-500 { background-color: #6366f1; }
-.bg-gray-200 { background-color: #e5e7eb; }
-.bg-gray-100 { background-color: #f9fafb; }
+/* === SPECIAL === */
+.bg-black-semi-alpha { background-color: #060606ba; }
+.text-black-semi-alpha { color: #060606ba; }
+.border-black-semi-alpha { border-color: #060606ba; }
 
-/* === Status Colors === */
-.bg-green-500 { background-color: #22c55e; } /* Success */
-.bg-yellow-500 { background-color: #f59e0b; } /* Warning */
-.bg-red-500 { background-color: #ef4444; } /* Danger/Error */
-.bg-cyan-500 { background-color: #06b6d4; } /* Info */
-.bg-teal-500 { background-color: #14b8a6; } /* Confirm */
+/* === LIGHT GRAY (#e5e7eb) === */
+.bg-light { background-color: #e5e7eb; }
+.text-light { color: #e5e7eb; }
+.border-light { border-color: #e5e7eb; }
+.bg-light-alpha { background-color: #e5e7eb80; }
+.text-light-alpha { color: #e5e7eb80; }
+.border-light-alpha { border-color: #e5e7eb80; }
 
-/* === Text Colors === */
-.text-blue-500 { color: #3b82f6; }
-.text-blue-300 { color: #60a5fa; }
-.text-indigo-500 { color: #6366f1; }
-.text-gray-600 { color: #6b7280; }
-.text-white { color: #ffffff; }
+/* === MEDIUM GRAY (#d1d5db) === */
+.bg-medium { background-color: #d1d5db; }
+.text-medium { color: #d1d5db; }
+.border-medium { border-color: #d1d5db; }
+.bg-medium-alpha { background-color: #d1d5db80; }
+.text-medium-alpha { color: #d1d5db80; }
+.border-medium-alpha { border-color: #d1d5db80; }
 
-/* === Status Text Colors === */
-.text-green-500 { color: #22c55e; } /* Success */
-.text-yellow-500 { color: #f59e0b; } /* Warning */
-.text-red-500 { color: #ef4444; } /* Danger/Error */
-.text-cyan-500 { color: #06b6d4; } /* Info */
-.text-teal-500 { color: #14b8a6; } /* Confirm */
+/* === DARK GRAY (#6b7280) === */
+.bg-dark { background-color: #6b7280; }
+.text-dark { color: #6b7280; }
+.border-dark { border-color: #6b7280; }
+.bg-dark-alpha { background-color: #6b728080; }
+.text-dark-alpha { color: #6b728080; }
+.border-dark-alpha { border-color: #6b728080; }
 
-/* === Border Colors === */
-.border-blue-500 { border-color: #3b82f6; }
-.border-blue-300 { border-color: #93c5fd; }
-.border-indigo-500 { border-color: #6366f1; }
-.border-gray-300 { border-color: #d1d5db; }
+/* === BAR METAL (#e0e0e0) === */
+.bg-white { background-color: #e0e0e0; }
+.text-white { color: #e0e0e0; }
+.border-white { border-color: #e0e0e0; }
+.bg-white-alpha { background-color: #e0e0e080; }
+.text-white-alpha { color: #e0e0e080; }
+.border-white-alpha { border-color: #e0e0e080; }
 
-/* === Status Border Colors === */
-.border-green-500 { border-color: #22c55e; } /* Success */
-.border-yellow-500 { border-color: #f59e0b; } /* Warning */
-.border-red-500 { border-color: #ef4444; } /* Danger/Error */
-.border-cyan-500 { border-color: #06b6d4; } /* Info */
-.border-teal-500 { border-color: #14b8a6; } /* Confirm */
+/* === DARKER GRAY (#282828) === */
+.bg-darker { background-color: #282828; }
+.text-darker { color: #282828; }
+.border-darker { border-color: #282828; }
+.bg-darker-alpha { background-color: #28282880; }
+.text-darker-alpha { color: #28282880; }
+.border-darker-alpha { border-color: #28282880; }
 
-/* === Transparent Backgrounds (50%) === */
-.bg-blue-500-50 { background-color: #3b82f680; }
-.bg-blue-300-50 { background-color: #93c5fd80; }
-.bg-indigo-500-50 { background-color: #6366f180; }
-.bg-gray-200-50 { background-color: #e5e7eb80; }
+/* === DARKEST GRAY (#1d1d1d) === */
+.bg-darkest { background-color: #1d1d1d; }
+.text-darkest { color: #1d1d1d; }
+.border-darkest { border-color: #1d1d1d; }
+.bg-darkest-alpha { background-color: #1d1d1d80; }
+.text-darkest-alpha { color: #1d1d1d80; }
+.border-darkest-alpha { border-color: #1d1d1d80; }
 
-.bg-green-500-50 { background-color: #22c55e80; } /* Success */
-.bg-yellow-500-50 { background-color: #f59e0b80; } /* Warning */
-.bg-red-500-50 { background-color: #ef444480; } /* Danger/Error */
-.bg-cyan-500-50 { background-color: #06b6d480; } /* Info */
-.bg-teal-500-50 { background-color: #14b8a680; } /* Confirm */
+/* === BLACK (#060606) === */
+.bg-black { background-color: #060606; }
+.text-black { color: #060606; }
+.border-black { border-color: #060606; }
+.bg-black-alpha { background-color: #06060680; }
+.text-black-alpha { color: #06060680; }
+.border-black-alpha { border-color: #06060680; }
 
-/* === Transparent Text (50%) === */
-.text-blue-500-50 { color: #3b82f680; }
-.text-blue-300-50 { color: #60a5fa80; }
-.text-indigo-500-50 { color: #6366f180; }
-.text-gray-600-50 { color: #6b728080; }
+/* === SUCCESS GREEN (#22c55e) === */
+.bg-success { background-color: #22c55e; }
+.text-success { color: #22c55e; }
+.border-success { border-color: #22c55e; }
+.bg-success-alpha { background-color: #22c55e80; }
+.text-success-alpha { color: #22c55e80; }
+.border-success-alpha { border-color: #22c55e80; }
 
-.text-green-500-50 { color: #22c55e80; } /* Success */
-.text-yellow-500-50 { color: #f59e0b80; } /* Warning */
-.text-red-500-50 { color: #ef444480; } /* Danger/Error */
-.text-cyan-500-50 { color: #06b6d480; } /* Info */
-.text-teal-500-50 { color: #14b8a680; } /* Confirm */
+/* === WARNING YELLOW (#f59e0b) === */
+.bg-warning { background-color: #f59e0b; }
+.text-warning { color: #f59e0b; }
+.border-warning { border-color: #f59e0b; }
+.bg-warning-alpha { background-color: #f59e0b80; }
+.text-warning-alpha { color: #f59e0b80; }
+.border-warning-alpha { border-color: #f59e0b80; }
 
-/* === Transparent Borders (50%) === */
-.border-blue-500-50 { border-color: #3b82f680; }
-.border-blue-300-50 { border-color: #93c5fd80; }
-.border-indigo-500-50 { border-color: #6366f180; }
-.border-gray-300-50 { border-color: #d1d5db80; }
+/* === ERROR RED (#ef4444) === */
+.bg-error { background-color: #ef4444; }
+.text-error { color: #ef4444; }
+.border-error { border-color: #ef4444; }
+.bg-error-alpha { background-color: #ef444480; }
+.text-error-alpha { color: #ef444480; }
+.border-error-alpha { border-color: #ef444480; }
 
-.border-green-500-50 { border-color: #22c55e80; } /* Success */
-.border-yellow-500-50 { border-color: #f59e0b80; } /* Warning */
-.border-red-500-50 { border-color: #ef444480; } /* Danger/Error */
-.border-cyan-500-50 { border-color: #06b6d480; } /* Info */
-.border-teal-500-50 { border-color: #14b8a680; } /* Confirm */
+/* === INFO CYAN (#06b6d4) === */
+.bg-info { background-color: #06b6d4; }
+.text-info { color: #06b6d4; }
+.border-info { border-color: #06b6d4; }
+.bg-info-alpha { background-color: #06b6d480; }
+.text-info-alpha { color: #06b6d480; }
+.border-info-alpha { border-color: #06b6d480; }
 
-/* === Game UI Widget Colors === */
-/* Dark backgrounds for game overlays */
-.bg-game-dark { background-color: rgba(20, 25, 30, 230); } /* Main content background */
-.bg-game-darker { background-color: rgba(30, 35, 40, 200); } /* Tab button background */
-.bg-game-medium { background-color: rgba(40, 50, 60, 180); } /* Code highlight background */
-.bg-game-button { background-color: rgba(45, 55, 65, 200); } /* Button background */
-.bg-game-hover { background-color: rgba(50, 60, 70, 220); } /* Hover state */
-.bg-game-button-hover { background-color: rgba(65, 75, 85, 220); } /* Button hover */
-.bg-game-active { background-color: rgba(60, 120, 180, 200); } /* Active tab background */
+/* === CONFIRM TEAL (#14b8a6) === */
+.bg-confirm { background-color: #14b8a6; }
+.text-confirm { color: #14b8a6; }
+.border-confirm { border-color: #14b8a6; }
+.bg-confirm-alpha { background-color: #14b8a680; }
+.text-confirm-alpha { color: #14b8a680; }
+.border-confirm-alpha { border-color: #14b8a680; }
 
-/* Border colors for game overlays */
-.border-game-subtle { border-color: rgba(100, 120, 140, 80); } /* Subtle border */
-.border-game-tab { border-color: rgba(80, 100, 120, 60); } /* Tab border */
-.border-game-button { border-color: rgba(100, 120, 140, 100); } /* Button border */
-.border-game-hover { border-color: rgba(100, 120, 140, 120); } /* Hover border */
-.border-game-active { border-color: rgba(100, 150, 200, 150); } /* Active border */
