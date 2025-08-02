@@ -10,6 +10,14 @@ function gadget:GetInfo()
 	}
 end
 
+
+--[[
+todo:
+need to handle cancelled and failed build orders, pixies should return to commander (happening) and be able to be reassigned
+need to be able to apply partial progress to the buildstate of the wip building when there isn't enough buildpower to build the whole thing
+allReady never seems to be true, so the pixies never actually apply their build progress value
+]]
+
 local isSynced = gadgetHandler:IsSyncedCode()
 local modOptions = Spring.GetModOptions()
 if not isSynced then return false end
@@ -38,6 +46,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spSetUnitCosts = Spring.SetUnitCosts
 local spUseTeamResource = Spring.UseTeamResource
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local mathDiag = math.diag
 local mathRandom = math.random
 local mathCos = math.cos
@@ -177,11 +186,14 @@ local function assignPixiesToBuild(commanderID, cmd)
 		
 		if not chosenBuilderID then
 			chosenBuilderID = pixieID
-			pixieBuildClusters[chosenBuilderID] = {}
+			if not pixieBuildClusters[commanderID] then
+				pixieBuildClusters[commanderID] = {}
+			end
+			pixieBuildClusters[commanderID][chosenBuilderID] = {}
 			assignBuildCommand(pixieID, cmd)
 			pixieData.state = STATES.BUILDING
 		else
-			pixieBuildClusters[chosenBuilderID][pixieID] = true
+			pixieBuildClusters[commanderID][chosenBuilderID][pixieID] = true
 			pixieData.state = STATES.GUARDING
 			pixieData.stateData = {builderID = chosenBuilderID}
 			spGiveOrderToUnit(pixieID, CMD.GUARD, {chosenBuilderID}, 0)
@@ -208,9 +220,9 @@ end
 
 local function depletePixies(pixies)
 	for pixieID, _ in pairs(pixies) do
-		pixieMetaList[pixieID] = nil
+		local x, y, z = spGetUnitPosition(pixieID)
 		spDestroyUnit(pixieID, false, true)
-		Spring.SpawnCEG("smallExplosionGenericSelfd", pixieID)
+		Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
 	end
 end
 
@@ -236,12 +248,20 @@ local function isCommanderInRange(commanderID, targetX, targetZ)
 end
 
 local function erasePixieBuildCluster(commanderID, builderPixieID)
+	-- Reset guarding pixies back to orbiting
 	for pixieID, _ in pairs(pixieBuildClusters[commanderID][builderPixieID]) do
 		local pixieData = pixieMetaList[pixieID]
 		if pixieData then
 			pixieData.state = STATES.ORBITING
 		end
 	end
+	
+	-- Reset builder pixie back to orbiting
+	local builderPixieData = pixieMetaList[builderPixieID]
+	if builderPixieData then
+		builderPixieData.state = STATES.ORBITING
+	end
+	
 	if pixieBuildClusters[commanderID] and pixieBuildClusters[commanderID][builderPixieID] then
 		pixieBuildClusters[commanderID][builderPixieID] = nil
 	end
@@ -286,6 +306,36 @@ function gadget:GameFrame(frameNumber)
 		return
 	end
 	
+	-- Create a safe copy of pixieMetaList to avoid concurrent modification issues
+	local pixieMetaListCopy = {}
+	for pixieID, pixieData in pairs(pixieMetaList) do
+		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
+			pixieMetaListCopy[pixieID] = pixieData
+		end
+	end
+	
+	-- if pixies currently have move command, switch back to orbiting
+	for pixieID, pixieData in pairs(pixieMetaListCopy) do
+		if pixieData.state ~= STATES.ORBITING then
+			local cmdID = Spring.GetUnitCurrentCommand(pixieID)
+			if not cmdID or cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
+				pixieData.state = STATES.ORBITING
+			end
+		end
+	end
+
+	--move idle pixies around the commander
+	for pixieID, pixieData in pairs(pixieMetaListCopy) do
+		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) and pixieData.state == STATES.ORBITING then
+			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
+			if commanderX then
+				local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
+				local moveY = spGetGroundHeight(moveX, moveZ)
+				spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, moveY, moveZ}, 0)
+			end
+		end
+	end
+
 	-- Update all active commanders and their pixies
 	for commanderID, commanderData in pairs(commanderMetaList) do
 		if teamsToBoost[commanderData.teamID] then
@@ -310,18 +360,21 @@ function gadget:GameFrame(frameNumber)
 			if buildClusters then
 				for builderPixieID, guardingPixies in pairs(buildClusters) do
 					local eraseCluster = false
-					local builderPixieCMD = spGetUnitCurrentCommand(builderPixieID) and not Spring.GetUnitIsDead(builderPixieID) and Spring.ValidUnitID(builderPixieID)
-					if not builderPixieCMD or not isBuildCommand(builderPixieCMD.id) then
+					local builderPixieCMD = spGetUnitCurrentCommand(builderPixieID)
+					if not builderPixieCMD or 
+					builderPixieCMD and not isBuildCommand(builderPixieCMD) and not spGetUnitIsDead(builderPixieID) and spValidUnitID(builderPixieID) then
 						eraseCluster = true
 					else
 						local allReady = true
+						local buildingUnitID = nil
 						for guardingPixieID, _ in pairs(guardingPixies) do
-							eraseCluster = Spring.GetUnitIsDead(guardingPixieID) or not Spring.ValidUnitID(guardingPixieID)
-							allReady = Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
+							eraseCluster = spGetUnitIsDead(guardingPixieID) or not spValidUnitID(guardingPixieID)
+							allReady = allReady and Spring.GetUnitIsBuilding(guardingPixieID) ~= nil --returns number if true
 						end
-						allReady = allReady and Spring.GetUnitIsBuilding(builderPixieID) ~= nil
-						if allReady then
-							applyPixieBoostToBuilding(builderPixieID)
+						buildingUnitID = Spring.GetUnitIsBuilding(builderPixieID)
+						allReady = allReady and buildingUnitID ~= nil
+						if allReady and buildingUnitID then
+							applyPixieBoostToBuilding(buildingUnitID)
 							eraseCluster = true
 							depletePixies({builderPixieID})
 							depletePixies(guardingPixies)
@@ -336,26 +389,6 @@ function gadget:GameFrame(frameNumber)
 		end
 	end
 
-	-- if pixies currently have move command, switch back to orbiting
-	for pixieID, pixieData in pairs(pixieMetaList) do
-		if pixieData.state ~= STATES.ORBITING then
-			local cmdID = Spring.GetUnitCurrentCommand(pixieID)
-			if not cmdID or cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
-				pixieData.state = STATES.ORBITING
-			end
-		end
-	end
-
-	--move idle pixies around the commander
-	for pixieID, pixieData in pairs(pixieMetaList) do
-		if pixieData.state == STATES.ORBITING then
-			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
-			local moveX, moveZ = getRandomMoveLocation(commanderX, commanderZ, PIXIE_ORBIT_RADIUS)
-			local moveY = spGetGroundHeight(moveX, moveZ)
-			spGiveOrderToUnit(pixieID, CMD.MOVE, {moveX, moveY, moveZ}, 0)
-		end
-	end
-
 	local removeGadget = arePixiesAllGone()
 	if removeGadget then
 		gadgetHandler:RemoveGadget()
@@ -365,10 +398,11 @@ end
 function gadget:UnitDestroyed(unitID)
 
 	if commanderMetaList[unitID] then --commander died
+		local pixies = commanderMetaList[unitID].pixieList
 		for pixieID, _ in pairs(pixies) do
 			pixieMetaList[pixieID] = nil
-			depletePixies({commanderMetaList[unitID].pixieList})
 		end
+		depletePixies(pixies)
 		commanderMetaList[unitID] = nil
 	elseif pixieMetaList[unitID] then --pixie died
 		local pixieData = pixieMetaList[unitID]
@@ -378,12 +412,13 @@ function gadget:UnitDestroyed(unitID)
 		end
 		if pixieData.state == STATES.BUILDING then
 			erasePixieBuildCluster(commanderID, unitID)
-		else
+		elseif pixieData.stateData and pixieData.stateData.builderID then
 			local builderID = pixieData.stateData.builderID
-			if builderID then
+			if pixieBuildClusters[commanderID] and pixieBuildClusters[commanderID][builderID] then
 				pixieBuildClusters[commanderID][builderID][unitID] = nil
 			end
 		end
+		pixieMetaList[unitID] = nil
 	end
 end
 
