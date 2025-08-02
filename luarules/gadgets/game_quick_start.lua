@@ -13,9 +13,13 @@ end
 
 --[[
 todo:
-need to handle cancelled and failed build orders, pixies should return to commander (happening) and be able to be reassigned
 need to be able to apply partial progress to the buildstate of the wip building when there isn't enough buildpower to build the whole thing
-allReady never seems to be true, so the pixies never actually apply their build progress value
+
+need to change the way that excess is calculated, it's currently having a race condition.
+it should be that excess conceptually is completely removed. Instead, deduct partial resource usage from the value of the pixies
+and recycle all pixies until they're used up
+
+something about the way I detect and remove commands from the commander's command queue causes pre-queued commands to fail.
 ]]
 
 local isSynced = gadgetHandler:IsSyncedCode()
@@ -41,11 +45,8 @@ local spSetUnitNoSelect = Spring.SetUnitNoSelect
 local spSetUnitHealth = Spring.SetUnitHealth
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spValidUnitID = Spring.ValidUnitID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spSetUnitCosts = Spring.SetUnitCosts
-local spUseTeamResource = Spring.UseTeamResource
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local mathDiag = math.diag
 local mathRandom = math.random
@@ -199,10 +200,6 @@ local function assignPixiesToBuild(commanderID, cmd)
 			spGiveOrderToUnit(pixieID, CMD.GUARD, {chosenBuilderID}, 0)
 		end
 
-		Spring.Echo("Debug: pixieData.value", pixieData.value)
-		Spring.Echo("Debug: excess", excess)
-		Spring.Echo("Debug: buildCostRemaining", buildCostRemaining)
-
 		buildCostRemaining = buildCostRemaining - pixieData.value - excess
 		excess = 0
 		if buildCostRemaining <= 0 then
@@ -212,17 +209,30 @@ local function assignPixiesToBuild(commanderID, cmd)
 	end
 
 	if buildCostRemaining <= 0 then
-		spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
 		return true
 	end
 	return false
 end
 
 local function depletePixies(pixies)
-	for pixieID, _ in pairs(pixies) do
-		local x, y, z = spGetUnitPosition(pixieID)
-		spDestroyUnit(pixieID, false, true)
-		Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
+	if #pixies > 0 then
+		-- Array-style table, use ipairs
+		for i, pixieID in ipairs(pixies) do
+			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
+				local x, y, z = spGetUnitPosition(pixieID)
+				spDestroyUnit(pixieID, false, true)
+				Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
+			end
+		end
+	else
+		-- Hash-style table, use pairs
+		for pixieID, _ in pairs(pixies) do
+			if spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
+				local x, y, z = spGetUnitPosition(pixieID)
+				spDestroyUnit(pixieID, false, true)
+				Spring.SpawnCEG("smallExplosionGenericSelfd", x, y, z)
+			end
+		end
 	end
 end
 
@@ -375,14 +385,13 @@ function gadget:GameFrame(frameNumber)
 						allReady = allReady and buildingUnitID ~= nil
 						if allReady and buildingUnitID then
 							applyPixieBoostToBuilding(buildingUnitID)
-							eraseCluster = true
+							-- Clean up cluster metadata BEFORE destroying units to prevent double cleanup
+							erasePixieBuildCluster(commanderID, builderPixieID)
 							depletePixies({builderPixieID})
 							depletePixies(guardingPixies)
+						elseif eraseCluster then
+							erasePixieBuildCluster(commanderID, builderPixieID) -- not enough pixies to build, probably died or construction cancelled.
 						end
-						Spring.Echo("Debug: allReady", allReady)
-					end
-					if eraseCluster then
-						erasePixieBuildCluster(commanderID, builderPixieID) -- not enough pixies to build, probably died or construction cancelled.
 					end
 				end
 			end
