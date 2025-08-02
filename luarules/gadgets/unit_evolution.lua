@@ -336,7 +336,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function unitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
-		value = (value < minLoadUnits) and minLoadUnits or ((value > maxLoadUnits) and maxLoadUnits or value)
+		value = math.clamp(value, minLoadUnits, maxLoadUnits)
 		local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
 		return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
 	end
