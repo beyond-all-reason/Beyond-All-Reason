@@ -57,8 +57,10 @@ local PIXIE_COMBO_COST = PIXIE_METAL_COST + PIXIE_ENERGY_COST/ENERGY_VALUE_CONVE
 local COMMAND_STEAL_RANGE = 700 --same as com's radardistance
 local PIXIE_ORBIT_RADIUS = 150
 local PIXIE_HOVER_HEIGHT = 50
+local FALLBACK_RESOURCES = 1000
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = 15
+local PREGAME_DELAY = 150
 local PIXIE_UNIT_NAME = "armassistdrone"
 local PI = math.pi
 local PRIVATE = { private = true }
@@ -85,7 +87,7 @@ local nonPlayerTeams = {}
 local boostableCommanders = {}
 local unitCosts = {}
 local pixieBuildClusters = {} -- zzz when we assign a builder pixie to start a structure, we iterate over its stored guardians and make sure they're all nanolathing. If they are, then we can trigger instabuild.
-
+local queuePixieCreation = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.iscommander then
@@ -312,32 +314,26 @@ local function arePixiesAllGone()
 	return pixieCount == 0
 end
 
-function gadget:GameStart()
-	local teamList = Spring.GetTeamList()
-	for _, teamID in ipairs(teamList) do
-		if not nonPlayerTeams[teamID] then
-			teamsToBoost[teamID] = true
-		end
-	end
-	
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		local unitDefinitionID = spGetUnitDefID(unitID)
-		local unitTeam = spGetUnitTeam(unitID)
-		if teamsToBoost[unitTeam] and boostableCommanders[unitDefinitionID] then
-			local fallbackResources = 1000
-			createPixiesForCommander(unitID, unitTeam, modOptions.startmetal or fallbackResources, modOptions.startenergy or fallbackResources)
-		end
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if boostableCommanders[unitDefID] then
+		teamsToBoost[unitTeam] = true
+		queuePixieCreation[unitID] = unitTeam
 	end
 end
 
-
-
-function gadget:GameFrame(frameNumber)
-	if frameNumber % UPDATE_FRAMES ~= 0 then
-		return
+local initialized = false
+function gadget:GameFrame(frame)
+	Spring.Echo("quickstart fframe", frame)
+	if frame > 150 and not initialized then
+		Spring.Echo("quickstart initialized")
+		for unitID, teamID in pairs(queuePixieCreation) do
+			Spring.Echo("[Quick Start Debug] Creating pixies for commander " .. unitID .. " on team " .. teamID)
+			createPixiesForCommander(unitID, teamID, modOptions.startmetal or FALLBACK_RESOURCES, modOptions.startenergy or FALLBACK_RESOURCES)
+		end
+		queuePixieCreation = {}
+		initialized = true
 	end
-	
+	if frame % UPDATE_FRAMES ~= 0 then return end
 	-- if pixies currently have move command, switch back to orbiting
 	for pixieID, pixieData in pairs(pixieMetaList) do
 		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
@@ -367,7 +363,6 @@ function gadget:GameFrame(frameNumber)
 		if teamsToBoost[commanderData.teamID] then
 			--check and assign build commands for pixies
 			local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-			Spring.Echo("[Quick Start Debug] Commander " .. commanderID .. " has " .. #commands .. " commands")
 			if next(commands) then
 				for _, cmd in ipairs(commands) do
 					local pixiesCanBuildCompletely = false
@@ -376,8 +371,7 @@ function gadget:GameFrame(frameNumber)
 						pixiesCanBuildCompletely = assignPixiesToBuild(commanderID, cmd)
 					end
 					if pixiesCanBuildCompletely then
-						Spring.Echo("[Quick Start Debug] Pixies can build completely! Marking command for removal.")
-						--spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
+						spGiveOrderToUnit(commanderID, CMD.REMOVE, {cmd.tag}, 0)
 					end
 				end
 			end
@@ -427,7 +421,7 @@ function gadget:GameFrame(frameNumber)
 		depletePixies(pixiesToDeplete)
 	end
 
-	local removeGadget = arePixiesAllGone()
+	local removeGadget = arePixiesAllGone() and initialized
 	if removeGadget then
 		gadgetHandler:RemoveGadget()
 	end
@@ -462,7 +456,21 @@ end
 
 function gadget:Initialize()
 	if Spring.GetGameFrame() > 1 then
-		gadget:GameStart()
+		local teamList = Spring.GetTeamList()
+		for _, teamID in ipairs(teamList) do
+			if not nonPlayerTeams[teamID] then
+				teamsToBoost[teamID] = true
+			end
+		end
+		
+		local allUnits = Spring.GetAllUnits()
+		for _, unitID in ipairs(allUnits) do
+			local unitDefinitionID = spGetUnitDefID(unitID)
+			local unitTeam = spGetUnitTeam(unitID)
+			if teamsToBoost[unitTeam] and boostableCommanders[unitDefinitionID] then
+				createPixiesForCommander(unitID, unitTeam, modOptions.startmetal or FALLBACK_RESOURCES, modOptions.startenergy or FALLBACK_RESOURCES)
+			end
+		end
 	end
 	nonPlayerTeams[Spring.GetGaiaTeamID()] = true
 	local scavengerTeamID = Spring.Utilities.GetScavTeamID()
