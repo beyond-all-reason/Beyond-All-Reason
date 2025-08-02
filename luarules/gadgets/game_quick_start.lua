@@ -13,11 +13,7 @@ end
 
 --[[
 todo:
-need to be able to apply partial progress to the buildstate of the wip building when there isn't enough buildpower to build the whole thing
-
-need to change the way that excess is calculated, it's currently having a race condition.
-it should be that excess conceptually is completely removed. Instead, deduct partial resource usage from the value of the pixies
-and recycle all pixies until they're used up
+commander radar range should be read dynamically from the unitdef and made the range of the pixies steal range
 
 something about the way I detect and remove commands from the commander's command queue causes pre-queued commands to fail.
 ]]
@@ -58,7 +54,7 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local PIXIE_METAL_COST = 50
 local PIXIE_ENERGY_COST = 500
 local PIXIE_COMBO_COST = PIXIE_METAL_COST + PIXIE_ENERGY_COST/ENERGY_VALUE_CONVERSION_DIVISOR
-local COMMAND_STEAL_RANGE = 750
+local COMMAND_STEAL_RANGE = 700 --same as com's radardistance
 local PIXIE_ORBIT_RADIUS = 150
 local PIXIE_HOVER_HEIGHT = 50
 local UPDATE_FRAMES = 15
@@ -239,22 +235,21 @@ local function applyPixieBoostToBuilding(buildingUnitID, pixies)
 	local healthToApply = 0
 	for _, pixieID in ipairs(pixies) do
 		local pixieData = pixieMetaList[pixieID]
-		Spring.Echo("pixieID: " .. pixieID .. "before if")
 		if pixieData then
-			Spring.Echo("pixieData.value: " .. pixieData.value)
 			remainingCost = remainingCost - pixieData.value
 			if remainingCost == 0 then
+				pixieData.value = 0
 				break
 			elseif remainingCost < 0 then
 				pixieData.value = pixieData.value + remainingCost
 				remainingCost = 0
 				break
+			else
+				pixieData.value = 0
 			end
-			Spring.Echo("pixieID: " .. pixieID .. "after if")
 		end
 	end
 	local maxHealth = UnitDefs[spGetUnitDefID(buildingUnitID)].health
-	Spring.Echo("remainingCost: " .. remainingCost)
 	if remainingCost > 0 then
 		buildProgress = 1 - remainingCost / originalCost
 		healthToApply = math.ceil(maxHealth * buildProgress)
@@ -342,26 +337,20 @@ function gadget:GameFrame(frameNumber)
 		return
 	end
 	
-	-- Create a safe copy of pixieMetaList to avoid concurrent modification issues
-	local pixieMetaListCopy = {}
+	-- if pixies currently have move command, switch back to orbiting
 	for pixieID, pixieData in pairs(pixieMetaList) do
 		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) then
-			pixieMetaListCopy[pixieID] = pixieData
-		end
-	end
-	
-	-- if pixies currently have move command, switch back to orbiting
-	for pixieID, pixieData in pairs(pixieMetaListCopy) do
-		if pixieData.state ~= STATES.ORBITING then
-			local cmdID = Spring.GetUnitCurrentCommand(pixieID)
-			if not cmdID or cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
-				pixieData.state = STATES.ORBITING
+			if pixieData.state ~= STATES.ORBITING then
+				local cmdID = Spring.GetUnitCurrentCommand(pixieID)
+				if not cmdID or cmdID and cmdID == CMD.MOVE then -- second command is always move for error detection
+					pixieData.state = STATES.ORBITING
+				end
 			end
 		end
 	end
 
 	--move idle pixies around the commander
-	for pixieID, pixieData in pairs(pixieMetaListCopy) do
+	for pixieID, pixieData in pairs(pixieMetaList) do
 		if pixieID and spValidUnitID(pixieID) and not spGetUnitIsDead(pixieID) and pixieData.state == STATES.ORBITING then
 			local commanderX, commanderY, commanderZ = spGetUnitPosition(pixieData.commanderID)
 			if commanderX then
@@ -424,11 +413,16 @@ function gadget:GameFrame(frameNumber)
 		end
 	end
 
-	--deplete pixies that have no value left
-	for pixieID, pixieData in pairs(pixieMetaListCopy) do
+	--deplete pixies that have no value left - collect first to avoid concurrent modification
+	local pixiesToDeplete = {}
+	for pixieID, pixieData in pairs(pixieMetaList) do
 		if pixieData.value <= 0 then
-			depletePixies({pixieID})
+			table.insert(pixiesToDeplete, pixieID)
 		end
+	end
+	
+	if #pixiesToDeplete > 0 then
+		depletePixies(pixiesToDeplete)
 	end
 
 	local removeGadget = arePixiesAllGone()
