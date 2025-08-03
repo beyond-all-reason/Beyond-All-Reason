@@ -383,6 +383,7 @@ end
 
 local function createCursorDrawList(playerID, opacityMultiplier)
 	local name, _, spec, teamID = spGetPlayerInfo(playerID, false)
+	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	local r, g, b = spGetTeamColor(teamID)
 	local wx, wy, wz = 0, 0, 0
 	local quadSize = usedCursorSize

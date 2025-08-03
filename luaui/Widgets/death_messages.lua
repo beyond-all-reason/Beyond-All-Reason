@@ -32,10 +32,10 @@ local function getTeamNames(teamID)
 	local playerNames = {}
 	local _, _, _, isAI = Spring.GetTeamInfo(teamID)
 
-	if isAI then		
+	if isAI then
 		local _, _, _, name = Spring.GetAIInfo(teamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-		
+
 		if niceName then
 			name = niceName
 		end
@@ -43,9 +43,10 @@ local function getTeamNames(teamID)
 		table.insert(playerNames, name)
 	else
 		local players = Spring.GetPlayerList(teamID)
-		
+
 		for _, playerID in pairs(players) do
 			local name = Spring.GetPlayerInfo(playerID)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			table.insert(playerNames, name)
 		end
 	end
