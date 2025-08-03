@@ -158,6 +158,10 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 	gadgetHandler:RegisterAllowCommand(CMD_AIR_REPAIR)
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), -1, -1)
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
