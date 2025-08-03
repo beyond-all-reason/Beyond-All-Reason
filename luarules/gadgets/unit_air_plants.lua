@@ -53,6 +53,10 @@ for unitName, params in pairs(isAirplantNames) do
 	end
 end
 
+-- `unit_airunitsturnradius.lua` sets an arbitrary attack radius
+-- which influences how air units handle movement and move goals
+local bomberAttackTurnRadius = 500
+
 local plantList = {}
 local buildingUnits = {}
 
@@ -105,8 +109,9 @@ local function moveToCommand(unitID, command, factoryRadius)
 	-- Within a certain distance, air units do not dip when leaving the plant.
 	-- The actual rules for air move types are a bit elaborate; this is close:
 	local distanceMin = Spring.GetUnitMoveTypeData(unitID).turnRadius
-	if not distanceMin then
-		distanceMin = UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius or 200
+	if not distanceMin or distanceMin == 0 or distanceMin == bomberAttackTurnRadius then
+		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+		distanceMin = math.max(unitDef.turnRadius, unitDef.radius)
 	end
 	distanceMin = math.max(distanceMin, factoryRadius) -- Maybe plus padding.
 
