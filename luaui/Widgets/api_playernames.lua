@@ -106,10 +106,10 @@ end
 
 local function getAccountHistory(accountID)
 	if history[accountID] then
-		local accountHistory = history[accountID]
-		accountHistory.d = nil
-		accountHistory.i = nil
-		accountHistory.alias = nil
+		local accountHistory = {}
+		for k, v in pairs(history[accountID]) do
+			accountHistory[k] = v
+		end
 		return accountHistory
 	end
 end
