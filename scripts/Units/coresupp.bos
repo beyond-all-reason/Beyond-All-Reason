@@ -105,7 +105,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn fturret to y-axis heading speed <270.>;
+	turn fturret to y-axis heading speed <525.>;
 	turn fturret to x-axis -1*pitch speed <150.>;
 	wait-for-turn fturret around y-axis;
 	wait-for-turn fturret around x-axis;

@@ -81,7 +81,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.0>;
+	turn turret to y-axis heading speed <650.0>;
 	turn gun to x-axis <0.0> - pitch speed <100.0>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;

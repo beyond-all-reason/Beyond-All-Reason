@@ -233,7 +233,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn lturret to y-axis heading speed <150.0>;
+	turn lturret to y-axis heading speed <450.0>;
 	wait-for-turn lturret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);

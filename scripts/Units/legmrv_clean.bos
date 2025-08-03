@@ -132,7 +132,7 @@ AimWeapon1(heading, pitch)
     timeLeft = restore_delay;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <300.000000>;
+	turn turret to y-axis heading speed <620.000000>;
 	turn sleeveTop to x-axis <0.000000> - pitch speed <200.000000>;
 	turn sleeveBottom to x-axis <0.000000> - pitch speed <200.000000>;
 	if (get ABS(last_primary_heading - heading)> <20>)
