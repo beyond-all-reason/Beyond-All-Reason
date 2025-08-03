@@ -434,7 +434,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <400>;
+	turn aimy1 to y-axis heading speed <1650>;
 	turn ruparm to x-axis <-90.0> - pitch speed <500>;
 	//turn ruparm to x-axis <90> - pitch speed <500>;
 
