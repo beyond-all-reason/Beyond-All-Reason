@@ -91,6 +91,7 @@ function widget:GameFrame(frame)
 	if frame % POLLING_RATE ~= 0 then
 		return
 	end
+
 	for unitID, targetUnitDefID in pairs(trackedUnitsToUnitDefID) do
 		local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
 		local commandsToGive = {}
