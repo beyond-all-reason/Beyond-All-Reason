@@ -251,7 +251,8 @@ local function safeLuaTableParser(text)
             return parseString()
         
         -- Number
-        elseif char:match('%d') or char == '-' then
+        -- handles ".5" format
+        elseif char:match('%d') or char == '-' or char == '.' then 
             return parseNumber()
         
         -- Table
@@ -290,7 +291,6 @@ local function safeLuaTableParser(text)
     
     return result
 end
-
 local function customKeyToUsefulTable(dataRaw)
     if not dataRaw then
         return
