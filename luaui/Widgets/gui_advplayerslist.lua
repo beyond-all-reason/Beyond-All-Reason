@@ -3264,7 +3264,6 @@ function widget:MousePress(x, y, button)
                         if ctrl and i < specOffset then
 							if clickedPlayer.accountID then
 								Spring_SendCommands("toggleignore " .. 	clickedPlayer.accountID)
-								return true
 							end
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then

@@ -1304,8 +1304,8 @@ function widget:Update(dt)
 			--end
 		end
 
-		-- detect muted player change
 		if WG.ignoredAccounts then
+			-- unhide chats from players that used to be ignored
 			for accountID_or_name, _ in pairs(ignoredAccounts) do
 				if not WG.ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do
@@ -1316,6 +1316,7 @@ function widget:Update(dt)
 					end
 				end
 			end
+			-- hide chats from players that are now ignored
 			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
 				if not ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do

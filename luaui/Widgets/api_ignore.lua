@@ -16,7 +16,7 @@ end
 
 local playernames = {}		-- current game: playername to playerID
 local ignoredAccounts = {}	-- globally ignored: accountID to playername
-local ignoredAccountsAndNames = {}
+local ignoredAccountsAndNames = {} -- indexes by accountID and playername
 local ignoredPlayers = {}	-- old playernames method, we'll keep storing and try to convert this to the new ignoredAccounts table based on accountID
 
 local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
@@ -32,25 +32,32 @@ for _, playerID in ipairs(playerList) do
 	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 	if accountID and not validAccounts[accountID] then
 		validAccounts[accountID] = playerID
-		ignoredAccountsAndNames[accountID] = playerID
-	end
-	if ignoredPlayers[name] then
-		ignoredAccountsAndNames[name] = playerID
 	end
 end
 
+for _, playerID in ipairs(playerList) do
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+	if accountID and not validAccounts[accountID] then
+		validAccounts[accountID] = playerID
+		ignoredAccountsAndNames[accountID] = playerID
+	end
+end
 local function processPlayerlist()
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
 		local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
 		playernames[name] = playerID
-		-- if this player was ignored by the old playernames method, add to new accountID method
-		if ignoredPlayers[name] then
-			ignoredAccountsAndNames[name] = playerID
-			local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
-			if accountID and validAccounts[accountID] then
-				ignoredAccounts[accountID] = name
+		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+		if accountID and validAccounts[accountID] then
+			-- if this player was ignored by the old playernames method, add to new accountID method
+			if ignoredPlayers[name] then
 				ignoredPlayers[name] = nil
+				ignoredAccounts[accountID] = name
+			end
+			if ignoredAccounts[accountID] then
+				ignoredAccountsAndNames[accountID] = playerID
+				ignoredAccountsAndNames[name] = playerID
 			end
 		end
 	end
@@ -71,7 +78,7 @@ local function ignoreAccount(accountID)
 		return
 	end
 	ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
-	WG.ignoredAccounts = ignoredAccounts
+	ignoredAccountsAndNames[accountID] = nil
 	Spring.Echo("Ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
 end
 
@@ -79,7 +86,7 @@ local function unignoreAccount(accountID)
 	if accountID and ignoredAccounts[accountID] then
 		Spring.Echo("Un-ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
 		ignoredAccounts[accountID] = nil
-		WG.ignoredAccounts = ignoredAccounts
+		ignoredAccountsAndNames[accountID] = nil
 	else
 		local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID)
 		if name then
@@ -143,4 +150,9 @@ function widget:SetConfigData(data)
 	ignoredAccounts = data[1] and data[1] or {}
 	data[1] = nil
 	ignoredPlayers = data
+	for name, _ in pairs(ignoredPlayers) do
+		if not ignoredAccountsAndNames[name] then
+			ignoredAccountsAndNames[name] = true
+		end
+	end
 end
