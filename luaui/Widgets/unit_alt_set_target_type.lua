@@ -17,10 +17,14 @@ local spGetUnitDefID = Spring.GetUnitDefID
 
 local trackedUnitsToUnitDefID = {}
 local unitDefToTargetingUnitIDs = {}
+local currentWorkIndex = 0
+local unitRanges = {}
+local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local POLLING_RATE = 15
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
+local UNIT_RANGE_MULTIPLIER = 1.5
 
 local gameStarted
 
@@ -43,57 +47,71 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+    for udid, ud in pairs(UnitDefs) do
+        local maxRange = 0
+
+		for ii, weapon in ipairs(ud.weapons) do
+			if weapon.weaponDef then
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				if weaponDef then
+					if weaponDef.range > maxRange then
+						maxRange = weaponDef.range
+					end
+				end
+			end
+		end
+
+		unitRanges[udid] = maxRange
+    end
+end
+
+local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
+    local unitsInRange = {}
+
+    -- get unit position
+    local ux, uy, uz = Spring.GetUnitPosition(unitID)
+    if not ux then return unitsInRange end
+
+    -- get max weapon range
+    local maxRange = unitRanges[Spring.GetUnitDefID(unitID)]
+    if maxRange == nil or maxRange <= 0 then printf("nil range") return unitsInRange end
+	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
+
+    local candidateUnits = Spring.GetUnitsInCylinder(ux, uz, maxRange)
+	for _, targetID in ipairs(candidateUnits) do
+        if targetID ~= unitID then
+            local isAllied = Spring.AreTeamsAllied(myAllyTeam, Spring.GetUnitTeam(targetID))
+			if not isAllied and Spring.GetUnitDefID(targetID) == unitDefIDToTarget then
+				table.insert(unitsInRange, targetID)
+            end
+        end
+    end
+
+    return unitsInRange
 end
 
 function widget:GameFrame(frame)
 	if frame % POLLING_RATE ~= 0 then
 		return
 	end
-	local allUnits = Spring.GetAllUnits()
-	local unitDefToCmd = {}
-	for _, unitID in ipairs(allUnits) do
-		local def = spGetUnitDefID(unitID)
-		if not Spring.IsUnitAllied(unitID) and unitDefToTargetingUnitIDs[def] then				
-			if unitDefToCmd[def] == nil then unitDefToCmd[def] = {} end
-
-			local currentCmd = unitDefToCmd[def]
+	for unitID, targetUnitDefID in pairs(trackedUnitsToUnitDefID) do
+		local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
+		local commandsToGive = {}
+		for _, targetID in ipairs(candidateUnits) do
 			local newCmdOpts = {}
-			if #currentCmd ~= 0  then
+			if #commandsToGive ~= 0  then
 				newCmdOpts = { "shift" }
 			end
 
-			currentCmd[#currentCmd+1] = { CMD_SET_TARGET, { unitID }, newCmdOpts }
-			unitDefToCmd[def] = currentCmd
+			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }			
 		end
-	end
 
-	-- Issue command arrays to relevant units
-	for targetedUnitDefID, unitSet in pairs(unitDefToTargetingUnitIDs) do
-		if unitDefToCmd[targetedUnitDefID] ~= nil then			
-			local unitArray = {}
-			for k, _ in pairs(unitSet) do
-				table.insert(unitArray, k)
-			end
-
-			if #unitArray > 0 then
-				Spring.GiveOrderArrayToUnitArray(unitArray, unitDefToCmd[targetedUnitDefID])
-			end
-		end
+		Spring.GiveOrderArrayToUnitArray({ unitID }, commandsToGive)
 	end
 end
 
 local function cleanupUnitTargeting(unitID)
-	local oldTargetUnitDefID = trackedUnitsToUnitDefID[unitID]
-	if oldTargetUnitDefID and unitDefToTargetingUnitIDs[oldTargetUnitDefID] then
-		-- Remove unit from table of units that target the old def
-		unitDefToTargetingUnitIDs[oldTargetUnitDefID][unitID] = nil
-
-		-- If it's empty then get rid of it
-		if next(unitDefToTargetingUnitIDs[oldTargetUnitDefID]) == nil then
-			unitDefToTargetingUnitIDs[oldTargetUnitDefID] = nil
-		end
-	end
-
+	trackedUnitsToUnitDefID[unitID] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -122,17 +140,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local targetId = cmdParams[1]
-
-	-- We're targeting this unit type for all selected units
 	local targetUnitDefID = spGetUnitDefID(targetId)
-	-- Initialize table of units that target this unit type if it's not there
-	if not unitDefToTargetingUnitIDs[targetUnitDefID] then unitDefToTargetingUnitIDs[targetUnitDefID] = {} end
 
 	for _, unitID in ipairs(selectedUnits) do
-		-- In case this unit is targeting a unit type already
 		cleanupUnitTargeting(unitID)
-		-- Register the unit
-		unitDefToTargetingUnitIDs[targetUnitDefID][unitID] = true
 		trackedUnitsToUnitDefID[unitID] = targetUnitDefID
 	end
 end
