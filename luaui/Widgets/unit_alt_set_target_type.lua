@@ -16,14 +16,13 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local trackedUnitsToUnitDefID = {}
-local unitDefToTargetingUnitIDs = {}
-local currentWorkIndex = 0
 local unitRanges = {}
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local POLLING_RATE = 15
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
+-- Set target on units that aren't in range yet but may come in range soon
 local UNIT_RANGE_MULTIPLIER = 1.5
 
 local gameStarted
@@ -68,20 +67,18 @@ end
 local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
     local unitsInRange = {}
 
-    -- get unit position
     local ux, uy, uz = Spring.GetUnitPosition(unitID)
     if not ux then return unitsInRange end
 
-    -- get max weapon range
-    local maxRange = unitRanges[Spring.GetUnitDefID(unitID)]
-    if maxRange == nil or maxRange <= 0 then printf("nil range") return unitsInRange end
+    local maxRange = unitRanges[spGetUnitDefID(unitID)]
+    if maxRange == nil or maxRange <= 0 then return unitsInRange end
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
     local candidateUnits = Spring.GetUnitsInCylinder(ux, uz, maxRange)
 	for _, targetID in ipairs(candidateUnits) do
         if targetID ~= unitID then
             local isAllied = Spring.AreTeamsAllied(myAllyTeam, Spring.GetUnitTeam(targetID))
-			if not isAllied and Spring.GetUnitDefID(targetID) == unitDefIDToTarget then
+			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
 				table.insert(unitsInRange, targetID)
             end
         end
