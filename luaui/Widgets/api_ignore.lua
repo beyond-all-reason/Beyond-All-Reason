@@ -16,6 +16,7 @@ end
 
 local playernames = {}		-- current game: playername to playerID
 local ignoredAccounts = {}	-- globally ignored: accountID to playername
+local ignoredAccountsAndNames = {}
 local ignoredPlayers = {}	-- old playernames method, we'll keep storing and try to convert this to the new ignoredAccounts table based on accountID
 
 local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
@@ -27,10 +28,14 @@ playerInfo = nil
 local validAccounts = {}	-- accountID to playerID
 local playerList = Spring.GetPlayerList()
 for _, playerID in ipairs(playerList) do
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
 	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 	if accountID and not validAccounts[accountID] then
 		validAccounts[accountID] = playerID
+		ignoredAccountsAndNames[accountID] = playerID
+	end
+	if ignoredPlayers[name] then
+		ignoredAccountsAndNames[name] = playerID
 	end
 end
 
@@ -41,6 +46,7 @@ local function processPlayerlist()
 		playernames[name] = playerID
 		-- if this player was ignored by the old playernames method, add to new accountID method
 		if ignoredPlayers[name] then
+			ignoredAccountsAndNames[name] = playerID
 			local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 			if accountID and validAccounts[accountID] then
 				ignoredAccounts[accountID] = name
@@ -98,8 +104,15 @@ local function toggleignoreCmd(_, _, params)
 end
 
 function widget:Initialize()
+	-- add all other ignored account names that arent in the current game but might be in the lobby
+	for accountID, name in pairs(ignoredAccounts) do
+		local pname = WG.playernames and WG.playernames.getPlayername(_, accountID, true)
+		if not ignoredAccountsAndNames[accountID] then	-- if not already added/in the game
+			ignoredAccountsAndNames[pname and pname or name] = true
+		end
+	end
 	processPlayerlist()
-	WG.ignoredAccounts = ignoredAccounts
+	WG.ignoredAccounts = ignoredAccountsAndNames
 	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, 't')
 end
 

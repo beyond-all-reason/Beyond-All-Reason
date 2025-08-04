@@ -35,7 +35,7 @@ for _, playerID in ipairs(playerList) do
 	end
 end
 
-local function getPlayername(playerID, accountID)
+local function getPlayername(playerID, accountID, skipAlias)
 	if playerID then
 		accountID = nil
 	elseif accountID then
@@ -74,7 +74,7 @@ local function getPlayername(playerID, accountID)
 		end
 		-- pick name from history
 		if history[accountID] then
-			if history[accountID].alias then
+			if not skipAlias and history[accountID].alias then
 				name = history[accountID].alias
 			else
 				if applyFirstEncounteredName then
@@ -173,8 +173,8 @@ end
 function widget:Initialize()
 	update()
 	WG.playernames = {}
-	WG.playernames.getPlayername = function(playerID, accountID)
-		return getPlayername(playerID, accountID)
+	WG.playernames.getPlayername = function(playerID, accountID, skipAlias)
+		return getPlayername(playerID, accountID, skipAlias)
 	end
 	WG.playernames.getAccountHistory = function(accountID)
 		return getAccountHistory(accountID)

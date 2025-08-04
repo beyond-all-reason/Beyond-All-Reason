@@ -1306,20 +1306,20 @@ function widget:Update(dt)
 
 		-- detect muted player change
 		if WG.ignoredAccounts then
-			for name, _ in pairs(ignoredAccounts) do
-				if not WG.ignoredAccounts[name] then
+			for accountID_or_name, _ in pairs(ignoredAccounts) do
+				if not WG.ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do
-						if chatLines[i].playerName == name then
+						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = nil
 							updateDrawUi = true
 						end
 					end
 				end
 			end
-			for name, _ in pairs(WG.ignoredAccounts) do
-				if not ignoredAccounts[name] then
+			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
+				if not ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do
-						if chatLines[i].playerName == name then
+						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = true
 							updateDrawUi = true
 						end
