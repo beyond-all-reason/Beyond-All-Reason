@@ -1153,10 +1153,10 @@ function CreatePlayer(playerID)
 			end
 		end
 	end
-
-	local aliasName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
-	local isAliasName = aliasName and tname ~= aliasName
-	tname = aliasName
+	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
+	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
+	local isAliasName = tname ~= pname
+	tname = pname
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -1221,6 +1221,7 @@ function CreatePlayer(playerID)
         incomeMultiplier = tincomeMultiplier,
 		desynced = desynced,
 		accountID = accountID,
+		history = history
     }
 end
 
@@ -2719,7 +2720,7 @@ function DrawAlliances(alliances, posY)
     end
 end
 
-function DrawName(name, nameIsAlias,team, posY, dark, playerID, accountID, desynced)
+function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
     local willSub = ""
     local ignored = (accountID and WG.ignoredAccounts) and WG.ignoredAccounts[accountID]
     local isAbsent = false
@@ -2741,10 +2742,21 @@ function DrawName(name, nameIsAlias,team, posY, dark, playerID, accountID, desyn
         end
     end
 
-    local nameText = (nameIsAlias and '*' or '') .. name .. willSub
-    local xPadding = 0
+    local nameText = name
+	if WG.playernames and not player[playerID].history then
+		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	end
+	if nameIsAlias then
+		nameText = "." .. nameText
+	elseif player[playerID].history and #player[playerID].history > 1 then
+		nameText = "*" .. nameText
+	else
+		nameText = " " .. nameText
+	end
+	nameText = nameText .. willSub
 
     -- includes readystate icon if factions arent shown
+    local xPadding = 0
     if not gameStarted and not m_side.active then
         xPadding = 16
         DrawState(playerID, m_name.posX + widgetPosX, posY)
@@ -2805,7 +2817,6 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
     if team == nil then
         return
     end
-
     local ignored = (accountID and WG.ignoredAccounts) and WG.ignoredAccounts[accountID]
 
     local textindent = 4
@@ -2813,16 +2824,23 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
         textindent = 0
     end
 
-    -- these are spectators that joined late and would have a duplicate accountID (we)
-    if not isSinglePlayer and WG.playernames and not accountID then
-        name =  ". " .. name
-    end
 
+    local nameText = name
+	if WG.playernames and not player[playerID].history then
+		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	end
+	if nameIsAlias then
+		nameText = "." .. name
+	elseif player[playerID].history and #player[playerID].history > 1 then
+		nameText = "*" .. name
+    elseif not accountID then    -- these are spectators that joined late and would have a duplicate accountID (we)
+        nameText =  "    " .. name
+	else
+		nameText = " " .. name
+	end
     if originalColourNames[playerID] then
-        name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
+        nameText = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. nameText
     end
-
-    local nameText = (nameIsAlias and '*' or '') .. name
 
     font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.55)
@@ -2840,7 +2858,6 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
         DrawRect(x, y, x + w, y + h)
         gl_Color(1, 1, 1, 1)
     end
-
 end
 
 function DrawAllyID(allyID, posY, dark, dead)
@@ -2975,18 +2992,26 @@ end
 
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
-		if not player[playerID].history then
+		if WG.playernames and not player[playerID].history then
 			player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
 		end
-		if nameIsAlias or #player[playerID].history > 1 then
-			tipText = ''
+		if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
+			local text = ''
+		 	local c = 0
 			for i, name in ipairs(player[playerID].history) do
-				if i > 1 then
-					tipText = tipText .. '\n'
+				if player[playerID].name ~= name then
+					if c > 0 then
+						text = text .. '\n'
+					end
+					text = text .. name
+		 			c = c + 1
 				end
-				tipText = tipText .. name
 			end
-			tipTextTime = os.clock()
+			if c > 0 then
+				tipText = text
+				tipTextTime = os.clock()
+				tipTextTitle = nil
+			end
 		end
 	end
 end
@@ -3264,6 +3289,7 @@ function widget:MousePress(x, y, button)
                         if ctrl and i < specOffset then
 							if clickedPlayer.accountID then
 								Spring_SendCommands("toggleignore " .. 	clickedPlayer.accountID)
+                                return true
 							end
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
@@ -3368,15 +3394,11 @@ function widget:MousePress(x, y, button)
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl and clickedPlayer.accountID then
                                 Spring_SendCommands("toggleignore " .. clickedPlayer.accountid)
-                                SortList()
-                                CreateLists()
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                                 LockCamera(clickedPlayer.team)
                                 prevClickedPlayer = {}
-                                SortList()
-                                CreateLists()
                                 return true
                             end
                             prevClickedPlayer = clickedPlayer

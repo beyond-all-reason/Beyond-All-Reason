@@ -79,8 +79,8 @@ local function getPlayername(playerID, accountID, skipAlias)
 			else
 				if applyFirstEncounteredName then
 					name = history[accountID][1]
-				else
-					name = history[accountID][#history[accountID]]
+				--else
+				--	name = history[accountID][#history[accountID]]
 				end
 			end
 		end
@@ -104,20 +104,17 @@ local function getPlayername(playerID, accountID, skipAlias)
 	return name
 end
 
-local function getAccountHistory(accountID)
+local function getAccountHistory(accountID, full)
 	if history[accountID] then
-		local accountHistory = {}
-		for k, v in pairs(history[accountID]) do
-			accountHistory[k] = v
+		if full then
+			return history[accountID]
+		else
+			local accountHistory = {}
+			for k, v in pairs(history[accountID]) do
+				accountHistory[k] = v
+			end
+			return accountHistory
 		end
-		return accountHistory
-	end
-end
-
-local function update()
-	local playerList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playerList) do
-		currentNames[playerID] = getPlayername(playerID)
 	end
 end
 
@@ -170,14 +167,57 @@ local function actualizeHistory()
 	end
 end
 
+local function setaliasCmd(_, _, params)
+	if params[1] then
+		local playerID
+		if type(tonumber(params[1])) == 'number' then
+			playerID = tonumber(params[1])
+		else
+			for pID, name in ipairs(currentNames) do
+				if name == params[1] then
+					playerID = pID
+					break
+				end
+			end
+		end
+		if playerID then
+			local name, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
+			accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+			if accountID then
+				local alias = params[2]
+				if alias then
+					Spring.Echo("Set/change alias for accountID: " .. accountID .. " ("..name..") to: " .. alias)
+					history[accountID].alias = alias
+					currentAccounts[accountID] = alias
+					currentNames[playerID] = alias
+				else
+					Spring.Echo("Removed alias " .. history[accountID].alias .. " for accountID: " .. accountID .. " ("..name..")")
+					currentNames[playerID] = name
+					currentAccounts[accountID] = name
+					history[accountID].alias = nil
+				end
+				-- reload the whole UI
+				-- TODO: add a small delay to allow the echo to be readable
+				Spring.SendCommands("luaui reload")
+			end
+		else
+			Spring.Echo("Player not found for: " .. params[1])
+		end
+	end
+end
+
 function widget:Initialize()
-	update()
+	local playerList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playerList) do
+		currentNames[playerID] = getPlayername(playerID)
+	end
+
 	WG.playernames = {}
 	WG.playernames.getPlayername = function(playerID, accountID, skipAlias)
 		return getPlayername(playerID, accountID, skipAlias)
 	end
-	WG.playernames.getAccountHistory = function(accountID)
-		return getAccountHistory(accountID)
+	WG.playernames.getAccountHistory = function(accountID, full)
+		return getAccountHistory(accountID, full)
 	end
 	WG.playernames.setUseFirstEncounter = function(value)
 		applyFirstEncounteredName = value
@@ -185,10 +225,12 @@ function widget:Initialize()
 	WG.playernames.getUseFirstEncounter = function()
 		return applyFirstEncounteredName
 	end
+	widgetHandler:AddAction("setalias", setaliasCmd, nil, 't')
 end
 
 function widget:Shutdown()
 	WG.playernames = nil
+	widgetHandler:RemoveAction("setalias")
 end
 
 function widget:PlayerAdded(playerID)
@@ -206,17 +248,17 @@ function widget:GetConfigData()
 	return {
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		applyFirstEncounteredName = applyFirstEncounteredName,
-		currentNames = currentNames,
-		currentAccounts = currentAccounts,
+		--currentNames = currentNames,
+		--currentAccounts = currentAccounts,
 		history = history,
 	}
 end
 
 function widget:SetConfigData(data)
 	history = data.history or {}
-	if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
-		currentNames = data.currentNames or {}
-		currentAccounts = data.currentAccounts or {}
+	if data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")) then
+		--currentNames = data.currentNames or {}
+		--currentAccounts = data.currentAccounts or {}
 		reconnected = true
 	end
 	if data.applyFirstEncounteredName ~= nil then

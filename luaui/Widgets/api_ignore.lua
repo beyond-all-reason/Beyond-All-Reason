@@ -78,7 +78,7 @@ local function ignoreAccount(accountID)
 		return
 	end
 	ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
-	ignoredAccountsAndNames[accountID] = nil
+	ignoredAccountsAndNames[accountID] = ignoredAccounts[accountID]
 	Spring.Echo("Ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
 end
 
