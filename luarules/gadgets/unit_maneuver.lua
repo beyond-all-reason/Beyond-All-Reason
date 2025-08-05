@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Custom Maneuver/Chase behaviour',
+		name = 'Maneuver/Chase behaviour',
 		desc = 'Return unit to it\'s last move position when it no longer has a valid target',
 		author = 'chocolatemalc',
 		version = 'v1.0',
@@ -43,18 +43,26 @@ local lastMovePosition = {}
 local lastReturnMovePosition = {}
 local returnRetryCount = {}
 local recentlyAttacked = {}
-local customManeuverUnitIDs = {}
+local maneuverUnitIDs = {}
 local returningToOrigin = {}
 local hasSightNotFlyingNotBuilding = {}
+local unitBufferByID = {}
 
 for i = 1, #UnitDefs do
 	local def = UnitDefs[i]
+
 	if not def.canFly and not def.isBuilding and def.sightDistance then
 		hasSightNotFlyingNotBuilding[i] = def.sightDistance
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions) --implement saurtrons comment (Should gadgetHandler:RegisterAllowCommand(cmdID) at gadget:Initialize for the relevant cmdIDs)
+function gadget:Initialize()
+    gadgetHandler:RegisterAllowCommand(CMD_MOVE)
+    gadgetHandler:RegisterAllowCommand(CMD_FIGHT)
+    gadgetHandler:RegisterAllowCommand(CMD_STOP)
+end
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 	if (cmdID == CMD_MOVE or cmdID == CMD_FIGHT) and cmdParams[1] and cmdParams[2] and cmdParams[3] then
 		lastMovePosition[unitID] = { cmdParams[1], cmdParams[2], cmdParams[3] }
 	elseif cmdID == CMD_STOP then
@@ -69,7 +77,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local sightDist = hasSightNotFlyingNotBuilding[unitDefID]
 
 	if sightDist then
-		customManeuverUnitIDs[unitID] = sightDist
+		maneuverUnitIDs[unitID] = sightDist
+
+		local radius = spGetUnitRadius(unitID) or RADIUS_FALLBACK
+		unitBufferByID[unitID] = radius * RADIUS_BUFFER_MULTIPLIER
 	end
 end
 
@@ -83,8 +94,8 @@ function gadget:UnitDestroyed(unitID)
 	lastMovePosition[unitID] = nil
 	recentlyAttacked[unitID] = nil
 	returningToOrigin[unitID] = nil
-	customManeuverUnitIDs[unitID] = nil
-	lastReturnMovePosition[unitID]= nil
+	maneuverUnitIDs[unitID] = nil
+	lastReturnMovePosition[unitID] = nil
 	returnRetryCount[unitID] = nil
 end
 
@@ -97,11 +108,11 @@ local function ReturnToOrigin(unitID, cmdQueue)
 		return 
 	end
 	
-	local radius = spGetUnitRadius(unitID) or RADIUS_FALLBACK
-	local buffer = radius * RADIUS_BUFFER_MULTIPLIER
-	local distX = math.abs(currentPosition[1] - originalPosition[1]) --refactor this probably
+	local distX = math.abs(currentPosition[1] - originalPosition[1])
 	local distZ = math.abs(currentPosition[3] - originalPosition[3])
-	local insideBuffer = distX * distX + distZ * distZ <= buffer * buffer
+	-- squared Euclidean distance = distX * distX + distZ * distZ <= buffer * buffer
+	-- Manhattan Distance = distX + distZ > buffer
+	local insideBuffer = distX + distZ > unitBufferByID(unitID)
 
 	if insideBuffer then
 		return
@@ -109,12 +120,13 @@ local function ReturnToOrigin(unitID, cmdQueue)
 
 	local returnPosition = lastReturnMovePosition[unitID] or originalPosition
 	if returnPosition then
-		local distX2 = originalPosition[1] - returnPosition[1] --refactor this probably
+		local distX2 = originalPosition[1] - returnPosition[1]
 		local distZ2 = originalPosition[3] - returnPosition[3]
-		local stillTryingToReturn = distX2 * distX2 + distZ2 * distZ2 <= buffer * buffer
+		local stillTryingToReturn = distX + distZ > unitBufferByID(unitID)
+
 		if stillTryingToReturn then
 			returnRetryCount[unitID] = (returnRetryCount[unitID] or 0) + 1
-			if returnRetryCount[unitID] > MAX_RETURN_ATTEMPTS then
+			if returnRetryCount[unitID] >= MAX_RETURN_ATTEMPTS then
 				Spring.Echo(unitID, "[GAVE UP RETURNING]")
 				lastMovePosition[unitID] = currentPosition
 				lastReturnMovePosition[unitID] = nil
@@ -122,12 +134,9 @@ local function ReturnToOrigin(unitID, cmdQueue)
 				return
 			end
 		else
-			returnRetryCount[unitID] = 1
-			lastReturnMovePosition[unitID] = { originalPosition[1], originalPosition[3] } --refactor this probably
+			returnRetryCount[unitID] = 0
+			lastReturnMovePosition[unitID] = { originalPosition[1], originalPosition[3] }
 		end
-	else
-		returnRetryCount[unitID] = 1
-		lastReturnMovePosition[unitID] = { originalPosition[1], originalPosition[3] } --refactor this probably
 	end
 
 	Spring.Echo(unitID, "[RETURN TO ORIGIN]")
@@ -136,7 +145,7 @@ local function ReturnToOrigin(unitID, cmdQueue)
 end
 
 function gadget:GameFrame(frame)
-	for unitID, sightDist in pairs(customManeuverUnitIDs) do
+	for unitID, sightDist in pairs(maneuverUnitIDs) do
 		if unitID % UPDATE_INTERVAL == frame % UPDATE_INTERVAL then
 			local unitStates = spGetUnitStates(unitID)
 			-- Spring.Echo(unitID, "[IDLE]")
