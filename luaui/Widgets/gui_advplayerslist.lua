@@ -1154,7 +1154,7 @@ function CreatePlayer(playerID)
 		end
 	end
 	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
-	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
+	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
 	tname = pname
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)

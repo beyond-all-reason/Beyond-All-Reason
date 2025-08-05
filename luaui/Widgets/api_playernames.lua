@@ -249,17 +249,17 @@ function widget:GetConfigData()
 	return {
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		applyFirstEncounteredName = applyFirstEncounteredName,
-		--currentNames = currentNames,
-		--currentAccounts = currentAccounts,
 		history = history,
+		currentNames = currentNames,
+		currentAccounts = currentAccounts,
 	}
 end
 
 function widget:SetConfigData(data)
 	history = data.history or {}
 	if data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")) then
-		--currentNames = data.currentNames or {}
-		--currentAccounts = data.currentAccounts or {}
+		currentNames = data.currentNames or {}
+		currentAccounts = data.currentAccounts or {}
 		reconnected = true
 	end
 	if data.applyFirstEncounteredName ~= nil then
