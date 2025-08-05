@@ -186,12 +186,12 @@ local function setaliasCmd(_, _, params)
 			if accountID then
 				local alias = params[2]
 				if alias then
-					Spring.Echo("Set/change alias for accountID: " .. accountID .. " ("..name..") to: " .. alias)
+					Spring.Echo(Spring.I18N('ui.playernames.setalias', { name = name, accountID = accountID, alias = alias }))
 					history[accountID].alias = alias
 					currentAccounts[accountID] = alias
 					currentNames[playerID] = alias
 				else
-					Spring.Echo("Removed alias " .. history[accountID].alias .. " for accountID: " .. accountID .. " ("..name..")")
+					Spring.Echo(Spring.I18N('ui.playernames.removealias', { name = name, accountID = accountID, alias = history[accountID].alias }))
 					currentNames[playerID] = name
 					currentAccounts[accountID] = name
 					history[accountID].alias = nil
@@ -201,7 +201,8 @@ local function setaliasCmd(_, _, params)
 				Spring.SendCommands("luaui reload")
 			end
 		else
-			Spring.Echo("Player not found for: " .. params[1])
+
+			Spring.Echo(Spring.I18N('ui.playernames.notfound', { param = params[1] }))
 		end
 	end
 end
