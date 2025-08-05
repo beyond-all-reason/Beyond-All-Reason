@@ -2722,7 +2722,7 @@ end
 
 function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
     local willSub = ""
-    local ignored = (accountID and WG.ignoredAccounts) and WG.ignoredAccounts[accountID]
+    local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
     local isAbsent = false
     if name == absentName then
         isAbsent = true
@@ -2817,13 +2817,11 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
     if team == nil then
         return
     end
-    local ignored = (accountID and WG.ignoredAccounts) and WG.ignoredAccounts[accountID]
-
+    local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
     local textindent = 4
     if m_indent.active or m_rank.active or m_side.active or m_allyID.active or m_playerID.active or m_ID.active then
         textindent = 0
     end
-
 
     local nameText = name
 	if WG.playernames and not player[playerID].history then
@@ -3010,7 +3008,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 			if c > 0 then
 				tipText = text
 				tipTextTime = os.clock()
-				tipTextTitle = nil
+				tipTextTitle = player[playerID].name
 			end
 		end
 	end
@@ -3287,10 +3285,8 @@ function widget:MousePress(x, y, button)
                 if i > -1 then -- and i < specOffset
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
-							if clickedPlayer.accountID then
-								Spring_SendCommands("toggleignore " .. 	clickedPlayer.accountID)
-                                return true
-							end
+                            Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
+                            return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
                                 clickedPlayerTime = os.clock()
@@ -3392,8 +3388,8 @@ function widget:MousePress(x, y, button)
                         end
                         --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
-                            if ctrl and clickedPlayer.accountID then
-                                Spring_SendCommands("toggleignore " .. clickedPlayer.accountid)
+                            if ctrl then
+                                Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then

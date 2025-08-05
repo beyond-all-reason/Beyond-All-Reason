@@ -73,38 +73,50 @@ local function colourPlayer(playerName)
 end
 
 local function ignoreAccount(accountID)
-	if myAccountID and accountID == myAccountID then
-		Spring.Echo("You cannot ignore yourself")
-		return
+	if type(tonumber(accountID)) == 'number' then
+		accountID = tonumber(accountID)
+		if not ignoredAccounts[accountID] and validAccounts[accountID] then
+			ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
+			ignoredAccountsAndNames[accountID] = ignoredAccounts[accountID]
+			ignoredAccountsAndNames[ignoredAccounts[accountID]] = true
+			Spring.Echo("Ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
+		end
+	elseif accountID ~= '' then -- if accountID wasnt known and player name was supplied instead
+		local name = accountID
+		if playernames[name] then
+			ignoredPlayers[name] = true
+			ignoredAccountsAndNames[name] = playernames[name]
+			Spring.Echo("Ignored " .. colourPlayer(name) .. name .. "  (unknown accountID)")
+		end
 	end
-	ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
-	ignoredAccountsAndNames[accountID] = ignoredAccounts[accountID]
-	Spring.Echo("Ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
 end
 
 local function unignoreAccount(accountID)
-	if accountID and ignoredAccounts[accountID] then
-		Spring.Echo("Un-ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
-		ignoredAccounts[accountID] = nil
-		ignoredAccountsAndNames[accountID] = nil
-	else
-		local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID)
-		if name then
-			Spring.Echo("Player " .. name .. " with accountID " .. accountID .. " is not ignored")
-		else
-			Spring.Echo("Player with accountID " .. accountID .. " is not ignored")
+	if type(tonumber(accountID)) == 'number' then
+		accountID = tonumber(accountID)
+		if ignoredAccounts[accountID] and validAccounts[accountID] then
+			Spring.Echo("Un-ignored " .. colourPlayer(ignoredAccounts[accountID]) .. ignoredAccounts[accountID] .. "  (" .. accountID .. ")")
+			ignoredAccountsAndNames[ignoredAccounts[accountID]] = nil
+			ignoredAccounts[accountID] = nil
+			ignoredAccountsAndNames[accountID] = nil
+		end
+	elseif accountID ~= '' then -- if accountID wasnt known and player name was supplied instead
+		local name = accountID
+		if playernames[name] then
+			ignoredPlayers[name] = nil
+			ignoredAccountsAndNames[name] = nil
+			Spring.Echo("Un-ignored " .. colourPlayer(name) .. name .. "  (unknown accountID)")
 		end
 	end
 end
 
 local function toggleignoreCmd(_, _, params)
 	for i=1, #params do
-		local accountID = params[i] and tonumber(params[i])
-		if accountID then
-			if ignoredAccounts[accountID] then
-				unignoreAccount(accountID)
+		if params[i] then
+			if ignoredAccounts[tonumber(params[i])] or ignoredPlayers[params[i]] then
+				unignoreAccount(params[i])
 			else
-				ignoreAccount(accountID)
+				ignoreAccount(params[i])
 			end
 		end
 	end
