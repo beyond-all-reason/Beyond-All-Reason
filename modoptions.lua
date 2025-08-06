@@ -1389,6 +1389,54 @@ local options = {
         def  	= false,
     },
 
+    {
+        key    	= "shieldsrework",
+        name   	= "Shields Rework v2.0",
+        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    -- Modular Tech Split
+
+    {
+        key     = "sub_header",
+        name    = "Tech Split",
+        desc    = "",
+        section = "options_experimental",
+        type    = "subheader",
+        def     =  true,
+    },
+
+    {
+        key     = "sub_header",
+        name    = "Experimental options for tech tree split",
+        desc    = "",
+        section = "options_experimental",
+        type    = "subheader",
+        def     =  true,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_experimental",
+        type    = "separator",
+    },
+
+    {
+        key     = "techoverhaul",
+        name    = "Tech Split",
+        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+    },
+
+    
+
+
     -- Hidden Tests
 	
 	{
@@ -1400,26 +1448,6 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
-
-    {
-        key     = "techoverhaul",
-        name    = "Tech Overhaul",
-        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
-        type    = "bool",
-        section = "options_experimental",
-        def     = false,
-        hidden  = true,
-    },
-	
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
 
     {
         key 	= "lategame_rebalance",
