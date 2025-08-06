@@ -3008,7 +3008,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 			if c > 0 then
 				tipText = text
 				tipTextTime = os.clock()
-				tipTextTitle = player[playerID].name
+				tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name
 			end
 		end
 	end
