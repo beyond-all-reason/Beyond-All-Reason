@@ -21,6 +21,8 @@ local history = {}
 local currentNames = {}		-- playerID to name
 local currentAccounts = {}	-- accountID to name
 
+local reconnected = false	-- flag to track if this is a reconnection/reload
+
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
 -- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those
@@ -29,7 +31,7 @@ local validAccounts = {}	-- accountID to playerID
 local playerList = Spring.GetPlayerList()
 for _, playerID in ipairs(playerList) do
 	local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
-	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 	if accountID and not validAccounts[accountID] then
 		validAccounts[accountID] = playerID
 	end
@@ -70,6 +72,9 @@ local function getPlayername(playerID, accountID, skipAlias)
 		if not inHistory then
 			if not history[accountID] then
 				history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
+			else
+				-- add new name to existing history
+				table.insert(history[accountID], name)
 			end
 		end
 		-- pick name from history
@@ -94,7 +99,7 @@ local function getPlayername(playerID, accountID, skipAlias)
 		local playerList = Spring.GetPlayerList()
 		for _, pID in ipairs(playerList) do
 			local pname, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(pID)
-			pAccountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+			local pAccountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 			if pAccountID and pAccountID == accountID then
 				name = pname
 				break
@@ -173,7 +178,7 @@ local function setaliasCmd(_, _, params)
 		if type(tonumber(params[1])) == 'number' then
 			playerID = tonumber(params[1])
 		else
-			for pID, name in ipairs(currentNames) do
+			for pID, name in pairs(currentNames) do
 				if name == params[1] then
 					playerID = pID
 					break
@@ -182,19 +187,26 @@ local function setaliasCmd(_, _, params)
 		end
 		if playerID then
 			local name, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
-			accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+			local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
 			if accountID then
 				local alias = params[2]
 				if alias then
 					Spring.Echo(Spring.I18N('ui.playernames.setalias', { name = name, accountID = accountID, alias = alias }))
+					-- ensure history entry exists
+					if not history[accountID] then
+						history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
+					end
 					history[accountID].alias = alias
 					currentAccounts[accountID] = alias
 					currentNames[playerID] = alias
 				else
-					Spring.Echo(Spring.I18N('ui.playernames.removealias', { name = name, accountID = accountID, alias = history[accountID].alias }))
-					currentNames[playerID] = name
-					currentAccounts[accountID] = name
-					history[accountID].alias = nil
+					-- ensure history entry exists before accessing alias
+					if history[accountID] and history[accountID].alias then
+						Spring.Echo(Spring.I18N('ui.playernames.removealias', { name = name, accountID = accountID, alias = history[accountID].alias }))
+						currentNames[playerID] = name
+						currentAccounts[accountID] = name
+						history[accountID].alias = nil
+					end
 				end
 				-- reload the whole UI
 				-- TODO: add a small delay to allow the echo to be readable
