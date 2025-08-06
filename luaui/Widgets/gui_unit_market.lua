@@ -329,6 +329,7 @@ local function getTeamName(teamID)
         local playerID = FindPlayerIDFromTeamID(teamID)
         if playerID then
             local playerName = select(1,spGetPlayerInfo(playerID, false))
+            playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or playerName
             return playerName
         else
             return "Unknown Team (" .. tostring(teamID)..")"
