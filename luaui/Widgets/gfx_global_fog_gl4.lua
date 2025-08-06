@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2022.07.14",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
-		layer = 99992, -- lol this isnt even a number
+		layer = 100010, -- lol this isnt even a number
 		enabled = false
 	}
 end
@@ -75,6 +75,9 @@ local GL_R32F = 0x822E
 				-- uniform float windX;
 				-- 
 
+-- TODO 20250822
+	-- [ ] RMLUI Sliders are 1 update late always 
+	-- [ ] Combine shader sample neighbour texels with texelgather
 
 ------------- Literature and Reading: ---
 -- blue noise sampling:  https://blog.demofox.org/2020/05/10/ray-marching-fog-with-blue-noise/
@@ -270,17 +273,15 @@ local shadowTexture
 local quadVAO
 local shadowShader
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
 
 local function goodbye(reason) 
 	Spring.Echo('Exiting', reason)
 	widgetHandler:RemoveWidget()
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/global_fog.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/global_fog.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/global_fog.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/global_fog.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -312,8 +313,8 @@ local shaderSourceCache = {
 	}
 
 
-local vsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.vert.glsl"
-local fsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.frag.glsl"
+local vsSrcPathCombine = "LuaUI/Shaders/global_fog_combine.vert.glsl"
+local fsSrcPathCombine = "LuaUI/Shaders/global_fog_combine.frag.glsl"
 
 local combineShaderSourceCache = {
 		vssrcpath = vsSrcPathCombine,
@@ -367,7 +368,7 @@ local function makeFogTexture()
 		fbo = true,
 		format = GL_R32F,
     })
-	Spring.Echo("MakeFogTexture", vsx, vsy, hsx, hsy, shaderConfig.HALFSHIFT)
+	Spring.Echo(string.format("MakeFogTexture: vsx=%d, vsy=%d, hsx=%d, hsy=%d, HALFSHIFT=%d", vsx, vsy, hsx, hsy, shaderConfig.HALFSHIFT))
 	
 end
 
@@ -380,9 +381,9 @@ widget:ViewResize()
 
 local function initGL4()
 	-- init the VBO
-	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
-  local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0)
+	local planeVBO, numVertices = gl.InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
+	local planeIndexVBO, numIndices =  gl.InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
+  local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0)
   quadVAO = gl.GetVAO()
   quadVAO:AttachVertexBuffer(quadVBO)
   
@@ -409,7 +410,7 @@ end
 
 local combineShaderTriggers = {RESOLUTION = true, HALFSHIFT = true, OFFSETX = true, OFFSETY = true}
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
-	Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
+	Spring.Echo(string.format("shaderDefinesChangedCallback() name=%s, value=%s, shaderConfig[%s]=%s", tostring(name), tostring(value), tostring(name), tostring(shaderConfig[name])))
 	if oldvalue == nil or value ~= oldvalue then 
 		if shaderConfig[name] then 
 			shaderConfig[name] = value
@@ -440,8 +441,8 @@ shaderDefinedSliders.top = shaderDefinedSliders.bottom + shaderDefinedSliders.sl
 local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
 local shadowMinifierShaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/shadow_downsample.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/shadow_downsample.frag.glsl",
 		--gssrcpath = gsSrcPath,
 		uniformInt = { shadowTex = 0},
 		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
@@ -519,6 +520,7 @@ function widget:Initialize()
 			-- Functions inside a DataModel cannot be changed later
 			-- so instead a function variable external to the DataModel is called and _that_ can be changed
 			exampleEventHook = function(...) eventCallback(...) end,
+			--[[  -- this crashes
 			button2Clicked = function()
 				local _target = document:GetElementById('target')
 				local _div = document:CreateElement('div')
@@ -539,12 +541,13 @@ function widget:Initialize()
 				_div = _target:AppendChild(_div)
 				_div.style.width = nil
 				_div.style.height = ''
-			end,
+			end, 
+			]]--
 			callShaderDefinesChangedCallback = shaderDefinesChangedCallback,
 			my_rect = "",
 			context_name_list = "",
 		});
-
+ 
 
 		eventCallback = function (ev, ...)
 			Spring.Echo(ev.parameters.mouse_x, ev.parameters.mouse_y, ev.parameters.button, ...)
@@ -583,9 +586,12 @@ function widget:Initialize()
 		]]--
 
 		local sliderElement = document:CreateElement('label')
+		-- How to right align a div?
+		local maxstring = string.format('%.' .. definesSlider.digits .. 'f', definesSlider.max)
+		local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
 
-		local sliderhtmlstring = string.format('<div> %s %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %f </div> ', 
-			definesSlider.name,definesSlider.min, definesSlider.name,  definesSlider.min, definesSlider.max, math.pow(10, -1 * definesSlider.digits) , definesSlider.default,definesSlider.max)
+		local sliderhtmlstring = string.format('<div class="code" style="text-align: right;"> %s %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %s </div> ', 
+			definesSlider.name,definesSlider.min, definesSlider.name,  definesSlider.min, definesSlider.max, math.pow(10, -1 * definesSlider.digits) , definesSlider.default,maxstringPadded)
 		sliderElement.inner_rml = sliderhtmlstring
 		-- Add the lister:
 		sliderElement:AddEventListener('change', function(event)
@@ -595,19 +601,24 @@ function widget:Initialize()
 			local value = tonumber(slider.attributes.value)
 			Spring.Echo("slider changed", slider.id, slider.min, slider.max, slider.step, value)
 			local element = document:GetElementById(slider.id)
-			Spring.Echo("slider changed", element.id, element.min, element.max, element.step, element.value)
+			Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
+			Spring.Echo(element:GetAttribute("min"))
+			Spring.Echo(element:GetAttribute("value"))
 			shaderDefinesChangedCallback(slider.id, value, nil, nil)
 		end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
 
 		slidersDiv:AppendChild(sliderElement)
-	end
-
-	document:ReloadStyleSheet()
+	end 
+ 
+	document:ReloadStyleSheet()  
 	document:Show()
 
-	
-	if vsx%4~=0 or vsy%4 ~= 0 then 
-		Spring.Echo("Global Fog Warning: viewport is not even!", vsx, vsy, vsx/2, vsy/2, hsx, hsy)
+	 
+	if vsx % 4 ~= 0 or vsy % 4 ~= 0 then
+		Spring.Echo(string.format(
+			"Global Fog Warning: viewport dimensions are not divisible by 4! vsx=%d, vsy=%d, vsx/2=%d, vsy/2=%d, hsx=%d, hsy=%d",
+			vsx, vsy, vsx / 2, vsy / 2, hsx, hsy
+		))
 	end
 	return true
 end
@@ -731,6 +742,7 @@ function widget:DrawWorld()
 	
 	gl.DepthMask(false) -- dont write to depth buffer
 
+  --if true then return end
 	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo
 	
   if shaderConfig.MINISHADOWS == 1 then 
@@ -738,7 +750,6 @@ function widget:DrawWorld()
     gl.RenderToTexture(shadowTexture, minifyShadowToTextureFunc)
     shadowShader:Deactivate()
   end
-  
   gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, distortiontex)
@@ -784,6 +795,7 @@ function widget:DrawWorld()
 
 	groundFogShader:Deactivate()
 	
+	gl.Culling(GL.BACK) -- cause our tris are reversed in plane vbo
 	gl.Culling(false)
 	-- glColorMask(false, false, false, false)
 	if toTexture and shaderConfig.COMBINESHADER == 1 then 
@@ -798,7 +810,7 @@ function widget:DrawWorld()
 		--gl.TexRect(0, 0, 10000, 10000, 0, 0, 1, 1) -- dis is for debuggin!
 	end
 	
-	for i = 0, 8 do gl.Texture(i, false) end 
+	for i = 0, 9 do gl.Texture(i, false) end 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- reset GL state
   	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end
@@ -826,14 +838,15 @@ end
 
 function widget:DrawScreen()
 	if autoreload then 
-		local newfps = Spring.GetFPS()
+		local newfps = math.max(Spring.GetFPS(), 1)
 		if shaderSourceCache.updateFlag then 
 			shaderSourceCache.updateFlag = nil
 			lastfps = newfps
 		end
 		local fogdrawus = (1000/newfps - 1000/initfps)
 		local fogdrawlast = (1000/lastfps - 1000/initfps)
-		gl.Text(string.format("fog %.3f ms last %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
-		gl.Text(string.format("%.3f dms  %.1fpct \n%.3fmstotal", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps ),  vsx - 600,  80, 16, "d")
+		if fogdrawlast == 0 then fogdrawlast = 0.001 end
+		gl.Text(string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
+		gl.Text(string.format("%.3f delta ms (%.1f%%) \n%.3f ms total draw time\nNo fog FPS = %d", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps, initfps ),  vsx - 600,  80, 16, "d")
 	end
 end

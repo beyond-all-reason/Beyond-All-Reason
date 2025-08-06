@@ -22,15 +22,13 @@
     <body data-model="data_model_test">
         <handle move_target="#document">
             <div class="element">
-                <h3 style="margin: 0.25em">Window Top Bar (Click and Drag to Move)</h3>
+                <h5 style="margin: 0.25em">FOG SLIDERS (Click and Drag to Move)</h5>
             </div>
         </handle>
-        <div class="element">
+        <!-- <div class="element">
             <span>Below me is a flexbox</span>
             <div style="display: flex">
-                <div style="background-color: green; width: 250px; height: 50px">
-                    Solid Color Block test
-                </div>
+     
                 <div
                         class="element"
                         data-event-mousedown="exampleEventHook('event param example')"
@@ -39,20 +37,17 @@
                     Click me for log spam<br/>
                     Inserted value: {{exampleValue}}
                 </div>
-                <button data-event-mousedown="button2Clicked()">
-                    Click me for fun!
-                </button>
             </div>
             
-        </div>
+        </div> -->
         <div class="element">
-            <h1> FOG SLIDERS</h1>
-            
+            <h6>
             <div id = "fogsliders", style="display: flex; flex-direction: column; gap: 0.1em;">
             </div>
+            </h6>
         </div>  
         <div class="element">
-            <h1> FOG BUTTONS</h1>
+            <h6> FOG BUTTONS</h6>
             
             <div id = "fogbuttons", style="display: flex">
             </div>
