@@ -18,6 +18,7 @@ local maxNamesSize = 4500	 -- max number of names in history
 local cleanupAmount = 300
 
 local history = {}
+local validAccounts = {}	-- accountID to playerID
 local currentNames = {}		-- playerID to name
 local currentAccounts = {}	-- accountID to name
 
@@ -25,88 +26,66 @@ local reconnected = false	-- flag to track if this is a reconnection/reload
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
--- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those
--- THIS IS FUCKED UP BUT IT IS WHAT IT IS SOMEHOW
-local validAccounts = {}	-- accountID to playerID
-local playerList = Spring.GetPlayerList()
-for _, playerID in ipairs(playerList) do
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
-	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
-	if accountID and not validAccounts[accountID] then
-		validAccounts[accountID] = playerID
-	end
-end
-
 local function getPlayername(playerID, accountID, skipAlias)
 	if playerID then
 		accountID = nil
 	elseif accountID then
 		playerID = nil
 	end
-	local name
+
+	local name, playerInfo
 	if playerID then
+		-- provide name from cache first
 		if currentNames[playerID] then
 			return currentNames[playerID]
 		end
 		name, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
 		accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or false
-
-		-- skip an rejoined/added spec that use already existing accountID
 		if validAccounts[accountID] ~= playerID then
-			accountID = nil
+			accountID = nil	-- skip late added spectators that use an already existing accountID
 		end
 	end
 
-	if accountID then
-		-- find if name exists inhistory
-		local inHistory = false
-		if history[accountID] then
-			for i, historyName in ipairs(history[accountID]) do
-				if historyName == name then
-					inHistory = true
-					break
+	if name ~= 'unknown' then
+		if accountID then
+			-- find if name exists inhistory
+			local inHistory = falses
+			if history[accountID] then
+				for i, historyName in pairs(history[accountID]) do	-- using pairs only in case people carelessly delete names from widgetconfig (BYAR.lua)
+					if historyName == name then
+						inHistory = true
+						break
+					end
 				end
 			end
-		end
-		-- add to history
-		if not inHistory then
-			if not history[accountID] then
-				history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
-			else
-				-- add new name to existing history
-				table.insert(history[accountID], name)
-			end
-		end
-		-- pick name from history
-		if history[accountID] then
-			if not skipAlias and history[accountID].alias then
-				name = history[accountID].alias
-			else
-				if applyFirstEncounteredName then
-					name = history[accountID][1]
-				--else
-				--	name = history[accountID][#history[accountID]]
+			-- add to history
+			if not inHistory then
+				if not history[accountID] then
+					history[accountID] = { i = 1, d = tonumber(os.date("%y%m%d")), [1] = name }
+				else
+					-- add new name to existing history
+					table.insert(history[accountID], name)
 				end
 			end
-		end
-		currentAccounts[accountID] = name
-	end
-	if playerID then
-		currentNames[playerID] = name
-	end
-	-- if accountID is given and not in history yet, get name from ingame playerlist
-	if not name and accountID then
-		local playerList = Spring.GetPlayerList()
-		for _, pID in ipairs(playerList) do
-			local pname, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(pID)
-			local pAccountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
-			if pAccountID and pAccountID == accountID then
-				name = pname
-				break
+			-- pick name from history
+			if history[accountID] then
+				if not skipAlias and history[accountID].alias then
+					name = history[accountID].alias
+				else
+					if applyFirstEncounteredName then
+						name = history[accountID][1]
+					end
+				end
 			end
+			currentAccounts[accountID] = name
 		end
+		-- cache the name for playerID
+		if playerID then
+			currentNames[playerID] = name
+		end
+
+		return name
 	end
-	return name
 end
 
 local function getAccountHistory(accountID, full)
@@ -222,6 +201,13 @@ end
 function widget:Initialize()
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playerList) do
+		local _, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID)
+		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+		if accountID and not validAccounts[accountID] then
+			-- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those duplicates
+			-- THIS ISO FUCKED UP BUT IT IS WHAT IT IS SOMEHOW
+			validAccounts[accountID] = playerID
+		end
 		currentNames[playerID] = getPlayername(playerID)
 	end
 
