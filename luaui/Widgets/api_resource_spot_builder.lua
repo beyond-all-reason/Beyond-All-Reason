@@ -406,8 +406,12 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 
 	local _, ctrl, meta, _ = Spring.GetModKeyState()
 	
-	if meta and #cmds == 1 then -- Still allow cmd insert via meta if it's a single mex area mex cmd (ie clicking on an m spot)
+	if meta and #cmds == 1 then -- Still allow cmd insert via meta if it's a single mex area mex cmd (ie clicking on an m spot).
 		ctrl = true
+	end
+	
+	if meta and #mainBuilders <= 1 then -- no need to complexify giving a single command. ( and math.floor(i/(#unitArray)) would return 1 rather than 0)
+		meta = false
 	end
 
 	local unitArray = {} -- make unit array to avoid extra work
