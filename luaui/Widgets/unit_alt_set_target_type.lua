@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name 	= "Set unit type target",
-		desc 	= "Hold down Alt and set target on an enemy unit to automatically set target on all future enemies of that type",
+		desc 	= "Hold down Alt and set target on an enemy unit to make selected units set target on all future enemies of that type",
 		author  = "Flameink",
 		date	= "August 1, 2025",
 		version = "1.0",
