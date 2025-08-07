@@ -404,15 +404,16 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		return
 	end
 
-	local _, ctrl, meta, _ = Spring.GetModKeyState()
+	local _, ctrl , meta, _ = Spring.GetModKeyState()
 	
-	if meta and #cmds == 1 then -- Still allow cmd insert via meta if it's a single mex area mex cmd (ie clicking on an m spot).
-		ctrl = true
-	end
+	local insert = ctrl -- default is meta for split and ctrl for insert (maybe disable ctrl altogether)
+	local split = meta
 	
-	if meta and #mainBuilders <= 1 then -- no need to complexify giving a single command. ( and math.floor(i/(#unitArray)) would return 1 rather than 0)
-		meta = false
+	if meta and (#cmds == 1 or #mainBuilders <=1 ) then -- invert split/insert when single cmds or single units (no splitting can be done)
+		insert = meta
+		split = false
 	end
+
 
 	local unitArray = {} -- make unit array to avoid extra work
 	for i = 1, #mainBuilders do
@@ -423,11 +424,11 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		local cmd = cmds[i]
 		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		if ctrl then -- put at front of queue
+		if insert then -- put at front of queue
 			-- cmd insert layout is really weird, it needs to be formatted like:
 			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
 			-- this an engine command so index starts at 0. Increment position by command count
-			if not meta then -- Unchanged
+			if not split then -- Unchanged
 				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 			else
 				local temp =((i%(#unitArray) ~= 0) and (i%(#unitArray))) or #unitArray -- i turns into  (1;#unitArray) => this splits cmds across builders equally
@@ -442,7 +443,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
 			-- NEVER USE TERNARIES WITH OUTCOME VALUES THAT CAN BE FALSE
-			if not meta then -- Unchanged
+			if not split then -- Unchanged
 				fakeShift = false
 				if i == 1 then
 					fakeShift = shift
