@@ -415,11 +415,11 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		local cmd = cmds[i]
 		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		if meta then -- put at front of queue
+		if ctrl then -- put at front of queue
 			-- cmd insert layout is really weird, it needs to be formatted like:
 			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
 			-- this an engine command so index starts at 0. Increment position by command count
-			if not ctrl then -- Unchanged
+			if not meta then -- Unchanged
 				Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 			else
 				local temp =((i%(#unitArray) ~= 0) and (i%(#unitArray))) or #unitArray -- i turns into  (1;#unitArray) => this splits cmds across builders equally
@@ -434,7 +434,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			-- so we use the real shift value for the first command, then we force shift for all the others
 			-- since any commands passed to this function are intended to be queued, not discarded.
 			-- NEVER USE TERNARIES WITH OUTCOME VALUES THAT CAN BE FALSE
-			if not ctrl then -- Unchanged
+			if not meta then -- Unchanged
 				fakeShift = false
 				if i == 1 then
 					fakeShift = shift
