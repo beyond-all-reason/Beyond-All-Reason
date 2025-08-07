@@ -317,21 +317,19 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	-----------------------------------
 
 	-- order secondary builders to guard main builders, equally dispersed
-	local index = 1
+	-- Doo: Dispersion function changed; we don't care if #mainBuilder > #secondaryBuilders because secondary don't need to be give two guard cmds, so it's just a simple modulo function
+	
 	for i, uid in pairs(secondaryBuilders) do
-		local mainBuilderId = mainBuilders[index]
+		local targetIndex = (i%#mainBuilders ~= 0 and i%#mainBuilders) or #mainBuilders
+		local mainBuilderId = mainBuilders[targetIndex]
 		if not shift then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { })
-			index = index + 1
 		end
 		-- if we give a guard order on a unit already guarded with shift, it will get cancelled
 		-- so do some queue analysis and avoid duplicate commands
 		if shift and not hasExistingGuardOrder(uid) then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
-			index = index + 1
 		end
-
-		if index > #mainBuilders then index = 1 end
 	end
 
 	if #mainBuilders == 0 then return end
