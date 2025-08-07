@@ -13,13 +13,13 @@ function widget:GetInfo()
 	}
 end
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitDefID         = Spring.GetUnitDefID
+local spGetUnitPosition      = Spring.GetUnitPosition
+local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
+local spAreTeamsAllied       = Spring.AreTeamsAllied
+local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnits     = Spring.GetSelectedUnits
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -33,57 +33,37 @@ local UNIT_RANGE_MULTIPLIER = 1.5
 
 local gameStarted
 
-function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-		widgetHandler:RemoveWidget()
-	end
-end
+for udid, ud in pairs(UnitDefs) do
+	local maxRange = 0
 
-function widget:GameStart()
-	gameStarted = true
-	maybeRemoveSelf()
-end
-
-function widget:PlayerChanged(playerID)
-	maybeRemoveSelf()
-end
-
-function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
-    for udid, ud in pairs(UnitDefs) do
-        local maxRange = 0
-
-		for ii, weapon in ipairs(ud.weapons) do
-			if weapon.weaponDef then
-				local weaponDef = WeaponDefs[weapon.weaponDef]
-				if weaponDef then
-					if weaponDef.range > maxRange then
-						maxRange = weaponDef.range
-					end
+	for ii, weapon in ipairs(ud.weapons) do
+		if weapon.weaponDef then
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef then
+				if weaponDef.range > maxRange then
+					maxRange = weaponDef.range
 				end
 			end
 		end
+	end
 
-		unitRanges[udid] = maxRange
-    end
+	unitRanges[udid] = maxRange
 end
 
 local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
     local unitsInRange = {}
 
-    local ux, uy, uz = Spring.GetUnitPosition(unitID)
+    local ux, uy, uz = spGetUnitPosition(unitID)
     if not ux then return unitsInRange end
 
     local maxRange = unitRanges[spGetUnitDefID(unitID)]
     if maxRange == nil or maxRange <= 0 then return unitsInRange end
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
-    local candidateUnits = Spring.GetUnitsInCylinder(ux, uz, maxRange)
+    local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
 	for _, targetID in ipairs(candidateUnits) do
         if targetID ~= unitID then
-            local isAllied = Spring.AreTeamsAllied(myAllyTeam, Spring.GetUnitTeam(targetID))
+            local isAllied = spAreTeamsAllied(myAllyTeam, spGetUnitTeam(targetID))
 			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
 				table.insert(unitsInRange, targetID)
             end
@@ -110,7 +90,7 @@ function widget:GameFrame(frame)
 			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }			
 		end
 
-		Spring.GiveOrderArrayToUnitArray({ unitID }, commandsToGive)
+		spGiveOrderArrayToUnit(unitID, commandsToGive)
 	end
 end
 
@@ -120,7 +100,7 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local shouldCleanupTargeting = false
-	local selectedUnits = Spring.GetSelectedUnits()
+	local selectedUnits = spGetSelectedUnits()
 	if cmdID == CMD_UNIT_CANCEL_TARGET then
 		shouldCleanupTargeting = true
 	end
@@ -152,3 +132,23 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 end
 
+function maybeRemoveSelf()
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
+end
+
+function widget:GameStart()
+	gameStarted = true
+	maybeRemoveSelf()
+end
+
+function widget:PlayerChanged(playerID)
+	maybeRemoveSelf()
+end
+
+function widget:Initialize()
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
+end
