@@ -14,6 +14,12 @@ function widget:GetInfo()
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+local spGetSelectedUnits = Spring.GetSelectedUnits
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
