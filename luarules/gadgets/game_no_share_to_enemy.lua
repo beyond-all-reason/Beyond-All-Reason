@@ -40,11 +40,24 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
-    if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or not isSharing or IsCheatingEnabled() then
-        return true
-    end
+function gadget:Initialize()
+	BuildNonPlayerTeamList()
+	
+	-- Register with centralized transfer system
+	if GG.BARTransfer then
+		GG.BARTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			-- Only validate sharing/transfer actions
+			if not GG.BARTransfer.IsTransferReason(reason) then
+				return true
+			end
+			
+			if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
+				return true
+			end
 
-    return false
+			return false
+		end)
+	end
 end
+
+-- AllowUnitTransfer removed - validation now handled by centralized BARTransfer validator system

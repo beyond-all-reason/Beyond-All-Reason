@@ -25,9 +25,17 @@ if not (Spring.GetModOptions().disable_unit_sharing
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, reason)
-	if reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD then
-		return false
+function gadget:Initialize()
+	-- Register with centralized transfer system
+	if GG.BARTransfer then
+		GG.BARTransfer.RegisterValidator("DisableUnitSharing", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			-- Block all sharing/transfer actions
+			if GG.BARTransfer.IsTransferReason(reason) then
+				return false
+			end
+			return true
+		end)
 	end
-	return true
 end
+
+-- AllowUnitTransfer removed - validation now handled by centralized BARTransfer validator system

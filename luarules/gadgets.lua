@@ -98,18 +98,20 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
-gadgetHandler.GG.CHANGETEAM_REASON = {
-	RECLAIMED            = 0, -- engine-side
-	GIVEN                = 1, -- engine-side
-	CAPTURED             = 2, -- engine-side
-	IDLE_PLAYER_TAKEOVER = 3, -- /take command for idle players
-	TAKEN                = 4, -- /take command
-	SOLD                 = 5, -- market sales
-	SCAVENGED            = 6, -- scavenger transfers
-	UPGRADED             = 7, -- unit upgrades
-	DECORATION           = 8, -- non-gameplay transfers (e.g., hats, wrecks)
-	DEV_TRANSFER         = 9, -- for developer/debug commands
-}
+-- @deprecated This enum definition is deprecated and will be removed in future versions.
+-- Use GG.BARTransfer.REASON from team_transfer_bar.lua gadget instead.
+-- gadgetHandler.GG.CHANGETEAM_REASON = {
+-- 	RECLAIMED            = 0, -- engine-side
+-- 	GIVEN                = 1, -- engine-side
+-- 	CAPTURED             = 2, -- engine-side
+-- 	IDLE_PLAYER_TAKEOVER = 3, -- /take command for idle players
+-- 	TAKEN                = 4, -- /take command
+-- 	SOLD                 = 5, -- market sales
+-- 	SCAVENGED            = 6, -- scavenger transfers
+-- 	UPGRADED             = 7, -- unit upgrades
+-- 	DECORATION           = 8, -- non-gameplay transfers (e.g., hats, wrecks)
+-- 	DEV_TRANSFER         = 9, -- for developer/debug commands
+-- }
 
 
 -- these call-ins are set to 'nil' if not used

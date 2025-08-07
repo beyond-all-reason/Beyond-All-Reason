@@ -54,15 +54,20 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return true
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
-	if not isSharing then
-		return true
-	end
+function gadget:Initialize()
+	-- Register with centralized transfer system
+	if GG.BARTransfer then
+		GG.BARTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			-- Only validate sharing/transfer actions
+			if not GG.BARTransfer.IsTransferReason(reason) then
+				return true
+			end
 
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
-		return true
+			local unitCount = spGetTeamUnitCount(newTeam)
+			if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+				return true
+			end
+			return false
+		end)
 	end
-	return false
 end

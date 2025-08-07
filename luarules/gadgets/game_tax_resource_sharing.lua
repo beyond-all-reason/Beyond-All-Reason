@@ -68,13 +68,21 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if spIsCheatingEnabled() or unitCount < gameMaxUnits then
-		return true
+function gadget:Initialize()
+	-- Register with centralized transfer system
+	if GG.BARTransfer then
+		GG.BARTransfer.RegisterValidator("TaxUnitLimit", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			local unitCount = spGetTeamUnitCount(newTeam)
+			if spIsCheatingEnabled() or unitCount < gameMaxUnits then
+				return true
+			end
+			return false
+		end)
 	end
-	return false
 end
+
+-- Keep the old function as fallback for compatibility
+-- AllowUnitTransfer removed - validation now handled by centralized BARTransfer validator system
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)

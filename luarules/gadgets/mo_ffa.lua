@@ -130,13 +130,19 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-		local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
-		if oldTeam == newTeam or not isSharing then
-			return true
+	function gadget:Initialize()
+		-- Register validator with BARTransfer system
+		if GG.BARTransfer then
+			GG.BARTransfer.RegisterValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
+				local isSharing = (reason == GG.BARTransfer.REASON.GIVEN or reason == GG.BARTransfer.REASON.IDLE_PLAYER_TAKEOVER or reason == GG.BARTransfer.REASON.TAKEN or reason == GG.BARTransfer.REASON.SOLD)
+				if oldTeam == newTeam or not isSharing then
+					return true
+				end
+				return not deadTeam[newTeam]
+			end)
 		end
-		return not deadTeam[newTeam]
 	end
+
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)

@@ -44,22 +44,28 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     return false
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-	if oldTeam == newTeam then
-		return true
+function gadget:Initialize()
+	-- Register with centralized transfer system
+	if GG.BARTransfer then
+		GG.BARTransfer.RegisterValidator("MarketplaceRequired", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			if oldTeam == newTeam then
+				return true
+			end
+
+			-- Only validate sharing/transfer actions
+			if not GG.BARTransfer.IsTransferReason(reason) then
+				return true
+			end
+
+			if (marketplaces[oldTeam] > 0 and marketplaces[newTeam] > 0) or spIsCheatingEnabled() then
+				return true
+			end
+
+			return false
+		end)
 	end
-
-	local isSharing = (reason == GG.CHANGETEAM_REASON.GIVEN or reason == GG.CHANGETEAM_REASON.IDLE_PLAYER_TAKEOVER or reason == GG.CHANGETEAM_REASON.TAKEN or reason == GG.CHANGETEAM_REASON.SOLD)
-	if not isSharing then
-		return true
-	end
-
-    if (marketplaces[oldTeam] > 0 and marketplaces[newTeam] > 0) or spIsCheatingEnabled() then
-        return true
-    end
-
-    return false
 end
+
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	if isMarketPlace[unitDefID] then
