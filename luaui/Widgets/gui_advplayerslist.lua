@@ -2996,11 +2996,18 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 		if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
 			local text = ''
 		 	local c = 0
+
+            local pname = Spring.GetPlayerInfo(playerID, false)
 			for i, name in ipairs(player[playerID].history) do
 				if player[playerID].name ~= name then
 					if c > 0 then
 						text = text .. '\n'
 					end
+                    if name == pname then
+                        text = text .. '> '
+                    else
+                        text = text .. '  '
+                    end
 					text = text .. name
 		 			c = c + 1
 				end
