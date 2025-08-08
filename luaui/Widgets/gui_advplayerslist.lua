@@ -765,11 +765,25 @@ local function doPlayerUpdate()
     CreateLists()
 end
 
+local function SetOriginalColourNames()
+    -- Saves the original team colours associated to team teamID
+    for playerID, _ in pairs(player) do
+        if player[playerID].name and not player[playerID].spec and playerID < specOffset then
+            local r, g, b = colourNames(player[playerID].team, true)
+            originalColourNames[playerID] = { r, g, b }
+        end
+    end
+end
+
 function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+    -- UNTESTED: reset original color names for the player, cause they can be wrong depending on the anonymous mode
+    if anonymousMode and playerID == myPlayerID and not mySpecStatus and Spring.GetSpectatingState() then
+        SetOriginalColourNames()
+    end
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
@@ -938,17 +952,6 @@ function widget:Initialize()
 	end
 
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
-end
-
-
-local function SetOriginalColourNames()
-    -- Saves the original team colours associated to team teamID
-    for playerID, _ in pairs(player) do
-        if player[playerID].name and not player[playerID].spec and playerID < specOffset then
-            local r, g, b = colourNames(player[playerID].team, true)
-            originalColourNames[playerID] = { r, g, b }
-        end
-    end
 end
 
 function widget:GameOver(winningAllyTeams)
