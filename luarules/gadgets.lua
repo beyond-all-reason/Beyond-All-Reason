@@ -98,21 +98,6 @@ gadgetHandler = {
 	mouseOwner = nil,
 }
 
--- @deprecated This enum definition is deprecated and will be removed in future versions.
--- Use GG.BARTransfer.REASON from team_transfer_bar.lua gadget instead.
--- gadgetHandler.GG.CHANGETEAM_REASON = {
--- 	RECLAIMED            = 0, -- engine-side
--- 	GIVEN                = 1, -- engine-side
--- 	CAPTURED             = 2, -- engine-side
--- 	IDLE_PLAYER_TAKEOVER = 3, -- /take command for idle players
--- 	TAKEN                = 4, -- /take command
--- 	SOLD                 = 5, -- market sales
--- 	SCAVENGED            = 6, -- scavenger transfers
--- 	UPGRADED             = 7, -- unit upgrades
--- 	DECORATION           = 8, -- non-gameplay transfers (e.g., hats, wrecks)
--- 	DEV_TRANSFER         = 9, -- for developer/debug commands
--- }
-
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
@@ -1557,20 +1542,16 @@ function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDe
 	return true
 end
 
-function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
-										 oldTeam, newTeam, reason)
-	if (self.AllowUnitTransferList) then
-		for _, g in ipairs(self.AllowUnitTransferList) do
-			if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) then
-				return false
-			end
+function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+	for _, g in ipairs(self.AllowUnitTransferList) do
+		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) then
+			return false
 		end
 	end
 	return true
 end
 
-function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
-                                          unitID, unitDefID, part)
+function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
@@ -1857,6 +1838,8 @@ function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
@@ -1867,14 +1850,19 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 			Spring.TransferUnitWithReason(subUnitID, newTeam, GG.BARTransfer.REASON.TAKEN)
 		end
 	end
-	GG.Metal.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadgetHandler:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+	gadgetHandler:MetaUnitAdded(unitID, unitDefID, newTeam)
+	
 	for _, g in ipairs(self.UnitGivenList) do
 		g:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
-	GG.Metal.UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+	for _, g in ipairs(self.UnitGivenList) do
+		if g.Metal and g.Metal.UnitGiven then
+			g.Metal:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+		end
+	end
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
