@@ -214,6 +214,67 @@ local labGrids = {
 		"corkorg", "corshiva", "corsala", "corparrow",              -- juggernaut, shiva, salamander, poison arrow
 		"corsok",                                                   -- cataphract
 	},
+	-- Split Tier Labs
+
+	corhalab = {
+		"corhack", "corsktl", "corsumo", "corshiva",
+		"corcat", "corkarg", "corvoyr", "corspec",
+		"corkorg", "cordecom", "cordemon", "", 
+	},
+
+	armhalab = {
+		"armhack", "armspid", "armfast", "armamph",
+		"armfido", "armzeus", "", "armvader",
+		"", "armmav", "armaak", "",
+	},
+
+	leghalab = {
+		"leghack", "leginfestor", "legstr", "legamph",
+		"legbart", "legshot", "", "legsnapper",
+		"", "", "legadvaabot", "",
+	},
+
+	armhaap = {
+		"armhaca", "armsfig", "armsaber", "armsb",           -- T2 con, seaplane, gunship, bomber
+		"armsehak", "armhvytrans", "armseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	corhaap = {
+		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
+		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
+		"", "", "", "",                                     -- empty rows
+	},
+
+	armhasy = {
+		"armhacs", "", "armmship", "",              
+		"armlship", "armcrus", "", "",              
+		"armsubk", "", "armaas", "",              
+	},
+
+	corhasy = {
+		"corhacs", "", "cormship", "",              
+		"corfship", "corcrus", "", "",              
+		"corshark", "", "corarch", "",              
+	},
+
+	armhavp = {
+		"armhacv", "armmlv", "armlatnk", "armpincer",
+		"armmart", "armcroc", "", "armgremlin",
+		"", "armbeaver", "", "",
+	},
+
+	corhavp = {
+		"corhacv", "cormabm", "corban", "corgol",
+		"cortrem", "corsok", "corvrad", "coreter",
+		"corparrow", "corvroc", "corsent", "",
+	},
+
+	leghavp = {
+		"leghacv", "legmlv", "legmrv", "legamphtank",
+		"legamcluster", "legaskirmtank", "", "legvcarry",
+		"legfloat", "legotter", "", "",
+	},
 }
 local unitGrids = {
 	-- Air assist drones
@@ -1710,6 +1771,239 @@ local unitGrids = {
 			{ },                                               --
 		}
 	},
+
+	-- Split tier cons
+
+	armhaca = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armap","","","",},
+			{"","armaap","armhaap","",},
+			{"","","","",},
+		},
+	},
+
+	corhaca = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corap","","","",},
+			{"","coraap","corhaap","",},
+			{"","","","",},
+		},
+	},
+	
+	armhack = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armlab","","","",},
+			{"","armalab","armhalab","",},
+			{"","","","",},
+		},
+	},
+
+	corhack = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","","","",},
+			{"","coralab","corhalab","",},
+			{"","","","",},
+		},
+	},
+
+	leghack = {
+		{
+			{"legmext15","legadvsol","legfus","",},
+			{"legeconv","","","",},
+			{"","","","",},
+		},
+		{
+			{"legmg","legdtr","legcluster","leghive",},
+			{"legrhapsis","leglupara","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"lagarad","legajam","legsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"leglab","","","",},
+			{"","legalab","leghalab","",},
+			{"","","","",},
+		},
+	},
+
+	armhacv = {
+		{
+			{"armamex","armadvsol","armfus","armgmm",},
+			{"armmakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armbeamer","armhlt","armclaw","armguard",},
+			{"armferret","armcir","","",},
+			{"armjuno","","","",},
+		},
+		{
+			{"armarad","armveil","armsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armvp","","","",},
+			{"","armavp","armhavp","",},
+			{"","","","",},
+		},
+	},
+
+	corhacv = {
+		{
+			{"corexp","coradvsol","corfus","",},
+			{"cormakr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corhlt","cormaw","corpun","",},
+			{"cormadsam","corerad","","",},
+			{"corjuno","","","",},
+		},
+		{
+			{"cararad","corshroud","corsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corlab","","","",},
+			{"","coralab","corhalab","",},
+			{"","","","",},
+		},
+	},
+
+	leghacv = {
+		{
+			{"legmext15","legadvsol","legfus","",},
+			{"legeconv","","","",},
+			{"","","","",},
+		},
+		{
+			{"legmg","legdtr","legcluster","leghive",},
+			{"legrhapsis","leglupara","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"lagarad","legajam","legsd","",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"legvp","","","",},
+			{"","legavp","leghavp","",},
+			{"","","","",},
+		},
+	},
+
+	armhacs = {
+		{
+			{"armamex", "armtide", "armuwfus", "",},
+			{"armfmkr","","","",},
+			{"","","","",},
+		},
+		{
+			{"armfhlt", "armkraken", "armclaw", "armguard",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"armason", "", "armfdrag", "", },
+			{"armarad", "armveil", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"armsy", "", "armplat", "", },
+			{"", "armasy", "armhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
+	corhacs = {
+		{
+			{"corexp", "cortide", "coruwfus", "",},
+			{"corfmkr","","","",},
+			{"","","","",},
+		},
+		{
+			{"corfhlt", "corfdoom", "cormaw", "corpun",},
+			{"","","","",},
+			{"","","","",},
+		},
+		{
+			{"corason", "", "corfdrag", "", },
+			{"corarad", "corshroud", "", "", },
+			{"", "", "", "", },
+		},
+		{
+			{"corsy", "", "corplat", "", },
+			{"", "corasy", "corhasy", "", },
+			{"", "", "", "", },
+		},
+	},
+
 
 	--minelayers
 	armmlv = {
