@@ -712,7 +712,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if carrierMetaList[unitID] then
 		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-			spTransferUnit(subUnitID, newTeam, GG.BARTransfer.REASON.CAPTURED)
+            spTransferUnit(subUnitID, newTeam, GG.TeamTransfer.REASON.CAPTURED)
 		end
 	end
 end
@@ -721,7 +721,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if carrierMetaList[unitID] then
 		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-			spTransferUnit(subUnitID, unitTeam, GG.BARTransfer.REASON.GIVEN)
+            spTransferUnit(subUnitID, unitTeam, GG.TeamTransfer.REASON.GIVEN)
 		end
 		end
 	end
@@ -846,7 +846,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					standalone = true
 					local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierMetaList[unitID].controlRadius)
 					if enemyunitID then
-						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), GG.BARTransfer.REASON.CAPTURED)
+                        spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), GG.TeamTransfer.REASON.CAPTURED)
 					end
 				elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
 					standalone = true

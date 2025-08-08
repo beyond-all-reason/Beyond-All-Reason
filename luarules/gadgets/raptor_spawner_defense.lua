@@ -2125,13 +2125,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:TeamDied(teamID)
 		humanTeams[teamID] = nil
-		--computerTeams[teamID] = nil
 	end
 
 	function gadget:Initialize()
-		-- Register validator with BARTransfer system
-		if GG.BARTransfer then
-			GG.BARTransfer.RegisterValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if GG.TeamTransfer then
+            GG.TeamTransfer.RegisterValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
 				if spGetUnitDefID(unitID) == raptorDefID then
 					local raptorTeam = GetRaptorTeam()
 					if oldTeam == raptorTeam and newTeam ~= raptorTeam then

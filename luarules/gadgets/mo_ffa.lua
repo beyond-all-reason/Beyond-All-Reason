@@ -131,10 +131,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		-- Register validator with BARTransfer system
-		if GG.BARTransfer then
-			GG.BARTransfer.RegisterValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
-				local isSharing = (reason == GG.BARTransfer.REASON.GIVEN or reason == GG.BARTransfer.REASON.IDLE_PLAYER_TAKEOVER or reason == GG.BARTransfer.REASON.TAKEN or reason == GG.BARTransfer.REASON.SOLD)
+    if GG.TeamTransfer then
+        GG.TeamTransfer.RegisterValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
+            local isSharing = (reason == GG.TeamTransfer.REASON.GIVEN or reason == GG.TeamTransfer.REASON.IDLE_PLAYER_TAKEOVER or reason == GG.TeamTransfer.REASON.TAKEN or reason == GG.TeamTransfer.REASON.SOLD)
 				if oldTeam == newTeam or not isSharing then
 					return true
 				end

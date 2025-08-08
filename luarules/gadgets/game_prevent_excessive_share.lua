@@ -50,16 +50,14 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 		return false
 	end
 
-	-- Allow anything we don't explictly block
 	return true
 end
 
 function gadget:Initialize()
-	-- Register with centralized transfer system
-	if GG.BARTransfer then
-		GG.BARTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    if GG.TeamTransfer then
+        GG.TeamTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
 			-- Only validate sharing/transfer actions
-			if not GG.BARTransfer.IsTransferReason(reason) then
+            if not GG.TeamTransfer.IsTransferReason(reason) then
 				return true
 			end
 

@@ -1847,7 +1847,7 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if carrierMetaList[unitID] then
 		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-			Spring.TransferUnitWithReason(subUnitID, newTeam, GG.BARTransfer.REASON.TAKEN)
+            Spring.TransferUnitWithReason(subUnitID, newTeam, GG.TeamTransfer.REASON.TAKEN)
 		end
 	end
 end

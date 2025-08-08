@@ -46,14 +46,14 @@ end
 
 function gadget:Initialize()
 	-- Register with centralized transfer system
-	if GG.BARTransfer then
-		GG.BARTransfer.RegisterValidator("MarketplaceRequired", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    if GG.TeamTransfer then
+        GG.TeamTransfer.RegisterValidator("MarketplaceRequired", function(unitID, unitDefID, oldTeam, newTeam, reason)
 			if oldTeam == newTeam then
 				return true
 			end
 
 			-- Only validate sharing/transfer actions
-			if not GG.BARTransfer.IsTransferReason(reason) then
+            if not GG.TeamTransfer.IsTransferReason(reason) then
 				return true
 			end
 

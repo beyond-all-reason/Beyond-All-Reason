@@ -42,12 +42,11 @@ end
 
 function gadget:Initialize()
 	BuildNonPlayerTeamList()
-	
-	-- Register with centralized transfer system
-	if GG.BARTransfer then
-		GG.BARTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
-			-- Only validate sharing/transfer actions
-			if not GG.BARTransfer.IsTransferReason(reason) then
+
+    if GG.TeamTransfer then
+        GG.TeamTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			-- Only validate sharing/transfer actions we care about (unit shares)
+            if reason ~= GG.TeamTransfer.REASON.GIVEN then
 				return true
 			end
 			

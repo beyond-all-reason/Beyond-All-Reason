@@ -21,9 +21,8 @@ local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
 function gadget:Initialize()
-	-- Register validator with BARTransfer system
-	if GG.BARTransfer then
-		GG.BARTransfer.RegisterValidator("PreventShareSelfD", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    if GG.TeamTransfer then
+        GG.TeamTransfer.RegisterValidator("PreventShareSelfD", function(unitID, unitDefID, oldTeam, newTeam, reason)
 			if not unitID or type(unitID) ~= "number" then
 				return true
 			end
