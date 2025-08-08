@@ -421,17 +421,8 @@ local autocompleteCommands = {
 
 local autocompleteText
 local autocompletePlayernames = {}
-local playersList = Spring.GetPlayerList()
 local playernames = {}
-for _, playerID in ipairs(playersList) do
-	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
-	autocompletePlayernames[#autocompletePlayernames+1] = name
-	if historyName ~= name then
-		autocompletePlayernames[#autocompletePlayernames+1] = historyName
-	end
-end
+local playersList = Spring.GetPlayerList()
 
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
@@ -2429,7 +2420,7 @@ function widget:PlayerChanged(playerID)
 		inputMode = 's:'
 	end
 	local name, _, isSpec = spGetPlayerInfo(playerID, false)
-	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if not playernames[name] then
 		widget:PlayerAdded(playerID)
 	else
@@ -2447,6 +2438,9 @@ function widget:PlayerAdded(playerID)
 	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
+	if historyName ~= name then
+		autocompletePlayernames[#autocompletePlayernames+1] = historyName
+	end
 end
 
 local function clearconsoleCmd(_, _, params)
@@ -2585,6 +2579,16 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
+	
+	for _, playerID in ipairs(playersList) do
+		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+		playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+		autocompletePlayernames[#autocompletePlayernames+1] = name
+		if historyName ~= name then
+			autocompletePlayernames[#autocompletePlayernames+1] = historyName
+		end
+	end
 end
 
 function widget:Shutdown()
