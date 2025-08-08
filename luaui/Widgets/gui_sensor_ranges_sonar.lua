@@ -153,6 +153,19 @@ function widget:DrawGenesis()
     gl.RenderToTexture(sonarStencilTexture, DrawLOSStencil)
 end
 
+-- When paused, DrawGenesis is removed. We have to pick up some rerenders ourselves.
+local forceRender = false
+
+function widget:GamePaused(playerID, paused)
+	if paused then
+		widgetHandler:RemoveCallIn("DrawGenesis")
+		forceRender = true
+	else
+		widgetHandler:UpdateCallIn("DrawGenesis")
+		forceRender = false
+	end
+end
+
 -- This shows the debug stencil texture in the bottom left corner of the screen
 if debugmode then 
 	function widget:DrawScreen()	
@@ -212,6 +225,9 @@ local function InitializeUnits()
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
+	if forceRender then
+		gl.RenderToTexture(sonarStencilTexture, DrawLOSStencil)
+	end
 end
 
 function widget:PlayerChanged()
