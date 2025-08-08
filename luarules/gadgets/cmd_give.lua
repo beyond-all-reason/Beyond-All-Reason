@@ -118,7 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID,false))
+	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
 	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 	local authorized = SYNCED.permissions.give[accountID]
 

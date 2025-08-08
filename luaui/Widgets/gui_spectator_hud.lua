@@ -542,6 +542,7 @@ local function buildPlayerData()
 				if playerID and playerID[1] then
 					-- it's a player
 					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
+					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
 				else
 					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
@@ -1122,7 +1123,7 @@ local function drawBars()
 		(mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
 		mouseOnBar = true
 	end
-	
+
 	for metricIndex,metric in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height

@@ -1215,6 +1215,7 @@ local function drawUnitInfo()
 		if mySpec or (myTeamID ~= teamID) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
