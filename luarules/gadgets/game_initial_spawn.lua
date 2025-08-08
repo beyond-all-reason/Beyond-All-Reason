@@ -463,6 +463,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local startUnitList = {}
+	local startUnitBlocking = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -498,6 +499,8 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					startUnitBlocking[unitID] = { Spring.GetUnitBlocking(unitID) }
+					Spring.SetUnitBlocking(unitID, false, false, false, false, false, false, false)
 				end
 			end
 		end
@@ -602,6 +605,10 @@ if gadgetHandler:IsSyncedCode() then
                     Spring.MoveCtrl.Disable(unitID)
                     Spring.SetUnitNoDraw(unitID, false)
                     Spring.SetUnitHealth(unitID, { paralyze = 0 })
+					local unitBlocking = startUnitBlocking[unitID]
+					if unitBlocking then
+						Spring.SetUnitBlocking(unitID, unpack(unitBlocking))
+					end
                 end
             end
 		end
