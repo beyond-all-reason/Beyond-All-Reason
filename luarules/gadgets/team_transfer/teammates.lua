@@ -1,4 +1,4 @@
-local TeamTransfer = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
+
 local Units = VFS.Include("LuaRules/Gadgets/team_transfer/units.lua")
 local Resources = VFS.Include("LuaRules/Gadgets/team_transfer/resources.lua")
 
@@ -62,18 +62,33 @@ function Teammates.GiveToTeam(playerData, targetTeam, selectedUnits)
 end
 
 -- Team relationship validation
+function Teammates.TeamHasActiveHumanPlayers(teamID)
+    for _, pid in ipairs(Spring.GetPlayerList()) do
+        local _, active, _, playerTeamID, _, _, isAI = Spring.GetPlayerInfo(pid)
+        if playerTeamID == teamID and (type(isAI) ~= 'boolean' or isAI == false) and active then
+            return true
+        end
+    end
+    return false
+end
+
 function Teammates.CanTakeFrom(fromTeam, toTeam)
     if not Spring.AreTeamsAllied(fromTeam, toTeam) then
         return false, "Can only take from allied teams"
     end
-    
-    for _, pid in ipairs(Spring.GetPlayerList()) do
-        local _, _, _, teamID, _, _, isAI = Spring.GetPlayerInfo(pid)
-        if teamID == fromTeam and (type(isAI) ~= 'boolean' or isAI == false) then
-            return false, "Team has human players"
-        end
+    if Teammates.TeamHasActiveHumanPlayers(fromTeam) then
+        return false, "Team has active human players"
     end
-    
+    return true
+end
+
+function Teammates.HandleIdleTakeover(unitID, oldTeam, newTeam)
+    local canTake, reason = Teammates.CanTakeFrom(oldTeam, newTeam)
+    if not canTake then
+        Spring.Log("TeamTransfer", LOG.WARNING, "Idle takeover blocked: " .. reason)
+        return false
+    end
+    Spring.Log("TeamTransfer", LOG.INFO, "Idle player takeover: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
     return true
 end
 

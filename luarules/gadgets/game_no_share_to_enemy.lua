@@ -43,20 +43,18 @@ end
 function gadget:Initialize()
 	BuildNonPlayerTeamList()
 
-    if GG.TeamTransfer then
-        GG.TeamTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
-			-- Only validate sharing/transfer actions we care about (unit shares)
-            if reason ~= GG.TeamTransfer.REASON.GIVEN then
-				return true
-			end
-			
-			if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
-				return true
-			end
+    GG.TeamTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        -- Only validate sharing/transfer actions we care about (unit shares)
+        if reason ~= GG.TeamTransfer.REASON.GIVEN then
+            return true
+        end
+        
+        if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
+            return true
+        end
 
-			return false
-		end)
-	end
+        return false
+    end)
 end
 
--- AllowUnitTransfer removed - validation now handled by centralized BARTransfer validator system
+-- AllowUnitTransfer removed - validation now handled by centralized TeamTransfer validator system

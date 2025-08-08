@@ -1,19 +1,5 @@
 local TeamTransfer = {}
 
--- Domain ownership - hooks this gadget completely controls
-TeamTransfer.OWNED_HOOKS = {
-    "NetShareTransfer",
-    "TeamTransfer", 
-    "BuilderCapture",
-    "TeamGiveEverything",
-    "TeamGiveEverythingComplete",
-    "NetResourceTransfer",
-    "take",
-    "capture", 
-    "give",
-    "aishare"
-}
-
 TeamTransfer.REASON = {
     RECLAIMED            = 0, -- Unit wreckage reclaimed and converted to resources
     GIVEN                = 1, -- Player explicitly shares units via give command or team death
@@ -27,14 +13,16 @@ TeamTransfer.REASON = {
     DEV_TRANSFER         = 9, -- Development/debugging transfers
 }
 
+local modOptions = Spring.GetModOptions()
+
 TeamTransfer.config = {
-    allowResourceSharing = true,
-    allowUnitSharing = true,
-    allowEnemyResourceSharing = false,
-    allowEnemyUnitSharing = false,
-    allowBuilderSharing = false,
-    shareDelaySeconds = 0,
-    enabled = true,
+    allowResourceSharing = modOptions.allow_resource_sharing == 1,
+    allowUnitSharing = modOptions.allow_unit_sharing == 1,
+    allowEnemyResourceSharing = modOptions.allow_enemy_resource_sharing == 1,
+    allowEnemyUnitSharing = modOptions.allow_enemy_unit_sharing == 1,
+    allowBuilderSharing = modOptions.allow_builder_sharing == 1,
+    shareDelaySeconds = modOptions.share_delay_seconds or 0,
+    enabled = modOptions.team_transfer_enabled == 1,
 }
 
 TeamTransfer.devConfig = {

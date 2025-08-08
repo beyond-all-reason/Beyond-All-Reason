@@ -1,4 +1,4 @@
-local TeamTransfer = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
+
 
 local Resources = {}
 

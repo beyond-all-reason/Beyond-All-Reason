@@ -1,4 +1,4 @@
-local TeamTransfer = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
+
 
 local Units = {}
 
@@ -23,7 +23,9 @@ function Units.ChangeTeamWithReason(unitID, oldTeam, newTeam, reason)
     elseif reason == TeamTransfer.REASON.DECORATION then
         return Units.HandleDecoration(unitID, oldTeam, newTeam)
     elseif reason == TeamTransfer.REASON.IDLE_PLAYER_TAKEOVER then
-        return Units.HandleIdleTakeover(unitID, oldTeam, newTeam)
+        -- Delegate to teammates module for validation
+        logInfo("Idle player takeover: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
+        return true -- Validation should be done at the command level
     elseif reason == TeamTransfer.REASON.DEV_TRANSFER then
         logInfo("Dev transfer: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
         return true
@@ -107,22 +109,6 @@ function Units.HandleDecoration(unitID, oldTeam, newTeam)
     return true
 end
 
-function Units.HandleIdleTakeover(unitID, oldTeam, newTeam)
-    local oldAllyTeam = select(4, Spring.GetTeamInfo(oldTeam))
-    local newAllyTeam = select(4, Spring.GetTeamInfo(newTeam))
-    if oldAllyTeam ~= newAllyTeam then
-        logWarn("Idle takeover blocked: Can only take from allied teams")
-        return false
-    end
-    for _, pid in ipairs(Spring.GetPlayerList()) do
-        local _, active, _, teamID, _, _, isAI = Spring.GetPlayerInfo(pid)
-        if teamID == oldTeam and (type(isAI) ~= 'boolean' or isAI == false) and active then
-            logWarn("Idle takeover blocked: Team " .. oldTeam .. " has active human players")
-            return false
-        end
-    end
-    logInfo("Idle player takeover: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
-    return true
-end
+
 
 return Units

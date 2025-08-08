@@ -45,93 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.GetGameFrame() >= leaveWreckageFromFrame then
 			GG.wipeoutWithWreckage = leaveWreckage
 		end
-	end
-
-	function gadget:TeamDied(teamID)
-		-- make sure units are killed properly
-		-- we cannot kill units here directly or it'd complain about recursion
-		teamsWithUnitsToKill[teamID] = true
-	end
-
-	local function destroyTeam(teamID)
-		Spring.KillTeam(teamID)
-		deadTeam[teamID] = true
-		SendToUnsynced("TeamDestroyed", teamID)
-	end
-
-	function gadget:GameFrame(gameFrame)
-		if gameFrame == leaveWreckageFromFrame then
-			GG.wipeoutWithWreckage = leaveWreckage
-		end
-
-		for teamID in pairs(teamsWithUnitsToKill) do
-			destroyTeam(teamID)
-			teamsWithUnitsToKill[teamID] = nil
-		end
-
-		local allResigned, noneControlling
-		for i=1, #teamList do
-			local teamID = teamList[i]
-			if not deadTeam[teamID] then
-				if not teamInfo[teamID] then
-					teamInfo[teamID] = {
-						players = GetPlayerList(teamID),
-						isLuaAiGaia = teamID == gaiaTeamID or GetTeamLuaAI(teamID) ~= "",
-						hostingPlayerID = GetAIInfo(teamID) and select(3, GetAIInfo(teamID)) or nil,
-					}
-				end
-
-				allResigned = true
-				noneControlling = true
-
-				-- team is handled by lua scripts
-				if teamInfo[teamID] then
-					allResigned, noneControlling = false, false
-				end
-
-				for _, playerID in pairs(teamInfo[teamID].players) do
-					local _, active, spec = GetPlayerInfo(playerID, false)
-					allResigned = allResigned and spec
-					noneControlling = noneControlling and (not active or spec)
-				end
-
-				-- team is handled by skirmish AI, make sure the hosting player is present
-				if teamInfo[teamID].hostingPlayerID then
-					allResigned = false
-					noneControlling = noneControlling and not select(2, GetPlayerInfo(teamInfo[teamID].hostingPlayerID, false))
-				end
-
-				if noneControlling then
-					if allResigned then
-						destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
-					elseif not droppedTeam[teamID] then
-						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
-						SendToUnsynced("PlayerWarned", teamID, math.floor(gracePeriod / (Game.gameSpeed * 60))) -- minutesGrace
-						droppedTeam[teamID] = gameFrame
-					end
-				elseif droppedTeam[teamID] then
-					SendToUnsynced("PlayerReconnected", teamID)
-					droppedTeam[teamID] = nil
-				end
-			end
-		end
-
-		for teamID, frame in pairs(droppedTeam) do
-			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
-				if gameFrame < leaveWreckageFromFrame then
-					local teamUnits = Spring.GetTeamUnits(teamID)
-					for i=1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
-					end
-				end
-				destroyTeam(teamID)
-				droppedTeam[teamID] = nil
-			end
-		end
-	end
-
-	function gadget:Initialize()
-    if GG.TeamTransfer then
+		
         GG.TeamTransfer.RegisterValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
             local isSharing = (reason == GG.TeamTransfer.REASON.GIVEN or reason == GG.TeamTransfer.REASON.IDLE_PLAYER_TAKEOVER or reason == GG.TeamTransfer.REASON.TAKEN or reason == GG.TeamTransfer.REASON.SOLD)
 				if oldTeam == newTeam or not isSharing then
@@ -139,7 +53,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				return not deadTeam[newTeam]
 			end)
-		end
 	end
 
 

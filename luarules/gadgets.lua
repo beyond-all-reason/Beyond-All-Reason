@@ -332,8 +332,18 @@ function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
 
 	local unsortedGadgets = {}
-	-- get the gadget names
+	-- get the gadget names - both direct .lua files and gadget.lua in subdirectories
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
+	
+	-- discover gadget packages: look for subdirs with gadget.lua
+	local subdirs = VFS.SubDirs(GADGETS_DIR, "*", VFSMODE)
+	for _, subdir in ipairs(subdirs) do
+		local packageGadgetFile = subdir .. "gadget.lua"
+		if VFS.FileExists(packageGadgetFile, VFSMODE) then
+			table.insert(gadgetFiles, packageGadgetFile)
+		end
+	end
+	
 	--  table.sort(gadgetFiles)
 
 	--  for k,gf in ipairs(gadgetFiles) do
@@ -437,6 +447,20 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	if err then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
+	end
+
+	-- Auto-register handlers if the gadget provides them
+	if gadget.GetSyncedActions then
+		local handlers = gadget:GetSyncedActions()
+		for name, func in pairs(handlers) do
+			if not func then
+				error("Missing handler for SyncedActionFallback '" .. name .. "' in gadget " .. gadget.ghInfo.name)
+			end
+			if type(func) ~= "function" then
+				error("Handler for SyncedActionFallback '" .. name .. "' must be a function, got " .. type(func))
+			end
+			Script.AddSyncedActionFallback(name, func)
+		end
 	end
 
 	local knownInfo = self.knownGadgets[name]
@@ -788,24 +812,17 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 	local name = gadget.ghInfo.name
 	self.knownGadgets[name].active = false
 	if gadget.Shutdown then
-		gadget:Shutdown()
+		pcall(gadget.Shutdown, gadget)
 	end
-
-	ArrayRemove(self.gadgets, gadget)
-	self:RemoveGadgetGlobals(gadget)
-	actionHandler.RemoveGadgetActions(gadget)
-	for _, listname in ipairs(callInLists) do
-		ArrayRemove(self[listname .. 'List'], gadget)
-	end
-	self:DeregisterAllowCommands(gadget)
-
-	for id, g in pairs(self.CMDIDs) do
-		if g == gadget then
-			self.CMDIDs[id] = nil
+	
+	if gadget.GetSyncedActions then
+		local handlers = gadget:GetSyncedActions()
+		for name, _ in pairs(handlers) do
+			Script.RemoveSyncedActionFallback(name)
 		end
 	end
 
-	self:UpdateCallIns()
+	self:UnloadGadget(gadget)
 end
 
 

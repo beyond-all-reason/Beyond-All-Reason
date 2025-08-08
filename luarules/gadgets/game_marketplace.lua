@@ -46,42 +46,23 @@ end
 
 function gadget:Initialize()
 	-- Register with centralized transfer system
-    if GG.TeamTransfer then
-        GG.TeamTransfer.RegisterValidator("MarketplaceRequired", function(unitID, unitDefID, oldTeam, newTeam, reason)
-			if oldTeam == newTeam then
-				return true
-			end
+    GG.TeamTransfer.RegisterValidator("MarketplaceRequired", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if oldTeam == newTeam then
+            return true
+        end
 
-			-- Only validate sharing/transfer actions
-            if not GG.TeamTransfer.IsTransferReason(reason) then
-				return true
-			end
+        -- Only validate sharing/transfer actions
+        if not GG.TeamTransfer.IsTransferReason(reason) then
+            return true
+        end
 
-			if (marketplaces[oldTeam] > 0 and marketplaces[newTeam] > 0) or spIsCheatingEnabled() then
-				return true
-			end
+        if (marketplaces[oldTeam] > 0 and marketplaces[newTeam] > 0) or spIsCheatingEnabled() then
+            return true
+        end
 
-			return false
-		end)
-	end
-end
+        return false
+    end)
 
-
-function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	if isMarketPlace[unitDefID] then
-		marketplaces[teamID] = marketplaces[teamID] and marketplaces[teamID] - 1 or 0
-	end
-end
-gadget.UnitTaken = gadget.UnitDestroyed
-
-function gadget:UnitFinished(unitID, unitDefID, teamID)
-	if isMarketPlace[unitDefID] then
-		marketplaces[teamID] = marketplaces[teamID] and marketplaces[teamID] + 1 or 1
-	end
-end
-gadget.UnitGiven = gadget.UnitFinished
-
-function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)

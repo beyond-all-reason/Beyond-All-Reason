@@ -54,18 +54,16 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:Initialize()
-    if GG.TeamTransfer then
-        GG.TeamTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
-			-- Only validate sharing/transfer actions
-            if not GG.TeamTransfer.IsTransferReason(reason) then
-				return true
-			end
+    GG.TeamTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        -- Only validate sharing/transfer actions
+        if not GG.TeamTransfer.IsTransferReason(reason) then
+            return true
+        end
 
-			local unitCount = spGetTeamUnitCount(newTeam)
-			if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
-				return true
-			end
-			return false
-		end)
-	end
+        local unitCount = spGetTeamUnitCount(newTeam)
+        if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
+            return true
+        end
+        return false
+    end)
 end

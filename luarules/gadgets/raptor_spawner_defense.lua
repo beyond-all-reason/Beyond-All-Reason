@@ -2128,20 +2128,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-        if GG.TeamTransfer then
-            GG.TeamTransfer.RegisterValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
-				if spGetUnitDefID(unitID) == raptorDefID then
-					local raptorTeam = GetRaptorTeam()
-					if oldTeam == raptorTeam and newTeam ~= raptorTeam then
-						return false
-					end
-				end
-				return true
-			end)
-		end
-	end
+    GG.TeamTransfer.RegisterValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if spGetUnitDefID(unitID) == raptorDefID then
+            local raptorTeam = GetRaptorTeam()
+            if oldTeam == raptorTeam and newTeam ~= raptorTeam then
+                return false
+            end
+        end
+        return true
+    end)
+end
 
-	-- AllowUnitTransfer removed - validation now handled by centralized BARTransfer validator system
+	-- AllowUnitTransfer removed - validation now handled by centralized TeamTransfer validator system
 
 	function gadget:FeatureCreated(featureID, featureAllyTeamID)
 		if featureAllyTeamID == raptorAllyTeamID then
