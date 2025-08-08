@@ -1189,6 +1189,28 @@ function UnitDef_Post(name, uDef)
 	end
 
 
+	-- Tech Split Modules
+	if modOptions.split_air == true then
+		local airRework2Units = VFS.Include("unitbasedefs/split_air.lua")
+		uDef = airRework2Units.splitAirTweaks(name, uDef)
+	end
+
+	if modOptions.split_land == true then
+		local landReworkUnits = VFS.Include("unitbasedefs/split_land.lua")
+		uDef = landReworkUnits.splitLandTweaks(name, uDef)
+	end
+
+	if modOptions.split_sea == true then
+		local seaReworkUnits = VFS.Include("unitbasedefs/split_sea.lua")
+		uDef = seaReworkUnits.splitSeaTweaks(name, uDef)
+	end
+
+	if modOptions.split_hovers == true then
+		local hoverReworkUnits = VFS.Include("unitbasedefs/split_hovers.lua")
+		uDef = hoverReworkUnits.splitHoverTweaks(name, uDef)
+	end
+
+	
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -2149,8 +2171,8 @@ function UnitDef_Post(name, uDef)
 			[14] = "corhalab",
 			[15] = "coralab",
 			[16] = "cormakr",
-			[17] = "coruwadvms",
-			[18] = "coruwadves",
+			[17] = "corestor",
+			[18] = "cormstor",
 			[19] = "corgeo",
 			[20] = "corhlt",
 			}
@@ -2348,8 +2370,8 @@ function UnitDef_Post(name, uDef)
 				[14] = "corhavp",
 				[15] = "coravp",
 				[16] = "cormakr",
-				[17] = "coruwadvms",
-				[18] = "coruwadves",
+				[17] = "corestor",
+				[18] = "cormstor",
 				[19] = "corgeo",
 				[20] = "corhlt",
 			}
@@ -2710,8 +2732,8 @@ function UnitDef_Post(name, uDef)
 				[14] = "corhaap",
 				[15] = "coraap",
 				[16] = "cormakr",
-				[17] = "coruwadvms",
-				[18] = "coruwadves",
+				[17] = "corestor",
+				[18] = "cormstor",
 				[19] = "corgeo",
 				[20] = "corhlt",
 			}
@@ -2956,8 +2978,8 @@ function UnitDef_Post(name, uDef)
 				[14] = "corhavp",
 				[15] = "coravp",
 				[16] = "cormakr",
-				[17] = "coruwadvms",
-				[18] = "coruwadves",
+				[17] = "corestor",
+				[18] = "cormstor",
 				[19] = "corgeo"
 			}
 
