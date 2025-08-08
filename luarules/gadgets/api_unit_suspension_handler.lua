@@ -288,7 +288,7 @@ function gadget:Initialize()
 		if suspendedUnit ~= nil then
 			local reasons = {}
 
-			for reason in pairs(reasons) do
+			for reason in pairs(suspendedUnit) do
 				reasons[#reasons + 1] = reason
 			end
 
