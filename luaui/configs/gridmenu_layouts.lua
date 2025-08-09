@@ -2763,7 +2763,7 @@ if Spring.GetModOptions().techoverhaul then
 		{
 			{"cormoho","coradvsol","corfus","",},
 			{"cormakr","corgeo","","",},
-			{"coruwadves","coruwadvms","","",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
@@ -2786,7 +2786,7 @@ if Spring.GetModOptions().techoverhaul then
 		{
 			{"cormoho","coradvsol","corfus","",},
 			{"cormakr","corgeo","","",},
-			{"coruwadves","coruwadvms","","",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
@@ -2809,7 +2809,7 @@ if Spring.GetModOptions().techoverhaul then
 		{
 			{"cormoho","coradvsol","corfus","",},
 			{"cormakr","corgeo","","",},
-			{"coruwadves","coruwadvms","","",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
@@ -2832,7 +2832,7 @@ if Spring.GetModOptions().techoverhaul then
 		{
 			{"cormoho","coradvsol","corfus","",},
 			{"cormakr","corgeo","","",},
-			{"coruwadves","coruwadvms","","",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
