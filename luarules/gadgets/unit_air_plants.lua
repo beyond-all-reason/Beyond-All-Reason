@@ -53,6 +53,10 @@ for unitName, params in pairs(isAirplantNames) do
 	end
 end
 
+-- `unit_airunitsturnradius.lua` sets an arbitrary attack radius
+-- which influences how air units handle movement and move goals
+local bomberAttackTurnRadius = 500
+
 local plantList = {}
 local buildingUnits = {}
 
@@ -74,6 +78,59 @@ local airCmd = {
 	params = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80' }
 }
 
+local function moveFromPlant(unitID, factoryRadius)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local theta = math.random() * 2 * math.pi
+	local radius = 2.5 * factoryRadius
+	local tx, tz = ux + radius * math.sin(theta), uz + radius * math.cos(theta)
+	local ty = Spring.GetGroundHeight(tx, tz)
+	GiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.MOVE, 0, tx, ty, tz }, 0)
+end
+
+local function moveToCommand(unitID, command, factoryRadius)
+	local tx, ty, tz
+	if command then
+		if #command.params == 1 then
+			if command.params[1] > Game.maxUnits then
+				tx, ty, tz = Spring.GetFeaturePosition(command.params[1])
+			else
+				tx, ty, tz = Spring.GetUnitPosition(command.params[1])
+			end
+		elseif #command.params >= 3 then
+			tx, ty, tz = command.params[1], command.params[2], command.params[3]
+		end
+	end
+
+	if not tx then
+		moveFromPlant(unitID, factoryRadius)
+		return
+	end
+
+	-- Within a certain distance, air units do not dip when leaving the plant.
+	-- The actual rules for air move types are a bit elaborate; this is close:
+	local distanceMin = Spring.GetUnitMoveTypeData(unitID).turnRadius
+	if not distanceMin or distanceMin == 0 or distanceMin == bomberAttackTurnRadius then
+		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+		distanceMin = math.max(unitDef.turnRadius, unitDef.radius)
+	end
+	distanceMin = math.max(distanceMin, factoryRadius) -- Maybe plus padding.
+
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local dx = tx - ux
+	local dy = ty - uy
+	local dz = tz - uz
+	local distanceSq = dx * dx + dy * dy + dz * dz
+
+	if distanceSq > distanceMin * distanceMin then
+		-- Nudge the unit toward its command, but not too far away.
+		local scale = math.sqrt(distanceMin * distanceMin / distanceSq)
+		tx = ux + dx * scale
+		ty = uy + dy * scale
+		tz = uz + dz * scale
+		Spring.SetUnitMoveGoal(unitID, tx, ty, tz, Game.squareSize)
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
 		InsertUnitCmdDesc(unitID, 500, landCmd)
@@ -83,7 +140,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
 		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
 		SetUnitNeutral(unitID, true)
-		buildingUnits[unitID] = true
+		buildingUnits[unitID] = math.max(Spring.GetUnitRadius(builderID) or 0, 120)
 	end
 end
 
@@ -95,12 +152,21 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if buildingUnits[unitID] then
 		SetUnitNeutral(unitID, false)
+		local commands = Spring.GetUnitCommands(unitID, 1)
+		if commands ~= nil then
+			moveToCommand(unitID, commands[1], buildingUnits[unitID])
+		end
+		buildingUnits[unitID] = nil
 	end
 end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 	gadgetHandler:RegisterAllowCommand(CMD_AIR_REPAIR)
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), -1, -1)
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
