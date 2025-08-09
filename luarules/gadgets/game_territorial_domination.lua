@@ -118,7 +118,7 @@ local gameFrame = 0
 local sentGridStructure = false
 local currentSecond = 0
 local roundTimestamp = 0
-local roundsElapsed = 0
+local currentRound = 0
 
 
 local scavengerTeamID = Spring.Utilities.GetScavTeamID()
@@ -428,6 +428,11 @@ local function initializeTeamData()
 	end
 	processLivingTeams()
 	originalHighestTeamCount = getHighestTeamCount()
+	for allyID in pairs(allyTeamsWatch) do
+		if not allyScores[allyID] then
+			allyScores[allyID] = { score = 0, rank = 1 }
+		end
+	end
 end
 
 
@@ -541,11 +546,6 @@ local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 
 	if delayDecay and (data.contested or data.contiguous) and data.allyOwnerID ~= winningAllyID then
 		data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
-	end
-
-	if data.progress > OWNERSHIP_THRESHOLD and not data.attackerPointsTaken[winningAllyID] then
-		data.attackerPointsTaken[winningAllyID] = true
-		data.attackerPointsValue = convertNeighborCountToPoints(data.ownedNeighbors) + data.roundsOwned
 	end
 end
 
@@ -720,15 +720,7 @@ local function updateGridDefensePointRewards()
 	end
 end
 
-local function processDefenseScores()
-	-- Initialize ally scores if they don't exist, but don't reset existing ones
-	for allyID in pairs(allyTeamsWatch) do
-		if not allyScores[allyID] then
-			allyScores[allyID] = { score = 0, rank = 1 }
-		end
-	end
-	
-	-- Add defensive points for owned territories  
+local function processDefenseScores()  
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
 			local points = convertNeighborCountToPoints(data.ownedNeighbors)
@@ -768,13 +760,13 @@ function gadget:GameFrame(frame)
 		processOffenseScoresAndRewards()
 		updateGridDefensePointRewards()
 		if seconds >= roundTimestamp then
-			if roundsElapsed <= MAX_ROUNDS then
-				roundsElapsed = roundsElapsed + 1
+			if currentRound <= MAX_ROUNDS then
+				currentRound = currentRound + 1
 				processDefenseScores()
 				processRoundEnd()
 				roundTimestamp = seconds + ROUND_SECONDS
 			else
-				roundsElapsed = MAX_ROUNDS
+				currentRound = MAX_ROUNDS
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 then
 						triggerAllyDefeat(allyID)
@@ -799,7 +791,7 @@ function gadget:GameFrame(frame)
 		for allyID, scoreData in pairs(allyScores) do
 			Spring.Echo("Ally " .. allyID .. " score: " .. scoreData.score .. " (rank " .. scoreData.rank .. ")")
 		end
-		Spring.Echo("Round " .. roundsElapsed .. " ended")
+		Spring.Echo("Round " .. currentRound .. " ended")
 		Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
 		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
