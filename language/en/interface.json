@@ -479,6 +479,16 @@
 				"pause": "Pause"
 			}
 		},
+		"ignore": {
+			"unknown": "unknown accountID",
+			"ignored": "You are now ignoring %{name} (%{accountID})",
+			"unignored": "You are now un-ignoring %{name} (%{accountID})"
+		},
+		"playernames": {
+			"notfound": "Player not found for: %{param}",
+			"setalias": "You are now setting alias for %{name} (%{accountID}) to: %{alias}",
+			"removealias": "You are now removing alias for %{name} (%{accountID})"
+		},
 		"chat": {
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",

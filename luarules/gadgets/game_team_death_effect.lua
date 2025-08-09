@@ -37,6 +37,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local DISTANCE_LIMIT = math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)
 local destroyUnitQueue = {}
+local wipedoutTeams = {}
 
 local function getSqrDistance(x1,z1,x2,z2)
 	local dx, dz = x1-x2, z1-z2
@@ -44,6 +45,7 @@ local function getSqrDistance(x1,z1,x2,z2)
 end
 
 local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)	-- only teamID is required
+	wipedoutTeams[teamID] = Spring.GetGameFrame()
 	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
@@ -118,5 +120,12 @@ function gadget:GameFrame(gf)
 				destroyUnitQueue[unitID] = nil
 			end
 		end
+	end
+end
+
+-- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam]+300 > Spring.GetGameFrame() then
+		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
 	end
 end

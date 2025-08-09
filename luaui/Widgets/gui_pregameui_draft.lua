@@ -272,6 +272,7 @@ local function findPlayerName(playerID)
 					return player.name
 				else -- try to cache missing player name
 					tname = select(1, Spring.GetPlayerInfo(playerID, false))
+					tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or tname
 					if tname ~= nil then
 						player.name = tname
 						return player.name
@@ -280,7 +281,10 @@ local function findPlayerName(playerID)
 			end
 		end
 	end
-	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected" -- show "unconnected" instead of nil if we don't know the name
+	tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or Spring.GetPlayerInfo(playerID, false)
+	if not tname then
+		tname = "unconnected" 	-- show "unconnected" instead of nil if we don't know the name
+	end
 	return tname
 end
 
@@ -1043,6 +1047,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
+				tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerid)) or tname
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
