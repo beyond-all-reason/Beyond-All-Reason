@@ -95,6 +95,7 @@ widgetHandler = {
 local flexCallIns = {
 	'GameOver',
 	'GameFrame',
+	'GameFramePost',
 	'GameSetup',
 	'GamePaused',
 	'TeamDied',
@@ -2072,6 +2073,18 @@ function widgetHandler:GameFrame(frameNum)
 	for _, w in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
 		w:GameFrame(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+
+function widgetHandler:GameFramePost(frameNum)
+	tracy.ZoneBeginN("W:GameFramePost")
+	for _, w in ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("W:GameFramePost:" .. w.whInfo.name)
+		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()

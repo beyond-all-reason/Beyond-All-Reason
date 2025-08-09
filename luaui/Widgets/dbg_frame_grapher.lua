@@ -14,7 +14,8 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2021.mar.29",
 		license = "GNU GPL, v2 or later",
-		layer = -100000,
+		layer = -200001,
+    
 		enabled = false,
 	}
 end
@@ -34,7 +35,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
-local maxframes = 500
+local maxframes = 2500
 
 local rectInstanceTable = nil
 local rectInstancePtr = 0
@@ -107,9 +108,26 @@ void main() {
   if (v_time_duration_wasgf.z > 0.5 ) fragColor = vec4(0.0, 0.0, 1.0, 1.0);
   if (v_time_duration_wasgf.w > 2.0 ) fragColor = vec4(1.0, 0.0, 1.0, 1.1);
   else fragColor.rgb = mix(fragColor.rgb, vec3(0.0), v_time_duration_wasgf.w);
+  
+  if (abs(v_time_duration_wasgf.z - 1.0) < 0.01){ // SIM
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+  else if (abs(v_time_duration_wasgf.z - 2.0) < 0.01){ // update
+    fragColor = vec4(1.0, 1.0, 0.0, 1.0);
+  }  
+  else if (abs(v_time_duration_wasgf.z - 3.0) < 0.01){ // draw
+    fragColor = vec4(0.0, 1.0, 0.0, 1.0);
+  }
+  else if (abs(v_time_duration_wasgf.z - 4.0) < 0.01){ // swap
+    fragColor = vec4(0.0, 0.0, 1.0, 1.0);
+  }
+  else{
+    fragColor = vec4(1.0, 0.0, 1.0, 1.0);
+  }
 }
 ]]
 --------------------------------------------------------------------------------
+
 
 function widget:Initialize()
   local rectvbo, numVertices = InstanceVBOTable.makeRectVBO(0,0,1,1,0,0,1,1)
@@ -130,8 +148,8 @@ function widget:Initialize()
    Spring.Echo("Failed to compile shaders for: frame grapher v2")
    widgetHandler:RemoveWidget(self)
   end
-  timerstart = Spring.GetTimer()
-  timerold = Spring.GetTimer()
+  timerstart = Spring.GetTimerMicros()
+  timerold = Spring.GetTimerMicros()
 end
 
 function widget:Shutdown()
@@ -143,7 +161,82 @@ local prevframems = 0
 local gameFrameHappened = false
 local drawspergameframe = 0
 
+
+local eventBuffer = {} 
+-- This is a table of events that get pushed on every :DrawScreen 
+-- Even types are : "sim","update", "draw", "swap", params are start, duration, type
+
+local lastCallin = 'DrawGenesis'
+local lastTime = Spring.GetTimerMicros()
+
+local frametypeidx = {
+  sim = 1, -- 
+  update = 2, -- 
+  draw = 3, -- 
+  swap = 4, -- 
+  error = 5, -- error
+}
+
+local nowToPrevToFrameType = {
+  GameFramePost = {
+    GameFramePost = "error",
+    GameFrame = "sim",
+    DrawGenesis = "error",
+    DrawScreenPost = "error",
+    Update = "error",
+  },
+  GameFrame = {
+    GameFramePost = "none",
+    GameFrame = "error",
+    DrawGenesis = "error",
+    DrawScreenPost = "swap",
+    Update = "error",
+  },
+  DrawGenesis = {
+    GameFramePost = "error",
+    GameFrame = "error",
+    DrawGenesis = "error",
+    DrawScreenPost = "error",
+    Update = "update",
+  },
+  DrawScreenPost = {
+    GameFramePost = "error",
+    GameFrame = "error",
+    DrawGenesis = "draw",
+    DrawScreenPost = "error",
+    Update = "error",
+  },
+  Update = {
+    GameFramePost = "none",
+    GameFrame = "error",
+    DrawGenesis = "error",
+    DrawScreenPost = "swap",
+    Update = "error",
+  },
+
+}
+local function nowEvent(e)
+    local frameType = nowToPrevToFrameType[e][lastCallin]
+      local nowTime = Spring.GetTimerMicros()
+    if frameType ~= "error" then
+      local lastframetime = spDiffTimers(nowTime, timerstart, nil, true) * 1000 -- in MILLISECONDS
+      local lastframeduration = spDiffTimers(nowTime, lastTime, nil, true) * 1000 -- in MILLISECONDS
+
+      eventBuffer[#eventBuffer+1] = {frameType, lastframetime, lastframeduration}
+      --Spring.Echo("Event", frameType, "from", e,  "duration", lastframeduration, "ms")
+    end
+    lastTime = nowTime
+    lastCallin = e
+end
+
+
+function widget:GameFramePost() 
+  nowEvent("GameFramePost")
+  --Spring.Echo("GameFramePost", Spring.GetGameFrame())
+end
+
 function widget:GameFrame(n)
+  nowEvent("GameFrame")
   wasgameframe =  wasgameframe + 1
   gameFrameHappened = true
   if drawspergameframe ~= 2 then
@@ -152,8 +245,21 @@ function widget:GameFrame(n)
   drawspergameframe = 0
 end
 
+function widget:DrawGenesis()
+  nowEvent("DrawGenesis")
+end
+
+function widget:DrawScreenPost()
+  nowEvent("DrawScreenPost")
+end
+
+function widget:Update() 
+  nowEvent("Update")
+end
+
 function widget:DrawScreen()
-	drawspergameframe = drawspergameframe + 1
+--[[
+  drawspergameframe = drawspergameframe + 1
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
 
 	local timernew = spGetTimer()
@@ -190,11 +296,26 @@ function widget:DrawScreen()
     pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, 3}, rectInstancePtr, true)
   end
 
+]]--#region
 
+  for i = 1, #eventBuffer do
+    local event = eventBuffer[i]
+    local frametype = event[1]
+    local lastframetime = event[2]
+    local lastframeduration = event[3] 
+
+    rectInstancePtr = rectInstancePtr+1
+    if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
+    local frameColor = frametypeidx[frametype]
+    --Spring.Echo("Event", frametype, "frameColor", frameColor, lastframeduration, "ms", lastframetime)
+    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, frameColor, 0 }, rectInstancePtr, true)
+  end
+  eventBuffer = {} -- clear the event buffer
 
   rectShader:Activate()
    -- We should be setting individual uniforms AFTER activate
-  rectShader:SetUniform("shaderparams", lastframetime,0,0,0)
+  local shadertime = spDiffTimers(Spring.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
+  rectShader:SetUniform("shaderparams", shadertime,0,0,0)
   drawInstanceVBO(rectInstanceTable)
   rectShader:Deactivate()
   wasgameframe = 0
