@@ -363,16 +363,13 @@ local function shouldAllow(_, unitID)
 end
 
 if commandSuspendDisallows[CMD.ATTACK] then
-	gadget.AllowWeaponTarget = shouldAllow
+	gadget.AllowWeaponTargetCheck = shouldAllow
 	gadget.AllowUnitKamikaze = shouldAllow
 end
 
-if commandSuspendDisallows[CMD.REPAIR] then
-	gadget.AllowUnitBuildStep = shouldAllow
-end
-
-if commandSuspendDisallows[CMD.CAPTURE] then
-	gadget.AllowUnitCaptureStep = shouldAllow
+if commandSuspendDisallows[CMD.CLOAK] then
+	-- Note: We don't actually remove the cloaked state (or clear any state).
+	gadget.AllowUnitCloak = shouldAllow
 end
 
 if commandSuspendDisallows[CMD.LOAD_UNITS] and commandSuspendDisallows[CMD.UNLOAD_UNIT] then
@@ -383,7 +380,30 @@ elseif commandSuspendDisallows[CMD.UNLOAD_UNIT] then
 	gadget.AllowUnitTransportUnload = shouldAllow
 end
 
-if commandSuspendDisallows[CMD.CLOAK] then
-	-- Note: We don't actually remove the cloaked state (or clear any state).
-	gadget.AllowUnitCloak = shouldAllow
+if commandSuspendDisallows[CMD.CAPTURE] then
+	gadget.AllowUnitCaptureStep = shouldAllow
+end
+
+if commandSuspendDisallows[CMD.RECLAIM] and commandSuspendDisallows[CMD.REPAIR] then
+	gadget.AllowUnitBuildStep = shouldAllow
+elseif commandSuspendDisallows[CMD.RECLAIM] then
+	function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+		return part > 0 or suspendedUnits[unitID] == nil
+	end
+elseif commandSuspendDisallows[CMD.RESURRECT] then
+	function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+		return part < 0 or suspendedUnits[unitID] == nil
+	end
+end
+
+if commandSuspendDisallows[CMD.RECLAIM] and commandSuspendDisallows[CMD.RESURRECT] then
+	gadget.AllowFeatureBuildStep = shouldAllow
+elseif commandSuspendDisallows[CMD.RECLAIM] then
+	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+		return part > 0 or suspendedUnits[unitID] == nil
+	end
+elseif commandSuspendDisallows[CMD.RESURRECT] then
+	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+		return part < 0 or suspendedUnits[unitID] == nil
+	end
 end
