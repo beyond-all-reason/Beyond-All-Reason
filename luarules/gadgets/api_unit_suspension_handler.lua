@@ -133,7 +133,7 @@ end
 
 if commandSuspendDisallows[CMD.ANY] then
 	commandSuspendDisallows = setmetatable({}, {
-		__index = function (self, value)
+		__index = function(self, value)
 			return true
 		end
 	})
@@ -305,57 +305,23 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	suspendedUnits[unitID] = nil
 end
 
--- Removing stuns --------------------------------------------------------------
+-- Removing suspensions --------------------------------------------------------
+
+for suspend, resume in pairs(suspendReasons) do
+	gadget[resume] = function(_, unitID)
+		if suspendedUnits[unitID] ~= nil then
+			clearSuspendReason(unitID, resume)
+		end
+	end
+end
+
+-- One of these generic callins, UnitStunned, works differently:
 
 function gadget:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	if stunned then
 		addSuspendReason(unitID, "UnitStunned", false)
 	elseif suspendedUnits[unitID] then
 		clearSuspendReason(unitID, "UnitStunned")
-	end
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitFinished")
-	end
-end
-
-function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitDecloaked")
-	end
-end
-
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	if suspendedUnits[unitID] ~= nil then
-		clearSuspendReason(unitID, "UnitUnloaded")
-	end
-end
-
--- Removing non-stuns ----------------------------------------------------------
-
-function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitEnteredAir")
-	end
-end
-
-function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitEnteredWater")
-	end
-end
-
-function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitLeftAir")
-	end
-end
-
-function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
-	if suspendedUnits[unitID] then
-		clearSuspendReason(unitID, "UnitLeftWater")
 	end
 end
 
