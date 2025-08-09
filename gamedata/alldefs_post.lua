@@ -2352,7 +2352,7 @@ function WeaponDef_Post(name, wDef)
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
 		if wDef.customparams and wDef.customparams.overrange_distance then
-   			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
 		end
 	end
 
