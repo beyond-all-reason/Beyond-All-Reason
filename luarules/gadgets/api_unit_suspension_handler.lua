@@ -15,13 +15,11 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
---------------------------------------------------------------------------------
-
--- Configuration
-
 -- The suspended state is a counterpart to paralysis for incapacitated units,
 -- such as when units enter water deeper than their maximum water depth limit.
 
+--------------------------------------------------------------------------------
+-- Configuration ---------------------------------------------------------------
 
 ---Immediately remove commands from the unit's queue when it is suspended.
 --
@@ -56,6 +54,8 @@ local commandSuspendRemoves = {
 -- Regardless how they were suspended, all units will reject these commands.
 ---@type table<CMD, true>
 local commandSuspendDisallows = {
+	[CMD.BUILD]        = true,
+
 	[CMD.LOAD_ONTO]    = true,
 	[CMD.LOAD_UNITS]   = true,
 	[CMD.UNLOAD_UNIT]  = true,
@@ -71,19 +71,18 @@ local commandSuspendDisallows = {
 	[CMD.RESTORE]      = true,
 }
 
-commandSuspendDisallows = setmetatable(commandSuspendDisallows, {
-	__index = function(self, value)
-		return value < 0 -- disallow build orders
-	end
-})
-
 --------------------------------------------------------------------------------
+-- Global values ---------------------------------------------------------------
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 
 local CMD_REMOVE = CMD.REMOVE
-local byCommand = CMD.OPT_ALT
+local OPT_ALT = CMD.OPT_ALT
+
+--------------------------------------------------------------------------------
+-- Initialization --------------------------------------------------------------
+
 local removeIDs = {}
 
 for command, check in pairs(commandSuspendRemoves) do
@@ -92,43 +91,56 @@ for command, check in pairs(commandSuspendRemoves) do
 	end
 end
 
-local function removeCommands(unitID)
-	spGiveOrderToUnit(unitID, CMD_REMOVE, removeIDs, byCommand)
-end
+local removeCommands
+do
+	if commandSuspendRemoves[CMD.ANY] then
+		removeCommands = function(unitID)
+			spGiveOrderToUnit(unitID, CMD.STOP)
+		end
+	elseif commandSuspendRemoves[CMD.BUILD] then
+		local tempFunc = removeCommands
+		removeCommands = function(unitID)
+			tempFunc(unitID)
 
-if commandSuspendRemoves[CMD.ANY] then
-	removeCommands = function(unitID)
-		spGiveOrderToUnit(unitID, CMD.STOP)
-	end
-elseif commandSuspendRemoves[CMD.BUILD] then
-	local tempFunc = removeCommands
-	removeCommands = function(unitID)
-		tempFunc(unitID)
+			local buildDefID = {}
+			local index = 1
 
-		local buildDefID = {}
-		local index = 1
+			repeat
+				local command = Spring.GetUnitCurrentCommand(unitID, index)
+				index = index + 1
 
-		repeat
-			local command = Spring.GetUnitCurrentCommand(unitID, index)
-			index = index + 1
+				if command == nil then
+					break
+				elseif command < 0 then
+					buildDefID[command] = true
+				end
+			until false
 
-			if command == nil then
-				break
-			elseif command < 0 then
-				buildDefID[command] = true
+			if next(buildDefID) then
+				local remove = {}
+				for k, v in pairs(buildDefID) do remove[#remove + 1] = v end
+				spGiveOrderToUnit(unitID, CMD_REMOVE, removeIDs, OPT_ALT)
 			end
-		until false
-
-		if next(buildDefID) then
-			local remove = {}
-			for k, v in pairs(buildDefID) do remove[#remove + 1] = v end
-			spGiveOrderToUnit(unitID, CMD_REMOVE, removeIDs, byCommand)
+		end
+	elseif not next(commandSuspendRemoves) then
+		removeCommands = function() end
+	else
+		removeCommands = function(unitID)
+			spGiveOrderToUnit(unitID, CMD_REMOVE, removeIDs, OPT_ALT)
 		end
 	end
-elseif not next(commandSuspendRemoves) then
-	removeCommands = function() end
 end
 
+if commandSuspendDisallows[CMD.BUILD] then
+	commandSuspendDisallows[CMD.BUILD] = nil
+	commandSuspendDisallows = setmetatable(commandSuspendDisallows, {
+		__index = function(self, value)
+			return value < 0 -- disallow build orders
+		end
+	})
+end
+
+local suspendedUnits = {}
 local suspendReasons = {
 	-- Engine (stunned units):
 	UnitStunned      = "UnitStunned",
@@ -143,11 +155,8 @@ local suspendReasons = {
 	UnitLeftWater    = "UnitEnteredWater",
 }
 
-local suspendedUnits = {}
-
 local suspendNotifyList = {}
 local suspendNotifyDepth = 0
-
 local function suspendNotify(unitID, suspended)
 	suspendNotifyDepth = suspendNotifyDepth + 1
 
@@ -162,6 +171,40 @@ local function suspendNotify(unitID, suspended)
 	suspendNotifyDepth = suspendNotifyDepth - 1
 end
 
+--------------------------------------------------------------------------------
+-- Suspension API --------------------------------------------------------------
+
+---Map your gadget's special-purpose disable to its re-enable reason.
+--
+-- General disable/enable functionality is part of the unit suspend handler.
+---@param suspend string
+---@param resume string
+local function addUnitSuspendAndResumeReason(suspend, resume)
+	if suspend ~= nil and resume ~= nil and suspendReasons[suspend] == nil then
+		suspendReasons[suspend] = resume
+		return true
+	else
+		return false
+	end
+end
+
+---Add a callback function to be invoked when a unit is suspended or unsuspended.
+---@param callback function
+--
+-- `callback` annotation:
+-- @param unitID integer
+-- @param suspended boolean
+local function registerSuspendNotify(callback)
+	if type(callback) == "function" then
+		suspendNotifyList[#suspendNotifyList + 1] = callback
+	end
+end
+
+---Disable the unit and set the reason why it cannot take actions.
+---@param unitID integer
+---@param reason string?
+---@param remove boolean? whether to clear disallowed commands from the command queue
+---@return string? enableReason
 local function addSuspendReason(unitID, reason, remove)
 	local suspendedUnit = suspendedUnits[unitID]
 
@@ -179,127 +222,75 @@ local function addSuspendReason(unitID, reason, remove)
 	if reason ~= nil then
 		local enableReason = suspendReasons[reason] or reason
 		suspendedUnit[enableReason] = true
+		return enableReason
 	end
 end
 
+---Clear a disable reason on the unit and attempt to re-enable it.
+---@param unitID integer
+---@param reason string?
+---@return boolean enabled
 local function clearSuspendReason(unitID, reason)
 	local suspendedUnit = suspendedUnits[unitID]
-	suspendedUnit[suspendReasons[reason]] = nil
 
-	if next(suspendedUnit) == nil then
+	if suspendedUnit == nil then
+		return true
+	end
+
+	local enableReason = reason ~= nil and suspendReasons[reason]
+
+	if enableReason then
+		suspendedUnit[enableReason] = nil
+	end
+
+	if not enableReason or next(suspendedUnit) == nil then
 		spSetUnitRulesParam(unitID, "suspended", 0)
 		suspendedUnits[unitID] = nil
 		suspendNotify(unitID, false)
+		return true
+	end
+
+	return false
+end
+
+---@param unitID integer
+local function getUnitIsSuspended(unitID)
+	return suspendedUnits[unitID] ~= nil
+end
+
+---@param unitID integer
+---@return string[]? enableReasons
+local function getUnitSuspendReasons(unitID)
+	local suspendedUnit = suspendedUnits[unitID]
+
+	if suspendedUnit ~= nil then
+		local reasons = {}
+
+		for reason in pairs(suspendedUnit) do
+			reasons[#reasons + 1] = reason
+		end
+
+		return reasons
 	end
 end
 
 --------------------------------------------------------------------------------
+-- Engine callins --------------------------------------------------------------
 
 function gadget:Initialize()
-	---Map your gadget's special-purpose disable to its re-enable reason.
-	--
-	-- General disable/enable functionality is part of the unit suspend handler.
-	---@param suspend string
-	---@param resume string
-	GG.AddUnitSuspendAndResumeReason = function(suspend, resume)
-		if suspend ~= nil and resume ~= nil and suspendReasons[suspend] == nil then
-			suspendReasons[suspend] = resume
-			return true
-		else
-			return false
-		end
-	end
-
-	---Add a callback function to be invoked when a unit is suspended or unsuspended.
-	---@param callback function
-	--
-	-- `callback` annotation:
-	-- @param unitID integer
-	-- @param suspended boolean
-	GG.RegisterSuspendNotify = function(callback)
-		if type(callback) == "function" then
-			suspendNotifyList[#suspendNotifyList + 1] = callback
-		end
-	end
-
-	---Disable the unit and set the reason why it cannot take actions.
-	---@param unitID integer
-	---@param reason string?
-	---@param remove boolean? whether to clear disallowed commands from the command queue
-	---@return string? enableReason
-	GG.AddSuspendReason = function(unitID, reason, remove)
-		local suspendedUnit = suspendedUnits[unitID]
-
-		if suspendedUnit == nil then
-			spSetUnitRulesParam(unitID, "suspended", 1)
-			suspendedUnit = {}
-
-			if remove ~= false then
-				removeCommands(unitID)
-			end
-
-			suspendNotify(unitID, true)
-		end
-
-		if reason ~= nil then
-			local enableReason = suspendReasons[reason] or reason
-			suspendedUnit[enableReason] = true
-			return enableReason
-		end
-	end
-
-	---Clear a disable reason on the unit and attempt to re-enable it.
-	---@param unitID integer
-	---@param reason string?
-	---@return boolean enabled
-	GG.ClearSuspendReason = function(unitID, reason)
-		local suspendedUnit = suspendedUnits[unitID]
-
-		if suspendedUnit == nil then
-			return true
-		end
-
-		local enableReason = reason ~= nil and suspendReasons[reason]
-
-		if enableReason then
-			suspendedUnit[enableReason] = nil
-		end
-
-		if not enableReason or next(suspendedUnit) == nil then
-			spSetUnitRulesParam(unitID, "suspended", 0)
-			suspendedUnits[unitID] = nil
-			suspendNotify(unitID, false)
-			return true
-		end
-
-		return false
-	end
-
-	---@param unitID integer
-	GG.GetUnitIsSuspended = function(unitID)
-		return suspendedUnits[unitID] ~= nil
-	end
-
-	---@param unitID integer
-	---@return string[]? enableReasons
-	GG.GetUnitSuspendReasons = function(unitID)
-		local suspendedUnit = suspendedUnits[unitID]
-
-		if suspendedUnit ~= nil then
-			local reasons = {}
-
-			for reason in pairs(suspendedUnit) do
-				reasons[#reasons + 1] = reason
-			end
-
-			return reasons
-		end
-	end
+	GG.AddUnitSuspendAndResumeReason = addUnitSuspendAndResumeReason
+	GG.RegisterSuspendNotify = registerSuspendNotify
+	GG.AddSuspendReason = addSuspendReason
+	GG.ClearSuspendReason = clearSuspendReason
+	GG.GetUnitIsSuspended = getUnitIsSuspended
+	GG.GetUnitSuspendReasons = getUnitSuspendReasons
 end
 
 function gadget:Shutdown()
 	GG.AddSuspendReason = nil
 	GG.ClearSuspendReason = nil
+	GG.AddUnitSuspendAndResumeReason = nil
+	GG.RegisterSuspendNotify = nil
 	GG.GetUnitIsSuspended = nil
 	GG.GetUnitSuspendReasons = nil
 end
@@ -308,9 +299,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	suspendedUnits[unitID] = nil
 end
 
---------------------------------------------------------------------------------
-
--- Removing stuns
+-- Removing stuns --------------------------------------------------------------
 
 function gadget:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	if stunned then
@@ -338,7 +327,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 	end
 end
 
--- Removing non-stuns
+-- Removing non-stuns ----------------------------------------------------------
 
 function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
 	if suspendedUnits[unitID] then
@@ -364,9 +353,7 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	end
 end
 
---------------------------------------------------------------------------------
-
--- Suspension behaviors
+-- Suspension behaviors --------------------------------------------------------
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	return not suspendedUnits[unitID] or not commandSuspendDisallows[cmdID]
