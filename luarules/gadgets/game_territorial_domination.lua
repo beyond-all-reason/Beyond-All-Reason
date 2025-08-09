@@ -14,11 +14,6 @@ end
 --[[
 todo
 
-- the scoring logic fucking sucks
-- need to check if the round counter is correct
-- it seems it's possible to infinitely gain points from capturing territories at some point?
-- defense points only accumulate after round 5 wtf
-
 ]]
 
 
@@ -33,7 +28,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 5,
-		minutesPerRound = 1,
+		minutesPerRound = 5,
 	},
 	long = {
 		maxRounds = 7,
@@ -62,6 +57,8 @@ local HORDE_MODE_MIN_TERRITORY_PERCENTAGE = 0.10     -- the minimum percentage o
 local HORDE_MODE_MIN_TERRITORIES_PER_PLAYER = 1
 local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) / HORDE_MODE_PLAYER_CAP
 local HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES = 3
+
+local ATTACKER_POINTS_PER_ROUND_MULTIPLIER = 2
 
 local MAX_EMPTY_IMPEDANCE_POWER = 25
 local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
@@ -118,7 +115,7 @@ local gameFrame = 0
 local sentGridStructure = false
 local currentSecond = 0
 local roundTimestamp = 0
-local currentRound = 0
+local currentRound = 1
 
 
 local scavengerTeamID = Spring.Utilities.GetScavTeamID()
@@ -206,10 +203,7 @@ local function processNeighborData(currentSquareData)
 			end
 		end
 	end
-	
-	-- Update the square's neighbor data directly
-	currentSquareData.ownedNeighbors = neighborAllyTeamCounts[currentSquareData.allyOwnerID]
-	
+
 	return neighborAllyTeamCounts, totalNeighborCount
 end
 
@@ -294,7 +288,9 @@ local function initializeUnsyncedGrid()
 			squareData.progress,
 			squareData.gridMidpointX,
 			squareData.gridMidpointZ,
-			initVisibilityArray
+			initVisibilityArray,
+			squareData.attackerPointsValue or 0, -- attackerCaptureValue  
+			squareData.defensePointsValue or 0   -- ownerRoundEndValue
 		)
 	end
 
@@ -357,20 +353,6 @@ local function initializeUnitDefs()
 			commandersDefs[defID] = true
 		end
 	end
-end
-
-local function convertNeighborCountToPoints(count)
-	local points
-	if not count then
-		points = 0
-	elseif count > 5 then
-		points = 5
-	elseif count > 3 then
-		points = 3
-	else
-		points = 1
-	end
-	return points
 end
 
 local function processLivingTeams()
@@ -475,6 +457,7 @@ local function createGridSquareData(x, z)
 	data.attackerPointsTaken = {}
 	data.neighborAllyTeamCounts = {}
 	data.totalNeighborCount = 0
+	data.wasCapturedThisRound = false
 	data.corners = {
 		{ x = data.mapOriginX,             z = data.mapOriginZ },
 		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ },
@@ -534,6 +517,7 @@ local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 	if newProgress < 0 then
 		data.allyOwnerID = winningAllyID
 		data.progress = math.abs(newProgress)
+		data.wasCapturedThisRound = true
 	elseif newProgress > MAX_PROGRESS then
 		data.progress = MAX_PROGRESS
 	else
@@ -689,33 +673,32 @@ local function processAttackScoresNeighborsAndDecay()
 		processDecay(gridID)
 		local squareData = captureGrid[gridID]
 		local visibilityArray = createVisibilityArray(squareData)
-		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray)
+		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray, squareData.attackerPointsValue or 0, squareData.defensePointsValue or 0)
 	end
 end
 
 local function processOffenseScoresAndRewards()
 	for gridID, data in pairs(captureGrid) do
 		local data = captureGrid[gridID]
-		local neighborCount = data.neighborAllyTeamCounts[data.allyOwnerID]
+		local neighborCount = data.neighborAllyTeamCounts[data.allyOwnerID] or 0
 		if data.progress > OWNERSHIP_THRESHOLD then
-			if not data.attackerPointsTaken[data.allyOwnerID] then
+			if not data.attackerPointsTaken[data.allyOwnerID] and data.wasCapturedThisRound then
 				data.attackerPointsTaken[data.allyOwnerID] = true
-				data.attackerPointsValue = convertNeighborCountToPoints(data.ownedNeighbors) + data.roundsOwned
+				data.attackerPointsValue = math.floor(neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
 				allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + data.attackerPointsValue
 				data.roundsOwned = 0
 			end
 
-			allyScores[data.allyOwnerID] = allyScores[data.allyOwnerID] or { score = 0, rank = 1 }
-			data.attackerPointsValue = convertNeighborCountToPoints(neighborCount) + data.roundsOwned
-			data.ownedNeighbors = data.neighborAllyTeamCounts[data.allyOwnerID]
+			data.attackerPointsValue = math.floor(neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
+			data.ownedNeighbors = data.neighborAllyTeamCounts[data.allyOwnerID] or 0
 		end
 	end
 end
-
+local BASE_TERRITORY_POINTS_VALUE = 1
 local function updateGridDefensePointRewards()
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
-			data.defensePointsValue = convertNeighborCountToPoints(data.ownedNeighbors)
+			data.defensePointsValue = data.ownedNeighbors and BASE_TERRITORY_POINTS_VALUE + data.ownedNeighbors or 0
 		end
 	end
 end
@@ -723,8 +706,10 @@ end
 local function processDefenseScores()  
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
-			local points = convertNeighborCountToPoints(data.ownedNeighbors)
-			allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + points
+			local points = data.ownedNeighbors or 0
+			local allyScore = allyScores[data.allyOwnerID].score
+			allyScore = allyScore or 0
+			allyScores[data.allyOwnerID].score = allyScore + points
 		end
 	end
 end
@@ -734,7 +719,7 @@ local function processRoundEnd()
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
 			data.roundsOwned = data.roundsOwned + 1
 			data.attackerPointsTaken = {}
-			data.attackerPointsTaken[data.allyOwnerID] = true
+			data.wasCapturedThisRound = false
 		else
 			data.roundsOwned = 0
 			data.attackerPointsTaken = {}
@@ -760,12 +745,13 @@ function gadget:GameFrame(frame)
 		processOffenseScoresAndRewards()
 		updateGridDefensePointRewards()
 		if seconds >= roundTimestamp then
+			Spring.Echo("round", currentRound, "roundTimestamp", roundTimestamp, "seconds", seconds)
 			if currentRound <= MAX_ROUNDS then
 				currentRound = currentRound + 1
 				processDefenseScores()
 				processRoundEnd()
-				roundTimestamp = seconds + ROUND_SECONDS
 			else
+				Spring.Echo("kill them all")
 				currentRound = MAX_ROUNDS
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 then
@@ -773,9 +759,7 @@ function gadget:GameFrame(frame)
 					end
 				end
 			end
-			for gridID, data in pairs(captureGrid) do
-				data.attackerPointsTaken = {}
-			end
+			roundTimestamp = seconds + ROUND_SECONDS
 		end
 		setAllyTeamRanks(allyScores)
 		local highestScore = 0
@@ -788,10 +772,6 @@ function gadget:GameFrame(frame)
 				secondHighestScore = scoreData.score
 			end
 		end
-		for allyID, scoreData in pairs(allyScores) do
-			Spring.Echo("Ally " .. allyID .. " score: " .. scoreData.score .. " (rank " .. scoreData.rank .. ")")
-		end
-		Spring.Echo("Round " .. currentRound .. " ended")
 		Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
 		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
