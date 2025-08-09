@@ -768,7 +768,7 @@ end
 local function SetOriginalColourNames()
     -- Saves the original team colours associated to team teamID
     for playerID, _ in pairs(player) do
-        if player[playerID].name and not player[playerID].spec and playerID < specOffset then
+        if player[playerID].name and not player[playerID].spec and playerID < specOffset and player[playerID].team then
             local r, g, b = colourNames(player[playerID].team, true)
             originalColourNames[playerID] = { r, g, b }
         end
