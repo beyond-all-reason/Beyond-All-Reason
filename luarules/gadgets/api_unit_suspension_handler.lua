@@ -146,6 +146,17 @@ elseif commandSuspendDisallows[CMD.BUILD] then
 	})
 end
 
+-- todo: scripting a unit not to move involves a lot of annoying steps
+local canMove = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.canMove then
+		canMove[unitDefID] = true
+		if unitDef.canFly then
+			canMove[unitDefID] = nil -- todo: fix
+		end
+	end
+end
+
 local suspendedUnits = {}
 local suspendReasons = {
 	-- Engine (stunned units):
@@ -206,6 +217,17 @@ local function registerSuspendNotify(callback)
 	end
 end
 
+local function startMoveCtrl(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	Spring.MoveCtrl.Enable(unitID)
+	Spring.MoveCtrl.SetNoBlocking(unitID, false)
+end
+
+local function endMoveCtrl(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	Spring.MoveCtrl.Disable(unitID)
+end
+
 ---Disable the unit and set the reason why it cannot take actions.
 ---@param unitID integer
 ---@param reason string?
@@ -222,6 +244,7 @@ local function addSuspendReason(unitID, reason, remove)
 			removeCommands(unitID)
 		end
 
+		startMoveCtrl(unitID)
 		suspendNotify(unitID, true)
 	end
 
@@ -252,6 +275,7 @@ local function clearSuspendReason(unitID, reason)
 	if not enableReason or next(suspendedUnit) == nil then
 		spSetUnitRulesParam(unitID, "suspended", 0)
 		suspendedUnits[unitID] = nil
+		endMoveCtrl(unitID)
 		suspendNotify(unitID, false)
 		return true
 	end
