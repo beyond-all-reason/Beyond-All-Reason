@@ -3,12 +3,7 @@
 local Resources = {}
 
 function Resources.AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
-    if not TeamTransfer.config.enabled then return true end
-    if not TeamTransfer.config.allowResourceSharing then
-        TeamTransfer.AddRefusal(oldTeam, "Resource sharing has been disabled")
-        return false
-    end
-    if TeamTransfer.config.allowEnemyResourceSharing or Spring.AreTeamsAllied(oldTeam, newTeam) then
+    if Spring.AreTeamsAllied(oldTeam, newTeam) then
         return true
     end
     TeamTransfer.AddRefusal(oldTeam, "Cannot give resources to enemies")
@@ -62,5 +57,7 @@ function Resources.GiveEverythingTo(srcTeamID, dstTeamID)
     end
     return any
 end
+
+
 
 return Resources

@@ -125,6 +125,7 @@ if gadgetHandler:IsSyncedCode() then
         TeamGiveEverything         = Units.ChangeTeamWithReason,  -- (unitID, oldTeam, newTeam, reason)
         TeamGiveEverythingComplete = Resources.GiveEverythingTo,  -- (fromTeam, toTeam)
         NetResourceTransfer        = Resources.NetResourceTransfer, -- (fromTeam, toTeam, resourceType, amount)
+        TeamAutoShare              = Teammates.TeamAutoShare,     -- (fromTeam, toTeam, energyAmount, metalAmount, targetEnergyStorage, targetMetalStorage, targetEnergyCurrent, targetMetalCurrent, targetEnergyShare, targetMetalShare)
         
         -- Chat command handlers (standard msg, playerID signature)
         take                       = function(msg, playerID) return ProcessCommand(msg, playerID, commands.take) end,

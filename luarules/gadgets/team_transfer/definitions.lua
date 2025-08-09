@@ -13,18 +13,6 @@ TeamTransfer.REASON = {
     DEV_TRANSFER         = 9, -- Development/debugging transfers
 }
 
-local modOptions = Spring.GetModOptions()
-
-TeamTransfer.config = {
-    allowResourceSharing = modOptions.allow_resource_sharing == 1,
-    allowUnitSharing = modOptions.allow_unit_sharing == 1,
-    allowEnemyResourceSharing = modOptions.allow_enemy_resource_sharing == 1,
-    allowEnemyUnitSharing = modOptions.allow_enemy_unit_sharing == 1,
-    allowBuilderSharing = modOptions.allow_builder_sharing == 1,
-    shareDelaySeconds = modOptions.share_delay_seconds or 0,
-    enabled = modOptions.team_transfer_enabled == 1,
-}
-
 TeamTransfer.devConfig = {
     noCostEnabled = false,
 }

@@ -1875,11 +1875,7 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	for _, g in ipairs(self.UnitGivenList) do
 		g:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
-	for _, g in ipairs(self.UnitGivenList) do
-		if g.Metal and g.Metal.UnitGiven then
-			g.Metal:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-		end
-	end
+
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)

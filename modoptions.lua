@@ -243,7 +243,7 @@ local options = {
 	{
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
-		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
+		desc	=	"Taxes resource sharing and automatic overflow sharing.\n"..
 					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,

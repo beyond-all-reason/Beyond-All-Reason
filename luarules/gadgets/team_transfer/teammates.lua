@@ -4,6 +4,37 @@ local Resources = VFS.Include("LuaRules/Gadgets/team_transfer/resources.lua")
 
 local Teammates = {}
 
+-- Cache expensive lookups (updated only when needed)
+local cachedSharingTax = nil
+local allianceCache = {}  -- Cache team alliance status
+
+local function GetSharingTax()
+    if cachedSharingTax == nil then
+        cachedSharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
+    end
+    return cachedSharingTax
+end
+
+local function AreTeamsAllied(teamA, teamB)
+    -- Use cached alliance status to avoid expensive C++ calls
+    local cacheKey = teamA * 1000 + teamB  -- Simple hash for team pair
+    if allianceCache[cacheKey] == nil then
+        allianceCache[cacheKey] = Spring.AreTeamsAllied(teamA, teamB)
+    end
+    return allianceCache[cacheKey]
+end
+
+-- Allow external refresh of cached values (e.g., if alliances or mod options change)
+function Teammates.RefreshCaches()
+    cachedSharingTax = nil
+    allianceCache = {}
+end
+
+-- For backward compatibility
+function Teammates.RefreshSharingTax()
+    Teammates.RefreshCaches()
+end
+
 -- High-level team-to-team transfer operations
 function Teammates.TakeFromTeam(playerData, targetTeam)
     local unitsTransferred = 0
@@ -100,11 +131,8 @@ function Teammates.CanCaptureFrom(fromTeam, toTeam)
 end
 
 function Teammates.CanGiveTo(fromTeam, toTeam)
-    if not TeamTransfer.config.allowUnitSharing then
-        return false, "Unit sharing is disabled"
-    end
-    
-    if not TeamTransfer.config.allowEnemyUnitSharing and not Spring.AreTeamsAllied(fromTeam, toTeam) then
+    -- Only allow transfers between allied teams
+    if not Spring.AreTeamsAllied(fromTeam, toTeam) then
         return false, "Cannot give to enemy teams"
     end
     
@@ -132,7 +160,6 @@ function Teammates.GetPlayerData(playerID)
     return actualPlayerID ~= -1 and playerData or nil
 end
 
--- Target resolution for different command types
 function Teammates.GetTargetTeams(playerData, targetParam, selectionType)
     local targetTeams = {}
     local targetTeamID = (targetParam and targetParam ~= "") and tonumber(targetParam) or nil
@@ -163,6 +190,37 @@ function Teammates.GetTargetTeams(playerData, targetParam, selectionType)
     end
     
     return targetTeams
+end
+
+function Teammates.TeamAutoShare(fromTeam, toTeam, energyAmount, metalAmount, 
+                                targetEnergyStorage, targetMetalStorage,
+                                targetEnergyCurrent, targetMetalCurrent, 
+                                targetEnergyShare, targetMetalShare)
+    
+    -- Use teammate relationship validation (includes alliance check)
+    local canShare, reason = Teammates.CanGiveTo(fromTeam, toTeam)
+    if not canShare then
+        -- Block the transfer by doing nothing
+        return
+    end
+    
+    local sharingTax = GetSharingTax()
+    
+    if energyAmount > 0 then
+        local maxReceive = math.max(0, (targetEnergyStorage * targetEnergyShare) - targetEnergyCurrent)
+        local taxedAmount = math.min(energyAmount * (1 - sharingTax), maxReceive)
+        if taxedAmount > 0 then
+            Spring.ShareTeamResource(fromTeam, toTeam, "energy", taxedAmount / (1 - sharingTax))
+        end
+    end
+    
+    if metalAmount > 0 then
+        local maxReceive = math.max(0, (targetMetalStorage * targetMetalShare) - targetMetalCurrent)
+        local taxedAmount = math.min(metalAmount * (1 - sharingTax), maxReceive)
+        if taxedAmount > 0 then
+            Spring.ShareTeamResource(fromTeam, toTeam, "metal", taxedAmount / (1 - sharingTax))
+        end
+    end
 end
 
 return Teammates
