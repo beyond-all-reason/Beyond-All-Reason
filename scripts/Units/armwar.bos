@@ -4,12 +4,6 @@
 piece  torso,rflare, lflare , pelvis, lthigh, rthigh, luparm,
        ruparm, rarm, larm, rleg, rfoot, lleg, lfoot, aimy1, aimx1;
 
-// Turn rate parameter defines
-#define Turret1Heading_AimSpeed <200>
-#define Turret1Pitch_AimSpeed <200>
-#define Turret1Heading_RestoreSpeed <90>
-#define Turret1Pitch_RestoreSpeed <45>
-
 static-var isMoving, restore_delay, gun_1;
 static-var Turret1curHeading, Turret1curPitch;
 static-var goalHeading, goalPitch, isAiming, Turret1HeadingSpeed, Turret1PitchSpeed;
@@ -317,40 +311,6 @@ StopMoving(){
 	call-script StopWalking();
 }
 
-ContinuousAimAccounting()
-{
-	while (TRUE) // I Dislike the busy loop, but the unit needs to do the turret and chassis heading accounting every frame. 
-	{
-		if (isAiming) 
-		// If trying to aim at a target, compensate the Goal Heading for the rotation/turing of the entire unit
-		// Mostly Eliminates the need to set super low "reaimTime" via Spring.SetUnitWeaponState(unitID, id, "reaimTime", value)
-		{
-			delta = WRAPDELTA((get HEADING) - pastChassisHeading);
-			goalHeading = goalHeading - delta;
-		}
-
-		pastChassisHeading = get HEADING; // saves current heading, to compare to next frame's heading
-
-		delta = WRAPDELTA(goalHeading - Turret1curHeading); // determine difference from current and desired turret heading
-		if (ABSOLUTE_GREATER_THAN(delta,(Turret1HeadingSpeed / 30))) {
-			Turret1curHeading = Turret1curHeading + SIGN(delta) * (Turret1HeadingSpeed / 30); // do the turret heading accounting
-		}else{
-			Turret1curHeading = goalHeading;
-		}
-		turn aimy1 to y-axis Turret1curHeading now; // set the turret to the accounted value
-
-		delta = WRAPDELTA(goalPitch - Turret1curPitch); // determine difference from current and desired turret pitch
-		if (ABSOLUTE_GREATER_THAN(delta,(Turret1HeadingSpeed / 30))) {
-			Turret1curPitch = Turret1curPitch + SIGN(delta) * (Turret1PitchSpeed / 30); // do the turret heading accounting
-		}else{
-			Turret1curPitch = goalPitch;
-		}
-		turn aimx1 to x-axis <0.0> - Turret1curPitch now; // set the turret to the accounted value
-
-		sleep 1; // Pause until next sim frame
-	}
-}
-
 Create()
 {
 	hide rflare;
@@ -363,44 +323,13 @@ Create()
 	restore_delay = 3000;
 	gun_1 = rflare;
 	animSpeed = 4;
-	goalHeading = 0;
-	isAiming = FALSE;
-	pastChassisHeading = 0;
-	Turret1HeadingSpeed=Turret1Heading_RestoreSpeed;
-	Turret1PitchSpeed=Turret1Pitch_RestoreSpeed;
-	start-script ContinuousAimAccounting(); // spin up the ContinuousAimAccounting function that handles turret rotation
+
+	call-script CATT1_Init();
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-}
-
-static-var  Stunned;
-// With ContinuousAimAccounting() controlling turn commands, ExecuteRestoreAfterDelay just needs to set the parameters of ContinuousAimAccounting
-ExecuteRestoreAfterDelay() 
-{
-    if (Stunned) {
-        return (1);
-    }
-	goalHeading=0;
-	goalPitch=0;
-	isAiming=FALSE;
-	Turret1HeadingSpeed=Turret1Heading_RestoreSpeed;
-	Turret1PitchSpeed=Turret1Pitch_RestoreSpeed;
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	set-signal-mask SIGNAL_AIM1;
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
 }
 
 // This function defines the point from which the engine calculates the heading to the target, which is then given to AimWeapon
@@ -427,37 +356,27 @@ EndBurst1()
 	gun_1 = !gun_1;
 }
 
+#define CATT1_PIECE_Y aimy1
+#define CATT1_PIECE_X aimx1
+
+#define CATT1_MAX_VELOCITY <200>/30
+#define CATT1_ACCELERATION <200>/30
+#define CATT1_JERK <200>/30
+#define CATT1_PRECISION <6.66>
+#define CATT1_PITCH_SPEED <200>
+#define CATT1_RESTORE_DELAY 3000
+#define CATT1_RESTORE_SPEED <90>/30
+
+#include "../constant_acceleration_turret_turning_1.h"
+
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM1; // kills RestoreAfterDelay functions and any while looping previous AimWeapon functions
-	set-signal-mask SIGNAL_AIM1; // sets mask, so can be killed by future calls of AimWeapon
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
-	goalHeading = heading; // Save engine-provided goal heading and pitch to a unit local variable
-	goalPitch = pitch;
-	Turret1HeadingSpeed=Turret1Heading_AimSpeed; // Tell unit to turn turret at aiming speed
-	Turret1PitchSpeed=Turret1Pitch_AimSpeed;
-	isAiming=TRUE; // Tell unit it is trying to aim at something
-
-	canShoot=FALSE;
-	while (!canShoot){ // This while loop starts when the engine calls in AimWeapon every "reaimTime" 
-		// This while loop breaks and AimWeapon returns 1 if Turret1curHeading and Turret1curPitch is within 1 frame of movement at the start OR end of the sim frame.
-		canShoot = TRUE;
-		delta = WRAPDELTA(goalHeading - Turret1curHeading);
-		if (ABSOLUTE_GREATER_THAN(delta,(Turret1HeadingSpeed / 30))) {
-			canShoot = FALSE;
-		}
-
-		delta = WRAPDELTA(goalPitch - Turret1curPitch);
-		if (ABSOLUTE_GREATER_THAN(delta,(Turret1PitchSpeed / 30))) {
-			canShoot = FALSE;
-		}
-
-		if (!canShoot) {
-			sleep 1; // This while loop will resume at the end of the game frame, due to engine incrementing "thread time" in the middle of the sim frame
-		}
-	}
-	start-script RestoreAfterDelay();
+	call-script CATT1_Aim(heading,pitch); // using default CATT restore
 	return (1);
+
 }
 
 Killed(severity, corpsetype)
