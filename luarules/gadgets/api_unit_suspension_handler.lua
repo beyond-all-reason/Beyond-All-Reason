@@ -131,7 +131,13 @@ do
 	end
 end
 
-if commandSuspendDisallows[CMD.BUILD] then
+if commandSuspendDisallows[CMD.ANY] then
+	commandSuspendDisallows = setmetatable({}, {
+		__index = function (self, value)
+			return true
+		end
+	})
+elseif commandSuspendDisallows[CMD.BUILD] then
 	commandSuspendDisallows[CMD.BUILD] = nil
 	commandSuspendDisallows = setmetatable(commandSuspendDisallows, {
 		__index = function(self, value)
