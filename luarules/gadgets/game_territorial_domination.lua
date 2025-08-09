@@ -17,23 +17,23 @@ if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_ena
 
 local territorialDominationConfig = {
 	short = {
-		gracePeriod = 6 * 60,
-		maxTime = 18 * 60,
+		maxRounds = 3,
+		minutesPerRound = 5,
 	},
 	default = {
-		gracePeriod = 6 * 60,
-		maxTime = 24 * 60,
+		maxRounds = 5,
+		minutesPerRound = 1,
 	},
 	long = {
-		gracePeriod = 6 * 60,
-		maxTime = 36 * 60,
+		maxRounds = 7,
+		minutesPerRound = 5,
 	},
 }
 
 local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig.default
-local SECONDS_TO_MAX = config.maxTime
-local SECONDS_TO_START = config.gracePeriod
-local DEBUGMODE = false
+local MAX_ROUNDS = config.maxRounds
+local ROUND_SECONDS = 60 * config.minutesPerRound
+local DEBUGMODE = true
 
 local GRID_SIZE = 1024
 local GRID_CHECK_INTERVAL = Game.gameSpeed
@@ -58,10 +58,6 @@ local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 
-local PAUSE_DELAY_SECONDS = 60
-local MAX_THRESHOLD_DELAY = SECONDS_TO_START * 2 / 3
-local MIN_THRESHOLD_DELAY = 1
-local DEFEAT_DELAY_SECONDS = 60
 local RESET_DEFEAT_FRAME = 0
 
 local MAX_PROGRESS = 1.0
@@ -70,12 +66,7 @@ local CORNER_MULTIPLIER = math.sqrt(2) -- for calculating how far from center to
 local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- you own it when the circle color fill of the grid square touches the edge.
 -- the ownership fill continues beyond touching the edge of the square, this gives you a little "buffer" before ownership is lost.
 
-local MIN_DEFEAT_THRESHOLD_PERCENTAGE = 0.2
-
 local SCORE_RULES_KEY = "territorialDominationScore"
-local THRESHOLD_RULES_KEY = "territorialDominationDefeatThreshold"
-local MAX_THRESHOLD_RULES_KEY = "territorialDominationMaxThreshold"
-local PAUSE_DELAY_KEY = "territorialDominationPauseDelay"
 
 local floor = math.floor
 local max = math.max
@@ -110,17 +101,13 @@ local allTeams = spGetTeamList()
 local allyCount = 0
 local allyHordesCount = 0
 local originalHighestTeamCount = nil
-local defeatThreshold = 0
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
 local gameFrame = 0
 local sentGridStructure = false
-local thresholdSecondsDelay = 0
-local thresholdDelayTimestamp = 0
-local wantedDefeatThreshold = 0
-local maxDefeatThreshold = 0
-local pauseThresholdTimer = 0
 local currentSecond = 0
+local roundTimestamp = 0
+local roundsElapsed = 0
 
 
 local scavengerTeamID = Spring.Utilities.GetScavTeamID()
@@ -134,7 +121,7 @@ local captureGrid = {}
 local livingCommanders = {}
 local killQueue = {}
 local commandersDefs = {}
-local allyTallies = {}
+local allyScores = {}
 local randomizedGridIDs = {}
 local flyingUnits = {}
 local allyDefeatTime = {}
@@ -159,64 +146,18 @@ local function initializeUnitDefs()
 	end
 end
 
-local function getTargetThreshold()
-	local seconds = spGetGameSeconds()
-	local minFactor = MIN_DEFEAT_THRESHOLD_PERCENTAGE
-	local maxFactor = 1
-	local thresholdExponentialFactor = min(minFactor + ((seconds - SECONDS_TO_START) / SECONDS_TO_MAX), maxFactor)
-	return #captureGrid * thresholdExponentialFactor
-end
-
-local function getMaximumThresholdForHordeMode()
-	local returnValue = math.huge
-	if allyHordesCount and allyHordesCount > 0 then
-		local territories = #captureGrid
-		local teamCountMinusOne = originalHighestTeamCount - 1
-		local minPercentageTerritories = HORDE_MODE_MIN_TERRITORY_PERCENTAGE + (teamCountMinusOne) * HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER
-		local requiredTerritories = max(
-		HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES + teamCountMinusOne * HORDE_MODE_MIN_TERRITORIES_PER_PLAYER,
-			territories * minPercentageTerritories)
-		local maxTerritories = territories * HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP
-
-		returnValue = min(requiredTerritories, maxTerritories)
-	end
-	return returnValue
-end
-
-local function setThresholdIncreaseRate()
-	local seconds = spGetGameSeconds()
-	if allyCount + allyHordesCount == 1 then
-		thresholdSecondsDelay = 0            --stop checking
+local function convertNeighborCountToPoints(count)
+	local points
+	if not count then
+		points = 0
+	elseif count > 5 then
+		points = 5
+	elseif count > 3 then
+		points = 3
 	else
-		local maxPVPThreshold = #captureGrid * 0.5 -- because a ally vs ally is the smallest valid territorial domination arrangement.
-		local startTime = max(seconds, SECONDS_TO_START)
-		maxDefeatThreshold = min(getMaximumThresholdForHordeMode(), maxPVPThreshold)
-		wantedDefeatThreshold = floor(min(getTargetThreshold() / allyCount, maxDefeatThreshold))
-
-		if wantedDefeatThreshold > 0 then
-			local delayValue = (SECONDS_TO_MAX - startTime) / wantedDefeatThreshold
-			thresholdSecondsDelay = clamp(delayValue, MIN_THRESHOLD_DELAY, MAX_THRESHOLD_DELAY)
-		else
-			thresholdSecondsDelay = MAX_THRESHOLD_DELAY
-		end
+		points = 1
 	end
-	thresholdDelayTimestamp = min(seconds + thresholdSecondsDelay, thresholdDelayTimestamp)
-end
-
-local function updateCurrentDefeatThreshold()
-	local seconds = spGetGameSeconds()
-	local totalDelay = max(SECONDS_TO_START, pauseThresholdTimer, thresholdDelayTimestamp)
-
-	if (totalDelay < seconds and thresholdSecondsDelay ~= 0 and allyCount > 1) or seconds > SECONDS_TO_MAX then
-		defeatThreshold = min(defeatThreshold + 1, wantedDefeatThreshold)
-		thresholdDelayTimestamp = seconds + thresholdSecondsDelay
-	end
-end
-
-local function clearAllyTeamsWatch()
-	for allyID in pairs(allyTeamsWatch) do
-		allyTeamsWatch[allyID] = nil
-	end
+	return points
 end
 
 local function processLivingTeams()
@@ -276,25 +217,12 @@ local function initializeTeamData()
 	originalHighestTeamCount = getHighestTeamCount()
 end
 
-local function updateAllyCountAndPauseTimer(newAllyCount)
-	if allyCount ~= newAllyCount then
-		local oldPauseTimer = pauseThresholdTimer
-		pauseThresholdTimer = max(spGetGameSeconds() + PAUSE_DELAY_SECONDS, pauseThresholdTimer)
-		Spring.SetGameRulesParam(PAUSE_DELAY_KEY, pauseThresholdTimer)
 
-		if pauseThresholdTimer > oldPauseTimer then
-			local pauseExtension = pauseThresholdTimer - spGetGameSeconds()
-			for allyID, defeatTime in pairs(allyDefeatTime) do
-				if defeatTime and defeatTime > 0 then
-					allyDefeatTime[allyID] = defeatTime + pauseExtension
-					for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-						Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
-					end
-				end
-			end
-		end
-		allyCount = newAllyCount
-	end
+
+local function updateLivingTeamsData()
+	local newAllyCount, newHordeAllyCount = processLivingTeams()
+	allyHordesCount = newHordeAllyCount
+	allyCount = newAllyCount
 end
 
 local function setAllyGridToGaia(allyID)
@@ -304,30 +232,6 @@ local function setAllyGridToGaia(allyID)
 			data.progress = STARTING_PROGRESS
 		end
 	end
-end
-
-local function updateLivingTeamsData()
-	local oldAllyTeams = {}
-	for allyID in pairs(allyTeamsWatch) do
-		oldAllyTeams[allyID] = true
-	end
-	
-	clearAllyTeamsWatch()
-	local newAllyCount, newHordeAllyCount = processLivingTeams()
-	
-	local newAllyTeams = {}
-	for allyID in pairs(allyTeamsWatch) do
-		newAllyTeams[allyID] = true
-	end
-
-	for oldAllyID in pairs(oldAllyTeams) do
-		if not newAllyTeams[oldAllyID] then
-			setAllyGridToGaia(oldAllyID)
-		end
-	end
-	
-	allyHordesCount = newHordeAllyCount
-	updateAllyCountAndPauseTimer(newAllyCount)
 end
 
 local function createGridSquareData(x, z)
@@ -346,6 +250,10 @@ local function createGridSquareData(x, z)
 	data.decayDelay = 0
 	data.contested = false
 	data.contiguous = false
+	data.ownedNeighbors = 0
+	data.roundsOwned = 0
+	data.attackerPointsValue = 0
+	data.attackerPointsTaken = {}
 	data.corners = {
 		{ x = data.mapOriginX,             z = data.mapOriginZ },
 		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ },
@@ -380,6 +288,7 @@ local function queueCommanderTeleportRetreat(unitID)
 end
 
 local function triggerAllyDefeat(allyID)
+	if DEBUGMODE then return end
 	for unitID, commanderAllyID in pairs(livingCommanders) do
 		if commanderAllyID == allyID then
 			queueCommanderTeleportRetreat(unitID)
@@ -390,26 +299,7 @@ local function triggerAllyDefeat(allyID)
 	end
 end
 
-local function setAndCheckAllyDefeatTime(allyID)
-	if not allyDefeatTime[allyID] then
-		allyDefeatTime[allyID] = spGetGameSeconds() + DEFEAT_DELAY_SECONDS
-		for teamID in pairs(allyTeamsWatch[allyID]) do
-			Spring.SetTeamRulesParam(teamID, "defeatTime", allyDefeatTime[allyID])
-		end
-	end
-	return allyDefeatTime[allyID] < spGetGameSeconds()
-end
 
-local function calculateUnitPower(unitID, unitData)
-	local power = unitData.power
-	if flyingUnits[unitID] then
-		power = power * FLYING_UNIT_POWER_MULTIPLIER
-	end
-	if spGetUnitIsCloaked(unitID) then
-		power = power * CLOAKED_UNIT_POWER_MULTIPLIER
-	end
-	return power
-end
 
 local function getAllyPowersInSquare(gridID)
 	local data = captureGrid[gridID]
@@ -430,7 +320,13 @@ local function getAllyPowersInSquare(gridID)
 
 			if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
 				hasUnits = true
-				local power = calculateUnitPower(unitID, unitData)
+				local power = unitData.power
+				if flyingUnits[unitID] then
+					power = power * FLYING_UNIT_POWER_MULTIPLIER
+				end
+				if spGetUnitIsCloaked(unitID) then
+					power = power * CLOAKED_UNIT_POWER_MULTIPLIER
+				end
 
 				if hordeModeAllies[allyTeam] then
 					allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
@@ -547,13 +443,7 @@ local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 	end
 end
 
-local function getClearedAllyTallies()
-	local allies = {}
-	for allyID in pairs(allyTeamsWatch) do
-		allies[allyID] = 0
-	end
-	return allies
-end
+
 
 local function getNeighborAllyTeamCounts(currentSquareData)
 	local neighborAllyTeamCounts = {}
@@ -588,33 +478,7 @@ local function getNeighborAllyTeamCounts(currentSquareData)
 	return neighborAllyTeamCounts, totalNeighborCount
 end
 
-local function getSquareContiguityProgress(gridID)
-	local currentSquareData = captureGrid[gridID]
-	local neighborAllyTeamCounts, totalNeighborCount = getNeighborAllyTeamCounts(currentSquareData)
-	local dominantAllyTeamCount = 0
-	local dominantAllyTeamID
-	currentSquareData.contiguous = false
 
-	for allyTeamID, neighborCount in pairs(neighborAllyTeamCounts) do
-		if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
-			dominantAllyTeamID = allyTeamID
-			dominantAllyTeamCount = neighborCount
-		end
-	end
-
-	if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
-		currentSquareData.contiguous = true
-		-- If dominant ally is different from current owner, return negative progress (capture)
-		if dominantAllyTeamID ~= currentSquareData.allyOwnerID then
-			return dominantAllyTeamID, -CONTIGUOUS_PROGRESS_INCREMENT
-		else
-			-- If dominant ally is same as current owner, return positive progress (reinforce)
-			return dominantAllyTeamID, CONTIGUOUS_PROGRESS_INCREMENT
-		end
-	end
-
-	return nil, nil
-end
 
 local function getRandomizedGridIDs()
 	for i = 1, #randomizedGridIDs do
@@ -675,21 +539,6 @@ local function createVisibilityArray(squareData)
 	return table.concat(visibilityArray)
 end
 
-local function updateTeamRulesScores()
-	Spring.SetGameRulesParam(THRESHOLD_RULES_KEY, defeatThreshold)
-	Spring.SetGameRulesParam(MAX_THRESHOLD_RULES_KEY, maxDefeatThreshold)
-
-	for allyID, tally in pairs(allyTallies) do
-		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-			Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, tally)
-		end
-	end
-end
-
-local function updateUnsyncedScore(allyID, score)
-	SendToUnsynced("UpdateAllyScore", allyID, score, defeatThreshold)
-end
-
 local function initializeUnsyncedGrid()
 	local maxAllyID = 0
 	for allyTeamID in pairs(allyTeamsWatch) do
@@ -719,49 +568,37 @@ local function initializeUnsyncedGrid()
 	sentGridStructure = true
 end
 
-local function updateUnsyncedSquare(gridID)
-	local squareData = captureGrid[gridID]
-	local visibilityArray = createVisibilityArray(squareData)
-	SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray)
-end
-
-local function decayProgress(gridID)
-	local data = captureGrid[gridID]
-	if data.progress > OWNERSHIP_THRESHOLD then
-		addProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
-	else
-		addProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
-	end
-end
-
-local function setAllyTeamRanks(allyTallies)
-	local allyScores = {}
-	for allyID, tally in pairs(allyTallies) do
+local function setAllyTeamRanks(allyScores)
+	local rankedAllyScores = {}
+	for allyID, scoreData in pairs(allyScores) do
 		local defeatTimeRemaining = math.huge
 		if allyDefeatTime[allyID] and allyDefeatTime[allyID] > 0 then
 			defeatTimeRemaining = max(0, allyDefeatTime[allyID] - spGetGameSeconds())
 		end
-		table.insert(allyScores, { allyID = allyID, tally = tally, defeatTimeRemaining = defeatTimeRemaining })
+		table.insert(rankedAllyScores, { allyID = allyID, score = scoreData.score, defeatTimeRemaining = defeatTimeRemaining })
 	end
 
-	table.sort(allyScores, function(a, b)
-		if a.tally == b.tally then
+	table.sort(rankedAllyScores, function(a, b)
+		if a.score == b.score then
 			return a.defeatTimeRemaining > b.defeatTimeRemaining
 		end
-		return a.tally > b.tally
+		return a.score > b.score
 	end)
 
 	local currentRank = 1
 	local previousScore = -1
 	local previousDefeatTime = -1
 
-	for i, allyData in ipairs(allyScores) do
-		if i <= 1 or allyData.tally ~= previousScore or allyData.defeatTimeRemaining ~= previousDefeatTime then
+	for i, allyData in ipairs(rankedAllyScores) do
+		if i <= 1 or allyData.score ~= previousScore or allyData.defeatTimeRemaining ~= previousDefeatTime then
 			currentRank = i
 		end
 
-		previousScore = allyData.tally
+		previousScore = allyData.score
 		previousDefeatTime = allyData.defeatTimeRemaining
+
+		-- Update the rank directly in allyScores
+		allyScores[allyData.allyID].rank = currentRank
 
 		for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
 			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank)
@@ -770,11 +607,7 @@ local function setAllyTeamRanks(allyTallies)
 end
 
 local function processMainCaptureLogic()
-	currentSecond = spGetGameSeconds()
 	updateLivingTeamsData()
-	setThresholdIncreaseRate()
-	updateCurrentDefeatThreshold()
-	allyTallies = getClearedAllyTallies()
 
 	for gridID, data in pairs(captureGrid) do
 		local allyPowers = getAllyPowersInSquare(gridID)
@@ -782,88 +615,104 @@ local function processMainCaptureLogic()
 		if winningAllyID then
 			addProgress(gridID, progressChange, winningAllyID, true)
 		end
-		if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
-			allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
-		end
 	end
 end
 
-local function processContiguityAndDecay()
+local function processAttackScoresNeighborsAndDecay()
 	local randomizedIDs = getRandomizedGridIDs()
 	for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
-		if not captureGrid[randomizedIDs[i]].contested then
-			local gridID = randomizedIDs[i]
-			local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
+		local gridID = randomizedIDs[i]
+		local currentSquareData = captureGrid[gridID]
+		local neighborAllyTeamCounts, totalNeighborCount = {}, 0
+
+		if not currentSquareData.contested then
+			neighborAllyTeamCounts, totalNeighborCount = getNeighborAllyTeamCounts(currentSquareData)
+			local dominantAllyTeamCount = 0
+			local dominantAllyTeamID
+			currentSquareData.contiguous = false
+
+			for allyTeamID, neighborCount in pairs(neighborAllyTeamCounts) do
+				if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
+					dominantAllyTeamID = allyTeamID
+					dominantAllyTeamCount = neighborCount
+				end
+			end
+
+			local contiguousAllyID, progressChange
+			if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
+				currentSquareData.contiguous = true
+				-- If dominant ally is different from current owner, return negative progress (capture)
+				if dominantAllyTeamID ~= currentSquareData.allyOwnerID then
+					contiguousAllyID, progressChange = dominantAllyTeamID, -CONTIGUOUS_PROGRESS_INCREMENT
+				else
+					-- If dominant ally is same as current owner, return positive progress (reinforce)
+					contiguousAllyID, progressChange = dominantAllyTeamID, CONTIGUOUS_PROGRESS_INCREMENT
+				end
+			end
+
 			if contiguousAllyID then
 				addProgress(gridID, progressChange, contiguousAllyID, true)
 			end
 		end
+
+		if currentSquareData.progress > OWNERSHIP_THRESHOLD and not currentSquareData.attackerPointsTaken[currentSquareData.allyOwnerID] then
+			currentSquareData.attackerPointsTaken[currentSquareData.allyOwnerID] = true
+			-- Ensure allyScores entry exists before indexing
+			if not allyScores[currentSquareData.allyOwnerID] then
+				allyScores[currentSquareData.allyOwnerID] = { score = 0, rank = 1 }
+			end
+			allyScores[currentSquareData.allyOwnerID].score = allyScores[currentSquareData.allyOwnerID].score + currentSquareData.attackerPointsValue
+			currentSquareData.roundsOwned = 0
+		end
+		currentSquareData.attackerPointsValue = convertNeighborCountToPoints(totalNeighborCount) + currentSquareData.roundsOwned
+		currentSquareData.ownedNeighbors = totalNeighborCount
 	end
 
+
+	--decay logic
 	for gridID, data in pairs(captureGrid) do
 		if not data.contested and not data.contiguous and data.decayDelay < gameFrame then
-			decayProgress(gridID)
-		end
-		updateUnsyncedSquare(gridID)
-	end
-end
-
-local function shouldTriggerDefeat(allyData, highestTally)
-	return allyData.tally < defeatThreshold and (allyData.tally < highestTally or allyHordesCount > 0)
-end
-
-local function processDefeatLogic()
-	local sortedAllies = {}
-
-	for allyID, tally in pairs(allyTallies) do
-		table.insert(sortedAllies, { allyID = allyID, tally = tally })
-		updateUnsyncedScore(allyID, tally)
-	end
-
-	table.sort(sortedAllies, function(a, b) return a.tally < b.tally end)
-
-	if allyCount > 1 and pauseThresholdTimer < currentSecond and not DEBUGMODE then
-		local highestTally = sortedAllies[#sortedAllies].tally
-		for i = 1, #sortedAllies do
-			local allyData = sortedAllies[i]
-
-			if shouldTriggerDefeat(allyData, highestTally) then
-				local timerExpired = setAndCheckAllyDefeatTime(allyData.allyID)
-				if timerExpired then
-					triggerAllyDefeat(allyData.allyID)
-					setAllyGridToGaia(allyData.allyID)
-					allyDefeatTime[allyData.allyID] = nil
-				end
+			if data.progress > OWNERSHIP_THRESHOLD then
+				addProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
 			else
-				allyDefeatTime[allyData.allyID] = nil
-				for teamID in pairs(allyTeamsWatch[allyData.allyID]) do
-					Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-				end
+				addProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
 			end
 		end
-	else
-		if pauseThresholdTimer >= currentSecond then
-			for allyID in pairs(allyDefeatTime) do
-				allyDefeatTime[allyID] = nil
-				for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-					Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-				end
-			end
-		end
-	end
-
-	if not sentGridStructure then
-		initializeUnsyncedGrid()
+		local squareData = captureGrid[gridID]
+		local visibilityArray = createVisibilityArray(squareData)
+		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray)
 	end
 end
 
-local function processKillQueue()
-	local currentKillQueue = killQueue[gameFrame]
-	if currentKillQueue then
-		for unitID in pairs(currentKillQueue) do
-			spDestroyUnit(unitID, false, true)
+
+local function processDefenseScores()
+	-- Initialize ally scores if they don't exist, but don't reset existing ones
+	for allyID in pairs(allyTeamsWatch) do
+		if not allyScores[allyID] then
+			allyScores[allyID] = { score = 0, rank = 1 }
 		end
-		killQueue[gameFrame] = nil
+	end
+	
+	-- Add defensive points for owned territories  
+	for gridID, data in pairs(captureGrid) do
+		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
+			local points = convertNeighborCountToPoints(data.ownedNeighbors)
+			allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + points
+			data.roundsOwned = data.roundsOwned + 1
+		end
+	end
+end
+
+local function processOffenseScores()
+	for gridID, data in pairs(captureGrid) do
+		if data.allyOwnerID ~= gaiaAllyTeamID and not data.attackerPointsTaken[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
+			data.attackerPointsTaken[data.allyOwnerID] = true
+			-- Ensure allyScores entry exists before indexing
+			if not allyScores[data.allyOwnerID] then
+				allyScores[data.allyOwnerID] = { score = 0, rank = 1 }
+			end
+			allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + data.attackerPointsValue
+		end
 	end
 end
 
@@ -886,21 +735,79 @@ function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	flyingUnits[unitID] = nil
 end
 
+function gadget:TeamDied(teamID)
+	local allyID = select(6, Spring.GetTeamInfo(teamID))
+	setAllyGridToGaia(allyID)
+end
+
 function gadget:GameFrame(frame)
+	if not sentGridStructure then
+		initializeUnsyncedGrid()
+	end
+
 	gameFrame = frame
 	local frameModulo = frame % GRID_CHECK_INTERVAL
 
 	if frameModulo == 0 then
+		currentSecond = spGetGameSeconds()
 		processMainCaptureLogic()
 	elseif frameModulo == 1 then
-		processContiguityAndDecay()
+		processAttackScoresNeighborsAndDecay()
 	elseif frameModulo == 2 then
-		updateTeamRulesScores()
-		setAllyTeamRanks(allyTallies)
-		processDefeatLogic()
+		local seconds = spGetGameSeconds()
+		processOffenseScores()
+		if roundTimestamp < seconds - ROUND_SECONDS then
+			if roundsElapsed <= MAX_ROUNDS then
+				roundsElapsed = roundsElapsed + 1
+				processDefenseScores()
+				roundTimestamp = seconds + ROUND_SECONDS
+			else
+				roundsElapsed = MAX_ROUNDS
+				for allyID, scoreData in pairs(allyScores) do
+					if scoreData.rank > 1 then
+						triggerAllyDefeat(allyID)
+					end
+				end
+			end
+			Spring.Echo("Round " .. roundsElapsed .. " ended")
+			for gridID, data in pairs(captureGrid) do
+				data.attackerPointsTaken = {}
+			end
+		end
+		setAllyTeamRanks(allyScores)
+		
+		-- Find highest and second highest scores for GameRulesParam
+		local highestScore = 0
+		local secondHighestScore = 0
+		for allyID, scoreData in pairs(allyScores) do
+			if scoreData.score > highestScore then
+				secondHighestScore = highestScore
+				highestScore = scoreData.score
+			elseif scoreData.score > secondHighestScore then
+				secondHighestScore = scoreData.score
+			end
+		end
+		Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
+		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
+		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
+		
+		for allyID, scoreData in pairs(allyScores) do
+			--send scores to clients via team rules parameters
+			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
+				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, scoreData.score)
+			end
+			SendToUnsynced("UpdateAllyScore", allyID, scoreData.score, 0)
+			Spring.Echo("Ally " .. allyID .. " score: " .. scoreData.score .. " (rank " .. scoreData.rank .. ")")
+		end
 	end
 
-	processKillQueue()
+	local currentKillQueue = killQueue[gameFrame]
+	if currentKillQueue then
+		for unitID in pairs(currentKillQueue) do
+			spDestroyUnit(unitID, false, true)
+		end
+		killQueue[gameFrame] = nil
+	end
 end
 
 function gadget:Initialize()
@@ -909,10 +816,9 @@ function gadget:Initialize()
 	SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
 	Spring.SetGameRulesParam("territorialDominationGridSize", GRID_SIZE)
 	Spring.SetGameRulesParam("territorialDominationGridCheckInterval", GRID_CHECK_INTERVAL)
-	pauseThresholdTimer = SECONDS_TO_START
-	Spring.SetGameRulesParam(PAUSE_DELAY_KEY, SECONDS_TO_START)
 	captureGrid = generateCaptureGrid()
 
+	roundTimestamp = spGetGameSeconds() + ROUND_SECONDS
 	initializeTeamData()
 	initializeUnitDefs()
 	updateLivingTeamsData()
@@ -923,7 +829,6 @@ function gadget:Initialize()
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
 
-	setThresholdIncreaseRate()
 	allTeams = Spring.GetTeamList()
 	for _, teamID in pairs(allTeams) do
 		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
