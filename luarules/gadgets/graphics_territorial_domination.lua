@@ -728,6 +728,8 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArr
 	return isCurrentlyVisible, shouldResetColor
 end
 
+
+
 local function notifyCapture(gridID)
 	local gridData = captureGrid[gridID]
 	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
@@ -809,8 +811,9 @@ local function updateGridSquareVisuals()
 		local ownerRoundEndValue = gridData.ownerRoundEndValue or (DEBUGMODE and DEBUG_PLACEHOLDER_VALUE or 0)
 		local attackerCaptureValue = gridData.attackerCaptureValue or (DEBUGMODE and DEBUG_PLACEHOLDER_VALUE or 0)
 		
-		-- Show numbers for ALL squares that have values, let the shader handle visibility like squares do
-		local shouldShowNumbers = (ownerRoundEndValue > 0 or attackerCaptureValue > 0)
+		-- Show numbers for squares with values, but only if the square is visible to this player
+		-- This mirrors the existing visibility behavior from the game gadget
+		local shouldShowNumbers = (ownerRoundEndValue > 0 or attackerCaptureValue > 0) and gridData.isVisible
 		
 		if shouldShowNumbers then
 			-- Sample terrain height at this grid location (same as territorial squares do)
@@ -824,7 +827,6 @@ local function updateGridSquareVisuals()
 				attackerCaptureValue,
 				1.0
 			)
-
 		end
 		
 		gridData.captureChange = nil

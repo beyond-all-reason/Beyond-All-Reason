@@ -13,7 +13,7 @@ end
 
 --[[
 todo
-
+need to check for tiebreaker code
 ]]
 
 
@@ -58,6 +58,7 @@ local HORDE_MODE_MIN_TERRITORIES_PER_PLAYER = 1
 local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) / HORDE_MODE_PLAYER_CAP
 local HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES = 3
 
+local BASE_TERRITORY_POINTS_VALUE = 1
 local ATTACKER_POINTS_PER_ROUND_MULTIPLIER = 2
 
 local MAX_EMPTY_IMPEDANCE_POWER = 25
@@ -684,17 +685,16 @@ local function processOffenseScoresAndRewards()
 		if data.progress > OWNERSHIP_THRESHOLD then
 			if not data.attackerPointsTaken[data.allyOwnerID] and data.wasCapturedThisRound then
 				data.attackerPointsTaken[data.allyOwnerID] = true
-				data.attackerPointsValue = math.floor(neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
 				allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + data.attackerPointsValue
 				data.roundsOwned = 0
 			end
 
-			data.attackerPointsValue = math.floor(neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
+			data.attackerPointsValue = math.floor(BASE_TERRITORY_POINTS_VALUE + neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
 			data.ownedNeighbors = data.neighborAllyTeamCounts[data.allyOwnerID] or 0
 		end
 	end
 end
-local BASE_TERRITORY_POINTS_VALUE = 1
+
 local function updateGridDefensePointRewards()
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
