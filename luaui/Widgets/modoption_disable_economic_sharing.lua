@@ -1,3 +1,4 @@
+local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Modoption: Disable Economic Sharing",
@@ -6,7 +7,7 @@ function widget:GetInfo()
 		date = "August 2025",
 		license = "GNU GPL, v2 or later",
 		layer = 9999, -- run this after all the UI widgets we touch have been initialized
-		enabled = false,
+		enabled = true,
 	}
 end
 
