@@ -298,6 +298,15 @@ local options = {
 		column	= 1.76,
 	},
 	{
+		key 	= "disable_economic_sharing",
+		name 	= "Disable Economic Sharing",
+		desc 	= "Disables sharing of any resources, sharing of resource producing units/structures, and sharing of constructors. Only combat units can be shared",
+		type 	= "bool",
+		section = "options_main",
+		hidden 	= true,
+		def 	= false,
+	},
+	{
 		key		= "unit_market",
 		name	= "Unit Market",
 		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
@@ -916,7 +925,7 @@ local options = {
         section = "options_extra",
         def  	= false,
     },
-	
+
     {
         key    	= "scavunitsforplayers",
         name   	= "Scavengers Units Pack",
@@ -967,17 +976,17 @@ local options = {
         column	= 1,
         items	= {
             { key= "default", 	name= "Default", desc= "Map Settings",
-                lock = 
+                lock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
-                unlock = 
+                unlock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 lock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
-                lock = 
+                lock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
@@ -1036,7 +1045,7 @@ local options = {
         step 	= 1,
         section = "options_extra",
         column	= 1,
-    },  
+    },
 
     {
         key 	= "map_lavalowdwell",
@@ -1055,8 +1064,8 @@ local options = {
     { key = "sub_header_lava2", section = "options_extra", type    = "subheader", name = "",},
     { key = "sub_header_lava3", section = "options_extra", type    = "subheader", name = "",},
     { key = "sub_header_lava4", section = "options_extra", type    = "subheader", name = "",},
- 
-    
+
+
     {
         key     = "sub_header",
         section = "options_extra",
@@ -1390,7 +1399,7 @@ local options = {
     },
 
     -- Hidden Tests
-	
+
 	{
         key   	= "splittiers",
         name   	= "Split T2",
@@ -1400,7 +1409,7 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
-	
+
     {
         key    	= "shieldsrework",
         name   	= "Shields Rework v2.0",

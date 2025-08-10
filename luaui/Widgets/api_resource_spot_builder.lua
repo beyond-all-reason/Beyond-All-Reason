@@ -34,6 +34,7 @@ local selectedUnits = spGetSelectedUnits()
 local Game_extractorRadius = Game.extractorRadius
 
 local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local disableAllyUpgrade = false
 
 
 ------------------------------------------------------------
@@ -177,6 +178,10 @@ end
 ---@param newExtractorId number unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
+	local isOwnTeam = Spring.GetUnitTeam(currentExtractorUuid) == Spring.GetUnitTeam(newExtractorId)
+	if not isOwnTeam and disableAllyUpgrade then
+		return false
+	end
 	if not isAllied then
 		return false
 	end
@@ -491,6 +496,10 @@ function widget:Initialize()
 	----------------------------------------------
 	-- builders and buildings - MEX
 	----------------------------------------------
+
+	WG['resource_spot_builder'].SetAllyExtractorCanBeUpgraded = function(value)
+		disableAllyUpgrade = value
+	end
 
 	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors
