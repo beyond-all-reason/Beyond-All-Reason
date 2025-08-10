@@ -178,7 +178,7 @@ end
 ---@param newExtractorId number unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
-	local isOwnTeam = Spring.GetUnitTeam(currentExtractorUuid) == Spring.GetUnitTeam(newExtractorId)
+	local isOwnTeam = Spring.GetUnitTeam(currentExtractorUuid) == spGetMyTeamID()
 	if not isOwnTeam and disableAllyUpgrade then
 		return false
 	end

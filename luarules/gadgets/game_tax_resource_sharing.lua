@@ -45,7 +45,7 @@ function gadget:Initialize()
 end
 
 function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
-	if sharingDisabled then -- if tax is 100%, don't eat the sender's money and just block the transfer
+	if sharingDisabled then -- no transfers allowed, don't bother taxing
 		return false
 	end
 
