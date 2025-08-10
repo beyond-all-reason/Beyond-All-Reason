@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
     return {
         name    = 'Stun shared units',
-        desc    = 'Stun units when they are shared to another team',
-        author  = 'Hobo Joe, NortySpock',
+        desc    = 'Stun units when they are shared to another team.',
+        author  = 'NortySpock',
         date    = 'August 2025',
         license = 'GNU GPL, v2 or later',
         layer   = 3,  -- the "Disable Unit Sharing" gadget has higher priority
@@ -11,42 +11,36 @@ function gadget:GetInfo()
     }
 end
 
+-- Notes: Used paralyzeDamage because it was already there and easy to use. 
+-- This could be expanded to instead use its own equivalent so as to allow for different UI representation of the unit-transfer mechanic
+
+-- Thanks to  Chronopolize, Hobo Joe, Chronographer,  Seth dGamre, and sprunk for providing suggestions
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- return early if not enabled
+-- if (Spring.GetModOption().stun_unit_after_sharing == "off" or stun_units_after_transfer_duration_seconds <= 0) then 
+--     return true
+-- end
 
-local stunnedUnits = {}
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitHealth = Spring.SetUnitHealth
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
+
 
 
 function gadget:AllowUnitTransfer(unitID, _, _, _, _)
-	-- 5 seconds at 30 sim-frames-per-wall-clock-second
-	local inputStunTime = 150
-	local health, maxHealth, paralyzeDamage, captureProgress = spGetUnitHealth(unitID)
-	local stunDuration = maxHealth + inputStunTime
-	local updatedStunDuration = math.max(paralyzeDamage, stunDuration)
-    stunnedUnits[unitID] = { stunTime = inputStunTime }
-	spSetUnitHealth(unitID, {paralyze = updatedStunDuration})
-	spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-    return true
-end
+    Spring.Echo("stun_unit_after_sharing: " .. tostring(Spring.GetModOptions().stun_unit_after_sharing))
+    Spring.Echo("stun_units_after_transfer_duration_seconds: " .. tostring(Spring.GetModOptions().stun_units_after_transfer_duration_seconds))
+    -- allow the unit to transfer, but stun the unit as the transfer happens
+	local inputStunSeconds = Spring.GetModOptions().stun_units_after_transfer_duration_seconds
+    local health, maxHealth, paralyzeDamage, captureProgress = spGetUnitHealth(unitID)
+	local transferParalyzeDamage = maxHealth * (1 + (inputStunSeconds / Game.paralyzeDeclineRate))
 
-function gadget:AllowCommand(unitID, _, _, _, _, _, _, _, _, _)
-    if stunnedUnits[unitID] then
-        return false
-    end
-    return true
-end
+    --if the unit is already paralyzed more than the transfer stun, take the greater of the two
+	local updatedParalyzeDamage = math.max(paralyzeDamage, transferParalyzeDamage)
 
-function gadget:GameFrame(n)
-    for unitId, data in pairs(stunnedUnits) do
-        if data.stunTime and data.stunTime > 1 then
-            data.stunTime = data.stunTime - 1
-        else
-            stunnedUnits[unitId] = nil
-        end
-    end
+	spSetUnitHealth(unitID, {paralyze = updatedParalyzeDamage})
+    return true
 end
