@@ -34,13 +34,55 @@ local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 
 local CMD_ATTACK = CMD.ATTACK
+local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
+local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
+local cmdDesc
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if place_target_on_ground[unitDefID] then
+		if (cmdID == CMD_ATTACK) and (#cmdParams == 1) then -- deny the command if it is an attack command, and just targeting a unitID and not a set of 3 coordinates
+			return false
+		end
+	end
+	return true
+end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if place_target_on_ground[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_ATTACK)
         if cmdIdx then
-            local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+            if cmdDesc then
+                cmdDesc.type = CMDTYPE_ICON_MAP -- Forces attack commands to accept (x,y,z) spatial coordinates, and not allow unitIDs as valid parameters.
+				-- HOWEVER, this does not seem to propogate to default right click commands.
+				-- so the above AllowCommand function checks for any attacks just targeting a unitID and denies them.  
+                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+            end
+        end
+
+		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET)
+        if cmdIdx then
+            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+            if cmdDesc then
+                cmdDesc.type = CMDTYPE_ICON_MAP
+                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+            end
+        end
+
+		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET_NO_GROUND)
+        if cmdIdx then
+            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+            if cmdDesc then
+                cmdDesc.type = CMDTYPE_ICON_MAP
+                spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+            end
+        end
+
+		cmdIdx = spFindUnitCmdDesc(unitID, CMD_UNIT_SET_TARGET_RECTANGLE)
+        if cmdIdx then
+            cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
             if cmdDesc then
                 cmdDesc.type = CMDTYPE_ICON_MAP
                 spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
