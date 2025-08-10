@@ -1662,7 +1662,7 @@
 				"profiler": "Perfilador",
 				"profiler_widget": "Addon",
 				"profiler_gadget": "Dispositivo",
-				"profiler_sort_by_load": "Ordenar por carg",
+				"profiler_sort_by_load": "Ordenar por carga",
 				"profiler_sort_by_load_descr": "Aplica a los Addons del Perfil y Dispositivos",
 				"profiler_averagetime": "Tiempo promedio",
 				"profiler_averagetime_descr": "La duración promedio del tiempo que tarda cada widget/gadget",
