@@ -13,7 +13,7 @@ end
 
 --[[
 todo
-
+I suspect isVisible is about showing the values it currently has, not whether or not the thing is in LOS or radar range
 ]]
 
 
@@ -815,6 +815,22 @@ local function updateGridSquareVisuals()
 		-- This mirrors the existing visibility behavior from the game gadget
 		local shouldShowNumbers = (ownerRoundEndValue > 0 or attackerCaptureValue > 0) and gridData.isVisible
 		
+		-- If we can't show current values, try to show previously known values
+		local displayOwnerValue = ownerRoundEndValue
+		local displayAttackerValue = attackerCaptureValue
+		
+		if not shouldShowNumbers then
+			-- Use previously known values if current ones aren't available
+			displayOwnerValue = gridData.previousOwnerValue or ownerRoundEndValue
+			displayAttackerValue = gridData.previousAttackerValue or attackerCaptureValue
+			
+			-- Only show previous values if we have them and they're greater than 0
+			local hasPreviousValues = (displayOwnerValue > 0 or displayAttackerValue > 0)
+			if hasPreviousValues then
+				shouldShowNumbers = true
+			end
+		end
+		
 		if shouldShowNumbers then
 			-- Sample terrain height at this grid location (same as territorial squares do)
 			local terrainHeight = Spring.GetGroundHeight(gridData.gridMidpointX, gridData.gridMidpointZ) or 0
@@ -823,10 +839,18 @@ local function updateGridSquareVisuals()
 			updateNumberInstanceVBO(
 				gridID,
 				{ gridData.gridMidpointX, numberHeight, gridData.gridMidpointZ },
-				ownerRoundEndValue,
-				attackerCaptureValue,
+				displayOwnerValue,
+				displayAttackerValue,
 				1.0
 			)
+		end
+		
+		-- Store current values as previous for next frame (only if they're valid)
+		if ownerRoundEndValue > 0 then
+			gridData.previousOwnerValue = ownerRoundEndValue
+		end
+		if attackerCaptureValue > 0 then
+			gridData.previousAttackerValue = attackerCaptureValue
 		end
 		
 		gridData.captureChange = nil
