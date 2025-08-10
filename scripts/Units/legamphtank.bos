@@ -114,8 +114,8 @@ AimPrimary(heading, pitch)
 	{
 		start-script deploy();
 	}
-	turn turret to y-axis heading speed <130.000000>;
-	turn barrelPivot to x-axis <0.000000> - pitch speed <130.000000>;
+	turn turret to y-axis heading speed <410>;
+	turn barrelPivot to x-axis <0.000000> - pitch speed <410>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrelPivot around x-axis;
 	start-script RestoreAfterDelay();
