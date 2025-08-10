@@ -49,7 +49,6 @@ local numTeamsInAllyTeam = #myAllyTeamList
 local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
-local isSingle = false
 local gameStarted = (Spring.GetGameFrame() > 0)
 local gameFrame = Spring.GetGameFrame()
 local gameIsOver = false
@@ -134,6 +133,7 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local showButtons = true
 local autoHideButtons = false
+local shareSliderEnabled = true
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
@@ -763,7 +763,7 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if not isSingle then
+		if shareSliderEnabled then
 			if res == 'energy' then
 				energyOverflowLevel = r[res][6]
 			else
@@ -2019,7 +2019,7 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if not isSingle then
+			if shareSliderEnabled then
 				if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 					draggingShareIndicator = 'metal'
 				end
@@ -2143,7 +2143,7 @@ function widget:Initialize()
 
 	if not spec then
 		local teamList = Spring.GetTeamList(myAllyTeamID) or {}
-		isSingle = #teamList == 1
+		shareSliderEnabled = #teamList > 1
 	end
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -2153,30 +2153,29 @@ function widget:Initialize()
 	end
 
 	WG['topbar'] = {}
-
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen)
 	end
-
 	WG['topbar'].hideWindows = function()
 		hideWindows()
 	end
-
+	WG['topbar'].setShareSliderEnabled = function(value)
+		shareSliderEnabled = value
+		updateResbar('energy')
+		updateResbar('metal')
+	end
 	WG['topbar'].setAutoHideButtons = function(value)
 		refreshUi = true
 		autoHideButtons = value
 		showButtons = not value
 		updateButtons()
 	end
-
 	WG['topbar'].getAutoHideButtons = function()
 		return autoHideButtons
 	end
-
 	WG['topbar'].getShowButtons = function()
 		return showButtons
 	end
-
 	WG['topbar'].updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
 		updateResbar('energy')
