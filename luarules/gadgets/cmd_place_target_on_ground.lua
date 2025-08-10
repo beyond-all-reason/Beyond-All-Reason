@@ -32,6 +32,11 @@ end
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -39,15 +44,6 @@ local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local cmdDesc
-
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-	if place_target_on_ground[unitDefID] then
-		if (cmdID == CMD_ATTACK) and (#cmdParams == 1) then -- deny the command if it is an attack command, and just targeting a unitID and not a set of 3 coordinates
-			return false
-		end
-	end
-	return true
-end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if place_target_on_ground[unitDefID] then
@@ -57,7 +53,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
             if cmdDesc then
                 cmdDesc.type = CMDTYPE_ICON_MAP -- Forces attack commands to accept (x,y,z) spatial coordinates, and not allow unitIDs as valid parameters.
 				-- HOWEVER, this does not seem to propogate to default right click commands.
-				-- so the above AllowCommand function checks for any attacks just targeting a unitID and denies them.  
+				-- so the below AllowCommand function checks for any attacks just targeting a unitID and denies them.  
                 spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
             end
         end
@@ -89,4 +85,17 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
             end
         end
     end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	-- Final fallback if an attack command with a untiID parameter is otherwise given unexpectedly
+	if place_target_on_ground[unitDefID] then
+		if (cmdID == CMD_ATTACK) and (#cmdParams == 1) then -- give an attack command at the ground, and deny the intial attack unit command
+			local basePointX, basePointY, basePointZ = spGetUnitPosition(cmdParams[1])
+			local yGround = spGetGroundHeight(basePointX, basePointZ)
+			spGiveOrderToUnit(unitID,cmdID,{basePointX,yGround,basePointZ},cmdOptions)
+			return false
+		end
+	end
+	return true
 end
