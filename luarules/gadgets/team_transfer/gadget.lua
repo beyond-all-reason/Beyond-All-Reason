@@ -156,15 +156,15 @@ if gadgetHandler:IsSyncedCode() then
         _G.TeamTransfer = nil
     end
 
-         -- INBOUND engine veto: internal wiring only (not public API)
-     function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-         return Manager.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-     end
+    -- INBOUND engine veto: internal wiring only (not public API)
+    function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+        return Manager.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+    end
 
-     -- INBOUND engine veto: internal wiring only (not public API)
-     function gadget:AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
-         return Manager.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount)
-     end
+    -- INBOUND engine veto: internal wiring only (not public API)
+    function gadget:AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
+        return Manager.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount)
+    end
 
          -- keep Initialize at bottom for readability
      function gadget:Initialize()
