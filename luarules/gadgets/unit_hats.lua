@@ -271,7 +271,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		local hatTeam = Spring.GetUnitTeam(hatID)
 		if (not Spring.GetUnitIsDead(hatID) or hatTeam ~= gaiaTeamID) then -- and hatTeam ~= gaiaTeamID
 			Spring.DestroyUnit(hatID, false, true)
-            Spring.TransferUnitWithReason(hatID, Spring.GetGaiaTeamID(), GG.TeamTransfer.REASON.DECORATION)
+            GG.TeamTransfer.TransferUnit(hatID, Spring.GetGaiaTeamID(), GG.TeamTransfer.REASON.DECORATION)
 		end
 	end
 end

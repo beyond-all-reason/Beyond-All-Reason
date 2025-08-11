@@ -1,56 +1,32 @@
 
 
 local Units = {}
+-- Default built-in validator (permissive). Real rules are registered via RegisterValidator.
+function Units.AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+    return true
+end
+-- Core transfer orchestrator for units
+function Units.TransferUnit(unitID, newTeam, reason)
+    local oldTeam = Spring.GetUnitTeam(unitID)
+    if not oldTeam or oldTeam == newTeam then return true end
+
+    local unitDefID = Spring.GetUnitDefID(unitID)
+    if not unitDefID then return false end
+
+    -- Use global API (will be injected by gadget)
+    local ok = GG.TeamTransfer.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+    if not ok then return false end
+
+    local success = Spring.TransferUnitWithReason(unitID, newTeam, reason)
+    if success then GG.TeamTransfer.NotifyUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) end
+    return success
+end
+
+
+
 
 local function logInfo(msg) Spring.Log("TeamTransfer", LOG.INFO, msg) end
 local function logWarn(msg) Spring.Log("TeamTransfer", LOG.WARNING, msg) end
-
-function Units.ChangeTeamWithReason(unitID, oldTeam, newTeam, reason)
-    if reason == TeamTransfer.REASON.TAKEN then
-        return Units.HandleTake(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.SOLD then
-        return Units.HandleSold(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.CAPTURED then
-        return Units.HandleCaptured(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.GIVEN then
-        return Units.HandleGiven(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.SCAVENGED then
-        return Units.HandleScavenged(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.UPGRADED then
-        return Units.HandleUpgraded(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.RECLAIMED then
-        return Units.HandleReclaimed(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.DECORATION then
-        return Units.HandleDecoration(unitID, oldTeam, newTeam)
-    elseif reason == TeamTransfer.REASON.IDLE_PLAYER_TAKEOVER then
-        -- Delegate to teammates module for validation
-        logInfo("Idle player takeover: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
-        return true -- Validation should be done at the command level
-    elseif reason == TeamTransfer.REASON.DEV_TRANSFER then
-        logInfo("Dev transfer: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
-        return true
-    end
-    logWarn("Unknown transfer reason: " .. tostring(reason))
-    return true
-end
-
-function Units.HandleTake(unitID, oldTeam, newTeam)
-    local oldAllyTeam = select(4, Spring.GetTeamInfo(oldTeam))
-    local newAllyTeam = select(4, Spring.GetTeamInfo(newTeam))
-    if oldAllyTeam ~= newAllyTeam then
-        logWarn("Take blocked: Can only take from allied teams")
-        return false
-    end
-    for _, pid in ipairs(Spring.GetPlayerList()) do
-        local _, _, _, teamID, _, _, isAI = Spring.GetPlayerInfo(pid)
-        if teamID == oldTeam and (type(isAI) ~= 'boolean' or isAI == false) then
-            logWarn("Take blocked: Team " .. oldTeam .. " has human players")
-            return false
-        end
-    end
-    logInfo("Take transfer: Unit " .. unitID .. " from team " .. oldTeam .. " to team " .. newTeam)
-    return true
-end
 
 function Units.HandleSold(unitID, oldTeam, newTeam)
     if not Spring.ValidUnitID(unitID) then return false end

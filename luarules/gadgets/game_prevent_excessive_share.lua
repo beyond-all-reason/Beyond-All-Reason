@@ -25,45 +25,14 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
-	local resourceName
-	if (resourceType == 'm') or (resourceType == 'metal') then
-		resourceName = 'metal'
-	elseif (resourceType == 'e') or (resourceType == 'energy') then
-		resourceName = 'energy'
-	else
-		-- We don't handle whatever this resource is, allow it
-		return true
-	end
-
-	-- Calculate the maximum amount the receiver can receive
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
-	local maxShare = rStor * rShare - rCur
-
-	-- Is the sender trying to send more than the maximum? Block it, possibly sending a reduced amount instead
-	if amount > maxShare then
-		if maxShare > 0 then
-			Spring.ShareTeamResource(senderTeamId, receiverTeamId, resourceName, maxShare)
-		end
-		return false
-	end
-
-	return true
-end
+-- Deprecated: centralized in TeamTransfer resource validators/processors
 
 function gadget:Initialize()
-    GG.TeamTransfer.RegisterValidator("PreventExcessiveShare", function(unitID, unitDefID, oldTeam, newTeam, reason)
-        -- Only validate sharing/transfer actions
-        if not GG.TeamTransfer.IsTransferReason(reason) then
-            return true
-        end
-
-        local unitCount = spGetTeamUnitCount(newTeam)
-        if spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
-            return true
-        end
-        return false
+    GG.TeamTransfer.RegisterResourceTransferProcessor("PreventExcessiveShare/ClampToMax", function(senderTeamId, receiverTeamId, resourceType, amount)
+        local resourceName = (resourceType == 'm' or resourceType == 'metal') and 'metal' or ((resourceType == 'e' or resourceType == 'energy') and 'energy' or nil)
+        if not resourceName then return amount end
+        local rCur, rStor, _, _, _, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
+        local maxShare = rStor * rShare - rCur
+        return math.max(0, math.min(amount, maxShare))
     end)
 end

@@ -36,7 +36,9 @@ local spUnitDetach 				= Spring.UnitDetach
 local spSetUnitHealth 			= Spring.SetUnitHealth
 local spGetGroundHeight 		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
-local spTransferUnit			= Spring.TransferUnitWithReason
+local spTransferUnit			= function(unitID, newTeam, reason) 
+	return GG.TeamTransfer.TransferUnit(unitID, newTeam, reason)
+end
 local spGetUnitTeam 			= Spring.GetUnitTeam
 local spGetUnitHealth 			= Spring.GetUnitHealth
 local spGetUnitCurrentCommand 	= Spring.GetUnitCurrentCommand
@@ -708,24 +710,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if carrierMetaList[unitID] then
-		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
-		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-            spTransferUnit(subUnitID, newTeam, GG.TeamTransfer.REASON.CAPTURED)
-		end
-	end
-end
 
-function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	if carrierMetaList[unitID] then
-		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
-		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-            spTransferUnit(subUnitID, unitTeam, GG.TeamTransfer.REASON.GIVEN)
-		end
-		end
-	end
-end
 
 
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
@@ -1572,8 +1557,30 @@ function gadget:GameFrame(f)
 
 end
 
+local function giveSubUnits(unitID, newTeam, carrierTransferReason)
+    local meta = carrierMetaList[unitID]
+    if not meta then return end
+    local subUnits = meta.subUnitsList
+    if not subUnits then return end
+    for subUnitID, _ in pairs(subUnits) do
+        GG.TeamTransfer.TransferUnit(subUnitID, newTeam, carrierTransferReason or GG.TeamTransfer.REASON.CARRIER_SPAWN)
+    end
+end
+
+local function onCarrierTransfer(unitID, unitDefID, oldTeam, newTeam, carrierTransferReason)
+    local meta = carrierMetaList[unitID]
+    if not meta then return end
+    meta.subInitialSpawnData.teamID = newTeam
+    giveSubUnits(unitID, newTeam, carrierTransferReason)
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
+    -- Register for carrier transfer events with reason-awareness
+    GG.TeamTransfer.RegisterUnitListener("CarrierSpawner", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        onCarrierTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+    end)
+	
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
@@ -1582,6 +1589,8 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	GG.TeamTransfer.UnregisterAllListeners("CarrierSpawner")
+	
 	for unitID, _ in pairs(carrierMetaList) do
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
 			spDestroyUnit(subUnitID, true, true)

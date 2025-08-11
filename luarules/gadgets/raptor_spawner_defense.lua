@@ -2128,7 +2128,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-    GG.TeamTransfer.RegisterValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    GG.TeamTransfer.RegisterUnitValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
         if spGetUnitDefID(unitID) == raptorDefID then
             local raptorTeam = GetRaptorTeam()
             if oldTeam == raptorTeam and newTeam ~= raptorTeam then

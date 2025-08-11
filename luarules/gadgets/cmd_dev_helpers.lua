@@ -782,7 +782,7 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.DestroyUnit(unitID, false, true)
 			elseif action == 'transfer' then
 				if type(tonumber(params)) == 'number' then
-                    Spring.TransferUnitWithReason(unitID, tonumber(params), GG.TeamTransfer.REASON.DEV_TRANSFER)
+                    GG.TeamTransfer.TransferUnit(unitID, tonumber(params), GG.TeamTransfer.REASON.DEV_TRANSFER)
 				end
 			elseif action == 'reclaim' then
 				local teamID = Spring.GetUnitTeam(unitID)

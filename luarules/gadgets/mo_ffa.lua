@@ -46,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 			GG.wipeoutWithWreckage = leaveWreckage
 		end
 		
-        GG.TeamTransfer.RegisterValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        GG.TeamTransfer.RegisterUnitValidator("FFADeadTeamBlacklist", function(unitID, unitDefID, oldTeam, newTeam, reason)
             local isSharing = (reason == GG.TeamTransfer.REASON.GIVEN or reason == GG.TeamTransfer.REASON.IDLE_PLAYER_TAKEOVER or reason == GG.TeamTransfer.REASON.TAKEN or reason == GG.TeamTransfer.REASON.SOLD)
 				if oldTeam == newTeam or not isSharing then
 					return true

@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 function gadget:Initialize()
-    GG.TeamTransfer.RegisterValidator("PreventShareLoad", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    GG.TeamTransfer.RegisterUnitValidator("PreventShareLoad", function(unitID, unitDefID, oldTeam, newTeam, reason)
         if not unitID or type(unitID) ~= "number" then
             return true
         end

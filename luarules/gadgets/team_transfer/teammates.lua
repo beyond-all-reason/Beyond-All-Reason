@@ -42,8 +42,8 @@ function Teammates.TakeFromTeam(playerData, targetTeam)
     
     for _, unitID in ipairs(units) do
         local udid = Spring.GetUnitDefID(unitID)
-        if udid and TeamTransfer.ValidateTransfer(unitID, udid, targetTeam, playerData.teamID, TeamTransfer.REASON.TAKEN) then
-            if Spring.TransferUnitWithReason(unitID, playerData.teamID, TeamTransfer.REASON.TAKEN) then
+        if udid and TeamTransfer.ValidateUnitTransfer(unitID, udid, targetTeam, playerData.teamID, TeamTransfer.REASON.TAKEN) then
+            if Units.TransferUnit(unitID, playerData.teamID, TeamTransfer.REASON.TAKEN) then
                 unitsTransferred = unitsTransferred + 1
             end
         end
@@ -61,8 +61,8 @@ function Teammates.CaptureFromTeam(playerData, targetTeam)
     
     for _, unitID in ipairs(units) do
         local udid = Spring.GetUnitDefID(unitID)
-        if udid and TeamTransfer.ValidateTransfer(unitID, udid, targetTeam, playerData.teamID, TeamTransfer.REASON.CAPTURED) then
-            if Spring.TransferUnitWithReason(unitID, playerData.teamID, TeamTransfer.REASON.CAPTURED) then
+        if udid and TeamTransfer.ValidateUnitTransfer(unitID, udid, targetTeam, playerData.teamID, TeamTransfer.REASON.CAPTURED) then
+            if Units.TransferUnit(unitID, playerData.teamID, TeamTransfer.REASON.CAPTURED) then
                 unitsTransferred = unitsTransferred + 1
             end
         end
@@ -81,8 +81,8 @@ function Teammates.GiveToTeam(playerData, targetTeam, selectedUnits)
     for _, unitID in ipairs(units) do
         local udid = Spring.GetUnitDefID(unitID)
         if udid and Spring.GetUnitTeam(unitID) == playerData.teamID then
-            if TeamTransfer.ValidateTransfer(unitID, udid, playerData.teamID, targetTeam, TeamTransfer.REASON.GIVEN) then
-                if Spring.TransferUnitWithReason(unitID, targetTeam, TeamTransfer.REASON.GIVEN) then
+            if TeamTransfer.ValidateUnitTransfer(unitID, udid, playerData.teamID, targetTeam, TeamTransfer.REASON.GIVEN) then
+                if Units.TransferUnit(unitID, targetTeam, TeamTransfer.REASON.GIVEN) then
                     unitsTransferred = unitsTransferred + 1
                 end
             end
@@ -110,7 +110,7 @@ function Teammates.CanTakeFrom(fromTeam, toTeam)
     if Teammates.TeamHasActiveHumanPlayers(fromTeam) then
         return false, "Team has active human players"
     end
-    return true
+    return true 
 end
 
 function Teammates.HandleIdleTakeover(unitID, oldTeam, newTeam)

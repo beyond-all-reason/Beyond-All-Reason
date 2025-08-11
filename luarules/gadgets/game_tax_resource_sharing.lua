@@ -35,48 +35,12 @@ local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
 
 
 
-function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-
-	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
-	local resourceName
-	if (resourceType == 'm') or (resourceType == 'metal') then
-		resourceName = 'metal'
-	elseif (resourceType == 'e') or (resourceType == 'energy') then
-		resourceName = 'energy'
-	else
-		-- We don't handle whatever this resource is, allow it
-		return true
-	end
-
-	-- Calculate the maximum amount the receiver can receive
-	--Current, Storage, Pull, Income, Expense
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
-
-	-- rShare is the share slider setting, don't exceed their share slider max when sharing
-	local maxShare = rStor * rShare - rCur
-
-	local taxedAmount = math.min((1-sharingTax)*amount, maxShare)
-	local totalAmount = taxedAmount / (1-sharingTax)
-	local transferTax = totalAmount * sharingTax
-
-	Spring.SetTeamResource(receiverTeamId, resourceName, rCur+taxedAmount)
-	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderTeamId, resourceName)
-	Spring.SetTeamResource(senderTeamId, resourceName, sCur-totalAmount)
-
-	-- Block the original transfer
-	return false
-end
+-- Deprecated: centralized in TeamTransfer resource validators/processors
 
 function gadget:Initialize()
-	-- Register with centralized transfer system
-	GG.TeamTransfer.RegisterValidator("TaxUnitLimit", function(unitID, unitDefID, oldTeam, newTeam, reason)
-		local unitCount = spGetTeamUnitCount(newTeam)
-		if spIsCheatingEnabled() or unitCount < gameMaxUnits then
-			return true
-		end
-		return false
-	end)
+    -- Tax is now handled directly in teammates.lua TeamAutoShare and NetResourceTransfer
+    -- This gadget only validates that tax is enabled and provides reclaim restrictions
+    Spring.Log("TaxResourceSharing", LOG.INFO, "Resource sharing tax enabled at " .. (sharingTax * 100) .. "%")
 end
 
 -- Keep the old function as fallback for compatibility

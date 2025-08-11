@@ -449,19 +449,24 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		return nil
 	end
 
-	-- Auto-register handlers if the gadget provides them
-	if gadget.GetSyncedActions then
-		local handlers = gadget:GetSyncedActions()
-		for name, func in pairs(handlers) do
-			if not func then
-				error("Missing handler for SyncedActionFallback '" .. name .. "' in gadget " .. gadget.ghInfo.name)
-			end
-			if type(func) ~= "function" then
-				error("Handler for SyncedActionFallback '" .. name .. "' must be a function, got " .. type(func))
-			end
-			Script.AddSyncedActionFallback(name, func)
-		end
-	end
+  -- Centralized registration: prefer gadget manager; fall back to GetSyncedActions via manager
+  if gadget.CreateGadgetManager then
+    gadget._gadgetManager = gadget:CreateGadgetManager():Register()
+  elseif gadget.GetSyncedActions then
+    local GadgetManager = VFS.Include('luarules/modules/gadget_manager.lua', nil, VFSMODE)
+    local builder = GadgetManager.CreateGadget(gadget.ghInfo.name)
+    local handlers = gadget:GetSyncedActions()
+    for name, func in pairs(handlers) do
+      if not func then
+        error("Missing handler for SyncedActionFallback '" .. name .. "' in gadget " .. gadget.ghInfo.name)
+      end
+      if type(func) ~= "function" then
+        error("Handler for SyncedActionFallback '" .. name .. "' must be a function, got " .. type(func))
+      end
+      builder:WithSyncedAction(name, func)
+    end
+    gadget._gadgetManager = builder:Register()
+  end
 
 	local knownInfo = self.knownGadgets[name]
 	if knownInfo then
@@ -811,18 +816,37 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 
 	local name = gadget.ghInfo.name
 	self.knownGadgets[name].active = false
-	if gadget.Shutdown then
-		pcall(gadget.Shutdown, gadget)
-	end
 	
-	if gadget.GetSyncedActions then
-		local handlers = gadget:GetSyncedActions()
-		for name, _ in pairs(handlers) do
-			Script.RemoveSyncedActionFallback(name)
+  -- Auto-unregister gadget managers (preferred path)
+  if gadget._gadgetManager then
+    gadget._gadgetManager:Unregister()
+  elseif gadget.GetSyncedActions then
+    -- Legacy/manual path for old-style gadgets not using the manager
+    for name, _ in pairs(gadget:GetSyncedActions()) do
+      Script.RemoveSyncedActionFallback(name)
+    end
+  end
+
+	if gadget.Shutdown then
+		gadget:Shutdown()
+	end
+
+	-- Essential gadget system cleanup - DO NOT REMOVE
+	ArrayRemove(self.gadgets, gadget)
+	self:RemoveGadgetGlobals(gadget)
+	actionHandler.RemoveGadgetActions(gadget)
+	for _, listname in ipairs(callInLists) do
+		ArrayRemove(self[listname .. 'List'], gadget)
+	end
+	self:DeregisterAllowCommands(gadget)
+
+	for id, g in pairs(self.CMDIDs) do
+		if g == gadget then
+			self.CMDIDs[id] = nil
 		end
 	end
 
-	self:UnloadGadget(gadget)
+	self:UpdateCallIns()
 end
 
 
@@ -1859,13 +1883,6 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	end
-
-	if carrierMetaList[unitID] then
-		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
-		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-            Spring.TransferUnitWithReason(subUnitID, newTeam, GG.TeamTransfer.REASON.TAKEN)
-		end
 	end
 end
 

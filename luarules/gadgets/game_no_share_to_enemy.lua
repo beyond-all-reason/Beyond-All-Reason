@@ -32,27 +32,15 @@ for i=1,#teams do
     end
 end
 
-function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
-    if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
-        return true
-    end
-
-    return false
-end
+-- Deprecated: centralized in TeamTransfer resource validators
 
 function gadget:Initialize()
 	BuildNonPlayerTeamList()
 
-    GG.TeamTransfer.RegisterValidator("NoShareToEnemy", function(unitID, unitDefID, oldTeam, newTeam, reason)
-        -- Only validate sharing/transfer actions we care about (unit shares)
-        if reason ~= GG.TeamTransfer.REASON.GIVEN then
-            return true
-        end
-        
+    GG.TeamTransfer.RegisterResourceValidator("NoShareToEnemy", function(oldTeam, newTeam, resourceType, amount)
         if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
             return true
         end
-
         return false
     end)
 end

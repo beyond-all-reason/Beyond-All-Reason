@@ -22,7 +22,7 @@ if not (Spring.GetModOptions().disable_unit_sharing
 end
 
 function gadget:Initialize()
-    GG.TeamTransfer.RegisterValidator("DisableUnitSharing", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    GG.TeamTransfer.RegisterUnitValidator("DisableUnitSharing", function(unitID, unitDefID, oldTeam, newTeam, reason)
         -- Block all sharing/transfer actions
         if GG.TeamTransfer.IsTransferReason(reason) then
             return false

@@ -21,7 +21,7 @@ local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
 function gadget:Initialize()
-    GG.TeamTransfer.RegisterValidator("PreventShareSelfD", function(unitID, unitDefID, oldTeam, newTeam, reason)
+    GG.TeamTransfer.RegisterUnitValidator("PreventShareSelfD", function(unitID, unitDefID, oldTeam, newTeam, reason)
         if not unitID or type(unitID) ~= "number" then
             return true
         end

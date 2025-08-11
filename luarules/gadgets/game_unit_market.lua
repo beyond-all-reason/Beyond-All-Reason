@@ -170,7 +170,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 
     if (current < price) then return end
 
-    Spring.TransferUnitWithReason(unitID, msgFromTeamID, GG.TeamTransfer.REASON.SOLD)
+    GG.TeamTransfer.TransferUnit(unitID, msgFromTeamID, GG.TeamTransfer.REASON.SOLD)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
     end
@@ -276,6 +276,8 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
             end
         end
     end
+    -- Clear sale state on SOLD transfers
+    local lastReason = nil -- if we later store lastReason via listener, we could check SOLD specifically
     setNotForSale(unitID)
 end
 

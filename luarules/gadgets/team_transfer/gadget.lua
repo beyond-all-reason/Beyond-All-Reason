@@ -13,11 +13,15 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-    -- Load modules in synced context
-    local TeamTransfer = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
-    local Units         = VFS.Include("LuaRules/Gadgets/team_transfer/units.lua")
-    local Resources     = VFS.Include("LuaRules/Gadgets/team_transfer/resources.lua")
-    local Teammates     = VFS.Include("LuaRules/Gadgets/team_transfer/teammates.lua")
+          -- Load modules in synced context
+      local TeamTransfer      = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
+      local Manager           = VFS.Include("LuaRules/Gadgets/team_transfer/manager.lua")
+      local Units             = VFS.Include("LuaRules/Gadgets/team_transfer/units.lua")
+      local Resources         = VFS.Include("LuaRules/Gadgets/team_transfer/resources.lua")
+      local Teammates         = VFS.Include("LuaRules/Gadgets/team_transfer/teammates.lua")
+      local GadgetManager     = Spring.Utilities.Include("luarules/modules/gadget_manager.lua")
+      
+      _G.TeamTransfer = TeamTransfer
 
     -- Declarative command definitions
     local commands = {
@@ -119,14 +123,15 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     local syncedActions = {
-        NetShareTransfer           = Units.ChangeTeamWithReason,  -- (unitID, oldTeam, newTeam, reason)
-        TeamTransfer               = Units.ChangeTeamWithReason,  -- (unitID, oldTeam, newTeam, reason)  
-        BuilderCapture             = Units.ChangeTeamWithReason,  -- (unitID, oldTeam, newTeam, reason)
-        TeamGiveEverything         = Units.ChangeTeamWithReason,  -- (unitID, oldTeam, newTeam, reason)
-        TeamGiveEverythingComplete = Resources.GiveEverythingTo,  -- (fromTeam, toTeam)
-        NetResourceTransfer        = Resources.NetResourceTransfer, -- (fromTeam, toTeam, resourceType, amount)
-        TeamAutoShare              = Teammates.TeamAutoShare,     -- (fromTeam, toTeam, energyAmount, metalAmount, targetEnergyStorage, targetMetalStorage, targetEnergyCurrent, targetMetalCurrent, targetEnergyShare, targetMetalShare)
-        
+        -- Engine fallbacks → route to Lua-owned transfer entrypoints
+        NetShareTransfer           = function(unitID, oldTeam, newTeam, reason) return Units.TransferUnit(unitID, newTeam, reason) end,
+        TeamTransfer               = function(unitID, oldTeam, newTeam, reason) return Units.TransferUnit(unitID, newTeam, reason) end,
+        BuilderCapture             = function(unitID, oldTeam, newTeam, reason) return Units.TransferUnit(unitID, newTeam, reason) end,
+        TeamGiveEverything         = function(fromTeam, toTeam) return Teammates.GiveEverythingTo(fromTeam, toTeam) end,
+        TeamGiveEverythingComplete = function(fromTeam, toTeam) return true end,
+        NetResourceTransfer        = function(fromTeam, toTeam, m, e) return Resources.NetResourceTransfer(fromTeam, toTeam, m, e) end,
+        TeamAutoShare              = Teammates.TeamAutoShare,
+
         -- Chat command handlers (standard msg, playerID signature)
         take                       = function(msg, playerID) return ProcessCommand(msg, playerID, commands.take) end,
         capture                    = function(msg, playerID) return ProcessCommand(msg, playerID, commands.capture) end,
@@ -134,96 +139,48 @@ if gadgetHandler:IsSyncedCode() then
         aishare                    = function(msg, playerID) return ProcessCommand(msg, playerID, commands.aishare) end,
     }
 
-    -- Framework will call this between load and Initialize
-    function gadget:GetSyncedActions()
-        return syncedActions
-    end
-
-    function gadget:Initialize()
-        GG.TeamTransfer = TeamTransfer
+    -- Use the gadget manager builder pattern
+    function gadget:CreateGadgetManager()
+        local builder = GadgetManager.CreateGadget("TeamTransfer")
         
-        -- Log action overrides for transparency (addresses maintainability concerns)
-        Spring.Log("TeamTransfer", LOG.INFO, "Registering team transfer action handlers:")
-        for actionName, _ in pairs(syncedActions) do
-            if actionName:match("^[a-z]+$") then  -- Chat commands
-                Spring.Log("TeamTransfer", LOG.INFO, "  Chat command: /" .. actionName)
-            else  -- Engine callbacks
-                Spring.Log("TeamTransfer", LOG.INFO, "  Engine callback override: " .. actionName)
-                -- Check for potential conflicts with existing handlers
-                if GG and GG.SyncedActionHandlers and GG.SyncedActionHandlers[actionName] then
-                    Spring.Log("TeamTransfer", LOG.WARNING, "    CONFLICT: Action '" .. actionName .. "' already has a registered handler!")
-                    Spring.Log("TeamTransfer", LOG.WARNING, "    This may cause unexpected behavior. Review gadget load order and handler priorities.")
-                end
-            end
-        end
-        
-        -- Register our handlers in global space for conflict detection
-        GG.SyncedActionHandlers = GG.SyncedActionHandlers or {}
+        -- Register all synced actions via the builder
         for actionName, handler in pairs(syncedActions) do
-            if not actionName:match("^[a-z]+$") then  -- Only track engine callbacks, not chat commands
-                GG.SyncedActionHandlers[actionName] = {
-                    gadgetName = gadget.ghInfo.name,
-                    handler = handler
-                }
-            end
+            builder:WithSyncedAction(actionName, handler)
         end
-
-        -- Built-in validators
-        TeamTransfer.RegisterValidator("share_control", function(unitID, unitDefID, oldTeam, newTeam, reason)
-            if not TeamTransfer.config.enabled then return true end
-            if reason ~= TeamTransfer.REASON.GIVEN then return true end
-            if Spring.IsCheatingEnabled() then return true end
-            if not TeamTransfer.config.allowUnitSharing then
-                TeamTransfer.AddRefusal(oldTeam, "Unit sharing has been disabled")
-                return false
-            end
-            if TeamTransfer.config.allowEnemyUnitSharing or Spring.AreTeamsAllied(oldTeam, newTeam) then
-                return true
-            end
-            TeamTransfer.AddRefusal(oldTeam, "Cannot give units to enemies")
-            return false
-        end)
-
-        TeamTransfer.RegisterValidator("no_builders", function(unitID, unitDefID, oldTeam, newTeam, reason)
-            if not TeamTransfer.config.allowBuilderSharing and reason == TeamTransfer.REASON.GIVEN then
-                local ud = UnitDefs[unitDefID]
-                if ud and (ud.isBuilder or ud.isFactory) then
-                    TeamTransfer.AddRefusal(oldTeam, "Sharing builders and factories is disabled")
-                    return false
-                end
-            end
-            return true
-        end)
+        
+        return builder
     end
 
     function gadget:Shutdown()
         GG.TeamTransfer = nil
+        _G.TeamTransfer = nil
     end
 
-    function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-        TeamTransfer.SetPendingReason(unitID, reason)
-        local valid = TeamTransfer.ValidateTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-        if not valid then return false end
-        return Units.ChangeTeamWithReason(unitID, oldTeam, newTeam, reason)
-    end
+         -- INBOUND engine veto: internal wiring only (not public API)
+     function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+         return Manager.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+     end
 
-    function gadget:AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
-        return Resources.AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
-    end
+     -- INBOUND engine veto: internal wiring only (not public API)
+     function gadget:AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
+         return Manager.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount)
+     end
 
-    function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-        local reason = TeamTransfer.ConsumePendingReason(unitID)
-        TeamTransfer.NotifyUnitGiven(unitID, unitDefID, oldTeam, newTeam, reason)
-    end
+         -- keep Initialize at bottom for readability
+     function gadget:Initialize()
+         -- Clean public API: merge definitions + manager
+         GG.TeamTransfer = {}
+         for k, v in pairs(TeamTransfer) do
+             GG.TeamTransfer[k] = v
+         end
+         for k, v in pairs(Manager) do
+             GG.TeamTransfer[k] = v
+         end
 
-    function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-        local reason = TeamTransfer.ConsumePendingReason(unitID)
-        TeamTransfer.NotifyUnitTaken(unitID, unitDefID, oldTeam, newTeam, reason)
-    end
-
-    function gadget:GameFrame()
-        TeamTransfer.GC()
-    end
+         -- Register built-in validators
+         GG.TeamTransfer.RegisterUnitValidator("TeamTransfer_AllowUnitTransfer", Units.AllowUnitTransfer)
+         GG.TeamTransfer.RegisterResourceValidator("TeamTransfer_AllowResourceTransfer", Resources.AllowResourceTransfer)
+     end
 
 else -- UNSYNCED
     local commands = {
