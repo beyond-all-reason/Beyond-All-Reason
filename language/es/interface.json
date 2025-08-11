@@ -67,25 +67,7 @@
 				"tooManyConverters2Tooltip": "Deja de construir conversores de energía y aumenta tu producción energética."
 			}
 		},
-		"unitMarket": {
-			"sellingUnit": "%{name} vende %{unitName} por %{price} de metal.",
-			"unitSold": "%{name} ha comprado %{unitName} a %{oldName} por %{price} de metal.",
-			"notEnoughMetal": "¡Metal insuficiente!",
-			"offeringThisUnitForSale": "Estás ofreciendo esta unidad para su venta. ¡Los aliados podrán comprarla haciendo doble clic sobre ella! Precio: %{price}m.",
-			"youCanBuyThisTooltip": "¡Puedes comprar esta unidad haciendo doble clic sobre ella! Precio: %{price}m.",
-			"youCantBuyThisTooltip": "Esta unidad está a la venta. Cuesta %{price}m. No tienes suficiente metal.",
-			"youCanAffordIt": "Esta unidad cuesta %{price} de metal. Tienes suficiente metal.",
-			"youCantAffordIt": "Esta unidad cuesta %{price} de metal. No puedes comprarla todavía.\nSi haces clic en ella, tus gastos de metal se pausarán automáticamente para poder ahorrar y comprar esta unidad.",
-			"t2conShop": "¡Unidades T2 a la venta!",
-			"shopTitle": "Mercado de unidades",
-			"shopInfo": "Aquí podrás encontrar una lista de unidades T2 que están a la venta.",
-			"youAreSellingText": "Has puesto una unidad T2 a la venta. ¡Otros jugadores podrán comprarla!",
-			"failedToFindNewOffers": "¡No quedan más! A la espera de nuevas ofertas! %{sec}s.",
-			"autoClosing": "Esta ventana se cerrará en %{sec}s.",
-			"purchasing": "Comprando %{name} (%{price}m)",
-			"buy": "comprar",
-			"abort": "abortar"
-		},
+
 		"playersList": {
 			"spectators": "Espectadores %{amount}",
 			"enemies": "Enemigos %{amount}",

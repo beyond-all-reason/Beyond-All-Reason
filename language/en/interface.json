@@ -67,25 +67,6 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
-		"unitMarket": {
-			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal.",
-			"notEnoughMetal": "Not enough metal!",
-			"offeringThisUnitForSale": "You are offering this unit for sale, allies can buy it with a Double-Click! Price %{price}m.",
-			"youCanBuyThisTooltip": "You can buy this unit with a Double-Click! Price %{price}m.",
-			"youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not enough metal.",
-			"youCanAffordIt": "This unit costs %{price} metal. You have enough.",
-			"youCantAffordIt": "This unit costs %{price} metal. Can't afford it yet.\nBut if you click it - your metal expenses will be paused automatically in order to buy the unit.",
-			"t2conShop": "Buy T2cons here!",
-			"shopTitle": "Unit Market",
-			"shopInfo": "You'll find t2cons listed here for sale.",
-			"youAreSellingText": "You've put t2con for sale, others can buy it now!",
-			"failedToFindNewOffers": "Out-of-stock! Waiting for new offers! %{sec}s.",
-			"autoClosing": "Auto closing this window in %{sec}s.",
-			"purchasing": "Purchasing %{name} (%{price}m)",
-			"buy": "buy",
-			"abort": "abort"
-		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
