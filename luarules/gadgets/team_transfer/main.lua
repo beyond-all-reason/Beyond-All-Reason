@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
-        name = "Team Transfer",
+        name = "Team Transfer Main",
         desc = "Centralized team and resource transfer system with comprehensive reason-based validation.",
         author = "BAR Team",
         date = "2025",
@@ -15,7 +15,7 @@ end
 if gadgetHandler:IsSyncedCode() then
           -- Load modules in synced context
       local TeamTransfer      = VFS.Include("LuaRules/Gadgets/team_transfer/definitions.lua")
-      local Manager           = VFS.Include("LuaRules/Gadgets/team_transfer/manager.lua")
+      local Api = VFS.Include("LuaRules/Gadgets/team_transfer/api.lua")
       local Units             = VFS.Include("LuaRules/Gadgets/team_transfer/units.lua")
       local Resources         = VFS.Include("LuaRules/Gadgets/team_transfer/resources.lua")
       local Teammates         = VFS.Include("LuaRules/Gadgets/team_transfer/teammates.lua")
@@ -129,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
         BuilderCapture             = function(unitID, oldTeam, newTeam, reason) return Units.TransferUnit(unitID, newTeam, reason) end,
         TeamGiveEverything         = function(fromTeam, toTeam) return Teammates.GiveEverythingTo(fromTeam, toTeam) end,
         TeamGiveEverythingComplete = function(fromTeam, toTeam) return true end,
-        NetResourceTransfer        = function(fromTeam, toTeam, m, e) return Resources.NetResourceTransfer(fromTeam, toTeam, m, e) end,
+        NetResourceTransfer        = function(fromTeam, toTeam, m, e) return Api.NetResourceTransfer(fromTeam, toTeam, m, e) end,
         TeamAutoShare              = Teammates.TeamAutoShare,
 
         -- Chat command handlers (standard msg, playerID signature)
@@ -156,26 +156,24 @@ if gadgetHandler:IsSyncedCode() then
         _G.TeamTransfer = nil
     end
 
-    -- INBOUND engine veto: internal wiring only (not public API)
     function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-        return Manager.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+        return Api.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
     end
 
-    -- INBOUND engine veto: internal wiring only (not public API)
     function gadget:AllowResourceTransfer(oldTeam, newTeam, resourceType, amount)
-        return Manager.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount)
+        return Api.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount)
     end
 
-         -- keep Initialize at bottom for readability
      function gadget:Initialize()
-         -- Clean public API: merge definitions + manager
          GG.TeamTransfer = {}
          for k, v in pairs(TeamTransfer) do
              GG.TeamTransfer[k] = v
          end
-         for k, v in pairs(Manager) do
+         for k, v in pairs(Api) do
              GG.TeamTransfer[k] = v
          end
+
+
 
          -- Register built-in validators
          GG.TeamTransfer.RegisterUnitValidator("TeamTransfer_AllowUnitTransfer", Units.AllowUnitTransfer)

@@ -1,35 +1,49 @@
 local Resources = {}
 
--- Allow/gate resource transfers. Keep permissive by default; validators in other gadgets can block.
--- Deprecated: gating now via TeamTransfer.RegisterResourceValidator
+-- Include dependencies
+local Pipeline = VFS.Include("LuaRules/Gadgets/team_transfer/pipeline.lua")
 
--- Atomically handle resource shares from engine (NETMSG_{SHARE,AISHARE})
-function Resources.NetResourceTransfer(srcTeamID, dstTeamID, metalShare, energyShare)
-    local any = false
-    local m = tonumber(metalShare) or 0
-    local e = tonumber(energyShare) or 0
-
-    if m > 0 and GG.TeamTransfer.ValidateResourceTransfer(srcTeamID, dstTeamID, "metal", m) then
-        local _, cur = Spring.GetTeamResources(srcTeamID, "metal")
-        local amt = math.min(m, cur or 0)
-        if amt > 0 then
-            Spring.ShareTeamResource(srcTeamID, dstTeamID, "metal", amt)
-            GG.TeamTransfer.NotifyResourceTransfer(srcTeamID, dstTeamID, "metal", amt)
-            any = true
-        end
+-- Core resource transfer function that processes through pipeline
+Resources.ProcessResourceTransfer = function(srcTeamID, dstTeamID, resourceType, amount, source)
+    if amount <= 0 then return 0 end
+    
+    local transfer = {
+        srcTeam = srcTeamID,
+        dstTeam = dstTeamID,
+        resourceType = resourceType,
+        amount = amount,
+        finalAmount = amount,
+        blocked = false,
+        source = source or "manual",
+    }
+    
+    transfer = Pipeline.RunResourceTransformPipeline(transfer)
+    
+    if transfer.blocked then return 0 end
+    
+    local _, cur = Spring.GetTeamResources(srcTeamID, resourceType)
+    local availableAmount = math.min(transfer.finalAmount, cur or 0)
+    if availableAmount > 0 then
+        Spring.ShareTeamResource(srcTeamID, dstTeamID, resourceType, availableAmount)
+        return availableAmount
     end
+    
+    return 0
+end
 
-    if e > 0 and GG.TeamTransfer.ValidateResourceTransfer(srcTeamID, dstTeamID, "energy", e) then
-        local _, cur = Spring.GetTeamResources(srcTeamID, "energy")
-        local amt = math.min(e, cur or 0)
-        if amt > 0 then
-            Spring.ShareTeamResource(srcTeamID, dstTeamID, "energy", amt)
-            GG.TeamTransfer.NotifyResourceTransfer(srcTeamID, dstTeamID, "energy", amt)
-            any = true
-        end
-    end
+-- Simple transfer (external API)
+Resources.TransferResource = function(oldTeam, newTeam, resourceType, amount)
+    local transferredAmount = Resources.ProcessResourceTransfer(oldTeam, newTeam, resourceType, amount, "api")
+    return transferredAmount > 0
+end
 
-    return any
+-- Network transfer handler for engine (NETMSG_{SHARE,AISHARE})
+-- Note: Notifications are handled externally by the API layer
+Resources.NetResourceTransfer = function(srcTeamID, dstTeamID, metalShare, energyShare)
+    local metalAmount = Resources.ProcessResourceTransfer(srcTeamID, dstTeamID, "metal", tonumber(metalShare) or 0, "network")
+    local energyAmount = Resources.ProcessResourceTransfer(srcTeamID, dstTeamID, "energy", tonumber(energyShare) or 0, "network")
+    
+    return (metalAmount > 0) or (energyAmount > 0)
 end
 
 -- Move all resources from one team to another (used for GiveEverythingTo)
@@ -47,13 +61,5 @@ function Resources.GiveEverythingTo(srcTeamID, dstTeamID)
     return true
 end
 
--- Simple single-resource transfer helper used by unified API
-function Resources.TransferResource(oldTeam, newTeam, resourceType, amount)
-    if amount <= 0 then return false end
-    if not GG.TeamTransfer.ValidateResourceTransfer(oldTeam, newTeam, resourceType, amount) then return false end
-    Spring.ShareTeamResource(oldTeam, newTeam, resourceType, amount)
-    GG.TeamTransfer.NotifyResourceTransfer(oldTeam, newTeam, resourceType, amount)
-    return true
-end
 
 return Resources

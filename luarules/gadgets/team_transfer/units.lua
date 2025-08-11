@@ -1,24 +1,44 @@
 
 
 local Units = {}
+
+-- Include dependencies
+local Pipeline = VFS.Include("LuaRules/Gadgets/team_transfer/pipeline.lua")
+
 -- Default built-in validator (permissive). Real rules are registered via RegisterValidator.
-function Units.AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+Units.AllowUnitTransfer = function(unitID, unitDefID, oldTeam, newTeam, reason)
     return true
 end
--- Core transfer orchestrator for units
-function Units.TransferUnit(unitID, newTeam, reason)
+
+-- Core unit transfer function that processes through pipeline
+Units.ProcessUnitTransfer = function(unitID, newTeam, reason)
+    local transfer = {
+        unitID = unitID,
+        unitDefID = Spring.GetUnitDefID(unitID),
+        oldTeam = Spring.GetUnitTeam(unitID),
+        newTeam = newTeam,
+        reason = reason,
+        blocked = false,
+    }
+    
+    transfer = Pipeline.RunUnitTransformPipeline(transfer)
+    
+    if transfer.blocked then
+        return false
+    end
+    
+    return Units.TransferUnit(transfer.unitID, transfer.newTeam, transfer.reason)
+end
+
+-- Simple transfer (uses Spring API directly, no pipeline)
+Units.TransferUnit = function(unitID, newTeam, reason)
     local oldTeam = Spring.GetUnitTeam(unitID)
     if not oldTeam or oldTeam == newTeam then return true end
 
     local unitDefID = Spring.GetUnitDefID(unitID)
     if not unitDefID then return false end
 
-    -- Use global API (will be injected by gadget)
-    local ok = GG.TeamTransfer.ValidateUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
-    if not ok then return false end
-
     local success = Spring.TransferUnitWithReason(unitID, newTeam, reason)
-    if success then GG.TeamTransfer.NotifyUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) end
     return success
 end
 
