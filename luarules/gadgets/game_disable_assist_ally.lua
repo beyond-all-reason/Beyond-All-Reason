@@ -32,9 +32,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt= Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
+local CMD_MOVE_STATE = CMD.MOVE_STATE
+
+local canAssist = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canAssist then
+		canAssist[unitDefID] = true
+	end
+end
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
@@ -66,5 +75,10 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		end
 	end
 
+	-- Disallow changing the move_state value of non-factory builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
+	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and canAssist[unitDefID] ) then
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 0) -- make toggling still work between Hold and Maneuver
+		return false
+	end
 	return true
 end
