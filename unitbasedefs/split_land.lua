@@ -6,6 +6,9 @@ local function splitLandTweaks(name, uDef)
         uDef.turnrate = 150
     end
 
+    if name == "cortermite" then
+        uDef.objectname = ""
+
     return uDef
 end
 
