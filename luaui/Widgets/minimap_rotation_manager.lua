@@ -10,6 +10,37 @@ function widget:GetInfo()
 	}
 end
 
+--[[
+	Minimap Rotation Manager
+	-----------------------------------------------
+	Manages and handles the rotation of the minimap based on camera rotation (Automatic rotation) or Manual Commands (Keybinds).
+	Via Engine calls, it can automatically adjust the minimap rotation to match the camera's orientation (90 or 180 degree increments).
+
+	Supports three modes:
+	1. none - No automatic rotation, manual control only.
+	2. autoFlip - Automatically flips the minimap to match the camera's orientation (180 degrees).
+	3. autoRotate - Automatically rotates the minimap in 90-degree increments to match the camera's orientation.
+
+	Modes can be set via the settings menu or utilising the keybinds that come with this manager.
+
+	Keybinds:
+		Modules:
+			- mode [none|autoFlip/180|autoRotate/90] - Sets the rotation mode. Shortcut instead of settings menu.
+
+			- set [degrees] [absolute] - Sets the minimap rotation to a specific degree, either absolute or relative to current rotation.
+				- degrees - Must be a multiple of 90 (e.g., 0, 90, 180, 270).
+				- absolute - If specified, sets the rotation to the exact degree; otherwise, it rotates relative to the current rotation.
+				- if auto-tracking is enabled (via autoFlip or autoRotate modes), it will lock the auto-tracking during manual rotation until toggled off.
+
+			- toggleTracking - Toggles the auto-tracking lock, preventing automatic updates while manual rotation is in progress.
+				- This is useful when you want to manually adjust the minimap without it snapping back to the camera's rotation.
+				- Then toggle it back to enable auto-tracking again.
+		Examples usage:
+			- minimap_rotate mode autoRotate
+			- minimap_rotate set 90 absolute
+			- minimap_rotate toggleTracking
+]]--
+
 local CameraRotationModes = {
 	none = 1,
 	autoFlip = 2,
