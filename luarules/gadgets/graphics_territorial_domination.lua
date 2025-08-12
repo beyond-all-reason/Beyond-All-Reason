@@ -761,7 +761,7 @@ local function updateGridSquareColor(gridData)
 end
 
 local function processSpectatorModeChange()
-	local currentSpectating = Spring.GetSpectatingState()
+	local currentSpectating = true -- zzz always true
 	local currentAllyID = Spring.GetMyAllyTeamID()
 
 	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then

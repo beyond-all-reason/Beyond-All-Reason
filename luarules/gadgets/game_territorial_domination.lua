@@ -27,7 +27,7 @@ local territorialDominationConfig = {
 		minutesPerRound = 5,
 	},
 	default = {
-		maxRounds = 5,
+		maxRounds = 3,
 		minutesPerRound = 5,
 	},
 	long = {
@@ -39,7 +39,7 @@ local territorialDominationConfig = {
 local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig.default
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
-local DEBUGMODE = true
+local DEBUGMODE = false
 
 local GRID_SIZE = 1024
 local GRID_CHECK_INTERVAL = Game.gameSpeed
@@ -407,7 +407,7 @@ local function initializeTeamData()
 		if teamID == scavengerTeamID or teamID == raptorTeamID then
 			hordeModeTeams[teamID] = true
 		end
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME, {public = true})
 	end
 	processLivingTeams()
 	originalHighestTeamCount = getHighestTeamCount()
@@ -500,7 +500,7 @@ local function triggerAllyDefeat(allyID)
 		end
 	end
 	for _, teamID in ipairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
+		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME, {public = true})
 	end
 end
 
@@ -678,23 +678,6 @@ local function processAttackScoresNeighborsAndDecay()
 	end
 end
 
-local function processOffenseScoresAndRewards()
-	for gridID, data in pairs(captureGrid) do
-		local data = captureGrid[gridID]
-		local neighborCount = data.neighborAllyTeamCounts[data.allyOwnerID] or 0
-		if data.progress > OWNERSHIP_THRESHOLD then
-			if not data.attackerPointsTaken[data.allyOwnerID] and data.wasCapturedThisRound then
-				data.attackerPointsTaken[data.allyOwnerID] = true
-				allyScores[data.allyOwnerID].score = allyScores[data.allyOwnerID].score + data.attackerPointsValue
-				data.roundsOwned = 0
-			end
-
-			data.attackerPointsValue = math.floor(BASE_TERRITORY_POINTS_VALUE + neighborCount + data.roundsOwned * ATTACKER_POINTS_PER_ROUND_MULTIPLIER)
-			data.ownedNeighbors = data.neighborAllyTeamCounts[data.allyOwnerID] or 0
-		end
-	end
-end
-
 local function updateGridDefensePointRewards()
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
@@ -703,10 +686,45 @@ local function updateGridDefensePointRewards()
 	end
 end
 
+local function calculateProjectedPointsForNextRound()
+	local projectedPoints = {}
+	
+	for allyID in pairs(allyTeamsWatch) do
+		local projectedScore = 0
+		
+		for gridID, data in pairs(captureGrid) do
+			if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
+				projectedScore = projectedScore + currentRound
+			end
+		end
+		
+		projectedPoints[allyID] = projectedScore
+	end
+	
+	return projectedPoints
+end
+
+local function calculateMaximumPossiblePoints()
+	-- Calculate the maximum possible points at the end of the final round
+	-- Each territory owned gives points equal to the round number
+	-- Maximum points = total territories * sum of round numbers from 1 to MAX_ROUNDS
+	
+	local totalTerritories = numberOfSquaresX * numberOfSquaresZ
+	local roundSum = 0
+	for round = 1, MAX_ROUNDS do
+		roundSum = roundSum + round
+	end
+	
+	local maxPossiblePoints = totalTerritories * roundSum
+	local pointsCap = math.floor(maxPossiblePoints / 2) -- Divide by 2 as requested
+	
+	return pointsCap
+end
+
 local function processDefenseScores()  
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
-			local points = data.ownedNeighbors or 0
+			local points = currentRound
 			local allyScore = allyScores[data.allyOwnerID].score
 			allyScore = allyScore or 0
 			allyScores[data.allyOwnerID].score = allyScore + points
@@ -742,7 +760,6 @@ function gadget:GameFrame(frame)
 		processAttackScoresNeighborsAndDecay()
 	elseif frameModulo == 2 then
 		local seconds = spGetGameSeconds()
-		processOffenseScoresAndRewards()
 		updateGridDefensePointRewards()
 		if seconds >= roundTimestamp then
 			Spring.Echo("round", currentRound, "roundTimestamp", roundTimestamp, "seconds", seconds)
@@ -776,12 +793,20 @@ function gadget:GameFrame(frame)
 		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
 		
+		-- Calculate and send projected points for next round
+		local projectedPoints = calculateProjectedPointsForNextRound()
+		
+		-- Send points cap via game rules parameter
+		local pointsCap = calculateMaximumPossiblePoints()
+		Spring.SetGameRulesParam("territorialDominationPointsCap", pointsCap)
+		
 		for allyID, scoreData in pairs(allyScores) do
 			--send scores to clients via team rules parameters
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, scoreData.score)
+				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, scoreData.score, {public = true})
+				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedPoints[allyID] or 0, {public = true})
 			end
-			SendToUnsynced("UpdateAllyScore", allyID, scoreData.score, 0)
+			SendToUnsynced("UpdateAllyScore", allyID, scoreData.score, projectedPoints[allyID] or 0)
 		end
 	end
 
@@ -815,9 +840,21 @@ function gadget:Initialize()
 
 	allTeams = Spring.GetTeamList()
 	for _, teamID in pairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME)
-		Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1)
+		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME, {public = true})
+		Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1, {public = true})
 	end
+	
+	-- Send initial projected points
+	local initialProjectedPoints = calculateProjectedPointsForNextRound()
+	for allyID, projectedScore in pairs(initialProjectedPoints) do
+		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
+			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedScore, {public = true})
+		end
+	end
+	
+	-- Send initial points cap via game rules parameter
+	local initialPointsCap = calculateMaximumPossiblePoints()
+	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
