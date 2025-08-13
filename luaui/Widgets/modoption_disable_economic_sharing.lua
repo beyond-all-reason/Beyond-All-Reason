@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Modoption: Disable Economic Sharing",
-		desc = "UI behavior for disabled sharing",
+		desc = "UI behavior for disabled economic sharing",
 		author = "Hobo Joe",
 		date = "August 2025",
 		license = "GNU GPL, v2 or later",

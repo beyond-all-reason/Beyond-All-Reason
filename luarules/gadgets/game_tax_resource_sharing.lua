@@ -19,16 +19,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local sharingDisabled = Spring.GetModOptions().disable_economic_sharing
-local taxEnabled = Spring.GetModOptions().tax_resource_sharing_amount > 0
-local taxAmount = Spring.GetModOptions().tax_resource_sharing_amount
-if taxAmount >= 1 then
-	taxEnabled = false
-	sharingDisabled = true
-end
+local taxShareMetal = 0
+local taxShareEnergy = 0
 
-if not taxEnabled and not sharingDisabled then
-	return false
+local taxModoption = Spring.GetModOptions().tax_resource_sharing_amount
+if taxModoption > 0 then
+	taxShareMetal = taxModoption
+	taxShareEnergy = taxModoption
 end
 
 
@@ -37,25 +34,31 @@ end
 ----------------------------------------------------------------
 
 function gadget:Initialize()
-	local teams = Spring.GetTeamList()
-	for _, teamID in ipairs(teams) do
-		Spring.SetTeamShareLevel(teamID, 'metal', 0)
-		Spring.SetTeamShareLevel(teamID, 'energy', 0)
+	GG['tax_share'] = {}
+	GG['tax_share'].setMetalTaxAmount = function(value)
+		taxShareMetal = value
+	end
+	GG['tax_share'].setEnergyTaxAmount = function(value)
+		taxShareEnergy = value
 	end
 end
 
+
 function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
-	if sharingDisabled then -- no transfers allowed, don't bother taxing
-		return false
+	if (taxShareMetal == 0 and taxShareEnergy == 0) then
+		return true
 	end
 
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
 	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
 	local resourceName
+	local taxAmount
 	if (resourceType == 'm') or (resourceType == 'metal') then
 		resourceName = 'metal'
+		taxAmount = taxShareMetal
 	elseif (resourceType == 'e') or (resourceType == 'energy') then
 		resourceName = 'energy'
+		taxAmount = taxShareEnergy
 	else
 		-- We don't handle whatever this resource is, allow it
 		return true

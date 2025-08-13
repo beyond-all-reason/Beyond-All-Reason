@@ -19,8 +19,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local shareAllowed = not Spring.GetModOptions().disable_economic_sharing
-if shareAllowed then
+local disableShare = Spring.GetModOptions().disable_unit_sharing
+local disableEconomicShare = not Spring.GetModOptions().disable_economic_sharing
+
+-- gadget doesn't need to run
+if not disableShare and not disableEconomicShare then
 	return false
 end
 

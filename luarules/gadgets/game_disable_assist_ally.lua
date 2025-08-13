@@ -28,6 +28,10 @@ end
 ----------------------------------------------------------------
 --
 ----------------------------------------------------------------
+
+-- TODO: This gadget could handle edge-cases where a blueprint being assisted is transfered to another team
+-- The assisting units will continue because they are on the same command. Need to intercept with UnitGiven
+-- and change the assisting units orders so that they can no longer help the blueprint that is not theirs
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt= Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -76,7 +80,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 
 	-- Disallow changing the move_state value of non-factory builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
-	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and canAssist[unitDefID] ) then
+	if (cmdID == CMD_MOVE_STATE and cmdParams[1] == 2 and canAssist[unitDefID] ) then
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 0) -- make toggling still work between Hold and Maneuver
 		return false
 	end
