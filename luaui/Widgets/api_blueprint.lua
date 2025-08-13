@@ -801,6 +801,47 @@ local function getBuildableUnits(blueprint)
 
 	return buildable, unbuildable
 end
+local function handleCategoryQuery(_, unitDefID, queryType)
+	if not unitDefID or not UnitDefs[unitDefID] then 
+		return 
+	end
+	
+	local unitDef = UnitDefs[unitDefID]
+	local unitNameLower = unitDef.name:lower()
+	
+	if not SubLogic or not SubLogic.MasterBuildingData then 
+		return 
+	end
+	
+	local buildingData = SubLogic.MasterBuildingData[unitNameLower]
+	if not buildingData then 
+		return 
+	end
+	
+	local result = nil
+	if queryType == "isMetalExtractor" then
+		result = buildingData.categoryName == "METAL_EXTRACTOR" or buildingData.categoryName == "ADVANCED_EXTRACTOR" or buildingData.categoryName == "EXPLOITER" or buildingData.categoryName == "ADVANCED_EXPLOITER"
+	elseif queryType == "isGeothermal" then
+		result = buildingData.categoryName == "GEOTHERMAL" or buildingData.categoryName == "ADVANCED_GEO"
+	elseif queryType == "getUnitTier" then
+		local category = buildingData.categoryName
+		if category == "METAL_EXTRACTOR" or category == "GEOTHERMAL" or category == "EXPLOITER" then
+			result = 1
+		elseif category == "ADVANCED_EXTRACTOR" or category == "ADVANCED_GEO" or category == "ADVANCED_EXPLOITER" then
+			result = 2
+		else
+			result = 0
+		end
+	elseif queryType == "getUnitCategory" then
+		result = buildingData.categoryName
+	end
+	
+	if Script.LuaRules('blueprint_category_result') then
+		Script.LuaRules.blueprint_category_result(unitDefID, queryType, result)
+	end
+end
+
+
 
 function widget:Initialize()
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
@@ -810,6 +851,10 @@ function widget:Initialize()
 			widgetHandler:RemoveWidget()
 			return
 		end
+	end
+
+	if gadgetHandler and gadgetHandler.AddSyncAction then
+		gadgetHandler:AddSyncAction("blueprint_category_query", handleCategoryQuery)
 	end
 
 	if ENABLE_REPORTS then
@@ -901,6 +946,11 @@ end
 
 function widget:Shutdown()
 	WG["api_blueprint"] = nil
+	
+	if gadgetHandler and gadgetHandler.RemoveSyncAction then
+		gadgetHandler:RemoveSyncAction("blueprint_category_query")
+	end
+	
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then return end
