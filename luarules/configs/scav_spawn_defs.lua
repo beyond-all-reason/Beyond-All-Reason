@@ -2527,6 +2527,160 @@ addNewSquad({
 	}
 }) --Cortex Flying Flagships
 
+--[[
+	Custom Squads Support 
+	This down here is meant for TweakDefs modders to allow them to add their custom modified Scav units to the spawn rosters easily'ish.	
+
+	Documentation WiP	
+
+	Available CustomParameters:
+
+	scavcustomsquad - bool - allow this unit to be processed by this whole thing
+	scavsquadunitsamount - number, integrer - maximum amount of these units that can spawn in a squad
+	scavsquadminanger - number, integrer - minimum tech percentage this unit can spawn at
+	scavsquadmaxanger - number, integrer - maximum tech percentage this unit can spawn at
+	scavsquadweight - number, integrer - how often will this unit be picked relative to other options. higher number = more often.
+	scavsquadrarity - string - either "basic" or "special", defaults to special. Basic squads are your spammable cannon fodder while specials are more specialised elemental units.
+	scavsquadbehavior - string - explained below
+	scavsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
+	scavsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+	scavsquadsurface - string - "land", "sea", "mixed" defines what surfaces the custom squad should spawn on. default: mixed
+
+	Behavior Classes:
+
+	"raider" - This is the default, that doesn't get any behaviors. You can specify it but it won't do anything.
+	"berserk" - Run towards target after getting hit by enemy or after hitting the target
+	"skirmisher" - Keep distance from the target
+	"healer" - Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+	"artillery" - Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
+	"kamikaze" - Long lifetime and no regrouping, always uses Move command to rush into the enemy
+]]
+
+for name, unitDef in pairs(UnitDefNames) do
+	if unitDef.customParams then
+		--Spring.Echo(name, unitDef.customParams)
+		if unitDef.customParams.scavcustomsquad and unitDef.customParams.scavcustomsquad == "1" then
+			local customSquadTable = {}
+			customSquadTable.units = {{
+				count = tonumber(unitDef.customParams.scavsquadunitsamount) or 1,
+				unit = name
+			}}
+			customSquadTable.minAnger = tonumber(unitDef.customParams.scavsquadminanger) or 0
+			customSquadTable.maxAnger = tonumber(unitDef.customParams.scavsquadmaxanger) or 999
+			customSquadTable.weight = tonumber(unitDef.customParams.scavsquadweight) or 1
+
+			if unitDef.customParams.scavsquadbehavior then
+
+				if unitDef.customParams.scavsquadbehavior == "berserk" and not scavBehaviours.BERSERK[unitDef.id] then
+					scavBehaviours.BERSERK[unitDef.id] = {
+						chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.1,
+						distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 2000
+					}
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "skirmisher" then
+					if not scavBehaviours.SKIRMISH[unitDef.id] then
+						scavBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "healer" then
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.HEALER[unitDef.id] then
+						scavBehaviours.HEALER[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "artillery" then
+					if not scavBehaviours.SKIRMISH[unitDef.id] then
+						scavBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5, 
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.COWARD[unitDef.id] then
+						scavBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.ARTILLERY[unitDef.id] then
+						scavBehaviours.ARTILLERY[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.scavsquadbehavior == "kamikaze" then
+					if not scavBehaviours.BERSERK[unitDef.id] then
+						scavBehaviours.BERSERK[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.scavsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.scavsquadbehaviordistance) or 500
+						}
+					end
+					if not scavBehaviours.KAMIKAZE[unitDef.id] then
+						scavBehaviours.KAMIKAZE[unitDef.id] = true
+					end
+				end
+			end
+
+
+			if not customSquadTable.type then
+				
+				if (not unitDef.customParams.scavsquadsurface) or unitDef.customParams.scavsquadsurface == "land" or unitDef.customParams.scavsquadsurface == "mixed" then
+					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
+						customSquadTable.type = "healerLand"
+					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
+						if unitDef.canFly then
+							customSquadTable.type = "basicAirLand"
+						else
+							customSquadTable.type = "basicLand"
+						end
+					else
+						if unitDef.canFly then
+							customSquadTable.type = "specialAirLand"
+						else
+							customSquadTable.type = "specialLand"
+						end
+					end
+					addNewSquad(customSquadTable)
+				end
+
+				if (not unitDef.customParams.scavsquadsurface) or unitDef.customParams.scavsquadsurface == "sea" or unitDef.customParams.scavsquadsurface == "mixed" then
+					if unitDef.customParams.scavsquadbehavior and unitDef.customParams.scavsquadbehavior == "healer" then
+						customSquadTable.type = "healerSea"
+					elseif unitDef.customParams.scavsquadrarity and unitDef.customParams.scavsquadrarity == "basic" then
+						if unitDef.canFly then
+							customSquadTable.type = "basicAirSea"
+						else
+							customSquadTable.type = "basicSea"
+						end
+					else
+						if unitDef.canFly then
+							customSquadTable.type = "specialAirSea"
+						else
+							customSquadTable.type = "specialSea"
+						end
+					end
+					addNewSquad(customSquadTable)
+				end
+			end
+		end
+	end
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -2934,7 +2934,7 @@ addNewSquad({
 
 for name, unitDef in pairs(UnitDefNames) do
 	if unitDef.customParams then
-		Spring.Echo(name, unitDef.customParams)
+		--Spring.Echo(name, unitDef.customParams)
 		if unitDef.customParams.raptorcustomsquad and unitDef.customParams.raptorcustomsquad == "1" then
 			local customSquadTable = {}
 			customSquadTable.units = {{
@@ -2942,8 +2942,8 @@ for name, unitDef in pairs(UnitDefNames) do
 				unit = name
 			}}
 			customSquadTable.minAnger = tonumber(unitDef.customParams.raptorsquadminanger) or 0
-			customSquadTable.maxAnger = tonumber(unitDef.customParams.raptorsquadmaxanger) or 0
-			customSquadTable.weight = tonumber(unitDef.customParams.raptorsquadweight) or 0
+			customSquadTable.maxAnger = tonumber(unitDef.customParams.raptorsquadmaxanger) or 999
+			customSquadTable.weight = tonumber(unitDef.customParams.raptorsquadweight) or 1
 
 			if unitDef.customParams.raptorsquadbehavior then
 
