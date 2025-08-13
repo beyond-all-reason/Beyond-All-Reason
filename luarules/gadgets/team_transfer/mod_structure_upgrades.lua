@@ -34,6 +34,9 @@ if structureUpgradePolicy == "keep" then
 end
 
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local BlueprintDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
+
+local CATEGORIES = BlueprintDefs.UNIT_CATEGORIES
 
 local function IsMexUnit(unitDefID)
     if not unitDefID or not UnitDefs[unitDefID] then return false end
@@ -44,10 +47,7 @@ local function IsMexUnit(unitDefID)
         local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
-            return buildingData.categoryName == "METAL_EXTRACTOR" or 
-                   buildingData.categoryName == "ADVANCED_EXTRACTOR" or 
-                   buildingData.categoryName == "EXPLOITER" or 
-                   buildingData.categoryName == "ADVANCED_EXPLOITER"
+            return buildingData.categoryName == CATEGORIES.METAL_EXTRACTOR
         end
     end
     
@@ -75,8 +75,7 @@ local function IsGeothermalUnit(unitDefID)
         local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
-            return buildingData.categoryName == "GEOTHERMAL" or 
-                   buildingData.categoryName == "ADVANCED_GEO"
+            return buildingData.categoryName == CATEGORIES.GEOTHERMAL
         end
     end
     
@@ -108,9 +107,9 @@ local function GetStructureTier(unitDefID)
         
         if buildingData then
             local category = buildingData.categoryName
-            if category == "METAL_EXTRACTOR" or category == "GEOTHERMAL" or category == "EXPLOITER" then
+            if category == CATEGORIES.METAL_EXTRACTOR or category == CATEGORIES.GEOTHERMAL or category == CATEGORIES.EXPLOITER then
                 return 1
-            elseif category == "ADVANCED_EXTRACTOR" or category == "ADVANCED_GEO" or category == "ADVANCED_EXPLOITER" then
+            elseif category == CATEGORIES.ADVANCED_EXTRACTOR or category == CATEGORIES.ADVANCED_GEO or category == CATEGORIES.ADVANCED_EXPLOITER then
                 return 2
             end
         end
