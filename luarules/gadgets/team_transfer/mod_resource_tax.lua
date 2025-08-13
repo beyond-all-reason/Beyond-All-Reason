@@ -58,34 +58,6 @@ local function ValidateResourceTax(oldTeam, newTeam, resourceType, amount)
     return true -- Always allow, just log tax info
 end
 
--- Command restrictions related to tax policy
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-    -- Disallow reclaiming allied units for metal (prevents tax avoidance)
-    if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
-        local targetID = cmdParams[1]
-        if targetID >= Game.maxUnits then
-            return true
-        end
-        
-        local targetTeam = Spring.GetUnitTeam(targetID)
-        if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-            return false
-        end
-    -- Also block guarding allied units that can reclaim
-    elseif (cmdID == CMD.GUARD and #cmdParams >= 1) then
-        local targetID = cmdParams[1]
-        local targetTeam = Spring.GetUnitTeam(targetID)
-        local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
-
-        if (unitTeam ~= targetTeam) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-            -- Block guarding allied reclaimers to prevent tax circumvention
-            if targetUnitDef and targetUnitDef.canReclaim then
-                return false
-            end
-        end
-    end
-    return true
-end
 
 -- Tax transform policy for the pipeline system
 local function TaxTransformPolicy(transfer)
@@ -107,12 +79,9 @@ local function TaxTransformPolicy(transfer)
     return transfer
 end
 
--- Implementation: Register transform policy in the pipeline
 function gadget:Initialize()
-    -- Register tax policy in the transform pipeline (priority 100 - runs early)
     GG.TeamTransfer.RegisterResourceTransformPolicy("ResourceTax", 100, TaxTransformPolicy)
     
-    -- Keep compatibility functions for teammates.lua
     GG.TeamTransfer.CalculateEffectiveTax = CalculateEffectiveTax
     GG.TeamTransfer.GetBaseTaxRate = function() return baseTaxRate end
     GG.TeamTransfer.GetThresholds = function() return metalThreshold, energyThreshold end

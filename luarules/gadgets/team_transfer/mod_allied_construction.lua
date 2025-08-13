@@ -65,50 +65,7 @@ local function IsMilitaryBuilding(unitDefID)
     return false
 end
 
--- Command validation function
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-    -- Only check GUARD and BUILD commands to allied teams
-    if cmdID ~= CMD.GUARD and cmdID ~= CMD.BUILD then
-        return true
-    end
-    
-    local targetTeam
-    local targetUnitDefID
-    
-    if cmdID == CMD.GUARD and #cmdParams >= 1 then
-        local targetID = cmdParams[1]
-        if targetID >= Game.maxUnits then return true end
-        
-        targetTeam = Spring.GetUnitTeam(targetID)
-        targetUnitDefID = Spring.GetUnitDefID(targetID)
-    elseif cmdID == CMD.BUILD and #cmdParams >= 1 then
-        targetUnitDefID = -cmdParams[1] -- Build commands have negative unit def IDs
-        -- For build commands, we need to determine the target team differently
-        -- This is more complex and might need additional context
-        return true -- TODO: Implement proper build command team detection
-    else
-        return true
-    end
-    
-    -- Only restrict commands to allied teams (not same team)
-    if not targetTeam or unitTeam == targetTeam or not Spring.AreTeamsAllied(unitTeam, targetTeam) then
-        return true
-    end
-    
-    -- Apply policy restrictions
-    if alliedConstructionPolicy == "disabled" then
-        return false
-    elseif alliedConstructionPolicy == "economic_only" then
-        -- Allow economic buildings, block military
-        if targetUnitDefID and IsMilitaryBuilding(targetUnitDefID) then
-            return false
-        end
-    end
-    
-    return true
-end
 
--- Implementation: Log policy status
 function gadget:Initialize()
     Spring.Log("TeamTransfer", LOG.INFO, "Allied construction policy: " .. alliedConstructionPolicy)
     
