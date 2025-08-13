@@ -303,7 +303,7 @@ local options = {
 		desc 	= "Disables sharing of any resources, sharing of resource producing units/structures, and sharing of constructors. Only combat units can be shared",
 		type 	= "bool",
 		section = "options_main",
-		hidden 	= true,
+		hidden 	= false,
 		def 	= false,
 	},
 	{
