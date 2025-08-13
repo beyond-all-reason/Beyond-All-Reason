@@ -404,6 +404,23 @@ function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	end
 end
 
+function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
+	if projectileID and projectiles[projectileID] then
+		-- Only process collisions with terrain or water.
+		local elevation = max(Spring.GetGroundHeight(px, pz), 0)
+		if math.abs(elevation - py) < 0.5 then
+			local penetrator = projectiles[projectileID]
+			projectileHits[projectileID] = penetrator
+			local collisions = penetrator.collisions
+			collisions[#collisions+1] = {
+				hitX = px,
+				hitY = py,
+				hitZ = pz,
+			}
+		end
+	end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
