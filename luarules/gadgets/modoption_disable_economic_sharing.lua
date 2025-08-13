@@ -62,3 +62,8 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	end
 	return true
 end
+
+
+function gadget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
+	return false
+end
