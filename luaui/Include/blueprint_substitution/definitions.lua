@@ -155,4 +155,12 @@ end
 
 DefinitionsModule.defineUnitCategories() -- Call it once to populate the module table
 
-return DefinitionsModule 
+function DefinitionsModule.getCategory(unitDefID)
+    if not unitDefID or not UnitDefs[unitDefID] then return nil end
+    
+    local unitDef = UnitDefs[unitDefID]
+    local unitNameLower = unitDef.name:lower()
+    return DefinitionsModule.unitCategories[unitNameLower]
+end
+
+return DefinitionsModule   

@@ -33,33 +33,15 @@ if structureUpgradePolicy == "keep" then
     return false
 end
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 local BlueprintDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
-
 local CATEGORIES = BlueprintDefs.UNIT_CATEGORIES
 
-local function GetUnitCategory(unitDefID)
-    if not unitDefID or not UnitDefs[unitDefID] then return nil end
-    
-    if SubLogic and SubLogic.MasterBuildingData then
-        local unitDef = UnitDefs[unitDefID]
-        local unitNameLower = unitDef.name:lower()
-        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
-        
-        if buildingData then
-            return buildingData.categoryName
-        end
-    end
-    
-    return nil
-end
-
 local function IsMexUnit(unitDefID)
-    return GetUnitCategory(unitDefID) == CATEGORIES.METAL_EXTRACTOR
+    return BlueprintDefs.getCategory(unitDefID) == CATEGORIES.METAL_EXTRACTOR
 end
 
 local function IsGeothermalUnit(unitDefID)
-    return GetUnitCategory(unitDefID) == CATEGORIES.GEOTHERMAL
+    return BlueprintDefs.getCategory(unitDefID) == CATEGORIES.GEOTHERMAL
 end
 
 local function IsUpgradableStructure(unitDefID)
@@ -67,7 +49,7 @@ local function IsUpgradableStructure(unitDefID)
 end
 
 local function GetStructureTier(unitDefID)
-    local category = GetUnitCategory(unitDefID)
+    local category = BlueprintDefs.getCategory(unitDefID)
     if not category then return 0 end
     
     if category == CATEGORIES.METAL_EXTRACTOR or category == CATEGORIES.GEOTHERMAL or category == CATEGORIES.EXPLOITER then
