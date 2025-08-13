@@ -99,7 +99,7 @@ local ContributorAINames = {
     "drivver44",
     "duke_of_gloat",
     "Encyclopedia",
-	"Gab"
+	"Gab",
     "gajop",
     "hihoman23",
     "hokomoko",
