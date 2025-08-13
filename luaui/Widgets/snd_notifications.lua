@@ -141,6 +141,7 @@ local unitsOfInterestNames = {
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
+	armthor = "ThorDetected",
 	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
@@ -506,6 +507,12 @@ function widget:GameFrame(gf)
 				idleBuilder[unitID] = nil    -- do not repeat
 			end
 		end
+
+		-- max units check
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
+			queueNotification('MaxUnitsReached')
+		end
 	end
 
 	if gameframe % updateCommandersFrames == 0 then
@@ -551,8 +558,8 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('SolinvictusIsReady')
 		elseif unitDefID == juggernautDefID then
 			queueNotification('JuggernautIsReady')
-		-- elseif unitDefID == titanDefID then
-		-- 	queueNotification('TitanIsReady')
+		elseif unitDefID == titanDefID then
+		 	queueNotification('TitanIsReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
 
@@ -589,16 +596,16 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 
 	-- single detection events below
 	if isAircraft[udefID] then
-		queueNotification('AircraftSpotted')
+		queueNotification('AircraftDetected')
 	end
 	if isT2[udefID] then
-		queueNotification('T2Detected')
+		queueNotification('Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('T3Detected')
+		queueNotification('Tech3UnitDetected')
 	end
 	if isT4mobile[udefID] then
-		queueNotification('T4UnitDetected')
+		queueNotification('Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
@@ -620,7 +627,8 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -631,7 +639,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -642,7 +651,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 

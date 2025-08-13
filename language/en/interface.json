@@ -67,25 +67,6 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
-		"unitMarket": {
-			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal.",
-			"notEnoughMetal": "Not enough metal!",
-			"offeringThisUnitForSale": "You are offering this unit for sale, allies can buy it with a Double-Click! Price %{price}m.",
-			"youCanBuyThisTooltip": "You can buy this unit with a Double-Click! Price %{price}m.",
-			"youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not enough metal.",
-			"youCanAffordIt": "This unit costs %{price} metal. You have enough.",
-			"youCantAffordIt": "This unit costs %{price} metal. Can't afford it yet.\nBut if you click it - your metal expenses will be paused automatically in order to buy the unit.",
-			"t2conShop": "Buy T2cons here!",
-			"shopTitle": "Unit Market",
-			"shopInfo": "You'll find t2cons listed here for sale.",
-			"youAreSellingText": "You've put t2con for sale, others can buy it now!",
-			"failedToFindNewOffers": "Out-of-stock! Waiting for new offers! %{sec}s.",
-			"autoClosing": "Auto closing this window in %{sec}s.",
-			"purchasing": "Purchasing %{name} (%{price}m)",
-			"buy": "buy",
-			"abort": "abort"
-		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
@@ -478,6 +459,16 @@
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
+		},
+		"ignore": {
+			"unknown": "unknown accountID",
+			"ignored": "You are now ignoring %{name} (%{accountID})",
+			"unignored": "You are now un-ignoring %{name} (%{accountID})"
+		},
+		"playernames": {
+			"notfound": "Player not found for: %{param}",
+			"setalias": "You are now setting alias for %{name} (%{accountID}) to: %{alias}",
+			"removealias": "You are now removing alias for %{name} (%{accountID})"
 		},
 		"chat": {
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
@@ -1659,10 +1650,13 @@
 				"devmode_descr": "Toggle between how a developer or player see the UI",
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
-				"profiler": "Widget profiler",
-				"profiler_min_time": "Minimum Time",
-				"profiler_min_memory": "Minimum Memory",
-				"profiler_sort_by_load": "Sort By Load",
+				"profiler": "Profiler",
+				"profiler_widget": "widget",
+				"profiler_gadget": "gadget",
+				"profiler_sort_by_load": "sort by load",
+				"profiler_sort_by_load_descr": "Applies to both Widget Profiler and Gadget Profiler",
+				"profiler_averagetime": "time averaging",
+				"profiler_averagetime_descr": "The duration of averaging the time taken by each widget/gadget",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
