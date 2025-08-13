@@ -1,4 +1,3 @@
-
 if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
 else
@@ -2126,16 +2125,21 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:TeamDied(teamID)
 		humanTeams[teamID] = nil
-		--computerTeams[teamID] = nil
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-		if newTeam == raptorTeamID then
-			return false
-		else
-			return true
-		end
-	end
+	function gadget:Initialize()
+    GG.TeamTransfer.RegisterUnitValidator("RaptorAntiTransfer", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if spGetUnitDefID(unitID) == raptorDefID then
+            local raptorTeam = GetRaptorTeam()
+            if oldTeam == raptorTeam and newTeam ~= raptorTeam then
+                return false
+            end
+        end
+        return true
+    end)
+end
+
+	-- AllowUnitTransfer removed - validation now handled by centralized TeamTransfer validator system
 
 	function gadget:FeatureCreated(featureID, featureAllyTeamID)
 		if featureAllyTeamID == raptorAllyTeamID then

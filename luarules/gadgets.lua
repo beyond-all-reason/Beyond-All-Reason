@@ -332,8 +332,18 @@ function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
 
 	local unsortedGadgets = {}
-	-- get the gadget names
+	-- get the gadget names - both direct .lua files and gadget.lua in subdirectories
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
+	
+	-- discover gadget packages: look for subdirs with gadget.lua
+	local subdirs = VFS.SubDirs(GADGETS_DIR, "*", VFSMODE)
+	for _, subdir in ipairs(subdirs) do
+		local packageGadgetFile = subdir .. "gadget.lua"
+		if VFS.FileExists(packageGadgetFile, VFSMODE) then
+			table.insert(gadgetFiles, packageGadgetFile)
+		end
+	end
+	
 	--  table.sort(gadgetFiles)
 
 	--  for k,gf in ipairs(gadgetFiles) do
@@ -438,6 +448,25 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
+
+  -- Centralized registration: prefer gadget manager; fall back to GetSyncedActions via manager
+  if gadget.CreateGadgetManager then
+    gadget._gadgetManager = gadget:CreateGadgetManager():Register()
+  elseif gadget.GetSyncedActions then
+    local GadgetManager = VFS.Include('luarules/modules/gadget_manager.lua', nil, VFSMODE)
+    local builder = GadgetManager.CreateGadget(gadget.ghInfo.name)
+    local handlers = gadget:GetSyncedActions()
+    for name, func in pairs(handlers) do
+      if not func then
+        error("Missing handler for SyncedActionFallback '" .. name .. "' in gadget " .. gadget.ghInfo.name)
+      end
+      if type(func) ~= "function" then
+        error("Handler for SyncedActionFallback '" .. name .. "' must be a function, got " .. type(func))
+      end
+      builder:WithSyncedAction(name, func)
+    end
+    gadget._gadgetManager = builder:Register()
+  end
 
 	local knownInfo = self.knownGadgets[name]
 	if knownInfo then
@@ -787,10 +816,22 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 
 	local name = gadget.ghInfo.name
 	self.knownGadgets[name].active = false
+	
+  -- Auto-unregister gadget managers (preferred path)
+  if gadget._gadgetManager then
+    gadget._gadgetManager:Unregister()
+  elseif gadget.GetSyncedActions then
+    -- Legacy/manual path for old-style gadgets not using the manager
+    for name, _ in pairs(gadget:GetSyncedActions()) do
+      Script.RemoveSyncedActionFallback(name)
+    end
+  end
+
 	if gadget.Shutdown then
 		gadget:Shutdown()
 	end
 
+	-- Essential gadget system cleanup - DO NOT REMOVE
 	ArrayRemove(self.gadgets, gadget)
 	self:RemoveGadgetGlobals(gadget)
 	actionHandler.RemoveGadgetActions(gadget)
@@ -1549,18 +1590,16 @@ function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDe
 	return true
 end
 
-function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
-										 oldTeam, newTeam, capture)
+function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
 	for _, g in ipairs(self.AllowUnitTransferList) do
-		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture) then
+		if not g:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, reason) then
 			return false
 		end
 	end
 	return true
 end
 
-function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
-										  unitID, unitDefID, part)
+function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
@@ -1601,8 +1640,7 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	return true
 end
 
-function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
-											 featureID, featureDefID, part)
+function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
 			return false
@@ -1638,8 +1676,7 @@ function gadgetHandler:AllowResourceTransfer(oldTeamID, newTeamID, res, amount)
 	return true
 end
 
-function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam,
-											  playerID)
+function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID)
 	for _, g in ipairs(self.AllowDirectUnitControlList) do
 		if not g:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID) then
 			return false
@@ -1667,8 +1704,7 @@ function gadgetHandler:MoveCtrlNotify(unitID, unitDefID, unitTeam, data)
 	return state
 end
 
-function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam,
-										 buildUnitID, buildUnitDefID, buildUnitTeam)
+function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 	for _, g in ipairs(self.TerraformCompleteList) do
 		local stop = g:TerraformComplete(unitID, unitDefID, unitTeam, buildUnitID, buildUnitDefID, buildUnitTeam)
 		if stop then
@@ -1749,8 +1785,7 @@ function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
-									   factID, factDefID, userOrders)
+function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	for _, g in ipairs(self.UnitFromFactoryList) do
 		g:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
@@ -1789,8 +1824,7 @@ function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
-									  experience, oldExperience)
+function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, g in ipairs(self.UnitExperienceList) do
 		g:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
@@ -1853,20 +1887,19 @@ end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
+	
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-	return
 end
 
-function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-
+function gadgetHandler:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+	gadgetHandler:MetaUnitAdded(unitID, unitDefID, newTeam)
+	
 	for _, g in ipairs(self.UnitGivenList) do
-		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		g:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	end
-	return
+
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)

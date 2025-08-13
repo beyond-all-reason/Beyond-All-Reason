@@ -17,7 +17,17 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.LOAD_UNITS }, { "alt" })
-	return true
+function gadget:Initialize()
+    GG.TeamTransfer.RegisterUnitValidator("PreventShareLoad", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if not unitID or type(unitID) ~= "number" then
+            return true
+        end
+        
+        local success, cmdQueue = pcall(Spring.GetUnitCommands, unitID)
+        if not success or not cmdQueue or #cmdQueue == 0 then
+            return true
+        end
+        Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.LOAD_UNITS }, { "alt" })
+        return true
+    end)
 end
