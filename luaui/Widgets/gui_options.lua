@@ -984,8 +984,21 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
+		if WG.IntroCameraIsDone and WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
+			if IntroCameraIsPlaying then
+				local halfLife = cameraTransitionTime
+				if halfLife <= 1 then
+					halfLife = halfLife * 200
+				else
+					halfLife = halfLife * 600 - 400
+				end
+				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
+			end
+		elseif not WG.IntroCameraIsDone then
+			IntroCameraIsPlaying = true
+			Spring.SetCameraState(nil, 3.25)
+			Spring.SetConfigFloat("CamSpringHalflife", 800)
 		end
 	--end
 
