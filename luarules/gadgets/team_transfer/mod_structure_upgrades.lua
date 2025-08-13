@@ -33,17 +33,44 @@ if structureUpgradePolicy == "keep" then
     return false
 end
 
--- Structure identification helpers using blueprint substitution system
+local SubLogic = nil
+
+local function LoadBlueprintLogic()
+    if SubLogic then return SubLogic end
+    
+    local logicPath = "luaui/Include/blueprint_substitution/logic.lua"
+    if VFS.FileExists(logicPath) then
+        SubLogic = VFS.Include(logicPath)
+        if SubLogic and SubLogic.MasterBuildingData then
+            Spring.Log("TeamTransfer", LOG.INFO, "Blueprint substitution logic loaded successfully")
+            return SubLogic
+        else
+            Spring.Log("TeamTransfer", LOG.ERROR, "Failed to load blueprint logic or MasterBuildingData missing")
+        end
+    else
+        Spring.Log("TeamTransfer", LOG.ERROR, "Blueprint logic file not found: " .. logicPath)
+    end
+    
+    return nil
+end
+
 local function IsMexUnit(unitDefID)
-    -- Try blueprint bridge first, fallback to manual detection
-    if GG.BlueprintCategories and GG.BlueprintCategories.IsMetalExtractor then
-        local result = GG.BlueprintCategories.IsMetalExtractor(unitDefID)
-        if result ~= nil then
-            return result
+    if not unitDefID or not UnitDefs[unitDefID] then return false end
+    
+    local logic = LoadBlueprintLogic()
+    if logic and logic.MasterBuildingData then
+        local unitDef = UnitDefs[unitDefID]
+        local unitNameLower = unitDef.name:lower()
+        local buildingData = logic.MasterBuildingData[unitNameLower]
+        
+        if buildingData then
+            return buildingData.categoryName == "METAL_EXTRACTOR" or 
+                   buildingData.categoryName == "ADVANCED_EXTRACTOR" or 
+                   buildingData.categoryName == "EXPLOITER" or 
+                   buildingData.categoryName == "ADVANCED_EXPLOITER"
         end
     end
     
-    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return false end
     
@@ -60,15 +87,20 @@ local function IsMexUnit(unitDefID)
 end
 
 local function IsGeothermalUnit(unitDefID)
-    -- Try blueprint bridge first, fallback to manual detection
-    if GG.BlueprintCategories and GG.BlueprintCategories.IsGeothermal then
-        local result = GG.BlueprintCategories.IsGeothermal(unitDefID)
-        if result ~= nil then
-            return result
+    if not unitDefID or not UnitDefs[unitDefID] then return false end
+    
+    local logic = LoadBlueprintLogic()
+    if logic and logic.MasterBuildingData then
+        local unitDef = UnitDefs[unitDefID]
+        local unitNameLower = unitDef.name:lower()
+        local buildingData = logic.MasterBuildingData[unitNameLower]
+        
+        if buildingData then
+            return buildingData.categoryName == "GEOTHERMAL" or 
+                   buildingData.categoryName == "ADVANCED_GEO"
         end
     end
     
-    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return false end
     
@@ -88,15 +120,24 @@ local function IsUpgradableStructure(unitDefID)
 end
 
 local function GetStructureTier(unitDefID)
-    -- Try blueprint bridge first, fallback to manual detection
-    if GG.BlueprintCategories and GG.BlueprintCategories.GetUnitTier then
-        local result = GG.BlueprintCategories.GetUnitTier(unitDefID)
-        if result > 0 then
-            return result
+    if not unitDefID or not UnitDefs[unitDefID] then return 0 end
+    
+    local logic = LoadBlueprintLogic()
+    if logic and logic.MasterBuildingData then
+        local unitDef = UnitDefs[unitDefID]
+        local unitNameLower = unitDef.name:lower()
+        local buildingData = logic.MasterBuildingData[unitNameLower]
+        
+        if buildingData then
+            local category = buildingData.categoryName
+            if category == "METAL_EXTRACTOR" or category == "GEOTHERMAL" or category == "EXPLOITER" then
+                return 1
+            elseif category == "ADVANCED_EXTRACTOR" or category == "ADVANCED_GEO" or category == "ADVANCED_EXPLOITER" then
+                return 2
+            end
         end
     end
     
-    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return 0 end
     
@@ -226,9 +267,10 @@ function gadget:Initialize()
     -- Register listener for structure transfers
     GG.TeamTransfer.RegisterUnitListener("StructureUpgrade_Policy", OnStructureUpgraded)
     
-    local usingBlueprintBridge = GG.BlueprintCategories and GG.BlueprintCategories.IsMetalExtractor
+    LoadBlueprintLogic()
+    local usingBlueprintLogic = SubLogic and SubLogic.MasterBuildingData
     Spring.Log("TeamTransfer", LOG.INFO, "Structure upgrade ownership policy: " .. structureUpgradePolicy .. 
-        (usingBlueprintBridge and " (using blueprint bridge)" or " (using fallback detection)"))
+        (usingBlueprintLogic and " (using blueprint logic)" or " (using fallback detection)"))
     
     -- Initialize tracking for existing structures
     for _, unitID in pairs(Spring.GetAllUnits()) do
