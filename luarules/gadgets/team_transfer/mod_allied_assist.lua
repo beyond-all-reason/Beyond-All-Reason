@@ -21,7 +21,11 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local alliedAssistPolicy = Spring.GetModOptions().allied_construction_assist or "enabled"
+local function GetAlliedAssistConfiguration()
+    return Spring.GetModOptions().allied_construction_assist or "enabled"
+end
+
+local alliedAssistPolicy = GetAlliedAssistConfiguration()
 
 if alliedAssistPolicy == "enabled" then
     return false

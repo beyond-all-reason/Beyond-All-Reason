@@ -17,7 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local reclaimPolicy = Spring.GetModOptions().reclaim_policy or "enabled"
+local function GetReclaimConfiguration()
+    return Spring.GetModOptions().reclaim_policy or "enabled"
+end
+
+local reclaimPolicy = GetReclaimConfiguration()
 
 if reclaimPolicy == "enabled" then
     return false

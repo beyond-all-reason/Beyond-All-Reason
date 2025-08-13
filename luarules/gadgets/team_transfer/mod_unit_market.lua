@@ -21,8 +21,12 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
--- Mod Options (read at gadget load time)
-local isMarketEnabled = Spring.GetModOptions().unit_market == "enabled"
+-- Configuration will be accessed through pipeline system
+local function GetMarketConfiguration()
+    return Spring.GetModOptions().unit_market == "enabled"
+end
+
+local isMarketEnabled = GetMarketConfiguration()
 
 -- Early exit if market disabled
 if not isMarketEnabled then

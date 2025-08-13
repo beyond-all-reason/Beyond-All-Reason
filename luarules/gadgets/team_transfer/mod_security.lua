@@ -20,8 +20,12 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
--- Mod Options (read at gadget load time)
-local allowEnemyTransfers = Spring.GetModOptions().allow_enemy_transfers == "true" or false
+-- Configuration will be accessed through pipeline system
+local function GetSecurityConfiguration()
+    return Spring.GetModOptions().allow_enemy_transfers == "true" or false
+end
+
+local allowEnemyTransfers = GetSecurityConfiguration()
 local isCheatingEnabled = Spring.IsCheatingEnabled
 
 -- Helper functions

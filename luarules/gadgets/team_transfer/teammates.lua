@@ -10,7 +10,8 @@ local allianceCache = {}  -- Cache team alliance status
 
 local function GetSharingTax()
     if cachedSharingTax == nil then
-        cachedSharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
+        local modOptions = Spring.GetModOptions()
+        cachedSharingTax = modOptions.tax_resource_sharing_amount or 0
     end
     return cachedSharingTax
 end

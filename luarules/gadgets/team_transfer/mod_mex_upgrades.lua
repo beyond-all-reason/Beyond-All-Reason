@@ -22,8 +22,11 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
--- Mod Options (read at gadget load time)
-local mexUpgradePolicy = Spring.GetModOptions().mex_upgrade_ownership or "keep"
+local function GetMexUpgradeConfiguration()
+    return Spring.GetModOptions().mex_upgrade_ownership or "keep"
+end
+
+local mexUpgradePolicy = GetMexUpgradeConfiguration()
 
 -- Early exit if using default keep behavior
 if mexUpgradePolicy == "keep" then
