@@ -38,8 +38,8 @@ local BlueprintDefs = VFS.Include("luaui/Include/blueprint_substitution/definiti
 
 local CATEGORIES = BlueprintDefs.UNIT_CATEGORIES
 
-local function IsMexUnit(unitDefID)
-    if not unitDefID or not UnitDefs[unitDefID] then return false end
+local function GetUnitCategory(unitDefID)
+    if not unitDefID or not UnitDefs[unitDefID] then return nil end
     
     if SubLogic and SubLogic.MasterBuildingData then
         local unitDef = UnitDefs[unitDefID]
@@ -47,50 +47,19 @@ local function IsMexUnit(unitDefID)
         local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
-            return buildingData.categoryName == CATEGORIES.METAL_EXTRACTOR
+            return buildingData.categoryName
         end
     end
     
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return false end
-    
-    if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-        return true
-    end
-    
-    local categories = unitDef.category or ""
-    if categories:find("MEX") or categories:find("METAL") then
-        return true
-    end
-    
-    return false
+    return nil
+end
+
+local function IsMexUnit(unitDefID)
+    return GetUnitCategory(unitDefID) == CATEGORIES.METAL_EXTRACTOR
 end
 
 local function IsGeothermalUnit(unitDefID)
-    if not unitDefID or not UnitDefs[unitDefID] then return false end
-    
-    if SubLogic and SubLogic.MasterBuildingData then
-        local unitDef = UnitDefs[unitDefID]
-        local unitNameLower = unitDef.name:lower()
-        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
-        
-        if buildingData then
-            return buildingData.categoryName == CATEGORIES.GEOTHERMAL
-        end
-    end
-    
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return false end
-    
-    if unitDef.customParams and unitDef.customParams.geothermal then
-        return true
-    end
-    
-    if unitDef.needGeo then
-        return true
-    end
-    
-    return false
+    return GetUnitCategory(unitDefID) == CATEGORIES.GEOTHERMAL
 end
 
 local function IsUpgradableStructure(unitDefID)
@@ -98,36 +67,12 @@ local function IsUpgradableStructure(unitDefID)
 end
 
 local function GetStructureTier(unitDefID)
-    if not unitDefID or not UnitDefs[unitDefID] then return 0 end
+    local category = GetUnitCategory(unitDefID)
+    if not category then return 0 end
     
-    if SubLogic and SubLogic.MasterBuildingData then
-        local unitDef = UnitDefs[unitDefID]
-        local unitNameLower = unitDef.name:lower()
-        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
-        
-        if buildingData then
-            local category = buildingData.categoryName
-            if category == CATEGORIES.METAL_EXTRACTOR or category == CATEGORIES.GEOTHERMAL or category == CATEGORIES.EXPLOITER then
-                return 1
-            elseif category == CATEGORIES.ADVANCED_EXTRACTOR or category == CATEGORIES.ADVANCED_GEO or category == CATEGORIES.ADVANCED_EXPLOITER then
-                return 2
-            end
-        end
-    end
-    
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return 0 end
-    
-    if IsMexUnit(unitDefID) then
-        local extractRate = unitDef.extractsMetal or 0
-        if extractRate <= 2 then return 1 end
-        if extractRate <= 4 then return 2 end
-        return 3
-    elseif IsGeothermalUnit(unitDefID) then
-        local energyMake = unitDef.energyMake or 0
-        local metalCost = unitDef.metalCost or 0
-        
-        if energyMake <= 25 or metalCost <= 500 then return 1 end
+    if category == CATEGORIES.METAL_EXTRACTOR or category == CATEGORIES.GEOTHERMAL or category == CATEGORIES.EXPLOITER then
+        return 1
+    elseif category == CATEGORIES.ADVANCED_EXTRACTOR or category == CATEGORIES.ADVANCED_GEO or category == CATEGORIES.ADVANCED_EXPLOITER then
         return 2
     end
     
