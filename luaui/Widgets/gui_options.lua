@@ -170,6 +170,8 @@ local widgetScale = (vsy / 1080)
 
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
+WG.IntroCameraIsDone = true
+
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
 	groundAmbientColor = { gl.GetSun("ambient") },
@@ -994,6 +996,7 @@ function widget:Update(dt)
 					halfLife = halfLife * 600 - 400
 				end
 				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
+				IntroCameraIsPlaying = false
 			end
 		elseif not WG.IntroCameraIsDone then
 			IntroCameraIsPlaying = true
