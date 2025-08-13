@@ -33,35 +33,15 @@ if structureUpgradePolicy == "keep" then
     return false
 end
 
-local SubLogic = nil
-
-local function LoadBlueprintLogic()
-    if SubLogic then return SubLogic end
-    
-    local logicPath = "luaui/Include/blueprint_substitution/logic.lua"
-    if VFS.FileExists(logicPath) then
-        SubLogic = VFS.Include(logicPath)
-        if SubLogic and SubLogic.MasterBuildingData then
-            Spring.Log("TeamTransfer", LOG.INFO, "Blueprint substitution logic loaded successfully")
-            return SubLogic
-        else
-            Spring.Log("TeamTransfer", LOG.ERROR, "Failed to load blueprint logic or MasterBuildingData missing")
-        end
-    else
-        Spring.Log("TeamTransfer", LOG.ERROR, "Blueprint logic file not found: " .. logicPath)
-    end
-    
-    return nil
-end
+local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
 local function IsMexUnit(unitDefID)
     if not unitDefID or not UnitDefs[unitDefID] then return false end
     
-    local logic = LoadBlueprintLogic()
-    if logic and logic.MasterBuildingData then
+    if SubLogic and SubLogic.MasterBuildingData then
         local unitDef = UnitDefs[unitDefID]
         local unitNameLower = unitDef.name:lower()
-        local buildingData = logic.MasterBuildingData[unitNameLower]
+        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
             return buildingData.categoryName == "METAL_EXTRACTOR" or 
@@ -89,11 +69,10 @@ end
 local function IsGeothermalUnit(unitDefID)
     if not unitDefID or not UnitDefs[unitDefID] then return false end
     
-    local logic = LoadBlueprintLogic()
-    if logic and logic.MasterBuildingData then
+    if SubLogic and SubLogic.MasterBuildingData then
         local unitDef = UnitDefs[unitDefID]
         local unitNameLower = unitDef.name:lower()
-        local buildingData = logic.MasterBuildingData[unitNameLower]
+        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
             return buildingData.categoryName == "GEOTHERMAL" or 
@@ -122,11 +101,10 @@ end
 local function GetStructureTier(unitDefID)
     if not unitDefID or not UnitDefs[unitDefID] then return 0 end
     
-    local logic = LoadBlueprintLogic()
-    if logic and logic.MasterBuildingData then
+    if SubLogic and SubLogic.MasterBuildingData then
         local unitDef = UnitDefs[unitDefID]
         local unitNameLower = unitDef.name:lower()
-        local buildingData = logic.MasterBuildingData[unitNameLower]
+        local buildingData = SubLogic.MasterBuildingData[unitNameLower]
         
         if buildingData then
             local category = buildingData.categoryName
@@ -267,7 +245,6 @@ function gadget:Initialize()
     -- Register listener for structure transfers
     GG.TeamTransfer.RegisterUnitListener("StructureUpgrade_Policy", OnStructureUpgraded)
     
-    LoadBlueprintLogic()
     local usingBlueprintLogic = SubLogic and SubLogic.MasterBuildingData
     Spring.Log("TeamTransfer", LOG.INFO, "Structure upgrade ownership policy: " .. structureUpgradePolicy .. 
         (usingBlueprintLogic and " (using blueprint logic)" or " (using fallback detection)"))
