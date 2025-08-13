@@ -321,13 +321,6 @@ local function stopMoving(unitID)
 		restoreMoveType = restoreMoveType,
 	}
 
-	-- Try to figure out when things are/aren't working
-	-- Because this did not work, lol
-	local x, y, z = Spring.GetUnitPosition(unitID)
-	local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
-	Spring.MarkerAddPoint(x, y, z)
-	Spring.Echo(x, y, z, moveTypeData)
-
 	return true
 end
 
