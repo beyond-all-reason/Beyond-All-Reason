@@ -64,7 +64,7 @@ function widget:Update(dt)
 
         fase = 1
         WG["IntroCameraIsDone"] = false
-        Spring.Echo(Spring.GetCameraState())
+        --Spring.Echo(Spring.GetCameraState())
         return
     end
 
