@@ -21,9 +21,17 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
--- Mod Options (read at gadget load time)
-local unitSharingPolicy = Spring.GetModOptions().unit_sharing_policy or "enabled"
-local isUnitSharingDisabled = Spring.GetModOptions().disable_unit_sharing == "true"
+local function GetUnitSharingConfiguration()
+    local modOptions = Spring.GetModOptions()
+    return {
+        unitSharingPolicy = modOptions.unit_sharing_policy or "enabled",
+        isUnitSharingDisabled = modOptions.disable_unit_sharing == "true"
+    }
+end
+
+local config = GetUnitSharingConfiguration()
+local unitSharingPolicy = config.unitSharingPolicy
+local isUnitSharingDisabled = config.isUnitSharingDisabled
 
 -- Early exit if unit sharing completely disabled
 if isUnitSharingDisabled or unitSharingPolicy == "disabled" then

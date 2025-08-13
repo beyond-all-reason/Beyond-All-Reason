@@ -812,6 +812,7 @@ function widget:Initialize()
 		end
 	end
 
+
 	if ENABLE_REPORTS then
 		Spring.Log("BlueprintAPI", LOG.INFO, "Reports ARE enabled.")
 		local reportPath = "luaui/Include/blueprint_substitution/reports.lua"
@@ -846,6 +847,48 @@ function widget:Initialize()
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
 		BUILD_SQUARE_SIZE = BUILD_SQUARE_SIZE,
+		isMetalExtractor = function(unitDefID)
+			if not unitDefID or not UnitDefs[unitDefID] then return false end
+			local unitDef = UnitDefs[unitDefID]
+			local unitNameLower = unitDef.name:lower()
+			if not SubLogic or not SubLogic.MasterBuildingData then return false end
+			local buildingData = SubLogic.MasterBuildingData[unitNameLower]
+			if not buildingData then return false end
+			return buildingData.categoryName == "METAL_EXTRACTOR" or buildingData.categoryName == "ADVANCED_EXTRACTOR" or buildingData.categoryName == "EXPLOITER" or buildingData.categoryName == "ADVANCED_EXPLOITER"
+		end,
+		isGeothermal = function(unitDefID)
+			if not unitDefID or not UnitDefs[unitDefID] then return false end
+			local unitDef = UnitDefs[unitDefID]
+			local unitNameLower = unitDef.name:lower()
+			if not SubLogic or not SubLogic.MasterBuildingData then return false end
+			local buildingData = SubLogic.MasterBuildingData[unitNameLower]
+			if not buildingData then return false end
+			return buildingData.categoryName == "GEOTHERMAL" or buildingData.categoryName == "ADVANCED_GEO"
+		end,
+		getUnitTier = function(unitDefID)
+			if not unitDefID or not UnitDefs[unitDefID] then return 0 end
+			local unitDef = UnitDefs[unitDefID]
+			local unitNameLower = unitDef.name:lower()
+			if not SubLogic or not SubLogic.MasterBuildingData then return 0 end
+			local buildingData = SubLogic.MasterBuildingData[unitNameLower]
+			if not buildingData then return 0 end
+			
+			local category = buildingData.categoryName
+			if category == "METAL_EXTRACTOR" or category == "GEOTHERMAL" or category == "EXPLOITER" then
+				return 1
+			elseif category == "ADVANCED_EXTRACTOR" or category == "ADVANCED_GEO" or category == "ADVANCED_EXPLOITER" then
+				return 2
+			end
+			return 0
+		end,
+		getUnitCategory = function(unitDefID)
+			if not unitDefID or not UnitDefs[unitDefID] then return nil end
+			local unitDef = UnitDefs[unitDefID]
+			local unitNameLower = unitDef.name:lower()
+			if not SubLogic or not SubLogic.MasterBuildingData then return nil end
+			local buildingData = SubLogic.MasterBuildingData[unitNameLower]
+			return buildingData and buildingData.categoryName or nil
+		end,
 	}
 
 	if reportFunctions then
@@ -859,6 +902,8 @@ end
 
 function widget:Shutdown()
 	WG["api_blueprint"] = nil
+	
+	
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then return end
