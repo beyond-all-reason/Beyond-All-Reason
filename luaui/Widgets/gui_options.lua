@@ -170,7 +170,8 @@ local widgetScale = (vsy / 1080)
 
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
-WG.IntroCameraIsDone = true
+WG["IntroCameraIsDone"] = true
+IntroCameraIsPlaying = false
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -986,7 +987,7 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if WG.IntroCameraIsDone and WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
+		if ((not WG.IntroCameraInitialised) or WG.IntroCameraIsDone) and WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 			if IntroCameraIsPlaying then
 				local halfLife = cameraTransitionTime
@@ -998,7 +999,7 @@ function widget:Update(dt)
 				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
 				IntroCameraIsPlaying = false
 			end
-		elseif not WG.IntroCameraIsDone then
+		elseif WG.IntroCameraInitialised and not WG.IntroCameraIsDone then
 			IntroCameraIsPlaying = true
 			Spring.SetCameraState(nil, 3.25)
 			Spring.SetConfigFloat("CamSpringHalflife", 800)

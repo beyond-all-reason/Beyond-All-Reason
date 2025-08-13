@@ -41,6 +41,7 @@ function widget:Update(dt)
     startTimer = startTimer - dt
 
     if fase == 0 then
+        WG["IntroCameraInitialised"] = true
         -- Start by zooming out to the maximum zoom level
         local mapcx = Game.mapSizeX / 2
         local mapcz = Game.mapSizeZ / 2
