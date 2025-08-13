@@ -33,17 +33,21 @@ if structureUpgradePolicy == "keep" then
     return false
 end
 
--- Structure identification helpers
+-- Structure identification helpers using blueprint substitution system
 local function IsMexUnit(unitDefID)
+    -- Try blueprint API first, fallback to manual detection
+    if WG and WG["api_blueprint"] and WG["api_blueprint"].isMetalExtractor then
+        return WG["api_blueprint"].isMetalExtractor(unitDefID)
+    end
+    
+    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return false end
     
-    -- Check if unit extracts metal
     if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
         return true
     end
     
-    -- Check category
     local categories = unitDef.category or ""
     if categories:find("MEX") or categories:find("METAL") then
         return true
@@ -53,15 +57,19 @@ local function IsMexUnit(unitDefID)
 end
 
 local function IsGeothermalUnit(unitDefID)
+    -- Try blueprint API first, fallback to manual detection
+    if WG and WG["api_blueprint"] and WG["api_blueprint"].isGeothermal then
+        return WG["api_blueprint"].isGeothermal(unitDefID)
+    end
+    
+    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return false end
     
-    -- Check if unit is geothermal
     if unitDef.customParams and unitDef.customParams.geothermal then
         return true
     end
     
-    -- Check if unit needs geo (geothermal requirement)
     if unitDef.needGeo then
         return true
     end
@@ -74,11 +82,17 @@ local function IsUpgradableStructure(unitDefID)
 end
 
 local function GetStructureTier(unitDefID)
+    -- Try blueprint API first, fallback to manual detection
+    if WG and WG["api_blueprint"] and WG["api_blueprint"].getUnitTier then
+        local tier = WG["api_blueprint"].getUnitTier(unitDefID)
+        if tier > 0 then return tier end
+    end
+    
+    -- Fallback to manual detection
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return 0 end
     
     if IsMexUnit(unitDefID) then
-        -- Simple heuristic: higher extraction rate = higher tier
         local extractRate = unitDef.extractsMetal or 0
         if extractRate <= 2 then return 1 end
         if extractRate <= 4 then return 2 end
@@ -204,7 +218,9 @@ function gadget:Initialize()
     -- Register listener for structure transfers
     GG.TeamTransfer.RegisterUnitListener("StructureUpgrade_Policy", OnStructureUpgraded)
     
-    Spring.Log("TeamTransfer", LOG.INFO, "Structure upgrade ownership policy: " .. structureUpgradePolicy)
+    local usingBlueprintAPI = WG and WG["api_blueprint"] and WG["api_blueprint"].isMetalExtractor
+    Spring.Log("TeamTransfer", LOG.INFO, "Structure upgrade ownership policy: " .. structureUpgradePolicy .. 
+        (usingBlueprintAPI and " (using blueprint API)" or " (using fallback detection)"))
     
     -- Initialize tracking for existing structures
     for _, unitID in pairs(Spring.GetAllUnits()) do
