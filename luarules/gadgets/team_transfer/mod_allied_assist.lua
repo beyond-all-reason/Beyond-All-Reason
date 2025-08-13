@@ -40,11 +40,6 @@ local function IsEconomicBuilding(unitDefID)
     if unitDef.energyStorage and unitDef.energyStorage > 0 then return true end
     if unitDef.metalStorage and unitDef.metalStorage > 0 then return true end
     
-    local categories = unitDef.category or ""
-    if categories:find("ENERGY") or categories:find("METAL") or categories:find("STORAGE") then
-        return true
-    end
-    
     return false
 end
 
@@ -53,11 +48,6 @@ local function IsMilitaryBuilding(unitDefID)
     if not unitDef then return false end
     
     if unitDef.weapons and #unitDef.weapons > 0 then return true end
-    
-    local categories = unitDef.category or ""
-    if categories:find("WEAPON") or categories:find("DEFENSE") or categories:find("TURRET") then
-        return true
-    end
     
     return false
 end
