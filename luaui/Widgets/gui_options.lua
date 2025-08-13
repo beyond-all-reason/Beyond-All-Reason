@@ -171,7 +171,7 @@ local widgetScale = (vsy / 1080)
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
 WG["IntroCameraIsDone"] = true
-IntroCameraIsPlaying = false
+IntroCameraIsPlaying = true
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
