@@ -3136,7 +3136,19 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		{ id = "enableintrocamera", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.enableintrocamera'), type = "bool", value = Spring.GetConfigInt('enableintrocamera', 1) == 1, description = Spring.I18N('ui.settings.option.enableintrocamera_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('enableintrocamera', value and 1 or 0)
+				widgetHandler:EnableWidget("Map Camera Startup")
+			end
+		},
+		{ id = "camerapreserveangleonstart", group = "control", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.camerapreserveangleonstart'), type = "bool", value = Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1, description = Spring.I18N('ui.settings.option.camerapreserveangleonstart_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('camerapreserveangleonstart', value and 1 or 0)
+				widgetHandler:EnableWidget("Map Camera Startup")
+			end
+		},
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
@@ -3247,7 +3259,6 @@ function init()
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
 		{ id = "camoverviewrestore", group = "control", category = types.advanced, widget = "Overview Camera Keep Position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camoverviewrestore'), type = "bool", value = GetWidgetToggleValue("Overview Camera Keep Position"), description = Spring.I18N('ui.settings.option.camoverviewrestore_descr') },
-
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
