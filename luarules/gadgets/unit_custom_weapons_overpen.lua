@@ -66,11 +66,13 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 --------------------------------------------------------------------------------
 -- Locals ----------------------------------------------------------------------
 
+local abs  = math.abs
 local max  = math.max
 local min  = math.min
 local sqrt = math.sqrt
 
 local spGetFeatureHealth       = Spring.GetFeatureHealth
+local spGetGroundHeight        = Spring.GetGroundHeight
 local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition  = Spring.GetProjectilePosition
 local spGetProjectileVelocity  = Spring.GetProjectileVelocity
@@ -78,6 +80,7 @@ local spGetUnitHealth          = Spring.GetUnitHealth
 local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
+local spGetWaterLevel          = Spring.GetWaterLevel
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
 
 local spAddUnitDamage          = Spring.AddUnitDamage
@@ -93,6 +96,7 @@ local armorShields = Game.armorTypes.shields
 -- Find all weapons with an over-penetration behavior.
 
 local weaponParams = {}
+local waterWeapons = {}
 local unitArmorType = {}
 
 -- Track projectiles and their remaining damage and sequence their collisions.
@@ -139,6 +143,9 @@ local function loadPenetratorWeaponDefs()
 			end
 
 			weaponParams[weaponDefID] = params
+		end
+		if weaponDef.waterWeapon then
+			waterWeapons[weaponDefID] = true
 		end
 	end
 	return (table.count(weaponParams) > 0)
@@ -407,8 +414,13 @@ end
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 	if projectileID and projectiles[projectileID] then
 		-- Only process collisions with terrain or water.
-		local elevation = max(Spring.GetGroundHeight(px, pz), 0)
-		if math.abs(elevation - py) < 0.5 then
+		local elevation = spGetGroundHeight(px, pz)
+
+		if not waterWeapons[weaponDefID] then
+			elevation = max(elevation, spGetWaterLevel(px, pz))
+		end
+
+		if abs(elevation - py) < 0.5 then
 			local penetrator = projectiles[projectileID]
 			projectileHits[projectileID] = penetrator
 			local collisions = penetrator.collisions
