@@ -1017,6 +1017,7 @@ function UnitDef_Post(name, uDef)
 	--- Juggernaut Rework
 	if modOptions.juggernautrework == true then
 		if name == "corkorg" then
+			uDef.canmanualfire = true
 			uDef.weapondefs.corkorg_rocket.areaofeffect = 350
 			uDef.weapondefs.corkorg_rocket.avoidfriendly  = false
 			uDef.weapondefs.corkorg_rocket.cegtag = "cruisemissiletrail-tacnuke"
@@ -1034,7 +1035,7 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.corkorg_rocket.impulsefactor = 1.1
 			uDef.weapondefs.corkorg_rocket.metalpershot = 250
 			uDef.weapondefs.corkorg_rocket.model = "cortronmissile.s3o"
-			uDef.weapondefs.corkorg_rocket.name = "Long range tactical nuclear warheads"
+			uDef.weapondefs.corkorg_rocket.name = "Long range tactical g2g nuclear warheads"
 			uDef.weapondefs.corkorg_rocket.range = 1000
 			uDef.weapondefs.corkorg_rocket.reloadtime = 3
 			uDef.weapondefs.corkorg_rocket.soundhit = "xplomed4"
@@ -1044,6 +1045,8 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.corkorg_rocket.tolerance = 4000
 			uDef.weapondefs.corkorg_rocket.weaponacceleration = 75
 			uDef.weapondefs.corkorg_rocket.weapontimer = 2.5
+			uDef.weapondefs.corkorg_rocket.damage.commanders = 750
+			uDef.weapondefs.corkorg_rocket.damage.default = 4000
 		end
 	end
 
