@@ -1014,6 +1014,39 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	--- Juggernaut Rework
+	if modOptions.juggernautrework == true then
+		if name == "corkorg" then
+			uDef.weapondefs.corkorg_rocket.areaofeffect = 350
+			uDef.weapondefs.corkorg_rocket.avoidfriendly  = false
+			uDef.weapondefs.corkorg_rocket.cegtag = "cruisemissiletrail-tacnuke"
+			uDef.weapondefs.corkorg_rocket.edgeeffectiveness = 0.55
+			uDef.weapondefs.corkorg_rocket.impulsefactor = false
+			uDef.weapondefs.corkorg_rocket.energypershot = 17500
+			uDef.weapondefs.corkorg_rocket.collideenemy = false
+			uDef.weapondefs.corkorg_rocket.craterareaofeffect  = 512
+			uDef.weapondefs.corkorg_rocket.commandfire = true
+			uDef.weapondefs.corkorg_rocket.craterboost = 1.6
+			uDef.weapondefs.corkorg_rocket.cratermult = 0.7
+			uDef.weapondefs.corkorg_rocket.explosiongenerator = "custom:newnuketac"
+			uDef.weapondefs.corkorg_rocket.flighttime = 12
+			uDef.weapondefs.corkorg_rocket.firestarter = 0
+			uDef.weapondefs.corkorg_rocket.metalpershot = 250
+			uDef.weapondefs.corkorg_rocket.model = "cortronmissile.s3o"
+			uDef.weapondefs.corkorg_rocket.range = 1000
+			uDef.weapondefs.corkorg_rocket.reloadtime = 3
+			uDef.weapondefs.corkorg_rocket.soundhit = "xplomed4"
+			uDef.weapondefs.corkorg_rocket.soundstart = "mismed1"
+			uDef.weapondefs.corkorg_rocket.stockpile = true
+			uDef.weapondefs.corkorg_rocket.stockpiletime = 75
+			uDef.weapondefs.corkorg_rocket.tolerance = 4000
+			uDef.weapondefs.corkorg_rocket.weaponacceleration = 75
+			uDef.weapondefs.corkorg_rocket.weapontimer = 2.5
+			uDef.weapondefs.corkorg_rocket.name = "Long range tactical nuclear warheads"
+			uDef.weapondefs.corkorg_rocket.customparams.stockpilelimit = 2
+		end
+	end
+
 	-- Shield Rework
 	if modOptions.shieldsrework == true and uDef.weapondefs then
 		local shieldPowerMultiplier = 1.9-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial

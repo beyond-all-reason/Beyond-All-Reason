@@ -1379,6 +1379,16 @@ local options = {
         def  	= false,
     },
 
+    {
+        key    	= "juggernautrework",
+        name   	= "Juggernaut Rework",
+        desc   	= ."Juggernauts can fire Tactical Nukes, replaces the current missiles with tactical nukes.",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
     -- Hidden Tests
 
 	{
