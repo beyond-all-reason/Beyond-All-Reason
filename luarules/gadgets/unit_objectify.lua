@@ -153,14 +153,26 @@ else -- UNSYNCED
 
     local CMD_MOVE = CMD.MOVE
     local spGetUnitDefID = Spring.GetUnitDefID
+	local myTeamID = Spring.GetMyTeamID()
+	local spectating = Spring.GetSpectatingState()
+
+	function gadget:PlayerChanged(playerID)
+		myTeamID = Spring.GetMyTeamID()
+		spectating = Spring.GetSpectatingState()
+	end
 
     function gadget:DefaultCommand(type, id, cmd)
 		if type == "unit" and cmd ~= CMD_MOVE then
 			local uDefID = spGetUnitDefID(id)
-			if isObject[uDefID] or isDecoration[uDefID] then
-				-- make sure a command given on top of a objectified/decoration unit is a move command
-				if select(4, Spring.GetUnitHealth(id)) == 1 then
-					return CMD_MOVE
+
+			if isDecoration[uDefID] then
+				return CMD_MOVE -- ignore attack, guard, reclaim, repair
+			elseif isObject[uDefID] then
+				if not spectating
+					and Spring.GetUnitIsBeingBuilt(id) == false
+					and Spring.AreTeamsAllied(myTeamID, Spring.GetUnitTeam(id))
+				then
+					return CMD_MOVE -- ignore guard
 				end
 			end
 		end
