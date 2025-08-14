@@ -217,14 +217,14 @@ local labGrids = {
 
 	corhalab = {
 		"corhack", "cordecom", "cordemon", "corvoyr",
-		"corcat", "corshiva", "corsumo", "corspec",
-		"corsktl", "", "corkarg", "", 
+		"corcat", "corsumo", "", "corspec",
+		"corsktl", "corshiva", "corkarg", "", 
 	},
 
 	armhalab = {
 		"armhack", "armdecom", "armfboy", "armmark",
-		"armvang", "armsnipe", "armraz", "armaser",
-		"", "armmar", "", "armscab",
+		"armvang", "armmar", "armraz", "armaser",
+		"armscab", "", "", "armsnipe",
 	},
 
 	leghalab = {
@@ -270,15 +270,15 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "", "armbull", "armseer",
-		"armthor", "armmerl", "armmanni", "armjam",
-		"", "armlun", "armyork", "",
+		"armhacv", "armbull", "armthor", "armseer",
+		"armmanni", "armlun", "armmerl", "armjam",
+		"", "", "armyork", "",
 	},
 
 	corhavp = {
-		"corhacv", "", "corban", "corvrad",
-		"corgol", "corvroc", "cortrem", "coreter",
-		"corparrow", "corsok", "corsent", "cormabm",
+		"corhacv", "cormabm", "corban", "corvrad",
+		"cortrem", "corgol", "corvroc", "coreter",
+		"corsok", "corparrow", "corsent", "",
 	},
 
 	leghavp = {
@@ -2899,7 +2899,7 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["coralab"] = {
 		"corack", "cormando", "corpyro", "corspy",
-		"corhrk", "cormort", "corcan", "cortermite",
+		"corhrk", "corcan", "cormort", "cortermite",
 		"", "coramph", "coraak", "",
 	}
 
@@ -2911,13 +2911,13 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["armavp"] = {
 		"armacv", "armmlv", "armlatnk", "armgremlin",
-		"armmanac", "armmh", "armmart", "armsh",
+		"armmart", "armmanac", "armmh", "armsh",
 		"armch", "armcroc", "armah", "",
 	}
 
 	labGrids["coravp"] = {
 		"coracv", "cormlv", "corsala", "corsh",
-		"correap", "cormh", "cormart", "corsnap",
+		"cormart", "correap", "cormh", "corsnap",
 		"corch", "corhal", "corah", "",
 	}
 
