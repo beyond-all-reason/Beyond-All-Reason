@@ -925,6 +925,11 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
+	if not MapCameraStartupInit then
+		widgetHandler:EnableWidget("Map Camera Startup")
+		MapCameraStartupInit = true
+	end
+	
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
