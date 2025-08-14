@@ -6,18 +6,12 @@ piece
     frFan,
     rear_engine_casing,
     rear_engine,
-    rocketTurretR,
     turret,
     turret_body,
-    inner_ring,
-    outter_ring,
     vertical_ring,
     flFan,
     brFan,
     blFan,
-    rocketTurretL,
-    rocketPivotFlareR,
-    rocketPivotFlareL,
     frFanPivot,
     brFanPivot,
     flFanPivot,
@@ -29,6 +23,7 @@ piece
     tlTurretPitchPivot,
     tlTurret,
     tlFlare,
+	wake,
     airjetFlare;
 
 static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, steery, 
@@ -49,7 +44,7 @@ currentSpeed, inwater, oldsteerheading, firetime, lastfired, gameframe, moving;
 // #define HOVER_ROCKBASE body
 #define HOVER_WOBBLE_PERIOD 80
 #define HOVER_WOBBLE_AMPLITUDE [0.7]
-#define HOVER_WAKEPIECE rear_engine_casing
+#define HOVER_WAKEPIECE wake
 #define HOVER_WAKE_SFX_1 1024 + 1
 #define HOVER_WAKE_SFX_2 1024 + 2
 #define HOVER_IDLE_SFX 1024 + 3
@@ -97,13 +92,26 @@ Steering(heading, steery, currentSpeed)
 Create()
 {
 
-    turn frFanPivot to z-axis <-12> now;
-    turn brFanPivot to z-axis <-18> now;
-    turn flFanPivot to z-axis <12> now;
-    turn blFanPivot to z-axis <18> now;
+    turn flFanPivot to x-axis <5.5> now;
+    turn blFanPivot to x-axis <13> now;
+    turn frFanPivot to x-axis <5.5> now;
+    turn brFanPivot to x-axis <13> now;
+	
+	turn flFanPivot to z-axis <13.5> now;
+    turn blFanPivot to z-axis <10.2> now;
+    turn frFanPivot to z-axis <-13.5> now;
+    turn brFanPivot to z-axis <-10.2> now;
+	
+	//turn flFanPivot to y-axis <33> now;
+    turn blFanPivot to y-axis <47> now;
+    //turn frFanPivot to y-axis <-33> now;
+    turn brFanPivot to y-axis <-47> now;
 
-    turn rocketPivotFlareR to z-axis <-17> now;
-    turn rocketPivotFlareL to z-axis <17> now;
+	turn rocketFlareL to x-axis <-30> now;
+	turn rocketFlareR to x-axis <-30> now;
+	
+	turn rocketFlareL to z-axis <12> now;
+	turn rocketFlareR to z-axis <-12> now;
 
     timeLeft = 0;
     isfiring = 0;
@@ -123,14 +131,12 @@ Create()
     turn rear_engine_casing to x-axis <-90> now;
     hide airjetFlare;
 
-    spin frFan around y-axis speed <100> accelerate <1>;
-    spin flFan around y-axis speed <-100> accelerate <1>;
-    spin brFan around y-axis speed <100> accelerate <1>;
-    spin blFan around y-axis speed <-100> accelerate <1>;
+    spin frFan around y-axis speed <300> accelerate <1>;
+    spin flFan around y-axis speed <-300> accelerate <1>;
+    spin brFan around y-axis speed <300> accelerate <1>;
+    spin blFan around y-axis speed <-300> accelerate <1>;
 
-    spin inner_ring around y-axis speed <150> accelerate <1>;
-    spin outter_ring around y-axis speed <200> accelerate <2>;
-    spin vertical_ring around x-axis speed <250> accelerate <3>;
+    spin vertical_ring around x-axis speed <100> accelerate <3>;
         call-script SweepFire();
 
 }
@@ -157,26 +163,11 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-ExecuteRestoreRocketsAfterDelay(){
-    if (Stunned) {
-        return (1);
-    }
-	isAiming = FALSE;
-	turn rocketTurretR to y-axis <0.0> speed <80.0>;
-	turn rocketTurretL to y-axis <0.0> speed <80.0>;
-}
-
-RestoreRocketsAfterDelay(){
-    sleep restore_delay;
-	start-script ExecuteRestoreRocketsAfterDelay();
-}
-
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
-        start-script ExecuteRestoreRocketsAfterDelay();
 	}
 }
 
@@ -359,16 +350,11 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
     turn tlTurretHeadingPivot to y-axis heading speed <120>;
-    turn tlTurretHeadingPivot to x-axis (-1*pitch) speed <120>;
+    turn tlTurretPitchPivot to x-axis (-1*pitch) speed <120>;
 	return (1);
 }
 ///////////////////////////// ROCKETS
 AimWeapon3(heading, pitch){
-    signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
-	start-script RestoreRocketsAfterDelay();
-    turn rocketTurretR to y-axis heading speed <120>;
-    wait-for-turn rocketTurretR around y-axis;
     return (1);
 }
 
@@ -389,11 +375,6 @@ Shot3(zero){
 }
 
 AimWeapon4(heading, pitch){
-    signal SIGNAL_AIM4;
-	set-signal-mask SIGNAL_AIM4;
-	start-script RestoreRocketsAfterDelay();
-    turn rocketTurretL to y-axis heading speed <120>;
-    wait-for-turn rocketTurretL around y-axis;
     return (1);
 }
 
@@ -419,34 +400,35 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode rocketTurretR type FALL | BITMAP1 | NOHEATCLOUD;
-		explode rocketTurretL type FALL | BITMAP1 | NOHEATCLOUD;
-		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode outter_ring type FALL | BITMAP3 | NOHEATCLOUD;
+		explode blFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode vertical_ring type FALL | BITMAP3 | NOHEATCLOUD;
 		explode turret_body type BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode rocketTurretR type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rocketTurretL type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode outter_ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode vertical_ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode turret_body type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode rocketTurretR type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode rocketTurretL type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+
 	explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
-	explode outter_ring type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode vertical_ring type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode turret_body type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }
