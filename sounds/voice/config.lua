@@ -133,16 +133,16 @@ return {
 	},
 
 	-- Units Detected
-	T2Detected = {
+	Tech2UnitDetected = {
 		delay = 9999999,
 	},
-	T3Detected = {
+	Tech3UnitDetected = {
 		delay = 9999999,
 	},
-	T4Detected = {
+	Tech4UnitDetected = {
 		delay = 9999999,
 	},
-	AircraftSpotted = {
+	AircraftDetected = {
 		delay = 9999999,
 	},
 	MinesDetected = {
