@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <rml>
-<head>
+<head id="head">
 	<title>Territorial Domination Score</title>
 	<link type="text/rcss" href="territorial_domination_score.rcss" />
 </head>
@@ -10,8 +10,8 @@
 			<div class="score-column">
 				<div class="score-bar">
 					<div class="score-header">
-						<span class="ally-team-name" id="ally-name-1">{{allyTeams[0].name or 'Ally 1'}}</span>
-						<span class="score-value" id="score-value-1">{{allyTeams[0].score or 0}}</span>
+						<span class="ally-team-name" id="ally-name-1">{{firstAllyName}}</span>
+						<span class="score-value" id="score-value-1">{{firstAllyScore}}</span>
 					</div>
 					<div class="score-bar-container">
 						<div class="score-bar-background"></div>
@@ -22,7 +22,7 @@
 			</div>
 		</div>
 		<div class="round-info" id="round-info">
-			Round {{roundInfo.currentRound or 1}} - {{roundInfo.timeRemaining or '00:00'}} - Cap: {{roundInfo.pointsCap or 1000}}
+			Round {{currentRound}} - {{timeRemaining}} - Cap: {{pointsCap}}
 		</div>
 	</div>
 </body>

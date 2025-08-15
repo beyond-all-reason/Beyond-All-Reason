@@ -45,14 +45,18 @@ local widgetState = {
 }
 
 local initialModel = {
-	allyTeams = {},
-	roundInfo = {
-		currentRound = 1,
-		roundEndTime = 0,
-		pointsCap = 100,
-		highestScore = 0,
-		secondHighestScore = 0,
-	},
+	firstAllyName = "Ally 1",
+	firstAllyScore = 0,
+	firstAllyProjectedPoints = 0,
+	firstAllyTeamID = 0,
+	firstAllyTeamColor = "rgb(128, 128, 128)",
+	firstAllyProjectedColor = "rgba(128, 128, 128, 0.6)",
+	currentRound = 1,
+	roundEndTime = 0,
+	pointsCap = 100,
+	highestScore = 0,
+	secondHighestScore = 0,
+	timeRemaining = "00:00",
 	uiState = {
 		columns = 1,
 		barWidth = 300,
@@ -103,7 +107,7 @@ local function updateAllyTeamData()
 				allyTeamID = allyTeamID,
 				score = score,
 				projectedPoints = projectedPoints,
-				color = string.format("rgb(%d, %d, %d)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255),
+				color = teamColor, -- Store the raw RGB values
 				bgColor = string.format("rgba(%d, %d, %d, 200)", teamColor.r * 51, teamColor.g * 51, teamColor.b * 51),
 				projectedColor = string.format("rgba(%d, %d, %d, 150)", teamColor.r * 204, teamColor.g * 204, teamColor.b * 204),
 				fillColor = string.format("rgba(%d, %d, %d, 230)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255),
@@ -199,49 +203,71 @@ local function updateScoreBarVisuals()
 		return
 	end
 	
-	local allyTeams = widgetState.allyTeamData
-	local roundInfo = widgetState.dmHandle.roundInfo
+	local dm = widgetState.dmHandle
 	
 	-- Update round info
 	local roundInfoElement = widgetState.document:GetElementById("round-info")
 	if roundInfoElement and roundInfoElement.child_nodes and roundInfoElement.child_nodes[1] then
-		local timeRemaining = math.max(0, roundInfo.roundEndTime - Spring.GetGameSeconds())
+		local timeRemaining = math.max(0, dm.roundEndTime - Spring.GetGameSeconds())
 		local minutes = math.floor(timeRemaining / 60)
 		local seconds = math.floor(timeRemaining % 60)
 		roundInfoElement.child_nodes[1].inner_rml = string.format("Round %d | Cap: %d | Time: %02d:%02d", 
-			roundInfo.currentRound, roundInfo.pointsCap, minutes, seconds)
+			dm.currentRound, dm.pointsCap, minutes, seconds)
 	end
 	
 	-- Update the first score bar
-	if #allyTeams > 0 then
-		local allyTeam = allyTeams[1]
-		
+	if dm.firstAllyName then
 		-- Update ally team name
 		local nameElement = widgetState.document:GetElementById("ally-name-1")
 		if nameElement and nameElement.child_nodes and nameElement.child_nodes[1] then
-			nameElement.child_nodes[1].inner_rml = allyTeam.name
+			nameElement.child_nodes[1].inner_rml = dm.firstAllyName
 		end
 		
 		-- Update score value
 		local scoreElement = widgetState.document:GetElementById("score-value-1")
 		if scoreElement and scoreElement.child_nodes and scoreElement.child_nodes[1] then
-			scoreElement.child_nodes[1].inner_rml = tostring(allyTeam.score)
+			scoreElement.child_nodes[1].inner_rml = tostring(dm.firstAllyScore)
 		end
 		
 		-- Update projected score bar
 		local projectedElement = widgetState.document:GetElementById("projected-fill-1")
 		if projectedElement then
-			projectedElement.style.width = allyTeam.projectedWidth
-			-- Set CSS class for color
-			projectedElement:SetClass("ally-" .. (allyTeam.allyTeamID + 1), true)
+			-- Calculate projected width
+			local projectedWidth = "0%"
+			if dm.pointsCap > 0 then
+				projectedWidth = string.format("%f%%", (dm.firstAllyProjectedPoints / dm.pointsCap) * 100)
+			end
+			projectedElement.style.width = projectedWidth
+			
+			-- Use real team color instead of hardcoded CSS class
+			-- Get the color from the ally team data
+			local allyTeams = widgetState.allyTeamData
+			if #allyTeams > 0 then
+				local allyTeam = allyTeams[1]
+				local projectedColor = string.format("rgba(%d, %d, %d, 0.6)", 
+					allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+				projectedElement:SetAttribute("style", "background-color: " .. projectedColor)
+			end
 		end
 		
 		-- Update current score bar
 		local fillElement = widgetState.document:GetElementById("score-fill-1")
 		if fillElement then
-			fillElement.style.width = allyTeam.fillWidth
-			-- Set CSS class for color
-			fillElement:SetClass("ally-" .. (allyTeam.allyTeamID + 1), true)
+			-- Calculate fill width
+			local fillWidth = "0%"
+			if dm.pointsCap > 0 then
+				fillWidth = string.format("%f%%", (dm.firstAllyScore / dm.pointsCap) * 100)
+			end
+			fillElement.style.width = fillWidth
+			
+			-- Use real team color instead of hardcoded CSS class
+			local allyTeams = widgetState.allyTeamData
+			if #allyTeams > 0 then
+				local allyTeam = allyTeams[1]
+				local fillColor = string.format("rgb(%d, %d, %d)", 
+					allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+				fillElement:SetAttribute("style", "background-color: " .. fillColor)
+			end
 		end
 	end
 end
@@ -254,22 +280,31 @@ local function updateDataModel()
 	local allyTeams = updateAllyTeamData()
 	local roundInfo = updateRoundInfo()
 	
-	-- Calculate width percentages for score bars
-	if #allyTeams > 0 and roundInfo.pointsCap > 0 then
-		local allyTeam = allyTeams[1]
-		allyTeam.projectedWidth = string.format("%f%%", (allyTeam.projectedPoints / roundInfo.pointsCap) * 100)
-		allyTeam.fillWidth = string.format("%f%%", (allyTeam.score / roundInfo.pointsCap) * 100)
-	end
-	
 	-- Update the data model using the correct pattern from working examples
 	-- Access the data model directly like in the working example
 	local dm = widgetState.dmHandle
-	dm.allyTeams = allyTeams
-	dm.roundInfo = roundInfo
 	
-	-- Mark the data model as dirty so RML knows to update
-	-- dm.__SetDirty("allyTeams") -- Removed: may not exist
-	-- dm.__SetDirty("roundInfo") -- Removed: may not exist
+	-- Update direct properties instead of arrays
+	if #allyTeams > 0 then
+		local allyTeam = allyTeams[1]
+		dm.firstAllyName = allyTeam.name
+		dm.firstAllyScore = allyTeam.score
+		dm.firstAllyProjectedPoints = allyTeam.projectedPoints
+		dm.firstAllyTeamID = allyTeam.allyTeamID
+		
+		-- Get the actual team color and update CSS dynamically
+		local teamColor = getAllyTeamColor(allyTeam.allyTeamID)
+		-- Store team color in data model for potential use
+		dm.firstAllyTeamColor = string.format("rgb(%d, %d, %d)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255)
+		dm.firstAllyProjectedColor = string.format("rgba(%d, %d, %d, 0.6)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255)
+	end
+	
+	dm.currentRound = roundInfo.currentRound
+	dm.roundEndTime = roundInfo.roundEndTime
+	dm.pointsCap = roundInfo.pointsCap
+	dm.highestScore = roundInfo.highestScore
+	dm.secondHighestScore = roundInfo.secondHighestScore
+	dm.timeRemaining = roundInfo.timeRemaining
 	
 	calculateUILayout()
 	
@@ -305,7 +340,7 @@ function widget:Initialize()
 	Spring.Echo(WIDGET_NAME .. ": Data model created successfully")
 	
 	-- Load document from RML file
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
+	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
 		Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to load document from '" .. RML_PATH .. "'")
 		widget:Shutdown()

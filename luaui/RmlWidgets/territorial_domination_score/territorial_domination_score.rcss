@@ -73,7 +73,7 @@
 	left: 0;
 	height: 100%;
 	width: 0%;
-	background-color: rgba(255, 255, 0, 150);
+	background-color: rgba(128, 128, 128, 150);
 	z-index: 1;
 }
 
@@ -82,7 +82,7 @@
 .score-bar-projected.ally-3 { background-color: rgba(0, 0, 255, 150); }
 .score-bar-projected.ally-4 { background-color: rgba(255, 255, 0, 150); }
 .score-bar-projected.ally-5 { background-color: rgba(255, 0, 255, 150); }
-.score-bar-projected.ally-6 { background-color: rgba(0, 255, 255, 150); }
+.score-bar-projected.ally-6 { background-color: rgba(0, 0, 255, 150); }
 .score-bar-projected.ally-7 { background-color: rgba(128, 128, 128, 150); }
 .score-bar-projected.ally-8 { background-color: rgba(255, 128, 0, 150); }
 
@@ -92,7 +92,7 @@
 	left: 0;
 	height: 100%;
 	width: 0%;
-	background-color: rgba(0, 255, 0, 230);
+	background-color: rgba(128, 128, 128, 230);
 	z-index: 2;
 }
 
@@ -101,7 +101,7 @@
 .score-bar-fill.ally-3 { background-color: rgba(0, 0, 255, 230); }
 .score-bar-fill.ally-4 { background-color: rgba(255, 255, 0, 230); }
 .score-bar-fill.ally-5 { background-color: rgba(255, 0, 255, 230); }
-.score-bar-fill.ally-6 { background-color: rgba(0, 255, 255, 230); }
+.score-bar-fill.ally-6 { background-color: rgba(0, 0, 255, 230); }
 .score-bar-fill.ally-7 { background-color: rgba(128, 128, 128, 230); }
 .score-bar-fill.ally-8 { background-color: rgba(255, 128, 0, 230); }
 
