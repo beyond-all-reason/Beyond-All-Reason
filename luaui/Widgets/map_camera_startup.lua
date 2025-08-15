@@ -30,16 +30,9 @@ function widget:Update(dt)
 
     local cameraName = Spring.GetCameraState(false)
     if cameraName ~= "spring" and cameraName ~= "ta" then -- If the camera is not in spring or ta mode, we don't need to do anything
-        Spring.Echo("Map Camera Startup: Camera is not in spring or ta mode, removing widget. \'" .. cameraName .. "\' not supported.")
-        WG["IntroCameraIsDone"] = true
-        widgetHandler:RemoveWidget()
-        return
-    end 
-
-    if Spring.GetGameFrame() > 0  then -- if the game already started, we don't need to do anything
-        Spring.Echo("Map Camera Startup: Game already started, removing widget.")
-        WG["IntroCameraIsDone"] = true
-        widgetHandler:RemoveWidget()
+        if not WG["IntroCameraIsDone"] then
+            WG["IntroCameraIsDone"] = true
+        end
         return
     end
     
