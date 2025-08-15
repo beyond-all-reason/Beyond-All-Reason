@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Water Crush and Collision Damage",
-		desc = "Creates and handles water collision events, and kills units stuck underwater",
+		name = "Water Disable and Damage",
+		desc = "Creates and handles water collisions. Disables and kills units stuck in water",
 		author = "SethDGamre",
 		date = "2024.9.22",
 		license = "GNU GPL, v2 or later",
@@ -55,6 +55,7 @@ local spDestroyUnit = Spring.DestroyUnit
 --tables
 local unitDefData = {}
 local transportDrops = {}
+local drowningUnits = {}
 local drowningUnitsWatch = {}
 local expiringTransportDrops = {}
 local livingTransports = {}
@@ -77,6 +78,21 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		end
 	end
 	unitDefData[unitDefID] = defData
+end
+
+GG.AddUnitSuspendAndResumeReason("UnitEnteredWaterDepth", "UnitLeftWaterDepth")
+local addSuspendReason = GG.AddSuspendReason
+local clearSuspendReason = GG.ClearSuspendReason
+
+local function setUnitDisabled(unitID, disabled)
+	if disabled then
+		if drowningUnits[unitID] == nil and spGetUnitIsDead(unitID) == false then
+			drowningUnits[unitID] = (addSuspendReason(unitID, "UnitEnteredWaterDepth", true) ~= nil)
+		end
+	else
+		clearSuspendReason(unitID, "UnitLeftWaterDepth")
+		drowningUnits[unitID] = nil
+	end
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
@@ -125,6 +141,7 @@ end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	drowningUnitsWatch[unitID] = nil
+    drowningUnits[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -132,6 +149,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
 	drowningUnitsWatch[unitID] = nil
+    drowningUnits[unitID] = nil
 end
 
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
@@ -166,9 +184,13 @@ function gadget:GameFrame(frame)
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
 					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					setUnitDisabled(unitID, true)
+                else
+					setUnitDisabled(unitID, false)
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit
+                drowningUnits[unitID] = nil
 			end
 		end
 	end
