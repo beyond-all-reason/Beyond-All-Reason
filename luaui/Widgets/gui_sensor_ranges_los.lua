@@ -168,21 +168,18 @@ local function DrawLOSStencil() -- about 0.025 ms
 	end
 end
 
+local paused = false
+local update = false
+
 function widget:DrawGenesis()
-    gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+	if not paused or update then
+		update = false
+		gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+	end
 end
 
--- When paused, DrawGenesis is removed. We have to pick up some rerenders ourselves.
-local forceRender = false
-
 function widget:GamePaused(playerID, paused)
-	if paused then
-		widgetHandler:RemoveCallIn("DrawGenesis")
-		forceRender = true
-	else
-		widgetHandler:UpdateCallIn("DrawGenesis")
-		forceRender = false
-	end
+	paused = paused
 end
 
 -- This shows the debug stencil texture in the bottom left corner of the screen
@@ -238,8 +235,8 @@ local function InitializeUnits()
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
-	if forceRender then
-		gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+	if paused then
+		update = true
 	end
 end
 
