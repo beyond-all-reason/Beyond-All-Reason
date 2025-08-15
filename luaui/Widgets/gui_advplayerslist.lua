@@ -6,7 +6,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 45,
+        version = 46,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -56,7 +56,9 @@ end
 	v43   (Floris): extracted lockcamera execution
 	v44   (Floris): added rendertotexture draw method
 	v45   (Floris): support PvE team ranking leaderboard style
-]]
+	v46   (Floris): support alternative (historic) playernames based on accountID's
+]]--
+
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
@@ -638,6 +640,7 @@ function SetMaxPlayerNameWidth()
 
     for _, wplayer in ipairs(t) do
         local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer)
+        name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(wplayer) or name
         if not select(4, Spring_GetTeamInfo(teamID, false)) then
             -- is not AI?
             local nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100) + 10
@@ -762,11 +765,25 @@ local function doPlayerUpdate()
     CreateLists()
 end
 
+local function SetOriginalColourNames()
+    -- Saves the original team colours associated to team teamID
+    for playerID, _ in pairs(player) do
+        if player[playerID].name and not player[playerID].spec and playerID < specOffset and player[playerID].team then
+            local r, g, b = colourNames(player[playerID].team, true)
+            originalColourNames[playerID] = { r, g, b }
+        end
+    end
+end
+
 function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+    -- UNTESTED: reset original color names for the player, cause they can be wrong depending on the anonymous mode
+    if anonymousMode and playerID == myPlayerID and not mySpecStatus and Spring.GetSpectatingState() then
+        SetOriginalColourNames()
+    end
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
@@ -937,17 +954,6 @@ function widget:Initialize()
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
 
-
-local function SetOriginalColourNames()
-    -- Saves the original team colours associated to team teamID
-    for playerID, _ in pairs(player) do
-        if player[playerID].name and not player[playerID].spec and playerID < specOffset then
-            local r, g, b = colourNames(player[playerID].team, true)
-            originalColourNames[playerID] = { r, g, b }
-        end
-    end
-end
-
 function widget:GameOver(winningAllyTeams)
     if isPvE and not isSinglePlayer then
         rankTeamPlayers()
@@ -1064,9 +1070,9 @@ function GetAllPlayers()
     end
     local specPlayers = Spring_GetTeamList()
     for _, playerID in ipairs(specPlayers) do
-        local active, _, spec = Spring_GetPlayerInfo(playerID, false)
+        local name, active, spec = Spring_GetPlayerInfo(playerID, false)
         if spec then
-            if active then
+            if name then
                 player[playerID] = CreatePlayer(playerID)
             end
         end
@@ -1136,18 +1142,34 @@ function GetSkill(playerID)
 end
 
 function CreatePlayer(playerID)
-    --generic player data
-    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, _, desynced = Spring_GetPlayerInfo(playerID, false)
+    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = Spring_GetPlayerInfo(playerID)
+	if accountInfo and accountInfo.accountid then
+		accountID = tonumber(accountInfo.accountid)
+	end
+	-- late added spectators dont get a new/unique accountid, instead they get a duplicate of the last playerID one ...so we need to remove it!
+	if accountID then
+        -- look for duplicate and remove it
+		for i, player in ipairs(player) do
+			if i ~= playerID and player.accountID and player.accountID == accountID then
+				accountID = nil
+                break
+			end
+		end
+	end
+	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
+	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
+	local isAliasName = tname ~= pname
+	tname = pname
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
 		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
 
-    --skill
+    -- skill
     local osSkillFormatted = GetSkill(playerID)
 
-    --cpu/ping
+    -- cpu/ping
     local tpingLvl = GetPingLvl(tping)
     local tcpuLvl = GetCpuLvl(tcpu)
     tping = tping * 1000 - ((tping * 1000) % 1)
@@ -1176,6 +1198,7 @@ function CreatePlayer(playerID)
         rank = trank,
         skill = osSkillFormatted,
         name = tname,
+		nameIsAlias = isAliasName,
         team = tteam,
         allyteam = tallyteam,
         red = tred,
@@ -1200,6 +1223,8 @@ function CreatePlayer(playerID)
         metalShare = metalShare,
         incomeMultiplier = tincomeMultiplier,
 		desynced = desynced,
+		accountID = accountID,
+		history = history
     }
 end
 
@@ -2169,6 +2194,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     end
 
     local name = player[playerID].name
+	local nameIsAlias = player[playerID].nameIsAlias
     local team = player[playerID].team
     if not team then return end -- this prevents error when co-op / joinas is active
 
@@ -2187,6 +2213,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 	local desynced = player[playerID].desynced
+	local accountID = player[playerID].accountID
 
     local alpha = 0.33
     local alphaActivity = 0
@@ -2221,7 +2248,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
-
+    if tipY and accountID then
+        NameTip(mouseX, playerID, accountID, nameIsAlias)
+    end
     if not spec then
         --player
         if onlyMainList2 and drawAllyButton and not dead and alliances ~= nil and #alliances > 0 then
@@ -2265,6 +2294,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 if m_skill.active then
                     DrawSkill(skill, posY, dark)
                 end
+
             end
         end
 
@@ -2279,7 +2309,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 DrawSidePic(team, playerID, posY, leader, dark, ai)
             end
             if m_name.active then
-                DrawName(name, team, posY, dark, playerID, desynced)
+                DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
             end
         end
 
@@ -2317,7 +2347,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     else
         -- spectator
         if onlyMainList and specListShow and m_name.active then
-            DrawSmallName(name, team, posY, false, playerID, alpha)
+            DrawSmallName(name, nameIsAlias, team, posY, false, playerID, accountID, alpha)
         end
     end
 
@@ -2693,14 +2723,15 @@ function DrawAlliances(alliances, posY)
     end
 end
 
-function DrawName(name, team, posY, dark, playerID, desynced)
+function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
     local willSub = ""
-    local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
-
+    local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
     local isAbsent = false
     if name == absentName then
         isAbsent = true
-        local playerName = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(team, false)), false)
+        local teamPlayerID = select(2,Spring.GetTeamInfo(team, false))
+        local playerName = Spring.GetPlayerInfo(teamPlayerID, false)
+        playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID) or playerName
         if playerName then --and aliveAllyTeams[player[playerID].allyteam] then
             name = player[playerID].name
         end
@@ -2714,10 +2745,21 @@ function DrawName(name, team, posY, dark, playerID, desynced)
         end
     end
 
-    local nameText = name .. willSub
-    local xPadding = 0
+    local nameText = name
+	if WG.playernames and not player[playerID].history then
+		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	end
+	if nameIsAlias then
+		nameText = "." .. nameText
+	elseif player[playerID].history and #player[playerID].history > 1 then
+		nameText = "*" .. nameText
+	else
+		nameText = " " .. nameText
+	end
+	nameText = nameText .. willSub
 
     -- includes readystate icon if factions arent shown
+    local xPadding = 0
     if not gameStarted and not m_side.active then
         xPadding = 16
         DrawState(playerID, m_name.posX + widgetPosX, posY)
@@ -2774,39 +2816,49 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 end
 
-function DrawSmallName(name, team, posY, dark, playerID, alpha)
+function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID, alpha)
     if team == nil then
         return
     end
-
-    local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
-
+    local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
     local textindent = 4
     if m_indent.active or m_rank.active or m_side.active or m_allyID.active or m_playerID.active or m_ID.active then
         textindent = 0
     end
 
+    local nameText = name
+	if WG.playernames and not player[playerID].history then
+		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+	end
+	if nameIsAlias then
+		nameText = "." .. name
+	elseif player[playerID].history and #player[playerID].history > 1 then
+		nameText = "*" .. name
+    elseif not accountID then    -- these are spectators that joined late and would have a duplicate accountID (we)
+        nameText =  "    " .. name
+	else
+		nameText = " " .. name
+	end
     if originalColourNames[playerID] then
-        name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
+        nameText = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. nameText
     end
 
     font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
-    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
+    font2:Print(nameText, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
     font2:End()
 
     if ignored then
         local x = m_name.posX + textindent + widgetPosX + 2.2
         local y = posY + (6*specScale)
-        local w = font2:GetTextWidth(name) * 10 + 2
+        local w = font2:GetTextWidth(nameText) * 10 + 2
         local h = 2
         gl_Texture(false)
         gl_Color(1, 1, 1, 0.7)
         DrawRect(x, y, x + w, y + h)
         gl_Color(1, 1, 1, 1)
     end
-
 end
 
 function DrawAllyID(allyID, posY, dark, dead)
@@ -2937,6 +2989,39 @@ function TakeTip(mouseX)
         tipText = Spring.I18N('ui.playersList.takeUnits')
         tipTextTime = os.clock()
     end
+end
+
+function NameTip(mouseX, playerID, accountID, nameIsAlias)
+	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
+		if WG.playernames and not player[playerID].history then
+			player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
+		end
+		if player[playerID].history and (nameIsAlias or #player[playerID].history > 1) then
+			local text = ''
+		 	local c = 0
+
+            local pname = Spring.GetPlayerInfo(playerID, false)
+			for i, name in ipairs(player[playerID].history) do
+				if player[playerID].name ~= name then
+					if c > 0 then
+						text = text .. '\n'
+					end
+                    if name == pname then
+                        text = text .. '> '
+                    else
+                        text = text .. '  '
+                    end
+					text = text .. name
+		 			c = c + 1
+				end
+			end
+			if c > 0 then
+				tipText = text
+				tipTextTime = os.clock()
+				tipTextTitle = (originalColourNames[playerID] and colourNames(player[playerID].team) or "\255\255\255\255") .. player[playerID].name
+			end
+		end
+	end
 end
 
 function ShareTip(mouseX, playerID)
@@ -3210,7 +3295,7 @@ function widget:MousePress(x, y, button)
                 if i > -1 then -- and i < specOffset
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
-                            Spring_SendCommands("toggleignore " .. clickedPlayer.name)
+                            Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
@@ -3314,16 +3399,12 @@ function widget:MousePress(x, y, button)
                         --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
-                                Spring_SendCommands("toggleignore " .. clickedPlayer.name)
-                                SortList()
-                                CreateLists()
+                                Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                                 LockCamera(clickedPlayer.team)
                                 prevClickedPlayer = {}
-                                SortList()
-                                CreateLists()
                                 return true
                             end
                             prevClickedPlayer = clickedPlayer
@@ -3589,6 +3670,7 @@ function CheckPlayersChange()
     local sorting = false
     for i = 0, specOffset-1 do
         local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, _, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
+        name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(i) or name
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
