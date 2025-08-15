@@ -1,0 +1,117 @@
+/* Territorial Domination Score Display Styles */
+.score-container {
+	position: absolute;
+	background-color: rgba(0, 0, 0, 200);
+	border-radius: 4px;
+	padding: 8px;
+	z-index: 1000;
+	pointer-events: none;
+	font-family: Exo 2;
+}
+
+.score-columns {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+}
+
+.score-column {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.score-bar {
+	background-color: rgba(0, 0, 0, 150);
+	border-radius: 3px;
+	padding: 4px;
+	min-width: 200px;
+}
+
+.score-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.ally-team-name {
+	color: #ffffff;
+	font-weight: bold;
+	font-size: 12px;
+	font-family: Exo 2;
+}
+
+.score-value {
+	color: #ffffff;
+	font-weight: bold;
+	font-size: 14px;
+	text-align: right;
+	font-family: Exo 2;
+}
+
+.score-bar-container {
+	position: relative;
+	height: 20px;
+	background-color: rgba(0, 0, 0, 200);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.score-bar-background {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(128, 128, 128, 80);
+}
+
+.score-bar-projected {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 0%;
+	background-color: rgba(255, 255, 0, 150);
+	z-index: 1;
+}
+
+.score-bar-projected.ally-1 { background-color: rgba(255, 0, 0, 150); }
+.score-bar-projected.ally-2 { background-color: rgba(0, 255, 0, 150); }
+.score-bar-projected.ally-3 { background-color: rgba(0, 0, 255, 150); }
+.score-bar-projected.ally-4 { background-color: rgba(255, 255, 0, 150); }
+.score-bar-projected.ally-5 { background-color: rgba(255, 0, 255, 150); }
+.score-bar-projected.ally-6 { background-color: rgba(0, 255, 255, 150); }
+.score-bar-projected.ally-7 { background-color: rgba(128, 128, 128, 150); }
+.score-bar-projected.ally-8 { background-color: rgba(255, 128, 0, 150); }
+
+.score-bar-fill {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 0%;
+	background-color: rgba(0, 255, 0, 230);
+	z-index: 2;
+}
+
+.score-bar-fill.ally-1 { background-color: rgba(255, 0, 0, 230); }
+.score-bar-fill.ally-2 { background-color: rgba(0, 255, 0, 230); }
+.score-bar-fill.ally-3 { background-color: rgba(0, 0, 255, 230); }
+.score-bar-fill.ally-4 { background-color: rgba(255, 255, 0, 230); }
+.score-bar-fill.ally-5 { background-color: rgba(255, 0, 255, 230); }
+.score-bar-fill.ally-6 { background-color: rgba(0, 255, 255, 230); }
+.score-bar-fill.ally-7 { background-color: rgba(128, 128, 128, 230); }
+.score-bar-fill.ally-8 { background-color: rgba(255, 128, 0, 230); }
+
+.round-info {
+	margin-top: 8px;
+	padding: 4px 8px;
+	background-color: rgba(0, 0, 0, 180);
+	border-radius: 3px;
+	color: #ffffff;
+	font-size: 11px;
+	text-align: center;
+	font-family: Exo 2;
+}
