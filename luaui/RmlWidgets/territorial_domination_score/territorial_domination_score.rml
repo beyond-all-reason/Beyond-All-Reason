@@ -6,10 +6,14 @@
 </head>
 <body>
 	<div id="score-container" class="score-container" data-model="territorial_score_model">
+		<div class="header-info" id="header-info">
+			<div class="round-display" id="round-display">Round {{currentRound}}</div>
+			<div class="time-display" id="time-display">{{timeRemaining}}</div>
+		</div>
 		<div id="score-columns" class="score-columns">
 		</div>
-		<div class="round-info" id="round-info">
-			Round {{currentRound}} - {{timeRemaining}} - Cap: {{pointsCap}}
+		<div class="victory-points" id="victory-points">
+			Points to Victory: {{pointsCap}}
 		</div>
 	</div>
 </body>

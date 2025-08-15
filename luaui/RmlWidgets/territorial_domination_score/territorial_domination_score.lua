@@ -54,7 +54,7 @@ local initialModel = {
 	allyTeams = {},
 	currentRound = 1,
 	roundEndTime = 0,
-	pointsCap = 100,
+	pointsCap = 0,
 	highestScore = 0,
 	secondHighestScore = 0,
 	timeRemaining = "00:00",
@@ -153,10 +153,6 @@ end
 
 local function calculateUILayout()
 	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
-	Spring.Echo(WIDGET_NAME .. ": minimapPosX = " .. tostring(minimapPosX))
-	Spring.Echo(WIDGET_NAME .. ": minimapPosY = " .. tostring(minimapPosY))
-	Spring.Echo(WIDGET_NAME .. ": minimapSizeX = " .. tostring(minimapSizeX))
-	Spring.Echo(WIDGET_NAME .. ": minimapSizeY = " .. tostring(minimapSizeY))	
 	
 	if minimapPosX == widgetState.lastMinimapGeometry[1] and 
 	   minimapPosY == widgetState.lastMinimapGeometry[2] and 
@@ -167,9 +163,9 @@ local function calculateUILayout()
 	
 	widgetState.lastMinimapGeometry = {minimapPosX, minimapPosY, minimapSizeX, minimapSizeY}
 	
-	-- Constrain to 300x300 area below minimap
+	-- Constrain to 300x248 area below minimap
 	local maxWidth = 300
-	local maxHeight = 300
+	local maxHeight = 248
 	local spacing = 6 -- Small spacing for gap below minimap
 	
 	-- Position the score display below the minimap (growing downward)
@@ -199,23 +195,6 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	local scoreBarDiv = widgetState.document:CreateElement("div")
 	scoreBarDiv.class_name = "score-bar"
 	
-	-- Create header
-	local headerDiv = widgetState.document:CreateElement("div")
-	headerDiv.class_name = "score-header"
-	
-	local nameSpan = widgetState.document:CreateElement("span")
-	nameSpan.class_name = "ally-team-name"
-	nameSpan.id = "ally-name-" .. index
-	nameSpan.inner_rml = allyTeam.name
-	
-	local scoreSpan = widgetState.document:CreateElement("span")
-	scoreSpan.class_name = "score-value"
-	scoreSpan.id = "score-value-" .. index
-	scoreSpan.inner_rml = tostring(allyTeam.score)
-	
-	headerDiv:AppendChild(nameSpan)
-	headerDiv:AppendChild(scoreSpan)
-	
 	-- Create score bar container
 	local containerDiv = widgetState.document:CreateElement("div")
 	containerDiv.class_name = "score-bar-container"
@@ -231,19 +210,31 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	fillDiv.class_name = "score-bar-fill"
 	fillDiv.id = "score-fill-" .. index
 	
+	-- Create score text elements
+	local currentScoreText = widgetState.document:CreateElement("div")
+	currentScoreText.class_name = "score-text current"
+	currentScoreText.id = "current-score-" .. index
+	currentScoreText.inner_rml = tostring(allyTeam.score)
+	
+	local projectedScoreText = widgetState.document:CreateElement("div")
+	projectedScoreText.class_name = "score-text projected"
+	projectedScoreText.id = "projected-score-" .. index
+	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+	
 	containerDiv:AppendChild(backgroundDiv)
 	containerDiv:AppendChild(projectedDiv)
 	containerDiv:AppendChild(fillDiv)
+	containerDiv:AppendChild(currentScoreText)
+	containerDiv:AppendChild(projectedScoreText)
 	
-	scoreBarDiv:AppendChild(headerDiv)
 	scoreBarDiv:AppendChild(containerDiv)
 	
 	columnDiv:AppendChild(scoreBarDiv)
 	
 	return {
 		container = scoreBarDiv,
-		nameElement = nameSpan,
-		scoreElement = scoreSpan,
+		currentScoreElement = currentScoreText,
+		projectedScoreElement = projectedScoreText,
 		projectedElement = projectedDiv,
 		fillElement = fillDiv,
 	}
@@ -257,15 +248,21 @@ local function updateScoreBarVisuals()
 	local dm = widgetState.dmHandle
 	local allyTeams = widgetState.allyTeamData
 	
-	-- Update round info
-	local roundInfoElement = widgetState.document:GetElementById("round-info")
-	if roundInfoElement then
+	-- Update header info elements
+	local roundElement = widgetState.document:GetElementById("round-display")
+	if roundElement then
+		roundElement.inner_rml = string.format("Round %d", dm.currentRound)
+	end
+	
+	local timeElement = widgetState.document:GetElementById("time-display")
+	if timeElement then
 		local timeRemaining = math.max(0, dm.roundEndTime - Spring.GetGameSeconds())
 		local minutes = math.floor(timeRemaining / 60)
 		local seconds = math.floor(timeRemaining % 60)
-		roundInfoElement.inner_rml = string.format("Round %d - %02d:%02d - Cap: %d", 
-			dm.currentRound, minutes, seconds, dm.pointsCap)
+		timeElement.inner_rml = string.format("%02d:%02d", minutes, seconds)
 	end
+	
+
 	
 	-- Get or clear the score columns container
 	local columnsContainer = widgetState.document:GetElementById("score-columns")
@@ -282,10 +279,10 @@ local function updateScoreBarVisuals()
 		return
 	end
 	
-	-- Calculate optimal column layout for 300x300 area
-	-- Each score bar needs ~26px height (12px bar + 14px for text/padding)
-	-- Available height ~270px (300 - round info - padding)
-	local maxTeamsPerColumn = math.floor(270 / 26)
+	-- Calculate optimal column layout for 300x248 area
+	-- Each score bar needs ~20px height (12px bar + 8px for padding)
+	-- Available height ~200px (248 - header - victory points - padding)
+	local maxTeamsPerColumn = math.floor(200 / 20)
 	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
 	local numColumns = math.ceil(numTeams / teamsPerColumn)
 	
@@ -333,6 +330,14 @@ local function updateScoreBarVisuals()
 		local fillColor = string.format("rgba(%d, %d, %d, 230)", 
 			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
 		scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth .. "; background-color: " .. fillColor)
+		
+		-- Update score text elements
+		if scoreBarElements.currentScoreElement then
+			scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
+		end
+		if scoreBarElements.projectedScoreElement then
+			scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+		end
 	end
 end
 
@@ -357,11 +362,27 @@ local function updateDataModel()
 	dm.secondHighestScore = roundInfo.secondHighestScore
 	dm.timeRemaining = roundInfo.timeRemaining
 	
+
+	
+	-- Trigger rerender for data model changes
+	dm:__SetDirty("pointsCap")
+	dm:__SetDirty("currentRound")
+	dm:__SetDirty("timeRemaining")
+	
 	calculateUILayout()
 	
 	-- Update visual properties of score bars
 	if widgetState.document then
 		updateScoreBarVisuals()
+		
+		-- Debug: Check if victory-points element exists and manually set it
+		local victoryElement = widgetState.document:GetElementById("victory-points")
+		if victoryElement then
+			Spring.Echo(WIDGET_NAME .. ": Victory points element found, setting text manually to test")
+			victoryElement.inner_rml = "Points to Victory: " .. tostring(dm.pointsCap)
+		else
+			Spring.Echo(WIDGET_NAME .. ": ERROR - Victory points element not found!")
+		end
 	end
 end
 
@@ -405,6 +426,11 @@ function widget:Initialize()
 	document:Show()
 	
 	updateDataModel()
+	
+	-- Debug: Check initial data model state
+	if widgetState.dmHandle then
+		Spring.Echo(WIDGET_NAME .. ": Initial pointsCap in data model = " .. tostring(widgetState.dmHandle.pointsCap))
+	end
 	
 	Spring.Echo(WIDGET_NAME .. ": Widget initialized successfully")
 	return true
