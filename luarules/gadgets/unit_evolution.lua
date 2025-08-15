@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name = "Unit Evolution",
 		desc = "Evolves a unit permanently into another unit when certain criteria are met",
-		author = "Xehrath",
+		author = "Xehrath, tetrisface",
 		date = "2023-03-31",
 		license = "None",
 		layer = 50,
