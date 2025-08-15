@@ -21,6 +21,12 @@ if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_ena
 	return false 
 end
 
+-- @https://github.com/beyond-all-reason/RecoilEngine/tree/aed81b7cc721aa964f850ec9960af287f66bf98c/rts/Rml/SolLua/bind 
+-- @https://github.com/beyond-all-reason/Beyond-All-Reason/blob/rmlui-example-widgets/luaui/Widgets/rml_top_bar2.lua 
+-- @https://github.com/beyond-all-reason/Beyond-All-Reason/blob/rmlui-example-widgets/luaui/Widgets/rml_widget_assets/gui_top_bar2.rml 
+
+-- Use this contexts to understand what's doable and what isn't. BAR uses a custom lua integration that is more simple than other games.
+
 local WIDGET_NAME = "Territorial Domination Score"
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/territorial_domination_score/territorial_domination_score.rml"
@@ -52,15 +58,6 @@ local initialModel = {
 	highestScore = 0,
 	secondHighestScore = 0,
 	timeRemaining = "00:00",
-	uiState = {
-		barWidth = 300,
-		spacing = 4,
-		position = {
-			x = 0,
-			y = 0,
-			width = 300,
-		},
-	},
 }
 
 local function getAllyTeamColor(allyTeamID)
@@ -170,44 +167,31 @@ local function calculateUILayout()
 	
 	widgetState.lastMinimapGeometry = {minimapPosX, minimapPosY, minimapSizeX, minimapSizeY}
 	
-	local allyTeamCount = #widgetState.allyTeamData
-	Spring.Echo(WIDGET_NAME .. ": allyTeamCount = " .. tostring(allyTeamCount))
+	-- Constrain to 300x300 area below minimap
+	local maxWidth = 300
+	local maxHeight = 300
+	local spacing = 6 -- Small spacing for gap below minimap
 	
-	-- Calculate column layout (max 8 teams per column)
-	local teamsPerColumn = math.min(8, allyTeamCount)
-	local numColumns = math.ceil(allyTeamCount / teamsPerColumn)
-	local barWidth = minimapSizeX / numColumns
-	local spacing = 4
-	
-	-- Position the score display below the minimap
+	-- Position the score display below the minimap (growing downward)
 	local scorePosX = minimapPosX
-	-- Calculate total height needed (based on max teams per column)
-	local singleBarHeight = 36 -- Height of one score bar
-	local maxBarsInColumn = math.ceil(allyTeamCount / numColumns)
-	local totalScoreHeight = (maxBarsInColumn * singleBarHeight) + ((maxBarsInColumn - 1) * spacing) + 20 -- padding
-	local topPadding = 8 -- Top padding from CSS
-	local borderRadius = 4 -- Border radius from CSS
-	local scorePosY = minimapPosY - minimapSizeY - totalScoreHeight + topPadding + borderRadius -- Position below minimap accounting for total height
+	local scorePosY = minimapPosY - minimapSizeY - spacing -- Position below minimap with small gap
 	
-	if widgetState.dmHandle then
-		widgetState.dmHandle.uiState = {
-			barWidth = barWidth,
-			spacing = spacing,
-			position = {
-				x = scorePosX,
-				y = scorePosY,
-				width = minimapSizeX,
-			}
+	-- Store UI state in widget state instead of data model
+	widgetState.uiState = {
+		position = {
+			x = scorePosX,
+			y = scorePosY,
+			width = maxWidth,
+			height = maxHeight,
 		}
-	end
+	}
 	
 	-- Update document position if it exists
 	if widgetState.document then
 		local rootElement = widgetState.document:GetElementById("score-container")
 		if rootElement then
-			rootElement.style.left = scorePosX .. "px"
-			rootElement.style.top = scorePosY .. "px"
-			rootElement.style.width = minimapSizeX .. "px"
+			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx", 
+				scorePosX, scorePosY, maxWidth, maxHeight))
 		end
 	end
 end
@@ -298,9 +282,18 @@ local function updateScoreBarVisuals()
 		return
 	end
 	
-	-- Calculate column layout (max 8 teams per column)
-	local teamsPerColumn = math.min(8, numTeams)
+	-- Calculate optimal column layout for 300x300 area
+	-- Each score bar needs ~26px height (12px bar + 14px for text/padding)
+	-- Available height ~270px (300 - round info - padding)
+	local maxTeamsPerColumn = math.floor(270 / 26)
+	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
 	local numColumns = math.ceil(numTeams / teamsPerColumn)
+	
+	-- Limit to max 4 columns to fit in 300px width
+	if numColumns > 4 then
+		numColumns = 4
+		teamsPerColumn = math.ceil(numTeams / numColumns)
+	end
 	
 	-- Create columns
 	local columns = {}
@@ -311,9 +304,9 @@ local function updateScoreBarVisuals()
 		columns[i] = columnDiv
 	end
 	
-	-- Distribute teams across columns
+	-- Distribute teams across columns more evenly
 	for i, allyTeam in ipairs(allyTeams) do
-		local columnIndex = math.ceil(i / teamsPerColumn)
+		local columnIndex = ((i - 1) % numColumns) + 1
 		local scoreBarElements = createScoreBarElement(columns[columnIndex], allyTeam, i)
 		widgetState.scoreElements[i] = scoreBarElements
 		
@@ -323,24 +316,23 @@ local function updateScoreBarVisuals()
 			local totalProjected = allyTeam.score + allyTeam.projectedPoints
 			projectedWidth = string.format("%.1f%%", math.min(100, (totalProjected / dm.pointsCap) * 100))
 		end
-		scoreBarElements.projectedElement.style.width = projectedWidth
+		scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
 		
 		-- Set projected color (lighter version of team color)
 		local projectedColor = string.format("rgba(%d, %d, %d, 100)", 
 			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
-		scoreBarElements.projectedElement.style["background-color"] = projectedColor
+		scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth .. "; background-color: " .. projectedColor)
 		
 		-- Calculate current score width
 		local fillWidth = "0%"
 		if dm.pointsCap > 0 then
 			fillWidth = string.format("%.1f%%", math.min(100, (allyTeam.score / dm.pointsCap) * 100))
 		end
-		scoreBarElements.fillElement.style.width = fillWidth
 		
 		-- Set fill color (full opacity team color)
 		local fillColor = string.format("rgba(%d, %d, %d, 230)", 
 			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
-		scoreBarElements.fillElement.style["background-color"] = fillColor
+		scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth .. "; background-color: " .. fillColor)
 	end
 end
 
