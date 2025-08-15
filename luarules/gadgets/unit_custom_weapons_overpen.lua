@@ -143,9 +143,10 @@ local function loadPenetratorWeaponDefs()
 			end
 
 			weaponParams[weaponDefID] = params
-		end
-		if weaponDef.waterWeapon then
-			waterWeapons[weaponDefID] = true
+
+			if weaponDef.waterWeapon then
+				waterWeapons[weaponDefID] = true
+			end
 		end
 	end
 	return (table.count(weaponParams) > 0)
