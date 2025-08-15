@@ -137,7 +137,7 @@ local function updateRoundInfo()
 	local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
 	local minutes = math.floor(timeRemaining / 60)
 	local seconds = math.floor(timeRemaining % 60)
-	local timeString = string.format("%02d:%02d", minutes, seconds)
+	local timeString = string.format("%d:%02d", minutes, seconds)
 	
 	return {
 		currentRound = currentRound,
@@ -166,11 +166,11 @@ local function calculateUILayout()
 	-- Constrain to 300x248 area below minimap
 	local maxWidth = 300
 	local maxHeight = 248
-	local spacing = 6 -- Small spacing for gap below minimap
+	local magicalSpacing = 42 -- because there's something about the difference between the way widgets and rmlui handles screenspace spacing that requires an additional y offset.
 	
 	-- Position the score display below the minimap (growing downward)
 	local scorePosX = minimapPosX
-	local scorePosY = minimapPosY - minimapSizeY - spacing -- Position below minimap with small gap
+	local scorePosY = minimapPosY - minimapSizeY - magicalSpacing -- Position directly below minimap with no gap
 	
 	-- Store UI state in widget state instead of data model
 	widgetState.uiState = {
@@ -259,7 +259,7 @@ local function updateScoreBarVisuals()
 		local timeRemaining = math.max(0, dm.roundEndTime - Spring.GetGameSeconds())
 		local minutes = math.floor(timeRemaining / 60)
 		local seconds = math.floor(timeRemaining % 60)
-		timeElement.inner_rml = string.format("%02d:%02d", minutes, seconds)
+		timeElement.inner_rml = string.format("%d:%02d", minutes, seconds)
 	end
 	
 
@@ -280,9 +280,9 @@ local function updateScoreBarVisuals()
 	end
 	
 	-- Calculate optimal column layout for 300x248 area
-	-- Each score bar needs ~20px height (12px bar + 8px for padding)
-	-- Available height ~200px (248 - header - victory points - padding)
-	local maxTeamsPerColumn = math.floor(200 / 20)
+	-- Each score bar needs ~27px height (18px bar + 9px for padding and gaps)
+	-- Available height ~235px (248 - header ~10px - victory points ~3px)
+	local maxTeamsPerColumn = math.floor(235 / 27)
 	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
 	local numColumns = math.ceil(numTeams / teamsPerColumn)
 	
@@ -375,14 +375,7 @@ local function updateDataModel()
 	if widgetState.document then
 		updateScoreBarVisuals()
 		
-		-- Debug: Check if victory-points element exists and manually set it
-		local victoryElement = widgetState.document:GetElementById("victory-points")
-		if victoryElement then
-			Spring.Echo(WIDGET_NAME .. ": Victory points element found, setting text manually to test")
-			victoryElement.inner_rml = "Points to Victory: " .. tostring(dm.pointsCap)
-		else
-			Spring.Echo(WIDGET_NAME .. ": ERROR - Victory points element not found!")
-		end
+
 	end
 end
 

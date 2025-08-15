@@ -20,28 +20,31 @@
 	gap: 4px;
 	width: 100%;
 	flex: 1;
+	align-items: stretch;
 }
 
 .score-column {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 3px;
 	flex: 1;
+	justify-content: flex-start;
+	height: 100%;
 }
 
 .score-bar {
 	background-color: rgba(0, 0, 0, 150);
 	border-radius: 1px;
-	padding: 2px;
+	padding: 3px;
 	min-width: 60px;
-	font-size: 10px;
+	font-size: 11px;
 }
 
 
 
 .score-bar-container {
 	position: relative;
-	height: 12px;
+	height: 18px;
 	background-color: rgba(0, 0, 0, 200);
 	border-radius: 0px;
 	overflow: hidden;
@@ -98,22 +101,22 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 4px;
-	padding: 4px 6px;
+	margin-bottom: 3px;
+	padding: 3px 4px;
 	background-color: rgba(0, 0, 0, 180);
-	border-radius: 2px;
+	border-radius: 1px;
 }
 
 .round-display {
 	color: #ffffff;
-	font-size: 10px;
+	font-size: 14px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
 
 .time-display {
 	color: #ffffff;
-	font-size: 10px;
+	font-size: 14px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
@@ -124,7 +127,7 @@
 	transform: translateY(-50%);
 	color: #ffffff;
 	font-weight: bold;
-	font-size: 9px;
+	font-size: 13px;
 	font-family: Exo 2;
 	z-index: 3;
 	pointer-events: none;
@@ -139,14 +142,11 @@
 }
 
 .victory-points {
-	margin-top: 4px;
-	padding: 4px 6px;
-	background-color: rgba(0, 0, 0, 180);
-	border-radius: 2px;
+	margin-top: 3px;
+	padding: 2px 3px;
 	color: #ffffff;
-	font-size: 11px;
+	font-size: 15px;
 	font-weight: bold;
 	text-align: center;
 	font-family: Exo 2;
-	min-height: 16px;
 }
