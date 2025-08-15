@@ -144,6 +144,8 @@ if gadgetHandler:IsSyncedCode() then
 				delayedSeconds = 0
 				newUnitName = evolution.evolution_target
 				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
+			else
+				break
 			end
 		end
 
