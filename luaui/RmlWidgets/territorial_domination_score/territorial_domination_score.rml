@@ -7,19 +7,6 @@
 <body>
 	<div id="score-container" class="score-container" data-model="territorial_score_model">
 		<div id="score-columns" class="score-columns">
-			<div class="score-column">
-				<div class="score-bar">
-					<div class="score-header">
-						<span class="ally-team-name" id="ally-name-1">{{firstAllyName}}</span>
-						<span class="score-value" id="score-value-1">{{firstAllyScore}}</span>
-					</div>
-					<div class="score-bar-container">
-						<div class="score-bar-background"></div>
-						<div class="score-bar-projected" id="projected-fill-1"></div>
-						<div class="score-bar-fill" id="score-fill-1"></div>
-					</div>
-				</div>
-			</div>
 		</div>
 		<div class="round-info" id="round-info">
 			Round {{currentRound}} - {{timeRemaining}} - Cap: {{pointsCap}}

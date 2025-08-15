@@ -45,12 +45,7 @@ local widgetState = {
 }
 
 local initialModel = {
-	firstAllyName = "Ally 1",
-	firstAllyScore = 0,
-	firstAllyProjectedPoints = 0,
-	firstAllyTeamID = 0,
-	firstAllyTeamColor = "rgb(128, 128, 128)",
-	firstAllyProjectedColor = "rgba(128, 128, 128, 0.6)",
+	allyTeams = {},
 	currentRound = 1,
 	roundEndTime = 0,
 	pointsCap = 100,
@@ -58,7 +53,6 @@ local initialModel = {
 	secondHighestScore = 0,
 	timeRemaining = "00:00",
 	uiState = {
-		columns = 1,
 		barWidth = 300,
 		spacing = 4,
 		position = {
@@ -156,6 +150,10 @@ end
 
 local function calculateUILayout()
 	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
+	Spring.Echo(WIDGET_NAME .. ": minimapPosX = " .. tostring(minimapPosX))
+	Spring.Echo(WIDGET_NAME .. ": minimapPosY = " .. tostring(minimapPosY))
+	Spring.Echo(WIDGET_NAME .. ": minimapSizeX = " .. tostring(minimapSizeX))
+	Spring.Echo(WIDGET_NAME .. ": minimapSizeY = " .. tostring(minimapSizeY))	
 	
 	if minimapPosX == widgetState.lastMinimapGeometry[1] and 
 	   minimapPosY == widgetState.lastMinimapGeometry[2] and 
@@ -167,17 +165,21 @@ local function calculateUILayout()
 	widgetState.lastMinimapGeometry = {minimapPosX, minimapPosY, minimapSizeX, minimapSizeY}
 	
 	local allyTeamCount = #widgetState.allyTeamData
-	local columns = math.ceil(allyTeamCount / 8)
-	local barWidth = (minimapSizeX - (columns - 1) * 4) / columns
+	Spring.Echo(WIDGET_NAME .. ": allyTeamCount = " .. tostring(allyTeamCount))
+	local barWidth = minimapSizeX
 	local spacing = 4
 	
 	-- Position the score display below the minimap
 	local scorePosX = minimapPosX
-	local scorePosY = minimapPosY - 20 -- 20 pixels below minimap
+	-- Calculate total height needed for all score bars
+	local singleBarHeight = 40 -- Height of one score bar
+	local totalScoreHeight = (allyTeamCount * singleBarHeight) + ((allyTeamCount - 1) * spacing) + 20 -- padding
+	local topPadding = 8 -- Top padding from CSS
+	local borderRadius = 4 -- Border radius from CSS
+	local scorePosY = minimapPosY - minimapSizeY - totalScoreHeight + topPadding + borderRadius -- Position below minimap accounting for total height
 	
 	if widgetState.dmHandle then
 		widgetState.dmHandle.uiState = {
-			columns = columns,
 			barWidth = barWidth,
 			spacing = spacing,
 			position = {
@@ -198,12 +200,71 @@ local function calculateUILayout()
 		end
 	end
 end
+local function createScoreBarElement(container, allyTeam, index)
+	local barDiv = widgetState.document:CreateElement("div")
+	barDiv.class_name = "score-column"
+	
+	local scoreBarDiv = widgetState.document:CreateElement("div")
+	scoreBarDiv.class_name = "score-bar"
+	
+	-- Create header
+	local headerDiv = widgetState.document:CreateElement("div")
+	headerDiv.class_name = "score-header"
+	
+	local nameSpan = widgetState.document:CreateElement("span")
+	nameSpan.class_name = "ally-team-name"
+	nameSpan.id = "ally-name-" .. index
+	nameSpan.inner_rml = allyTeam.name
+	
+	local scoreSpan = widgetState.document:CreateElement("span")
+	scoreSpan.class_name = "score-value"
+	scoreSpan.id = "score-value-" .. index
+	scoreSpan.inner_rml = tostring(allyTeam.score)
+	
+	headerDiv:AppendChild(nameSpan)
+	headerDiv:AppendChild(scoreSpan)
+	
+	-- Create score bar container
+	local containerDiv = widgetState.document:CreateElement("div")
+	containerDiv.class_name = "score-bar-container"
+	
+	local backgroundDiv = widgetState.document:CreateElement("div")
+	backgroundDiv.class_name = "score-bar-background"
+	
+	local projectedDiv = widgetState.document:CreateElement("div")
+	projectedDiv.class_name = "score-bar-projected"
+	projectedDiv.id = "projected-fill-" .. index
+	
+	local fillDiv = widgetState.document:CreateElement("div")
+	fillDiv.class_name = "score-bar-fill"
+	fillDiv.id = "score-fill-" .. index
+	
+	containerDiv:AppendChild(backgroundDiv)
+	containerDiv:AppendChild(projectedDiv)
+	containerDiv:AppendChild(fillDiv)
+	
+	scoreBarDiv:AppendChild(headerDiv)
+	scoreBarDiv:AppendChild(containerDiv)
+	
+	barDiv:AppendChild(scoreBarDiv)
+	container:AppendChild(barDiv)
+	
+	return {
+		container = barDiv,
+		nameElement = nameSpan,
+		scoreElement = scoreSpan,
+		projectedElement = projectedDiv,
+		fillElement = fillDiv,
+	}
+end
+
 local function updateScoreBarVisuals()
 	if not widgetState.document then
 		return
 	end
 	
 	local dm = widgetState.dmHandle
+	local allyTeams = widgetState.allyTeamData
 	
 	-- Update round info
 	local roundInfoElement = widgetState.document:GetElementById("round-info")
@@ -215,60 +276,44 @@ local function updateScoreBarVisuals()
 			dm.currentRound, dm.pointsCap, minutes, seconds)
 	end
 	
-	-- Update the first score bar
-	if dm.firstAllyName then
-		-- Update ally team name
-		local nameElement = widgetState.document:GetElementById("ally-name-1")
-		if nameElement and nameElement.child_nodes and nameElement.child_nodes[1] then
-			nameElement.child_nodes[1].inner_rml = dm.firstAllyName
-		end
+	-- Get or clear the score columns container
+	local columnsContainer = widgetState.document:GetElementById("score-columns")
+	if not columnsContainer then
+		return
+	end
+	
+	-- Clear existing score bars
+	columnsContainer.inner_rml = ""
+	widgetState.scoreElements = {}
+	
+	-- Create score bars for each ally team
+	for i, allyTeam in ipairs(allyTeams) do
+		local scoreBarElements = createScoreBarElement(columnsContainer, allyTeam, i)
+		widgetState.scoreElements[i] = scoreBarElements
 		
-		-- Update score value
-		local scoreElement = widgetState.document:GetElementById("score-value-1")
-		if scoreElement and scoreElement.child_nodes and scoreElement.child_nodes[1] then
-			scoreElement.child_nodes[1].inner_rml = tostring(dm.firstAllyScore)
+		-- Update projected width
+		local projectedWidth = "0%"
+		if dm.pointsCap > 0 then
+			projectedWidth = string.format("%f%%", (allyTeam.projectedPoints / dm.pointsCap) * 100)
 		end
+		scoreBarElements.projectedElement.style.width = projectedWidth
 		
-		-- Update projected score bar
-		local projectedElement = widgetState.document:GetElementById("projected-fill-1")
-		if projectedElement then
-			-- Calculate projected width
-			local projectedWidth = "0%"
-			if dm.pointsCap > 0 then
-				projectedWidth = string.format("%f%%", (dm.firstAllyProjectedPoints / dm.pointsCap) * 100)
-			end
-			projectedElement.style.width = projectedWidth
-			
-			-- Use real team color instead of hardcoded CSS class
-			-- Get the color from the ally team data
-			local allyTeams = widgetState.allyTeamData
-			if #allyTeams > 0 then
-				local allyTeam = allyTeams[1]
-				local projectedColor = string.format("rgba(%d, %d, %d, 0.6)", 
-					allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
-				projectedElement:SetAttribute("style", "background-color: " .. projectedColor)
-			end
-		end
+		-- Set projected color
+		local projectedColor = string.format("rgba(%d, %d, %d, 150)", 
+			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+		scoreBarElements.projectedElement.style["background-color"] = projectedColor
 		
-		-- Update current score bar
-		local fillElement = widgetState.document:GetElementById("score-fill-1")
-		if fillElement then
-			-- Calculate fill width
-			local fillWidth = "0%"
-			if dm.pointsCap > 0 then
-				fillWidth = string.format("%f%%", (dm.firstAllyScore / dm.pointsCap) * 100)
-			end
-			fillElement.style.width = fillWidth
-			
-			-- Use real team color instead of hardcoded CSS class
-			local allyTeams = widgetState.allyTeamData
-			if #allyTeams > 0 then
-				local allyTeam = allyTeams[1]
-				local fillColor = string.format("rgb(%d, %d, %d)", 
-					allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
-				fillElement:SetAttribute("style", "background-color: " .. fillColor)
-			end
+		-- Update fill width
+		local fillWidth = "0%"
+		if dm.pointsCap > 0 then
+			fillWidth = string.format("%f%%", (allyTeam.score / dm.pointsCap) * 100)
 		end
+		scoreBarElements.fillElement.style.width = fillWidth
+		
+		-- Set fill color
+		local fillColor = string.format("rgba(%d, %d, %d, 230)", 
+			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+		scoreBarElements.fillElement.style["background-color"] = fillColor
 	end
 end
 
@@ -280,24 +325,11 @@ local function updateDataModel()
 	local allyTeams = updateAllyTeamData()
 	local roundInfo = updateRoundInfo()
 	
-	-- Update the data model using the correct pattern from working examples
-	-- Access the data model directly like in the working example
+	-- Update the data model with array-based approach
 	local dm = widgetState.dmHandle
 	
-	-- Update direct properties instead of arrays
-	if #allyTeams > 0 then
-		local allyTeam = allyTeams[1]
-		dm.firstAllyName = allyTeam.name
-		dm.firstAllyScore = allyTeam.score
-		dm.firstAllyProjectedPoints = allyTeam.projectedPoints
-		dm.firstAllyTeamID = allyTeam.allyTeamID
-		
-		-- Get the actual team color and update CSS dynamically
-		local teamColor = getAllyTeamColor(allyTeam.allyTeamID)
-		-- Store team color in data model for potential use
-		dm.firstAllyTeamColor = string.format("rgb(%d, %d, %d)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255)
-		dm.firstAllyProjectedColor = string.format("rgba(%d, %d, %d, 0.6)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255)
-	end
+	-- Store all ally teams in the data model
+	dm.allyTeams = allyTeams
 	
 	dm.currentRound = roundInfo.currentRound
 	dm.roundEndTime = roundInfo.roundEndTime
