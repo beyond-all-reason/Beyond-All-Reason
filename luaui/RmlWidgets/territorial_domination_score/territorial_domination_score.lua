@@ -82,37 +82,34 @@ local function updateAllyTeamData()
 		local teamList = spGetTeamList(allyTeamID)
 		
 		if teamList and #teamList > 0 then
-			local score = 0
-			local projectedPoints = 0
+			-- Get score and projected points from the first team in the ally team
+			local firstTeamID = teamList[1]
+			local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
+			local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
 			
-			for _, teamID in ipairs(teamList) do
-				local teamScore = spGetTeamRulesParam(teamID, "territorialDominationScore") or 0
-				local teamProjected = spGetTeamRulesParam(teamID, "territorialDominationProjectedPoints") or 0
-				score = math.max(score, teamScore)
-				projectedPoints = math.max(projectedPoints, teamProjected)
-			end
-			
-			-- Get team color
+			-- Get team color from the first team
 			local teamColor = getAllyTeamColor(allyTeamID)
 			
 			-- Include all ally teams, even with 0 scores, so we can see the full competition
 			table.insert(validAllyTeams, {
 				name = "Ally " .. (allyTeamID + 1),
 				allyTeamID = allyTeamID,
+				firstTeamID = firstTeamID,
 				score = score,
 				projectedPoints = projectedPoints,
 				color = teamColor, -- Store the raw RGB values
-				bgColor = string.format("rgba(%d, %d, %d, 200)", teamColor.r * 51, teamColor.g * 51, teamColor.b * 51),
-				projectedColor = string.format("rgba(%d, %d, %d, 150)", teamColor.r * 204, teamColor.g * 204, teamColor.b * 204),
-				fillColor = string.format("rgba(%d, %d, %d, 230)", teamColor.r * 255, teamColor.g * 255, teamColor.b * 255),
-				projectedWidth = "0%",
-				fillWidth = "0%",
 				teamCount = #teamList,
 			})
 		end
 	end
 	
-	table.sort(validAllyTeams, function(a, b) return a.score > b.score end)
+	-- Sort by score descending (highest first)
+	table.sort(validAllyTeams, function(a, b) 
+		if a.score == b.score then
+			return a.allyTeamID < b.allyTeamID -- Secondary sort by ally team ID for consistency
+		end
+		return a.score > b.score 
+	end)
 	
 	widgetState.allyTeamData = validAllyTeams
 	return validAllyTeams
@@ -124,14 +121,23 @@ local function updateRoundInfo()
 	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
 	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
 	
-	-- Calculate current round based on time elapsed
-	local currentTime = Spring.GetGameSeconds()
-	local roundDuration = 300 -- 5 minutes per round from the game config
-	local currentRound = math.floor((currentTime - (roundEndTime - roundDuration)) / roundDuration) + 1
-	currentRound = math.max(1, math.min(currentRound, 7)) -- Clamp between 1 and 7 (max rounds)
+	-- Get current round directly from game rules if available
+	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 1
 	
-	-- Calculate time remaining
-	local timeRemaining = math.max(0, roundEndTime - currentTime)
+	-- If not available, calculate based on game time
+	if currentRound <= 0 then
+		local currentTime = Spring.GetGameSeconds()
+		local roundDuration = spGetGameRulesParam("territorialDominationRoundDuration") or 300 -- Default 5 minutes
+		local gameStartOffset = spGetGameRulesParam("territorialDominationStartTime") or 0
+		
+		-- Calculate which round we're in
+		local elapsedTime = currentTime - gameStartOffset
+		currentRound = math.floor(elapsedTime / roundDuration) + 1
+		currentRound = math.max(1, math.min(currentRound, 7)) -- Clamp between 1 and 7 (max rounds)
+	end
+	
+	-- Calculate time remaining in current round
+	local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
 	local minutes = math.floor(timeRemaining / 60)
 	local seconds = math.floor(timeRemaining % 60)
 	local timeString = string.format("%02d:%02d", minutes, seconds)
@@ -166,14 +172,19 @@ local function calculateUILayout()
 	
 	local allyTeamCount = #widgetState.allyTeamData
 	Spring.Echo(WIDGET_NAME .. ": allyTeamCount = " .. tostring(allyTeamCount))
-	local barWidth = minimapSizeX
+	
+	-- Calculate column layout (max 8 teams per column)
+	local teamsPerColumn = math.min(8, allyTeamCount)
+	local numColumns = math.ceil(allyTeamCount / teamsPerColumn)
+	local barWidth = minimapSizeX / numColumns
 	local spacing = 4
 	
 	-- Position the score display below the minimap
 	local scorePosX = minimapPosX
-	-- Calculate total height needed for all score bars
-	local singleBarHeight = 40 -- Height of one score bar
-	local totalScoreHeight = (allyTeamCount * singleBarHeight) + ((allyTeamCount - 1) * spacing) + 20 -- padding
+	-- Calculate total height needed (based on max teams per column)
+	local singleBarHeight = 36 -- Height of one score bar
+	local maxBarsInColumn = math.ceil(allyTeamCount / numColumns)
+	local totalScoreHeight = (maxBarsInColumn * singleBarHeight) + ((maxBarsInColumn - 1) * spacing) + 20 -- padding
 	local topPadding = 8 -- Top padding from CSS
 	local borderRadius = 4 -- Border radius from CSS
 	local scorePosY = minimapPosY - minimapSizeY - totalScoreHeight + topPadding + borderRadius -- Position below minimap accounting for total height
@@ -200,10 +211,7 @@ local function calculateUILayout()
 		end
 	end
 end
-local function createScoreBarElement(container, allyTeam, index)
-	local barDiv = widgetState.document:CreateElement("div")
-	barDiv.class_name = "score-column"
-	
+local function createScoreBarElement(columnDiv, allyTeam, index)
 	local scoreBarDiv = widgetState.document:CreateElement("div")
 	scoreBarDiv.class_name = "score-bar"
 	
@@ -246,11 +254,10 @@ local function createScoreBarElement(container, allyTeam, index)
 	scoreBarDiv:AppendChild(headerDiv)
 	scoreBarDiv:AppendChild(containerDiv)
 	
-	barDiv:AppendChild(scoreBarDiv)
-	container:AppendChild(barDiv)
+	columnDiv:AppendChild(scoreBarDiv)
 	
 	return {
-		container = barDiv,
+		container = scoreBarDiv,
 		nameElement = nameSpan,
 		scoreElement = scoreSpan,
 		projectedElement = projectedDiv,
@@ -268,12 +275,12 @@ local function updateScoreBarVisuals()
 	
 	-- Update round info
 	local roundInfoElement = widgetState.document:GetElementById("round-info")
-	if roundInfoElement and roundInfoElement.child_nodes and roundInfoElement.child_nodes[1] then
+	if roundInfoElement then
 		local timeRemaining = math.max(0, dm.roundEndTime - Spring.GetGameSeconds())
 		local minutes = math.floor(timeRemaining / 60)
 		local seconds = math.floor(timeRemaining % 60)
-		roundInfoElement.child_nodes[1].inner_rml = string.format("Round %d | Cap: %d | Time: %02d:%02d", 
-			dm.currentRound, dm.pointsCap, minutes, seconds)
+		roundInfoElement.inner_rml = string.format("Round %d - %02d:%02d - Cap: %d", 
+			dm.currentRound, minutes, seconds, dm.pointsCap)
 	end
 	
 	-- Get or clear the score columns container
@@ -286,31 +293,51 @@ local function updateScoreBarVisuals()
 	columnsContainer.inner_rml = ""
 	widgetState.scoreElements = {}
 	
-	-- Create score bars for each ally team
+	local numTeams = #allyTeams
+	if numTeams == 0 then
+		return
+	end
+	
+	-- Calculate column layout (max 8 teams per column)
+	local teamsPerColumn = math.min(8, numTeams)
+	local numColumns = math.ceil(numTeams / teamsPerColumn)
+	
+	-- Create columns
+	local columns = {}
+	for i = 1, numColumns do
+		local columnDiv = widgetState.document:CreateElement("div")
+		columnDiv.class_name = "score-column"
+		columnsContainer:AppendChild(columnDiv)
+		columns[i] = columnDiv
+	end
+	
+	-- Distribute teams across columns
 	for i, allyTeam in ipairs(allyTeams) do
-		local scoreBarElements = createScoreBarElement(columnsContainer, allyTeam, i)
+		local columnIndex = math.ceil(i / teamsPerColumn)
+		local scoreBarElements = createScoreBarElement(columns[columnIndex], allyTeam, i)
 		widgetState.scoreElements[i] = scoreBarElements
 		
-		-- Update projected width
+		-- Calculate projected width (lighter color for projected points)
 		local projectedWidth = "0%"
 		if dm.pointsCap > 0 then
-			projectedWidth = string.format("%f%%", (allyTeam.projectedPoints / dm.pointsCap) * 100)
+			local totalProjected = allyTeam.score + allyTeam.projectedPoints
+			projectedWidth = string.format("%.1f%%", math.min(100, (totalProjected / dm.pointsCap) * 100))
 		end
 		scoreBarElements.projectedElement.style.width = projectedWidth
 		
-		-- Set projected color
-		local projectedColor = string.format("rgba(%d, %d, %d, 150)", 
+		-- Set projected color (lighter version of team color)
+		local projectedColor = string.format("rgba(%d, %d, %d, 100)", 
 			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
 		scoreBarElements.projectedElement.style["background-color"] = projectedColor
 		
-		-- Update fill width
+		-- Calculate current score width
 		local fillWidth = "0%"
 		if dm.pointsCap > 0 then
-			fillWidth = string.format("%f%%", (allyTeam.score / dm.pointsCap) * 100)
+			fillWidth = string.format("%.1f%%", math.min(100, (allyTeam.score / dm.pointsCap) * 100))
 		end
 		scoreBarElements.fillElement.style.width = fillWidth
 		
-		-- Set fill color
+		-- Set fill color (full opacity team color)
 		local fillColor = string.format("rgba(%d, %d, %d, 230)", 
 			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
 		scoreBarElements.fillElement.style["background-color"] = fillColor

@@ -11,8 +11,8 @@
 
 .score-columns {
 	display: flex;
-	flex-direction: column;
-	gap: 4px;
+	flex-direction: row;
+	gap: 8px;
 }
 
 .score-column {
