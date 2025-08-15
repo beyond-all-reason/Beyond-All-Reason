@@ -116,38 +116,41 @@ if gadgetHandler:IsSyncedCode() then
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-	local function skipEvolutions(evolutionOld, newUnitName)
-		local timeCreated = evolutionOld.timeCreated or 0
+	local function skipEvolutions(evolutionCurrent)
+		local newUnitName = evolutionCurrent.evolution_target
+		if evolutionCurrent.evolution_condition ~= 'timer' and evolutionCurrent.evolution_condition ~= 'timer_global' then
+			return newUnitName, 0
+		end
 		local now = spGetGameSeconds()
 		local evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
-		local delayedSeconds = now - timeCreated
+
+		local delayedSeconds = 0
+		if evolutionCurrent.evolution_condition == 'timer' then
+			delayedSeconds = (now - (evolutionCurrent.timeCreated or 0)) - (evolutionCurrent.evolution_timer or 0)
+		end
 
 		while evolution and evolution.evolution_condition and evolution.evolution_timer and evolution.evolution_target do
 			if evolution.evolution_condition == "timer" then
-				if delayedSeconds >= tonumber(evolution.evolution_timer) then
-					delayedSeconds = delayedSeconds - tonumber(evolution.evolution_timer)
-					newUnitName = evolution.evolution_target
-					evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
-				else
+				if delayedSeconds < tonumber(evolution.evolution_timer) then
 					break
 				end
+				delayedSeconds = delayedSeconds - tonumber(evolution.evolution_timer)
+				newUnitName = evolution.evolution_target
+				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
 			elseif evolution.evolution_condition == "timer_global" then
-				if now >= tonumber(evolution.evolution_timer) then
-					delayedSeconds = now - tonumber(evolution.evolution_timer)
-					newUnitName = evolution.evolution_target
-					evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
-				else
+				if now < tonumber(evolution.evolution_timer) then
 					break
 				end
-			else
-				break
+				delayedSeconds = 0
+				newUnitName = evolution.evolution_target
+				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
 			end
 		end
 
 		return newUnitName, delayedSeconds
 	end
 
-	local function evolve(unitID, toUnitName)
+	local function evolve(unitID)
 		local evolution = evolutionMetaList[unitID]
 		evolutionMetaList[unitID] = nil
 
@@ -167,7 +170,7 @@ if gadgetHandler:IsSyncedCode() then
 		local commandQueue = Spring.GetUnitCommands(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
-		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution, toUnitName)
+		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution)
 		if not UnitDefNames[toUnitNameSkipped] then
 			return
 		end
@@ -306,7 +309,7 @@ if gadgetHandler:IsSyncedCode() then
 			if evolution.evolution_condition == "health" then
 				local h = spGetUnitHealth(unitID)
 				if (h-damage) <= evolution.evolution_health_threshold then
-						evolve(unitID, evolution.evolution_target)
+						evolve(unitID)
 						return 0, 0
 				end
 			end
