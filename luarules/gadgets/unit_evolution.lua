@@ -407,7 +407,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
-					evolve(unitID, evolution.evolution_target)
+					evolve(unitID)
 			end
 
 			lastCheckIndex = lastCheckIndex + 1
