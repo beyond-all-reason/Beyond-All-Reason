@@ -91,10 +91,18 @@ function widget:Update(dt)
             camState.dx = oldCam.dx
             camState.dy = oldCam.dy
             camState.dz = oldCam.dz
-            camState.rx = oldCam.rx
-            camState.ry = math.clamp(oldCam.ry, -6.5, 6.5)
-            camState.rz = oldCam.rz
-            camState.angle = oldCam.angle
+            if oldCam.rx then
+                camState.rx = oldCam.rx
+            end
+            if oldCam.ry and oldCam.name == "spring" then
+                camState.ry = math.clamp(oldCam.ry, -6.5, 6.5)
+            end
+            if oldCam.rz then
+                camState.rz = oldCam.rz
+            end
+            if oldCam.angle then
+                camState.angle = oldCam.angle
+            end
         else
             camState.dx = 0
             camState.dy = -0.85
@@ -116,7 +124,7 @@ function widget:Update(dt)
         WG["IntroCameraIsDone"] = true
         
         local camState = Spring.GetCameraState()
-        if camState.ry > 6.5 or camState.ry < -6.5 then
+        if camState.ry and (camState.ry > 6.5 or camState.ry < -6.5) then
             camState.ry = 0
             Spring.SetCameraState(camState, 0)
         end
