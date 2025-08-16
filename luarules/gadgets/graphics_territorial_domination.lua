@@ -11,17 +11,9 @@ function gadget:GetInfo()
 	}
 end
 
---[[
-todo
-I suspect isVisible is about showing the values it currently has, not whether or not the thing is in LOS or radar range
-]]
-
-
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then 
-	return false 
-end
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then return false end
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -43,23 +35,11 @@ local CAPTURE_SOUND_VOLUME = 1.0
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
 local NOTIFY_DELAY = math.floor(Game.gameSpeed * 1)
 
--- Debug mode settings
-local DEBUGMODE = true
-local DEBUG_PLACEHOLDER_VALUE = 69
-
 local squareVBO = nil
 local squareVAO = nil
 local squareShader = nil
 local instanceVBO = nil
 local cachedMinimapFlipped = nil
-
--- Number rendering system
-local numberVBO = nil
-local numberVAO = nil
-local numberShader = nil
-local numberInstanceVBO = nil
-local numberTexture = "LuaUI/Images/healtbars_exo4.tga" -- Reuse healthbars texture atlas
-local numberShaderUniformsInitialized = false
 
 local cachedIsMinimapRendering = nil
 local cachedCameraHeights = { min = nil, max = nil }
@@ -91,12 +71,6 @@ local planeLayout = {
 	{ id = 1, name = 'posscale', size = 4 }, -- a vec4 for pos + scale
 	{ id = 2, name = 'ownercolor', size = 4 }, -- vec4 the color of this square
 	{ id = 3, name = 'capturestate', size = 4 }, -- vec4 speed, progress, startframe, showSquareTimestamp
-}
-
-local numberLayout = {
-	{ id = 1, name = 'position', size = 4 }, -- vec4 position and scale
-	{ id = 2, name = 'numberdata', size = 4 }, -- vec4 attackerValue, defenderValue, uvOffset, alpha
-	{ id = 3, name = 'color', size = 4 }, -- vec4 text color
 }
 
 local vertexShaderSource = [[
@@ -295,174 +269,6 @@ void main() {
 }
 ]]
 
-local numberVertexShaderSource = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-layout (location = 0) in vec4 vertexPosition;
-layout (location = 1) in vec4 instancePosition;
-layout (location = 2) in vec4 numberData;
-layout (location = 3) in vec4 textColor;
-
-out VertexData {
-	vec4 color;
-	float attackerValue;
-	float defenderValue;
-	float alpha;
-	vec3 worldPosition;
-} vs_out;
-
-void main() {
-	// Position in world space
-	vs_out.worldPosition = instancePosition.xyz;
-	vs_out.worldPosition.y += 50.0; // Offset above the square
-	
-	vs_out.color = textColor;
-	vs_out.attackerValue = numberData.x;
-	vs_out.defenderValue = numberData.y;
-	vs_out.alpha = numberData.w;
-	
-	gl_Position = cameraViewProj * vec4(vs_out.worldPosition, 1.0);
-}
-]]
-
-local numberGeometryShaderSource = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-layout(points) in;
-layout(triangle_strip, max_vertices = 24) out;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-in VertexData {
-	vec4 color;
-	float attackerValue;
-	float defenderValue;
-	float alpha;
-	vec3 worldPosition;
-} vs_in[];
-
-out GeomData {
-	vec4 g_color;
-	vec4 g_uv; // xy is uv coords, z is texture blend factor, w unused
-} gs_out;
-
-mat3 rotY;
-vec3 centerPos;
-float digitSize = 40.0;
-
-#define ATLASSTEP 0.0625
-#define HALFPIXEL 0.0019765625
-
-void emitVertexGlyph(in vec2 pos, in vec2 uv) {
-	gs_out.g_uv.xy = vec2(uv.x, 1.0 - uv.y);
-	vec3 primitiveCoords = vec3(pos.x, 0.0, pos.y) * digitSize;
-	gl_Position = cameraViewProj * vec4(centerPos + rotY * primitiveCoords, 1.0);
-	gs_out.g_uv.z = 1.0; // this tells fragment shader to use texture
-	EmitVertex();
-}
-
-void emitGlyph(vec2 bottomLeft, vec2 uvBottomLeft, vec2 uvSizes) {
-	emitVertexGlyph(vec2(bottomLeft.x, bottomLeft.y), vec2(uvBottomLeft.x + HALFPIXEL, uvBottomLeft.y + HALFPIXEL));
-	emitVertexGlyph(vec2(bottomLeft.x, bottomLeft.y + 1.0), vec2(uvBottomLeft.x + HALFPIXEL, uvBottomLeft.y + uvSizes.y - HALFPIXEL));
-	emitVertexGlyph(vec2(bottomLeft.x + 1.0, bottomLeft.y), vec2(uvBottomLeft.x + uvSizes.x - HALFPIXEL, uvBottomLeft.y + HALFPIXEL));
-	emitVertexGlyph(vec2(bottomLeft.x + 1.0, bottomLeft.y + 1.0), vec2(uvBottomLeft.x + uvSizes.x - HALFPIXEL, uvBottomLeft.y + uvSizes.y - HALFPIXEL));
-	EndPrimitive();
-}
-
-void main() {
-	centerPos = vs_in[0].worldPosition;
-	
-	// Set up camera-aligned coordinate system (same as healthbars)
-	rotY = mat3(cameraViewInv[0].xyz, cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
-	
-	float attackerVal = vs_in[0].attackerValue;
-	float defenderVal = vs_in[0].defenderValue;
-	
-	// Skip if no values to display
-	if (attackerVal <= 0.0 && defenderVal <= 0.0) return;
-	
-	float currentGlyphPos = 0.0;
-	
-	// Render attacker value (green, higher above center)
-	if (attackerVal > 0.0) {
-		gs_out.g_color = vec4(0.0, 1.0, 0.0, vs_in[0].alpha); // Green color
-		
-		// Extract digits like healthbars does
-		float lsb = floor(mod(attackerVal, 10.0));
-		float msb = floor(mod(attackerVal * 0.1, 10.0));
-		
-		// Position higher above center
-		vec2 basePos = vec2(currentGlyphPos, 2.0);
-		
-		// Emit digits right-to-left (healthbars style)
-		emitGlyph(vec2(basePos.x - 1.0, basePos.y), vec2(0, lsb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // ones digit
-		if (msb > 0.0) {
-			emitGlyph(vec2(basePos.x - 2.0, basePos.y), vec2(0, msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // tens digit
-		}
-	}
-	
-	// Render defender value (red, slightly above center to avoid terrain clipping)  
-	if (defenderVal > 0.0) {
-		gs_out.g_color = vec4(1.0, 0.0, 0.0, vs_in[0].alpha); // Red color
-		
-		// Extract digits like healthbars does
-		float lsb = floor(mod(defenderVal, 10.0));
-		float msb = floor(mod(defenderVal * 0.1, 10.0));
-		
-		// Position just above center (avoid terrain clipping)
-		vec2 basePos = vec2(currentGlyphPos, 0.5);
-		
-		// Emit digits right-to-left (healthbars style)
-		emitGlyph(vec2(basePos.x - 1.0, basePos.y), vec2(0, lsb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // ones digit
-		if (msb > 0.0) {
-			emitGlyph(vec2(basePos.x - 2.0, basePos.y), vec2(0, msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // tens digit
-		}
-	}
-}
-]]
-
-local numberFragmentShaderSource = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-uniform sampler2D numberTexture;
-
-in GeomData {
-	vec4 g_color;
-	vec4 g_uv; // xy is uv coords, z is texture blend factor, w unused
-} gs_in;
-
-out vec4 fragmentColor;
-
-void main() {
-	vec4 textureColor = texture(numberTexture, gs_in.g_uv.xy);
-	
-	// Blend texture with color based on z component (same as healthbars)
-	if (gs_in.g_uv.z > 0.5) {
-		// Use texture (for text/numbers)
-		fragmentColor = vec4(gs_in.g_color.rgb, textureColor.a * gs_in.g_color.a);
-	} else {
-		// Use solid color (for bars - not used in our case)
-		fragmentColor = gs_in.g_color;
-	}
-}
-]]
-
 local function initializeAllyColors()
 	for _, teamID in ipairs(allTeams) do
 		local allyID = select(6, Spring.GetTeamInfo(teamID))
@@ -520,36 +326,9 @@ local function createShader()
 
 	local shaderCompiled = squareShader:Initialize()
 	if not shaderCompiled then
-	
+		Spring.Echo("Failed to compile territory square shader")
 		return false
 	end
-	return true
-end
-
-local function createNumberShader()
-
-	local engineUniformBufferDefinitions = LuaShader.GetEngineUniformBufferDefs()
-	local processedVertexShader = numberVertexShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
-	local processedGeometryShader = numberGeometryShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
-	local processedFragmentShader = numberFragmentShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
-	local minCameraHeight, maxCameraHeight = getMaxCameraHeight()
-
-	numberShader = LuaShader({
-		vertex = processedVertexShader,
-		geometry = processedGeometryShader,
-		fragment = processedFragmentShader,
-		uniformInt = {
-			numberTexture = 0,
-		},
-	}, "territoryNumberShader")
-
-	local shaderCompiled = numberShader:Initialize()
-	if not shaderCompiled then
-	
-		return false
-	end
-	
-
 	return true
 end
 
@@ -627,53 +406,6 @@ local function updateGridSquareInstanceVBO(gridID, posScale, instanceColor, capt
 	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
 end
 
-local function updateNumberInstanceVBO(gridID, position, ownerRoundEndValue, attackerCaptureValue, alpha)
-	if not numberInstanceVBO then
-		return
-	end
-
-	local instanceData = {
-		position[1], position[2], position[3], 1.0, -- position
-		ownerRoundEndValue, attackerCaptureValue, 0.0, alpha, -- numberdata: ownerRoundEndValue, attackerCaptureValue, uvOffset, alpha
-		1.0, 1.0, 1.0, 1.0 -- color: white (will be overridden in shader)
-	}
-	pushElementInstance(numberInstanceVBO, instanceData, gridID, true, false)
-end
-
-local function initializeNumberVBO()
-	-- Create point VBO for number rendering (geometry shader handles quad generation)
-	numberVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	if numberVBO == nil then 
-		return false 
-	end
-
-	local VBOLayout = {
-		{ id = 0, name = "position", size = 4 },
-	}
-
-	-- Single point for each number instance
-	local vertexData = { 0, 0, 0, 1 }
-	numberVBO:Define(1, VBOLayout)
-	numberVBO:Upload(vertexData)
-
-	-- Create instance VBO for number data
-	numberInstanceVBO = makeInstanceVBOTable(numberLayout, 512, "territory_number_shader")
-	if not numberInstanceVBO then
-		return false
-	end
-	
-	numberInstanceVBO.vertexVBO = numberVBO
-	numberInstanceVBO.numVertices = 1
-	numberInstanceVBO.primitiveType = GL.POINTS
-
-	numberVAO = makeVAOandAttach(numberVBO, numberInstanceVBO.instanceVBO)
-	numberInstanceVBO.VAO = numberVAO
-	uploadAllElements(numberInstanceVBO)
-	
-
-	return createNumberShader()
-end
-
 local function initializeOpenGL4()
 	local planeResolution = 32
 	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
@@ -688,16 +420,7 @@ local function initializeOpenGL4()
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
 	uploadAllElements(instanceVBO)
-	
-	if not createShader() then 
-		return false 
-	end
-	
-	if not initializeNumberVBO() then 
-		return false 
-	end
-	
-	return true
+	return createShader()
 end
 
 function gadget:Initialize()
@@ -727,8 +450,6 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArr
 
 	return isCurrentlyVisible, shouldResetColor
 end
-
-
 
 local function notifyCapture(gridID)
 	local gridData = captureGrid[gridID]
@@ -761,7 +482,7 @@ local function updateGridSquareColor(gridData)
 end
 
 local function processSpectatorModeChange()
-	local currentSpectating = true -- zzz always true
+	local currentSpectating = Spring.GetSpectatingState()
 	local currentAllyID = Spring.GetMyAllyTeamID()
 
 	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then
@@ -780,14 +501,6 @@ local function processSpectatorModeChange()
 end
 
 local function updateGridSquareVisuals()
-	-- Clear number instances first to avoid stale data
-	if numberInstanceVBO then
-		for gridID in pairs(captureGrid) do
-			numberInstanceVBO.instanceIDtoIndex[gridID] = nil
-		end
-		numberInstanceVBO.usedElements = 0
-	end
-	
 	for gridID, _ in pairs(captureGrid) do
 		local gridData = captureGrid[gridID]
 
@@ -804,67 +517,15 @@ local function updateGridSquareVisuals()
 			gridData.currentColor,
 			{ captureChangePerFrame, gridData.oldProgress, currentFrame, gridData.showSquareTimestamp }
 		)
-		
-		-- Calculate display values:
-		-- Green: How much current owner gets at round end
-		-- Red: How much attacker gets immediately upon capture
-		local ownerRoundEndValue = gridData.ownerRoundEndValue or (DEBUGMODE and DEBUG_PLACEHOLDER_VALUE or 0)
-		local attackerCaptureValue = gridData.attackerCaptureValue or (DEBUGMODE and DEBUG_PLACEHOLDER_VALUE or 0)
-		
-		-- Show numbers for squares with values, but only if the square is visible to this player
-		-- This mirrors the existing visibility behavior from the game gadget
-		local shouldShowNumbers = (ownerRoundEndValue > 0 or attackerCaptureValue > 0) and gridData.isVisible
-		
-		-- If we can't show current values, try to show previously known values
-		local displayOwnerValue = ownerRoundEndValue
-		local displayAttackerValue = attackerCaptureValue
-		
-		if not shouldShowNumbers then
-			-- Use previously known values if current ones aren't available
-			displayOwnerValue = gridData.previousOwnerValue or ownerRoundEndValue
-			displayAttackerValue = gridData.previousAttackerValue or attackerCaptureValue
-			
-			-- Only show previous values if we have them and they're greater than 0
-			local hasPreviousValues = (displayOwnerValue > 0 or displayAttackerValue > 0)
-			if hasPreviousValues then
-				shouldShowNumbers = true
-			end
-		end
-		
-		if shouldShowNumbers then
-			-- Sample terrain height at this grid location (same as territorial squares do)
-			local terrainHeight = Spring.GetGroundHeight(gridData.gridMidpointX, gridData.gridMidpointZ) or 0
-			local numberHeight = terrainHeight + SQUARE_HEIGHT + 50 -- Terrain + square offset + extra height for numbers
-			
-			updateNumberInstanceVBO(
-				gridID,
-				{ gridData.gridMidpointX, numberHeight, gridData.gridMidpointZ },
-				displayOwnerValue,
-				displayAttackerValue,
-				1.0
-			)
-		end
-		
-		-- Store current values as previous for next frame (only if they're valid)
-		if ownerRoundEndValue > 0 then
-			gridData.previousOwnerValue = ownerRoundEndValue
-		end
-		if attackerCaptureValue > 0 then
-			gridData.previousAttackerValue = attackerCaptureValue
-		end
-		
 		gridData.captureChange = nil
 	end
 
 	uploadAllElements(instanceVBO)
-	if numberInstanceVBO then
-		uploadAllElements(numberInstanceVBO)
-	end
 end
 
 function gadget:RecvFromSynced(messageName, ...)
 	if messageName == "InitializeGridSquare" then
-		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray, attackerCaptureValue, ownerRoundEndValue = ...
+		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray = ...
 		local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
 		captureGrid[gridID] = {
 			visibilityArray = visibilityArray,
@@ -876,22 +537,18 @@ function gadget:RecvFromSynced(messageName, ...)
 			gridMidpointZ = gridMidpointZ,
 			isVisible = isVisible,
 			currentColor = blankColor,
-			showSquareTimestamp = 0,
-			ownerRoundEndValue = ownerRoundEndValue,
-			attackerCaptureValue = attackerCaptureValue
+			showSquareTimestamp = 0
 		}
 	elseif messageName == "InitializeConfigs" then
 		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
 	elseif messageName == "UpdateGridSquare" then
-		local gridID, allyOwnerID, progress, visibilityArray, attackerCaptureValue, ownerRoundEndValue = ...
+		local gridID, allyOwnerID, progress, visibilityArray = ...
 		local gridData = captureGrid[gridID]
 		if gridData then
 			local ignoredProgress = 0.01
 			local oldAllyOwnerID = gridData.allyOwnerID
 			gridData.visibilityArray = visibilityArray
 			gridData.allyOwnerID = allyOwnerID
-			gridData.ownerRoundEndValue = ownerRoundEndValue
-			gridData.attackerCaptureValue = attackerCaptureValue
 
 			gridData.isVisible, _ = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
 			if progress < ignoredProgress and oldAllyOwnerID == myAllyID then
@@ -915,14 +572,9 @@ function gadget:RecvFromSynced(messageName, ...)
 					doCaptureEffects(gridID)
 				end
 			end
-							if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
+			if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
 				gridData.playedCapturedSound = false
 			end
-			
-			-- Update attacker and defender values
-			gridData.attackerCaptureValue = attackerCaptureValue or DEBUG_PLACEHOLDER_VALUE
-			gridData.ownerRoundEndValue = ownerRoundEndValue or DEBUG_PLACEHOLDER_VALUE
-
 		end
 	end
 end
@@ -972,13 +624,6 @@ local function updateCameraHeightUniforms()
 		cachedCameraHeights.max = maxCameraHeight
 		squareShader:SetUniformFloat("minCameraDrawHeight", minCameraHeight)
 		squareShader:SetUniformFloat("maxCameraDrawHeight", maxCameraHeight)
-		
-		if numberShader and numberShaderUniformsInitialized then
-			numberShader:Activate()
-			numberShader:SetUniformFloat("minCameraDrawHeight", minCameraHeight)
-			numberShader:SetUniformFloat("maxCameraDrawHeight", maxCameraHeight)
-			numberShader:Deactivate()
-		end
 	end
 	
 	cameraHeightUpdateNeeded = false
@@ -1017,30 +662,6 @@ function gadget:DrawWorldPreUnit()
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 
 	squareShader:Deactivate()
-	
-	-- Create number shader on first draw call if not created yet
-	if not numberShader and numberVAO and numberInstanceVBO then
-		createNumberShader()
-	end
-	
-	-- Draw numbers
-	if numberShader and numberVAO and numberInstanceVBO and numberInstanceVBO.usedElements > 0 then
-		local cameraPosX, cameraPosY, cameraPosZ = Spring.GetCameraPosition()
-
-		gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.DepthMask(false)
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)  -- Ensure filled triangles, not wireframe
-		
-		numberShader:Activate()
-		glTexture(0, numberTexture)
-
-		numberInstanceVBO.VAO:DrawArrays(GL.POINTS, numberInstanceVBO.numVertices, 0, numberInstanceVBO.usedElements, 0)
-		numberShader:Deactivate()
-		
-		gl.DepthMask(true)
-		gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	end
-	
 	glTexture(0, false)
 	glDepthTest(false)
 end
@@ -1071,14 +692,4 @@ function gadget:Shutdown()
 	if squareShader then
 		squareShader:Finalize()
 	end
-	if numberVBO then
-		numberVBO:Delete()
-	end
-	if numberInstanceVBO and numberInstanceVBO.instanceVBO then
-		numberInstanceVBO.instanceVBO:Delete()
-	end
-	if numberShader then
-		numberShader:Finalize()
-	end
-	numberShaderUniformsInitialized = false
 end
