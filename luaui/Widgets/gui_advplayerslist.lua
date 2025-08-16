@@ -330,7 +330,7 @@ local forceMainListRefresh = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
+local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share_unit, m_share_resource, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
@@ -489,15 +489,27 @@ m_income = {
 }
 position = position + 1
 
-m_share = {
-    name = "share",
+m_share_unit = {
+    name = "share_unit",
     spec = false,
     play = true,
     active = true,
-    width = 50,
+    width = 4,
     position = position,
     posX = 0,
     pic = pics["sharePic"],
+}
+position = position + 1
+
+m_share_resource = {
+	name = "share_resource",
+	spec = false,
+	play = true,
+	active = true,
+	width = 50,
+	position = position,
+	posX = 0,
+	pic = pics["sharePic"],
 }
 position = position + 1
 
@@ -547,7 +559,8 @@ modules = {
     m_income,
     m_cpuping,
     m_alliance,
-    m_share,
+	m_share_unit,
+	m_share_resource,
     m_chat,
 }
 
@@ -565,11 +578,13 @@ m_take = {
 local specsLabelOffset = 0
 local enemyLabelOffset = 0
 
-local hideShareIcons = false
+local hideUnitShareIcon = false
+local hideResShareIcons = false
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
 if mySpecStatus or numTeamsInAllyTeam <= 1 then
-    hideShareIcons = true
+	hideUnitShareIcon = true
+	hideResShareIcons = true
 end
 
 local teamRanking = {}
@@ -589,8 +604,17 @@ function SetModulesPositionX()
     local sizeMult = playerScale + ((1-playerScale)*0.2)
     for _, module in ipairs(modules) do
         module.posX = pos
-        if module.active and (module.name ~= 'share' or not hideShareIcons) then
-			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) or (module.name == 'income' and playerScale < 0.7) then
+        if module.active then
+			-- custom spacing for unit share if resource share is disabled
+			if module.name == 'share_resource' or (module.name == 'share_unit' and m_share_resource.active == false) then
+				pos = pos + m_share_resource.width*sizeMult
+			end
+			if (module.name == 'cpuping' and isSinglePlayer) or
+				(module.name == 'resources' and isSingle) or
+				(module.name == 'income' and playerScale < 0.7) or
+				(module.name == 'share_unit' and not hideUnitShareIcon) or
+				(module.name == 'share_resource' and not hideResShareIcons)
+			then
 
 			else
 				if mySpecStatus then
@@ -769,7 +793,8 @@ function widget:PlayerChanged(playerID)
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
-        hideShareIcons = true
+		hideUnitShareIcon = true
+		hideResShareIcons = true
     end
     doPlayerUpdate()
 end
@@ -923,6 +948,7 @@ function widget:Initialize()
 		return modules[module].active
 	end
 	WG['advplayerlist_api'].SetModuleActive = function(value)
+		Spring.Echo("SetModuleActive", value)
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
@@ -2240,12 +2266,18 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                                 end
                             end
                         end
-                        if m_share.active and not dead and not hideShareIcons then
-                            DrawShareButtons(posY, needm, neede)
-                            if tipY then
-                                ShareTip(mouseX, playerID)
-                            end
-                        end
+						if m_share_unit.active and not dead and not hideUnitShareIcon then
+							DrawUnitShareButton(posY)
+							if tipY then
+								ShareUnitTip(mouseX, playerID)
+							end
+						end
+						if m_share_resource.active and not dead and not hideResShareIcons then
+							DrawResourceShareButtons(posY, needm, neede)
+							if tipY then
+								ShareResourcesTip(mouseX, playerID)
+							end
+						end
                     end
                     if drawAllyButton and not dead then
                         if tipY then
@@ -2377,25 +2409,30 @@ function DrawTakeSignal(posY)
     end
 end
 
-function DrawShareButtons(posY, needm, neede)
-    gl_Color(1, 1, 1, 1)
-    gl_Texture(pics["unitsPic"])
-    DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["energyPic"])
-    DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["metalPic"])
-    DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["lowPic"])
+function DrawUnitShareButton(posY)
+	gl_Color(1, 1, 1, 1)
+	gl_Texture(pics["unitsPic"])
+	DrawRect(m_share_unit.posX + widgetPosX + (1*playerScale), posY, m_share_unit.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
+	gl_Texture(false)
+end
 
-    if needm then
-        DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    end
+function DrawResourceShareButtons(posY, needm, neede)
+	gl_Color(1, 1, 1, 1)
+	gl_Texture(pics["energyPic"])
+	DrawRect(m_share_resource.posX + widgetPosX + (17*playerScale), posY, m_share_resource.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
+	gl_Texture(pics["metalPic"])
+	DrawRect(m_share_resource.posX + widgetPosX + (33*playerScale), posY, m_share_resource.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
+	gl_Texture(pics["lowPic"])
 
-    if neede then
-        DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    end
+	if needm then
+		DrawRect(m_share_resource.posX + widgetPosX + (33*playerScale), posY, m_share_resource.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
+	end
 
-    gl_Texture(false)
+	if neede then
+		DrawRect(m_share_resource.posX + widgetPosX + (17*playerScale), posY, m_share_resource.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
+	end
+
+	gl_Texture(false)
 end
 
 function DrawChatButton(posY)
@@ -2939,30 +2976,38 @@ function TakeTip(mouseX)
     end
 end
 
-function ShareTip(mouseX, playerID)
-    if playerID == myPlayerID then
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestSupport')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = os.clock()
-        end
-    else
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareMetal')
-            tipTextTime = os.clock()
-        end
-    end
+function ShareUnitTip(mouseX, playerID)
+	if playerID == myPlayerID then
+		if mouseX >= widgetPosX + (m_share_unit.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_unit.posX + (17*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.requestSupport')
+			tipTextTime = os.clock()
+		end
+	else
+		if mouseX >= widgetPosX + (m_share_unit.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_unit.posX + (17*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareUnits')
+			tipTextTime = os.clock()
+		end
+	end
+end
+
+function ShareResourcesTip(mouseX, playerID)
+	if playerID == myPlayerID then
+		if mouseX >= widgetPosX + (m_share_resource.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_resource.posX + (35*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.requestEnergy')
+			tipTextTime = os.clock()
+		elseif mouseX >= widgetPosX + (m_share_resource.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_resource.posX + (53*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.requestMetal')
+			tipTextTime = os.clock()
+		end
+	else
+		if mouseX >= widgetPosX + (m_share_resource.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_resource.posX + (35*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareEnergy')
+			tipTextTime = os.clock()
+		elseif mouseX >= widgetPosX + (m_share_resource.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share_resource.posX + (53*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareMetal')
+			tipTextTime = os.clock()
+		end
+	end
 end
 
 function AllyTip(mouseX, playerID)
@@ -3103,23 +3148,23 @@ function CreateShareSlider()
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
                 gl_Texture(pics["barPic"])
-                DrawRect(m_share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
+                DrawRect(m_share_resource.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share_resource.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["energyPic"])
-                DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
+                DrawRect(m_share_resource.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share_resource.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+				RectRound(math.floor(m_share_resource.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share_resource.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share_resource.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
-                DrawRect(m_share.posX + widgetPosX + (32*playerScale), posY - 3, m_share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
+                DrawRect(m_share_resource.posX + widgetPosX + (32*playerScale), posY - 3, m_share_resource.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
-                DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
+                DrawRect(m_share_resource.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share_resource.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+				RectRound(math.floor(m_share_resource.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share_resource.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share_resource.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             end
             font:End()
         end
@@ -3235,47 +3280,49 @@ function widget:MousePress(x, y, button)
 
             else
                 if t then
-                    if clickedPlayer.allyteam == myAllyTeamID then
-                        if m_take.active then
-                            if clickedPlayer.totake then
-                                if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
-                                    --take button
-                                    Take(clickedPlayer.team, clickedPlayer.name, i)
-                                    return true
-                                end
-                            end
-                        end
-                        if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
-                                -- share units button
-                                if release ~= nil then
-                                    if release >= now then
-                                        if clickedPlayer.team == myTeamID then
-                                            --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
+					if clickedPlayer.allyteam == myAllyTeamID then
+						if m_take.active then
+							if clickedPlayer.totake then
+								if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
+									--take button
+									Take(clickedPlayer.team, clickedPlayer.name, i)
+									return true
+								end
+							end
+						end
+						if m_share_unit.active and clickedPlayer.dead ~= true and not hideUnitShareIcon then
+							if IsOnRect(x, y, m_share_unit.posX + widgetPosX + (1*playerScale), posY, m_share_unit.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
+								-- share units button
+								if release ~= nil then
+									if release >= now then
+										if clickedPlayer.team == myTeamID then
+											--Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
-                                        else
-                                            Spring_ShareResources(clickedPlayer.team, "units")
-                                            Spring.PlaySoundFile("beep4", 1, 'ui')
-                                        end
-                                    end
-                                    release = nil
-                                else
-                                    firstclick = now + 1
-                                end
-                                return true
-                            end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
-                                -- share energy button (initiates the slider)
-                                energyPlayer = clickedPlayer
-                                return true
-                            end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
-                                -- share metal button (initiates the slider)
-                                metalPlayer = clickedPlayer
-                                return true
-                            end
-                        end
-                    end
+										else
+											Spring_ShareResources(clickedPlayer.team, "units")
+											Spring.PlaySoundFile("beep4", 1, 'ui')
+										end
+									end
+									release = nil
+								else
+									firstclick = now + 1
+								end
+								return true
+							end
+						end
+						if m_share_resource.active and clickedPlayer.dead ~= true and not hideResShareIcons then
+							if IsOnRect(x, y, m_share_resource.posX + widgetPosX + (17*playerScale), posY, m_share_resource.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
+								-- share energy button (initiates the slider)
+								energyPlayer = clickedPlayer
+								return true
+							end
+							if IsOnRect(x, y, m_share_resource.posX + widgetPosX + (33*playerScale), posY, m_share_resource.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
+								-- share metal button (initiates the slider)
+								metalPlayer = clickedPlayer
+								return true
+							end
+						end
+					end
                 end
                 if i == -1 then
                     t = true

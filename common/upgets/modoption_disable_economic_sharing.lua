@@ -42,6 +42,7 @@ function upget:Initialize()
 		globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded(true)
 		globalScope['topbar'].setShareSliderEnabled(false)
 		globalScope['sharecmd'].setRestrictedUnits(restrictedUnits)
+		globalScope['advplayerlist_api'].SetModuleActive({ 'share_resource', false })
 	end
 	if gadget then
 		globalScope['restrict_unit_sharing'].setBlacklist(restrictedUnits)

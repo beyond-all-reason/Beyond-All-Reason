@@ -1397,6 +1397,8 @@
 				"advplayerlist_cpuping": "cpu/ping number",
 				"advplayerlist_cpuping_descr": "show cpu/ping usage/value\n(when in multiplayer)",
 				"advplayerlist_share": "share buttons",
+				"advplayerlist_share_unit": "unit share buttons",
+				"advplayerlist_share_resource": "resource share buttons",
 				"advplayerlist_share_descr": "show (quick) share buttons\nNOTE: auto hides when having no team members",
 				"advplayerlist_absresbars": "resbar absolutes",
 				"advplayerlist_absresbars_descr": "resbar values and max storages are displayed on the scale of teamplayer that has max storage",

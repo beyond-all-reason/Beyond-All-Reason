@@ -3613,12 +3613,20 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
 		  end,
 		},
-		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_share'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_share_descr'),
+		{ id = "advplayerlist_share_unit", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_share_unit'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_share_descr'),
 		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
+			  loadWidgetData("AdvPlayersList", "advplayerlist_share_unit", { 'm_active_Table', 'share_unit' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share_unit' }, value, { 'share_unit', value })
+		  end,
+		},
+		{ id = "advplayerlist_share_resource", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_share_resource'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_share_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_share_resource", { 'm_active_Table', 'share_resource' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share_resource' }, value, { 'share_resource', value })
 		  end,
 		},
 		{ id = "advplayerlist_hidespecs", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_hidespecs'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_hidespecs_descr'),
