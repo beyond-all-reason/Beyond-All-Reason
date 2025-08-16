@@ -762,13 +762,11 @@ function gadget:GameFrame(frame)
 		local seconds = spGetGameSeconds()
 		updateGridDefensePointRewards()
 		if seconds >= roundTimestamp then
-			Spring.Echo("round", currentRound, "roundTimestamp", roundTimestamp, "seconds", seconds)
 			if currentRound <= MAX_ROUNDS then
 				currentRound = currentRound + 1
 				processDefenseScores()
 				processRoundEnd()
 			else
-				Spring.Echo("kill them all")
 				currentRound = MAX_ROUNDS
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 then
@@ -789,7 +787,7 @@ function gadget:GameFrame(frame)
 				secondHighestScore = scoreData.score
 			end
 		end
-			Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
+	Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
 	Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
 	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
