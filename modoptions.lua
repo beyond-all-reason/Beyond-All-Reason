@@ -298,15 +298,6 @@ local options = {
 		column	= 1.76,
 	},
 	{
-		key 	= "disable_economic_sharing",
-		name 	= "Disable Economic Sharing",
-		desc 	= "Disables sharing of any resources, sharing of resource producing units/structures, and sharing of constructors. Only combat units can be shared",
-		type 	= "bool",
-		section = "options_main",
-		hidden 	= false,
-		def 	= false,
-	},
-	{
 		key		= "unit_market",
 		name	= "Unit Market",
 		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
@@ -1398,6 +1389,46 @@ local options = {
         def  	= false,
     },
 
+	{
+		key    	= "shieldsrework",
+		name   	= "Shields Rework v2.0",
+		desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
+		type   	= "bool",
+		hidden 	= false,
+		section = "options_experimental",
+		def  	= false,
+	},
+
+	{
+		key     = "sub_header",
+		section = "options_experimental",
+		type    = "separator",
+	},
+
+	{
+		key		= "sub_header",
+		name	= "Experimental sharing restrictions: ",
+		section	= "options_experimental",
+		type	= "subheader",
+		def		=  true,
+	},
+
+	{
+		key 	= "disable_economic_sharing",
+		name 	= "The Nuclear Option",
+		desc 	= "Disable all forms of resource sharing.\n"..
+			"- No direct resource sharing\n"..
+			"- No sharing of resource producing units or structures\n"..
+			"- No sharing of constructors or factories\n"..
+			"- No assisting ally blueprints\n"..
+			"- No resource overflow to allies (Not yet implemented)\n"..
+			"Sharing of combat and utility units (like transports) is allowed",
+		type 	= "bool",
+		section = "options_experimental",
+		hidden 	= false,
+		def 	= false,
+	},
+
     -- Hidden Tests
 
 	{
@@ -1409,16 +1440,6 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
 
     {
         key 	= "lategame_rebalance",
