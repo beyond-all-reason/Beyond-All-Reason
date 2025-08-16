@@ -40,6 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
 
+	local allUnits = nil
 	local evolutionMetaList = {}
 	local teamList = spGetTeamList()
 	local neutralTeamNumber = tonumber(teamList[#teamList])
@@ -92,23 +93,29 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD.ATTACK] = true,
 	}
 
-	local function reAssignAssists(newUnit,oldUnit)
-		local allUnits = Spring.GetAllUnits(newUnit)
-		for _,unitID in pairs(allUnits) do
+	local function reAssignAssists(newUnit, oldUnit)
+		allUnits = allUnits or table.invert(Spring.GetAllUnits(newUnit))
+		for unitID, cmds in pairs(allUnits) do
 			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
-			local cmds = Spring.GetUnitCommands(unitID, -1)
+			cmds = type(cmds) == 'number' and (Spring.GetUnitCommands(unitID, -1) or {}) or cmds
+			local foundAssignmentCommand = false
 			for j = 1, #cmds do
 				local cmd = cmds[j]
 				local params = cmd.params
+				foundAssignmentCommand = foundAssignmentCommand or (unitTargetCommand[cmd.id] or (singleParamUnitTargetCommand[cmd.id] and #params == 1))
 				if (unitTargetCommand[cmd.id] or (singleParamUnitTargetCommand[cmd.id] and #params == 1)) and (params[1] == oldUnit) then
 					params[1] = newUnit
 					local opts = (cmd.options.meta and CMD.OPT_META or 0) + (cmd.options.ctrl and CMD.OPT_CTRL or 0) + (cmd.options.alt and CMD.OPT_ALT or 0)
-					Spring.GiveOrderToUnit(unitID, CMD.INSERT, {cmd.tag, cmd.id, opts, params[1], params[2], params[3]}, 0)
-					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
+					spGiveOrderToUnit(unitID, CMD.INSERT, {cmd.tag, cmd.id, opts, params[1], params[2], params[3]}, 0)
+					spGiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
 				end
+			end
+
+			if not foundAssignmentCommand then
+				allUnits[unitID] = nil
 			end
 		end
 	end
@@ -224,7 +231,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,  states.cloak and 1 or 0, 		 {})
 		-- spGiveOrderToUnit(newUnitID, CMD.ONOFF,  1,                       		 {})
 
-		reAssignAssists(newUnitID,unitID)
+		reAssignAssists(newUnitID, unitID)
 
 		if commandQueue[1] then
 			local teamID = Spring.GetUnitTeam(unitID)
@@ -236,16 +243,16 @@ if gadgetHandler:IsSyncedCode() then
 					for j = 1, #units do
 						local areaUnitID = units[j]
 						if Spring.GetUnitDefID(areaUnitID) == -command.id then
-							Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
+							spGiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
 							notFound = false
 							break
 						end
 					end
 					if notFound then
-						Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+						spGiveOrderToUnit(newUnitID, command.id, command.params, coded)
 					end
 				else
-					Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
+					spGiveOrderToUnit(newUnitID, command.id, command.params, coded)
 				end
 			end
 		end
@@ -256,8 +263,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		local udcp = UnitDefs[unitDefID].customParams
+	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		local ud = UnitDefs[unitDefID]
+		local udcp = ud.customParams
 		if udcp.evolution_target then
 			evolutionMetaList[unitID] = table.merge(udcp, {
 				combatradius                     = tonumber(udcp.combatradius),
@@ -270,19 +278,16 @@ if gadgetHandler:IsSyncedCode() then
 				timeCreated                      = spGetGameSeconds(),
 			})
 		end
-	end
 
-	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-		if UnitDefs[unitDefID].power then
+		if ud.power then
 			if unitTeam < neutralTeamNumber then
 				if teamPowerList[unitTeam] then
-					teamPowerList[unitTeam] = teamPowerList[unitTeam] + UnitDefs[unitDefID].power
+					teamPowerList[unitTeam] = teamPowerList[unitTeam] + ud.power
 				else
-					teamPowerList[unitTeam] = UnitDefs[unitDefID].power
+					teamPowerList[unitTeam] = ud.power
 				end
 			end
 		end
-
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -389,31 +394,33 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local batchSize = 0
+		local batchIndex = 0
 		local currentTime = spGetGameSeconds()
 
-		-- very hard to crash below 600 and very hard to not crash above 4000
-		-- 200 and 15 output values adjusted to do as much as possible while minimizing the freeze time for respective input
-		local clampedBatchSize = unitsToBatchSizeInterpolation(getTotalUnitCount(), 600, 4000, 200, 15)
+		-- Adjusting unit count vs. batchSize to minimize freeze time in respective unit counts.
+		-- Higher batchSizes (1000) seems to cause evolutions getting lost.
+		local batchSize = unitsToBatchSizeInterpolation(getTotalUnitCount(), 1000, 8000, 400, 200)
 
 		for _, power in pairs(teamPowerList) do
 			highestTeamPower = math.max(power, highestTeamPower)
 		end
 
-		while lastCheckIndex <= nToCheckUnitIDs and batchSize < clampedBatchSize do
+		while lastCheckIndex <= nToCheckUnitIDs and batchIndex < batchSize do
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
 			local evolution = evolutionMetaList[unitID]
 
-			if not combatCheckUpdate(unitID, evolution, currentTime)
+			if evolution and not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
 					evolve(unitID)
 			end
 
 			lastCheckIndex = lastCheckIndex + 1
-			batchSize = batchSize + 1
+			batchIndex = batchIndex + 1
 		end
 	end
+
+	allUnits = nil
 
 else
 
