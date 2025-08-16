@@ -158,14 +158,14 @@ local function updateRoundInfo()
 	local seconds = math.floor(timeRemaining % 60)
 	local timeString = string.format("%d:%02d", minutes, seconds)
 	
-	-- Format round display text
+	-- Format round display text - always use X/Y format
 	local roundDisplayText
 	if currentRound > maxRounds then
-		roundDisplayText = "Overtime"
-	elseif currentRound == maxRounds then
-		roundDisplayText = "Final Round"
+		-- For overtime rounds, show as "Overtime X/Y" where X is current round, Y is max rounds
+		roundDisplayText = string.format("Overtime %d/%d", currentRound, maxRounds)
 	else
-		roundDisplayText = string.format("Round %d", currentRound)
+		-- For regular rounds, show as "Round X/Y"
+		roundDisplayText = string.format("Round %d/%d", currentRound, maxRounds)
 	end
 	
 	return {
