@@ -4,7 +4,7 @@ function widget:GetInfo()
     return {
         name    = "Map Camera Startup",
         desc    = "",
-        author  = "uBdead",
+        author  = "uBdead, Damgam",
         date    = "Jul 28 2025",
         license = "GPL v3 or later",
         layer   = 0,
@@ -35,15 +35,74 @@ function widget:Update(dt)
         end
         return
     end
-    
-    if fase == 0 then
-        WG["IntroCameraInitialised"] = true
-        -- Start by zooming out to the maximum zoom level
-        local mapcx = Game.mapSizeX / 2
-        local mapcz = Game.mapSizeZ / 2
-        local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
-        oldCam = Spring.GetCameraState()
-        local newCam = {
+
+    local _,_,nozoom = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+    if not nozoom then
+        local myAllyTeamID = Spring.GetMyAllyTeamID()
+        local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
+        if xn then
+            if xn == 0 and zn == 0 and xp == Game.mapSizeX and zp == Game.mapSizeZ then
+                nozoom = true
+            end
+        else
+            nozoom = true
+        end
+    end
+
+    if nozoom then
+        if fase == 0 then
+            local mapcx = Game.mapSizeX / 2
+            local mapcz = Game.mapSizeZ / 2
+            local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
+            oldCam = Spring.GetCameraState()
+            local newCam = {
+                px = mapcx,
+                py = mapcy + 1000000, -- Set a high initial height to zoom out
+                pz = mapcz,
+                height = 1000000, -- Set a high initial height to zoom out
+                dist = 1000000,
+            }
+
+            if Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1 then
+                newCam.dx = oldCam.dx
+                newCam.dy = oldCam.dy
+                newCam.dz = oldCam.dz
+                if oldCam.rx then
+                    newCam.rx = oldCam.rx
+                end
+                if oldCam.ry and oldCam.name == "spring" then
+                    newCam.ry = math.clamp(oldCam.ry, -6.5, 6.5)
+                end
+                if oldCam.rz then
+                    newCam.rz = oldCam.rz
+                end
+                if oldCam.angle then
+                    newCam.angle = oldCam.angle
+                end
+            else
+                newCam.dx = 0
+                newCam.dy = -0.85
+                newCam.dz = -0.50
+                newCam.rx = 2.6
+                newCam.ry = 0
+                newCam.rz = 0
+                newCam.angle = 0.54
+            end
+
+            Spring.SetCameraState(newCam, 0)
+            fase = 1
+            WG["IntroCameraIsDone"] = true
+            return
+        end
+    else
+        if fase == 0 then
+            WG["IntroCameraInitialised"] = true
+            -- Start by zooming out to the maximum zoom level
+            local mapcx = Game.mapSizeX / 2
+            local mapcz = Game.mapSizeZ / 2
+            local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
+            oldCam = Spring.GetCameraState()
+            local newCam = {
             px = mapcx,
             py = mapcy + 1000000, -- Set a high initial height to zoom out
             pz = mapcz,
@@ -56,71 +115,70 @@ function widget:Update(dt)
             angle = 0.0,
             height = 1000000, -- Set a high initial height to zoom out
             dist = 1000000,
-        }
-        Spring.SetCameraState(newCam, 0)
+            }
 
-        fase = 1
-        WG["IntroCameraIsDone"] = false
-        return
-    end
-
-    local _,_,spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID()) 
-    if startTimer <= 0 and startTimer >= -5 and not spec then
-        local camState = Spring.GetCameraState()
-
-        -- Center the camera on the startbox
-        local myAllyTeamID = Spring.GetMyAllyTeamID()
-        local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
-        local x = (xn + xp) / 2
-        local z = (zn + zp) / 2
-
-        local mapHeightAtPos = Spring.GetGroundHeight(x, z)
-        -- calculate the height based on the diagonal of the startbox
-        local width = math.abs(xp - xn)
-        local depth = math.abs(zp - zn)
-        local diagonal = math.sqrt(width * width + depth * depth)
-        local height = diagonal * 1.1 + mapHeightAtPos -- adjust multiplier as needed
-
-        camState.px = x
-        camState.pz = z
-        camState.height = height
-        camState.dist = height
-        camState.zoom = height / 2 -- Set a reasonable zoom level
-
-        if Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1 then
-            camState.dx = oldCam.dx
-            camState.dy = oldCam.dy
-            camState.dz = oldCam.dz
-            if oldCam.rx then
-                camState.rx = oldCam.rx
-            end
-            if oldCam.ry and oldCam.name == "spring" then
-                camState.ry = math.clamp(oldCam.ry, -6.5, 6.5)
-            end
-            if oldCam.rz then
-                camState.rz = oldCam.rz
-            end
-            if oldCam.angle then
-                camState.angle = oldCam.angle
-            end
-        else
-            camState.dx = 0
-            camState.dy = -0.85
-            camState.dz = -0.50
-            camState.rx = 2.6
-            camState.ry = 0
-            camState.rz = 0
-            camState.angle = 0.54
+            Spring.SetCameraState(newCam, 0)
+            fase = 1
+            WG["IntroCameraIsDone"] = false
+            return
         end
 
+        if startTimer <= 0 and startTimer >= -5 then
+            local camState = Spring.GetCameraState()
+
+            -- Center the camera on the startbox
+            local myAllyTeamID = Spring.GetMyAllyTeamID()
+            local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
+            local x = (xn + xp) / 2
+            local z = (zn + zp) / 2
+
+            local mapHeightAtPos = Spring.GetGroundHeight(x, z)
+            -- calculate the height based on the diagonal of the startbox
+            local width = math.abs(xp - xn)
+            local depth = math.abs(zp - zn)
+            local diagonal = math.sqrt(width * width + depth * depth)
+            local height = diagonal * 1.1 + mapHeightAtPos -- adjust multiplier as needed
+
+            camState.px = x
+            camState.pz = z
+            camState.height = height
+            camState.dist = height
+            camState.zoom = height / 2 -- Set a reasonable zoom level
+
+            if Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1 then
+                camState.dx = oldCam.dx
+                camState.dy = oldCam.dy
+                camState.dz = oldCam.dz
+                if oldCam.rx then
+                    camState.rx = oldCam.rx
+                end
+                if oldCam.ry and oldCam.name == "spring" then
+                    camState.ry = math.clamp(oldCam.ry, -6.5, 6.5)
+                end
+                if oldCam.rz then
+                    camState.rz = oldCam.rz
+                end
+                if oldCam.angle then
+                    camState.angle = oldCam.angle
+                end
+            else
+                camState.dx = 0
+                camState.dy = -0.85
+                camState.dz = -0.50
+                camState.rx = 2.6
+                camState.ry = 0
+                camState.rz = 0
+                camState.angle = 0.54
+            end
 
 
-        WG["IntroCameraIsDone"] = false
-        Spring.SetCameraState(camState, 3.25)
-        
+
+            WG["IntroCameraIsDone"] = false
+            Spring.SetCameraState(camState, 3.25)
+        end
     end
 
-    if startTimer < -5 or spec then
+    if startTimer < -5 or nozoom then
         WG["IntroCameraIsDone"] = true
         
         local camState = Spring.GetCameraState()
