@@ -789,9 +789,11 @@ function gadget:GameFrame(frame)
 				secondHighestScore = scoreData.score
 			end
 		end
-		Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
-		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
-		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
+			Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
+	Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
+	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
+	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
+	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
 		-- Calculate and send projected points for next round
 		local projectedPoints = calculateProjectedPointsForNextRound()
@@ -855,6 +857,12 @@ function gadget:Initialize()
 	-- Send initial points cap via game rules parameter
 	local initialPointsCap = calculateMaximumPossiblePoints()
 	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
+	
+	-- Send initial round information
+	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
+	Spring.SetGameRulesParam("territorialDominationRoundDuration", ROUND_SECONDS)
+	Spring.SetGameRulesParam("territorialDominationStartTime", spGetGameSeconds())
+	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)

@@ -68,6 +68,7 @@ local initialModel = {
 	highestScore = 0,
 	secondHighestScore = 0,
 	timeRemaining = "00:00",
+	roundDisplayText = "Round 1",
 }
 
 local function getAllyTeamColor(allyTeamID)
@@ -137,8 +138,9 @@ local function updateRoundInfo()
 	
 	-- Get current round directly from game rules if available
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 1
+	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
 	
-	-- If not available, calculate based on game time
+	-- Handle overtime and calculate round if needed
 	if currentRound <= 0 then
 		local currentTime = Spring.GetGameSeconds()
 		local roundDuration = spGetGameRulesParam("territorialDominationRoundDuration") or 300 -- Default 5 minutes
@@ -147,7 +149,7 @@ local function updateRoundInfo()
 		-- Calculate which round we're in
 		local elapsedTime = currentTime - gameStartOffset
 		currentRound = math.floor(elapsedTime / roundDuration) + 1
-		currentRound = math.max(1, math.min(currentRound, 7)) -- Clamp between 1 and 7 (max rounds)
+		-- Don't clamp to max rounds - allow overtime rounds
 	end
 	
 	-- Calculate time remaining in current round
@@ -156,6 +158,16 @@ local function updateRoundInfo()
 	local seconds = math.floor(timeRemaining % 60)
 	local timeString = string.format("%d:%02d", minutes, seconds)
 	
+	-- Format round display text
+	local roundDisplayText
+	if currentRound > maxRounds then
+		roundDisplayText = "Overtime"
+	elseif currentRound == maxRounds then
+		roundDisplayText = "Final Round"
+	else
+		roundDisplayText = string.format("Round %d", currentRound)
+	end
+	
 	return {
 		currentRound = currentRound,
 		roundEndTime = roundEndTime,
@@ -163,6 +175,7 @@ local function updateRoundInfo()
 		highestScore = highestScore,
 		secondHighestScore = secondHighestScore,
 		timeRemaining = timeString,
+		roundDisplayText = roundDisplayText,
 	}
 end
 
@@ -301,19 +314,8 @@ local function updateScoreBarVisuals()
 	local dm = widgetState.dmHandle
 	local allyTeams = widgetState.allyTeamData
 	
-	-- Update header info elements
-	local roundElement = widgetState.document:GetElementById("round-display")
-	if roundElement then
-		roundElement.inner_rml = string.format("Round %d", dm.currentRound)
-	end
-	
-	local timeElement = widgetState.document:GetElementById("time-display")
-	if timeElement then
-		local timeRemaining = math.max(0, dm.roundEndTime - Spring.GetGameSeconds())
-		local minutes = math.floor(timeRemaining / 60)
-		local seconds = math.floor(timeRemaining % 60)
-		timeElement.inner_rml = string.format("%d:%02d", minutes, seconds)
-	end
+	-- Update header info elements - let RML binding handle this automatically
+	-- The round and time display will be updated via data model binding
 	
 
 	
@@ -422,13 +424,16 @@ local function updateDataModel()
 	dm.highestScore = roundInfo.highestScore
 	dm.secondHighestScore = roundInfo.secondHighestScore
 	dm.timeRemaining = roundInfo.timeRemaining
+	dm.roundDisplayText = roundInfo.roundDisplayText
 	
 
 	
 	-- Trigger rerender for data model changes
+	dm:__SetDirty("allyTeams")
 	dm:__SetDirty("pointsCap")
 	dm:__SetDirty("currentRound")
 	dm:__SetDirty("timeRemaining")
+	dm:__SetDirty("roundDisplayText")
 	
 	calculateUILayout()
 	

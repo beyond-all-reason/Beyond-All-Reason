@@ -7,7 +7,7 @@
 <body>
 	<div id="score-container" class="score-container" data-model="territorial_score_model">
 		<div class="header-info" id="header-info">
-			<div class="round-display" id="round-display">Round {{currentRound}}</div>
+			<div class="round-display" id="round-display">{{roundDisplayText}}</div>
 			<div class="time-display" id="time-display">{{timeRemaining}}</div>
 		</div>
 		<div id="score-columns" class="score-columns">
