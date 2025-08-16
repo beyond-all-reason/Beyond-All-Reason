@@ -58,6 +58,7 @@ local widgetState = {
 		headerMargin = 1.5,
 		victoryMargin = 1.5,
 	},
+	hiddenByLobby = false,
 }
 
 local initialModel = {
@@ -501,6 +502,20 @@ function widget:Initialize()
 	return true
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 19) == 'LobbyOverlayActive0' then
+		if widgetState.document then
+			widgetState.document:Show()
+			widgetState.hiddenByLobby = false
+		end
+	elseif msg:sub(1, 19) == 'LobbyOverlayActive1' then
+		if widgetState.document then
+			widgetState.document:Hide()
+			widgetState.hiddenByLobby = true
+		end
+	end
+end
+
 function widget:Shutdown()
 	Spring.Echo(WIDGET_NAME .. ": Shutting down widget...")
 	
@@ -525,8 +540,7 @@ function widget:Update()
 		-- Check if we have any territorial domination data
 		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap")
 		if pointsCap and pointsCap > 0 then
-			-- Show document if it was hidden
-			if widgetState.document then
+			if widgetState.document and not widgetState.hiddenByLobby then
 				widgetState.document:Show()
 			end
 			-- Only update data model if document is ready
