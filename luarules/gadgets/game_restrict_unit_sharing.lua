@@ -19,12 +19,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 local whitelist = {}
 local blacklist = {}
+local allowSharingUnitsUnderConstruction = true
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
 	if (capture) then
 		return true
+	end
+	if not allowSharingUnitsUnderConstruction and spGetUnitIsBeingBuilt(unitID) then
+		return false
 	end
 	if (blacklist[unitDefID]) then
 		return false
@@ -52,5 +58,8 @@ function gadget:Initialize()
 		whitelist = {}
 		blacklist = units
 		Spring.Echo("set sharing blacklist", #units)
+	end
+	GG['restrict_unit_sharing'].setAllowSharingUnitsUnderConstruction = function(value)
+		allowSharingUnitsUnderConstruction = value
 	end
 end
