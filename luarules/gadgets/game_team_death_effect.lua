@@ -55,7 +55,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 		if not unitDecoration[spGetUnitDefID(unitID)] then
 			local x,_,z = spGetUnitPosition(unitID)
 			local deathFrame
-			if originX then
+			if originX and originZ then
 				deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod*0.6), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
 			else
 				deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.3) + math.random(0,wavePeriod/2.5)) * periodMult)
@@ -75,7 +75,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 			Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 			local i = 0
-			for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
+			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 				Spring.UnitWeaponHoldFire(unitID, weaponID)
 				i = i + 1
 			end
