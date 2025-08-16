@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+-- This gadget hooks into AllowCommand, lets leave it off unless it's actually needed
 local disableAssist = Spring.GetModOptions().disable_assist_ally_construction
 local disableEconShare = Spring.GetModOptions().disable_economic_sharing
 if not disableAssist and not disableEconShare then

@@ -19,6 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
+local UPGET_DIRNAME = 'common/upgets'
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
@@ -359,7 +360,9 @@ function widgetHandler:Initialize()
 	end
 
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(UPGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
+
 
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
@@ -1590,7 +1593,7 @@ end
 function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	-- drawAboveWater, drawBelowWater, drawReflection, drawRefraction
-	-- 1. false, 			true, 			false, 			false 
+	-- 1. false, 			true, 			false, 			false
 	-- 2. true, 			false, 			true, 			false
 	-- 3. true, 			false, 			false, 			false
 
