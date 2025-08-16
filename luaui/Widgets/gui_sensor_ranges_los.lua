@@ -168,8 +168,20 @@ local function DrawLOSStencil() -- about 0.025 ms
 	end
 end
 
+
+-- Handle high frame rates during pause causing high CPU:
+local isPaused = false
+local inUpdate = true
+
 function widget:DrawGenesis()
-    gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+	if not isPaused or inUpdate then
+		inUpdate = false
+		gl.RenderToTexture(losStencilTexture, DrawLOSStencil)
+	end
+end
+
+function widget:GamePaused(playerID, paused)
+	isPaused = paused
 end
 
 -- This shows the debug stencil texture in the bottom left corner of the screen
@@ -225,6 +237,7 @@ local function InitializeUnits()
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
+	inUpdate = true
 end
 
 function widget:PlayerChanged()
