@@ -37,6 +37,7 @@
 	box-sizing: border-box;
 	width: 100%;
 	position: relative;
+	font-size: 11px;
 }
 
 .score-bar-container {
@@ -105,12 +106,14 @@
 	color: #ffffff;
 	font-weight: bold;
 	font-family: Exo 2;
+	font-size: 16px;
 }
 
 .time-display {
 	color: #ffffff;
 	font-weight: bold;
 	font-family: Exo 2;
+	font-size: 16px;
 }
 
 .score-text {
@@ -124,9 +127,18 @@
 	pointer-events: none;
 }
 
+.score-text.current {
+	font-size: 15px;
+}
+
+.score-text.projected {
+	font-size: 15px;
+}
+
 .victory-points {
 	color: #ffffff;
 	font-weight: bold;
 	text-align: center;
 	font-family: Exo 2;
+	font-size: 15px;
 }

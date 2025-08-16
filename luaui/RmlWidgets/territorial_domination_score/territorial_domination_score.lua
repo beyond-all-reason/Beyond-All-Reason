@@ -48,35 +48,25 @@ local UPDATE_INTERVAL = 0.1
 local SECONDS_PER_MINUTE = 60
 local SMALL_MARGIN = 2
 local BIG_MARGIN = 4
-local FONT_SIZE_SMALL = 11
-local FONT_SIZE_MEDIUM = 15
-local FONT_SIZE_LARGE = 16
 local SCORE_BAR_MIN_WIDTH = 80
 local SCORE_BAR_HEIGHT = 18
 local MAX_CONTAINER_WIDTH = 300
 
-local function calculateUIDimensions()
-	return {
-		smallMargin = SMALL_MARGIN,
-		bigMargin = BIG_MARGIN,
-		containerPadding = BIG_MARGIN,
-		columnGap = SMALL_MARGIN,
-		scoreBarPadding = SMALL_MARGIN,
-		headerPadding = SMALL_MARGIN,
-		headerMargin = SMALL_MARGIN,
-		victoryMargin = SMALL_MARGIN,
-		scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
-		headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
-		fontSizeSmall = FONT_SIZE_SMALL,
-		fontSizeMedium = FONT_SIZE_MEDIUM,
-		fontSizeLarge = FONT_SIZE_LARGE,
-		scoreBarMinWidth = SCORE_BAR_MIN_WIDTH,
-		scoreBarHeight = SCORE_BAR_HEIGHT,
-		maxContainerWidth = MAX_CONTAINER_WIDTH,
-	}
-end
-
-local uiDimensions = calculateUIDimensions()
+local uiDimensions = {
+	smallMargin = SMALL_MARGIN,
+	bigMargin = BIG_MARGIN,
+	containerPadding = BIG_MARGIN,
+	columnGap = SMALL_MARGIN,
+	scoreBarPadding = SMALL_MARGIN,
+	headerPadding = SMALL_MARGIN,
+	headerMargin = SMALL_MARGIN,
+	victoryMargin = SMALL_MARGIN,
+	scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
+	headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
+	scoreBarMinWidth = SCORE_BAR_MIN_WIDTH,
+	scoreBarHeight = SCORE_BAR_HEIGHT,
+	maxContainerWidth = MAX_CONTAINER_WIDTH,
+}
 
 local widgetState = {
 	document = nil,
@@ -189,8 +179,6 @@ local function updateRoundInfo()
 	}
 end
 
-
-
 local function calculateUILayout()
 	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
 	local currentGeometry = { minimapPosX, minimapPosY, minimapSizeX, minimapSizeY }
@@ -220,11 +208,12 @@ local function calculateUILayout()
 		maxHeight = MAX_HEIGHT,
 	}
 end
+
 local function calculateColumnWidth(numColumns)
 	local columnGap = uiDimensions.columnGap
 	local totalGapWidth = (numColumns - 1) * columnGap
 	local availableWidthForColumns = widgetState.uiState.availableWidth - totalGapWidth
-		local columnWidth = math.floor(availableWidthForColumns / numColumns)
+	local columnWidth = math.floor(availableWidthForColumns / numColumns)
 	
 	return columnWidth
 end
@@ -233,9 +222,9 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	local scoreBarDiv = widgetState.document:CreateElement("div")
 	scoreBarDiv.class_name = "score-bar"
 	scoreBarDiv:SetAttribute("style",
-		string.format("padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; font-size: %dpx; margin-bottom: %dpx;",
+		string.format("padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; margin-bottom: %dpx;",
 			uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding,
-			uiDimensions.scoreBarMinWidth, uiDimensions.fontSizeSmall, uiDimensions.scoreBarPadding))
+			uiDimensions.scoreBarMinWidth, uiDimensions.scoreBarPadding))
 
 	local containerDiv = widgetState.document:CreateElement("div")
 	containerDiv.class_name = "score-bar-container"
@@ -266,15 +255,15 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	currentScoreText.class_name = "score-text current"
 	currentScoreText.id = "current-score-" .. index
 	currentScoreText.inner_rml = tostring(allyTeam.score)
-	currentScoreText:SetAttribute("style", string.format("left: %dpx; font-size: %dpx;",
-		uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
+	currentScoreText:SetAttribute("style", string.format("left: %dpx;",
+		uiDimensions.scoreBarPadding))
 
 	local projectedScoreText = widgetState.document:CreateElement("div")
 	projectedScoreText.class_name = "score-text projected"
 	projectedScoreText.id = "projected-score-" .. index
 	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
-	projectedScoreText:SetAttribute("style", string.format("right: %dpx; font-size: %dpx;",
-		uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
+	projectedScoreText:SetAttribute("style", string.format("right: %dpx;",
+		uiDimensions.scoreBarPadding))
 
 	containerDiv:AppendChild(backgroundDiv)
 	containerDiv:AppendChild(projectedDiv)
@@ -283,7 +272,6 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	containerDiv:AppendChild(projectedScoreText)
 
 	scoreBarDiv:AppendChild(containerDiv)
-
 	columnDiv:AppendChild(scoreBarDiv)
 
 	return {
@@ -295,103 +283,63 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	}
 end
 
-local function updateMargins(newSmallMargin, newBigMargin)
-	SMALL_MARGIN = newSmallMargin or SMALL_MARGIN
-	BIG_MARGIN = newBigMargin or BIG_MARGIN
-
-	uiDimensions = calculateUIDimensions()
-	setCSSVariables()
-
-	local rootElement = widgetState.document:GetElementById("score-container")
-	if rootElement then
-		rootElement:SetAttribute("style", string.format("padding: %dpx; border-radius: %dpx; max-width: %dpx;",
-			BIG_MARGIN, BIG_MARGIN, uiDimensions.maxContainerWidth))
+local function updateElementStyles()
+	if not widgetState.document then return end
+	
+	local function updateElementsByClass(className, styleFormat, ...)
+		local elements = widgetState.document:GetElementsByClassName(className)
+		for i = 0, elements:GetNumElements() - 1 do
+			local element = elements:GetElement(i)
+			element:SetAttribute("style", string.format(styleFormat, ...))
+		end
 	end
 
-	if widgetState.document and widgetState.scoreElements then
+	local function updateScoreElements()
+		if not widgetState.scoreElements then return end
 		for i, scoreElements in ipairs(widgetState.scoreElements) do
 			if scoreElements.currentScoreElement then
-				scoreElements.currentScoreElement:SetAttribute("style", string.format("left: %dpx; font-size: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
+				scoreElements.currentScoreElement:SetAttribute("style", string.format("left: %dpx;",
+					uiDimensions.scoreBarPadding))
 			end
 			if scoreElements.projectedScoreElement then
-				scoreElements.projectedScoreElement:SetAttribute("style", string.format("right: %dpx; font-size: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
+				scoreElements.projectedScoreElement:SetAttribute("style", string.format("right: %dpx;",
+					uiDimensions.scoreBarPadding))
 			end
 		end
-
-		local scoreBars = widgetState.document:GetElementsByClassName("score-bar")
-		for i = 0, scoreBars:GetNumElements() - 1 do
-			local scoreBar = scoreBars:GetElement(i)
-			scoreBar:SetAttribute("style",
-				string.format(
-					"padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; font-size: %dpx; margin-bottom: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding,
-					uiDimensions.scoreBarMinWidth, uiDimensions.fontSizeSmall, uiDimensions.scoreBarPadding))
-		end
-
-		local scoreBarContainers = widgetState.document:GetElementsByClassName("score-bar-container")
-		for i = 0, scoreBarContainers:GetNumElements() - 1 do
-			local container = scoreBarContainers:GetElement(i)
-			container:SetAttribute("style", string.format("height: %dpx; border-radius: %dpx;",
-				uiDimensions.scoreBarHeight, uiDimensions.scoreBarPadding))
-		end
-
-		local columns = widgetState.document:GetElementsByClassName("score-column")
-		for i = 0, columns:GetNumElements() - 1 do
-			local column = columns:GetElement(i)
-			column:SetAttribute("style", string.format("padding: 0px %dpx;", uiDimensions.scoreBarPadding))
-		end
 	end
 
-	if widgetState.uiState then
-		calculateUILayout()
-		updateDynamicHeight()
-	end
+	updateScoreElements()
+	updateElementsByClass("score-bar", "padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; margin-bottom: %dpx;",
+		uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding,
+		uiDimensions.scoreBarMinWidth, uiDimensions.scoreBarPadding)
+	updateElementsByClass("score-bar-container", "height: %dpx; border-radius: %dpx;",
+		uiDimensions.scoreBarHeight, uiDimensions.scoreBarPadding)
+	updateElementsByClass("score-column", "padding: 0px %dpx;", uiDimensions.scoreBarPadding)
 end
 
 local function setCSSVariables()
-	if not widgetState.document then
-		return
+	if not widgetState.document then return end
+	
+	local function setElementStyle(elementId, styleFormat, ...)
+		local element = widgetState.document:GetElementById(elementId)
+		if element then
+			element:SetAttribute("style", string.format(styleFormat, ...))
+		end
 	end
 
-	local rootElement = widgetState.document:GetElementById("score-container")
-	if rootElement then
-		rootElement:SetAttribute("style", string.format("padding: %dpx; border-radius: %dpx; max-width: %dpx;",
-			BIG_MARGIN, BIG_MARGIN, uiDimensions.maxContainerWidth))
-	end
-
-	local headerInfo = widgetState.document:GetElementById("header-info")
-	if headerInfo then
-		headerInfo:SetAttribute("style", string.format("margin-bottom: %dpx; padding: %dpx %dpx; border-radius: %dpx;",
-			SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN))
-	end
-
-	local victoryPoints = widgetState.document:GetElementById("victory-points")
-	if victoryPoints then
-		victoryPoints:SetAttribute("style", string.format("margin-top: %dpx; padding: %dpx %dpx; font-size: %dpx;",
-			SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN, uiDimensions.fontSizeMedium))
-	end
-
-	local roundDisplay = widgetState.document:GetElementById("round-display")
-	if roundDisplay then
-		roundDisplay:SetAttribute("style", string.format("font-size: %dpx;", uiDimensions.fontSizeLarge))
-	end
-
-	local timeDisplay = widgetState.document:GetElementById("time-display")
-	if timeDisplay then
-		timeDisplay:SetAttribute("style", string.format("font-size: %dpx;", uiDimensions.fontSizeLarge))
-	end
+	setElementStyle("score-container", "padding: %dpx; border-radius: %dpx; max-width: %dpx;",
+		BIG_MARGIN, BIG_MARGIN, uiDimensions.maxContainerWidth)
+	setElementStyle("header-info", "margin-bottom: %dpx; padding: %dpx %dpx; border-radius: %dpx;",
+		SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN)
+	setElementStyle("victory-points", "margin-top: %dpx; padding: %dpx %dpx;",
+		SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN)
 end
 
 local function updateDynamicHeight()
-	if not widgetState.document or not widgetState.uiState then
-		return
-	end
+	if not widgetState.document or not widgetState.uiState then return end
 
 	local allyTeams = widgetState.allyTeamData
 	local numTeams = #allyTeams
-
 	local headerHeight = uiDimensions.headerHeight
 
 	if numTeams == 0 then
@@ -405,7 +353,6 @@ local function updateDynamicHeight()
 			local scorePosX = widgetState.uiState.position.x
 			local scorePosY = widgetState.uiState.position.y
 			local containerWidth = widgetState.uiState.position.width
-
 			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx",
 				scorePosX, scorePosY, containerWidth, minHeight))
 		end
@@ -417,8 +364,7 @@ local function updateDynamicHeight()
 	local numColumns = math.ceil(numTeams / teamsPerColumn)
 
 	local minColumnWidth = uiDimensions.scoreBarPadding * 2 + uiDimensions.scoreBarMinWidth
-	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or uiDimensions.maxContainerWidth) /
-	minColumnWidth)
+	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or uiDimensions.maxContainerWidth) / minColumnWidth)
 	maxColumnsByWidth = math.max(1, math.min(maxColumnsByWidth, MAX_COLUMNS))
 
 	if numColumns > maxColumnsByWidth then
@@ -426,18 +372,11 @@ local function updateDynamicHeight()
 		teamsPerColumn = math.ceil(numTeams / numColumns)
 	end
 
-		local scoreBarHeight = uiDimensions.scoreBarHeightWithPadding
-	
+	local scoreBarHeight = uiDimensions.scoreBarHeightWithPadding
 	local actualTeamsPerColumn = math.ceil(numTeams / numColumns)
-	local heightPerColumn = (actualTeamsPerColumn * scoreBarHeight)
-
-		heightPerColumn = heightPerColumn + uiDimensions.containerPadding
-	
+	local heightPerColumn = (actualTeamsPerColumn * scoreBarHeight) + uiDimensions.containerPadding
 	local totalHeight = headerHeight + heightPerColumn + (uiDimensions.containerPadding * 2)
-
 	local constrainedHeight = totalHeight
-	if totalHeight > MAX_HEIGHT then
-	end
 
 	widgetState.uiState.height = constrainedHeight
 	widgetState.uiState.numColumns = numColumns
@@ -448,9 +387,7 @@ local function updateDynamicHeight()
 		local scorePosX = widgetState.uiState.position.x
 		local scorePosY = widgetState.uiState.position.y
 		local containerWidth = widgetState.uiState.position.width
-
-				local requiredWidth = (numColumns * calculateColumnWidth(numColumns)) +
-		((numColumns - 1) * uiDimensions.columnGap) + (uiDimensions.containerPadding * 2)
+		local requiredWidth = (numColumns * calculateColumnWidth(numColumns)) + ((numColumns - 1) * uiDimensions.columnGap) + (uiDimensions.containerPadding * 2)
 		local finalWidth = math.max(containerWidth, requiredWidth)
 		
 		rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx",
@@ -464,34 +401,22 @@ local function updateDynamicHeight()
 	end
 end
 
-
 local function updateScoreBarVisuals()
-	if not widgetState.document then
-		return
-	end
+	if not widgetState.document then return end
 
 	local dm = widgetState.dmHandle
 	local allyTeams = widgetState.allyTeamData
-
-
 	local columnsContainer = widgetState.document:GetElementById("score-columns")
-	if not columnsContainer then
-		return
-	end
-
+	if not columnsContainer then return end
 
 	columnsContainer.inner_rml = ""
 	widgetState.scoreElements = {}
 
 	local numTeams = #allyTeams
-	if numTeams == 0 then
-		return
-	end
-
+	if numTeams == 0 then return end
 
 	local numColumns = widgetState.uiState.numColumns or 1
 	local teamsPerColumn = widgetState.uiState.teamsPerColumn or numTeams
-
 
 	local columns = {}
 	for i = 1, numColumns do
@@ -507,14 +432,10 @@ local function updateScoreBarVisuals()
 		columns[i] = columnDiv
 	end
 
-
-
-
 	for i, allyTeam in ipairs(allyTeams) do
 		local columnIndex = ((i - 1) % numColumns) + 1
 		local scoreBarElements = createScoreBarElement(columns[columnIndex], allyTeam, i)
 		widgetState.scoreElements[i] = scoreBarElements
-
 
 		local projectedWidth = "0%"
 		if dm.pointsCap > 0 then
@@ -522,8 +443,6 @@ local function updateScoreBarVisuals()
 			projectedWidth = string.format("%.1f%%",
 				math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 		end
-		scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
-
 
 		local projectedColor = string.format("rgba(%d, %d, %d, %d)",
 			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
@@ -531,19 +450,16 @@ local function updateScoreBarVisuals()
 		scoreBarElements.projectedElement:SetAttribute("style",
 			"width: " .. projectedWidth .. "; background-color: " .. projectedColor)
 
-
 		local fillWidth = "0%"
 		if dm.pointsCap > 0 then
 			fillWidth = string.format("%.1f%%",
 				math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 		end
 
-
 		local fillColor = string.format("rgba(%d, %d, %d, %d)",
 			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
 			FILL_COLOR_ALPHA)
 		scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth .. "; background-color: " .. fillColor)
-
 
 		if scoreBarElements.currentScoreElement then
 			scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
@@ -553,22 +469,17 @@ local function updateScoreBarVisuals()
 		end
 	end
 
-
 	updateDynamicHeight()
 end
 
 local function updateDataModel()
-	if not widgetState.dmHandle then
-		return
-	end
+	if not widgetState.dmHandle then return end
 
 	local allyTeams = updateAllyTeamData()
 	local roundInfo = updateRoundInfo()
-
 	local dm = widgetState.dmHandle
 
 	dm.allyTeams = allyTeams
-
 	dm.currentRound = roundInfo.currentRound
 	dm.roundEndTime = roundInfo.roundEndTime
 	dm.pointsCap = roundInfo.pointsCap
@@ -590,13 +501,9 @@ local function updateDataModel()
 	end
 end
 
-
-
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then
-		return false
-	end
+	if not widgetState.rmlContext then return false end
 
 	local dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dmHandle then
@@ -618,11 +525,8 @@ function widget:Initialize()
 	document:Show()
 
 	calculateUILayout()
-
 	updateDynamicHeight()
-
 	updateDataModel()
-
 	setCSSVariables()
 
 	return true
@@ -658,21 +562,26 @@ function widget:Shutdown()
 end
 
 function widget:updateMargins(newSmallMargin, newBigMargin)
-	updateMargins(newSmallMargin, newBigMargin)
-end
+	SMALL_MARGIN = newSmallMargin or SMALL_MARGIN
+	BIG_MARGIN = newBigMargin or BIG_MARGIN
 
-function widget:updateUIConstants(newFontSizeSmall, newFontSizeMedium, newFontSizeLarge, newScoreBarMinWidth,
-								  newScoreBarHeight, newMaxContainerWidth)
-	FONT_SIZE_SMALL = newFontSizeSmall or FONT_SIZE_SMALL
-	FONT_SIZE_MEDIUM = newFontSizeMedium or FONT_SIZE_MEDIUM
-	FONT_SIZE_LARGE = newFontSizeLarge or FONT_SIZE_LARGE
-	SCORE_BAR_MIN_WIDTH = newScoreBarMinWidth or SCORE_BAR_MIN_WIDTH
-	SCORE_BAR_HEIGHT = newScoreBarHeight or SCORE_BAR_HEIGHT
-	MAX_CONTAINER_WIDTH = newMaxContainerWidth or MAX_CONTAINER_WIDTH
-
-	uiDimensions = calculateUIDimensions()
-
+	uiDimensions = {
+		smallMargin = SMALL_MARGIN,
+		bigMargin = BIG_MARGIN,
+		containerPadding = BIG_MARGIN,
+		columnGap = SMALL_MARGIN,
+		scoreBarPadding = SMALL_MARGIN,
+		headerPadding = SMALL_MARGIN,
+		headerMargin = SMALL_MARGIN,
+		victoryMargin = SMALL_MARGIN,
+		scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
+		headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
+		scoreBarMinWidth = SCORE_BAR_MIN_WIDTH,
+		scoreBarHeight = SCORE_BAR_HEIGHT,
+		maxContainerWidth = MAX_CONTAINER_WIDTH,
+	}
 	setCSSVariables()
+	updateElementStyles()
 
 	local rootElement = widgetState.document:GetElementById("score-container")
 	if rootElement then
@@ -680,40 +589,39 @@ function widget:updateUIConstants(newFontSizeSmall, newFontSizeMedium, newFontSi
 			BIG_MARGIN, BIG_MARGIN, uiDimensions.maxContainerWidth))
 	end
 
-	if widgetState.document and widgetState.scoreElements then
-		for i, scoreElements in ipairs(widgetState.scoreElements) do
-			if scoreElements.currentScoreElement then
-				scoreElements.currentScoreElement:SetAttribute("style", string.format("left: %dpx; font-size: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
-			end
-			if scoreElements.projectedScoreElement then
-				scoreElements.projectedScoreElement:SetAttribute("style", string.format("right: %dpx; font-size: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.fontSizeMedium))
-			end
-		end
+	if widgetState.uiState then
+		calculateUILayout()
+		updateDynamicHeight()
+	end
+end
 
-		local scoreBars = widgetState.document:GetElementsByClassName("score-bar")
-		for i = 0, scoreBars:GetNumElements() - 1 do
-			local scoreBar = scoreBars:GetElement(i)
-			scoreBar:SetAttribute("style",
-				string.format(
-					"padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; font-size: %dpx; margin-bottom: %dpx;",
-					uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding, uiDimensions.scoreBarPadding,
-					uiDimensions.scoreBarMinWidth, uiDimensions.fontSizeSmall, uiDimensions.scoreBarPadding))
-		end
+function widget:updateUIConstants(newScoreBarMinWidth, newScoreBarHeight, newMaxContainerWidth)
+	SCORE_BAR_MIN_WIDTH = newScoreBarMinWidth or SCORE_BAR_MIN_WIDTH
+	SCORE_BAR_HEIGHT = newScoreBarHeight or SCORE_BAR_HEIGHT
+	MAX_CONTAINER_WIDTH = newMaxContainerWidth or MAX_CONTAINER_WIDTH
 
-		local scoreBarContainers = widgetState.document:GetElementsByClassName("score-bar-container")
-		for i = 0, scoreBarContainers:GetNumElements() - 1 do
-			local container = scoreBarContainers:GetElement(i)
-			container:SetAttribute("style", string.format("height: %dpx; border-radius: %dpx;",
-				uiDimensions.scoreBarHeight, uiDimensions.scoreBarPadding))
-		end
+	uiDimensions = {
+		smallMargin = SMALL_MARGIN,
+		bigMargin = BIG_MARGIN,
+		containerPadding = BIG_MARGIN,
+		columnGap = SMALL_MARGIN,
+		scoreBarPadding = SMALL_MARGIN,
+		headerPadding = SMALL_MARGIN,
+		headerMargin = SMALL_MARGIN,
+		victoryMargin = SMALL_MARGIN,
+		scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
+		headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
+		scoreBarMinWidth = SCORE_BAR_MIN_WIDTH,
+		scoreBarHeight = SCORE_BAR_HEIGHT,
+		maxContainerWidth = MAX_CONTAINER_WIDTH,
+	}
+	setCSSVariables()
+	updateElementStyles()
 
-		local columns = widgetState.document:GetElementsByClassName("score-column")
-		for i = 0, columns:GetNumElements() - 1 do
-			local column = columns:GetElement(i)
-			column:SetAttribute("style", string.format("padding: 0px %dpx;", uiDimensions.scoreBarPadding))
-		end
+	local rootElement = widgetState.document:GetElementById("score-container")
+	if rootElement then
+		rootElement:SetAttribute("style", string.format("padding: %dpx; border-radius: %dpx; max-width: %dpx;",
+			BIG_MARGIN, BIG_MARGIN, uiDimensions.maxContainerWidth))
 	end
 
 	if widgetState.uiState then
