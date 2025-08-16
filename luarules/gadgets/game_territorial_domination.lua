@@ -28,7 +28,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 3,
-		minutesPerRound = 5,
+		minutesPerRound = 1,
 	},
 	long = {
 		maxRounds = 7,
@@ -305,26 +305,39 @@ local function setAllyTeamRanks(allyScores)
 		if allyDefeatTime[allyID] and allyDefeatTime[allyID] > 0 then
 			defeatTimeRemaining = max(0, allyDefeatTime[allyID] - spGetGameSeconds())
 		end
-		table.insert(rankedAllyScores, { allyID = allyID, score = scoreData.score, defeatTimeRemaining = defeatTimeRemaining })
+		
+		local rankingScore = scoreData.score
+		if currentRound > MAX_ROUNDS then
+			local teamList = spGetTeamList(allyID)
+			if teamList and #teamList > 0 then
+				local firstTeamID = teamList[1]
+				local projectedPoints = Spring.GetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
+				rankingScore = rankingScore + projectedPoints
+			end
+		end
+		
+		table.insert(rankedAllyScores, { allyID = allyID, score = scoreData.score, rankingScore = rankingScore, defeatTimeRemaining = defeatTimeRemaining })
 	end
 
 	table.sort(rankedAllyScores, function(a, b)
-		if a.score == b.score then
+		if a.rankingScore == b.rankingScore then
 			return a.defeatTimeRemaining > b.defeatTimeRemaining
 		end
-		return a.score > b.score
+		return a.rankingScore > b.rankingScore
 	end)
+	
+
 
 	local currentRank = 1
 	local previousScore = -1
 	local previousDefeatTime = -1
 
 	for i, allyData in ipairs(rankedAllyScores) do
-		if i <= 1 or allyData.score ~= previousScore or allyData.defeatTimeRemaining ~= previousDefeatTime then
+		if i <= 1 or allyData.rankingScore ~= previousScore or allyData.defeatTimeRemaining ~= previousDefeatTime then
 			currentRank = i
 		end
 
-		previousScore = allyData.score
+		previousScore = allyData.rankingScore
 		previousDefeatTime = allyData.defeatTimeRemaining
 
 		-- Update the rank directly in allyScores
