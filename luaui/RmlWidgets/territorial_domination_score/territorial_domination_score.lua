@@ -155,7 +155,7 @@ local function updateRoundInfo()
 	-- Calculate time remaining in current round
 	local timeString
 	if roundEndTime == 0 then
-		-- Overtime mode - show 0:00
+	
 		timeString = "0:00"
 	else
 		local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())

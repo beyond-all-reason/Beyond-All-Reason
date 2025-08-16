@@ -779,7 +779,6 @@ function gadget:GameFrame(frame)
 				processDefenseScores()
 				processRoundEnd()
 			else
-				Spring.Echo("kill them all", gameFrame)
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 then
 						triggerAllyDefeat(allyID)
@@ -801,7 +800,6 @@ function gadget:GameFrame(frame)
 		end
 	Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
 	Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
-	-- Send 0 timestamp during overtime to indicate no countdown
 	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
