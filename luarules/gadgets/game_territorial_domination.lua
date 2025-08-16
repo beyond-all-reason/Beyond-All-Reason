@@ -761,13 +761,13 @@ function gadget:GameFrame(frame)
 	elseif frameModulo == 2 then
 		local seconds = spGetGameSeconds()
 		updateGridDefensePointRewards()
-		if seconds >= roundTimestamp then
+		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			if currentRound <= MAX_ROUNDS then
 				currentRound = currentRound + 1
 				processDefenseScores()
 				processRoundEnd()
 			else
-				currentRound = MAX_ROUNDS
+				Spring.Echo("kill them all", gameFrame)
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 then
 						triggerAllyDefeat(allyID)
