@@ -153,10 +153,16 @@ local function updateRoundInfo()
 	end
 	
 	-- Calculate time remaining in current round
-	local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
-	local minutes = math.floor(timeRemaining / 60)
-	local seconds = math.floor(timeRemaining % 60)
-	local timeString = string.format("%d:%02d", minutes, seconds)
+	local timeString
+	if roundEndTime == 0 then
+		-- Overtime mode - show 0:00
+		timeString = "0:00"
+	else
+		local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
+		local minutes = math.floor(timeRemaining / 60)
+		local seconds = math.floor(timeRemaining % 60)
+		timeString = string.format("%d:%02d", minutes, seconds)
+	end
 	
 	-- Format round display text
 	local roundDisplayText

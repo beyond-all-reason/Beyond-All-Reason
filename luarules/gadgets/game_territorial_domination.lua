@@ -801,7 +801,8 @@ function gadget:GameFrame(frame)
 		end
 	Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
 	Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
-	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", roundTimestamp)
+	-- Send 0 timestamp during overtime to indicate no countdown
+	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
