@@ -39,6 +39,8 @@ local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 
+local SCREEN_HEIGHT = 1080
+
 local widgetState = {
 	document = nil,
 	dmHandle = nil,
@@ -108,12 +110,19 @@ local function updateAllyTeamData()
 		end
 	end
 	
-	-- Sort by score descending (highest first)
+	-- Sort by combined score (current + predicted) descending (highest first)
 	table.sort(validAllyTeams, function(a, b) 
-		if a.score == b.score then
-			return a.allyTeamID < b.allyTeamID -- Secondary sort by ally team ID for consistency
+		local aCombinedScore = a.score + a.projectedPoints
+		local bCombinedScore = b.score + b.projectedPoints
+		
+		if aCombinedScore == bCombinedScore then
+			-- If combined scores are equal, sort by current score
+			if a.score == b.score then
+				return a.allyTeamID < b.allyTeamID -- Tertiary sort by ally team ID for consistency
+			end
+			return a.score > b.score
 		end
-		return a.score > b.score 
+		return aCombinedScore > bCombinedScore 
 	end)
 	
 	widgetState.allyTeamData = validAllyTeams
@@ -176,11 +185,11 @@ local function calculateUILayout()
 	local effectiveMaxWidth = math.min(300, minimapSizeX)
 	local maxWidth = effectiveMaxWidth - (widgetState.uiMargins.containerPadding * 2)
 	local maxHeight = 248
-	local magicalSpacing = 42 -- because there's something about the difference between the way widgets and rmlui handles screenspace spacing that requires an additional y offset.
 	
 	-- Position the score display below the minimap (growing downward)
 	local scorePosX = minimapPosX
-	local scorePosY = minimapPosY - minimapSizeY - magicalSpacing -- Position directly below minimap with no gap
+	Spring.Echo(WIDGET_NAME .. ": Minimap geometry - X:" .. minimapPosX .. " Y:" .. minimapPosY .. " W:" .. minimapSizeX .. " H:" .. minimapSizeY)
+	local scorePosY = SCREEN_HEIGHT - minimapPosY -- Position directly below minimap with no gap
 	
 	-- Store UI state in widget state instead of data model
 	widgetState.uiState = {
