@@ -231,6 +231,18 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	local backgroundDiv = widgetState.document:CreateElement("div")
 	backgroundDiv.class_name = "score-bar-background"
 	
+	local darkBackgroundColor = {
+		r = allyTeam.color.r * 0.25,
+		g = allyTeam.color.g * 0.25,
+		b = allyTeam.color.b * 0.25,
+		a = 204
+	}
+	backgroundDiv:SetAttribute("style", string.format("background-color: rgba(%d, %d, %d, %d)", 
+		math.floor(darkBackgroundColor.r * 255), 
+		math.floor(darkBackgroundColor.g * 255), 
+		math.floor(darkBackgroundColor.b * 255), 
+		darkBackgroundColor.a))
+	
 	local projectedDiv = widgetState.document:CreateElement("div")
 	projectedDiv.class_name = "score-bar-projected"
 	projectedDiv.id = "projected-fill-" .. index

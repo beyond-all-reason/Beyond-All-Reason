@@ -702,13 +702,27 @@ local function createScoreBarBackgroundDisplayList(allyTeamData)
 		for allyTeamIndex, allyTeamDataEntry in ipairs(allyTeamData) do
 			if allyTeamDataEntry and allyTeamDataEntry.allyTeamID then
 				local barPosition = getBarPositionsCached(allyTeamIndex)
+				local teamColor = allyTeamDataEntry.teamColor
 
-				-- Use solid colors for debugging
-				glColor(0.2, 0.2, 0.2, 0.9)
+				-- Create super dark version of team color for border
+				local darkBorderColor = {
+					teamColor[1] * 0.15,
+					teamColor[2] * 0.15,
+					teamColor[3] * 0.15,
+					0.9
+				}
+				glColor(darkBorderColor[1], darkBorderColor[2], darkBorderColor[3], darkBorderColor[4])
 				glRect(barPosition.scorebarLeft - BORDER_WIDTH, barPosition.scorebarBottom - BORDER_WIDTH,
 					barPosition.scorebarRight + BORDER_WIDTH, barPosition.scorebarTop + BORDER_WIDTH)
 
-				glColor(0, 0, 0, 0.8)
+				-- Create super dark version of team color for background
+				local darkBackgroundColor = {
+					teamColor[1] * 0.08,
+					teamColor[2] * 0.08,
+					teamColor[3] * 0.08,
+					0.8
+				}
+				glColor(darkBackgroundColor[1], darkBackgroundColor[2], darkBackgroundColor[3], darkBackgroundColor[4])
 				glRect(barPosition.scorebarLeft, barPosition.scorebarBottom, barPosition.scorebarRight,
 					barPosition.scorebarTop)
 			end
