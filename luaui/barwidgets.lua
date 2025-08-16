@@ -95,6 +95,7 @@ widgetHandler = {
 local flexCallIns = {
 	'GameOver',
 	'GameFrame',
+	'GameFramePost',
 	'GameSetup',
 	'GamePaused',
 	'TeamDied',
@@ -1590,7 +1591,7 @@ end
 function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	-- drawAboveWater, drawBelowWater, drawReflection, drawRefraction
-	-- 1. false, 			true, 			false, 			false 
+	-- 1. false, 			true, 			false, 			false
 	-- 2. true, 			false, 			true, 			false
 	-- 3. true, 			false, 			false, 			false
 
@@ -2078,6 +2079,18 @@ function widgetHandler:GameFrame(frameNum)
 	return
 end
 
+
+function widgetHandler:GameFramePost(frameNum)
+	tracy.ZoneBeginN("W:GameFramePost")
+	for _, w in ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("W:GameFramePost:" .. w.whInfo.name)
+		w:GameFramePost(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 -- local helper (not a real call-in)
 local oldSelection = {}
 function widgetHandler:UpdateSelection()
@@ -2544,10 +2557,10 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	return
 end
 
-function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
-		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end
@@ -2646,30 +2659,6 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracy.ZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-
---------------------------------------------------------------------------------
---
---  Unit Market
---
-
-function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSale")
-	for _, w in ipairs(self.UnitSaleList) do
-		w:UnitSale(unitID, price, msgFromTeamID)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSold")
-	for _, w in ipairs(self.UnitSoldList) do
-		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
 	tracy.ZoneEnd()
 	return

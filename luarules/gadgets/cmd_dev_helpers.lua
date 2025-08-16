@@ -30,8 +30,9 @@ function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
 		return true
 	else
-		local playername = Spring.GetPlayerInfo(playerID, false)
-		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
+		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
 			end
@@ -529,13 +530,13 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(words, word)
 		end
 
+		if not isAuthorized(playerID) then
+			return
+		end
+
 		if words[1] == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
-		end
-
-		if not isAuthorized(playerID) then
-			return
 		end
 
 		if words[1] == "givecat" then
@@ -555,7 +556,15 @@ if gadgetHandler:IsSyncedCode() then
 		elseif words[1] == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
 		elseif words[1] == "reclaimunits" then
-			ExecuteSelUnits(words, playerID, 'reclaim')
+			ExecuteSelUnits(words, playerID)
+		elseif words[1] == "transferunits" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
 		elseif words[1] == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
@@ -568,6 +577,12 @@ if gadgetHandler:IsSyncedCode() then
 			ClearWrecks()
 		elseif words[1] == "fightertest" then
 			fightertest(words)
+		elseif words[1] == "globallos" then
+			globallos(words)
+		elseif words[1] == "playertoteam" then
+			playertoteam(words)
+		elseif words[1] == "killteam" then
+			killteam(words)
 		end
 	end
 
@@ -577,6 +592,23 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local featuredefstoremove = {}
 
+	function globallos(words)
+		local allyteams = Spring.GetAllyTeamList()
+        for i = 1,#allyteams do
+            local allyTeamID = allyteams[i]
+			if not words[3] or allyTeamID == tonumber(words[3]) then
+				Spring.SetGlobalLos(allyTeamID, words[2] == '1')
+			end
+		end
+	end
+
+	function playertoteam(words)
+		Spring.AssignPlayerToTeam(tonumber(words[2]), tonumber(words[3]))
+	end
+
+	function killteam(words)
+		Spring.KillTeam(tonumber(words[2]))
+	end
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
 		if not fightertestenabled then
@@ -748,6 +780,10 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.DestroyUnit(unitID, false, true)
 			elseif action == 'removenearbyunits' then
 				Spring.DestroyUnit(unitID, false, true)
+			elseif action == 'transfer' then
+				if type(tonumber(params)) == 'number' then
+					Spring.TransferUnit(unitID, tonumber(params), true)
+				end
 			elseif action == 'reclaim' then
 				local teamID = Spring.GetUnitTeam(unitID)
 				local unitDefID = Spring.GetUnitDefID(unitID)
@@ -869,8 +905,9 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
+		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
 
-		gadgetHandler:AddChatAction('xp', xpUnits, "")
+		gadgetHandler:AddChatAction('xp', xpUnits, "")	-- gives the selected units experience, /luarules xp [int]
 
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
 		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
@@ -881,7 +918,10 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
-		gadgetHandler:AddChatAction('desync', desync) -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
+		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
+		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
+		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
 	end
 
 	function gadget:Shutdown()
@@ -890,6 +930,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
+		gadgetHandler:RemoveChatAction('transferunits')
 		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
 		gadgetHandler:RemoveChatAction('spawnunitexplosion')
@@ -899,8 +940,10 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('fightertest')
-		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
-
+		gadgetHandler:RemoveChatAction('globallos')
+		gadgetHandler:RemoveChatAction('playertoteam')
+		gadgetHandler:RemoveChatAction('killteam')
+		gadgetHandler:RemoveChatAction('desync')
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -918,18 +961,21 @@ else	-- UNSYNCED
 	function removeUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removeunits')
 	end
-	function removenearbyunits(_, line, words, playerID)
+	function removeNearbyUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removenearbyunits')
+	end
+	function transferUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'transferunits')
 	end
 
 	function removeUnitDef(_, line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-		Spring.Echo(line)
-		Spring.Echo(words[1])
-		Spring.Echo(words[2])
-		Spring.Echo(words[3])
+		-- Spring.Echo(line)
+		-- Spring.Echo(words[1])
+		-- Spring.Echo(words[2])
+		-- Spring.Echo(words[3])
 		if words[1] and UnitDefNames[words[1]] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeunitdef '.. words[1])
 		end
@@ -955,6 +1001,13 @@ else	-- UNSYNCED
 				units = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], words[1] and words[1] or 24, words[2] and words[2] or nil)
 			end
 		else
+			if not words[1] and action == 'transferunits' then
+				local mx,my = Spring.GetMouseState()
+				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				if targetType == 'unit' then
+					words[1] = Spring.GetUnitTeam(unitID)
+				end
+			end
 			units = Spring.GetSelectedUnits()
 		end
 		for _, unitID in ipairs(units) do
@@ -1247,10 +1300,59 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(msg)
 	end
 
+	function globallos(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if words[2] then
+
+		end
+		local globallos = (not words[1] or words[1] ~= '0') or false
+		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0')..(words[2] and ':'..words[2] or ''))
+	end
+
+	function playertoteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			units = Spring.GetSelectedUnits()
+			if #units > 0 then
+				words[1] = Spring.GetUnitTeam(units[1])
+			else
+				local mx,my = Spring.GetMouseState()
+				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				if targetType == 'unit' then
+					words[1] = Spring.GetUnitTeam(unitID)
+				end
+			end
+		end
+		if not words[2] then
+			words[2] = words[1]
+			words[1] = Spring.GetMyPlayerID()
+		end
+		if tonumber(words[2]) < #Spring.GetTeamList()-1 then
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':playertoteam:' .. words[1] .. ':' .. words[2])
+		end
+	end
+
+	function killteam(_, line, words, playerID, action)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		if not words[1] then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':killteam:' .. words[1])
+	end
+
 	function desync()
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
 		Spring.Echo("Unsynced: Attempting to trigger a /desync")
-		local msg = PACKET_HEADER .. ':desync'
-		Spring.SendLuaRulesMsg(msg)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':desync')
 	end
 
 	function spawnceg(_, line, words, playerID)

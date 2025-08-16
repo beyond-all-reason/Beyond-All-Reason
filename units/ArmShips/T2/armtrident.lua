@@ -29,7 +29,7 @@ return {
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/armtrident.s3o",
-		script = "Units/armtrident.cob",
+		script = "Units/armtrident_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 600,
@@ -172,6 +172,7 @@ return {
 					stockpilelimit = 4,
 					stockpilemetal = 30,
 					stockpileenergy = 750,
+					dronesusestockpile = true,
 				}
 			},
 			

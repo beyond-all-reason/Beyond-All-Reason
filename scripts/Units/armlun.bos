@@ -102,20 +102,24 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( !gun_1 )
+	if( gun_1 )
 	{
 		emit-sfx 1024 + 0 from rflare;
 		move rbarrel to z-axis [-5.0] now;
 		move rbarrel to z-axis [0.0] speed [7.50000];
 	}
-	if( gun_1 )
+	if( !gun_1 )
 	{
 		emit-sfx 1024 + 0 from lflare;
 		move lbarrel to z-axis [-5.0] now;
 		move lbarrel to z-axis [0.0] speed [7.50000];
 	}
-	gun_1 = !gun_1;
 	return (0);
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -125,7 +129,14 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = lflare + gun_1;
+	if(!gun_1 )
+	{
+		pieceIndex = lflare;
+	}
+	if(gun_1 )
+	{
+		pieceIndex = rflare;
+	}
 }
 
 QueryWeapon2(pieceIndex)

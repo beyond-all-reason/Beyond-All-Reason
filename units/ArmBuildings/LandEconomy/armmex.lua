@@ -2,7 +2,6 @@ return {
 	armmex = {
 		activatewhenbuilt = true,
 		buildangle = 8192,
-		buildingmask = 0,
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		canrepeat = false,
@@ -17,7 +16,7 @@ return {
 		extractsmetal = 0.001,
 		footprintx = 4,
 		footprintz = 4,
-		health = 189,
+		health = 270,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0,

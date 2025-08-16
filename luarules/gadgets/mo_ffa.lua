@@ -54,6 +54,34 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function destroyTeam(teamID)
+
+		-- Check if the entire allyteam is dead and wipeout their units if so
+		local allyTeamDead = true
+		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+		local allyTeamList = Spring.GetTeamList(allyTeamID)
+		if allyTeamList then
+			for _, checkTeamID in ipairs(allyTeamList) do
+				if checkTeamID ~= teamID and not select(3, Spring.GetTeamInfo(checkTeamID)) then
+					allyTeamDead = false
+					break
+				end
+			end
+			-- ensure the wipeout is initiated (for some reason game_end doesnt kill the allyteam I think)
+			if allyTeamDead then
+				if GG.wipeoutAllyTeam then
+					GG.wipeoutAllyTeam(select(6, Spring.GetTeamInfo(teamID)))
+				else
+					local teams = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamID)))
+					for _,tID in pairs(teams) do
+						local teamUnits = Spring.GetTeamUnits(tID)
+						for i=1, #teamUnits do
+							Spring.DestroyUnit(teamUnits[i], false, leaveWreckage)
+						end
+					end
+				end
+			end
+		end
+
 		Spring.KillTeam(teamID)
 		deadTeam[teamID] = true
 		SendToUnsynced("TeamDestroyed", teamID)
@@ -119,6 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 		for teamID, frame in pairs(droppedTeam) do
 			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				if gameFrame < leaveWreckageFromFrame then
+					-- silent removal
 					local teamUnits = Spring.GetTeamUnits(teamID)
 					for i=1, #teamUnits do
 						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts

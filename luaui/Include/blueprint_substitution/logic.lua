@@ -97,6 +97,11 @@ end
 
 function BlueprintSubLogic.getSideFromUnitName(unitName)
     if not unitName then return nil end
+    if unitName == 'dummycom' then
+	    -- special exception for dummycom when player is still 'random' faction, will
+	    -- behave as arm and be converted later
+	    return BlueprintSubLogic.SIDES.ARM
+    end
     local lowerName = unitName:lower()
     for side, prefix in pairs(BlueprintSubLogic.SIDES) do
         if lowerName:find("^" .. prefix) then

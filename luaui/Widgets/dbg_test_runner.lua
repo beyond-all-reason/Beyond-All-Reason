@@ -493,6 +493,11 @@ local function startTests(patterns)
 						   'Cheats are disabled; attempting to enable them...',
 						   'Could not enable cheats; tests cannot be run.'}
 	end
+	if not Spring.IsDevLuaEnabled() then
+		neededActions[#neededActions+1] = {'devlua',
+						   'DevLua mode disabled; attempting to enable it...',
+						   'Could not enable DevLua mode; tests cannot be run.'}
+	end
 	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
 		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
 						   "Disabling end conditions...",

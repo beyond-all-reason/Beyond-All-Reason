@@ -9,7 +9,8 @@ function widget:GetInfo()
 		date = "2022.06.10",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
 		layer = -999999999, -- should be the last call of DrawWorld
-		enabled = true
+		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -775,6 +776,10 @@ function widget:Shutdown()
 	projectileDefDistortions = nil
 	explosionDistortions  = nil
 	gibDistortion = nil
+
+	gl.DeleteTexture(ScreenCopy)
+	gl.DeleteTexture(DistortionTexture)
+	ScreenCopy, DistortionTexture = nil, nil
 
 	--collectgarbage("collect")
 	--collectgarbage("collect")

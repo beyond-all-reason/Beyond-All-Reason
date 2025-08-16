@@ -70,7 +70,7 @@ local usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 local orgLines = {}
 local chatLines = {}
 local consoleLines = {}
-local ignoredPlayers = {}
+local ignoredAccounts = {}
 local activationArea = {0,0,0,0}
 local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
@@ -399,6 +399,10 @@ local autocompleteCommands = {
 	'luarules waterlevel',
 	'luarules wreckunits',
 	'luarules xp',
+	'luarules transferunits',
+	'luarules playertoteam',
+	'luarules killteam',
+	'luarules globallos',
 
 	-- widgets
 	'luaui reload',
@@ -417,13 +421,8 @@ local autocompleteCommands = {
 
 local autocompleteText
 local autocompletePlayernames = {}
-local playersList = Spring.GetPlayerList()
 local playernames = {}
-for _, playerID in ipairs(playersList) do
-	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
-	autocompletePlayernames[#autocompletePlayernames+1] = name
-end
+local playersList = Spring.GetPlayerList()
 
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
@@ -490,7 +489,7 @@ for i = 1, #teams do
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b }, ColorIsDark(r, g, b) }
+		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b }, ColorIsDark(r, g, b), aiName }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -499,6 +498,7 @@ for i = 1, #teams do
 			teamNames[teamID] = aiName
 		else
 			local name, _, spec, _ = spGetPlayerInfo(playerID)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if not spec then
 				teamNames[teamID] = name
 			end
@@ -566,7 +566,7 @@ end
 
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not gameFrame or not playernames[playername][7] or gameFrame < playernames[playername][7]) then
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][8] or gameFrame < playernames[playername][8]) then
 			if not mySpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
@@ -612,7 +612,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					local pair = string.split(v, '=')
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..pair[2]..msgColor
+							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..playernames[pair[2]][7]..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
 							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
@@ -654,7 +654,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
-			textOutline = (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3]) or false,
+			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -779,7 +779,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = getPlayerColorString(name, gameFrame)..name
+		nameText = getPlayerColorString(name, gameFrame)..(playernames[name] and playernames[name][7] or name)
 		line = ColorString(c[1],c[2],c[3])..text
 
 		-- spectator message
@@ -813,7 +813,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
+		nameText = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..(playernames[name] and playernames[name][7] or name)
 		line = ColorString(c[1],c[2],c[3])..text
 
 		-- point
@@ -845,7 +845,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		end
 
-		nameText = namecolor..(spectator and '(s) ' or '')..name
+		nameText = namecolor..(spectator and '(s) ' or '')..(playernames[name] and playernames[name][7] or name)
 		line = textcolor..text
 
 		-- battleroom message
@@ -877,7 +877,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = ColorString(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
+		nameText = ColorString(colorGame[1],colorGame[2],colorGame[3])..'<'..(playernames[name] and playernames[name][7] or name)..'>'
 		line = ColorString(colorGame[1],colorGame[2],colorGame[3])..text
 
 		-- units given
@@ -892,11 +892,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if newTeamName and newTeamName ~= '' and shareDesc and shareDesc ~= '' then
 			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
 				units = msgHighlightColor .. shareDesc .. msgColor,
-				name = getPlayerColorString(newTeamName, gameFrame)..newTeamName
+				name = getPlayerColorString(newTeamName, gameFrame)..(playernames[newTeamName] and playernames[newTeamName][7] or newTeamName)
 			})
 		end
 
-		nameText = getPlayerColorString(oldTeamName, gameFrame)..oldTeamName
+		nameText = getPlayerColorString(oldTeamName, gameFrame)..(playernames[oldTeamName] and playernames[oldTeamName][7] or oldTeamName)
 		line = text
 
 		-- console chat
@@ -1053,7 +1053,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if not bypassThisMessage and line ~= '' then
-			if ignoredPlayers[name] then
+			if ignoredAccounts[name] then
 				skipThisMessage = true
 			end
 			if not orgLineID then
@@ -1136,14 +1136,14 @@ local function drawGameTime(gameFrame)
 	if minutes >= 100 then
 		offset = (usedFontSize*0.2*widgetScale)
 	end
-	font3:Begin()
+	font3:Begin(useRenderToTexture)
 	font3:SetOutlineColor(0,0,0,1)
 	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
 	font3:End()
 end
 
 local function drawConsoleLine(i)
-	font:Begin()
+	font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
 	font:End()
@@ -1167,10 +1167,10 @@ end
 
 local function drawChatLine(i)
 	local fontHeightOffset = usedFontSize*0.3
-	font:Begin()
+	font:Begin(useRenderToTexture)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1178,13 +1178,19 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font2:SetOutlineColor(0,0,0,1)
 			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-			font3:Begin()
+			font3:Begin(useRenderToTexture)
+			if chatLines[i].textOutline then
+				font3:SetOutlineColor(1,1,1,1)
+			else
+				font3:SetOutlineColor(0,0,0,1)
+			end
 			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
 			font3:End()
 		else
-			font2:Begin()
+			font2:Begin(useRenderToTexture)
 			if chatLines[i].textOutline then
 				font2:SetOutlineColor(1,1,1,1)
 			else
@@ -1192,15 +1198,17 @@ local function drawChatLine(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font:SetOutlineColor(0,0,0,1)
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin()
+		font3:Begin(useRenderToTexture)
 		font3:SetOutlineColor(0,0,0,1)
 		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
 		font3:End()
 	else
+		font:SetOutlineColor(0,0,0,1)
 		font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 	end
 	font:End()
@@ -1259,6 +1267,7 @@ function widget:Update(dt)
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
+					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 					changedPlayers[name] = true
 				end
 			end
@@ -1286,29 +1295,30 @@ function widget:Update(dt)
 			--end
 		end
 
-		-- detect muted player change
-		if WG.ignoredPlayers then
-			for name, _ in pairs(ignoredPlayers) do
-				if not WG.ignoredPlayers[name] then
+		if WG.ignoredAccounts then
+			-- unhide chats from players that used to be ignored
+			for accountID_or_name, _ in pairs(ignoredAccounts) do
+				if not WG.ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do
-						if chatLines[i].playerName == name then
+						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = nil
 							updateDrawUi = true
 						end
 					end
 				end
 			end
-			for name, _ in pairs(WG.ignoredPlayers) do
-				if not ignoredPlayers[name] then
+			-- hide chats from players that are now ignored
+			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
+				if not ignoredAccounts[accountID_or_name] then
 					for i=1, #chatLines do
-						if chatLines[i].playerName == name then
+						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = true
 							updateDrawUi = true
 						end
 					end
 				end
 			end
-			ignoredPlayers = table.copy(WG.ignoredPlayers)
+			ignoredAccounts = table.copy(WG.ignoredAccounts)
 		end
 
 		-- detect spectator filter change
@@ -1327,7 +1337,7 @@ function widget:Update(dt)
 					if hideSpecChat then
 						chatLines[i].ignore = true
 					else
-						chatLines[i].ignore = WG.ignoredPlayers[chatLines[i].playerName] and true or nil
+						chatLines[i].ignore = WG.ignoredAccounts[chatLines[i].playerName] and true or nil
 					end
 				end
 			end
@@ -1439,7 +1449,7 @@ local function drawChatInput()
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
-			usedFont:Begin()
+			usedFont:Begin(useRenderToTexture)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
@@ -1594,14 +1604,14 @@ local function drawUi()
 
 		-- draw background
 		if backgroundOpacity > 0 and displayedChatLines > 0 then
-			glColor(1,1,1,0.1*backgroundOpacity*(useRenderToTexture and 2 or 1))
+			glColor(1,1,1,0.1*backgroundOpacity)
 			local borderSize = 1
 			RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
 
-			glColor(0,0,0,backgroundOpacity*(useRenderToTexture and 2 or 1))
+			glColor(0,0,0,backgroundOpacity)
 			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
-				font:Begin()
+				font:Begin(useRenderToTexture)
 				font:SetTextColor(0.1,0.1,0.1,0.66)
 				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 				font:End()
@@ -1646,7 +1656,7 @@ local function drawUi()
 	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
 		if #chatLines == 0 and historyMode == 'chat' then
-			font:Begin()
+			font:Begin(useRenderToTexture)
 			font:SetTextColor(0.35,0.35,0.35,0.66)
 			font:Print(I18N.nohistory, activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
 			font:End()
@@ -1910,7 +1920,7 @@ function widget:DrawScreen()
 			refreshUi = false
 			updateDrawUi = true
 			if uiTex then
-				gl.DeleteTextureFBO(uiTex)
+				gl.DeleteTexture(uiTex)
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
@@ -1926,15 +1936,15 @@ function widget:DrawScreen()
 			end
 			if updateDrawUi ~= nil then
 				lastDrawUiUpdate = clock()
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
-					gl.Translate(-rttArea[1], -rttArea[2], 0)
-					drawUi()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / ((rttArea[3]-rttArea[1])), 2 / ((rttArea[4]-rttArea[2])),	0)
+						gl.Translate(-rttArea[1], -rttArea[2], 0)
+						drawUi()
+					end,
+					useRenderToTexture
+				)
 
 				-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
 				if updateDrawUi == false then
@@ -1944,12 +1954,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			--gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1, 1, 1, 1)
-			gl.Texture(uiTex)
-			gl.TexRect(rttArea[1], rttArea[2], rttArea[3], rttArea[4], false, true)
-			gl.Texture(false)
-			--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], useRenderToTexture)
 		end
 	else
 		drawUi()
@@ -2365,6 +2370,7 @@ function widget:ViewResize()
 	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	for _, playerID in ipairs(playersList) do
 		local name = spGetPlayerInfo(playerID, false)
+		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
 			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
@@ -2414,13 +2420,14 @@ function widget:PlayerChanged(playerID)
 		inputMode = 's:'
 	end
 	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if not playernames[name] then
 		widget:PlayerAdded(playerID)
 	else
 		if isSpec ~= playernames[name].isSpec then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][7] = Spring.GetGameFrame()	-- log frame of death
+				playernames[name][8] = Spring.GetGameFrame()	-- log frame of death
 			end
 		end
 	end
@@ -2428,8 +2435,12 @@ end
 
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)) }
+	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
+	if historyName ~= name then
+		autocompletePlayernames[#autocompletePlayernames+1] = historyName
+	end
 end
 
 local function clearconsoleCmd(_, _, params)
@@ -2485,8 +2496,8 @@ end
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
-	if WG.ignoredPlayers then
-		ignoredPlayers = table.copy(WG.ignoredPlayers)
+	if WG.ignoredAccounts then
+		ignoredAccounts = table.copy(WG.ignoredAccounts)
 	end
 
 	widget:ViewResize()
@@ -2568,6 +2579,16 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
+
+	for _, playerID in ipairs(playersList) do
+		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+		playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+		autocompletePlayernames[#autocompletePlayernames+1] = name
+		if historyName ~= name then
+			autocompletePlayernames[#autocompletePlayernames+1] = historyName
+		end
+	end
 end
 
 function widget:Shutdown()
@@ -2580,7 +2601,7 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 

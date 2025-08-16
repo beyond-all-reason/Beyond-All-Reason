@@ -1,97 +1,38 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 //piece  base, column, turret, barrel1, barrel2, flare1, flare2;
 piece  base, pins, clock, shaft, emp, flare, aimy;
 
-static-var  meatspin, Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging,
-            Stunned;
+static-var  resourceRate, restore_delay, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
-
-
-Go()
-{
-	if (Stunned) {
-		return (0);
-	}
-	//spin column around y-axis speed Static_Var_3 accelerate Static_Var_4;
-	spin clock around y-axis speed meatspin accelerate <0.500000>;
-}
-
-Stop()
-{
-	//stop-spin column around y-axis decelerate Static_Var_5;
-	stop-spin clock around y-axis decelerate <1.000000>;
-	wait-for-turn clock around y-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#define SIGNAL_AIM1 256
 
 Create()
 {
 	hide flare;
-	meatspin = 500;
-
-	Static_Var_3 = 0;
-	Static_Var_4 = 91;
-	Static_Var_5 = 182;
-	Static_Var_7 = 0;
-	Static_Var_8 = 0;
-	Static_Var_1 = 1;
-	call-script InitState();
+	resourceRate = 500;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	spin clock around y-axis speed resourceRate accelerate <0.500000>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin clock around y-axis decelerate <1.0>;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 8;
+	restore_delay = reloadMS * 8;
 }
 
 ExecuteRestoreAfterDelay()
@@ -100,71 +41,68 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn shaft to x-axis <0> speed <30>;
-	start-script RequestState(1);
+	spin clock around y-axis speed resourceRate accelerate <0.500000>;
+	turn shaft to y-axis <0> speed <60>;
+	turn emp to x-axis <0>  speed <70>;
 }
+
 SetStunned(State)
 {
 	Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
-	if (State) {
-	    call-script Stop();
+	if (Stunned) {
+	    call-script Deactivate();
 	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
+	    call-script Activate();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	meatspin = Func_Var_1 * 2;
+	resourceRate = windOrMetal * 2;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	
-	  if ( meatspin == 0 ) // only allow attacking when extracting
+	  if ( resourceRate == 0 ) // only allow attacking when extracting
 		  {
 		  return (0);
 		  }
-
 	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn shaft to y-axis heading speed <60>;
-	turn emp to x-axis <0.000000> - pitch speed <70>;
+	turn emp to x-axis <0.0> - pitch speed <70>;
 	wait-for-turn shaft around y-axis;
 	wait-for-turn emp around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 }
 
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimy;
+	pieceIndex = aimy;
 }
 
 

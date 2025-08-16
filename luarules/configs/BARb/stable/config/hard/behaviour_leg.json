@@ -704,6 +704,21 @@
 				"limit": 10
 			},
 
+			"legaspy": {
+				"role": ["scout"],
+				"limit": 3
+			},
+
+			"legaradk": {
+				"role": ["support"],
+				"retreat": 0.6,
+				"limit": 3
+			},
+			"legajamk": {
+				"role": ["support"],
+				"limit": 3
+			},
+
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -716,12 +731,6 @@
 			},
 			"legjav": {
 				"role": ["raider"]
-			},
-			"legelrpcmech": {
-				"role": ["artillery"],
-				"attribute": ["siege"],
-				"threat": {"surf": 0.5, "vs":{"static":2.0, "artillery":2.0}},
-				"power": 0.5
 			},
 			"legerailtank": {
 				"role": ["assault"],
@@ -736,10 +745,16 @@
 				"attribute": ["melee"],
 				"retreat": 0.00
 			},
-			"leglrpcmech": {
+			"legelrpcmech": {
 				"role": ["artillery"],
 				//"attribute": ["siege", "support"],
 				"threat": {"air": 0.0, "water": 0.0}
+			},
+			"legeallterrainmech": {
+				"role": ["skirmish", "heavy"]
+			},
+			"legehovertank": {
+				"role": ["raider"]
 			},
 
 			// LEGION T1 VEHICLE - legvp
@@ -781,7 +796,7 @@
 			"legfloat": {
 				"role": ["raider"]
 			},
-			"legskirmtank": {
+			"legaskirmtank": {
 				"role": ["skirmish"]
 			},
 			"legmrv": {
@@ -792,7 +807,7 @@
 				"attribute":["siege"],
 				"threat": {"surf": 1.5}
 			},
-			"legmcluster": {
+			"legamcluster": {
 				"role": ["artillery"],
 				"attribute": ["siege"],
 				"retreat": 0.6
@@ -839,7 +854,15 @@
 				"power": 0.1,
 				"retreat": 0.8
 			},
-	
+			"leglts": {
+				"role": ["support", "air"],
+				"retreat": 0.5
+			},
+			"legatrans": {
+				"role": ["support", "air"],
+				"retreat": 0.5
+			},
+
 			// LEGION ADV AIRCRAFT aircraft - legaap
 	
 			"legwhisper": {
@@ -858,6 +881,14 @@
 				"role": ["bomber", "air"],
 				"retreat": 0.8
 			},
+			"legnap": {
+				"role": ["bomber", "air"],
+				"retreat": 0.8
+			},
+			"legmineb": {
+				"role": ["bomber", "air"],
+				"retreat": 0.8
+			},
 			"legstronghold": {
 				"role": ["assault", "air"],
 				"retreat": 0.5
@@ -866,7 +897,11 @@
 				"role": ["heavy", "air"],
 				"retreat": 0.4
 			},
-	
+			"legatorpbomber": {
+				"role": ["anti_sub", "air"],
+				"retreat": 0.8
+			},
+
 			// LEGION HOVERS
 	
 			"legsh": {

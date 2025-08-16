@@ -1,19 +1,17 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  flare1, flare6, flare5, flare4, flare3, flare2, base, turret, ring, spindle, aimy1, aimx1;
+piece  flare1, flare6, flare5, flare4, flare3, flare2, base, turret, spindle, aimy1, aimx1;
 
-static-var  gun_1, last_fire, firstaim;
+static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 #define DELAY_UNIT_VAR 1024
 
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -21,7 +19,6 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    firstaim = 1;
 	spin aimy1 around y-axis speed <22.0>;
 	turn aimx1 to x-axis <-15> speed <22.0>;
 	turn spindle to z-axis <0> speed <60>;
@@ -47,19 +44,15 @@ Create()
 	hide flare3;
 	hide flare2;
 	hide flare1;
-	gun_1 = flare1;
-	firstaim = 1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	gun_1 = 0;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+    signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	stop-spin aimy1 around y-axis;
 	turn aimy1 to y-axis heading speed <250>;
 	turn aimx1 to x-axis 0 - pitch speed <250>;
@@ -68,57 +61,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin spindle around z-axis speed <-240>;
-	
-	if( gun_1 == 0 )
-	{
+	if (gun_1 % 2 == 0){
 		wait-for-turn spindle around z-axis;
-		sleep 50;
 	}
-	if( gun_1 == 1 )
-	{
-		sleep 50;
-	}
-	if( gun_1 == 2 )
-	{
-		wait-for-turn spindle around z-axis;
-		sleep 50;
-	}
-	if( gun_1 == 3 )
-	{
-		sleep 50;
-	}
-	if( gun_1 == 4 )
-	{
-		wait-for-turn spindle around z-axis;
-		sleep 50;
-	}
-	if( gun_1 == 5 )
-	{
-		sleep 50;
-	}
-	++gun_1;
-	if( gun_1 == 6 )
-	{
-		gun_1 = flare1;
-	}
+	sleep 50;
+	gun_1 = (gun_1 + 1) % 6;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = flare1 + gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = spindle;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = spindle;
 }
 
 Killed(severity, corpsetype)

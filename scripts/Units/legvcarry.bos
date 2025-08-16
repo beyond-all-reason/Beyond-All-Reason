@@ -127,3 +127,26 @@ Killed(severity, corpsetype)
 		explode chassis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+
+
+Dronedocked(arg1, dockpiece, arg2, arg3)
+{
+	var piece_xz;
+	var piece_angle;
+	var base_xz;
+	
+	base_xz = get PIECE_XZ(rotationPad);
+	
+	if(dockpiece == 8){piece_xz = get PIECE_XZ(drone1);}
+	if(dockpiece == 10){piece_xz = get PIECE_XZ(drone2);}
+	if(dockpiece == 12){piece_xz = get PIECE_XZ(drone3);}
+	if(dockpiece == 14){piece_xz = get PIECE_XZ(drone4);}
+	if(dockpiece == 16){piece_xz = get PIECE_XZ(drone5);}
+	if(dockpiece == 18){piece_xz = get PIECE_XZ(drone6);}
+	
+	piece_angle = get XZ_ATAN(piece_xz-base_xz);
+	
+	arg1 = piece_angle + <180>;
+	return 1234;
+}

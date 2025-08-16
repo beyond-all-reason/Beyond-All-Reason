@@ -105,23 +105,44 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	CalamityIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	StarfallIsReady = {
+		delay = 9999999,
+	},
+	AstraeusIsReady = {
+		delay = 9999999,
+	},
+	SolinvictusIsReady = {
+		delay = 9999999,
+	},
+	TitanIsReady = {
+		delay = 9999999,
+	},
+	ThorIsReady = {
+		delay = 9999999,
+	},
+	JuggernautIsReady = {
+		delay = 9999999,
 	},
 	Tech3UnitReady = {
 		delay = 9999999,
 	},
 
 	-- Units Detected
-	T2Detected = {
+	Tech2UnitDetected = {
 		delay = 9999999,
 	},
-	T3Detected = {
+	Tech3UnitDetected = {
 		delay = 9999999,
 	},
-	AircraftSpotted = {
+	Tech4UnitDetected = {
+		delay = 9999999,
+	},
+	AircraftDetected = {
 		delay = 9999999,
 	},
 	MinesDetected = {
@@ -148,16 +169,19 @@ return {
 	BehemothDetected = {
 		delay = 9999999,
 	},
+	SolinvictusDetected = {
+		delay = 9999999,
+	},
 	JuggernautDetected = {
 		delay = 9999999,
 	},
 	TitanDetected = {
 		delay = 9999999,
 	},
-	FlagshipDetected = {
+	ThorDetected = {
 		delay = 9999999,
 	},
-	CommandoDetected = {
+	FlagshipDetected = {
 		delay = 9999999,
 	},
 	TransportDetected = {
@@ -195,6 +219,10 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+	BuildRadar = {
+		delay = 9999999,
+		tutorial = true,
+	},
 	FactoryAir = {
 		delay = 9999999,
 		tutorial = true,
@@ -223,6 +251,15 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+	BuildIntrusionCounterMeasure = {
+		delay = 9999999,
+		tutorial = true,
+	},
+	-- UpgradeMexT2 = {
+	-- 	delay = 9999999,
+	-- 	tutorial = true,
+	-- },
+	-- for the future
 	DuplicateFactory = {
 		delay = 9999999,
 		tutorial = true,

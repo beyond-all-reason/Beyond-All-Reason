@@ -67,25 +67,6 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
-		"unitMarket": {
-			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
-			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal.",
-			"notEnoughMetal": "Not enough metal!",
-			"offeringThisUnitForSale": "You are offering this unit for sale, allies can buy it with a Double-Click! Price %{price}m.",
-			"youCanBuyThisTooltip": "You can buy this unit with a Double-Click! Price %{price}m.",
-			"youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not enough metal.",
-			"youCanAffordIt": "This unit costs %{price} metal. You have enough.",
-			"youCantAffordIt": "This unit costs %{price} metal. Can't afford it yet.\nBut if you click it - your metal expenses will be paused automatically in order to buy the unit.",
-			"t2conShop": "Buy T2cons here!",
-			"shopTitle": "Unit Market",
-			"shopInfo": "You'll find t2cons listed here for sale.",
-			"youAreSellingText": "You've put t2con for sale, others can buy it now!",
-			"failedToFindNewOffers": "Out-of-stock! Waiting for new offers! %{sec}s.",
-			"autoClosing": "Auto closing this window in %{sec}s.",
-			"purchasing": "Purchasing %{name} (%{price}m)",
-			"buy": "buy",
-			"abort": "abort"
-		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
@@ -479,6 +460,16 @@
 				"pause": "Pause"
 			}
 		},
+		"ignore": {
+			"unknown": "unknown accountID",
+			"ignored": "You are now ignoring %{name} (%{accountID})",
+			"unignored": "You are now un-ignoring %{name} (%{accountID})"
+		},
+		"playernames": {
+			"notfound": "Player not found for: %{param}",
+			"setalias": "You are now setting alias for %{name} (%{accountID}) to: %{alias}",
+			"removealias": "You are now removing alias for %{name} (%{accountID})"
+		},
 		"chat": {
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
@@ -545,7 +536,8 @@
 			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
-			"owncomends": "Losing your commander = losing control of your units / resigning"
+			"owncomends": "Losing your commander = losing control of your units / resigning",
+			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -702,6 +694,12 @@
 				"endless": "Endless"
 			}
 		},
+		"territorialDomination": {
+			"losingWarning1": "Allied retreat in %{seconds} seconds!",
+			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
+			"rank": "Rank %{rank}",
+			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
@@ -710,7 +708,7 @@
 			"ready": "Ready",
 			"unready": "Unready",
 			"readied": "Readied",
-			"lock": "Lock Position",
+			"lock": "Ready",
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
@@ -1243,6 +1241,10 @@
 				"screenedgemovedynamic": "variable speed",
 				"screenedgemovedynamic_descr": "Enable if scrolling speed should fade with edge distance.",
 				"camera": "Camera",
+				"enableintrocamera": "Intro Camera",
+				"enableintrocamera_descr": "Enable Smooth Intro Camera Animation",
+				"camerapreserveangleonstart": "Preserve Camera Angle",
+				"camerapreserveangleonstart_descr": "Remember your custom camera angle between matches",
 				"camerashake": "shake",
 				"camerashake_descr": "Set the amount of camerashake on explosions",
 				"smoothingmode": "Smoothing Mode",
@@ -1369,8 +1371,12 @@
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
+				"advplayerlist_showallyid": "show Ally ID",
+				"advplayerlist_showallyid_descr": "show ally-team ID",
 				"advplayerlist_showid": "show Team ID",
 				"advplayerlist_showid_descr": "show team ID",
+				"advplayerlist_showplayerid": "show Player ID",
+				"advplayerlist_showplayerid_descr": "show player ID",
 				"advplayerlist_country": "country flag",
 				"advplayerlist_country_descr": "show country flag",
 				"advplayerlist_rank": "rank icon",
@@ -1648,10 +1654,13 @@
 				"devmode_descr": "Toggle between how a developer or player see the UI",
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
-				"profiler": "Widget profiler",
-				"profiler_min_time": "Minimum Time",
-				"profiler_min_memory": "Minimum Memory",
-				"profiler_sort_by_load": "Sort By Load",
+				"profiler": "Profiler",
+				"profiler_widget": "widget",
+				"profiler_gadget": "gadget",
+				"profiler_sort_by_load": "sort by load",
+				"profiler_sort_by_load_descr": "Applies to both Widget Profiler and Gadget Profiler",
+				"profiler_averagetime": "time averaging",
+				"profiler_averagetime_descr": "The duration of averaging the time taken by each widget/gadget",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",

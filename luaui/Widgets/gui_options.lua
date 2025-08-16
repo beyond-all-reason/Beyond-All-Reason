@@ -28,7 +28,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local languageCodes = { 'en', 'fr', 'ru' }
+local languageCodes = { 'en', 'fr', 'ru', 'es' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -36,7 +36,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'test_unicode', }
+local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'es', 'test_unicode', }
 devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
 
 local devLanguageNames = {}
@@ -169,6 +169,9 @@ local heightmapChangeBuffer = {}
 local widgetScale = (vsy / 1080)
 
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
+
+WG["IntroCameraIsDone"] = true
+IntroCameraIsPlaying = true
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -922,6 +925,11 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
+	if not MapCameraStartupInit then
+		widgetHandler:EnableWidget("Map Camera Startup")
+		MapCameraStartupInit = true
+	end
+	
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
@@ -984,8 +992,22 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
+		if ((not WG.IntroCameraInitialised) or WG.IntroCameraIsDone) and WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
+			if IntroCameraIsPlaying then
+				local halfLife = cameraTransitionTime
+				if halfLife <= 1 then
+					halfLife = halfLife * 200
+				else
+					halfLife = halfLife * 600 - 400
+				end
+				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
+				IntroCameraIsPlaying = false
+			end
+		elseif WG.IntroCameraInitialised and not WG.IntroCameraIsDone then
+			IntroCameraIsPlaying = true
+			Spring.SetCameraState(nil, 3.25)
+			Spring.SetConfigFloat("CamSpringHalflife", 800)
 		end
 	--end
 
@@ -2487,7 +2509,7 @@ function init()
 		{ id = "label_gfx_environment", group = "gfx", name = Spring.I18N('ui.settings.option.label_environment'), category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
-		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 40000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
@@ -2806,14 +2828,6 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshSettings then
-					WG['music'].RefreshSettings()
-				end
-			end
-		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
@@ -3127,7 +3141,19 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		{ id = "enableintrocamera", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.enableintrocamera'), type = "bool", value = Spring.GetConfigInt('enableintrocamera', 1) == 1, description = Spring.I18N('ui.settings.option.enableintrocamera_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('enableintrocamera', value and 1 or 0)
+				widgetHandler:EnableWidget("Map Camera Startup")
+			end
+		},
+		{ id = "camerapreserveangleonstart", group = "control", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.camerapreserveangleonstart'), type = "bool", value = Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1, description = Spring.I18N('ui.settings.option.camerapreserveangleonstart_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('camerapreserveangleonstart', value and 1 or 0)
+				widgetHandler:EnableWidget("Map Camera Startup")
+			end
+		},
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
@@ -3238,7 +3264,6 @@ function init()
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
 		{ id = "camoverviewrestore", group = "control", category = types.advanced, widget = "Overview Camera Keep Position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camoverviewrestore'), type = "bool", value = GetWidgetToggleValue("Overview Camera Keep Position"), description = Spring.I18N('ui.settings.option.camoverviewrestore_descr') },
-
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
@@ -3541,12 +3566,28 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
 		  end,
 		},
+		{ id = "advplayerlist_showallyid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showallyid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showallyid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showallyid", { 'm_active_Table', 'allyid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'allyid' }, value, { 'allyid', value })
+		  end,
+		},
 		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showid_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'id' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
+		  end,
+		},
+		{ id = "advplayerlist_showplayerid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showplayerid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showplayerid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showplayerid", { 'm_active_Table', 'playerid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'playerid' }, value, { 'playerid', value })
 		  end,
 		},
 		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_rank_descr'),
@@ -3744,31 +3785,6 @@ function init()
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = Spring.I18N('ui.settings.option.buildbar'), type = "bool", value = GetWidgetToggleValue("BuildBar"), description = Spring.I18N('ui.settings.option.buildbar_descr') },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
-
-		{ id = "seeprices", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.seeprices'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getSeePrices() or 0), description = Spring.I18N('ui.settings.option.seeprices_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "seeprices", { 'seePrices' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setSeePrices', { 'seePrices' }, value)
-			end,
-		},
-		{ id = "showaisaleoffers", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.showaisaleoffers'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getShowAIsaleOffers() or 0), description = Spring.I18N('ui.settings.option.showaisaleoffers_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "showaisaleoffers", { 'showAIsaleOffers' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setShowAIsaleOffers', { 'showAIsaleOffers' }, value)
-			end,
-		},
-		{ id = "buywithoutholdignalt", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buywithoutholdignalt'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getBuyWithoutHoldingAlt() or 0), description = Spring.I18N('ui.settings.option.buywithoutholdignalt_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "buywithoutholdignalt", { 'buyWithoutHoldingAlt' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setBuyWithoutHoldingAlt', { 'buyWithoutHoldingAlt' }, value)
-			end,
-		},
 
 		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
@@ -4800,24 +4816,20 @@ function init()
 		{ id = "label_dev_debug", group = "dev", name = Spring.I18N('ui.settings.option.label_debug'), category = types.dev },
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
 
-		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler'), type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "profiler_min_time", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_time'), type = "slider", min = 0, max = 0.05, step = 0.001, value = Spring.GetConfigFloat("profiler_min_time", 0.05), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-			Spring.SetConfigFloat("profiler_min_time", value)
-		end,
+		{ id = "profiler_widget", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.profiler_widget'), type = "bool", value = GetWidgetToggleValue("Widget Profiler") },
+		{ id = "profiler_gadget", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_gadget'), type = "bool", value = false,
+		  onchange = function(i, value)
+			  Spring.SendCommands("luarules profile")
+		  end,
 		},
-		{ id = "profiler_min_memory", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_memory'), type = "slider", min = 0, max = 10, step = 1, value = Spring.GetConfigFloat("profiler_min_memory", 5), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-		  Spring.SetConfigFloat("profiler_min_memory", value)
-		end,
-		},
-		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = 'Affects both Widget Profiler and Gadget Profiler',
+		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = Spring.I18N('ui.settings.option.profiler_sort_by_load_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt("profiler_sort_by_load", (value and '1' or '0'))
+		end,
+	  },
+	  { id = "profiler_averagetime", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_averagetime'), type = "slider", min = 0.1, max = 10, step = 0.1, value = Spring.GetConfigFloat("profiler_averagetime", 2), description = Spring.I18N('ui.settings.option.profiler_averagetime_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigFloat("profiler_averagetime", value)
 		end,
 	  },
 		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = Spring.I18N('ui.settings.option.framegrapher'), type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
@@ -6263,20 +6275,21 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armdecom"].id] = false,
-		[UnitDefNames["cordecom"].id] = false,
-		[UnitDefNames["armferret"].id] = false,
-		[UnitDefNames["armamb"].id] = false,
-		[UnitDefNames["armpb"].id] = false,
-		[UnitDefNames["armsnipe"].id] = false,
-		[UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"].id] = true,
-		[UnitDefNames["armamex"].id] = true,
-		[UnitDefNames["armshockwave"].id] = true,
-		[UnitDefNames["armckfus"].id] = true,
-		[UnitDefNames["armspy"].id] = true,
-		[UnitDefNames["corspy"].id] = true,
-		[UnitDefNames["corphantom"].id] = true,
+		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id or -1] = false,
+		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id or -1] = false,
+		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id or -1] = false,
+		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id or -1] = false,
+		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id or -1] = false,
+		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id or -1] = false,
+		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id or -1] = false,
+		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id or -1] = true,
+		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id or -1] = true,
+		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id or -1] = true,
+		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id or -1] = true,
+		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id or -1] = true,
+		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id or -1] = true,
+		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id or -1] = true,
+		[UnitDefNames["legaspy"] and UnitDefNames["legaspy"].id or -1] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then

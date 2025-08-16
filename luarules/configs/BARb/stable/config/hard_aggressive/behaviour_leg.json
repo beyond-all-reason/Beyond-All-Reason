@@ -773,7 +773,7 @@
 				"power": 1.0
 			},
 			"legsnapper": {
-				"role": ["scout"],
+				"role": ["raider"],
 				"attribute": ["melee"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
@@ -785,11 +785,26 @@
 			},
 			"leghrk": {
 				"role": ["artillery"],
+				"attribute": ["siege"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-			"legamph": {
-				"role": ["raider"],
+			"legaradk": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legajamk": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legaspy": {
+				"role": ["scout"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
@@ -798,7 +813,12 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-
+			"legamph": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
 			// T3 LEGION EXPERIMENTAL - leggant
 			
 			"leegmech": {
@@ -808,6 +828,11 @@
 			},
 			"legkeres": {
 				"role": ["assault", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legeallterrainmech": {
+				"role": ["skirmish", "heavy"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
@@ -839,13 +864,12 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-			"leglrpcmech": {
-				"role": ["artillery", "heavy"],
-				"attribute": ["siege"],
+			"legehovertank": {
+				"role": ["raider"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-
+			
 			// LEGION T1 VEHICLE - legvp
 	
 			"legscout": {
@@ -885,14 +909,14 @@
 				"power": 1.0
 			},
 	
-			// 	LEGION ADV VELICLE PLANT
+			// 	LEGION ADV VEHICLE PLANT
 			
 			"legfloat": {
 				"role": ["raider"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-			"legskirmtank": {
+			"legaskirmtank": {
 				"role": ["skirmish"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
@@ -907,7 +931,7 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-			"legmcluster": {
+			"legamcluster": {
 				"role": ["artillery"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
@@ -955,6 +979,16 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
+			"leglts": {
+				"role": ["support", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legatrans": {
+				"role": ["support", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
 	
 			// LEGION ADV AIRCRAFT aircraft - legaap
 	
@@ -978,6 +1012,16 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
+			"legnap": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legmineb": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
 			"legstronghold": {
 				"role": ["assault", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
@@ -985,6 +1029,11 @@
 			},
 			"legfort": {
 				"role": ["heavy", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legatorpbomber": {
+				"role": ["anti_sub", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},

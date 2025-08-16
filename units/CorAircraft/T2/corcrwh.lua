@@ -28,7 +28,7 @@ return {
 		metalcost = 5100,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRWH.s3o",
-		script = "Units/CORCRWH_clean.cob",
+		script = "Units/corcrwh.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
@@ -124,11 +124,11 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 76,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			dragonmawh = {

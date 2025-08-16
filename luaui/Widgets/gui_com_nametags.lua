@@ -161,12 +161,15 @@ local function GetCommAttributes(unitID, unitDefID)
 		else
 			local players = GetPlayerList(team)
 			name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(players[1])) or name
 			if players[1] then
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(players[1])) or name
 				playerRank = select(9, GetPlayerInfo(players[1], false))
 			end
 
 			for _, pID in ipairs(players) do
 				local pname, active, isspec = GetPlayerInfo(pID, false)
+				pname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)) or pname
 				playerRank = select(9, GetPlayerInfo(pID, false))
 				if active and not isspec then
 					name = pname
@@ -186,6 +189,10 @@ local function GetCommAttributes(unitID, unitDefID)
 	if showSkillValue then
 		local playerID = select(2, GetTeamInfo(team, false))
 		local customtable = select(11, GetPlayerInfo(playerID))
+		if playerID then
+			-- Note: WG.playernames.getPlayername would be used for names, but skill data comes from customtable
+			-- so no need to use WG.playernames.getPlayername here as we're getting skill, not name
+		end
 		if customtable and customtable.skill then
 			skill = customtable.skill
 			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
@@ -329,15 +336,24 @@ function widget:Update(dt)
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			-- old
-			local name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
+			local teamPlayerID = select(2, GetTeamInfo(myTeamID, false))
+			local name = GetPlayerInfo(teamPlayerID, false)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
-			-- new
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
+			end
 			myTeamID = Spring.GetMyTeamID()
-			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
+			teamPlayerID = select(2, GetTeamInfo(myTeamID, false))
+			name = GetPlayerInfo(teamPlayerID, false)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
+			end
+			if comnameIconList[name] ~= nil then
+				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
 			end
 			CheckAllComs()
 			sec = 0
@@ -496,6 +512,7 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 
 	local name, _ = GetPlayerInfo(playerID, false)
+	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	comnameList[name] = nil
 	sec = 99
 

@@ -206,6 +206,43 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
 }
 
+//  SphereInViewSignedDistance
+//  Signed distance from a world-space sphere to the X-Y NDC box.
+//  Z (near/far) is ignored. Very reliable, reasonably optimized. 
+//  Returns:
+//      < 0  – sphere at least partially inside the X-Y clip box
+//      = 0  – sphere exactly touches at least one edge
+//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+// 
+float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
+{
+    // 1.  centre → clip space
+    vec4 clipC = cameraViewProj * vec4(centerWS, 1.0);
+    if (clipC.w <= 0.0)           // behind the eye? treat as inside
+        return -1.0;
+
+    // 2.  NDC centre (one perspective divide, reused later)
+    vec2  ndc   = clipC.xy / clipC.w;        // = clipC.xy / clipC.w
+
+    // 3.  Project world-space +X displacement
+    //     M * (p + (r,0,0,0)) = (M*p) + r*M*Xcol
+    vec4 deltaClip = radiusWS * cameraViewProj[0];   // first column of matrix
+    vec4 clipX     = clipC + deltaClip;
+
+    // 4.  Radius in NDC (second perspective divide only once)
+    float ndcRadius = length((clipX.xy / clipX.w) - ndc);
+
+    // 5.  Four signed distances, keep the worst (Chebyshev / max)
+    float dLeft   = -(ndc.x + 1.0) - ndcRadius;
+    float dRight  =  (ndc.x - 1.0) - ndcRadius;
+    float dBottom = -(ndc.y + 1.0) - ndcRadius;
+    float dTop    =  (ndc.y - 1.0) - ndcRadius;
+
+    return max(max(dLeft, dRight), max(dBottom, dTop));
+}
+
+
+
 // Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
@@ -507,7 +544,10 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
-			fsSrcNewLines = string.lines(fsSrcNew)
+			if not fsSrcNew then 
+				Spring.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
+			end	
+			local fsSrcNewLines = string.lines(fsSrcNew)
 			for i, line in ipairs(fsSrcNewLines) do 
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
@@ -612,7 +652,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
 			end
-				local reinitshader =  LuaShader(
+			local reinitshader =  LuaShader(
 				{
 				vertex = vsSrcNew,
 				fragment = fsSrcNew,
