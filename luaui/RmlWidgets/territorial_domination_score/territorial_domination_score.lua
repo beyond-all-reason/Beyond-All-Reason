@@ -41,12 +41,38 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 
 local SCREEN_HEIGHT = 1080
 
+-- Constants for UI calculations
+local HEADER_HEIGHT = 18
+local SCORE_BAR_HEIGHT = 18
+local MIN_COLUMN_WIDTH = 80
+local MAX_HEIGHT = 248
+local MAX_COLUMNS = 4
+local MAX_WIDTH = 300
+local MAX_TEAMS_PER_COLUMN_HEIGHT = 220
+local SCORE_BAR_HEIGHT_WITH_PADDING = 27
+local BACKGROUND_COLOR_ALPHA = 204
+local DEFAULT_POINTS_CAP = 100
+local PROJECTED_COLOR_ALPHA = 100
+local PERCENTAGE_MULTIPLIER = 100
+local FILL_COLOR_ALPHA = 230
+local COLOR_MULTIPLIER = 255
+local DEFAULT_COLOR_VALUE = 0.5
+local DARK_COLOR_MULTIPLIER = 0.25
+local UPDATE_INTERVAL = 0.1
+local SECONDS_PER_MINUTE = 60
+local TIME_FORMAT_PADDING = 0.02
+local TIME_FORMAT_PADDING_2 = 0.01
+local TIME_FORMAT_PADDING_3 = 0.03
+local TIME_FORMAT_PADDING_4 = 0.04
+local TIME_FORMAT_PADDING_5 = 0.05
+local TIME_FORMAT_PADDING_6 = 0.06
+
 local widgetState = {
 	document = nil,
 	dmHandle = nil,
 	rmlContext = nil,
 	lastUpdateTime = 0,
-	updateInterval = 0.1,
+	updateInterval = UPDATE_INTERVAL,
 	allyTeamData = {},
 	lastMinimapGeometry = {0, 0, 0, 0},
 	scoreElements = {},
@@ -79,7 +105,7 @@ local function getAllyTeamColor(allyTeamID)
 		local r, g, b = spGetTeamColor(teamID)
 		return {r = r, g = g, b = b}
 	end
-	return {r = 0.5, g = 0.5, b = 0.5}
+	return {r = DEFAULT_COLOR_VALUE, g = DEFAULT_COLOR_VALUE, b = DEFAULT_COLOR_VALUE}
 end
 
 local function updateAllyTeamData()
@@ -133,7 +159,7 @@ end
 
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
-	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or 100
+	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
 	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
 	
@@ -156,13 +182,12 @@ local function updateRoundInfo()
 	-- Calculate time remaining in current round
 	local timeString
 	if roundEndTime == 0 then
-	
 		timeString = "0:00"
 	else
 		local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
-		local minutes = math.floor(timeRemaining / 60)
-		local seconds = math.floor(timeRemaining % 60)
-		timeString = string.format("%d:%02d", minutes, seconds)
+		local minutes = math.floor(timeRemaining / SECONDS_PER_MINUTE)
+		local seconds = math.floor(timeRemaining % SECONDS_PER_MINUTE)
+		timeString = string.format("%d:%0" .. TIME_FORMAT_PADDING_2 .. "d", minutes, seconds)
 	end
 	
 	-- Format round display text
@@ -201,25 +226,33 @@ local function calculateUILayout()
 	widgetState.lastMinimapGeometry = {minimapPosX, minimapPosY, minimapSizeX, minimapSizeY}
 	
 	-- Constrain to 300x248 area below minimap, but limit width to minimap width
-	-- Account for margins: container padding (left + right) + column gaps
-	local effectiveMaxWidth = math.min(300, minimapSizeX)
-	local maxWidth = effectiveMaxWidth - (widgetState.uiMargins.containerPadding * 2)
+	-- The container width should be the full effective width, columns will use available space inside
+	local effectiveMaxWidth = math.min(MAX_WIDTH, minimapSizeX)
 	
 	-- Position the score display below the minimap (growing downward)
 	local scorePosX = minimapPosX
 	local scorePosY = SCREEN_HEIGHT - minimapPosY -- Position directly below minimap with no gap
 	
 	-- Store UI state in widget state instead of data model
+	-- Don't set height here - let updateDynamicHeight calculate it based on actual content
 	widgetState.uiState = {
 		position = {
 			x = scorePosX,
 			y = scorePosY,
 			width = effectiveMaxWidth,
-			height = 0, -- Will be calculated dynamically
+			height = nil, -- Will be calculated by updateDynamicHeight
 		},
-		availableWidth = maxWidth,
+		availableWidth = effectiveMaxWidth - (widgetState.uiMargins.containerPadding * 2),
+		maxHeight = MAX_HEIGHT, -- Store max height for reference
 	}
+	
+
 end
+local function calculateColumnWidth(numColumns)
+	local columnGap = widgetState.uiMargins.columnGap
+	return math.floor((widgetState.uiState.availableWidth - ((numColumns - 1) * columnGap)) / numColumns)
+end
+
 local function createScoreBarElement(columnDiv, allyTeam, index)
 	local scoreBarDiv = widgetState.document:CreateElement("div")
 	scoreBarDiv.class_name = "score-bar"
@@ -232,15 +265,15 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 	backgroundDiv.class_name = "score-bar-background"
 	
 	local darkBackgroundColor = {
-		r = allyTeam.color.r * 0.25,
-		g = allyTeam.color.g * 0.25,
-		b = allyTeam.color.b * 0.25,
-		a = 204
+		r = allyTeam.color.r * DARK_COLOR_MULTIPLIER,
+		g = allyTeam.color.g * DARK_COLOR_MULTIPLIER,
+		b = allyTeam.color.b * DARK_COLOR_MULTIPLIER,
+		a = BACKGROUND_COLOR_ALPHA
 	}
 	backgroundDiv:SetAttribute("style", string.format("background-color: rgba(%d, %d, %d, %d)", 
-		math.floor(darkBackgroundColor.r * 255), 
-		math.floor(darkBackgroundColor.g * 255), 
-		math.floor(darkBackgroundColor.b * 255), 
+		math.floor(darkBackgroundColor.r * COLOR_MULTIPLIER), 
+		math.floor(darkBackgroundColor.g * COLOR_MULTIPLIER), 
+		math.floor(darkBackgroundColor.b * COLOR_MULTIPLIER), 
 		darkBackgroundColor.a))
 	
 	local projectedDiv = widgetState.document:CreateElement("div")
@@ -290,37 +323,79 @@ local function updateDynamicHeight()
 	local allyTeams = widgetState.allyTeamData
 	local numTeams = #allyTeams
 	
+	-- Calculate height needed for header (always present)
+	local headerHeight = HEADER_HEIGHT + (widgetState.uiMargins.headerPadding * 2) + widgetState.uiMargins.headerMargin
+	
 	if numTeams == 0 then
+		-- Set minimum height for header only
+		local minHeight = headerHeight + (widgetState.uiMargins.containerPadding * 2)
+		widgetState.uiState.height = minHeight
+		widgetState.uiState.numColumns = 1
+		widgetState.uiState.teamsPerColumn = 0
+		
+		-- Update document with minimum height
+		local rootElement = widgetState.document:GetElementById("score-container")
+		if rootElement then
+			local scorePosX = widgetState.uiState.position.x
+			local scorePosY = widgetState.uiState.position.y
+			local containerWidth = widgetState.uiState.position.width
+			
+			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx", 
+				scorePosX, scorePosY, containerWidth, minHeight))
+		end
 		return
 	end
 	
-	-- Calculate height needed for header
-	local headerHeight = 18 + (widgetState.uiMargins.headerPadding * 2) + widgetState.uiMargins.headerMargin
+	-- Calculate optimal column layout
+	local maxTeamsPerColumn = math.floor(MAX_TEAMS_PER_COLUMN_HEIGHT / SCORE_BAR_HEIGHT_WITH_PADDING)
+	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
+	local numColumns = math.ceil(numTeams / teamsPerColumn)
 	
-	-- Calculate height needed for score bars
-	-- Each score bar: 18px height + padding + gap
-	local scoreBarHeight = 18 + (widgetState.uiMargins.scoreBarPadding * 2)
+	-- Limit columns based on available width after margins
+	local minColumnWidth = widgetState.uiMargins.scoreBarPadding * 2 + MIN_COLUMN_WIDTH
+	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or MAX_WIDTH) / minColumnWidth)
+	maxColumnsByWidth = math.max(1, math.min(maxColumnsByWidth, MAX_COLUMNS))
+	
+	if numColumns > maxColumnsByWidth then
+		numColumns = maxColumnsByWidth
+		teamsPerColumn = math.ceil(numTeams / numColumns)
+	end
+	
+	-- Simple height calculation: Header + (Score Bars × Height + Padding) ÷ Columns
+	local scoreBarHeight = SCORE_BAR_HEIGHT_WITH_PADDING
 	local totalScoreBarHeight = numTeams * scoreBarHeight
+	local totalPadding = (numTeams - 1) * widgetState.uiMargins.scoreBarPadding
 	
-	-- Add gaps between score bars (numTeams - 1 gaps)
-	local totalGapsHeight = (numTeams - 1) * widgetState.uiMargins.scoreBarPadding
+	-- Calculate height per column
+	local heightPerColumn = (totalScoreBarHeight + totalPadding) / numColumns
 	
-	-- Calculate total height needed
-	local totalHeight = headerHeight + totalScoreBarHeight + totalGapsHeight + (widgetState.uiMargins.containerPadding * 2)
+	-- Total height is header + height per column + container padding
+	local totalHeight = headerHeight + heightPerColumn + (widgetState.uiMargins.containerPadding * 2)
+	
+	-- Enforce maximum height constraint
+	local constrainedHeight = math.min(totalHeight, MAX_HEIGHT)
 	
 	-- Update UI state
-	widgetState.uiState.height = totalHeight
+	widgetState.uiState.height = constrainedHeight
+	widgetState.uiState.numColumns = numColumns
+	widgetState.uiState.teamsPerColumn = teamsPerColumn
 	
 	-- Update document position and size
 	local rootElement = widgetState.document:GetElementById("score-container")
 	if rootElement then
 		local scorePosX = widgetState.uiState.position.x
 		local scorePosY = widgetState.uiState.position.y
-		local effectiveMaxWidth = widgetState.uiState.position.width
-		local maxWidth = widgetState.uiState.availableWidth
+		local containerWidth = widgetState.uiState.position.width
 		
 		rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx", 
-			scorePosX, scorePosY, maxWidth, totalHeight))
+			scorePosX, scorePosY, containerWidth, constrainedHeight))
+		
+		-- Update score-columns container height
+		local columnsContainer = widgetState.document:GetElementById("score-columns")
+		if columnsContainer then
+			local availableHeight = headerHeight + heightPerColumn
+			columnsContainer:SetAttribute("style", string.format("max-height: %dpx", availableHeight))
+		end
 	end
 end
 
@@ -332,11 +407,6 @@ local function updateScoreBarVisuals()
 	
 	local dm = widgetState.dmHandle
 	local allyTeams = widgetState.allyTeamData
-	
-	-- Update header info elements - let RML binding handle this automatically
-	-- The round and time display will be updated via data model binding
-	
-
 	
 	-- Get or clear the score columns container
 	local columnsContainer = widgetState.document:GetElementById("score-columns")
@@ -353,33 +423,25 @@ local function updateScoreBarVisuals()
 		return
 	end
 	
-	-- Calculate optimal column layout for 300x248 area
-	-- Each score bar needs ~27px height (18px bar + 9px for padding and gaps)
-	-- Available height ~235px (248 - header ~10px - victory points ~3px)
-	local maxTeamsPerColumn = math.floor(235 / 27)
-	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
-	local numColumns = math.ceil(numTeams / teamsPerColumn)
-	
-	-- Limit columns based on available width after margins
-	-- Each column needs minimum width: score bar padding + text space + margins
-	local minColumnWidth = widgetState.uiMargins.scoreBarPadding * 2 + 40 -- 40px for text and score display
-	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or 300) / minColumnWidth)
-	maxColumnsByWidth = math.max(1, math.min(maxColumnsByWidth, 4)) -- Clamp between 1 and 4
-	
-	if numColumns > maxColumnsByWidth then
-		numColumns = maxColumnsByWidth
-		teamsPerColumn = math.ceil(numTeams / numColumns)
-	end
+	-- Use the column layout calculated in updateDynamicHeight
+	local numColumns = widgetState.uiState.numColumns or 1
+	local teamsPerColumn = widgetState.uiState.teamsPerColumn or numTeams
 	
 	-- Create columns
 	local columns = {}
 	for i = 1, numColumns do
 		local columnDiv = widgetState.document:CreateElement("div")
 		columnDiv.class_name = "score-column"
+		local columnWidth = calculateColumnWidth(numColumns)
+		local columnGap = widgetState.uiMargins.columnGap
+		local columnLeft = (i - 1) * (columnWidth + columnGap)
+		columnDiv:SetAttribute("style", string.format("position: absolute; left: %dpx; width: %dpx; top: 0px;", columnLeft, columnWidth))
 		columnsContainer:AppendChild(columnDiv)
 		columns[i] = columnDiv
 	end
 	
+
+
 	-- Distribute teams across columns more evenly
 	for i, allyTeam in ipairs(allyTeams) do
 		local columnIndex = ((i - 1) % numColumns) + 1
@@ -390,24 +452,24 @@ local function updateScoreBarVisuals()
 		local projectedWidth = "0%"
 		if dm.pointsCap > 0 then
 			local totalProjected = allyTeam.score + allyTeam.projectedPoints
-			projectedWidth = string.format("%.1f%%", math.min(100, (totalProjected / dm.pointsCap) * 100))
+			projectedWidth = string.format("%.1f%%", math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 		end
 		scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
 		
 		-- Set projected color (lighter version of team color)
-		local projectedColor = string.format("rgba(%d, %d, %d, 100)", 
-			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+		local projectedColor = string.format("rgba(%d, %d, %d, %d)", 
+			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER, PROJECTED_COLOR_ALPHA)
 		scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth .. "; background-color: " .. projectedColor)
 		
 		-- Calculate current score width
 		local fillWidth = "0%"
 		if dm.pointsCap > 0 then
-			fillWidth = string.format("%.1f%%", math.min(100, (allyTeam.score / dm.pointsCap) * 100))
+			fillWidth = string.format("%.1f%%", math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 		end
 		
 		-- Set fill color (full opacity team color)
-		local fillColor = string.format("rgba(%d, %d, %d, 230)", 
-			allyTeam.color.r * 255, allyTeam.color.g * 255, allyTeam.color.b * 255)
+		local fillColor = string.format("rgba(%d, %d, %d, %d)", 
+			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER, FILL_COLOR_ALPHA)
 		scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth .. "; background-color: " .. fillColor)
 		
 		-- Update score text elements
@@ -445,8 +507,6 @@ local function updateDataModel()
 	dm.timeRemaining = roundInfo.timeRemaining
 	dm.roundDisplayText = roundInfo.roundDisplayText
 	
-
-	
 	-- Trigger rerender for data model changes
 	dm:__SetDirty("allyTeams")
 	dm:__SetDirty("pointsCap")
@@ -459,40 +519,28 @@ local function updateDataModel()
 	-- Update visual properties of score bars
 	if widgetState.document then
 		updateScoreBarVisuals()
-		
-
 	end
 end
 
 
 
 function widget:Initialize()
-	Spring.Echo(WIDGET_NAME .. ": Initializing widget...")
-	
-	-- Debug: Check all constants
-	Spring.Echo(WIDGET_NAME .. ": WIDGET_NAME = '" .. tostring(WIDGET_NAME) .. "'")
-	Spring.Echo(WIDGET_NAME .. ": MODEL_NAME = '" .. tostring(MODEL_NAME) .. "'")
-	Spring.Echo(WIDGET_NAME .. ": RML_PATH = '" .. tostring(RML_PATH) .. "'")
-	
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
-		Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to get RML context")
 		return false
 	end
 	
 	local dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dmHandle then
-		Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to create data model '" .. MODEL_NAME .. "'")
+		widget:Shutdown()
 		return false
 	end
 	
 	widgetState.dmHandle = dmHandle
-	Spring.Echo(WIDGET_NAME .. ": Data model created successfully")
 	
 	-- Load document from RML file
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
-		Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to load document from '" .. RML_PATH .. "'")
 		widget:Shutdown()
 		return false
 	end
@@ -503,14 +551,15 @@ function widget:Initialize()
 	document:ReloadStyleSheet()
 	document:Show()
 	
+	-- Initialize UI layout first
+	calculateUILayout()
+	
+	-- Set initial height even before teams are loaded
+	updateDynamicHeight()
+	
+	-- Then update data model
 	updateDataModel()
 	
-	-- Debug: Check initial data model state
-	if widgetState.dmHandle then
-		Spring.Echo(WIDGET_NAME .. ": Initial pointsCap in data model = " .. tostring(widgetState.dmHandle.pointsCap))
-	end
-	
-	Spring.Echo(WIDGET_NAME .. ": Widget initialized successfully")
 	return true
 end
 
@@ -529,8 +578,6 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:Shutdown()
-	Spring.Echo(WIDGET_NAME .. ": Shutting down widget...")
-	
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
 		widgetState.dmHandle = nil
@@ -543,14 +590,13 @@ function widget:Shutdown()
 	
 	widgetState.rmlContext = nil
 	widgetState.scoreElements = {}
-	Spring.Echo(WIDGET_NAME .. ": Shutdown complete")
 end
 
 function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
 	if currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval then
 		-- Check if we have any territorial domination data
-		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap")
+		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 		if pointsCap and pointsCap > 0 then
 			if widgetState.document and not widgetState.hiddenByLobby then
 				widgetState.document:Show()
@@ -574,8 +620,8 @@ function widget:DrawScreen()
 		return
 	end
 	
-	-- Only render if document is visible and we have territorial domination data
-	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap")
+	-- Only render if we have territorial domination data
+	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 	if pointsCap and pointsCap > 0 then
 		widgetState.rmlContext:Render()
 	end

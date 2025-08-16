@@ -10,36 +10,44 @@
 	pointer-events: none;
 	font-family: Exo 2;
 	max-width: 300px;
+	height: auto;
 	overflow: hidden;
+	box-sizing: border-box;
 }
 
 .score-columns {
-	display: flex;
-	flex-direction: row;
-	gap: 4px;
+	position: relative;
 	width: 100%;
-	flex: 1;
-	align-items: stretch;
+	height: auto;
+	overflow-y: auto;
+	box-sizing: border-box;
+	overflow-x: hidden;
 }
+
+
 
 .score-column {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
-	flex: 1;
 	justify-content: flex-start;
-	height: 100%;
+	height: auto;
+	min-height: 0;
+	min-width: 0;
+	box-sizing: border-box;
+	position: absolute;
+	padding: 0px 1.5px;
+	align-items: stretch;
 }
 
 .score-bar {
 	background-color: rgba(0, 0, 0, 150);
 	border-radius: 1px;
-	padding: 2px;
-	min-width: 60px;
+	padding: 2.5px 2px;
+	min-width: 80px;
 	font-size: 11px;
+	box-sizing: border-box;
+	width: 100%;
 }
-
-
 
 .score-bar-container {
 	position: relative;
@@ -47,6 +55,8 @@
 	background-color: rgba(0, 0, 0, 200);
 	border-radius: 0px;
 	overflow: hidden;
+	box-sizing: border-box;
+	width: 100%;
 }
 
 .score-bar-background {
@@ -103,6 +113,7 @@
 	padding: 2px 2px;
 	background-color: rgba(0, 0, 0, 180);
 	border-radius: 1px;
+	flex-shrink: 0;
 }
 
 .round-display {
