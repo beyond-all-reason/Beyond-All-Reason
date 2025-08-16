@@ -13,7 +13,12 @@ function widget:GetInfo()
 end
 
 local startTimer = 1
+if Spring.GetConfigInt('enableintrocamera', 1) == 0 then
+    startTimer = -5
+end
 local fase = 0
+
+local oldCam = Spring.GetCameraState()
 
 WG["IntroCameraIsDone"] = false
 
@@ -25,28 +30,19 @@ function widget:Update(dt)
 
     local cameraName = Spring.GetCameraState(false)
     if cameraName ~= "spring" and cameraName ~= "ta" then -- If the camera is not in spring or ta mode, we don't need to do anything
-        Spring.Echo("Map Camera Startup: Camera is not in spring or ta mode, removing widget. \'" .. cameraName .. "\' not supported.")
-        WG["IntroCameraIsDone"] = true
-        widgetHandler:RemoveWidget()
-        return
-    end 
-
-    if Spring.GetGameFrame() > 0  then -- if the game already started, we don't need to do anything
-        Spring.Echo("Map Camera Startup: Game already started, removing widget.")
-        WG["IntroCameraIsDone"] = true
-        widgetHandler:RemoveWidget()
+        if not WG["IntroCameraIsDone"] then
+            WG["IntroCameraIsDone"] = true
+        end
         return
     end
-
-    startTimer = startTimer - dt
-
+    
     if fase == 0 then
         WG["IntroCameraInitialised"] = true
         -- Start by zooming out to the maximum zoom level
         local mapcx = Game.mapSizeX / 2
         local mapcz = Game.mapSizeZ / 2
         local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
-
+        oldCam = Spring.GetCameraState()
         local newCam = {
             px = mapcx,
             py = mapcy + 1000000, -- Set a high initial height to zoom out
@@ -54,10 +50,10 @@ function widget:Update(dt)
             dx = 0,
             dy = -0.85,
             dz = -0.50,
-            rx = 2.6,
-            ry = 0.35,
+            rx = 5,
+            ry = 0,
             rz = 0,
-            angle = 0.54,
+            angle = 0.0,
             height = 1000000, -- Set a high initial height to zoom out
             dist = 1000000,
         }
@@ -65,12 +61,11 @@ function widget:Update(dt)
 
         fase = 1
         WG["IntroCameraIsDone"] = false
-        --Spring.Echo(Spring.GetCameraState())
         return
     end
 
     local _,_,spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID()) 
-    if startTimer <= 0 and not spec then
+    if startTimer <= 0 and startTimer >= -5 and not spec then
         local camState = Spring.GetCameraState()
 
         -- Center the camera on the startbox
@@ -91,13 +86,41 @@ function widget:Update(dt)
         camState.height = height
         camState.dist = height
         camState.zoom = height / 2 -- Set a reasonable zoom level
+
+        if Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1 then
+            camState.dx = oldCam.dx
+            camState.dy = oldCam.dy
+            camState.dz = oldCam.dz
+            camState.rx = oldCam.rx
+            camState.ry = math.clamp(oldCam.ry, -6.5, 6.5)
+            camState.rz = oldCam.rz
+            camState.angle = oldCam.angle
+        else
+            camState.dx = 0
+            camState.dy = -0.85
+            camState.dz = -0.50
+            camState.rx = 2.6
+            camState.ry = 0
+            camState.rz = 0
+            camState.angle = 0.54
+        end
+
+
+
         WG["IntroCameraIsDone"] = false
         Spring.SetCameraState(camState, 3.25)
         
     end
 
-    if startTimer <= -5 or spec then
+    if startTimer < -5 or spec then
         WG["IntroCameraIsDone"] = true
-        widgetHandler:RemoveWidget()
+        
+        local camState = Spring.GetCameraState()
+        if camState.ry > 6.5 or camState.ry < -6.5 then
+            camState.ry = 0
+            Spring.SetCameraState(camState, 0)
+        end
     end
+
+    startTimer = startTimer - dt
 end
