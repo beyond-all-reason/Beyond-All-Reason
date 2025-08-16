@@ -74,13 +74,13 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
 			Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 			Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-			Spring.SetUnitMaxRange(unitID, 0)
 			local i = 0
 			for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 				Spring.UnitWeaponHoldFire(unitID, weaponID)
 				i = i + 1
 			end
 			if i > 0 then
+				Spring.SetUnitMaxRange(unitID, 0)
 				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
 				Spring.SetUnitTarget(unitID, nil)
 			end
