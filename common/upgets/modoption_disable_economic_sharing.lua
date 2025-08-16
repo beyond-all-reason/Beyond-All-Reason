@@ -14,7 +14,7 @@ function upget:GetInfo()
 		author = "Hobo Joe",
 		date = "August 2025",
 		license = "GNU GPL, v2 or later",
-		layer = 9999, -- run this after all the UI widgets we touch have been initialized
+		layer = 9999, -- run this after all the widgets and gadgets we touch have been initialized
 		enabled = true,
 	}
 end
