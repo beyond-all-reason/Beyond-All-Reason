@@ -342,6 +342,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
+					playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leader) or playerName
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
 						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
 					end

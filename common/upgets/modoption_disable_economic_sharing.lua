@@ -39,7 +39,7 @@ end
 
 function upget:Initialize()
 	if widget then
-		globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded(true)
+		globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded(false)
 		globalScope['topbar'].setShareSliderEnabled(false)
 		globalScope['sharecmd'].setRestrictedUnits(restrictedUnits)
 		globalScope['advplayerlist_api'].SetModuleActive({ 'share_resource', false })

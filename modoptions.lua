@@ -297,16 +297,6 @@ local options = {
 		def		=  false,
 		column	= 1.76,
 	},
-	{
-		key		= "unit_market",
-		name	= "Unit Market",
-		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
-		type	= "bool",
-		def		= false,
-		section	= "options_main",
-	},
-
-
     {
         key     = "sub_header",
         section = "options_main",
