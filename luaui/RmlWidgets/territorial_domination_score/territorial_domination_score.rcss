@@ -1,17 +1,13 @@
-/* Territorial Domination Score Display Styles */
 .score-container {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
 	background-color: rgba(0, 0, 0, 200);
-	border-radius: 4px;
-	padding: 4px;
 	z-index: 1000;
 	pointer-events: none;
 	font-family: Exo 2;
-	max-width: 300px;
 	height: auto;
-	overflow: hidden;
+	overflow: visible;
 	box-sizing: border-box;
 }
 
@@ -19,41 +15,33 @@
 	position: relative;
 	width: 100%;
 	height: auto;
-	overflow-y: auto;
+	overflow: visible;
 	box-sizing: border-box;
-	overflow-x: hidden;
+	background-color: rgba(0, 0, 0, 200);
 }
-
-
 
 .score-column {
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
-	height: auto;
+	height: 100%;
 	min-height: 0;
 	min-width: 0;
 	box-sizing: border-box;
 	position: absolute;
-	padding: 0px 1.5px;
 	align-items: stretch;
 }
 
 .score-bar {
 	background-color: rgba(0, 0, 0, 150);
-	border-radius: 1px;
-	padding: 2.5px 2px;
-	min-width: 80px;
-	font-size: 11px;
 	box-sizing: border-box;
 	width: 100%;
+	position: relative;
 }
 
 .score-bar-container {
 	position: relative;
-	height: 18px;
 	background-color: rgba(0, 0, 0, 200);
-	border-radius: 0px;
 	overflow: hidden;
 	box-sizing: border-box;
 	width: 100%;
@@ -109,23 +97,18 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 2px;
-	padding: 2px 2px;
 	background-color: rgba(0, 0, 0, 180);
-	border-radius: 1px;
 	flex-shrink: 0;
 }
 
 .round-display {
 	color: #ffffff;
-	font-size: 16px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
 
 .time-display {
 	color: #ffffff;
-	font-size: 16px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
@@ -136,25 +119,13 @@
 	transform: translateY(-50%);
 	color: #ffffff;
 	font-weight: bold;
-	font-size: 15px;
 	font-family: Exo 2;
 	z-index: 3;
 	pointer-events: none;
 }
 
-.score-text.current {
-	left: 2px;
-}
-
-.score-text.projected {
-	right: 2px;
-}
-
 .victory-points {
-	margin-top: 2px;
-	padding: 2px 2px;
 	color: #ffffff;
-	font-size: 15px;
 	font-weight: bold;
 	text-align: center;
 	font-family: Exo 2;
