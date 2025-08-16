@@ -340,7 +340,6 @@ local function setAllyTeamRanks(allyScores)
 		previousScore = allyData.rankingScore
 		previousDefeatTime = allyData.defeatTimeRemaining
 
-		-- Update the rank directly in allyScores
 		allyScores[allyData.allyID].rank = currentRank
 
 		for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
