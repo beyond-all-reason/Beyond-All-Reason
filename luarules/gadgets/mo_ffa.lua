@@ -84,7 +84,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		Spring.KillTeam(teamID)
 		deadTeam[teamID] = true
-		SendToUnsynced("TeamDestroyed", teamID)
 	end
 
 	function gadget:GameFrame(gameFrame)
@@ -132,6 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 				if noneControlling then
 					if allResigned then
 						destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
+						SendToUnsynced("TeamDestroyed", teamID)
 					elseif not droppedTeam[teamID] then
 						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
 						SendToUnsynced("PlayerWarned", teamID, math.floor(gracePeriod / (Game.gameSpeed * 60))) -- minutesGrace
