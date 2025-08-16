@@ -1,8 +1,8 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local GG = gadgetHandler.GG
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -36,7 +36,9 @@ local spUnitDetach 				= Spring.UnitDetach
 local spSetUnitHealth 			= Spring.SetUnitHealth
 local spGetGroundHeight 		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
-local spTransferUnit			= Spring.TransferUnit
+local spTransferUnit			= function(unitID, newTeam, reason) 
+	return GG.TeamTransfer.TransferUnit(unitID, newTeam, reason)
+end
 local spGetUnitTeam 			= Spring.GetUnitTeam
 local spGetUnitHealth 			= Spring.GetUnitHealth
 local spGetUnitCurrentCommand 	= Spring.GetUnitCurrentCommand
@@ -429,6 +431,27 @@ local function SpawnUnit(spawnData)
 						end
 
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+				local spareDock = false
+				local dockingpiece
+				if ownerID then
+					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
+					local subUnitCount = carrierMetaList[ownerID].subUnitCount[dronetypeIndex]
+					local subunitDefID	= spGetUnitDefID(subUnitID)
+					subUnitCount = subUnitCount + 1
+					carrierMetaList[ownerID].subUnitCount[dronetypeIndex] = subUnitCount
+					local dockingpieceindex
+					for pieceIndex, piece in pairs(carrierMetaList[ownerID].availableSections[dronetypeIndex].availablePieces) do
+						if piece.dockingPieceAvailable then
+							spareDock = true
+							dockingpiece = piece.dockingPiece
+							dockingpieceindex = pieceIndex
+							carrierMetaList[ownerID].availableSections[dronetypeIndex].availablePieces[pieceIndex].dockingPieceAvailable = false
+							break
+||||||| parent of 18799ace3d (feat: team transfer)
+>>>>>>> e02f4d155c (Linearize team transfer system - comprehensive GG.TeamTransfer API)
 						local spareDock = false
 						local dockingpiece
 						if ownerID then
@@ -519,6 +542,101 @@ local function SpawnUnit(spawnData)
 
 						if not carrierMetaList[ownerID].manualDrones then
 							SetUnitNoSelect(subUnitID, true)
+<<<<<<< HEAD
+=======
+=======
+						local spareDock = false
+						local dockingpiece
+						if ownerID then
+							spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", ownerID, PRIVATE)
+							local subUnitCount = carrierMetaList[ownerID].subUnitCount[dronetypeIndex]
+							local subunitDefID	= spGetUnitDefID(subUnitID)
+							subUnitCount = subUnitCount + 1
+							carrierMetaList[ownerID].subUnitCount[dronetypeIndex] = subUnitCount
+							local dockingpieceindex
+							for pieceIndex, piece in pairs(carrierMetaList[ownerID].availableSections[dronetypeIndex].availablePieces) do
+								if piece.dockingPieceAvailable then
+									spareDock = true
+									dockingpiece = piece.dockingPiece
+									dockingpieceindex = pieceIndex
+									carrierMetaList[ownerID].availableSections[dronetypeIndex].availablePieces[pieceIndex].dockingPieceAvailable = false
+									break
+								end
+							end
+							-- for i = 1, #carrierMetaList[ownerID].availablePieces do
+							-- 	if carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable then
+							-- 		spareDock = true
+							-- 		dockingpiece = carrierMetaList[ownerID].availablePieces[i].dockingPiece
+							-- 		dockingpieceindex = i
+							-- 		carrierMetaList[ownerID].availablePieces[i].dockingPieceAvailable = false
+							-- 		break
+							-- 	end
+							-- end
+							local droneData = {
+								dronetype =  carrierMetaList[spawnData.ownerID].dronetypes[dronetypeIndex],
+								dronetypeIndex = dronetypeIndex,
+								active = true,
+								docked = false, --
+								stayDocked = false,
+								activeDocking = false,
+								inFormation = false,
+								engaged = false,
+								bomberStage = 0,
+								lastBombing = 0,
+								originalmaxrudder = UnitDefs[subunitDefID].maxRudder,
+								fighterStage = 0,
+								dockingPiece = dockingpiece, --
+								dockingPieceIndex = dockingpieceindex,
+							}
+							carrierMetaList[ownerID].subUnitsList[subUnitID] = droneData
+							totalDroneCount = totalDroneCount + 1
+						end
+
+
+						mcEnable(subUnitID)
+						if spareDock == false then
+							mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+						else
+							--try to spawn in free dock point (offset relative to unit)
+							local dockPointx
+							local dockPointy
+							local dockPointz
+
+							local carrierx
+							local carriery
+							local carrierz
+							dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
+							carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
+							mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
+						end
+						mcDisable(subUnitID)
+
+
+						if carrierMetaList[ownerID].docking and carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece then
+							spUnitAttach(ownerID, subUnitID, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece)
+							spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
+							mcDisable(subUnitID)
+							spSetUnitVelocity(subUnitID, 0, 0, 0)
+							if not carrierMetaList[ownerID].manualDrones then
+								SetUnitNoSelect(subUnitID, true)
+							end
+
+							carrierMetaList[ownerID].subUnitsList[subUnitID].docked = true
+							carrierMetaList[ownerID].subUnitsList[subUnitID].activeDocking = false
+							if carrierMetaList[ownerID].dockArmor then
+								spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
+							end
+							local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(ownerID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
+							local unitDocked = Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
+							Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
+						else
+							spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
+						end
+
+						if not carrierMetaList[ownerID].manualDrones then
+							SetUnitNoSelect(subUnitID, true)
+>>>>>>> 18799ace3d (feat: team transfer)
+>>>>>>> e02f4d155c (Linearize team transfer system - comprehensive GG.TeamTransfer API)
 						end
 					end
 				end
@@ -574,7 +692,7 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitDef = UnitDefs[unitDefID]
 	local weaponList = unitDef.weapons
 	for i = 1, #weaponList do
@@ -708,24 +826,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if carrierMetaList[unitID] then
-		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
-		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-			spTransferUnit(subUnitID, newTeam, false)
-		end
-	end
 
-end
-
-function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	if carrierMetaList[unitID] then
-		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
-		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
-			spTransferUnit(subUnitID, unitTeam, false)
-		end
-	end
-end
 
 
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
@@ -846,7 +947,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					standalone = true
 					local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierMetaList[unitID].controlRadius)
 					if enemyunitID then
-						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false)
+                        spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), GG.TeamTransfer.REASON.CAPTURED)
 					end
 				elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
 					standalone = true
@@ -1576,8 +1677,28 @@ function gadget:GameFrame(f)
 
 end
 
+local function giveSubUnits(unitID, newTeam, carrierTransferReason)
+    local meta = carrierMetaList[unitID]
+    if not meta then return end
+    local subUnits = meta.subUnitsList
+    if not subUnits then return end
+    for subUnitID, _ in pairs(subUnits) do
+        GG.TeamTransfer.TransferUnit(subUnitID, newTeam, carrierTransferReason or GG.TeamTransfer.REASON.CARRIER_SPAWN)
+    end
+end
+
+local function onCarrierTransfer(unitID, unitDefID, oldTeam, newTeam, carrierTransferReason)
+    local meta = carrierMetaList[unitID]
+    if not meta then return end
+    meta.subInitialSpawnData.teamID = newTeam
+    giveSubUnits(unitID, newTeam, carrierTransferReason)
+end
+
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
+	-- Register for carrier transfer events with reason-awareness
+	GG.TeamTransfer.RegisterUnitListener("CarrierSpawner", function(unitID, unitDefID, oldTeam, newTeam, reason)
+			onCarrierTransfer(unitID, unitDefID, oldTeam, newTeam, reason)
+	end)
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
@@ -1586,6 +1707,8 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	GG.TeamTransfer.UnregisterAllListeners("CarrierSpawner")
+	
 	for unitID, _ in pairs(carrierMetaList) do
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
 			spDestroyUnit(subUnitID, true, true)

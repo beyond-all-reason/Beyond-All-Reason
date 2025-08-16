@@ -15,6 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
+local GG = gadgetHandler.GG
 local legmohoconDefID = UnitDefNames["legmohocon"] and UnitDefNames["legmohocon"].id
 local legmohoconctDefID = UnitDefNames["legmohoconct"] and UnitDefNames["legmohoconct"].id
 local legmohoconDefIDScav = UnitDefNames["legmohocon_scav"] and UnitDefNames["legmohocon_scav"].id
@@ -90,7 +91,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
         return 
     end
-	Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam)
+            GG.TeamTransfer.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam, GG.TeamTransfer.REASON.UPGRADED)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)

@@ -20,36 +20,22 @@ end
 local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-	end
-	return true
-end
-
-local function removeSelfdOrders(teamID)
-	-- check team is empty
-	--local team = Spring.GetPlayerList(teamID)
-	--if team then
-	--	for _,pID in pairs(team) do
-	--		local _,active,spec = Spring.GetPlayerInfo(pID,false)
-	--		if active and not spec then
-	--			return
-	--		end
-	--	end
-	--end
-
-	-- cancel any self d orders
-	local units = Spring.GetTeamUnits(teamID)
-	for i=1,#units do
-		local unitID = units[i]
-		if Spring.GetUnitSelfDTime(unitID) > 0 then
-			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-		end
-	end
-end
-
 function gadget:Initialize()
+    GG.TeamTransfer.RegisterUnitValidator("PreventShareSelfD", function(unitID, unitDefID, oldTeam, newTeam, reason)
+        if not unitID or type(unitID) ~= "number" then
+            return true
+        end
+        
+        local success, cmdQueue = pcall(Spring.GetUnitCommands, unitID)
+        if not success or not cmdQueue or #cmdQueue == 0 then
+            return true
+        end
+        if Spring.GetUnitSelfDTime(unitID) > 0 then
+            Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+        end
+        return true
+    end)
+
 	local players = Spring.GetPlayerList()
 	for _, playerID in pairs(players) do
 		local _,active,spec,teamID = spGetPlayerInfo(playerID,false)
