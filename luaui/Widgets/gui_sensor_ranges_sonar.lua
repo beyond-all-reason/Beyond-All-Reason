@@ -162,6 +162,16 @@ end
 
 function widget:GamePaused(playerID, paused)
 	isPaused = paused
+
+	if paused then
+		widgetHandler:UpdateCallIn("CameraPositionChanged")
+	else
+		widgetHandler:RemoveCallin("CameraPositionChanged")
+	end
+end
+
+function widget:CameraPositionChanged(posX, posY, posZ)
+	inUpdate = true
 end
 
 -- This shows the debug stencil texture in the bottom left corner of the screen
