@@ -32,7 +32,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 
 
 
-
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -148,8 +147,29 @@ local function DrawLOSStencil() -- about 0.025 ms
 	end
 end
 
+-- Handle high frame rates during pause causing high CPU:
+local isPaused = false
+local inUpdate = true
+
 function widget:DrawGenesis()
-    gl.RenderToTexture(radarStencilTexture, DrawLOSStencil)
+	if not isPaused or inUpdate then
+		inUpdate = false
+		gl.RenderToTexture(radarStencilTexture, DrawLOSStencil)
+	end
+end
+
+function widget:GamePaused(playerID, paused)
+	isPaused = paused
+
+	if paused then
+		widgetHandler:UpdateCallIn("CameraPositionChanged")
+	else
+		widgetHandler:RemoveCallin("CameraPositionChanged")
+	end
+end
+
+function widget:CameraPositionChanged(posX, posY, posZ)
+	inUpdate = true
 end
 
 -- This shows the debug stencil texture in the bottom left corner of the screen
@@ -207,6 +227,7 @@ local function InitializeUnits()
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
+	inUpdate = true
 end
 
 function widget:PlayerChanged()
