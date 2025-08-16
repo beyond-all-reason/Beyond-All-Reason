@@ -48,6 +48,14 @@ local widgetState = {
 	allyTeamData = {},
 	lastMinimapGeometry = {0, 0, 0, 0},
 	scoreElements = {},
+	uiMargins = {
+		containerPadding = 6,
+		columnGap = 4,
+		scoreBarPadding = 3,
+		headerPadding = 4,
+		headerMargin = 3,
+		victoryMargin = 3,
+	},
 }
 
 local initialModel = {
@@ -163,8 +171,10 @@ local function calculateUILayout()
 	
 	widgetState.lastMinimapGeometry = {minimapPosX, minimapPosY, minimapSizeX, minimapSizeY}
 	
-	-- Constrain to 300x248 area below minimap
-	local maxWidth = 300
+	-- Constrain to 300x248 area below minimap, but limit width to minimap width
+	-- Account for margins: container padding (left + right) + column gaps
+	local effectiveMaxWidth = math.min(300, minimapSizeX)
+	local maxWidth = effectiveMaxWidth - (widgetState.uiMargins.containerPadding * 2)
 	local maxHeight = 248
 	local magicalSpacing = 42 -- because there's something about the difference between the way widgets and rmlui handles screenspace spacing that requires an additional y offset.
 	
@@ -177,9 +187,10 @@ local function calculateUILayout()
 		position = {
 			x = scorePosX,
 			y = scorePosY,
-			width = maxWidth,
+			width = effectiveMaxWidth,
 			height = maxHeight,
-		}
+		},
+		availableWidth = maxWidth,
 	}
 	
 	-- Update document position if it exists
@@ -286,9 +297,14 @@ local function updateScoreBarVisuals()
 	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
 	local numColumns = math.ceil(numTeams / teamsPerColumn)
 	
-	-- Limit to max 4 columns to fit in 300px width
-	if numColumns > 4 then
-		numColumns = 4
+	-- Limit columns based on available width after margins
+	-- Each column needs minimum width: score bar padding + text space + margins
+	local minColumnWidth = widgetState.uiMargins.scoreBarPadding * 2 + 40 -- 40px for text and score display
+	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or 300) / minColumnWidth)
+	maxColumnsByWidth = math.max(1, math.min(maxColumnsByWidth, 4)) -- Clamp between 1 and 4
+	
+	if numColumns > maxColumnsByWidth then
+		numColumns = maxColumnsByWidth
 		teamsPerColumn = math.ceil(numTeams / numColumns)
 	end
 	
