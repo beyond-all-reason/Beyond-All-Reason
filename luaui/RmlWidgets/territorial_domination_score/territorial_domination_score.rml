@@ -12,9 +12,6 @@
 		</div>
 		<div id="score-columns" class="score-columns">
 		</div>
-		<div class="victory-points" id="victory-points">
-			Points to Victory: {{pointsCap}}
-		</div>
 	</div>
 </body>
 </rml>

@@ -5,12 +5,11 @@
 	flex-direction: column;
 	background-color: rgba(0, 0, 0, 200);
 	border-radius: 4px;
-	padding: 6px;
+	padding: 4px;
 	z-index: 1000;
 	pointer-events: none;
 	font-family: Exo 2;
 	max-width: 300px;
-	max-height: 248px;
 	overflow: hidden;
 }
 
@@ -26,7 +25,7 @@
 .score-column {
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
+	gap: 2px;
 	flex: 1;
 	justify-content: flex-start;
 	height: 100%;
@@ -35,7 +34,7 @@
 .score-bar {
 	background-color: rgba(0, 0, 0, 150);
 	border-radius: 1px;
-	padding: 3px;
+	padding: 2px;
 	min-width: 60px;
 	font-size: 11px;
 }
@@ -101,22 +100,22 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 3px;
-	padding: 3px 4px;
+	margin-bottom: 2px;
+	padding: 2px 2px;
 	background-color: rgba(0, 0, 0, 180);
 	border-radius: 1px;
 }
 
 .round-display {
 	color: #ffffff;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
 
 .time-display {
 	color: #ffffff;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: bold;
 	font-family: Exo 2;
 }
@@ -127,23 +126,23 @@
 	transform: translateY(-50%);
 	color: #ffffff;
 	font-weight: bold;
-	font-size: 13px;
+	font-size: 15px;
 	font-family: Exo 2;
 	z-index: 3;
 	pointer-events: none;
 }
 
 .score-text.current {
-	left: 4px;
+	left: 2px;
 }
 
 .score-text.projected {
-	right: 4px;
+	right: 2px;
 }
 
 .victory-points {
-	margin-top: 3px;
-	padding: 2px 3px;
+	margin-top: 2px;
+	padding: 2px 2px;
 	color: #ffffff;
 	font-size: 15px;
 	font-weight: bold;

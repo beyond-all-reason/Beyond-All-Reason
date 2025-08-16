@@ -51,12 +51,12 @@ local widgetState = {
 	lastMinimapGeometry = {0, 0, 0, 0},
 	scoreElements = {},
 	uiMargins = {
-		containerPadding = 6,
-		columnGap = 4,
-		scoreBarPadding = 3,
-		headerPadding = 4,
-		headerMargin = 3,
-		victoryMargin = 3,
+		containerPadding = 3,
+		columnGap = 2,
+		scoreBarPadding = 1.5,
+		headerPadding = 2,
+		headerMargin = 1.5,
+		victoryMargin = 1.5,
 	},
 }
 
@@ -184,11 +184,9 @@ local function calculateUILayout()
 	-- Account for margins: container padding (left + right) + column gaps
 	local effectiveMaxWidth = math.min(300, minimapSizeX)
 	local maxWidth = effectiveMaxWidth - (widgetState.uiMargins.containerPadding * 2)
-	local maxHeight = 248
 	
 	-- Position the score display below the minimap (growing downward)
 	local scorePosX = minimapPosX
-	Spring.Echo(WIDGET_NAME .. ": Minimap geometry - X:" .. minimapPosX .. " Y:" .. minimapPosY .. " W:" .. minimapSizeX .. " H:" .. minimapSizeY)
 	local scorePosY = SCREEN_HEIGHT - minimapPosY -- Position directly below minimap with no gap
 	
 	-- Store UI state in widget state instead of data model
@@ -197,19 +195,10 @@ local function calculateUILayout()
 			x = scorePosX,
 			y = scorePosY,
 			width = effectiveMaxWidth,
-			height = maxHeight,
+			height = 0, -- Will be calculated dynamically
 		},
 		availableWidth = maxWidth,
 	}
-	
-	-- Update document position if it exists
-	if widgetState.document then
-		local rootElement = widgetState.document:GetElementById("score-container")
-		if rootElement then
-			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx", 
-				scorePosX, scorePosY, maxWidth, maxHeight))
-		end
-	end
 end
 local function createScoreBarElement(columnDiv, allyTeam, index)
 	local scoreBarDiv = widgetState.document:CreateElement("div")
@@ -259,6 +248,50 @@ local function createScoreBarElement(columnDiv, allyTeam, index)
 		fillElement = fillDiv,
 	}
 end
+
+
+local function updateDynamicHeight()
+	if not widgetState.document or not widgetState.uiState then
+		return
+	end
+	
+	local allyTeams = widgetState.allyTeamData
+	local numTeams = #allyTeams
+	
+	if numTeams == 0 then
+		return
+	end
+	
+	-- Calculate height needed for header
+	local headerHeight = 18 + (widgetState.uiMargins.headerPadding * 2) + widgetState.uiMargins.headerMargin
+	
+	-- Calculate height needed for score bars
+	-- Each score bar: 18px height + padding + gap
+	local scoreBarHeight = 18 + (widgetState.uiMargins.scoreBarPadding * 2)
+	local totalScoreBarHeight = numTeams * scoreBarHeight
+	
+	-- Add gaps between score bars (numTeams - 1 gaps)
+	local totalGapsHeight = (numTeams - 1) * widgetState.uiMargins.scoreBarPadding
+	
+	-- Calculate total height needed
+	local totalHeight = headerHeight + totalScoreBarHeight + totalGapsHeight + (widgetState.uiMargins.containerPadding * 2)
+	
+	-- Update UI state
+	widgetState.uiState.height = totalHeight
+	
+	-- Update document position and size
+	local rootElement = widgetState.document:GetElementById("score-container")
+	if rootElement then
+		local scorePosX = widgetState.uiState.position.x
+		local scorePosY = widgetState.uiState.position.y
+		local effectiveMaxWidth = widgetState.uiState.position.width
+		local maxWidth = widgetState.uiState.availableWidth
+		
+		rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx", 
+			scorePosX, scorePosY, maxWidth, totalHeight))
+	end
+end
+
 
 local function updateScoreBarVisuals()
 	if not widgetState.document then
@@ -364,6 +397,9 @@ local function updateScoreBarVisuals()
 			scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
 		end
 	end
+	
+	-- Calculate and update dynamic height after all score bars are created
+	updateDynamicHeight()
 end
 
 local function updateDataModel()
