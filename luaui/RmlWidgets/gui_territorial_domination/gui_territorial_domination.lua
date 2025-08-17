@@ -208,7 +208,7 @@ end
 
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
-	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
+	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
 	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
 
@@ -223,6 +223,14 @@ local function updateRoundInfo()
 		local elapsedTime = currentTime - gameStartOffset
 		currentRound = math.floor(elapsedTime / roundDuration) + 1
 	end
+
+	local highestPlayerCombinedScore = 0
+	if widgetState.allyTeamData and #widgetState.allyTeamData > 0 then
+		local topTeam = widgetState.allyTeamData[1]
+		highestPlayerCombinedScore = topTeam.score + topTeam.projectedPoints
+	end
+
+	local pointsCap = math.max(gameRulesPointsCap, highestPlayerCombinedScore)
 
 	local timeString = "0:00"
 	local timeRemainingSeconds = 0
