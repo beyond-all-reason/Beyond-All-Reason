@@ -116,6 +116,10 @@
 	font-size: 16px;
 }
 
+.time-display.warning {
+	color: #ff0000;
+}
+
 .score-text {
 	position: absolute;
 	top: 50%;

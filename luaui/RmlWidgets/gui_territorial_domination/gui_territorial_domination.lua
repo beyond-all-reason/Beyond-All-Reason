@@ -55,6 +55,7 @@ local BIG_MARGIN = 4
 local SCORE_BAR_MIN_WIDTH = 80
 local SCORE_BAR_HEIGHT = 18
 local MAX_CONTAINER_WIDTH = 300
+local COUNTDOWN_WARNING_THRESHOLD = 60
 
 local uiDimensions = {
 	scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
@@ -82,6 +83,8 @@ local initialModel = {
 	secondHighestScore = 0,
 	timeRemaining = "0:00",
 	roundDisplayText = "Round 1",
+	timeRemainingSeconds = 0,
+	isCountdownWarning = false,
 }
 
 local function getAllyTeamColor(allyTeamID)
@@ -152,14 +155,23 @@ local function updateRoundInfo()
 	end
 
 	local timeString = "0:00"
+	local timeRemainingSeconds = 0
+	local isCountdownWarning = false
+	
+	local roundDisplayText = currentRound > maxRounds and "Overtime" or string.format("Round %d/%d", currentRound, maxRounds)
+	
 	if roundEndTime > 0 then
-		local timeRemaining = math.max(0, roundEndTime - Spring.GetGameSeconds())
-		local minutes = math.floor(timeRemaining / SECONDS_PER_MINUTE)
-		local seconds = math.floor(timeRemaining % SECONDS_PER_MINUTE)
+		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())
+		local minutes = math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE)
+		local seconds = math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE)
 		timeString = string.format("%d:%02d", minutes, seconds)
 	end
-
-	local roundDisplayText = currentRound > maxRounds and "Overtime" or string.format("Round %d/%d", currentRound, maxRounds)
+	
+	if currentRound > maxRounds then
+		isCountdownWarning = true
+	elseif timeRemainingSeconds <= COUNTDOWN_WARNING_THRESHOLD then
+		isCountdownWarning = true
+	end
 
 	return {
 		currentRound = currentRound,
@@ -169,7 +181,23 @@ local function updateRoundInfo()
 		secondHighestScore = secondHighestScore,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
+		timeRemainingSeconds = timeRemainingSeconds,
+		isCountdownWarning = isCountdownWarning,
 	}
+end
+
+local function updateCountdownColor()
+	if not widgetState.document then return end
+	
+	local timeDisplayElement = widgetState.document:GetElementById("time-display")
+	if not timeDisplayElement then return end
+	
+	local dm = widgetState.dmHandle
+	if dm and dm.isCountdownWarning then
+		timeDisplayElement.class_name = "time-display warning"
+	else
+		timeDisplayElement.class_name = "time-display"
+	end
 end
 
 local function calculateUILayout()
@@ -465,17 +493,22 @@ local function updateDataModel()
 	dm.secondHighestScore = roundInfo.secondHighestScore
 	dm.timeRemaining = roundInfo.timeRemaining
 	dm.roundDisplayText = roundInfo.roundDisplayText
+	dm.timeRemainingSeconds = roundInfo.timeRemainingSeconds
+	dm.isCountdownWarning = roundInfo.isCountdownWarning
 
 	dm:__SetDirty("allyTeams")
 	dm:__SetDirty("pointsCap")
 	dm:__SetDirty("currentRound")
 	dm:__SetDirty("timeRemaining")
 	dm:__SetDirty("roundDisplayText")
+	dm:__SetDirty("timeRemainingSeconds")
+	dm:__SetDirty("isCountdownWarning")
 
 	calculateUILayout()
 
 	if widgetState.document then
 		updateScoreBarVisuals()
+		updateCountdownColor()
 	end
 end
 
@@ -529,6 +562,7 @@ function widget:Initialize()
 	updateDynamicHeight()
 	updateDataModel()
 	setCSSVariables()
+	updateCountdownColor()
 
 	return true
 end
