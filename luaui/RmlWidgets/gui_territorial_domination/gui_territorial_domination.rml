@@ -2,7 +2,7 @@
 <rml>
 <head id="head">
 	<title>Territorial Domination Score</title>
-	<link type="text/rcss" href="territorial_domination_score.rcss" />
+	<link type="text/rcss" href="gui_territorial_domination.rcss" />
 </head>
 <body>
 	<div id="score-container" class="score-container" data-model="territorial_score_model">
