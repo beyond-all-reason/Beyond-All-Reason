@@ -138,10 +138,11 @@ if gadgetHandler:IsSyncedCode() then
 				newUnitName = evolution.evolution_target
 				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
 			elseif evolution.evolution_condition == "timer_global" then
-				if now < tonumber(evolution.evolution_timer) then
+				local requiredTime = tonumber(evolution.evolution_timer)
+				if now < requiredTime then
 					break
 				end
-				delayedSeconds = 0
+				delayedSeconds = now - requiredTime
 				newUnitName = evolution.evolution_target
 				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
 			else
