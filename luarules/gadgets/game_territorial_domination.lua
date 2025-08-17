@@ -870,7 +870,7 @@ end
 
 function gadget:GameStart()
 	if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Territorial Domination is not compatible with Raptors or Scavengers. Please remove Scavengers or Raptors from the game and try again.")
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Territorial Domination is not compatible with Raptors or Scavengers.")
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
