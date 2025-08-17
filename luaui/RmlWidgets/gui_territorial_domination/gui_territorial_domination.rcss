@@ -165,5 +165,5 @@
 	font-size: 30px;
 	text-align: center;
 	white-space: nowrap;
-	font-effect: outline(3px black);
+	font-effect: outline(1.5px black);
 }

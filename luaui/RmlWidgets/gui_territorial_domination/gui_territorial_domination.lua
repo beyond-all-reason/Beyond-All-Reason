@@ -33,6 +33,7 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
+local spI18N = Spring.I18N
 
 local SCREEN_HEIGHT = 1080
 local HEADER_HEIGHT = 18
@@ -56,7 +57,6 @@ local SCORE_BAR_HEIGHT = 18
 local MAX_CONTAINER_WIDTH = 300
 local COUNTDOWN_WARNING_THRESHOLD = 60
 local ROUND_END_POPUP_DELAY = 3
-local POPUP_TEXT_SIZE = 30
 
 local uiDimensions = {
 	scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
@@ -91,7 +91,7 @@ local initialModel = {
 	highestScore = 0,
 	secondHighestScore = 0,
 	timeRemaining = "0:00",
-	roundDisplayText = "Round 1",
+	roundDisplayText = spI18N('ui.territorialDomination.round.display', { currentRound = 1 }),
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
 }
@@ -133,14 +133,14 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	local popupText = ""
 	if isFinalRound then
 		if isPlayerSpectating() then
-			popupText = "Game Over"
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver')
 		elseif isPlayerInFirstPlace() then
-			popupText = "Victory"
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.victory')
 		else
-			popupText = "Defeat"
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.defeat')
 		end
 	else
-		popupText = "Round " .. tostring(roundNumber)
+		popupText = spI18N('ui.territorialDomination.roundOverPopup.round', { roundNumber = roundNumber })
 	end
 	
 	popupTextElement.inner_rml = popupText
@@ -178,7 +178,7 @@ local function updateAllyTeamData()
 		if teamList and #teamList > 0 then
 			local firstTeamID = teamList[1]
 			table.insert(validAllyTeams, {
-				name = "Ally " .. (allyTeamID + 1),
+				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
 				allyTeamID = allyTeamID,
 				firstTeamID = firstTeamID,
 				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0,
@@ -228,7 +228,7 @@ local function updateRoundInfo()
 	local timeRemainingSeconds = 0
 	local isCountdownWarning = false
 	
-	local roundDisplayText = currentRound > maxRounds and "Overtime" or string.format("Round %d/%d", currentRound, maxRounds)
+	local roundDisplayText = currentRound > maxRounds and spI18N('ui.territorialDomination.round.overtime') or spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
 	
 	if roundEndTime > 0 then
 		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())

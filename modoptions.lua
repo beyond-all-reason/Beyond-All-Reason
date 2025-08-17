@@ -150,9 +150,9 @@ local options = {
         def     = "default",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
-            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
-            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
+            { key = "short",  name = "Short",  desc = "3 rounds of 5 minutes." },
+            { key = "default", name = "Default", desc = "3 rounds of 8 minutes." },
+            { key = "long",   name = "Long",   desc = "3 rounds of 12 minutes." },
         }
     },
 

@@ -11,12 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
---[[
-todo
-need to check for tiebreaker code
-]]
-
-
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
@@ -31,8 +25,8 @@ local territorialDominationConfig = {
 		minutesPerRound = 8,
 	},
 	long = {
-		maxRounds = 7,
-		minutesPerRound = 5,
+		maxRounds = 3,
+		minutesPerRound = 12,
 	},
 }
 

@@ -556,7 +556,7 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
+			"territorialDomination": "Territorial Domination, survive and gain the most points to win."
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -714,10 +714,20 @@
 			}
 		},
 		"territorialDomination": {
-			"losingWarning1": "Allied retreat in %{seconds} seconds!",
-			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
-			"rank": "Rank %{rank}",
-			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+			"roundOverPopup": {
+				"gameOver": "Game Over",
+				"victory": "Victory",
+				"defeat": "Defeat",
+				"round": "Round %{roundNumber}"
+			},
+			"round": {
+				"display": "Round %{currentRound}",
+				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
+				"overtime": "Overtime"
+			},
+			"team": {
+				"ally": "Ally %{allyNumber}"
+			}
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
