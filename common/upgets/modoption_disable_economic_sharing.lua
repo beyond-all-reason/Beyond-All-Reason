@@ -25,6 +25,8 @@ if gadget then
 	end
 end
 
+local UPGET_NAME = "modoption_disable_economic_sharing"
+
 
 local restrictedUnits = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -39,13 +41,44 @@ end
 
 function upget:Initialize()
 	if widget then
-		globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded(false)
-		globalScope['topbar'].setShareSliderEnabled(false)
-		globalScope['sharecmd'].setRestrictedUnits(restrictedUnits)
-		globalScope['advplayerlist_api'].SetModuleActive({ 'share_resource', false })
+
+		-- set extractor upgrade behavior
+		if globalScope['resource_spot_builder'] and globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded then
+			globalScope['resource_spot_builder'].SetAllyExtractorCanBeUpgraded(false)
+		else
+			Spring.Echo("ERROR: " .. UPGET_NAME .. " Unable to access resource_spot_builder widget")
+		end
+
+		-- set share slider behavior
+		if globalScope['topbar'] and globalScope['topbar'].setShareSliderEnabled then
+			globalScope['topbar'].setShareSliderEnabled(false)
+		else
+			Spring.Echo("ERROR: " .. UPGET_NAME .. " Unable to access topbar widget")
+		end
+
+		-- set share unit button visibility
+		if globalScope['sharecmd'] and globalScope['sharecmd'].setRestrictedUnits then
+			globalScope['sharecmd'].setRestrictedUnits(restrictedUnits)
+		else
+			Spring.Echo("ERROR: " .. UPGET_NAME .. " Unable to access sharecmd widget")
+		end
+
+		-- disable share bars in playerlist
+		if globalScope['advplayerlist_api'] and globalScope['advplayerlist_api'].SetModuleActive then
+			globalScope['advplayerlist_api'].SetModuleActive({ 'share_resource', false })
+		else
+			Spring.Echo("ERROR: " .. UPGET_NAME .. " Unable to access advplayerlist widget")
+		end
 	end
+
 	if gadget then
-		globalScope['restrict_unit_sharing'].setBlacklist(restrictedUnits)
+
+		-- set which units can be shared
+		if globalScope['restrict_unit_sharing'] and globalScope['restrict_unit_sharing'].setBlacklist then
+			globalScope['restrict_unit_sharing'].setBlacklist(restrictedUnits)
+		else
+			Spring.Echo("ERROR: " .. UPGET_NAME .. " Unable to access restrict_unit_sharing gadget")
+		end
 
 		-- set share level to max
 		local teams = Spring.GetTeamList()

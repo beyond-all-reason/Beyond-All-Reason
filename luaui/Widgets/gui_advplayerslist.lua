@@ -965,7 +965,6 @@ function widget:Initialize()
 		return modules[module].active
 	end
 	WG['advplayerlist_api'].SetModuleActive = function(value)
-		Spring.Echo("SetModuleActive", value)
 		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
