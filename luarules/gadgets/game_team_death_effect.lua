@@ -80,9 +80,12 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 				i = i + 1
 			end
 			if i > 0 then
-				Spring.SetUnitMaxRange(unitID, 0)
+				Spring.SetUnitMaxRange(unitID, 0)	-- looks like this one doesnt really work
 				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
 				Spring.SetUnitTarget(unitID, nil)
+				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then	-- remove any settarget cmd
+					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
+				end
 			end
 			--Spring.SetUnitNoMinimap(unitID, true)
 		end
