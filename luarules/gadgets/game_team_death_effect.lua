@@ -84,7 +84,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
 				Spring.SetUnitTarget(unitID, nil)
 				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then	-- remove any settarget cmd
-					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET)
+					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
 				end
 			end
 			--Spring.SetUnitNoMinimap(unitID, true)
