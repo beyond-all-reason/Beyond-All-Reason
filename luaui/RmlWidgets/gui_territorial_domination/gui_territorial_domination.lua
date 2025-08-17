@@ -18,7 +18,6 @@ end
 -- notes
 -- TODO:
 -- - the countdown timer needs to do something attention grabbing when it gets close to round end
--- need to make true team color display for squares under all circumstances
 -- need to detect and disable itself if scavengers or raptors enabled or else handle the modes
 -- need to add halo effect to your allyteam or the team that's selected anyway.
 local modOptions = Spring.GetModOptions()
