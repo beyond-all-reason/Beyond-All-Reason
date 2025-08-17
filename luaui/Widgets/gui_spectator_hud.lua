@@ -293,12 +293,14 @@ local function buildUnitDefs()
 		return unitDef.weapons and (#unitDef.weapons > 0) and (not unitDef.speed or (unitDef.speed == 0))
 	end
 
-	local function isUtilityUnit(unitDefID, unitDef)
-		return unitDef.customParams.unitgroup == 'util'
-	end
-
 	local function isEconomyBuilding(unitDefID, unitDef)
 		return (unitDef.customParams.unitgroup == 'metal') or (unitDef.customParams.unitgroup == 'energy')
+	end
+
+	local function isUtilityUnit(unitDefID, unitDef)
+		-- anything that is not economy, army, or defense is considered utility
+		-- thus, utility serves as a catch-all for unit value that does not fall into the other categories
+		return not (isEconomyBuilding(unitDefID, unitDef) or isArmyUnit(unitDefID, unitDef) or isDefenseUnit(unitDefID, unitDef))
 	end
 
 	unitDefsToTrack = {}
@@ -542,6 +544,7 @@ local function buildPlayerData()
 				if playerID and playerID[1] then
 					-- it's a player
 					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
+					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
 				else
 					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
@@ -1122,7 +1125,7 @@ local function drawBars()
 		(mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
 		mouseOnBar = true
 	end
-	
+
 	for metricIndex,metric in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height
