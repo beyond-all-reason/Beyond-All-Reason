@@ -85,13 +85,13 @@ local widgetState = {
 
 local initialModel = {
 	allyTeams = {},
-	currentRound = 1,
+	currentRound = 0,
 	roundEndTime = 0,
 	pointsCap = 0,
 	highestScore = 0,
 	secondHighestScore = 0,
 	timeRemaining = "0:00",
-	roundDisplayText = spI18N('ui.territorialDomination.round.display', { currentRound = 1 }),
+	roundDisplayText = "",
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
 }
@@ -133,14 +133,16 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	local popupText = ""
 	if isFinalRound then
 		if isPlayerSpectating() then
-			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver')
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver') --zzz this never displays because defeated players are spectating
 		elseif isPlayerInFirstPlace() then
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.victory')
 		else
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.defeat')
 		end
-	else
+	elseif roundNumber > 0 then
 		popupText = spI18N('ui.territorialDomination.roundOverPopup.round', { roundNumber = roundNumber })
+	else
+		popupText = ""
 	end
 	
 	popupTextElement.inner_rml = popupText
@@ -212,17 +214,9 @@ local function updateRoundInfo()
 	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
 	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
 
-	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 1
+	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
 
-	if currentRound <= 0 then
-		local currentTime = Spring.GetGameSeconds()
-		local roundDuration = spGetGameRulesParam("territorialDominationRoundDuration") or 300
-		local gameStartOffset = spGetGameRulesParam("territorialDominationStartTime") or 0
-
-		local elapsedTime = currentTime - gameStartOffset
-		currentRound = math.floor(elapsedTime / roundDuration) + 1
-	end
 
 	local highestPlayerCombinedScore = 0
 	if widgetState.allyTeamData and #widgetState.allyTeamData > 0 then
@@ -236,7 +230,13 @@ local function updateRoundInfo()
 	local timeRemainingSeconds = 0
 	local isCountdownWarning = false
 	
-	local roundDisplayText = currentRound > maxRounds and spI18N('ui.territorialDomination.round.overtime') or spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
+	local roundDisplayText 
+	if currentRound > maxRounds then roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
+	elseif currentRound == 0 then -- pregame
+		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = 1, maxRounds = maxRounds })
+	else
+		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
+	end
 	
 	if roundEndTime > 0 then
 		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())

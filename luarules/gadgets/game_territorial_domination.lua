@@ -94,7 +94,7 @@ local numberOfSquaresZ = 0
 local gameFrame = 0
 local sentGridStructure = false
 local roundTimestamp = 0
-local currentRound = 1
+local currentRound = 0
 local gameOver = false
 local allyTeamsCount = 0
 
@@ -361,18 +361,6 @@ local function processLivingTeams()
 	if allyTeamsCount <= 1 then
 		gameOver = true
 	end
-end
-
-local function getHighestTeamCount()
-	local highestTeamCount = 0
-	for allyID, teams in pairs(allyTeamsWatch) do
-		local teamCount = 0
-		for teamID in pairs(teams) do
-			teamCount = teamCount + 1
-		end
-		highestTeamCount = max(highestTeamCount, teamCount)
-	end
-	return highestTeamCount
 end
 
 local function initializeTeamData()
@@ -734,8 +722,6 @@ function gadget:GameFrame(frame)
 		
 		local projectedPoints = calculateProjectedPointsForNextRound()
 		
-		Spring.SetGameRulesParam("territorialDominationPointsCap", pointsCap)
-		
 		for allyID, scoreData in pairs(allyScores) do
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, scoreData.score, {public = true})
@@ -762,7 +748,6 @@ function gadget:Initialize()
 	Spring.SetGameRulesParam("territorialDominationGridCheckInterval", GRID_CHECK_INTERVAL)
 	captureGrid = generateCaptureGrid()
 
-	roundTimestamp = spGetGameSeconds() + ROUND_SECONDS
 	initializeTeamData()
 	initializeUnitDefs()
 	updateLivingTeamsData()
