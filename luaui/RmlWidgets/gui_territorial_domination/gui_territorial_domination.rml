@@ -13,5 +13,9 @@
 		<div id="score-columns" class="score-columns">
 		</div>
 	</div>
+	<div id="round-end-popup" class="round-end-popup">
+		<div id="popup-text" class="popup-text"></div>
+		<div id="popup-text-shadow" class="popup-text popup-text-shadow"></div>
+	</div>
 </body>
 </rml>

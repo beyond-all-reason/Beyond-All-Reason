@@ -146,3 +146,28 @@
 	font-family: Exo 2;
 	font-size: 15px;
 }
+
+.round-end-popup {
+	position: absolute;
+	z-index: 2000;
+	pointer-events: none;
+	display: none;
+}
+
+.popup-text {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 30px;
+	text-align: center;
+	white-space: nowrap;
+	position: relative;
+	z-index: 10;
+}
+
+.popup-text-shadow {
+	color: #000000;
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	z-index: -10;
+}

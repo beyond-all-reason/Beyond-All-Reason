@@ -56,6 +56,8 @@ local SCORE_BAR_MIN_WIDTH = 80
 local SCORE_BAR_HEIGHT = 18
 local MAX_CONTAINER_WIDTH = 300
 local COUNTDOWN_WARNING_THRESHOLD = 60
+local ROUND_END_POPUP_DELAY = 3
+local POPUP_TEXT_SIZE = 30
 
 local uiDimensions = {
 	scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
@@ -72,6 +74,14 @@ local widgetState = {
 	lastMinimapGeometry = { 0, 0, 0, 0 },
 	scoreElements = {},
 	hiddenByLobby = false,
+	popupState = {
+		isVisible = false,
+		showTime = 0,
+		roundNumber = 0,
+		isFinalRound = false,
+		playerIsFirst = false,
+		isSpectating = false,
+	},
 }
 
 local initialModel = {
@@ -95,6 +105,72 @@ local function getAllyTeamColor(allyTeamID)
 		return { r = r, g = g, b = b }
 	end
 	return { r = DEFAULT_COLOR_VALUE, g = DEFAULT_COLOR_VALUE, b = DEFAULT_COLOR_VALUE }
+end
+
+local function isPlayerInFirstPlace()
+	local myTeamID = Spring.GetMyTeamID()
+	if myTeamID == nil then return false end
+	
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	if myAllyTeamID == nil then return false end
+	
+	local allyTeams = widgetState.allyTeamData
+	if #allyTeams == 0 then return false end
+	
+	return allyTeams[1].allyTeamID == myAllyTeamID
+end
+
+local function isPlayerSpectating()
+	return Spring.GetMyTeamID() == nil
+end
+
+local function showRoundEndPopup(roundNumber, isFinalRound)
+	if not widgetState.document then return end
+	
+	local popupElement = widgetState.document:GetElementById("round-end-popup")
+	local popupTextElement = widgetState.document:GetElementById("popup-text")
+	local popupShadowElement = widgetState.document:GetElementById("popup-text-shadow")
+	if not popupElement or not popupTextElement or not popupShadowElement then return end
+	
+	local popupText = ""
+	if isFinalRound then
+		if isPlayerSpectating() then
+			popupText = "Game Over"
+		elseif isPlayerInFirstPlace() then
+			popupText = "Victory"
+		else
+			popupText = "Defeat"
+		end
+	else
+		popupText = "Round " .. tostring(roundNumber)
+	end
+	
+	popupTextElement.inner_rml = popupText
+	popupShadowElement.inner_rml = popupText
+	
+	local centerX = 960
+	local centerY = 540
+	popupElement:SetAttribute("style", string.format("display: block; left: %dpx; top: %dpx;", centerX, centerY))
+	
+	popupShadowElement:SetAttribute("style", "position: absolute; top: 2px; left: 2px; color: #000000;")
+	popupTextElement:SetAttribute("style", "position: relative; color: #ffffff;")
+	
+	widgetState.popupState.isVisible = true
+	widgetState.popupState.showTime = Spring.GetGameSeconds()
+	widgetState.popupState.roundNumber = roundNumber
+	widgetState.popupState.isFinalRound = isFinalRound
+	widgetState.popupState.playerIsFirst = isPlayerInFirstPlace()
+	widgetState.popupState.isSpectating = isPlayerSpectating()
+end
+
+local function hideRoundEndPopup()
+	if not widgetState.document then return end
+	
+	local popupElement = widgetState.document:GetElementById("round-end-popup")
+	if not popupElement then return end
+	
+	popupElement:SetAttribute("style", "display: none;")
+	widgetState.popupState.isVisible = false
 end
 
 local function updateAllyTeamData()
@@ -173,6 +249,8 @@ local function updateRoundInfo()
 		isCountdownWarning = true
 	end
 
+	local isFinalRound = currentRound >= maxRounds and timeRemainingSeconds <= 0
+
 	return {
 		currentRound = currentRound,
 		roundEndTime = roundEndTime,
@@ -183,6 +261,7 @@ local function updateRoundInfo()
 		roundDisplayText = roundDisplayText,
 		timeRemainingSeconds = timeRemainingSeconds,
 		isCountdownWarning = isCountdownWarning,
+		isFinalRound = isFinalRound,
 	}
 end
 
@@ -485,6 +564,9 @@ local function updateDataModel()
 	local roundInfo = updateRoundInfo()
 	local dm = widgetState.dmHandle
 
+	local previousRound = dm.currentRound or 0
+	local previousTimeRemaining = dm.timeRemainingSeconds or 0
+
 	dm.allyTeams = allyTeams
 	dm.currentRound = roundInfo.currentRound
 	dm.roundEndTime = roundInfo.roundEndTime
@@ -509,6 +591,12 @@ local function updateDataModel()
 	if widgetState.document then
 		updateScoreBarVisuals()
 		updateCountdownColor()
+		
+		if roundInfo.isFinalRound and previousTimeRemaining > 0 and roundInfo.timeRemainingSeconds <= 0 then
+			showRoundEndPopup(roundInfo.currentRound, true)
+		elseif previousRound ~= roundInfo.currentRound and previousRound > 0 then
+			showRoundEndPopup(previousRound, false)
+		end
 	end
 end
 
@@ -575,6 +663,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 	elseif msg:sub(1, 19) == 'LobbyOverlayActive1' then
 		if widgetState.document then
+			hideRoundEndPopup()
 			widgetState.document:Hide()
 			widgetState.hiddenByLobby = true
 		end
@@ -588,6 +677,7 @@ function widget:Shutdown()
 	end
 
 	if widgetState.document then
+		hideRoundEndPopup()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
@@ -615,6 +705,14 @@ end
 
 function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
+	
+	if widgetState.popupState.isVisible then
+		local timeSincePopup = currentTime - widgetState.popupState.showTime
+		if timeSincePopup >= ROUND_END_POPUP_DELAY then
+			hideRoundEndPopup()
+		end
+	end
+	
 	if currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval then
 		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 		if pointsCap and pointsCap > 0 then
