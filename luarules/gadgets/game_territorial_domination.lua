@@ -22,7 +22,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 3,
-		minutesPerRound = 1,
+		minutesPerRound = 8,
 	},
 	long = {
 		maxRounds = 3,
