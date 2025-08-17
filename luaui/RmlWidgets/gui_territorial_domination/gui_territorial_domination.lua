@@ -129,8 +129,7 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	
 	local popupElement = widgetState.document:GetElementById("round-end-popup")
 	local popupTextElement = widgetState.document:GetElementById("popup-text")
-	local popupShadowElement = widgetState.document:GetElementById("popup-text-shadow")
-	if not popupElement or not popupTextElement or not popupShadowElement then return end
+	if not popupElement or not popupTextElement then return end
 	
 	local popupText = ""
 	if isFinalRound then
@@ -146,14 +145,10 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	end
 	
 	popupTextElement.inner_rml = popupText
-	popupShadowElement.inner_rml = popupText
 	
 	local centerX = 960
 	local centerY = 540
 	popupElement:SetAttribute("style", string.format("display: block; left: %dpx; top: %dpx;", centerX, centerY))
-	
-	popupShadowElement:SetAttribute("style", "position: absolute; top: 2px; left: 2px; color: #000000;")
-	popupTextElement:SetAttribute("style", "position: relative; color: #ffffff;")
 	
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = Spring.GetGameSeconds()

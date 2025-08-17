@@ -107,6 +107,7 @@
 	font-weight: bold;
 	font-family: Exo 2;
 	font-size: 16px;
+	font-effect: shadow(2px 2px black);
 }
 
 .time-display {
@@ -114,6 +115,7 @@
 	font-weight: bold;
 	font-family: Exo 2;
 	font-size: 16px;
+	font-effect: shadow(2px 2px black);
 }
 
 .time-display.warning {
@@ -129,6 +131,7 @@
 	font-family: Exo 2;
 	z-index: 3;
 	pointer-events: none;
+	font-effect: shadow(1.5px 1.5px black);
 }
 
 .score-text.current {
@@ -145,6 +148,7 @@
 	text-align: center;
 	font-family: Exo 2;
 	font-size: 15px;
+	font-effect: shadow(1.5px 1.5px black);
 }
 
 .round-end-popup {
@@ -156,18 +160,10 @@
 
 .popup-text {
 	color: #ffffff;
+	font-weight: bold;
 	font-family: Exo 2;
 	font-size: 30px;
 	text-align: center;
 	white-space: nowrap;
-	position: relative;
-	z-index: 10;
-}
-
-.popup-text-shadow {
-	color: #000000;
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	z-index: -10;
+	font-effect: shadow(3px 3px black);
 }
