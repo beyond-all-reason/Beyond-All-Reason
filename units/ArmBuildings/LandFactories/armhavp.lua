@@ -36,7 +36,7 @@ return {
 			[3] = "armmerl",
 			[4] = "armmanni",
 			[5] = "armyork",
-			[6] = "armseer",
+			[6] = "armgremlin",
 			[7] = "armjam",
 			[8] = "armthor",
 			[9] = "armlun"

@@ -222,9 +222,9 @@ local labGrids = {
 	},
 
 	armhalab = {
-		"armhack", "armdecom", "armfboy", "armmark",
-		"armvang", "armmar", "armraz", "armaser",
-		"armscab", "", "", "armsnipe",
+		"armhack", "armdecom", "armmar", "armaser",
+		"armvang", "armfboy", "armraz", "armsnipe",
+		"armscab", "", "", "",
 	},
 
 	leghalab = {
@@ -258,8 +258,8 @@ local labGrids = {
 	},
 
 	armhasy = {
-		"armhacs", "armantiship", "armlun", "armsjam",              
-		"armepoch", "armbats", "", "",              
+		"armhacs", "", "armlun", "armsjam",              
+		"armepoch", "armbats", "", "armantiship",              
 		"armserp", "armmar", "armaas", "",              
 	},
 
@@ -270,9 +270,9 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "armbull", "armthor", "armseer",
-		"armmanni", "armlun", "armmerl", "armjam",
-		"", "", "armyork", "",
+		"armhacv", "", "armbull", "armgremlin",
+		"armmanni", "armlun", "armthor", "armjam",
+		"", "", "armyork", "armmerl",
 	},
 
 	corhavp = {
@@ -1972,13 +1972,13 @@ local unitGrids = {
 
 	armhacs = {
 		{
-			{"armuwmme", "armuwfus", "", "",},
+			{"armuwmme", "armtide", "armuwfus", "armafus",},
 			{"armuwmmm","","armuwageo","",},
 			{"armuwadves","armuwadvms","","",},
 		},
 		{
-			{"armkraken", "", "", "",},
-			{"armfflak","","","",},
+			{"armkraken", "armpb", "armanni", "",},
+			{"armfflak","armmercury","","",},
 			{"armatl","","","",},
 		},
 		{
@@ -2431,7 +2431,7 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallun
 end
 
 
-if Spring.GetModOptions().techoverhaul then
+if Spring.GetModOptions().techsplit then
 
 	-- Unit Grids
 
@@ -2439,12 +2439,12 @@ if Spring.GetModOptions().techoverhaul then
 	unitGrids["armck"] = {
 		{
 			{ "armmex", "armsolar", "armwin", "", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
 			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "", "", "", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "", "", },              -- basic AA, ferret, chainsaw
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "", },              -- basic AA, ferret, chainsaw
 			{ "armdl", "", },                         -- coastal torp launcher, guardian
 		},
 		{
@@ -2466,8 +2466,8 @@ if Spring.GetModOptions().techoverhaul then
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "", "", "", },           -- offshore torp launcher, floating HLT
-			{ "armfrt", },                                    -- floating AA
+			{ "armtl", "armfhlt", "armbeamer", "armclaw", },           -- offshore torp launcher, floating HLT
+			{ "armfrt", "armferret" },                                    -- floating AA
 			{ "armdl", "", },              			  -- coastal torp launcher, guardian, lightning turret
 		},
 		{
@@ -2476,7 +2476,7 @@ if Spring.GetModOptions().techoverhaul then
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
-			{ "armnanotcplat", "armasy", },                   -- floating nano, T2 shipyard
+			{ "armnanotcplat", "armasy", "", "", },                   -- floating nano, T2 shipyard
 			{ "", "", "", "", },         -- floating hover lab, amphibious lab, seaplane lab
 		}
 	}
@@ -2484,17 +2484,17 @@ if Spring.GetModOptions().techoverhaul then
 	unitGrids["armcv"] = {
 		{
 			{ "armmex", "armsolar", "armwin", "", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
 			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "", "", "", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "", "", },              -- basic AA, ferret, chainsaw
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "", },              -- basic AA, ferret, chainsaw
 			{ "armdl", "", },                         -- coastal torp launcher, guardian
 		},
 		{
 			{ "armrad", "armeyes", "armdrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
-			{"armjamt", },
+			{ "armjamt",},
 			{ "", },                                   -- juno
 		},
 		{
@@ -2506,14 +2506,14 @@ if Spring.GetModOptions().techoverhaul then
 
 	unitGrids["armbeaver"] = {
 		{
-			{ "armmex", "armsolar", "armwin", "", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armtide", "armamex", "armfmkr", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armmex", "armsolar", "armwin", "armtide", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armfmkr", },               -- T1 converter, geo, twilight, (tidal)
 			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armtl", "", "", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armfrt", "", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "", },                         -- coastal torp launcher, guardian
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "", },              -- basic AA, ferret, chainsaw
+			{ "armdl", "armtl", },                         -- coastal torp launcher, guardian
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -2522,7 +2522,7 @@ if Spring.GetModOptions().techoverhaul then
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armavp", "", "armasy", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
@@ -2530,22 +2530,22 @@ if Spring.GetModOptions().techoverhaul then
 	unitGrids["armca"] = {
 		{
 			{ "armmex", "armsolar", "armwin", "", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
 			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "", "", "", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "", "", },              -- basic AA, ferret, chainsaw
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "", },              -- basic AA, ferret, chainsaw
 			{ "armdl", "", },                         -- coastal torp launcher, guardian
 		},
 		{
 			{ "armrad", "armeyes", "armdrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
-			{"armjamt", },
+			{ "armjamt",},
 			{ "", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armaap", },                      -- nano, T2 lab
+			{ "armnanotc", "armaap", "", "", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
@@ -2553,13 +2553,13 @@ if Spring.GetModOptions().techoverhaul then
 	unitGrids["armack"] = {
 		{
 			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armgeo", "", "", },
+			{ "armmakr", "armageo", "armckfus", "", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armclaw", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armjuno", "", "", "", },
+			{ "armdl", "armjuno", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
@@ -2567,22 +2567,22 @@ if Spring.GetModOptions().techoverhaul then
 			{ "", "", "", "" },
 		},
 		{
-			{ "armlab", "armalab", "", "" },
-			{ "", "armhalab", "", "" },
-			{ "", "", "", "" },
-		},
+			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armalab", "armavp", "armaap", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armhalab" },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
 	}
 
 	unitGrids["armacv"] = {
 		{
 			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armgeo", "", "", },
+			{ "armmakr", "armageo", "armckfus", "", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armclaw", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armjuno", "", "", "", },
+			{ "armdl", "armjuno", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
@@ -2590,45 +2590,45 @@ if Spring.GetModOptions().techoverhaul then
 			{ "", "", "", "" },
 		},
 		{
-			{ "armvp", "armavp", "", "" },
-			{ "", "armhavp", "", "" },
-			{ "", "", "", "" },
-		},
+			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armalab", "armavp", "armaap", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armhavp" },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
 	}
 
 	unitGrids["armch"] = {
 		{
 			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armgeo", "", "", },
+			{ "armmakr", "armageo", "armckfus", "", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armclaw", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armjuno", "", "", "", },
+			{ "armdl", "armtl", "armjuno", "", },
 		},
 		{
-			{ "armarad", "armsd", "", "" },
+			{ "armarad", "armsd", "armason", "" },
 			{ "armveil", "", "", "" },
 			{ "", "", "", "" },
 		},
 		{
-			{ "armvp", "armavp", "", "" },
-			{ "", "armhavp", "", "" },
-			{ "", "", "", "" },
-		},
+			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armalab", "armavp", "armaap", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armhavp", "", "armhasy", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
 	}
 
 	unitGrids["armaca"] = {
 		{
 			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armgeo", "", "", },
+			{ "armmakr", "armageo", "armckfus", "", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armclaw", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armjuno", "", "", "", },
+			{ "armdl", "armjuno", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
@@ -2636,10 +2636,10 @@ if Spring.GetModOptions().techoverhaul then
 			{ "", "", "", "" },
 		},
 		{
-			{ "armap", "armaap", "", "" },
-			{ "", "armhaap", "", "" },
-			{ "", "", "", "" },
-		},
+			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armalab", "armavp", "armaap", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armhaap" },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
 	}
 
 	unitGrids["armacsub"] = {
@@ -2650,7 +2650,7 @@ if Spring.GetModOptions().techoverhaul then
 		},
 		{
 			{ "armatl", "armfhlt", "armkraken", },                        -- adv torp launcher, floating heavy platform
-			{ "armfrt", },                                   -- floating flak
+			{ "armfrt", "armferret", "armcir", },                                   -- floating flak
 			{"armclaw", "armguard",},                                               --
 		},
 		{
@@ -2659,9 +2659,9 @@ if Spring.GetModOptions().techoverhaul then
 			{ },                                               --
 		},
 		{
-			{ "armsy", "armasy", "armhaapuw", },                                      -- T1 shipyard
-			{ "", "armhasy", },                       -- amphibious gantry, T2 shipyard
-			{ },                                               --
+			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "armalab", "armavp", "armhaapuw", "armasy", },                      -- nano, T2 lab
+			{ "armnanotc", "armhasy" },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
 
@@ -2875,26 +2875,10 @@ if Spring.GetModOptions().techoverhaul then
 
 	-- Lab Grids
 
-	labGrids["armvp"] = {
-		"armcv", "armbeaver", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
-	}
-	labGrids["corvp"] = {
-		"corcv", "cormuskrat", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
-		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
-	}
-	labGrids["legvp"] = {
-		"legcv", "legotter", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
-		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
-		"", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
-	}
-
 	labGrids["armalab"] = {
-		"armack", "armspid", "armfast", "armspy",
-		"armfido", "armmav", "armzeus", "armsptk",
-		"armvader", "armamph", "armaak", "",
+		"armack", "armspid", "armfast", "armmark",
+		"armfido", "armmav", "armzeus", "armspy",
+		"armvader", "armamph", "armaak", "armsptk",
 	}
 
 	labGrids["coralab"] = {
@@ -2910,9 +2894,9 @@ if Spring.GetModOptions().techoverhaul then
 	}
 
 	labGrids["armavp"] = {
-		"armacv", "armmlv", "armlatnk", "armgremlin",
-		"armmart", "armmanac", "armmh", "armsh",
-		"armch", "armcroc", "armah", "",
+		"armacv", "armch", "armlatnk", "armseer",
+		"armmart", "armmh", "armmanac", "armsh",
+		"", "armcroc", "armah", "",
 	}
 
 	labGrids["coravp"] = {
@@ -2929,7 +2913,7 @@ if Spring.GetModOptions().techoverhaul then
 
 	labGrids["armasy"] = {
 		"armacsub", "armch", "armanac", "armsh",
-		"armlship", "armcrus", "armmship", "",
+		"armmship", "armcrus", "armlship", "",
 		"armsubk", "armcroc", "armah", "",
 	}
 

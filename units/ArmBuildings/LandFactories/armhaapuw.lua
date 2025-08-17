@@ -26,7 +26,7 @@ return {
 		objectname = "Units/ARMAAPLAT.s3o",
 		radardistance = 1000,
 		radaremitheight = 50,
-		script = "Units/ARMHAAPUW.cob",
+		script = "Units/techsplit/ARMHAAPUW.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,

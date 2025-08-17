@@ -1399,131 +1399,14 @@ local options = {
         def  	= false,
     },
 
-     -- Modular Tech Split
-
     {
-        key     = "sub_header",
-        section = "options_experimental",
-        type    = "separator",
-    },
-
-    {
-        key     = "sub_header",
-        name    = "Tech Split Modules",
-        desc    = "",
-        section = "options_experimental",
-        type    = "subheader",
-        def     =  true,
-    },
-
-    {
-        key     = "sub_header",
-        section = "options_experimental",
-        type    = "separator",
-    },
-
-    {
-        key     = "techoverhaul",
-        name    = "Tech Split - Core",
-        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
-        type    = "bool",
-        section = "options_experimental",
-        def     = false,
-    },
-
-    {
-        key 	= "split_air",
-        name 	= "Tech Split - Air Rebalance",
-        desc 	= "Prototype version with more maneuverable, faster air units and more differentiation between them.",
-        hidden 	= false,
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "split_land",
-        name 	= "Tech Split - Land Rebalance",
-        desc 	= "Improves balance of land units according to the new split rosters.",
-        hidden 	= false,
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "split_sea",
-        name 	= "Tech Split - Sea Rebalance",
-        desc 	= "Improves balance of sea units according to the new split rosters.",
-        hidden 	= false,
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "split_hovers",
-        name 	= "Tech Split - Hover Rebalance",
-        desc 	= "Improves balance of hover units according to the new split rosters.",
-        hidden 	= false,
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key     = "sub_header",
-        section = "options_experimental",
-        type    = "separator",
-    },
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    -- Modular Tech Split
-
-    {
-        key     = "sub_header",
-        name    = "Tech Split",
-        desc    = "",
-        section = "options_experimental",
-        type    = "subheader",
-        def     =  true,
-    },
-
-    {
-        key     = "sub_header",
-        name    = "Experimental options for tech tree split",
-        desc    = "",
-        section = "options_experimental",
-        type    = "subheader",
-        def     =  true,
-    },
-
-    {
-        key     = "sub_header",
-        section = "options_experimental",
-        type    = "separator",
-    },
-
-    {
-        key     = "techoverhaul",
+        key     = "techsplit",
         name    = "Tech Split",
         desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
         type    = "bool",
         section = "options_experimental",
         def     = false,
     },
-
-    
-
 
     -- Hidden Tests
 	

@@ -23,7 +23,7 @@ return {
 		metalstorage = 800,
 		minwaterdepth = 30,
 		objectname = "Units/ARMHASY.s3o",
-		script = "Units/ARMHASY.cob",
+		script = "Units/techsplit/ARMHASY.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
