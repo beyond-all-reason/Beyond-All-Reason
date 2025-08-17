@@ -104,7 +104,7 @@ return {
 				impactonly = 1,
 				name = "Laserroar",
 				noselfdamage = true,
-				soundhitdry = "laserroar",
+				soundhitdry = "",
 				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
