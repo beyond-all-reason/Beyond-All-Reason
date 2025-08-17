@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 
 piece  	base, 	turretBaseHeadingPivot,
-				turretStrutPitchPivot,
+				turretStrutPivotPitch,
 				turretHousing,
 				railTopRight, //4
 				railBotRight,
@@ -12,7 +12,8 @@ piece  	base, 	turretBaseHeadingPivot,
 				railBotLeft,
 				leftFlare,
 				midFlare,
-				rightFlare;
+				rightFlare,
+				helperStrut;
 
 static-var  restore_delay, last_gun_heading, guncount, shotcount;
 
@@ -81,9 +82,10 @@ ExecuteRestoreAfterDelay()
 	set-signal-mask 0;
 
 	turn turretBaseHeadingPivot to y-axis <0> speed <45>;
-	turn turretStrutPitchPivot to x-axis <0> speed <20>;
+	turn turretStrutPivotPitch to x-axis <0> speed <20>;
+	move helperStrut to y-axis [0] speed [6];
 
-	guncount = 24;
+	guncount = 4;
 
 	//guncount = 1;
 }
@@ -105,13 +107,27 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
-	turn turretStrutPitchPivot to x-axis <0.000000> - pitch speed <25.000000>;
-	wait-for-turn turretBaseHeadingPivot around y-axis;
-	wait-for-turn turretStrutPitchPivot around x-axis;
-	start-script RestoreAfterDelay();
-	last_gun_heading = heading;
-	return (1);
+	if(-1*pitch > <-50> AND -1*pitch < <0>){
+		move helperStrut to y-axis [6] speed [6];
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		wait-for-turn turretBaseHeadingPivot around y-axis;
+		wait-for-turn turretStrutPivotPitch around x-axis;
+		start-script RestoreAfterDelay();
+		last_gun_heading = heading;
+		return (1);
+	}
+	else{
+		move helperStrut to y-axis [0] speed [6];
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		wait-for-turn turretBaseHeadingPivot around y-axis;
+		wait-for-turn turretStrutPivotPitch around x-axis;
+		start-script RestoreAfterDelay();
+		last_gun_heading = heading;
+		return (1);
+	}
+	
 }
 
 Rock_Main_Cannon()
@@ -178,7 +194,7 @@ Shot1(zero){
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turretBaseHeadingPivot;
+	piecenum = turretStrutPivotPitch;
 	return (0);
 }
 
