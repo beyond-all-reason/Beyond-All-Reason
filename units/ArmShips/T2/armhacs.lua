@@ -59,7 +59,7 @@ return {
 			[25] = "armsd",
 			[26] = "armalab",
 			[27] = "armavp",
-			[28] = "armaapuw",
+			[28] = "armhaapuw",
 			[29] = "armhalab",
 			[30] = "armhavp",
 			[31] = "armhaap",

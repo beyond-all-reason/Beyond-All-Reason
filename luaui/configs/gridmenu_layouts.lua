@@ -1672,24 +1672,24 @@ local unitGrids = {
 	--T2 air cons
 	armaca = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armmoho", "armckfus", "armafus", "", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "", "" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
 			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armbrtha", "armsilo", "armvulc", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
-			{ "armgate", },                                      -- shield
+			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armgate", },                                     -- shield
 		},
 		{
-			{ "armap", },                                       -- T1 lab,
-			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
-			{ "armplat", },                                     -- seaplane lab (aircon only)
+			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
+			{ "armalab", "armavp", "armaap", "armasy",},                         -- T3 lab, T2 lab
+			{ "armhalab", "armhhavp", "armhaap", "armhasy" },                                                --
 		}
 	},
 
@@ -1844,14 +1844,14 @@ local unitGrids = {
 			{ "armbrtha", "armsilo", "armvulc", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armtarg", "armdf", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armveil", "", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
-			{ "", "armalab", "", "", },                                      -- T1 lab,
-			{ "", "armhalab", },                         -- T3 lab, T2 lab
-			{ },                                                --
+			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
+			{ "armalab", "armavp", "armaap", "armasy",},                         -- T3 lab, T2 lab
+			{ "armhalab", "armhhavp", "armhaap", "armhasy" },                                                --
 		}
 	},
 
@@ -1913,14 +1913,14 @@ local unitGrids = {
 			{ "armbrtha", "armsilo", "armvulc", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armtarg", "armdf", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armveil", "", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
+			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
-			{ "", "armavp", "", "", },                                      -- T1 lab,
-			{ "", "armhavp", },                         -- T3 lab, T2 lab
-			{ },                                                --
+			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
+			{ "armalab", "armavp", "armaap", "armasy",},                         -- T3 lab, T2 lab
+			{ "armhalab", "armhhavp", "armhaap", "armhasy" },                                                --
 		}
 	},
 
