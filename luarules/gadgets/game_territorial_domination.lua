@@ -43,17 +43,8 @@ local PROGRESS_INCREMENT = 0.06
 local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
 local DECAY_PROGRESS_INCREMENT = 0.015
 local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
--- Scavengers/Raptors (called horde mode in this code) has to be treated differently because in appropriately difficult matches, you can't hold 50% of the map.
--- Additionally, we must adjust the max territories required to hold according to map size and player counts so it isn't boringly easy or impossibly hard.
-local HORDE_MODE_PLAYER_CAP = 16
-local HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP = 0.50 -- the maximum percentage of territory needed to be owned by HORDE_MODE_PLAYER_CAP players to avoid defeat.
-local HORDE_MODE_MIN_TERRITORY_PERCENTAGE = 0.10     -- the minimum percentage of territory needed to be owned by 16 players to avoid defeat.
-local HORDE_MODE_MIN_TERRITORIES_PER_PLAYER = 1
-local HORDE_MODE_MIN_PERCENTAGE_PER_PLAYER = (HORDE_MODE_MAX_THRESHOLD_PERCENTAGE_CAP - HORDE_MODE_MIN_TERRITORY_PERCENTAGE) / HORDE_MODE_PLAYER_CAP
-local HORDE_MODE_ABSOLUTE_MINIMUM_TERRITORIES = 3
 
 local BASE_TERRITORY_POINTS_VALUE = 1
-local ATTACKER_POINTS_PER_ROUND_MULTIPLIER = 2
 
 local MAX_EMPTY_IMPEDANCE_POWER = 25
 local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
@@ -65,9 +56,8 @@ local RESET_DEFEAT_FRAME = 0
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
-local CORNER_MULTIPLIER = math.sqrt(2) -- for calculating how far from center to the corner of a square is, given the square's edge is 1 unit of distance away.
-local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- you own it when the circle color fill of the grid square touches the edge.
--- the ownership fill continues beyond touching the edge of the square, this gives you a little "buffer" before ownership is lost.
+local CORNER_MULTIPLIER = math.sqrt(2)
+local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER
 
 local SCORE_RULES_KEY = "territorialDominationScore"
 
@@ -102,7 +92,6 @@ local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 local allTeams = spGetTeamList()
 
 local allyCount = 0
-local allyHordesCount = 0
 local originalHighestTeamCount = nil
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
@@ -112,14 +101,9 @@ local currentSecond = 0
 local roundTimestamp = 0
 local currentRound = 1
 local gameOver = false
-
-
-local scavengerTeamID = Spring.Utilities.GetScavTeamID()
-local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+local allyTeamsCount = 0
 
 local allyTeamsWatch = {}
-local hordeModeTeams = {}
-local hordeModeAllies = {}
 local unitWatchDefs = {}
 local captureGrid = {}
 local livingCommanders = {}
@@ -175,7 +159,6 @@ local function processNeighborData(currentSquareData)
 	local currentGridX = currentSquareData.gridX
 	local currentGridZ = currentSquareData.gridZ
 
-	-- Check all 8 surrounding neighbors
 	for deltaX = -1, 1 do
 		for deltaZ = -1, 1 do
 			if not (deltaX == 0 and deltaZ == 0) then
@@ -229,8 +212,6 @@ local function createVisibilityArray(squareData)
 	end
 
 	local visibilityArray = {}
-	-- we use strings instead because SendToUnsynced() doesn't support tables,
-	-- bitmasks have floating point errors with team sizes > 22, and booleans for multiple states would require crazy numbers of SendToUnsynced() calls.
 	for i = 0, maxAllyID do
 		visibilityArray[i + 1] = "0"
 	end
@@ -241,7 +222,6 @@ local function createVisibilityArray(squareData)
 		if allyTeamID == squareData.allyOwnerID then
 			isVisible = true
 		else
-			--check middle first, because it's most likely to be visible
 			isVisible = spGetPositionLosState(squareData.gridMidpointX, 0, squareData.gridMidpointZ, allyTeamID)
 		end
 
@@ -285,8 +265,8 @@ local function initializeUnsyncedGrid()
 			squareData.gridMidpointX,
 			squareData.gridMidpointZ,
 			initVisibilityArray,
-			squareData.attackerPointsValue or 0, -- attackerCaptureValue  
-			squareData.defensePointsValue or 0   -- ownerRoundEndValue
+			squareData.attackerPointsValue or 0,
+			squareData.defensePointsValue or 0
 		)
 	end
 
@@ -320,8 +300,6 @@ local function setAllyTeamRanks(allyScores)
 		end
 		return a.rankingScore > b.rankingScore
 	end)
-	
-
 
 	local currentRank = 1
 	local previousScore = -1
@@ -352,7 +330,7 @@ local function initializeUnitDefs()
 				defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
 			end
 			if def.customParams and def.customParams.objectify then
-				defData.power = 0 -- dragonsteeth and other objectified units aren't targetable automatically, and so aren't counted towards capture for convenience purposes.
+				defData.power = 0
 			end
 		end
 		unitWatchDefs[defID] = defData
@@ -364,11 +342,9 @@ local function initializeUnitDefs()
 end
 
 local function processLivingTeams()
-	local newAllyTeamsCount = 0
-	local newAllyHordesCount = 0
+	allyTeamsCount = 0
 	local playerTeamsCount = 0
 	allyTeamsWatch = {}
-	hordeModeAllies = {}
 
 	allTeams = Spring.GetTeamList()
 	for _, teamID in ipairs(allTeams) do
@@ -377,28 +353,19 @@ local function processLivingTeams()
 			local allyID = select(6, spGetTeamInfo(teamID))
 
 			if allyID and allyID ~= gaiaAllyTeamID then
-				if not hordeModeTeams[teamID] then
-					playerTeamsCount = playerTeamsCount + 1
-					if not allyTeamsWatch[allyID] then
-						newAllyTeamsCount = newAllyTeamsCount + 1
-					end
-					allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
-					allyTeamsWatch[allyID][teamID] = true
-				else
-					if not hordeModeAllies[allyID] then
-						newAllyHordesCount = newAllyHordesCount + 1
-					end
-					hordeModeAllies[allyID] = true
+				playerTeamsCount = playerTeamsCount + 1
+				if not allyTeamsWatch[allyID] then
+					allyTeamsCount = allyTeamsCount + 1
 				end
+				allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
+				allyTeamsWatch[allyID][teamID] = true
 			end
 		end
 	end
 
-	if newAllyTeamsCount <= 1 then
+	if allyTeamsCount <= 1 then
 		gameOver = true
 	end
-
-	return newAllyTeamsCount, newAllyHordesCount, playerTeamsCount
 end
 
 local function getHighestTeamCount()
@@ -414,11 +381,6 @@ local function getHighestTeamCount()
 end
 
 local function initializeTeamData()
-	for _, teamID in ipairs(allTeams) do
-		if teamID == scavengerTeamID or teamID == raptorTeamID then
-			hordeModeTeams[teamID] = true
-		end
-	end
 	processLivingTeams()
 	originalHighestTeamCount = getHighestTeamCount()
 	for allyID in pairs(allyTeamsWatch) do
@@ -427,8 +389,6 @@ local function initializeTeamData()
 		end
 	end
 end
-
-
 
 local function updateLivingTeamsData()
 	processLivingTeams()
@@ -514,14 +474,7 @@ end
 
 local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
 	local data = captureGrid[gridID]
-	local newProgress
-
-	if hordeModeAllies[winningAllyID] then -- horde mode units cannot own territory, they give it back to gaia
-		winningAllyID = gaiaAllyTeamID
-		newProgress = data.progress - math.abs(progressChange)
-	else
-		newProgress = data.progress + progressChange
-	end
+	local newProgress = data.progress + progressChange
 
 	if newProgress < 0 then
 		data.allyOwnerID = winningAllyID
@@ -551,7 +504,6 @@ local function processGridSquareCapture(gridID)
 	local hasUnits = false
 	data.contested = false
 
-	-- Calculate ally powers in this square
 	for i = 1, #units do
 		local unitID = units[i]
 
@@ -560,7 +512,7 @@ local function processGridSquareCapture(gridID)
 			local unitData = unitWatchDefs[unitDefID]
 			local allyTeam = spGetUnitAllyTeam(unitID)
 
-			if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
+			if unitData and unitData.power and allyTeamsWatch[allyTeam] then
 				hasUnits = true
 				local power = unitData.power
 				if flyingUnits[unitID] then
@@ -570,36 +522,31 @@ local function processGridSquareCapture(gridID)
 					power = power * CLOAKED_UNIT_POWER_MULTIPLIER
 				end
 
-				if hordeModeAllies[allyTeam] then
-					allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
-				else
-					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
-				end
+				allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
 			end
 		end
 	end
 
-	-- Add randomization and filter out zero powers
 	for allyID, power in pairs(allyPowers) do
 		if allyPowers[allyID] > 0 then
-			allyPowers[allyID] = power + random() -- randomize power to prevent ties where the last tied victor always wins
+			allyPowers[allyID] = power + random()
 			if allyID ~= data.allyOwnerID then
 				data.contested = true
 			end
 		else
-			allyPowers[allyID] = nil -- not allowed to capture without power.
+			allyPowers[allyID] = nil
 		end
 	end
 
 	if not hasUnits then
-		return -- no units, no capture progress
+		return
 	end
 
 	local currentOwnerID = data.allyOwnerID
 	local teamCount = sortAllyPowersByStrength(allyPowers)
 
 	if teamCount == 0 then
-		return -- no valid teams
+		return
 	end
 
 	local winningAllyID = sortedTeams[1].team
@@ -612,7 +559,6 @@ local function processGridSquareCapture(gridID)
 		progressChange = -(powerRatio * PROGRESS_INCREMENT)
 	end
 
-	-- Apply progress change using helper function
 	addProgress(gridID, progressChange, winningAllyID, true)
 end
 
@@ -644,7 +590,7 @@ end
 
 local function processAttackScoresNeighborsAndDecay()
 	local randomizedIDs = getRandomizedGridIDs()
-	for i = 1, #randomizedIDs do --shuffled to prevent contiguous ties from always being awarded to the same ally
+	for i = 1, #randomizedIDs do
 		local gridID = randomizedIDs[i]
 		local data = captureGrid[gridID]
 
@@ -664,11 +610,9 @@ local function processAttackScoresNeighborsAndDecay()
 			if dominantAllyTeamID and dominantAllyTeamCount > data.totalNeighborCount * MAJORITY_THRESHOLD then
 				data.contiguous = true
 				local progressChange
-				-- If dominant ally is different from current owner, capture (negative progress)
 				if dominantAllyTeamID ~= data.allyOwnerID then
 					progressChange = -CONTIGUOUS_PROGRESS_INCREMENT
 				else
-					-- If dominant ally is same as current owner, reinforce (positive progress)
 					progressChange = CONTIGUOUS_PROGRESS_INCREMENT
 				end
 				
@@ -677,7 +621,6 @@ local function processAttackScoresNeighborsAndDecay()
 		end
 	end
 
-	--decay logic
 	for gridID, data in pairs(captureGrid) do
 		processDecay(gridID)
 		local squareData = captureGrid[gridID]
@@ -714,18 +657,13 @@ local function calculateProjectedPointsForNextRound()
 end
 
 local function calculateMaximumPossiblePoints()
-	-- Calculate the maximum possible points at the end of the final round
-	-- Each territory owned gives points equal to the round number
-	-- Maximum points = total territories * sum of round numbers from 1 to MAX_ROUNDS
-	
 	local totalTerritories = numberOfSquaresX * numberOfSquaresZ
 	local roundSum = 0
 	for round = 1, MAX_ROUNDS do
 		roundSum = roundSum + round
 	end
-	
 	local maxPossiblePoints = totalTerritories * roundSum
-	local pointsCap = math.floor(maxPossiblePoints / 2) -- Divide by 2 as requested
+	local pointsCap = math.ceil(maxPossiblePoints / allyTeamsCount + 1)
 	
 	return pointsCap
 end
@@ -801,15 +739,11 @@ function gadget:GameFrame(frame)
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
-	-- Calculate and send projected points for next round
 		local projectedPoints = calculateProjectedPointsForNextRound()
 		
-		-- Send points cap via game rules parameter
-		local pointsCap = calculateMaximumPossiblePoints()
 		Spring.SetGameRulesParam("territorialDominationPointsCap", pointsCap)
 		
 		for allyID, scoreData in pairs(allyScores) do
-			--send scores to clients via team rules parameters
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, SCORE_RULES_KEY, scoreData.score, {public = true})
 				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedPoints[allyID] or 0, {public = true})
@@ -839,6 +773,8 @@ function gadget:Initialize()
 	initializeTeamData()
 	initializeUnitDefs()
 	updateLivingTeamsData()
+	local initialPointsCap = calculateMaximumPossiblePoints()
+	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
 
 	local units = Spring.GetAllUnits()
 	for i = 1, #units do
@@ -852,7 +788,6 @@ function gadget:Initialize()
 		Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1, {public = true})
 	end
 	
-	-- Send initial projected points
 	local initialProjectedPoints = calculateProjectedPointsForNextRound()
 	for allyID, projectedScore in pairs(initialProjectedPoints) do
 		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
@@ -860,11 +795,6 @@ function gadget:Initialize()
 		end
 	end
 	
-	-- Send initial points cap via game rules parameter
-	local initialPointsCap = calculateMaximumPossiblePoints()
-	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
-	
-	-- Send initial round information
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationRoundDuration", ROUND_SECONDS)
 	Spring.SetGameRulesParam("territorialDominationStartTime", spGetGameSeconds())
@@ -872,11 +802,6 @@ function gadget:Initialize()
 end
 
 function gadget:GameStart()
-	if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Territorial Domination is not compatible with Raptors or Scavengers.")
-		gadgetHandler:RemoveGadget(self)
-		return
-	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -899,10 +824,9 @@ function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 end
 
 function gadget:TeamDied(teamID)
-	local allyID = select(6, Spring.GetTeamInfo(teamID))
+	local allyID = select(6, spGetTeamInfo(teamID))
 	setAllyGridToGaia(allyID)
 	
-	-- Reset predicted score for the dying team to 0
 	for _, teamIDInAlly in pairs(Spring.GetTeamList(allyID) or {}) do
 		Spring.SetTeamRulesParam(teamIDInAlly, "territorialDominationProjectedPoints", 0, {public = true})
 	end
