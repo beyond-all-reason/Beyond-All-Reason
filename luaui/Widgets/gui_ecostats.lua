@@ -146,6 +146,7 @@ local function isTeamReal(allyID)
 		_, leaderID, isDead = GetTeamInfo(tID, false)
 		unitCount = GetTeamUnitCount(tID)
 		leaderName = GetPlayerInfo(leaderID, false)
+		leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 		if leaderName ~= nil or isDead or unitCount > 0 then
 			return true
 		end
@@ -202,6 +203,7 @@ local function getNbPlacedPositions(teamID)
 		starty = teamData[pID].starty or -1
 		active = teamData[pID].active
 		leaderName, active = GetPlayerInfo(leaderID, false)
+		leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 
 		isDead = teamData[pID].isDead
 		if (active and startx >= 0 and starty >= 0 and leaderName ~= nil) or isDead then
@@ -344,6 +346,7 @@ local function setTeamTable(teamID)
 	local minc, mrecl, einc, erecl
 	local _, leaderID, isDead, isAI, aID = GetTeamInfo(teamID, false)
 	local leaderName, active, spectator = GetPlayerInfo(leaderID, false)
+	leaderName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leaderID)) or leaderName
 	if teamID == gaiaID then
 		leaderName = "(Gaia)"
 	end
