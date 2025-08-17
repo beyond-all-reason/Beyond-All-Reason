@@ -65,7 +65,6 @@ local floor = math.floor
 local max = math.max
 local min = math.min
 local random = math.random
-local clamp = math.clamp
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -78,7 +77,6 @@ local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetPositionLosState = Spring.GetPositionLosState
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spDestroyUnit = Spring.DestroyUnit
 local spSpawnCEG = Spring.SpawnCEG
@@ -91,13 +89,10 @@ local gaiaTeamID = spGetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 local allTeams = spGetTeamList()
 
-local allyCount = 0
-local originalHighestTeamCount = nil
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
 local gameFrame = 0
 local sentGridStructure = false
-local currentSecond = 0
 local roundTimestamp = 0
 local currentRound = 1
 local gameOver = false
@@ -382,7 +377,6 @@ end
 
 local function initializeTeamData()
 	processLivingTeams()
-	originalHighestTeamCount = getHighestTeamCount()
 	for allyID in pairs(allyTeamsWatch) do
 		if not allyScores[allyID] then
 			allyScores[allyID] = { score = 0, rank = 1 }
@@ -701,7 +695,6 @@ function gadget:GameFrame(frame)
 	local frameModulo = frame % GRID_CHECK_INTERVAL
 
 	if frameModulo == 0 then
-		currentSecond = spGetGameSeconds()
 		processMainCaptureLogic()
 	elseif frameModulo == 1 then
 		processAttackScoresNeighborsAndDecay()
