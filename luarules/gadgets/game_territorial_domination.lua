@@ -22,7 +22,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 3,
-		minutesPerRound = 8,
+		minutesPerRound = 1,
 	},
 	long = {
 		maxRounds = 3,
@@ -111,6 +111,7 @@ local sentGridStructure = false
 local currentSecond = 0
 local roundTimestamp = 0
 local currentRound = 1
+local gameOver = false
 
 
 local scavengerTeamID = Spring.Utilities.GetScavTeamID()
@@ -393,6 +394,10 @@ local function processLivingTeams()
 		end
 	end
 
+	if newAllyTeamsCount <= 1 then
+		gameOver = true
+	end
+
 	return newAllyTeamsCount, newAllyHordesCount, playerTeamsCount
 end
 
@@ -413,7 +418,6 @@ local function initializeTeamData()
 		if teamID == scavengerTeamID or teamID == raptorTeamID then
 			hordeModeTeams[teamID] = true
 		end
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME, {public = true})
 	end
 	processLivingTeams()
 	originalHighestTeamCount = getHighestTeamCount()
@@ -427,9 +431,7 @@ end
 
 
 local function updateLivingTeamsData()
-	local newAllyCount, newHordeAllyCount = processLivingTeams()
-	allyHordesCount = newHordeAllyCount
-	allyCount = newAllyCount
+	processLivingTeams()
 end
 
 local function setAllyGridToGaia(allyID)
@@ -505,8 +507,8 @@ local function triggerAllyDefeat(allyID)
 			queueCommanderTeleportRetreat(unitID)
 		end
 	end
-	for _, teamID in ipairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "defeatTime", RESET_DEFEAT_FRAME, {public = true})
+	for _, teamID in pairs(allyTeamsWatch[allyID] or {}) do
+		Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
 	end
 end
 
@@ -697,10 +699,11 @@ local function calculateProjectedPointsForNextRound()
 	
 	for allyID in pairs(allyTeamsWatch) do
 		local projectedScore = 0
-		
-		for gridID, data in pairs(captureGrid) do
-			if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
-				projectedScore = projectedScore + currentRound
+		if not gameOver then
+			for gridID, data in pairs(captureGrid) do
+				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
+					projectedScore = projectedScore + currentRound
+				end
 			end
 		end
 		
@@ -798,7 +801,7 @@ function gadget:GameFrame(frame)
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
-		-- Calculate and send projected points for next round
+	-- Calculate and send projected points for next round
 		local projectedPoints = calculateProjectedPointsForNextRound()
 		
 		-- Send points cap via game rules parameter
@@ -898,4 +901,9 @@ end
 function gadget:TeamDied(teamID)
 	local allyID = select(6, Spring.GetTeamInfo(teamID))
 	setAllyGridToGaia(allyID)
+	
+	-- Reset predicted score for the dying team to 0
+	for _, teamIDInAlly in pairs(Spring.GetTeamList(allyID) or {}) do
+		Spring.SetTeamRulesParam(teamIDInAlly, "territorialDominationProjectedPoints", 0, {public = true})
+	end
 end
