@@ -205,7 +205,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "T3_RAIL_ACCELERATOR",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 2,
 			},
 		},
