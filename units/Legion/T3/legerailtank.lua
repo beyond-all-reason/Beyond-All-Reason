@@ -9,7 +9,7 @@ return {
 		--canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "54 34 100",
+		collisionvolumescales = "65 42 75",
 		collisionvolumetype = "Box",
 		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
@@ -112,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			t3_rail_accelerator = {
-				areaofeffect = 24,
+				areaofeffect = 80,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.33,

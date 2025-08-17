@@ -52,9 +52,9 @@ Create()
 	show midFlare;
 	show leftFlare;
 
-	move rightFlare to z-axis [40] now;
-	move midFlare to z-axis [40] now;
-	move leftFlare to z-axis [40] now;
+	move rightFlare to z-axis 	[5] now;
+	move midFlare to z-axis 	[5] now;
+	move leftFlare to z-axis 	[5] now;
 
 	move railTopLeft	to y-axis [-1] now;
 	move railTopRight	to y-axis [-1] now;
@@ -107,7 +107,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	if(-1*pitch > <-50> AND -1*pitch < <0>){
+	if(-1*pitch < <-45>){
 		move helperStrut to y-axis [6] speed [6];
 		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
 		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
