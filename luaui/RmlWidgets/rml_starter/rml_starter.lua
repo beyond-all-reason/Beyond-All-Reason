@@ -41,6 +41,19 @@ local init_model = {
     -- Tab system state (controlled by data binding)
     activeTab = "", -- Start empty for landing page.
 
+    -- All tabs
+    tabs = {
+        { id = "getting-started", label = "Getting Started" },
+        { id = "base-widget-structure", label = "Base Widget Structure" },
+        { id = "data-binding", label = "Data Binding" },
+        { id = "event-handling", label = "Event Handling" },
+        { id = "debugging", label = "Debugging" },
+        { id = "examples", label = "Examples" },
+        { id = "performance", label = "Performance" },
+        { id = "best-practices", label = "Best Practices" },
+        { id = "tools", label = "Tools" },
+    },
+
     -- Current time for demonstrations
     currentTime = os.date("%H:%M:%S"),
     

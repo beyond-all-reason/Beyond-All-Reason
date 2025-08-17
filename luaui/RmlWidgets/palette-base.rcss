@@ -39,9 +39,16 @@
 .border-surface-alpha { border-color: #FFF8E880; }
 
 /* === DARK - YELLOW (#B8941A) === */
-.bg-dark { background-color: #B8941A; }
-.text-dark { color: #B8941A; }
-.border-dark { border-color: #B8941A; }
-.bg-dark-alpha { background-color: #B8941A80; }
-.text-dark-alpha { color: #B8941A80; }
-.border-dark-alpha { border-color: #B8941A80; }
+.bg-primary-dark { background-color: #B8941A; }
+.text-primary-dark { color: #B8941A; }
+.border-primary-dark { border-color: #B8941A; }
+.bg-primary-dark-alpha { background-color: #B8941A80; }
+.text-primary-dark-alpha { color: #B8941A80; }
+.border-primary-dark-alpha { border-color: #B8941A80; }
+
+/* === Box Shadow === */
+.box-shadow-primary { box-shadow: #FDC04C 4dp 4dp 0dp 0dp; }
+
+/* === Text Shadow === */
+.text-shadow-primary { font-effect: shadow( 4px 4px #FDC04C ); }
+.text-glow-primary { font-effect: glow(4px 6px 0px 0px #FDC04C); }

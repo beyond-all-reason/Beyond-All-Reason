@@ -230,6 +230,11 @@
 .rounded-md { border-radius: 6dp; }
 .rounded-lg { border-radius: 8dp; }
 
+.border-bottom { border-bottom: 1dp #e5e7eb; }
+.border-left { border-left: 1dp #e5e7eb; }
+.border-right { border-right: 1dp #e5e7eb; }
+.border-top { border-top: 1dp #e5e7eb; }
+
 /* === Overflow === */
 .clip { clip: always; }
 

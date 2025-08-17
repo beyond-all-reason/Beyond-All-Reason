@@ -39,9 +39,16 @@
 .border-surface-alpha { border-color: #C5E5F780; }
 
 /* === DARK BLUE (#1A5C86) === */
-.bg-dark { background-color: #1A5C86; }
-.text-dark { color: #1A5C86; }
-.border-dark { border-color: #1A5C86; }
-.bg-dark-alpha { background-color: #1A5C8680; }
-.text-dark-alpha { color: #1A5C8680; }
-.border-dark-alpha { border-color: #1A5C8680; }
+.bg-primary-dark { background-color: #1A5C86; }
+.text-primary-dark { color: #1A5C86; }
+.border-primary-dark { border-color: #1A5C86; }
+.bg-primary-dark-alpha { background-color: #1A5C8680; }
+.text-primary-dark-alpha { color: #1A5C8680; }
+.border-primary-dark-alpha { border-color: #1A5C8680; }
+
+/* === Box Shadow === */
+.box-shadow-primary { box-shadow: #2BA5EA 4dp 4dp 0dp 0dp; }
+
+/* === Text Shadow === */
+.text-shadow-primary { font-effect: shadow( 4px 4px #2BA5EA ); }
+.text-glow-primary { font-effect: glow(4px 6px 0px 0px #2BA5EA); }

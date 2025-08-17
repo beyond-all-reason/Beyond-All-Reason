@@ -1,0 +1,139 @@
+/* ===========================================
+    WIDGET POSITIONING - Include on every widget
+    - ID must match the widget name,
+    - Must be unique and set on the <body/> tag of the widget's RML file.
+    - Set default position absolutely - this will be relative to the window/screen.
+    - width and height should be set to hard-coded values, avoid using percentages.
+=========================================== */
+#rml-starter-widget {
+    /* positional properties */
+    position: absolute;
+    top: 5%;
+    right: 10dp;
+    /* dimensional properties */
+    width: 800dp;
+    height: 80%;
+    /* Inner content layout properties - specific to widget */
+    display: flex;
+}
+
+/* ==========================================
+    WIDGET CONTAINER - Contain main widget in a wrapper, NOT the body
+=========================================== */
+
+#widget-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    border-radius: 2dp;
+}
+
+#main-content {
+    border-radius: 2dp;
+    z-index: 3;
+    flex: 1;
+    position: relative;
+    padding-left: 5dp;
+}
+
+.actions {
+    min-height: 42dp;
+    padding: 5dp;
+}
+
+#tabs-navigation {
+    display: flex;
+    flex-direction: column;
+    width: 120dp;
+    margin-right: 1dp;
+    z-index: 10;
+    position: relative;
+}
+
+.tab-panel {
+    clip: always;
+    overflow: hidden scroll;
+    display: block;
+    padding: 10dp;
+    padding-left: 15dp;
+}
+
+.tab-button {
+    border-radius: 2dp;
+    padding: 8dp;
+    margin-bottom: 1dp;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    text-align: center;
+    min-height: 40dp;
+    display: flex;
+    font-weight: bold;
+    align-items: center;
+    justify-content: center;
+    border: 1dp transparent;
+}
+
+/* order matters, :hover should exist before an :active state */
+.tab-button:hover {
+    transform: translateY(-2dp);
+    filter: brightness(1.1);
+}
+
+.tab-button:active {
+    border-color: rgba(255, 255, 255, 255);
+}
+
+.tab-button.active {
+    transform: skew(-5deg, 0deg) translateX(5dp) translateY(-2dp);
+    box-shadow: rgba(0, 0, 0, 100) 3dp 3dp 3dp;
+}
+
+.card
+{
+    border-radius: 2dp;
+    padding: 10dp;
+    margin-bottom: 10dp;
+}
+
+.file-text {
+    padding: 0dp 6dp;
+    border-radius: 2dp;
+}
+
+/* ===========================================
+    CONTENT SECTIONS
+=========================================== */
+.content-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8dp;
+    margin-bottom: 15dp;
+    margin-right: 10dp;
+    padding: 10dp;
+}
+
+.code-highlight {
+    padding-left: 3dp;
+    padding-right: 3dp;
+    border-radius: 2dp;
+}
+
+.file {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 5dp;
+    height: 120dp;
+    clip: always;
+    border-top-left-radius: 16dp;
+    border-top-right-radius: 4dp;
+    border-bottom-left-radius: 0dp;
+    border-bottom-right-radius: 0dp;
+}
+
+/* Button styling for game overlay */
+button {
+    border-radius: 2dp;
+    transition: background-color 0.2s;
+}

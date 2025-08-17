@@ -10,7 +10,7 @@ if [ $# -eq 0 ]; then
 fi
 
 WIDGET_NAME="$1"
-WIDGET_DIR="${WIDGET_NAME}"
+WIDGET_DIR="../${WIDGET_NAME}"
 
 # Check if widget directory already exists
 if [ -d "$WIDGET_DIR" ]; then
@@ -34,9 +34,9 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
     return {
-        name = "WIDGET_NAME_PLACEHOLDER Widget",
+        name = "WIDGET_NAME_PLACEHOLDER",
         desc = "Generated RML widget template",
-        author = "Generated",
+        author = "Generated from rml_starter/generate-widget.sh",
         date = "2025",
         license = "GNU GPL, v2 or later",
         layer = -1000000,
@@ -155,21 +155,22 @@ cat > "$WIDGET_DIR/${WIDGET_NAME}.rml" << 'EOF'
     
     <!-- External stylesheets -->
     <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
-    <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
     <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../palette-base.rcss" type="text/rcss" />
     <link rel="stylesheet" href="WIDGET_NAME_PLACEHOLDER.rcss" type="text/rcss" />
 </head>
-<body id="WIDGET_NAME_PLACEHOLDER-widget">
-    <div class="widget-container" data-model="WIDGET_NAME_PLACEHOLDER_model">
+<body id="my_widget-widget">
+    <div id="widget-container" data-model="my_widget_model" class="bg-black-semi-alpha">
         <!-- Small floating debug buttons -->
         <div class="debug-controls">
-            <button class="debug-btn text-white" onclick="widget:Reload()" title="Reload Widget">R</button>
-            <button class="debug-btn text-white" onclick="widget:ToggleDebugger()" title="Toggle Debugger">{{debugMode ? 'D' : 'D'}}</button>
+            <button class="debug-btn text-dark text-sm font-bold bg-primary" onclick="widget:Reload()" title="Reload Widget">reload</button>
+            <button class="debug-btn text-dark text-sm font-bold bg-primary" onclick="widget:ToggleDebugger()" title="Toggle Debugger">debug</button>
         </div>
         
-        <h1 class="text-white">WIDGET_NAME_PLACEHOLDER Widget</h1>
+        <h1 class="text-white">my_widget</h1>
         
-        <div class="content">
+        <div class="content mt-4 flex flex-col gap-6">
             <p class="text-white">{{message}}</p>
             <p class="text-gray-600">Time: {{currentTime}}</p>
         </div>
@@ -182,83 +183,49 @@ EOF
 cat > "$WIDGET_DIR/${WIDGET_NAME}.rcss" << 'EOF'
 /* WIDGET_NAME_PLACEHOLDER Widget Styles */
 #WIDGET_NAME_PLACEHOLDER-widget {
-    pointer-events: auto;
+    /* positional properties */
     position: absolute;
-    top: 10%;
-    right: 10dp;
-    width: 320dp;
-    min-height: 150dp;
-    padding: 16dp;
-    background-color: rgba(20, 25, 30, 230);
-    border: 1px rgba(100, 120, 140, 80);
-    border-radius: 2dp;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    top: 100dp; /* Adjust as needed */
+    left: 10dp; /* Adjust as needed */
+    /* dimensional properties */
+    width: 300dp; /* Adjust as needed */
+    height: 400dp; /* Adjust as needed */
 }
 
-.widget-container {
-    /* Flexbox layout for the widget content */
+#widget-container {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    width: 100%;
+    height: 100%;
 }
 
 /* Small floating debug controls */
 .debug-controls {
     position: absolute;
-    top: -2dp;
-    right: -2dp;
+    top: -15dp;
+    right: -5dp;
     display: flex;
-    gap: 2dp;
+    gap: 3dp;
     z-index: 10;
 }
 
 .debug-btn {
-    width: 20dp;
     height: 20dp;
-    padding: 0;
-    background-color: rgba(60, 120, 180, 180);
-    border: 1px solid rgba(80, 140, 200, 120);
-    border-radius: 2dp;
+    padding: 0 4dp;
     cursor: pointer;
-    font-size: 11dp;
-    font-weight: bold;
     text-align: center;
     line-height: 18dp;
-    transition: all 0.15s;
+    transition: all 0.1s;
 }
 
 .debug-btn:hover {
-    background-color: rgba(80, 140, 200, 220);
-    border-color: rgba(100, 160, 220, 160);
     transform: scale(1.1);
 }
 
 .debug-btn:active {
-    background-color: rgba(50, 100, 160, 240);
     transform: scale(0.95);
 }
 
-.widget-container h1 {
-    margin: 0 0 12dp 0;
-    font-size: 18dp;
-    font-weight: bold;
-    line-height: 1.2;
-}
-
-.content {
-    margin-top: 8dp;
-    display: flex;
-    flex-direction: column;
-    gap: 6dp;
-}
-
-.content p {
-    margin: 0;
-    line-height: 1.4;
-    font-size: 14dp;
-}
 EOF
 
 # Replace placeholders in all files
@@ -270,10 +237,10 @@ echo ""
 echo "✅ RML Widget '$WIDGET_NAME' generated successfully!"
 echo ""
 echo "Files created:"
-echo "  📁 $WIDGET_DIR/"
-echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.lua"
-echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.rml"
-echo "  📄 $WIDGET_DIR/${WIDGET_NAME}.rcss"
+echo "  📁 ../RmlWidgets/$WIDGET_NAME/"
+echo "  📄 ../RmlWidgets/$WIDGET_NAME/${WIDGET_NAME}.lua"
+echo "  📄 ../RmlWidgets/$WIDGET_NAME/${WIDGET_NAME}.rml"
+echo "  📄 ../RmlWidgets/$WIDGET_NAME/${WIDGET_NAME}.rcss"
 echo ""
 echo "The widget includes:"
 echo "  • Basic data model with message and currentTime"

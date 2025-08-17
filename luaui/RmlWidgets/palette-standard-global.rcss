@@ -3,6 +3,14 @@
 .text-black-semi-alpha { color: #060606ba; }
 .border-black-semi-alpha { border-color: #060606ba; }
 
+.bg-dark-semi-alpha { background-color: #4a4a4aba; }
+.text-dark-semi-alpha { color: #4a4a4aba; }
+.border-dark-semi-alpha { border-color: #4a4a4aba; }
+
+.bg-darkest-semi-alpha { background-color: #282828ba; }
+.text-darkest-semi-alpha { color: #282828ba; }
+.border-darkest-semi-alpha { border-color: #282828ba; }
+
 /* === LIGHT GRAY (#e5e7eb) === */
 .bg-light { background-color: #e5e7eb; }
 .text-light { color: #e5e7eb; }
@@ -19,13 +27,13 @@
 .text-medium-alpha { color: #d1d5db80; }
 .border-medium-alpha { border-color: #d1d5db80; }
 
-/* === DARK GRAY (#6b7280) === */
-.bg-dark { background-color: #6b7280; }
-.text-dark { color: #6b7280; }
-.border-dark { border-color: #6b7280; }
-.bg-dark-alpha { background-color: #6b728080; }
-.text-dark-alpha { color: #6b728080; }
-.border-dark-alpha { border-color: #6b728080; }
+/* === DARK GRAY (#4a4a4a) === */
+.bg-dark { background-color: #4a4a4a; }
+.text-dark { color: #4a4a4a; }
+.border-dark { border-color: #4a4a4a; }
+.bg-dark-alpha { background-color: #4a4a4a80; }
+.text-dark-alpha { color: #4a4a4a80; }
+.border-dark-alpha { border-color: #4a4a4a80; }
 
 /* === BAR METAL (#e0e0e0) === */
 .bg-white { background-color: #e0e0e0; }
@@ -98,4 +106,8 @@
 .bg-confirm-alpha { background-color: #14b8a680; }
 .text-confirm-alpha { color: #14b8a680; }
 .border-confirm-alpha { border-color: #14b8a680; }
+
+/* === Box Shadow === */
+.box-shadow-medium { box-shadow: #d1d5db 3dp 3dp 4dp 1dp; }
+.box-shadow { box-shadow: #6b7280 2dp 2dp 3dp 1dp; }
 
