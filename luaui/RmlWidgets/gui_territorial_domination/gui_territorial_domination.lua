@@ -15,12 +15,12 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
--- notes
--- TODO:
--- need to detect and disable itself if scavengers or raptors enabled or else handle the modes
--- need to add halo effect to your allyteam or the team that's selected anyway.
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
+	return false
+end
+
+if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
 	return false
 end
 

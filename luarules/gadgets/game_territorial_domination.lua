@@ -868,6 +868,14 @@ function gadget:Initialize()
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 end
 
+function gadget:GameStart()
+	if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Territorial Domination is not compatible with Raptors or Scavengers. Please remove Scavengers or Raptors from the game and try again.")
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if commandersDefs[unitDefID] then
 		livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
