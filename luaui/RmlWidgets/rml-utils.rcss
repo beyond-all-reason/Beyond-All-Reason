@@ -40,6 +40,9 @@
 .justify-end { justify-content: flex-end; }
 .justify-between { justify-content: space-between; }
 .justify-around { justify-content: space-around; }
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+.flex-3 { flex: 3; }
 
 /* === Margin === */
 .m-0 { margin: 0dp; }

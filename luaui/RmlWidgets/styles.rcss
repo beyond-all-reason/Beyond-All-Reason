@@ -1,8 +1,8 @@
+/* === Default Styles === */
+
 body {
     font-family: "Exo 2";
     font-size: 16dp;
-    pointer-events: none;
-    position: relative;
 }
 
 div
@@ -46,38 +46,53 @@ strong
 	font-weight: bold;
 }
 
+
+input {
+	border: 1dp rgba(0, 0, 0, 160);
+	padding: 2dp;
+}
+
+input[type="checkbox"]
+{
+	width: 20dp;
+	height: 20dp;
+	margin-right: 5dp;
+}
+
+input[type="checkbox"]:checked
+{
+	background-color: rgba(0, 0, 0, 100);
+}
+
+/* === Rml Core Element Defaults === */
 tabset tabs
 {
 	display: block;
 }
 
+
+/* Scrollbar */
 scrollbarvertical
 {
 	width: 6dp;
 }
 
-slidertrack
+scrollbarvertical slidertrack
 {
-	background-color: rgba(100,100,100, 255);
+	background-color: rgb(100, 100, 100);
 }
 
-sliderbar
+scrollbar sliderbar
 {
-	background-color: rgba(200,200,200, 255);
+	background-color: rgb(200, 200, 200);
 	border-radius: 2dp;
-}
-
-sliderbar:hover,
-sliderbar:active
-{
-	background-color: rgba(220,220,255, 255);
 }
 
 sliderarrowdec
 {
 	width: 6dp;
 	height: 6dp;
-	background-color: rgba(100,100,100, 255);
+	background-color: rgb(100, 100, 100);
 	border-top-left-radius: 5dp;
 	border-top-right-radius: 5dp;
 	margin-bottom: 2dp;
@@ -85,9 +100,9 @@ sliderarrowdec
 
 sliderarrowinc
 {
-	width: 9dp;
-	height: 9dp;
-	background-color: rgba(100,100,100, 255);
+	width: 6dp;
+	height: 6dp;
+	background-color: rgb(100,100,100);
 	border-bottom-left-radius: 5dp;
 	border-bottom-right-radius: 5dp;
 	margin-top: 2dp;
@@ -96,5 +111,39 @@ sliderarrowinc
 sliderarrowinc:hover,
 sliderarrowdec:hover
 {
-	background-color: rgba(150,150,150, 255);
+	background-color: rgb(150,150,150);
 }
+
+
+/* Select box styling */
+select { 
+    border: 1dp #000; 
+    /* padding: 6dp 6dp 6dp 11dp; */
+	flex: 1;
+}
+
+select:focus { 
+	border: 2dp #000;
+    padding: 5dp 5dp 5dp 10dp; 
+}
+
+select selectvalue {
+	background-color: #fff;
+    margin-right: 40dp;
+    white-space: pre;
+}
+
+select selectbox { 
+    border: 1dp #000;
+    border-top-width: 0;
+    background-color: #fffa;
+}
+select selectarrow {
+    max-width: 10dp;
+	max-height: 10dp;
+    border-right: 2dp #000;
+    border-bottom: 2dp #000;
+    transform: rotateZ(45deg);
+}
+select option { padding: 3dp 5dp; white-space: pre; }
+select option:hover { background-color: #eee; }
