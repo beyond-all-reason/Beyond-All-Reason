@@ -132,7 +132,7 @@ local options = {
     --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
     {
         key     = "temp_enable_territorial_domination",
-        name    = "Territorial Domination V0.1",
+        name    = "Territorial Domination V0.2",
         desc    = "Enable experimental Territorial Domination gamemode",
         hidden  = true,
         type    = "bool",
