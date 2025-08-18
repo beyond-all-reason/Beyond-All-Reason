@@ -2329,11 +2329,11 @@ function UnitDef_Post(name, uDef)
 				[22] = "armckfus",
 				[23] = "armdl",
 				[24] = "armdf",
-				[25] = "armlab",
+				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
 				[28] = "armaap",
-				[29] = "armalab",
+				[29] = "armavp",
 				[30] = "armasy",
 				[31] = "armnanotc"
 			}
@@ -2682,7 +2682,8 @@ function UnitDef_Post(name, uDef)
 				[7] = "armcroc",
 				[8] = "armsh",
 				[9] = "armanac",
-				[10] = "armch"
+				[10] = "armch",
+				[11] = "armmh"
 			}
 
 		elseif name == "corasy" then
@@ -2696,7 +2697,8 @@ function UnitDef_Post(name, uDef)
 				[7] = "corsala",
 				[8] = "corsnap",
 				[9] = "corsh",
-				[10] = "corch"
+				[10] = "corch",
+				[11] = "cormh",
 			}
 		
 

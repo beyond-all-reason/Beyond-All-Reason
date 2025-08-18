@@ -270,8 +270,8 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "", "armbull", "armgremlin",
-		"armmanni", "armlun", "armthor", "armjam",
+		"armhacv", "", "armbull", "armjam",
+		"armmanni", "armlun", "armthor", "armgremlin",
 		"", "", "armyork", "armmerl",
 	},
 
@@ -2896,6 +2896,18 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	-- Lab Grids
+
+	labGrids["armvp"] = {
+		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
+		"armart", "armjanus", "armstump", "",          -- stumpy, janus, arty
+		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+	}
+
+	corvp = {
+		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
+		"corwolv", "corlevlr", "corraid", "",         -- raider, leveler, art
+		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+	}
 
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armmark",
