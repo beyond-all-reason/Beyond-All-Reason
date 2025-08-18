@@ -18,7 +18,7 @@ if Spring.GetConfigInt('enableintrocamera', 1) == 0 then
 end
 local fase = 0
 local oldCam = Spring.GetCameraState()
-local mySpec = false--Spring.GetSpectatingState()
+local mySpec = Spring.GetSpectatingState()
 local gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 
 WG["IntroCameraIsDone"] = false
