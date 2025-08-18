@@ -1,8 +1,8 @@
 {
 	"features": {
 		"names": {
-			"armstone": "Komanderio antkapis",
-			"corstone": "Komanderio antkapis",
+			"armstone": "Vado antkapis",
+			"corstone": "Vado antkapis",
 			"ancientRocks": "Griūvėsiai",
 			"bush": "Krūmas",
 			"bushSmall": "Krūmelis",
@@ -69,7 +69,7 @@
 			"treeDeadPalms": "Mire palmių medžiai",
 			"treePalmetto": "Palmetė",
 			"treePine": "Pušis",
-			"xmascomwreck": "Kalėdinio komanderio nuolaužos"
+			"xmascomwreck": "Kalėdinio vado nuolaužos"
 		}
 	}
 }
