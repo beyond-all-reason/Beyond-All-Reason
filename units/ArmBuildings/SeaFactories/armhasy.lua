@@ -34,13 +34,12 @@ return {
 		buildoptions = {
 			[1] = "armhacs",
 			[2] = "armserp",
-			[3] = "armsjam",
-			[4] = "armbats",
-			[5] = "armepoch",
-			[6] = "armantiship",
-			[7] = "armmar",
-			[8] = "armlun",
-			[9] = "armaas"
+			[3] = "armbats",
+			[4] = "armepoch",
+			[5] = "armantiship",
+			[6] = "armmar",
+			[7] = "armlun",
+			[8] = "armaas"
 		},
 		customparams = {
 			model_author = "FireStorm",

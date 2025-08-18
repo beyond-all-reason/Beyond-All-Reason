@@ -258,8 +258,8 @@ local labGrids = {
 	},
 
 	armhasy = {
-		"armhacs", "", "armlun", "armsjam",              
-		"armepoch", "armbats", "", "armantiship",              
+		"armhacs", "", "armlun", "armantiship",              
+		"armepoch", "armbats", "", "",              
 		"armserp", "armmar", "armaas", "",              
 	},
 
@@ -2946,15 +2946,15 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["armasy"] = {
-		"armacsub", "armch", "armanac", "armsh",
-		"armmship", "armcrus", "armlship", "",
-		"armsubk", "armcroc", "armah", "",
+		"armacsub", "armch", "armlship", "armsjam",
+		"armmship", "armcrus", "armanac", "armsh",
+		"armsubk", "armcroc", "armah", "armmh",
 	}
 
 	labGrids["corasy"] = {
-		"coracsub", "corch", "corsnap", "corsh",
-		"cormship", "corcrus", "corfship", "",
-		"corshark", "corsala", "corah", "",
+		"coracsub", "corch", "corfship", "corsjam",
+		"cormship", "corcrus", "corsnap", "corsh",
+		"corshark", "corsala", "corah", "cormh",
 	}
 
 	labGrids["coraap"] = {

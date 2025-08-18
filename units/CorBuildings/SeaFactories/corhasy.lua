@@ -34,14 +34,13 @@ return {
 		buildoptions = {
 			[1] = "corhacs",
 			[2] = "corssub",
-			[3] = "corsjam",
-			[4] = "corbats",
-			[5] = "corblackhy",
-			[6] = "corshiva",
-			[7] = "corarch",
-			[8] = "corparrow",
-			[9] = "corsok",
-			[10] = "corantiship"
+			[3] = "corbats",
+			[4] = "corblackhy",
+			[5] = "corshiva",
+			[6] = "corarch",
+			[7] = "corparrow",
+			[8] = "corsok",
+			[9] = "corantiship"
 		},
 		customparams = {
 			model_author = "Mr Bob",

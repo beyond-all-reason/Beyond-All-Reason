@@ -2683,7 +2683,8 @@ function UnitDef_Post(name, uDef)
 				[8] = "armsh",
 				[9] = "armanac",
 				[10] = "armch",
-				[11] = "armmh"
+				[11] = "armmh",
+				[12] = "armsjam"
 			}
 
 		elseif name == "corasy" then
@@ -2699,6 +2700,7 @@ function UnitDef_Post(name, uDef)
 				[9] = "corsh",
 				[10] = "corch",
 				[11] = "cormh",
+				[12] = "corsjam",
 			}
 		
 
