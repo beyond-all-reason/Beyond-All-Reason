@@ -925,11 +925,6 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	if not MapCameraStartupInit then
-		widgetHandler:EnableWidget("Map Camera Startup")
-		MapCameraStartupInit = true
-	end
-	
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
@@ -1241,8 +1236,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
+					WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 				end
-				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -1430,7 +1425,10 @@ function widget:DrawScreen()
 			end
 		else
 			if WG['guishader'] then
-				WG['guishader'].DeleteDlist('options')
+				if backgroundGuishader then
+					WG['guishader'].RemoveDlist('options')
+					backgroundGuishader = glDeleteList(backgroundGuishader)
+				end
 				if textInputDlist then
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
@@ -6883,7 +6881,7 @@ function widget:Shutdown()
 		end
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
 		WG['guishader'].RemoveScreenRect('options_select')
 		WG['guishader'].RemoveScreenRect('options_select_options')
