@@ -1164,6 +1164,12 @@ function UnitDef_Post(name, uDef)
 
 	end
 
+	--Sensor rework
+	if modOptions.sensor_rework == true then
+		if (uDef.canfly == nil) then
+			uDef.seismicsignature = 0.01 -- seems to be small enough to make the texture not appear
+		end
+	end
 
 	--Air rework
 	if modOptions.air_rework == true then
