@@ -1897,6 +1897,7 @@ function UnitDef_Post(name, uDef)
 				[8] = "cormando",
 				[9] = "cortermite",
 				[10] = "corhrk",
+				[11] = "corvoyr",
 			}
 
 		elseif name == "armalab" then
@@ -1946,17 +1947,18 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "coravp" then
 			uDef.buildoptions = {
-			[1] = "corch",
-			[2] = "coracv",
-			[3] = "cormlv",
-			[4] = "corsala",
-			[5] = "correap",
-			[6] = "cormart",
-			[7] = "corhal",
-			[8] = "cormh",
-			[9] = "corsnap",
-			[10] = "corah",
-			[11] = "corsh"
+				[1] = "corch",
+				[2] = "coracv",
+				[3] = "corsala",
+				[4] = "correap",
+				[5] = "cormart",
+				[6] = "corhal",
+				[7] = "cormh",
+				[8] = "corsnap",
+				[9] = "corah",
+				[10] = "corsh",
+				[11] = "corvrad",
+				[12] = "corban"
 			}
 
 		elseif name == "legavp" then
@@ -2096,26 +2098,34 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "corack" then
 			uDef.buildoptions = {
-			[1] = "coradvsol",
-			[2] = "cormoho",
-			[3] = "cormaw",
-			[4] = "corhllt",
-			[5] = "corpun",
-			[6] = "cormadsam",
-			[7] = "corerad",
-			[8] = "corjuno",
-			[9] = "corfus",
-			[10] = "corarad",
-			[11] = "corshroud",
-			[12] = "corsd",
-			[13] = "corlab",
-			[14] = "corhalab",
-			[15] = "coralab",
-			[16] = "cormakr",
-			[17] = "corestor",
-			[18] = "cormstor",
-			[19] = "corgeo",
-			[20] = "corhlt",
+				[1] = "coradvsol",
+				[2] = "cormoho",
+				[3] = "cormaw",
+				[4] = "corhllt",
+				[5] = "corpun",
+				[6] = "cormadsam",
+				[7] = "corerad",
+				[8] = "corjuno",
+				[9] = "corfus",
+				[10] = "corarad",
+				[11] = "corshroud",
+				[12] = "corsd",
+				[13] = "corlab",
+				[14] = "corhalab",
+				[15] = "coralab",
+				[16] = "cormakr",
+				[17] = "corestor",
+				[18] = "cormstor",
+				[19] = "corageo",
+				[20] = "corhlt",
+				[21] = "cordl",
+				[22] = "corvp",
+				[23] = "corap",
+				[24] = "corsy",
+				[25] = "coravp",
+				[26] = "coraap",
+				[27] = "corasy",
+				[28] = "cornanotc",
 			}
 
 		elseif name == "legack" then
@@ -2226,6 +2236,11 @@ function UnitDef_Post(name, uDef)
 				[21] = "corjamt",
 				[22] = "corsy",
 				[23] = "corexp",
+				[24] = "corgeo",
+				[25] = "corhllt",
+				[26] = "corhlt",
+				[27] = "cormaw",
+				[28] = "cormadsam"
 			}
 
 		elseif name == "cormuskrat" then
@@ -2306,11 +2321,11 @@ function UnitDef_Post(name, uDef)
 				[22] = "armckfus",
 				[23] = "armdl",
 				[24] = "armdf",
-				[25] = "armvp",
+				[25] = "armlab",
 				[26] = "armsy",
 				[27] = "armap",
 				[28] = "armaap",
-				[29] = "armavp",
+				[29] = "armalab",
 				[30] = "armasy",
 				[31] = "armnanotc"
 			}
@@ -2335,8 +2350,16 @@ function UnitDef_Post(name, uDef)
 				[16] = "cormakr",
 				[17] = "corestor",
 				[18] = "cormstor",
-				[19] = "corgeo",
+				[19] = "corageo",
 				[20] = "corhlt",
+				[21] = "cordl",
+				[22] = "corlab",
+				[23] = "corap",
+				[24] = "corsy",
+				[25] = "coralab",
+				[26] = "coraap",
+				[27] = "corasy",
+				[28] = "cornanotc",
 			}
 		
 		elseif name == "legacv" then
@@ -2526,7 +2549,12 @@ function UnitDef_Post(name, uDef)
 				[20] = "cordl",
 				[21] = "corjamt",
 				[22] = "corsy",
-				[23] = "corexp"
+				[23] = "corexp",
+				[24] = "corgeo",
+				[25] = "corhllt",
+				[26] = "corhlt",
+				[27] = "cormaw",
+				[28] = "cormadsam",
 			}
 
 		elseif name == "armaca" then
@@ -2590,8 +2618,16 @@ function UnitDef_Post(name, uDef)
 				[16] = "cormakr",
 				[17] = "corestor",
 				[18] = "cormstor",
-				[19] = "corgeo",
+				[19] = "corageo",
 				[20] = "corhlt",
+				[21] = "cordl",
+				[22] = "corvp",
+				[23] = "corlab",
+				[24] = "corsy",
+				[25] = "coravp",
+				[26] = "coralab",
+				[27] = "corasy",
+				[28] = "cornanotc",
 			}
 
 		elseif name == "legca" then
@@ -2706,6 +2742,13 @@ function UnitDef_Post(name, uDef)
 				[16] = "corfdrag",
 				[17] = "cortl",
 				[18] = "corfrt",
+				[19] = "cormadsam",
+				[20] = "corfhlt",
+				[21] = "corhllt",
+				[22] = "cormaw",
+				[23] = "coruwgeo",
+				[24] = "corjuno",
+
 			}
 
 		elseif name == "armacsub" then

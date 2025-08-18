@@ -216,9 +216,9 @@ local labGrids = {
 	-- Split Tier Labs
 
 	corhalab = {
-		"corhack", "cordecom", "cordemon", "corvoyr",
-		"corcat", "corsumo", "", "corspec",
-		"corsktl", "corshiva", "corkarg", "", 
+		"corhack", "cordecom", "cordemon", "corspec",
+		"corcat", "corsumo", "corshiva", "corsktl",
+		"", "", "corkarg", "", 
 	},
 
 	armhalab = {
@@ -264,9 +264,9 @@ local labGrids = {
 	},
 
 	corhasy = {
-		"corhacs", "corantiship", "corsok", "corsjam",              
-		"corblackhy", "corbats", "corparrow", "",              
-		"corssub", "corshiva", "corarch", "",              
+		"corhacs", "", "corsok", "corsjam",              
+		"corblackhy", "corbats", "corshiva", "corantiship",              
+		"corssub", "corparrow", "corarch", "",              
 	},
 
 	armhavp = {
@@ -276,9 +276,9 @@ local labGrids = {
 	},
 
 	corhavp = {
-		"corhacv", "cormabm", "corban", "corvrad",
-		"cortrem", "corgol", "corvroc", "coreter",
-		"corsok", "corparrow", "corsent", "",
+		"corhacv", "", "corsok", "coreter",
+		"cortrem", "corgol", "corparrow", "",
+		"cormabm", "", "corsent", "corvroc",
 	},
 
 	leghavp = {
@@ -1987,10 +1987,10 @@ local unitGrids = {
 			{"", "", "", "", },
 		},
 		{
-			{"", "armasy", "", "", },
-			{"", "armhasy", "", "", },
-			{"", "", "", "", },
-		},
+			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
+			{ "armalab", "armavp", "armaap", "armasy",},                         -- T3 lab, T2 lab
+			{ "armhalab", "armhhavp", "armhaap", "armhasy" },                                                --
+		}
 	},
 
 	corhacs = {
@@ -2668,12 +2668,12 @@ if Spring.GetModOptions().techsplit then
 	unitGrids["corck"] = {
 		{
 			{ "cormex", "corsolar", "corwin", "", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "", "", "", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "", "", },             -- basic AA, SAM, eradicator
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "", },             -- basic AA, SAM, eradicator
 			{ "cordl", "", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -2691,12 +2691,12 @@ if Spring.GetModOptions().techsplit then
 	unitGrids["corcv"] = {
 		{
 			{ "cormex", "corsolar", "corwin", "", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "", "", "", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "", "", },             -- basic AA, SAM, eradicator
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "", },             -- basic AA, SAM, eradicator
 			{ "cordl", "", },                           -- coastal torp launcher, punisher
 		},
 		{
@@ -2757,18 +2757,40 @@ if Spring.GetModOptions().techsplit then
 		}
 	}
 
+	unitGrids["corcs"] = {
+		{
+			{ "cormex", "cortide", },                         -- mex, tidal
+			{ "corfmkr", "coruwgeo", },                         -- floating T1 converter, geo
+			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
+		},
+		{
+			{ "cortl", "corfhlt", "corhllt", "cormaw" },             -- offshore torp launcher, floating HLT
+			{ "corfrt", "cormadsam" },                                    -- floating AA
+			{ "cordl", "", },                 		  -- coastal torp launcher, punisher, flame turret
+		},
+		{
+			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
+			{ "", "cordrag", "", "" },           -- dragon's teeth
+		},
+		{
+			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
+			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
+			{ "", "", "", "",  },        -- floating hover, amphibious lab, seaplane lab
+		}
+	}
+
 
 
 	unitGrids["corack"] = {
 		{
 			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corgeo","","",},
+			{"cormakr","corageo","","",},
 			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
 			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"cordl","corjuno","","",},
 		},
 		{
 			{"cararad","corsd","","",},
@@ -2776,22 +2798,22 @@ if Spring.GetModOptions().techsplit then
 			{"","","","",},
 		},
 		{
-			{"corlab","coralab","","",},
-			{"","corhalab","","",},
-			{"","","","",},
+			{"corlab","corvp","corap","corsy",},
+			{"coralab","coravp","coraap","corasy",},
+			{"cornanotc","corhalab","","",},
 		},
 	}
 
 	unitGrids["coracv"] = {
 		{
 			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corgeo","","",},
+			{"cormakr","corageo","","",},
 			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
 			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"cordl","corjuno","","",},
 		},
 		{
 			{"cararad","corsd","","",},
@@ -2799,9 +2821,9 @@ if Spring.GetModOptions().techsplit then
 			{"","","","",},
 		},
 		{
-			{"corvp","coravp","","",},
-			{"","corhavp","","",},
-			{"","","","",},
+			{"corlab","corvp","corap","corsy",},
+			{"coralab","coravp","coraap","corasy",},
+			{"cornanotc","corhavp","","",},
 		},
 	}
 
@@ -2831,13 +2853,13 @@ if Spring.GetModOptions().techsplit then
 	unitGrids["coraca"] = {
 		{
 			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corgeo","","",},
+			{"cormakr","corageo","","",},
 			{"corestor","cormstor","","",},
 		},
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
 			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"cordl","corjuno","","",},
 		},
 		{
 			{"cararad","corsd","","",},
@@ -2845,9 +2867,9 @@ if Spring.GetModOptions().techsplit then
 			{"","","","",},
 		},
 		{
-			{"corlab","coraap","","",},
-			{"","corhaap","","",},
-			{"","","","",},
+			{"corlab","corvp","corap","corsy",},
+			{"coralab","coravp","coraap","corasy",},
+			{"cornanotc","corhaap","","",},
 		},
 	}
 
@@ -2877,14 +2899,14 @@ if Spring.GetModOptions().techsplit then
 
 	labGrids["armalab"] = {
 		"armack", "armspid", "armfast", "armmark",
-		"armfido", "armmav", "armzeus", "armspy",
-		"armvader", "armamph", "armaak", "armsptk",
+		"armsptk", "armfido", "armzeus", "armspy",
+		"armvader", "armamph", "armaak", "armmav",
 	}
 
 	labGrids["coralab"] = {
-		"corack", "cormando", "corpyro", "corspy",
-		"corhrk", "corcan", "cormort", "cortermite",
-		"", "coramph", "coraak", "",
+		"corack", "cormando", "corpyro", "corvoyr",
+		"corhrk", "cormort", "corcan", "corspy",
+		"", "coramph", "coraak", "cortermite",
 	}
 
 	labGrids["legalab"] = {
@@ -2900,9 +2922,9 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["coravp"] = {
-		"coracv", "cormlv", "corsala", "corsh",
-		"cormart", "correap", "cormh", "corsnap",
-		"corch", "corhal", "corah", "",
+		"coracv", "corch", "corsala", "corvrad",
+		"cormart", "corban", "correap", "corsh",
+		"cormh", "corhal", "corah", "corsnap",
 	}
 
 	labGrids["legavp"] = {
@@ -2919,7 +2941,7 @@ if Spring.GetModOptions().techsplit then
 
 	labGrids["corasy"] = {
 		"coracsub", "corch", "corsnap", "corsh",
-		"corfship", "corcrus", "cormship", "",
+		"cormship", "corcrus", "corfship", "",
 		"corshark", "corsala", "corah", "",
 	}
 

@@ -38,9 +38,8 @@ return {
 			[5] = "corhack",
 			[6] = "corsumo",
 			[7] = "cordecom",
-			[8] = "corvoyr",
-			[9] = "corsktl",
-			[10] = "corspec"
+			[8] = "corsktl",
+			[9] = "corspec"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

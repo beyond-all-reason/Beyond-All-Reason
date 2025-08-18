@@ -38,10 +38,8 @@ return {
 			[5] = "corsent",
 			[6] = "cormabm",
 			[7] = "coreter",
-			[8] = "corvrad",
-			[9] = "corsok",
-			[10] = "corban",
-			[11] = "corparrow",
+			[8] = "corsok",
+			[9] = "corparrow",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
