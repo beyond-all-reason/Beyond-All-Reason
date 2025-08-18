@@ -2212,6 +2212,7 @@ function UnitDef_Post(name, uDef)
 				[31] = "armferret",
 				[32] = "armclaw",
 				[33] = "armjuno",
+				[34] = "armfrad",
 			}
 
 		elseif name == "corcv" then
@@ -2264,10 +2265,17 @@ function UnitDef_Post(name, uDef)
 				[20] = "cordl",
 				[21] = "corjamt",
 				[22] = "corsy",
-				[23] = "corasy",
-				[24] = "corfmkr",
-				[25] = "corfrt",
-				[26] = "cortl",
+				[23] = "corexp",
+				[24] = "corgeo",
+				[25] = "corhllt",
+				[26] = "corhlt",
+				[27] = "cormaw",
+				[28] = "cormadsam",
+				[29] = "corfrad",
+				[30] = "cortide",
+				[31] = "corasy",
+				[32] = "cortl",
+				[33] = "cortl",
 			}
 
 		elseif name == "legcv" then
@@ -2754,7 +2762,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armacsub" then
 			uDef.buildoptions = {
 				[1] = "armtide",
-				[2] = "armuwgeo",
+				[2] = "armuwageo",
 				[3] = "armveil",
 				[4] = "armarad",
 				[5] = "armclaw",
@@ -2804,8 +2812,17 @@ function UnitDef_Post(name, uDef)
 				[15] = "corfrt",
 				[16] = "coruwes",
 				[17] = "coruwms",
-				[18] = "coruwgeo",
-				[19] = "corhaapuw"
+				[18] = "coruwageo",
+				[19] = "corhaapuw",
+				[20] = "coratl",
+				[21] = "corsd",
+				[22] = "corvp",
+				[23] = "corlab",
+				[24] = "corsy",
+				[25] = "coravp",
+				[26] = "coralab",
+				[27] = "corasy",
+				[28] = "cornanotcplat",
 			}
 		
 
@@ -2970,7 +2987,19 @@ function UnitDef_Post(name, uDef)
 				[16] = "cormakr",
 				[17] = "corestor",
 				[18] = "cormstor",
-				[19] = "corgeo"
+				[19] = "corageo",
+				[20] = "cordl",
+				[21] = "coruwmme",
+				[22] = "cordrag",
+				[23] = "corfdrag",
+				[24] = "corason",
+				[22] = "corlab",
+				[23] = "corap",
+				[24] = "corsy",
+				[25] = "coralab",
+				[26] = "coraap",
+				[27] = "corasy",
+				[28] = "cornanotc",
 			}
 
 		elseif name == "leghc" then 

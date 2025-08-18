@@ -1788,7 +1788,7 @@ local unitGrids = {
 
 	armhaca = {
 		{
-			{ "armmoho", "armckfus", "armafus", "", },             -- moho, fusion, afus, safe geo
+			{ "armmoho", "armfus", "armafus", "", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "", "" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
@@ -1821,20 +1821,20 @@ local unitGrids = {
 			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cortarg","corfort","","",},
+			{"cortarg","corsd","corfort","",},
 			{"","","","",},
 			{"corgate","","","",},
 		},
 		{
-			{"","coraap","","",},
-			{"","","corhaap","",},
-			{"","","","",},
+			{"corsy", "corvp", "corap", "corlab", },
+			{"corasy", "coravp", "coraap", "coralab", },
+			{"corhasy", "corhavp", "corhaap", "corhalab", },
 		},
 	},
 	
 	armhack = {
 		{
-			{ "armmoho", "armckfus", "armafus", "", },             -- moho, fusion, afus, safe geo
+			{ "armmoho", "armfus", "armafus", "", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "", "" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
@@ -1867,14 +1867,14 @@ local unitGrids = {
 			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cortarg","corfort","","",},
+			{"cortarg","corsd","corfort","",},
 			{"","","","",},
 			{"corgate","","","",},
 		},
 		{
-			{"","coralab","","",},
-			{"","","corhalab","",},
-			{"","","","",},
+			{"corsy", "corvp", "corap", "corlab", },
+			{"corasy", "coravp", "coraap", "coralab", },
+			{"corhasy", "corhavp", "corhaap", "corhalab", },
 		},
 	},
 
@@ -1903,7 +1903,7 @@ local unitGrids = {
 
 	armhacv = {
 		{
-			{ "armmoho", "armckfus", "armafus", "", },             -- moho, fusion, afus, safe geo
+			{ "armmoho", "armfus", "armafus", "", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "", "" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
@@ -1936,14 +1936,14 @@ local unitGrids = {
 			{"corint","corsilo","corbuzz","",},
 		},
 		{
-			{"cortarg","corfort","","",},
+			{"cortarg","corsd","corfort","",},
 			{"","","","",},
 			{"corgate","","","",},
 		},
 		{
-			{"","coravp","","",},
-			{"","corhavp","","",},
-			{"","","","",},
+			{"corsy", "corvp", "corap", "corlab", },
+			{"corasy", "coravp", "coraap", "coralab", },
+			{"corhasy", "corhavp", "corhaap", "corhalab", },
 		},
 	},
 
@@ -1995,24 +1995,24 @@ local unitGrids = {
 
 	corhacs = {
 		{
-			{"coruwmme", "coruwfus", "", "",},
-			{"coruwmmm","coruwagea","","",},
+			{"coruwmme", "cortide", "coruwfus", "corafus",},
+			{"coruwmmm","coruwagea","corafus","",},
 			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corfdoom", "", "", "",},
-			{"corenaa","","","",},
+			{"corfdoom", "corvipe", "cordoom", "",},
+			{"corenaa","corscreamer","","",},
 			{"coratl","","","",},
 		},
 		{
-			{"corason", "", "corfdrag", "", },
-			{"corarad", "corshroud", "", "", },
+			{"corason", "corfdrag", "corgate", "corsd", },
+			{"", "", "", "", },
 			{"", "", "", "", },
 		},
 		{
-			{"", "", "corasy", "", },
-			{"", "", "corhasy", "", },
-			{"", "", "", "", },
+			{"corsy", "corvp", "corap", "corlab", },
+			{"corasy", "coravp", "coraap", "coralab", },
+			{"corhasy", "corhavp", "corhaap", "corhalab", },
 		},
 	},
 
@@ -2706,21 +2706,21 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
+			{ "cornanotc", "coravp", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
 
 	unitGrids["cormuskrat"] = {
 		{
-			{ "cormex", "corsolar", "corwin", "corfmkr", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cormex", "corsolar", "corwin", "", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "cortl", "", "", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "corfrt", "", },             -- basic AA, SAM, eradicator
-			{ "cordl", "", },                           -- coastal torp launcher, punisher
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "", },             -- basic AA, SAM, eradicator
+			{ "cordl", "cortl", },                           -- coastal torp launcher, punisher
 		},
 		{
 			{ "corrad", "coreyes", "cordrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -2729,7 +2729,7 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
+			{ "cornanotc", "coravp","", "corasy", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
@@ -2836,17 +2836,17 @@ if Spring.GetModOptions().techsplit then
 		{
 			{"corhllt","corhlt","cormaw","corpun",},
 			{"cormadsam","corerad","","",},
-			{"corjuno","","","",},
+			{"cordl","cortl","corjuno","",},
 		},
 		{
-			{"cararad","corsd","","",},
-			{"corshroud","","","",},
+			{"cararad","corsd","corason","",},
+			{"corshroud","cordrag","corfdrag","",},
 			{"","","","",},
 		},
 		{
-			{"corvp","coravp","","",},
-			{"","corhavp","","",},
-			{"","","","",},
+			{"corlab","corvp","corap","corsy",},
+			{"coralab","coravp","coraap","corasy",},
+			{"cornanotc","corhavp","","",},
 		},
 	}
 
@@ -2880,19 +2880,19 @@ if Spring.GetModOptions().techsplit then
 			{ "coruwes", "coruwms", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
-			{ "corenaa", },                                    -- floating flak
-			{ },                                               --
+			{ "coratl", "corfhlt", },                         -- adv torp launcher, floating heavy platform
+			{ "corfrl", "cormadsam", "corerad", },                                    -- floating flak
+			{ "corpun", "" },                                               --
 		},
 		{
 			{ "corason", "corfdrag", "corarad", "corshroud", },                         -- adv sonar, floating targeting facility
 			{ "", "", "", "" },                          -- Floating air repair pad
 		},
 		{
-			{ "corsy", "corasy", "coraaplat" },                                      -- T1 shipyard
-			{ "", "corhasy" },                         -- amphibious gantry, T2 shipyard
-			{ },                                               --
-		}
+			{"corlab","corvp","corap","corsy",},
+			{"coralab","coravp","coraap","corasy",},
+			{"cornanotc","corhasy","","",},
+		},
 	}
 
 	-- Lab Grids

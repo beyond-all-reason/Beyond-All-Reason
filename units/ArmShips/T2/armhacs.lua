@@ -66,7 +66,8 @@ return {
 			[32] = "armlab",
 			[33] = "armvp",
 			[34] = "armap",
-			[35] = "armsy"
+			[35] = "armsy",
+			[36] = "armsd",
 		},
 		customparams = {
 			minesweeper = 600,
