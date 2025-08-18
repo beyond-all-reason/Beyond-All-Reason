@@ -17,12 +17,28 @@ if Spring.GetConfigInt('enableintrocamera', 1) == 0 then
     startTimer = -5
 end
 local fase = 0
-
 local oldCam = Spring.GetCameraState()
+local mySpec = false--Spring.GetSpectatingState()
+local gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 
 WG["IntroCameraIsDone"] = false
 
+function widget:Initialize()
+	if mySpec or Spring.GetGameFrame() > 0 or gameID == prevGameID then
+		widgetHandler:RemoveWidget()
+	end
+end
+
+function widget:Shutdown()
+	WG["IntroCameraIsDone"] = true
+end
+
 function widget:Update(dt)
+	if Spring.GetGameFrame() > 200 then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
     if (dt > 0.5) then
         -- If the dt is too large, we might be lagging, so we skip this update
         return
@@ -36,7 +52,7 @@ function widget:Update(dt)
         return
     end
 
-    local _,_,nozoom = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+	local nozoom = mySpec
     if not nozoom then
         local myAllyTeamID = Spring.GetMyAllyTeamID()
         local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
@@ -180,7 +196,7 @@ function widget:Update(dt)
 
     if startTimer < -5 or nozoom then
         WG["IntroCameraIsDone"] = true
-        
+
         local camState = Spring.GetCameraState()
         if camState.ry and (camState.ry > 6.5 or camState.ry < -6.5) then
             camState.ry = 0
@@ -189,4 +205,15 @@ function widget:Update(dt)
     end
 
     startTimer = startTimer - dt
+end
+
+
+function widget:GetConfigData()
+	return {
+		gameID = gameID,
+	}
+end
+
+function widget:SetConfigData(data)
+	prevGameID = data.gameID or ''
 end
