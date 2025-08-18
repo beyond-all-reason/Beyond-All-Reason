@@ -11,8 +11,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare, rightFrontSmoke, leftFrontSmoke,
 		 bigToroidLight, leftToroidLight, rightToroidLight;
 
-static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, timeLeft, isFiring1, isFiring2, timer1, timer2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, 
-isTurning, isSmoking, targetSwap1, targetSwap2, heatrayReady; 			
+static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -928,18 +927,14 @@ Open()
 		turn rArmUpperArm to 	x-axis <0> speed <12.752184> / animSpeed;
 		turn rArmUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
 		turn legJointTorso to 	y-axis <0> speed <194.050073> / animSpeed;
-
 		move lArmShoulderPivot to y-axis [0] speed [25];
 		move rArmShoulderPivot to y-axis [0] speed [25];
-		//wait-for-move lArmShoulderPivot along y-axis;
 		turn lArmShoulderGun to x-axis <35> speed <100>;
 		turn rArmShoulderGun to x-axis <35> speed <100>;
 		turn lArmShoulderJoint to x-axis <-35> speed <50>;
 		turn rArmShoulderJoint to x-axis <-35> speed <50>;
-
 		turn lArmGun to z-axis <18> speed <100>;
 		turn rArmGun to z-axis <-18> speed <100>;		
-
 		wait-for-turn rArmLowerArm around z-axis;
 		wait-for-turn lArmLowerArm around z-axis;
 		wait-for-turn lArmGun around x-axis;
@@ -960,9 +955,6 @@ Open()
 
 Close()
 {
-	//set-signal-mask SIG_AIM;
-	//set-signal-mask SIG_AIM_2;
-	//set-signal-mask SIG_AIM_3;
 	if( aimingPose )
 	{
 		aimingPose = 0;
@@ -1047,9 +1039,9 @@ lua_UnitScriptLight(lightIndex, count) {
 
 SmokeItUp()
 {	
-	if (isSmoking == 0 OR TRUE)
+	if (isSmoking2 == 0 OR TRUE)
 	{
-		isSmoking = 1;
+		isSmoking2 = 1;
 		emit-sfx 257 from leftFrontSmoke;
 		emit-sfx 257 from rightFrontSmoke;
 		sleep 3000;
@@ -1074,39 +1066,12 @@ SmokeItUp()
 		// emit-sfx 257 from leftFrontSmoke;
 		// emit-sfx 257 from rightFrontSmoke;
 		// sleep 1000;
-		isSmoking = 0;
-	}
-}
-
-SweepFire()
-{
-	while( TRUE )
-	{
-		if (targetSwap1 == 1 AND isFiring1 == 1 AND timer1 <= 50)
-		{
-			emit-sfx 2048 + 1 from lShoulderFlare;
-			timer1 = timer1 + 1;
-		}
-		if (timer1 > 50)
-		{
-			start-script RestoreLRay();
-		}
-		if (targetSwap2 == 1 AND isFiring2 == 1 AND timer2 <= 50)
-		{
-			emit-sfx 2048 + 2 from rShoulderFlare;
-			timer2 = timer2 + 1;
-		}
-		if (timer2 > 50)
-		{
-			start-script RestoreRRay();
-		}
-		sleep 20;
+		isSmoking2 = 0;
 	}
 }
 
 Create()
 {
-	start-script SweepFire();
 	hide rArmFlare;
 	hide lArmFlare;
 	move rArmShoulderPivot to y-axis [-21] now;
@@ -1120,7 +1085,6 @@ Create()
 	aimingPose = 0;
 	isFiring1 = 0;
 	isFiring2 = 0;
-	timeLeft = 0;
 	oldHeading1 = 1000000;
 	oldHeading2 = 1000000;
 	oldHeading3 = 0;
@@ -1128,7 +1092,7 @@ Create()
 	restoreDelay = 1000;
 	oldSsteerHeading = get HEADING;;
 	isTurning = 0;
-	isSmoking = 0;
+	isSmoking2 = 0;
 	call-script Steering();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
@@ -1189,23 +1153,11 @@ ExecuteRestoreAfterDelay(addTime)
 {
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
-    // This function may not be signal terminated
-    // If it has to be, it _must_ be immediately restarted
-    // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1)){
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-		timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-	//get PRINT(77, timeLeft, get GAME_FRAME);
-    // The restore section must be atomic :/
 	start-script CATT1_Restore();
 	start-script CATT2_Restore();
 	turn lArmGun to x-axis <0.0> speed <10>;
 	turn rArmGun to x-axis <0.0> speed <10>;
 	turn midTorso to y-axis <0.0> speed <25.0>;
-    timeLeft = 0;
 	oldHeading1 = 1000000;
 	oldHeading2 = 1000000;
 	oldHeading3 = 0;
@@ -1233,25 +1185,14 @@ RestoreAfterDelay()
 
 RestoreLRay()
 {
-	//signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	sleep 1;
-	while(timer1 < 50 AND timer1 >= 0)
-	{
-		targetSwap1 = 1;
-		sleep 10;
-	}
-	//set-signal-mask SIG_AIM_2;
 	isFiring1 = 0;
-	timer1 = 0;
-	targetSwap1 = 0;
 	oldHeading1 = -1000000;
 	turn lArmShoulderJoint to y-axis <0.0> speed <20.0>;
 	turn lArmShoulderGun to x-axis <35> speed <20.0>;
-	
 	wait-for-turn lArmShoulderJoint around y-axis;
 	wait-for-turn lArmShoulderGun around x-axis;
-	
 	heatrayReady = 0;
 	turn lArmShoulderGun to x-axis <15> speed <100>;
 	turn lArmShoulderJoint to x-axis <0> speed <100>;
@@ -1261,24 +1202,14 @@ RestoreLRay()
 
 RestoreRRay()
 {
-	//signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 	sleep 1;
-	while(timer2 < 50 AND timer2 >= 0)
-	{
-		targetSwap2 = 1;
-		sleep 10;
-	}
 	isFiring2 = 0;
-	timer2 = 0;
-	targetSwap2 = 0;
 	oldHeading2 = -1000000;
 	turn rArmShoulderJoint to y-axis <0.0> speed <20.0>;
 	turn rArmShoulderGun to x-axis <35> speed <20.0>;
-	
 	wait-for-turn rArmShoulderJoint around y-axis;
 	wait-for-turn rArmShoulderGun around x-axis;
-	
 	heatrayReady = 0;
 	turn rArmShoulderGun to x-axis <15> speed <100>;	
 	turn rArmShoulderJoint to x-axis <0> speed <100>;	
@@ -1349,22 +1280,12 @@ AimWeapon1(heading, pitch)
 		wait-for-turn midTorso around y-axis;
 	}
 	wpn1_lasthead = heading;
-    if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelay();
-    }
-	timeLeft = restoreDelay;
 	return (1);
 }
 
 FireWeapon1()
 {
 	return (1);
-}
-
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = lShoulderFlare;
 }
 
 AimWeapon2(heading, pitch)
@@ -1375,25 +1296,21 @@ AimWeapon2(heading, pitch)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <70>;
 	}
-	else
+	if (isTurning == 0)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
 	
-	if (get ABS(oldHeading1 - heading) > 500)
+	if (isfiring1 == 0 AND (((get ABS(oldHeading1 - heading)) > 65536) OR ((get ABS(oldHeading1 - heading) > <1>) AND ((get ABS(oldHeading1 - heading)) < 65536 - <1>))))
 	{
-		targetSwap1 = 1;
+		oldHeading1 = 1000000;
+		wait-for-turn lArmShoulderJoint around y-axis;
+		wait-for-turn lArmShoulderJoint around x-axis;
 	}
-	else
-	{
-		oldHeading1 = heading;
-		return (1);
-	}
-	timer1 = 0;
-	wait-for-turn lArmShoulderJoint around y-axis;
-	wait-for-turn lArmShoulderGun around x-axis;
 	oldHeading1 = heading;
+	start-script RestoreLRay();
+	isfiring1 = 1;
 	return (1);
 }
 
@@ -1404,10 +1321,6 @@ AimFromWeapon2(pieceIndex)
 
 FireWeapon2()
 {
-	start-script RestoreLRay();
-	targetSwap1 = 0;
-	isFiring1 = 1;
-	timer1 = 0;
 	return (0);
 }
 
@@ -1424,25 +1337,21 @@ AimWeapon3(heading, pitch)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <70>;
 	}
-	else
+	if (isTurning == 0)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
 	
-	if (get ABS(oldHeading2 - heading) > 500)
+	if (isfiring2 == 0 AND (((get ABS(oldHeading2 - heading)) > 65536) OR ((get ABS(oldHeading2 - heading) > <1>) AND ((get ABS(oldHeading2 - heading)) < 65536 - <1>))))
 	{
-		targetSwap2 = 1;
+		oldHeading2 = 1000000;
+		wait-for-turn rArmShoulderJoint around y-axis;
+		wait-for-turn rArmShoulderJoint around x-axis;
 	}
-	else
-	{
-		oldHeading2 = heading;
-		return (1);
-	}
-	timer2 = 0;
-	wait-for-turn rArmShoulderJoint around y-axis;
-	wait-for-turn rArmShoulderGun around x-axis;
 	oldHeading2 = heading;
+	start-script RestoreRRay();
+	isfiring2 = 2;
 	return (1);
 }
 
@@ -1453,10 +1362,6 @@ AimFromWeapon3(pieceIndex)
 
 FireWeapon3()
 {
-	start-script RestoreRRay();
-	targetSwap2 = 0;
-	isFiring2 = 1;
-	timer2 = 0;
 	return (0);
 }
 

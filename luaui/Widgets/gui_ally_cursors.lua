@@ -346,6 +346,12 @@ function widget:PlayerChanged(playerID)
 	local r, g, b = spGetTeamColor(teamID)
 	if isSpec then
 		teamColors[playerID] = { 1, 1, 1, 0.6 }
+		if cursors[playerID] then
+			if not showSpectatorName then
+				cursors[playerID][7] = 0
+			end
+			cursors[playerID][8] = true
+		end
 	elseif r and g and b then
 		teamColors[playerID] = { r, g, b, 0.75 }
 	end
@@ -355,7 +361,6 @@ function widget:PlayerChanged(playerID)
 		end
 		allycursorDrawList[playerID] = nil
 	end
-
 	-- update speclist when player becomes spectator
 	--if isSpec and not specList[playerID] then
 		updateSpecList()
