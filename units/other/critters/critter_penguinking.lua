@@ -82,7 +82,7 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "Lasrhvy2",
+				soundstart = "lasrhvy3",
 				soundtrigger = 1,
 				targetborder = 0.75,
 				thickness = 5.5,
