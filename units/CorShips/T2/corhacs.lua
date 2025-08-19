@@ -60,12 +60,7 @@ return {
 			[29] = "corlab",
 			[30] = "corap",
 			[31] = "corvp",
-			[32] = "coralab",
-			[33] = "coraap",
-			[34] = "coravp",
-			[35] = "corhalab",
-			[36] = "corhaap",
-			[37] = "corhavp",
+			[32] = "corsy"
 		},
 		customparams = {
 			minesweeper = 600,

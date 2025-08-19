@@ -73,12 +73,7 @@ return {
 			[29] = "corlab",
 			[30] = "corap",
 			[31] = "corsy",
-			[32] = "coralab",
-			[33] = "coraap",
-			[34] = "corasy",
-			[35] = "corhalab",
-			[36] = "corhaap",
-			[37] = "corhasy",
+			[32] = "corvp",
 		},
 		customparams = {
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",

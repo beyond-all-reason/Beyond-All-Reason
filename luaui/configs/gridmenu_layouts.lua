@@ -270,8 +270,8 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "", "armbull", "armjam",
-		"armmanni", "armlun", "armthor", "armgremlin",
+		"armhacv", "", "armlun", "armjam",
+		"armmanni", "armthor", "armbull", "armgremlin",
 		"", "", "armyork", "armmerl",
 	},
 

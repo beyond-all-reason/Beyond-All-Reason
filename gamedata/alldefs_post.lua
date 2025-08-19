@@ -2091,9 +2091,6 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armaap",
-				[29] = "armavp",
-				[30] = "armasy",
 				[31] = "armnanotc"
 			}
 
@@ -2123,9 +2120,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "corvp",
 				[23] = "corap",
 				[24] = "corsy",
-				[25] = "coravp",
-				[26] = "coraap",
-				[27] = "corasy",
 				[28] = "cornanotc",
 			}
 
@@ -2333,10 +2327,7 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armaap",
-				[29] = "armavp",
-				[30] = "armasy",
-				[31] = "armnanotc"
+				[28] = "armnanotc"
 			}
 		
 		elseif name == "coracv" then
@@ -2365,9 +2356,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "corlab",
 				[23] = "corap",
 				[24] = "corsy",
-				[25] = "coralab",
-				[26] = "coraap",
-				[27] = "corasy",
 				[28] = "cornanotc",
 			}
 		
@@ -2598,10 +2586,7 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armaap",
-				[29] = "armavp",
-				[30] = "armasy",
-				[31] = "armnanotc"
+				[28] = "armnanotc"
 			}
 		
 		elseif name == "coraca" then
@@ -2633,10 +2618,7 @@ function UnitDef_Post(name, uDef)
 				[22] = "corvp",
 				[23] = "corlab",
 				[24] = "corsy",
-				[25] = "coravp",
-				[26] = "coralab",
-				[27] = "corasy",
-				[28] = "cornanotc",
+				[25] = "cornanotc",
 			}
 
 		elseif name == "legca" then
@@ -2791,8 +2773,6 @@ function UnitDef_Post(name, uDef)
 				[26] = "armlab",
 				[27] = "armap",
 				[28] = "armhaapuw",
-				[29] = "armavp",
-				[30] = "armalab",
 				[31] = "armnanotcplat",
 				[32] = "armferret",
 				[33] = "armcir"
@@ -2824,10 +2804,8 @@ function UnitDef_Post(name, uDef)
 				[22] = "corvp",
 				[23] = "corlab",
 				[24] = "corsy",
-				[25] = "coravp",
-				[26] = "coralab",
-				[27] = "corasy",
-				[28] = "cornanotcplat",
+				[25] = "corasy",
+				[26] = "cornanotcplat",
 			}
 		
 
