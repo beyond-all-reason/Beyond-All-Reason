@@ -117,7 +117,7 @@ bind            Ctrl+f6  viewspring
 bind            Ctrl+f7  HideInterface
 bind             Any+f5  LastMsgPos
 bind             Any+f6  ShowPathTraversability
-bind             Any+f7  ShowMetalMap
+bind             Any+f7  showinfometal
 bind             Any+f8  ShowElevation
 
 bind                f10  options
