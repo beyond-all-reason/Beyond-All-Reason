@@ -204,14 +204,29 @@ function widget:Update()
 
 	-- get nearest unoccupied spot, we have to separate shift behavior for pregame reasons here
 	local nearestSpot
-	if selectedMex then
-		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
-			WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+
+	local isMetalExtractor = selectedMex ~= nil
+	local spotsToSearch = isMetalExtractor and metalSpots or geoSpots
+	local extractorType = isMetalExtractor and "mex" or "geo"
+	local selectedExtractor = isMetalExtractor and selectedMex or selectedGeo
+
+	local SkipAlliedUpgradeWidget = WG['skip_allied_upgrade'] ---@type SkipAlliedUpgradeWidget
+	if SkipAlliedUpgradeWidget then
+		local buildingsToCheck = extractorType == "geo" and geoBuildings or mexBuildings
+		spotsToSearch = SkipAlliedUpgradeWidget.filterOutAlliedSpots(spotsToSearch, buildingsToCheck)
+	end
+
+	if shift then
+		nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor)
+	elseif alt then
+		-- When ALT is held, find closest spot from filtered spots
+		nearestSpot = math.getClosestPosition(x, z, spotsToSearch)
 	else
-		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo) or
-			WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+		if isMetalExtractor then
+			nearestSpot = WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+		else
+			nearestSpot = WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+		end
 	end
 	if not nearestSpot then
 		clear()
