@@ -44,6 +44,39 @@ local function MakeLine(x1, y1, z1, x2, y2, z2)
 end
 
 
+---@param spots table Array of spots to filter
+---@param buildingType string Either "mex" or "geo" to determine which building type to check
+---@return table Filtered array of spots
+local function filterOutAlliedSpots(spots, buildingType)
+	local filteredSpots = {}
+	local myTeamID = Spring.GetMyTeamID()
+	local buildingsToCheck = buildingType == "geo" and geoBuildings or mexBuildings
+
+	for i = 1, #spots do
+		local spot = spots[i]
+		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game.extractorRadius)
+		local hasAlliedExtractor = false
+
+		for j = 1, #units do
+			local unitDefID = Spring.GetUnitDefID(units[j])
+
+			if buildingsToCheck[unitDefID] then
+				local unitTeam = Spring.GetUnitTeam(units[j])
+				if Spring.AreTeamsAllied(myTeamID, unitTeam) and unitTeam ~= myTeamID then
+					hasAlliedExtractor = true
+					break
+				end
+			end
+		end
+
+		if not hasAlliedExtractor then
+			filteredSpots[#filteredSpots + 1] = spot
+		end
+	end
+	return filteredSpots
+end
+
+
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
@@ -204,14 +237,27 @@ function widget:Update()
 
 	-- get nearest unoccupied spot, we have to separate shift behavior for pregame reasons here
 	local nearestSpot
-	if selectedMex then
-		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
-			WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+
+	local isMetalExtractor = selectedMex ~= nil
+	local spotsToSearch = isMetalExtractor and metalSpots or geoSpots
+	local extractorType = isMetalExtractor and "mex" or "geo"
+	local selectedExtractor = isMetalExtractor and selectedMex or selectedGeo
+
+	if alt then
+		spotsToSearch = filterOutAlliedSpots(spotsToSearch, extractorType)
+	end
+
+	if shift then
+		nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor)
+	elseif alt then
+		-- When ALT is held, find closest spot from filtered spots
+		nearestSpot = math.getClosestPosition(x, z, spotsToSearch)
 	else
-		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo) or
-			WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+		if isMetalExtractor then
+			nearestSpot = WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+		else
+			nearestSpot = WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+		end
 	end
 	if not nearestSpot then
 		clear()

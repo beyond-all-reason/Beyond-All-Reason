@@ -79,12 +79,45 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 end
 
 
+---@param spots table Array of spots to filter
+---@return table Filtered array of spots
+local function filterOutAlliedSpots(spots)
+	local filteredSpots = {}
+	local myTeamID = Spring.GetMyTeamID()
+
+	for i = 1, #spots do
+		local spot = spots[i]
+		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game.extractorRadius)
+		local hasAlliedExtractor = false
+
+		for j = 1, #units do
+			local unitDefID = Spring.GetUnitDefID(units[j])
+
+			if mexBuildings[unitDefID] then
+				local unitTeam = Spring.GetUnitTeam(units[j])
+				if Spring.AreTeamsAllied(myTeamID, unitTeam) and unitTeam ~= myTeamID then
+					hasAlliedExtractor = true
+					break
+				end
+			end
+		end
+
+		if not hasAlliedExtractor then
+			filteredSpots[#filteredSpots + 1] = spot
+		end
+	end
+	return filteredSpots
+end
+
+
 ---Get all mex spots in an area
 ---@param x number
 ---@param z number
 ---@param radius number
+---@return table Array of spots within the specified area
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
+
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
@@ -152,13 +185,16 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
+	local alt, _, _, shift = Spring.GetModKeyState()
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
+	if alt then
+		spots = filterOutAlliedSpots(spots)
+	end
 
 	if not selectedMex then
 		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots)
 
