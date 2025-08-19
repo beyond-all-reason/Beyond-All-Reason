@@ -15,6 +15,7 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -33,6 +34,7 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
+local spGetSpectatingState = Spring.GetSpectatingState
 local spI18N = Spring.I18N
 
 local SCREEN_HEIGHT = 1080
@@ -119,8 +121,24 @@ local function isPlayerInFirstPlace()
 	return allyTeams[1].allyTeamID == myAllyTeamID
 end
 
-local function isPlayerSpectating()
-	return Spring.GetMyTeamID() == nil
+local function isTie()
+	local allyTeams = widgetState.allyTeamData
+	if #allyTeams < 2 then
+		return false
+	end
+	
+	local topTeam = allyTeams[1]
+	local topCombinedScore = topTeam.score + topTeam.projectedPoints
+	
+	for i = 2, #allyTeams do
+		local otherTeam = allyTeams[i]
+		local otherCombinedScore = otherTeam.score + otherTeam.projectedPoints
+		if otherCombinedScore == topCombinedScore then
+			return true
+		end
+	end
+	
+	return false
 end
 
 local function showRoundEndPopup(roundNumber, isFinalRound)
@@ -132,8 +150,10 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	
 	local popupText = ""
 	if isFinalRound then
-		if isPlayerSpectating() then
-			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver') --zzz this never displays because defeated players are spectating
+		if isTie() then
+			popupText = spI18N('ui.territorialDomination.round.overTime')
+		elseif spGetSpectatingState() then
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver')
 		elseif isPlayerInFirstPlace() then
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.victory')
 		else
@@ -152,11 +172,11 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	popupElement:SetAttribute("style", string.format("display: block; left: %dpx; top: %dpx;", centerX, centerY))
 	
 	widgetState.popupState.isVisible = true
-	widgetState.popupState.showTime = Spring.GetGameSeconds()
+	widgetState.popupState.showTime = os.clock()
 	widgetState.popupState.roundNumber = roundNumber
 	widgetState.popupState.isFinalRound = isFinalRound
 	widgetState.popupState.playerIsFirst = isPlayerInFirstPlace()
-	widgetState.popupState.isSpectating = isPlayerSpectating()
+	widgetState.popupState.isSpectating = spGetSpectatingState()
 end
 
 local function hideRoundEndPopup()
@@ -707,9 +727,10 @@ end
 
 function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
+	local currentOSClock = os.clock()
 	
 	if widgetState.popupState.isVisible then
-		local timeSincePopup = currentTime - widgetState.popupState.showTime
+		local timeSincePopup = currentOSClock - widgetState.popupState.showTime
 		if timeSincePopup >= ROUND_END_POPUP_DELAY then
 			hideRoundEndPopup()
 		end

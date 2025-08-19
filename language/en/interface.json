@@ -723,8 +723,7 @@
 			"round": {
 				"display": "Round %{currentRound}",
 				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
-				"overtime": "Overtime",
-				"suddenDeath": "Sudden Death"
+				"overTime": "Overtime"
 			},
 			"team": {
 				"ally": "Ally %{allyNumber}"
