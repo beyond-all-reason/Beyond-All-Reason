@@ -22,7 +22,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 3,
-		minutesPerRound = 8,
+		minutesPerRound = 1,
 	},
 	long = {
 		maxRounds = 3,
@@ -51,6 +51,7 @@ local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
 local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
+local COMMANDER_POWER_MULTIPLIER = 1000
 
 local RESET_DEFEAT_FRAME = 0
 
@@ -499,6 +500,9 @@ local function processGridSquareCapture(gridID)
 				local power = unitData.power
 				if flyingUnits[unitID] then
 					power = power * FLYING_UNIT_POWER_MULTIPLIER
+				end
+				if commandersDefs[unitDefID] then
+					power = power * COMMANDER_POWER_MULTIPLIER
 				end
 				if spGetUnitIsCloaked(unitID) then
 					power = power * CLOAKED_UNIT_POWER_MULTIPLIER
