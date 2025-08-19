@@ -3870,7 +3870,7 @@ function init()
 
 		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
 
-				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		{ id = "highlightunit", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
 		  end,
