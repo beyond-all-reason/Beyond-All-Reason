@@ -1740,9 +1740,9 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and minWind+maxWind >= 0.5 then
+	if gameFrame > 0 and (minWind+maxWind >= 0.5 or refreshUi) then
 		if useRenderToTexture then
-			if currentWind ~= prevWind then
+			if currentWind ~= prevWind or refreshUi then
 				prevWind = currentWind
 
 				gl.R2tHelper.RenderToTexture(uiTex,
