@@ -255,18 +255,7 @@ local options = {
         step   	= 1,
     },
 
-	{
-		key		= "sub_header",
-		section	= "options_main",
-		type	= "separator",
-	},
-	{
-		key		= "sub_header",
-		name	= "-- Sharing and Taxes",
-		section	= "options_main",
-		type	= "subheader",
-		def		=  true,
-	},
+
 	{
 		key		= "unit_sharing_mode",
 		name	= "Unit Sharing",
@@ -274,6 +263,7 @@ local options = {
 		type	= "list",
 		section	= "options_main",
 		def		= "enabled",
+		sharing_category = "units",
 		items	= {
 			{ key = "enabled",     name = "Enabled",                     desc = "All unit sharing allowed" },
 			{ key = "t2cons", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
@@ -293,7 +283,8 @@ local options = {
 		max		= 0.99,
 		step	= 0.01,
 		section	= "options_main",
-		column	= 1,
+		sharing_category = "resources",
+		column = 1,
 	},
 	{
 		key     = "player_metal_send_threshold",
@@ -305,18 +296,32 @@ local options = {
 		max     = 100000,
 		step    = 10,
 		section = "options_main",
-		column  = 2,
+		column  = 1,
 		disabled= { key="tax_resource_sharing_amount", value = 0},
+		sharing_category = "resources",
+		depends_on = "tax_resource_sharing_amount",
 	},
-	{
-		key		= "disable_assist_ally_construction",
-		name	= "Disable Assist Ally Construction",
-		desc	= "Disables assisting allied blueprints and labs.",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
-		column	= 1,
-	},
+	    {
+        key		= "disable_assist_ally_construction",
+        name	= "Disable Assist Ally Construction",
+        desc	= "Disables assisting allied blueprints and labs.",
+        type	= "bool",
+        section	= "options_main",
+        def		= false,
+        column	= 1,
+        sharing_category = "allied_construction",
+    },
+
+    -- Sharing mode selection (set by Chobby)
+    {
+        key     = "_sharing_mode_selected",
+        name    = "Selected Sharing Mode",
+        desc    = "The sharing mode key selected in Chobby (e.g., 'no_sharing', 'limited_sharing')",
+        type    = "string",
+        section = "dev",
+        def     = "",
+        hidden  = true,
+    },
     {
         key     = "sub_header",
         section = "options_main",

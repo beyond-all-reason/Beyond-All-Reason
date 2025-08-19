@@ -18,7 +18,16 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
+
+local sharingModeUtils = VFS.Include("common/sharing_mode_utils.lua")
+local KEYS = VFS.Include("common/sharing_modoption_keys.lua")
+
+-- Check if this gadget should run based on selected sharing mode
+if not sharingModeUtils.shouldGadgetRun(KEYS.TAX_RESOURCE_SHARING_AMOUNT) then
+	return false
+end
+
+if Spring.GetModOptions()[KEYS.TAX_RESOURCE_SHARING_AMOUNT] == 0 then
 	return false
 end
 

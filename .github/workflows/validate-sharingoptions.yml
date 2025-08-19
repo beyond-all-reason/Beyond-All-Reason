@@ -1,0 +1,48 @@
+name: Validate Sharing Options
+
+on:
+  pull_request:
+    paths:
+      - 'gamedata/sharingoptions.json'
+      - '.github/schemas/sharingoptions-schema.json'
+  push:
+    branches: [ master, develop ]
+    paths:
+      - 'gamedata/sharingoptions.json'
+      - '.github/schemas/sharingoptions-schema.json'
+
+jobs:
+  validate-schema:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install AJV CLI
+      run: npm install -g ajv-cli
+      
+    - name: Validate sharing options against schema
+      run: |
+        if [ -f "gamedata/sharingoptions.json" ]; then
+          ajv validate -s .github/schemas/sharingoptions-schema.json -d gamedata/sharingoptions.json
+          echo "✅ Sharing options JSON is valid"
+        else
+          echo "⚠️  No sharingoptions.json found, skipping validation"
+        fi
+        
+    - name: Validate mode keys are unique
+      run: |
+        if [ -f "gamedata/sharingoptions.json" ]; then
+          # Check for duplicate mode keys
+          keys=$(jq -r '.modes[].key' gamedata/sharingoptions.json | sort)
+          duplicates=$(echo "$keys" | uniq -d)
+          if [ -n "$duplicates" ]; then
+            echo "❌ Duplicate mode keys found: $duplicates"
+            exit 1
+          fi
+          echo "✅ All mode keys are unique"
+        fi
