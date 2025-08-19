@@ -665,7 +665,7 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID, noUpload)
 	if targetable[weaponID] and py-7300 > Spring.GetGroundHeight(px, pz) then	-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
@@ -678,13 +678,25 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 				distortionParamTable[1] = px
 				distortionParamTable[2] = py
 				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable, noUpload) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 			end
 		end
 	end
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
+
+function widget:VisibleExplosionBatch(dataSize, dataStride, data)
+	local noUpload = true
+	local startElementIndex = pointDistortionVBO.usedElements
+	for i=1, dataSize, dataStride do
+		widget:VisibleExplosion(data[i], data[i+1], data[i+2], data[i+3], data[i+4])
+	end	
+	if noUpload then
+		uploadElementRange(pointDistortionVBO, startElementIndex -1, pointDistortionVBO.usedElements)
+	end
+end
+
+function widget:Barrelfire(px, py, pz, weaponID, ownerID, noUpload)
 	if muzzleFlashDistortions[weaponID] then
 		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
 			local distortionParamTable = distortion.distortionParamTable
@@ -693,9 +705,21 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 				distortionParamTable[1] = px
 				distortionParamTable[2] = py
 				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable, noUpload) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 			end
 		end
+	end
+end
+
+
+function widget:BarrelfireBatch(dataSize, dataStride, data)
+	local noUpload = true
+	local startElementIndex = pointDistortionVBO.usedElements
+	for i=1, dataSize, dataStride do
+		widget:Barrelfire(data[i], data[i+1], data[i+2], data[i+3], data[i+4], noUpload)
+	end	
+	if noUpload then
+		uploadElementRange(pointDistortionVBO, startElementIndex -1, pointDistortionVBO.usedElements)
 	end
 end
 

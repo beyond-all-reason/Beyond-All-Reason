@@ -212,7 +212,9 @@ local callInLists = {
 	'UnitSale',
 	'UnitSold',
 	'VisibleExplosion',
+	'VisibleExplosionBatch',
 	'Barrelfire',
+	'BarrelfireBatch',
 	'CrashingAircraft',
 	'ClearMapMarks',
 
@@ -2622,10 +2624,28 @@ function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	return
 end
 
+function widgetHandler:VisibleExplosionBatch(dataSize, dataStride, data)
+	-- dataSize, dataStride, data are flattened tables of (px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		w:VisibleExplosionBatch(dataSize, dataStride, data)
+	end
+	tracy.ZoneEnd()
+	return
+end
 function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
 	tracy.ZoneBeginN("W:Barrelfire")
 	for _, w in ipairs(self.BarrelfireList) do
 		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+function widgetHandler:BarrelfireBatch(dataSize, dataStride, data)
+	-- dataSize, dataStride, data are flattened tables of (px, py, pz, weaponID, ownerID)
+	tracy.ZoneBeginN("W:BarrelfireBatch")
+	for _, w in ipairs(self.BarrelfireBatchList) do
+		w:BarrelfireBatch(dataSize, dataStride, data)
 	end
 	tracy.ZoneEnd()
 	return
