@@ -36,10 +36,9 @@ return {
 			[3] = "armmerl",
 			[4] = "armmanni",
 			[5] = "armyork",
-			[6] = "armgremlin",
-			[7] = "armjam",
-			[8] = "armthor",
-			[9] = "armlun"
+			[6] = "armjam",
+			[7] = "armthor",
+			[8] = "armlun"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

@@ -2930,7 +2930,7 @@ if Spring.GetModOptions().techsplit then
 	labGrids["armavp"] = {
 		"armacv", "armch", "armlatnk", "armseer",
 		"armmart", "armmh", "armmanac", "armsh",
-		"", "armcroc", "armah", "",
+		"", "armcroc", "armah", "armgremlin",
 	}
 
 	labGrids["coravp"] = {

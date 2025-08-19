@@ -1943,7 +1943,8 @@ function UnitDef_Post(name, uDef)
 			[7] = "armseer",
 			[8] = "armmh",
 			[9] = "armanac",
-			[10] = "armsh"
+			[10] = "armsh",
+			[11] = "armgremlin"
 			}
 		
 		elseif name == "coravp" then
