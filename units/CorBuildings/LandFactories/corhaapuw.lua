@@ -41,7 +41,6 @@ return {
 			[5] = "corseap",
 			[6] = "corsfig",
 			[7] = "corhvytrans",
-			[8] = "corawac",
 		},
 		customparams = {
 			airfactory = true,

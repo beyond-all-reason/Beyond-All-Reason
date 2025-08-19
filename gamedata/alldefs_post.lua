@@ -1898,6 +1898,7 @@ function UnitDef_Post(name, uDef)
 				[9] = "cortermite",
 				[10] = "corhrk",
 				[11] = "corvoyr",
+				[12] = "corroach",
 			}
 
 		elseif name == "armalab" then

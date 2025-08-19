@@ -264,8 +264,8 @@ local labGrids = {
 	},
 
 	corhasy = {
-		"corhacs", "", "corsok", "corsjam",              
-		"corblackhy", "corbats", "corshiva", "corantiship",              
+		"corhacs", "", "corsok", "corantiship",              
+		"corblackhy", "corbats", "corshiva", "",              
 		"corssub", "corparrow", "corarch", "",              
 	},
 
@@ -2903,7 +2903,7 @@ if Spring.GetModOptions().techsplit then
 		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
 	}
 
-	corvp = {
+	labGrids["corvp"] = {
 		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
 		"corwolv", "corlevlr", "corraid", "",         -- raider, leveler, art
 		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
@@ -2936,7 +2936,7 @@ if Spring.GetModOptions().techsplit then
 	labGrids["coravp"] = {
 		"coracv", "corch", "corsala", "corvrad",
 		"cormart", "corban", "correap", "corsh",
-		"cormh", "corhal", "corah", "corsnap",
+		"corsnap", "corhal", "corah", "cormh",
 	}
 
 	labGrids["legavp"] = {

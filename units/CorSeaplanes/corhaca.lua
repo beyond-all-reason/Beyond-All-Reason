@@ -70,7 +70,7 @@ return {
 				[33] = "corasy",
 				[34] = "coravp",
 				[35] = "corhalab",
-				[36] = "corhasy,
+				[36] = "corhasy",
 				[37] = "corhavp",
 		},
 		customparams = {
