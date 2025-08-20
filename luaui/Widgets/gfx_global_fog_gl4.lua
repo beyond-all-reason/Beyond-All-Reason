@@ -273,6 +273,8 @@ local shadowTexture
 local quadVAO
 local shadowShader
 
+local combineRectVAO
+
 local LuaShader = gl.LuaShader
 
 local function goodbye(reason) 
@@ -383,13 +385,19 @@ local function initGL4()
 	-- init the VBO
 	local planeVBO, numVertices = gl.InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
 	local planeIndexVBO, numIndices =  gl.InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
-  local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0)
-  quadVAO = gl.GetVAO()
-  quadVAO:AttachVertexBuffer(quadVBO)
+	local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0)
+	quadVAO = gl.GetVAO()
+	quadVAO:AttachVertexBuffer(quadVBO)
   
 	fogPlaneVAO = gl.GetVAO()
 	fogPlaneVAO:AttachVertexBuffer(planeVBO)
 	fogPlaneVAO:AttachIndexBuffer(planeIndexVBO)
+
+	combineRectVAO = gl.InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, 1, 1)
+	--local combineRectVBO = gl.InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, 1, 1)
+	--combineRectVAO = gl.GetVAO()
+	--combineRectVAO:AttachVertexBuffer(combineRectVBO)
+
 	
 	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	if not groundFogShader then goodbye("Failed to compile Ground Fog GL4") end 
@@ -816,7 +824,8 @@ function widget:DrawWorld()
 		--combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
 		gl.Texture(2, fogTexture)
 		gl.Texture(3, distortiontex)
-		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		combineRectVAO:DrawArrays(GL.TRIANGLES)
 		combineShader:Deactivate()
 		--gl.TexRect(0, 0, 10000, 10000, 0, 0, 1, 1) -- dis is for debuggin!
 	end
@@ -847,17 +856,24 @@ function widget:TextCommand(cmd)
 end
 
 
-function widget:DrawScreen()
-	if autoreload then 
-		local newfps = math.max(Spring.GetFPS(), 1)
-		if shaderSourceCache.updateFlag then 
-			shaderSourceCache.updateFlag = nil
-			lastfps = newfps
-		end
-		local fogdrawus = (1000/newfps - 1000/initfps)
-		local fogdrawlast = (1000/lastfps - 1000/initfps)
-		if fogdrawlast == 0 then fogdrawlast = 0.001 end
-		gl.Text(string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
-		gl.Text(string.format("%.3f delta ms (%.1f%%) \n%.3f ms total draw time\nNo fog FPS = %d", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps, initfps ),  vsx - 600,  80, 16, "d")
+if autoreload then 
+	function widget:DrawScreen()
+			local newfps = math.max(Spring.GetFPS(), 1)
+			if shaderSourceCache.updateFlag then 
+				shaderSourceCache.updateFlag = nil
+				lastfps = newfps
+			end
+			local fogdrawus = (1000/newfps - 1000/initfps)
+			local fogdrawlast = (1000/lastfps - 1000/initfps)
+			if fogdrawlast == 0 then fogdrawlast = 0.001 end
+			gl.Text(string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
+			gl.Text(string.format("%.3f delta ms (%.1f%%) \n%.3f ms total draw time\nNo fog FPS = %d", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps, initfps ),  vsx - 600,  80, 16, "d")
+
+
+	
+			if groundFogShader.DrawPrintf then groundFogShader.DrawPrintf() end
+			if combineShader.DrawPrintf then combineShader.DrawPrintf(nil,nil, -70) end
+	
+
 	end
 end

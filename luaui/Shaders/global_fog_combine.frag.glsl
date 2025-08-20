@@ -1,4 +1,6 @@
-#version 150 compatibility
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
 
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
@@ -8,8 +10,14 @@ uniform float gameframe;
 uniform float distortionlevel;
 uniform float resolution = 2.0;
 
+//__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 // https://github.com/libretro/common-shaders/blob/master/include/quad-pixel-communication.h 
+
+in DataVS {
+	vec4 sampleUVs;
+};
+out vec4 fragColor;
 
 vec2 quadVector;
 vec4 get_quad_vector_naive(vec4 output_pixel_num_wrt_uvxy)
@@ -135,14 +143,14 @@ vec3 Reinhard(const vec3 x) {
 
 void main(void) {
 	if (abs(resolution - 2.0) > 0.01){
-		gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st);
-		//gl_FragColor = texelFetch(fogbase, ivec2(gl_TexCoord[0].st * (vec2(VSX,VSY) ) /int(resolution) ),0); return; // for debugging!
+		fragColor = texture2D(fogbase, sampleUVs.st);
+		//fragColor = texelFetch(fogbase, ivec2(sampleUVs.st * (vec2(VSX,VSY) ) /int(resolution) ),0); return; // for debugging!
 		
 	}else{ // this part only works with half-rez!
-		vec2 screenUVTexelCentered = gl_TexCoord[0].xy; // This matches gl_FragCoord.xy/viewSizes, so it is texel centered
+		vec2 screenUVTexelCentered = sampleUVs.xy; // This matches gl_FragCoord.xy/viewSizes, so it is texel centered
 		
 		quadVector = quadGetQuadVector(gl_FragCoord.xy);	
-		//gl_FragColor.rgba = debugQuad(quadVector);return;
+		//fragColor.rgba = debugQuad(quadVector);return;
 	  	
 		float mapdepth = texture(mapDepths, screenUVTexelCentered).x;
 		float modeldepth = texture(modelDepths, screenUVTexelCentered).x;
@@ -165,8 +173,9 @@ void main(void) {
 		float modelpercent = quadGatherMean(ismodel); // [0-1] depending on #model fragments in quad
 		float discontinuity = step(32,abs(dx) + abs(dy)); // 0 or 1 if we have any discontinuity here or in immediate neighbours. (NOTE THAT THIS IS NOT QUAD LEVEL, as diagonal is not taken into account!)
 		
+		printf(modelpercent);
 		
-		vec2 fogUVLocal = gl_TexCoord[0].zw;
+		vec2 fogUVLocal = sampleUVs.zw;
 		// the quadshift vector points outward from each quad pixel, exactly to the center of the halfsize pixel
 		vec2 quadShift = (0.5 / vec2(1*VSX, VSY)) * (quadVector * vec2(1.0, 1.0));
 
@@ -175,28 +184,29 @@ void main(void) {
 				// This is exploiting the hardware sampler in a very nasty fashion by the way...
 				vec4 fogSampleLocal = texture(fogbase, fogUVLocal - 0.5*quadShift); 
 				// THIS EARLY BAIL IS SUPER NICE, BUT DOES NOT SOLVE THE BILATERAL FILTERING PROBLEM!
-				gl_FragColor = vec4(fogSampleLocal.rgb * fogSampleLocal.a, fogSampleLocal.a); return;
+				fragColor = vec4(fogSampleLocal.rgb * fogSampleLocal.a, fogSampleLocal.a); return;
 			}
 		}
 		// Define our "base" fog UV coords, these are the UV coordinates that are not at precise halfsize texel centers, but interpolated at about 0.75 close to nearest halfsize texel
+		printf(discontinuity);
 	
 		vec4 fogSampleLocal = texture(fogbase, fogUVLocal); 
 
 		// Debug base fog uv coords:
-		//gl_FragColor = vec4(fogSampleLocal.rgb * fogSampleLocal.a, fogSampleLocal.a); return;
+		//fragColor = vec4(fogSampleLocal.rgb * fogSampleLocal.a, fogSampleLocal.a); return;
 		
 		// QuadShift is a vector pointing from our texel center to the center of the nearest halfsize full texel center. 
 		vec4 fogSampleNearestTexelCenter = texture(fogbase, fogUVLocal + quadShift);
 		
 		// Debug nearest texel center sample:
-		//gl_FragColor = vec4(fogSampleNearestTexelCenter.rgb * fogSampleNearestTexelCenter.a, fogSampleNearestTexelCenter.a); return;
+		//fragColor = vec4(fogSampleNearestTexelCenter.rgb * fogSampleNearestTexelCenter.a, fogSampleNearestTexelCenter.a); return;
 		
 		// what if, according to my own quad, we sampled once very far out per quad, essentially smoothing out 4 texels
 		// THIS IS THE GOLDEN SAMPLE!
 		vec4 fogSampleSmoothed = texture(fogbase, fogUVLocal + 3*quadShift);
 
 		// Debug smoothed sample:
-		//gl_FragColor = vec4(fogSampleSmoothed.rgb * fogSampleSmoothed.a, fogSampleSmoothed.a); return;
+		//fragColor = vec4(fogSampleSmoothed.rgb * fogSampleSmoothed.a, fogSampleSmoothed.a); return;
 
 		// Collect the smoothed sample, one by one:
 		vec4 smoothWeights = selfWeights;
@@ -209,15 +219,15 @@ void main(void) {
 			dot( vec4(fogSampleSmoothed.z, fogSampleSmoothedAdjX.z, fogSampleSmoothedAdjY.z, fogSampleSmoothedDiag.z), smoothWeights),
 			dot( vec4(fogSampleSmoothed.w, fogSampleSmoothedAdjX.w, fogSampleSmoothedAdjY.w, fogSampleSmoothedDiag.w), smoothWeights)
 			);
-		//gl_FragColor = vec4(smoothcolor.rgb * smoothcolor.a, smoothcolor.a); return;
+		//fragColor = vec4(smoothcolor.rgb * smoothcolor.a, smoothcolor.a); return;
 		
 		// Mix the smoothed and unsmoothed based on discontinuity
 		#define SF 0.75
 		fogSampleNearestTexelCenter.rgb = mix(smoothcolor.rgb, fogSampleNearestTexelCenter.rgb, (1.0- SF) * discontinuity + SF );
 		
-		gl_FragColor.rgb = fogSampleNearestTexelCenter.rgb;
+		fragColor.rgb = fogSampleNearestTexelCenter.rgb;
 		// Debug the mixture
-		//gl_FragColor = vec4(fogSampleNearestTexelCenter.rgb * fogSampleNearestTexelCenter.a, fogSampleNearestTexelCenter.a); return;
+		//fragColor = vec4(fogSampleNearestTexelCenter.rgb * fogSampleNearestTexelCenter.a, fogSampleNearestTexelCenter.a); return;
 
 	
 		vec4 gatherAlpha = quadGather(fogSampleNearestTexelCenter.a, quadVector);
@@ -230,67 +240,67 @@ void main(void) {
 		
 		float localsmoothalpha = dot(gatherAlpha, smoothingvec);
 		
-		gl_FragColor.a = localsmoothalpha;
+		fragColor.a = localsmoothalpha;
 
 		if (discontinuity < 0.5){ // NOT discontinous
-			if (modelpercent > 0.33) gl_FragColor.a = minAlpha;
+			if (modelpercent > 0.33) fragColor.a = minAlpha;
 			
-			//gl_FragColor.a = (ismodel > 0.5 ? minAlpha :maxAlpha);
+			//fragColor.a = (ismodel > 0.5 ? minAlpha :maxAlpha);
 		}else{ // has a discontinuity
 			//TODO: also modulate color!
 			
 			if (modelpercent > 0.2) { // if any fragment in quad is a model fragment, the whole quad gets
-				//gl_FragColor.rgb = vec3(0,1,0);
-				gl_FragColor.rgb = fogSampleLocal.rgb;
+				//fragColor.rgb = vec3(0,1,0);
+				fragColor.rgb = fogSampleLocal.rgb;
 				
-				//gl_FragColor.a = minAlpha;
+				//fragColor.a = minAlpha;
 				if (ismodel > 0.5){
-					gl_FragColor.a = minAlpha;
+					fragColor.a = minAlpha;
 				}else{
-					gl_FragColor.a = fogSampleLocal.a;
+					fragColor.a = fogSampleLocal.a;
 				}
 				}
 			else{
 			
-				gl_FragColor.rgb = fogSampleLocal.rgb;
-				//if (dy * quadVector.y > 32 ) gl_FragColor.a = maxAlpha;
-				//if (dy * quadVector.y < -32 ) gl_FragColor.a = minAlpha;
+				fragColor.rgb = fogSampleLocal.rgb;
+				//if (dy * quadVector.y > 32 ) fragColor.a = maxAlpha;
+				//if (dy * quadVector.y < -32 ) fragColor.a = minAlpha;
 				
-				//if (dx * quadVector.x > 32 ) gl_FragColor.a = maxAlpha;
-				//if (dx * quadVector.x < -32 ) gl_FragColor.a = minAlpha;
+				//if (dx * quadVector.x > 32 ) fragColor.a = maxAlpha;
+				//if (dx * quadVector.x < -32 ) fragColor.a = minAlpha;
 				
 				
-				if (dx > 32) gl_FragColor.a = maxAlpha;
-				if (dx < -32) gl_FragColor.a = minAlpha;
+				if (dx > 32) fragColor.a = maxAlpha;
+				if (dx < -32) fragColor.a = minAlpha;
 
 				// bunch of fucking debug statements:
 				#if 0
-					gl_FragColor.rgba = vec4(1.0); // debug all goddamned pixels
-					if (dy * quadVector.y > 32) gl_FragColor = vec4(1,0,0,1);
-					if (dy * quadVector.y < -32) gl_FragColor = vec4(0,1,0,1);
+					fragColor.rgba = vec4(1.0); // debug all goddamned pixels
+					if (dy * quadVector.y > 32) fragColor = vec4(1,0,0,1);
+					if (dy * quadVector.y < -32) fragColor = vec4(0,1,0,1);
 
 					
-					if (dx * quadVector.x > 32) gl_FragColor = vec4(0,0,1,1);
-					if (dx * quadVector.x < -32) gl_FragColor = vec4(0,1,1,1);
+					if (dx * quadVector.x > 32) fragColor = vec4(0,0,1,1);
+					if (dx * quadVector.x < -32) fragColor = vec4(0,1,1,1);
 
 				#endif
-				//if (dy > 32) gl_FragColor.a = minAlpha;
-				//if (dy < -32) gl_FragColor.a = maxAlpha; // very unlikely to happen
-				//if (dx < -32) gl_FragColor.a = minAlpha;
+				//if (dy > 32) fragColor.a = minAlpha;
+				//if (dy < -32) fragColor.a = maxAlpha; // very unlikely to happen
+				//if (dx < -32) fragColor.a = minAlpha;
 			
 			}
-			//else gl_FragColor.a = maxAlpha;
+			//else fragColor.a = maxAlpha;
 			// Need to order fucking pixels within a quad? for fuck's sake
 		}
-		//gl_FragColor.rgba = vec4(0);
+		//fragColor.rgba = vec4(0);
 		
-		//gl_FragColor.r += step(modeldepth, mapdepth);
+		//fragColor.r += step(modeldepth, mapdepth);
 		// handle Luma Bleed:
 		// https://blog.demofox.org/2018/07/13/blending-an-hdr-color-into-a-u8-buffer/
 		//Reinhard
-		gl_FragColor.a = min(gl_FragColor.a, 0.99) ;
-		gl_FragColor.rgb *= gl_FragColor.a;
-		//gl_FragColor.rgb = Reinhard(gl_FragColor.rgb);
-		//gl_FragColor.a = gatherAlpha.a;
+		fragColor.a = min(fragColor.a, 0.99) ;
+		fragColor.rgb *= fragColor.a;
+		//fragColor.rgb = Reinhard(fragColor.rgb);
+		//fragColor.a = gatherAlpha.a;
 	}
 }

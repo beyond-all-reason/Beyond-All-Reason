@@ -1700,6 +1700,7 @@ void main(void)
 		fragColor.rgb *= fragColor.a;
 	#endif
 	
+	printf(fragColor.rgba);
 	return;
 
 
