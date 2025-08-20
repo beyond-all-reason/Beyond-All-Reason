@@ -61,14 +61,16 @@ return {
 			[27] = "armvp",
 			[28] = "armap",
 			[29] = "armsy",
-			[30] = "armsd",
+			[31] = "armbrtha",
+			[32] = "armsilo",
+			[33] = "armvulc"
 		},
 		customparams = {
 			minesweeper = 600,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {

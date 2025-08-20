@@ -80,7 +80,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {

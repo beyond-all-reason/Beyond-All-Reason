@@ -72,6 +72,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmSeaplanes",
+			techlevel = 3,
 			unitgroup = "builder",
 		},
 		sfxtypes = {

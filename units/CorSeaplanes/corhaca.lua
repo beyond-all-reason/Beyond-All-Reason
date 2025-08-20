@@ -72,7 +72,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
 			unitgroup = "buildert2",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

@@ -2092,7 +2092,6 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[31] = "armnanotc"
 			}
 
 		elseif name == "corack" then
@@ -2121,7 +2120,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "corvp",
 				[23] = "corap",
 				[24] = "corsy",
-				[28] = "cornanotc",
 			}
 
 		elseif name == "legack" then
@@ -2328,7 +2326,6 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armnanotc"
 			}
 		
 		elseif name == "coracv" then
@@ -2357,7 +2354,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "corlab",
 				[23] = "corap",
 				[24] = "corsy",
-				[28] = "cornanotc",
 			}
 		
 		elseif name == "legacv" then
@@ -2587,7 +2583,6 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armnanotc"
 			}
 		
 		elseif name == "coraca" then
@@ -2619,7 +2614,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "corvp",
 				[23] = "corlab",
 				[24] = "corsy",
-				[25] = "cornanotc",
 			}
 
 		elseif name == "legca" then
@@ -2774,9 +2768,9 @@ function UnitDef_Post(name, uDef)
 				[26] = "armlab",
 				[27] = "armap",
 				[28] = "armhaapuw",
-				[31] = "armnanotcplat",
-				[32] = "armferret",
-				[33] = "armcir"
+				[29] = "armferret",
+				[30] = "armcir",
+				[31] = "armsd",
 			}
 
 		elseif name == "coracsub" then
@@ -2806,7 +2800,6 @@ function UnitDef_Post(name, uDef)
 				[23] = "corlab",
 				[24] = "corsy",
 				[25] = "corasy",
-				[26] = "cornanotcplat",
 			}
 		
 
@@ -2856,22 +2849,28 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.techlevel = 2
 		end
 
-		------------------
-    	-- Tier Correction
-		-- This section is incomplete. Should change the tech levels for all rosters so the announcer is accurate.
+		-----------------------------
+    	-- Correct Tier for Announcer
 
-		if name == "corhack" or name == "coraak" or name == "cormort" or name == "corcan" or name == "cormort"or name == "corcan"or name == "corpyro"or name == "coramph"or name == "cormando"
-		or name == "leghack" or name == "legadvaabot"  or name ==  "legstr" or name == "legshot" or name == "leginfestor" or name == "legamph" or name == "legsnapper" or name == "legbart" 
-		or name == "armhack" or name == "armfido" or name ==  "armaak" or name == "armzeus" or name == "armmav" or name == "armamph" or name == "armspid" or name == "armfast" or name == "armvader"
-		or name == "cormuskrat" or name ==  "corhacv" or name ==   "cormlv" or name ==  "corgarp" or name ==  "corsala" or name ==  "corparrow" or name ==  "corban" or name == "correap" or name ==  "cormart"
-		or name == "armhacv" or name ==  "armbeaver" or name ==  "armmlv" or name ==  "armcroc" or name == "armlatnk" or name ==  "armpincer" or name ==  "armmart" or name == "armgremlin"
-		or name == "leghacv" or name ==  "legotter" or name ==  "legamphtank" or name ==  "legmlv" or name ==  "legmrv" or name ==  "legfloat" or name ==  "legaskirmtank" or name ==  "legamcluster" or name ==  "legvcarry"
+		if name == "armch" or name == "armsh" or name == "armanac" or name == "armah" or name == "armmh"
+		or name == "armcsa" or name == "armsaber" or name == "armsb" or name == "armseap" or name == "armsfig" or name == "armsehak" or name == "armhvytrans"
+		or name == "corch" or name == "corsh" or name == "corsnap" or name == "corah" or name == "cormh" or name == "corhal"
+		or name == "corcsa" or name == "corcut" or name == "corsb" or name == "corseap" or name == "corsfig" or name == "corhunt" or name == "corhvytrans"
 		then
-			uDef.customparams.techlevel = 1
-		end
-
-	
+			uDef.customparams.techlevel = 2
 		
+		elseif name == "armsnipe" or name == "armfboy" or name == "armaser" or name == "armdecom" or name == "armscab"
+		or name == "armbull" or name == "armmerl" or name == "armmanni" or name == "armyork" or name == "armjam"
+		or name == "armserp" or name == "armbats" or name == "armepoch" or name == "armantiship" or name == armaas"
+		or name == "armhawk" or name == "armpnix" or name == "armlance" or name == "armawac" or name == "armdfly" or name == "armliche" or name == "armblade" or name == "armbrawl" or name == "armstil"
+		or name == "corsumo" or name == "cordecom" or name == "corsktl" or name == "corspec"
+		or name == "corgol" or name == "corvroc" or name == "cortrem" or name == "corsent" or name == "coreter" or name == "corparrow"
+		or name == "corssub" or name == "corbats" or name == "corblackhy" or name == "corarch" or name == "corantiship"
+		or name == "corape" or name == "corhurc" or name == "cortitan" or name == "corvamp" or name == "corseah" or name == "corawac" or name == "corcrwh"
+		then
+			uDef.customparams.techlevel = 3
+
+		end
 
 		--------------------------
 		-- Legion Air Placeholders
@@ -2939,7 +2938,7 @@ function UnitDef_Post(name, uDef)
 				[25] = "armvp",
 				[26] = "armsy",
 				[27] = "armap",
-				[28] = "armaap",
+				[28] = "armhaapuw",
 				[29] = "armavp",
 				[30] = "armasy",
 				[31] = "armnanotc",
@@ -2981,7 +2980,7 @@ function UnitDef_Post(name, uDef)
 				[23] = "corap",
 				[24] = "corsy",
 				[25] = "coralab",
-				[26] = "coraap",
+				[26] = "corhaapuw",
 				[27] = "corasy",
 				[28] = "cornanotc",
 			}

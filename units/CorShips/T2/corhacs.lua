@@ -60,14 +60,17 @@ return {
 			[29] = "corlab",
 			[30] = "corap",
 			[31] = "corvp",
-			[32] = "corsy"
+			[32] = "corsy",
+			[33] = "corint",
+			[34] = "corsilo",
+			[35] = "corbuzz"
 		},
 		customparams = {
 			minesweeper = 600,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {

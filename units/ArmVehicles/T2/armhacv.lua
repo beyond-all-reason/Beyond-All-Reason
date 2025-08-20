@@ -78,7 +78,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {
