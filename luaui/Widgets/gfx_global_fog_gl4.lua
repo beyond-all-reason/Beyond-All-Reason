@@ -595,15 +595,26 @@ function widget:Initialize()
 		sliderElement.inner_rml = sliderhtmlstring
 		-- Add the lister:
 		sliderElement:AddEventListener('change', function(event)
-			Spring.Echo(event, event.target_element)
+			--Spring.Echo(event, event.target_element, event.parameters)
+			local newvalue = nil 
+
+			-- The eventproxy userdata object contains the new value, otherwise you can only get the previous value :D 
+			if event and event.parameters and event.parameters.value then 
+				newvalue = tonumber(event.parameters.value)
+			end
+
 			-- https://mikke89.github.io/RmlUiDoc/pages/lua_manual/api_reference.html#Element
 			local slider = event.target_element
-			local value = tonumber(slider.attributes.value)
-			Spring.Echo("slider changed", slider.id, slider.min, slider.max, slider.step, value)
-			local element = document:GetElementById(slider.id)
-			Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
-			Spring.Echo(element:GetAttribute("min"))
-			Spring.Echo(element:GetAttribute("value"))
+			if slider.attributes.value == newvalue then 
+				Spring.Echo("Slider value did not change", slider.id, slider.attributes.value, newvalue)
+				return
+			end
+			local value = newvalue or tonumber(slider.attributes.value)
+			-- Spring.Echo("slider changed", slider.id, slider.min, slider.max, slider.step, value)
+			-- local element = document:GetElementById(slider.id)
+			-- Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
+			-- Spring.Echo(element:GetAttribute("min"))
+			-- Spring.Echo(element:GetAttribute("value"))
 			shaderDefinesChangedCallback(slider.id, value, nil, nil)
 		end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
 
