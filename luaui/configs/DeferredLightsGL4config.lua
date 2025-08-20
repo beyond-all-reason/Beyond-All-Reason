@@ -25884,8 +25884,8 @@ local unitLights = {
 		eyesfront = {
 			lightType = 'beam',
 			pieceName = 'torso',
-			lightConfig = { posx = -3, posy = 9.2, posz = 6.2, radius = 2,
-							pos2x = 3, pos2y = 9.2, pos2z = 6.2,
+			lightConfig = { posx = 0, posy = 9, posz = 6.2, radius = 2,
+							pos2x = 0, pos2y = 15, pos2z = 6.2,
 							color2r = 0, color2g = 0, color2b = 0, colortime = -1.5,
 							r = 1.2, g = 0.2, b = 0.2, a = 1.2,
 							modelfactor = 0.4, specular = 0.3, scattering = 1, lensflare = 0,
@@ -25893,7 +25893,7 @@ local unitLights = {
 		},
 		armright = {
 			lightType = 'point',
-			pieceName = 'gun',
+			pieceName = 'rbarrel',
 			lightConfig = { posx = -8.3, posy = 2, posz = 11, radius = 3,
 							color2r = 0, color2g = 0, color2b = 0, colortime = -1,
 							r = -1, g = 0.2, b = 0.2, a = 0.75,
@@ -25902,7 +25902,7 @@ local unitLights = {
 		},
 		armleft = {
 			lightType = 'point',
-			pieceName = 'gun',
+			pieceName = 'lbarrel',
 			lightConfig = { posx = 8.3, posy = 2, posz = 11, radius = 3,
 							color2r = 0, color2g = 0, color2b = 0, colortime = -1,
 							r = -1, g = 0.2, b = 0.2, a = 0.75,
