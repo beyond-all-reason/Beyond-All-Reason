@@ -14,6 +14,7 @@ end
 
 local orders = {}
 local distToIgnore = 500 -- any initial commands outside of this distance from the unload point will be ignored, to stop units walking back to their origin
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 ---------------------------------------------------------------
 
@@ -29,16 +30,20 @@ function widget:UnitUnloaded(unitID)
 		for i, command in ipairs(orders[unitID]) do
 			if (#command.params >= 3) then
 				local dist = math.huge
+				local discard = false
 				if i == 1 then -- ditch first command if it's not near the starting point
 					local x, y, z = Spring.GetUnitPosition(unitID)
 					dist = math.distance3d(x, y, z, command.params[1], command.params[2], command.params[3])
 				else
 					dist = 0
 				end
-
-				if (dist <= distToIgnore) then
+				if i == 1 and command.id == CMD_TRANSPORT_TO then --if the first command is a TRANSPORT_TO then discard it it
+					discard = true
+				end
+				if (dist <= distToIgnore) and not discard then
 					table.insert(newOrders, { command.id, command.params, command.options })
 				end
+
 			end
 		end
 

@@ -33,6 +33,8 @@ local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 local CMD_STOP = CMD.STOP
 local CMD_WAIT = CMD.WAIT
 local CMD_INSERT = CMD.INSERT
+local CMD_MOVE = CMD.MOVE
+local CMD_FIGHT = CMD.FIGHT
 
 local function unameByDef(defID)
 	local ud = defID and UnitDefs[defID]
@@ -106,7 +108,8 @@ local function buildDefCaches()
 			transportCapacityMass[defID] = ud.transportMass or 0
 			transportSizeLimit[defID] = ud.transportSize or 0
 			transportCapSlots[defID] = ud.transportCapacity or 0
-			transportClass[defID] = (transportCapacityMass[defID] >= HEAVY_TRANSPORT_MASS_THRESHOLD) and "heavy" or "light"
+			transportClass[defID] = (transportCapacityMass[defID] >= HEAVY_TRANSPORT_MASS_THRESHOLD) and "heavy"
+				or "light"
 		end
 
 		local movable = (ud.speed or 0) > 0
@@ -115,7 +118,7 @@ local function buildDefCaches()
 		local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
 		local isNano = ud.isBuilder and not ud.canMove and not ud.isFactory
 		local isFactory = ud.isFactory
-		
+
 		if movable and grounded and notBuilding and notCantBeTransported then
 			isTransportableDef[defID] = true
 		end
@@ -127,7 +130,7 @@ local function buildDefCaches()
 			isFactoryDef[defID] = true
 			isTransportableDef[defID] = true
 		end
-		
+
 		unitMass[defID] = ud.mass or 0
 		unitXsize[defID] = ud.xsize or 0
 	end
@@ -223,7 +226,13 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 								bestHeavy, bestHeavyD = transportID, d
 							end
 						end
-						Ed("[TransportTo:Pick] %s candidate %s (%s) dist2=%.0f", gf(), uname(transportID), cls or "?", d)
+						Ed(
+							"[TransportTo:Pick] %s candidate %s (%s) dist2=%.0f",
+							gf(),
+							uname(transportID),
+							cls or "?",
+							d
+						)
 					end
 				else
 					Ed("[TransportTo:Pick] %s reject %s -> %s", gf(), uname(transportID), reason)
@@ -247,8 +256,15 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 end
 
 local function issuePickupAndDrop(transportID, unitID, target)
-	E("[TransportTo:Queue] %s pickup %s then drop at (%.1f,%.1f,%.1f) %s",
-		gf(), uname(unitID), target[1], target[2], target[3], uname(transportID))
+	E(
+		"[TransportTo:Queue] %s pickup %s then drop at (%.1f,%.1f,%.1f) %s",
+		gf(),
+		uname(unitID),
+		target[1],
+		target[2],
+		target[3],
+		uname(transportID)
+	)
 	GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, 0)
 	GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, { target[1], target[2], target[3], UNLOAD_RADIUS }, { "shift" })
 end
@@ -286,8 +302,7 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 end
 
 function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-
-	-- busyTransport[TransportID] = nil
+	busyTransport[transportID] = nil
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
@@ -319,8 +334,12 @@ function widget:CommandsChanged()
 end
 
 function widget:CommandNotify(cmdID, params, opts)
+	-- local commandQueue = GetUnitCommands(unitID, -1) or {}
+	local selected = Spring.GetSelectedUnits()
 	if cmdID == CMD_TRANSPORT_TO then
-		return true
+		if #selected > 1 then
+			return true
+		end
 	end
 	return false
 end
@@ -340,7 +359,7 @@ function widget:Update(dt)
 			local ux, uy, uz = GetUnitPosition(unitID)
 			local tID, cls = pickBestTransport(unitID, ux, uz, req.unitDefID)
 			if tID and isValidAndMine(tID) then
-				-- busyTransport[tID] = true
+				busyTransport[tID] = true
 				local target = { req[1], req[2], req[3] }
 				E("[TransportTo:Pick] %s assigned %s (%s) -> %s", gf(), uname(tID), cls or "?", uname(unitID))
 				issuePickupAndDrop(tID, unitID, target)
@@ -365,15 +384,15 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 
 	if not bypass then
 		if commandQueue[1] then
-		if commandQueue[1].id ~= CMD_TRANSPORT_TO then
-			return
+			if commandQueue[1].id ~= CMD_TRANSPORT_TO then
+				return
+			else
+				cmdParams = commandQueue[1].params
+				cmdOpts = commandQueue[1].options
+			end
 		else
-			cmdParams = commandQueue[1].params
-			cmdOpts = commandQueue[1].options
+			return
 		end
-	else
-		return
-	end
 	end
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
@@ -385,10 +404,9 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 	if not pendingRequests[unitID] then
 		pendingRequests[unitID] = { x, y, z, requestedGF = GameFrame(), unitDefID = unitDefID }
 	end
-	
+
 	local t = unitRequestedType(unitDefID)
-	E("[TransportTo] %s pending (UnitCommand): %s -> (%.1f,%.1f,%.1f) type=%s",
-		gf(), uname(unitID), x, y, z, t)
+	E("[TransportTo] %s pending (UnitCommand): %s -> (%.1f,%.1f,%.1f) type=%s", gf(), uname(unitID), x, y, z, t)
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
@@ -399,16 +417,16 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not unitTeam or not AreTeamsAllied(unitTeam, myTeamID) then
 		return
 	end
-	if cmdOpts and cmdOpts.internal then
-		return
-	end
+	-- if cmdOpts and cmdOpts.internal then
+	-- 	return
+	-- end
 
 	if cmdID == CMD_TRANSPORT_TO then
 		local commandQueue = GetUnitCommands(unitID, 2)
-		if commandQueue[1] then 
+		if commandQueue[1] and not(commandQueue[1].id == CMD_MOVE or commandQueue[1].id == CMD_FIGHT) then
 			return
 		else
-			E("[TransportTo] %s using bypass for transportee %s",  gf(), uname(unitID))
+			E("[TransportTo] %s using bypass for transportee %s", gf(), uname(unitID))
 			handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, true)
 		end
 	end
