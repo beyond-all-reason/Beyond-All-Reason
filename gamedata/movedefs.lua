@@ -55,8 +55,8 @@ local moveDatas = {
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
+		footprintx = 3,
+		footprintz = 3,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
@@ -101,8 +101,8 @@ local moveDatas = {
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = 252,
-		footprintx = 8,
-		footprintz = 8,
+		footprintx = 9,
+		footprintz = 9,
 		minwaterdepth = 15,
 	},
 
@@ -165,7 +165,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
+	-- cormlv armmflash corgator legmrv  leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -179,7 +179,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
+	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin armmlv
 	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
@@ -253,7 +253,7 @@ local moveDatas = {
 		}
 	},
 
-	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -266,7 +266,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr corhrk
+	--  armfido leggstr corhrk armmav armfast armzeus
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
