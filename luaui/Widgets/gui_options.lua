@@ -170,9 +170,6 @@ local widgetScale = (vsy / 1080)
 
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
-WG["IntroCameraIsDone"] = true
-IntroCameraIsPlaying = true
-
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
 	groundAmbientColor = { gl.GetSun("ambient") },
@@ -925,11 +922,6 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	if not MapCameraStartupInit then
-		widgetHandler:EnableWidget("Map Camera Startup")
-		MapCameraStartupInit = true
-	end
-	
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
@@ -992,22 +984,8 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if ((not WG.IntroCameraInitialised) or WG.IntroCameraIsDone) and WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
+		if WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
-			if IntroCameraIsPlaying then
-				local halfLife = cameraTransitionTime
-				if halfLife <= 1 then
-					halfLife = halfLife * 200
-				else
-					halfLife = halfLife * 600 - 400
-				end
-				Spring.SetConfigFloat("CamSpringHalflife", halfLife)
-				IntroCameraIsPlaying = false
-			end
-		elseif WG.IntroCameraInitialised and not WG.IntroCameraIsDone then
-			IntroCameraIsPlaying = true
-			Spring.SetCameraState(nil, 3.25)
-			Spring.SetConfigFloat("CamSpringHalflife", 800)
 		end
 	--end
 
@@ -1241,8 +1219,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
+					WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 				end
-				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -1430,7 +1408,10 @@ function widget:DrawScreen()
 			end
 		else
 			if WG['guishader'] then
-				WG['guishader'].DeleteDlist('options')
+				if backgroundGuishader then
+					WG['guishader'].RemoveDlist('options')
+					backgroundGuishader = glDeleteList(backgroundGuishader)
+				end
 				if textInputDlist then
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
@@ -3141,18 +3122,6 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "enableintrocamera", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.enableintrocamera'), type = "bool", value = Spring.GetConfigInt('enableintrocamera', 1) == 1, description = Spring.I18N('ui.settings.option.enableintrocamera_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('enableintrocamera', value and 1 or 0)
-				widgetHandler:EnableWidget("Map Camera Startup")
-			end
-		},
-		{ id = "camerapreserveangleonstart", group = "control", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.camerapreserveangleonstart'), type = "bool", value = Spring.GetConfigInt('camerapreserveangleonstart', 0) == 1, description = Spring.I18N('ui.settings.option.camerapreserveangleonstart_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('camerapreserveangleonstart', value and 1 or 0)
-				widgetHandler:EnableWidget("Map Camera Startup")
-			end
-		},
 		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
@@ -3901,7 +3870,7 @@ function init()
 
 		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
 
-				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		{ id = "highlightunit", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
 		  end,
@@ -6883,7 +6852,7 @@ function widget:Shutdown()
 		end
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
 		WG['guishader'].RemoveScreenRect('options_select')
 		WG['guishader'].RemoveScreenRect('options_select_options')

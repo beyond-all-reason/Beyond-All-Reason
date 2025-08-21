@@ -317,8 +317,8 @@ function widget:DrawScreen()
 		-- draw the panel
 		glCallList(mainDList)
 		if WG['guishader'] then
-			if backgroundGuishader ~= nil then
-				glDeleteList(backgroundGuishader)
+			if backgroundGuishader then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
@@ -336,8 +336,11 @@ function widget:DrawScreen()
 		end
 
 	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('gameinfo')
+		if backgroundGuishader then
+			if WG['guishader'] then
+				WG['guishader'].RemoveDlist('gameinfo')
+			end
+			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
 	end
 end
@@ -512,7 +515,10 @@ function widget:Shutdown()
 		mainDList = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('gameinfo')
+		WG['guishader'].RemoveDlist('gameinfo')
+	end
+	if backgroundGuishader then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
