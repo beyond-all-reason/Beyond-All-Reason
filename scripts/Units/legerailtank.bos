@@ -1,36 +1,37 @@
 
 #include "../recoil_common_includes.h"
 
-piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAFlare, //5
-				leftBTurretBase, leftBTurret, leftBGun, leftBFlare, //9
-				rightATurretBase, rightATurret, rightAGun, rightAFlare, //13
-				rightBTurretBase, rightBTurret, rightBGun, rightBFlare, //17
-				tracks, trackGuards, railTurretBase, railTurret, //21
-				railBotLeft, railBotMid, rightRailFlare, //24
-				railBotRight, railTopLeft, midRailFlare, //27
-				railTopMid, railTopRight, leftRailFlare, aimpoint; //30
+piece  	base, 	turretBaseHeadingPivot,
+				turretStrutPivotPitch,
+				turretHousing,
+				railTopRight, //4
+				railBotRight,
+				railTopMid, //6
+				railBotMid,
+				railTopLeft, //8
+				railBotLeft,
+				leftFlare,
+				midFlare,
+				rightFlare,
+				helperStrut;
 
-static-var  restore_delay, last_gun_heading, guncount,
-			wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead;
+static-var  restore_delay, last_gun_heading, guncount;
 
 
-// Signal definitions
+
+// Signal definitions	
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 #define SIG_AIM_3			8
-#define SIG_AIM_4			16
-#define SIG_AIM_5			32
-#define SIG_FIRE1 			64
-#define SIG_FIRE2 			128
-#define SIG_FIRE3 			256
-#define SIG_FIRE4 			512
-#define SIG_FIRE5			1024
+
 
 #define BASEPIECE base
 #define HITSPEED <85.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 9
 #define MAXTILT 100
+
+#define BURSTRATE 330
 
 StartMoving()
 {
@@ -48,39 +49,25 @@ StopMoving()
 
 Create()
 {
-	hide leftAFlare;
-	hide leftBFlare;
-	hide rightAFlare;
-	hide rightBFlare;
-
-	hide leftRailFlare;
-	hide rightRailFlare;
-	hide midRailFlare;
 	restore_delay = 3000;
 
-	turn rightATurretBase 	to y-axis <90>	now;
-	turn rightBTurretBase 	to y-axis <90> 	now;
-	turn leftATurretBase 	to y-axis <-90> now;
-	turn leftBTurretBase 	to y-axis <-90> now;
+	show rightFlare;
+	show midFlare;
+	show leftFlare;
 
-	move railTopLeft	to z-axis [1] now;
-	move railTopRight	to z-axis [1] now;
-	move railTopMid		to z-axis [1] now;
+	move rightFlare to z-axis 	[5] now;
+	move midFlare to z-axis 	[5] now;
+	move leftFlare to z-axis 	[5] now;
 
 	move railTopLeft	to y-axis [-1] now;
 	move railTopRight	to y-axis [-1] now;
 	move railTopMid		to y-axis [-1] now;
 
-	move railBotLeft	to z-axis [1] now;
-	move railBotRight	to z-axis [1] now;
-	move railBotMid		to z-axis [1] now;
-
 	move railBotLeft	to y-axis [1] now;
 	move railBotRight	to y-axis [1] now;
 	move railBotMid		to y-axis [1] now;
 
-
-	guncount = 24;
+	guncount = 1;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -96,32 +83,15 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 
-	turn railTurretBase to y-axis <0> speed <45>;
-	turn railTurret to x-axis <0> speed <20>;
-
-	turn rightATurretBase 	to y-axis <90>	speed <90>;
-	turn rightBTurretBase 	to y-axis <90>  speed <90>;
-	turn leftATurretBase 	to y-axis <-90>	speed <90>;
-	turn leftBTurretBase 	to y-axis <-90> speed <90>;
-
-	turn leftATurret to z-axis <0> speed <45>;
-	turn rightATurret to z-axis <0> speed <45>;
-	turn leftBTurret to z-axis <0> speed <45>;
-	turn rightBTurret to z-axis <0> speed <45>;
-
-
-
-	stop-spin leftAGun around 	x-axis decelerate <10.000000>;
-	stop-spin leftBGun around 	x-axis decelerate <10.000000>;
-	stop-spin rightAGun around 	x-axis decelerate <10.000000>;
-	stop-spin rightBGun around 	x-axis decelerate <10.000000>;
-
-	guncount = 24;
-
+	turn turretBaseHeadingPivot to y-axis <0> speed <45>;
+	turn turretStrutPivotPitch to x-axis <0> speed <20>;
+	move helperStrut to y-axis [0] speed [6];
 	
+	last_gun_heading = 0xbadface;
 
-	//guncount = 1;
+	guncount = 1;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -135,309 +105,210 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-RestoreAfterDelay2()
-{
-	sleep restore_delay;
-	stop-spin leftAGun around 	x-axis decelerate <10.000000>;
-	stop-spin leftBGun around 	x-axis decelerate <10.000000>;
-	stop-spin rightAGun around 	x-axis decelerate <10.000000>;
-	stop-spin rightBGun around 	x-axis decelerate <10.000000>;
-}
-
-
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn railTurretBase to y-axis heading speed <30.000000>;
-	turn railTurret to x-axis <0.000000> - pitch speed <15.000000>;
-	wait-for-turn railTurretBase around y-axis;
-	wait-for-turn railTurret around x-axis;
-	start-script RestoreAfterDelay();
-	last_gun_heading = heading;
-	return (1);
+
+	while( guncount != 1)
+	{
+		sleep 10;
+	}
+	if( guncount == 1)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		
+		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		{
+			last_gun_heading = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			return (0);
+		}
+		
+		last_gun_heading = heading;
+		
+		return (1);
+	}
 }
 
 Rock_Main_Cannon()
 {
-	turn base to z-axis <0> - (GET KSIN(last_gun_heading)) speed <50.005495>;
-	turn base to x-axis <0> - (GET KCOS(last_gun_heading)) speed <50.005495>;
+	turn base to z-axis <0> - ((GET KSIN(last_gun_heading))/4) speed <35.005495>;
+	turn base to x-axis <0> - ((GET KCOS(last_gun_heading))/4) speed <35.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
+	turn base to z-axis <0.000000> speed <10.000000>;
+	turn base to x-axis <0.000000> speed <10.000000>;
 }
 
 FirePrimary()
 {
-	//call-script Rock_Main_Cannon();
-	return(0);
-
-	move railTopLeft	to z-axis [1] now;
-	
-	move railTopMid		to z-axis [1] now;
-
-	move railTopLeft	to y-axis [-1] now;
-	
-	move railTopMid		to y-axis [-1] now;
-
-	move railBotLeft	to z-axis [1] now;
-	move railBotRight	to z-axis [1] now;
-	move railBotMid		to z-axis [1] now;
-
-	move railBotLeft	to y-axis [1] now;
-	move railBotRight	to y-axis [1] now;
-	move railBotMid		to y-axis [1] now;
-
-}
-
-Shot1(zero){
-	signal SIG_FIRE5;
-	set-signal-mask SIG_FIRE5;
-	if(guncount == 24){
-		emit-sfx 1024 + 0 from rightRailFlare;
-		move railTopRight	to y-axis [0] now;
-		move railTopRight	to z-axis [0] now;
-		move railBotRight	to y-axis [0] now;
-		move railBotRight	to z-axis [0] now;
-		guncount = 27;
-		call-script Rock_Main_Cannon();
-		move railTopRight	to y-axis [-1] 	speed [1];
-		move railTopRight	to z-axis [1] 	speed [1];
-		move railBotRight	to y-axis [1] 	speed [1];
-		move railBotRight	to z-axis [1] 	speed [1];
-		sleep 330;
-	}
-	if(guncount == 27){
-		emit-sfx 1024 + 0 from midRailFlare;
-		move railTopMid	to y-axis [0] now;
-		move railTopMid	to z-axis [0] now;
-		move railBotMid	to y-axis [0] now;
-		move railBotMid	to z-axis [0] now;
-		guncount = 30;
-		call-script Rock_Main_Cannon();
-		move railTopMid	to y-axis [-1] 	speed [1];
-		move railTopMid	to z-axis [1] 	speed [1];
-		move railBotMid	to y-axis [1] 	speed [1];
-		move railBotMid	to z-axis [1] 	speed [1];
-		sleep 330;
-		
-	}
-	if(guncount == 30){
-		emit-sfx 1024 + 0 from leftRailFlare;
-		move railTopLeft	to y-axis [0] now;
-		move railTopLeft	to z-axis [0] now;
-		move railBotLeft	to y-axis [0] now;
-		move railBotLeft	to z-axis [0] now;
-		guncount = 24;
-		call-script Rock_Main_Cannon();
-		move railTopLeft	to y-axis [-1] 	speed [1];
-		move railTopLeft	to z-axis [1] 	speed [1];
-		move railBotLeft	to y-axis [1] 	speed [1];
-		move railBotLeft	to z-axis [1] 	speed [1];
-		sleep 330;
-		
-	}
+	emit-sfx 1024 + 0 from rightFlare;
+	move railTopRight	to y-axis [0] now;
+	move railBotRight	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopRight	to y-axis [-1] 	speed [0.33];
+	move railBotRight	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 2;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = aimpoint;
+	piecenum = turretStrutPivotPitch;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	// if(guncount == 27){
-	// 	piecenum = leftRailFlare;
-	// }
-	// else piecenum = guncount - 3;
-
-	if(guncount == 27){
-		piecenum = rightRailFlare;
-	}
-	else if (guncount ==  30){
-		piecenum = midRailFlare;
-	}
-	else if (guncount == 24){
-		piecenum = leftRailFlare;
-	}
-
-	//return (0);
+	piecenum = rightFlare;
 }
 
-/////////////////////////////////////////////////////////////////////////
-
-AimWeapon2(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 
-	if ((heading + <33.02>) > <-117.5> AND (heading + <33.02>) < <117.5>){
-		turn rightATurret to z-axis <0.000000> + pitch speed <120.000000>;
-		turn rightATurretBase to y-axis heading + <90> speed <120.000000>;
-		//wait-for-turn rightATurret around x-axis;
-		//wait-for-turn rightATurretBase around y-axis;
-		start-script RestoreAfterDelay2();
+	while( guncount != 2)
+	{
+		sleep 10;
+	}
+	if( guncount == 2)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		
+		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		{
+			last_gun_heading = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			return (0);
+		}
+		
+		last_gun_heading = heading;
+		
 		return (1);
 	}
-	else return(0);
-
 }
 
-FireWeapon2()
+FireSecondary()
 {
-	spin rightAGun around x-axis speed <-900.000000>;
-	return (1);
+	emit-sfx 1024 + 0 from midFlare;
+	move railTopMid	to y-axis [0] now;
+	move railBotMid	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopMid	to y-axis [-1] 	speed [0.33];
+	move railBotMid	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 3;
 }
 
-Shot2(zero)
+AimFromSecondary(piecenum)
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
-	emit-sfx 1024 + 1 from rightAFlare;
-	return(1);
+	piecenum = turretStrutPivotPitch;
+	return (0);
 }
 
-AimFromWeapon2(piecenum)
+QuerySecondary(piecenum)
 {
-	piecenum = rightATurret;
+	piecenum = midFlare;
 }
 
-QueryWeapon2(piecenum)
-{
-	piecenum = rightAFlare;
-}
-
-AimWeapon3(heading, pitch)
+AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 
-	if ((heading + <73.3>) > <-100> AND (heading + <73.3>) < <100>){
-		turn rightBTurret to z-axis <0.000000> + pitch speed <120.000000>;
-		turn rightBTurretBase to y-axis heading + <90> speed <120.000000>;
-		//wait-for-turn rightBTurret around x-axis;
-		//wait-for-turn rightBTurretBase around y-axis;
-		start-script RestoreAfterDelay2();
+	while( guncount != 3)
+	{
+		sleep 10;
+	}
+	if( guncount == 3)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		
+		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		{
+			last_gun_heading = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			return (0);
+		}
+		
+		last_gun_heading = heading;
+		
 		return (1);
 	}
-	else return(0);
-
-
-
 }
 
-FireWeapon3()
+FireTertiary()
 {
-	spin rightBGun around x-axis speed <-900.000000>;
-	return (1);
+	emit-sfx 1024 + 0 from leftFlare;
+	move railTopLeft	to y-axis [0] now;
+	move railBotLeft	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopLeft	to y-axis [-1] 	speed [0.33];
+	move railBotLeft	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 1;
 }
 
-Shot3(zero)
+AimFromTertiary(piecenum)
 {
-	signal SIG_FIRE2;
-	set-signal-mask SIG_FIRE2;
-	emit-sfx 1024 + 1 from rightBFlare;
-	return(1);
+	piecenum = turretStrutPivotPitch;
+	return (0);
 }
 
-AimFromWeapon3(piecenum)
+QueryTertiary(piecenum)
 {
-	piecenum = rightBTurret;
-}
-
-QueryWeapon3(piecenum)
-{
-	piecenum = rightBFlare;
-}
-////////////////////////////////////////////////////
-
-AimWeapon4(heading, pitch)
-{
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-
-	if ((heading - <33.02>) > <-117.5> AND (heading - <33.02>) < <117.5>){
-		turn leftATurret to z-axis <0.000000> - pitch speed <120.000000>;
-		turn leftATurretBase to y-axis heading - <90> speed <120.000000>;
-		//wait-for-turn leftATurret around x-axis;
-		//wait-for-turn leftATurretBase around y-axis;
-		start-script RestoreAfterDelay2();
-		return (1);
-	}
-	else return(0);
-
-
-}
-
-FireWeapon4()
-{
-	spin leftAGun around x-axis speed <-900.000000>;
-	return (1);
-}
-
-Shot4(zero)
-{
-	signal SIG_FIRE3;
-	set-signal-mask SIG_FIRE3;
-	emit-sfx 1024 + 1 from leftAFlare;
-	return(1);
-}
-
-AimFromWeapon4(piecenum)
-{
-	piecenum = leftATurret;
-}
-
-QueryWeapon4(piecenum)
-{
-	piecenum = leftAFlare;
-}
-
-AimWeapon5(heading, pitch)
-{
-	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
-
-	if ((heading - <73.3>) > <-100> AND (heading - <73.3>) < <100>){
-		turn leftBTurret to z-axis <0.000000> - pitch speed <120.000000>;
-		turn leftBTurretBase to y-axis heading - <90> speed <120.000000>;
-		//wait-for-turn leftBTurret around x-axis;
-		//wait-for-turn leftBTurretBase around y-axis;
-		start-script RestoreAfterDelay2();
-		return (1);
-	}
-	else return(0);
-}
-
-FireWeapon5()
-{
-	spin leftBGun around x-axis speed <-900.000000>;
-	return (1);
-}
-
-Shot5(zero)
-{
-	signal SIG_FIRE4;
-	set-signal-mask SIG_FIRE4;
-	emit-sfx 1024 + 1 from leftBFlare;
-	return(1);
-}
-
-AimFromWeapon5(piecenum)
-{
-	piecenum = leftBTurret;
-}
-
-QueryWeapon5(piecenum)
-{
-	piecenum = leftBFlare;
+	piecenum = leftFlare;
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
 }
 
 Killed(severity, corpsetype)
@@ -446,41 +317,41 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode railTurretBase type BITMAPONLY | NOHEATCLOUD;
-		explode railTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretBaseHeadingPivot type BITMAPONLY | NOHEATCLOUD;
+		explode turretHousing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode railTurretBase type FALL | NOHEATCLOUD;
-		explode railTurret type FALL | NOHEATCLOUD;
-		explode leftATurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leftBTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rightATurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rightBTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretBaseHeadingPivot type FALL | NOHEATCLOUD;
+		explode turretHousing type FALL | NOHEATCLOUD;
+		explode railTopLeft type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railBotMid type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railTopRight type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railTopMid type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode railTurretBase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode railTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leftATurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode leftBTurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rightATurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rightBTurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turretBaseHeadingPivot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turretHousing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railTopLeft 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode railTopRight 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode railBotMid 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode railTopMid 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode railTurretBase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode railTurret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leftATurret  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leftBTurret  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rightATurret 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rightBTurret 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretBaseHeadingPivot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretHousing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railTopLeft  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railTopRight  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railBotMid 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railTopMid 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

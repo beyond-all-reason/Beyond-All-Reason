@@ -141,6 +141,7 @@ local unitsOfInterestNames = {
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
+	armthor = "ThorDetected",
 	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
@@ -557,8 +558,8 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('SolinvictusIsReady')
 		elseif unitDefID == juggernautDefID then
 			queueNotification('JuggernautIsReady')
-		-- elseif unitDefID == titanDefID then
-		-- 	queueNotification('TitanIsReady')
+		elseif unitDefID == titanDefID then
+		 	queueNotification('TitanIsReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
 
@@ -595,16 +596,16 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 
 	-- single detection events below
 	if isAircraft[udefID] then
-		queueNotification('AircraftSpotted')
+		queueNotification('AircraftDetected')
 	end
 	if isT2[udefID] then
-		queueNotification('T2Detected')
+		queueNotification('Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('T3Detected')
+		queueNotification('Tech3UnitDetected')
 	end
 	if isT4mobile[udefID] then
-		queueNotification('T4UnitDetected')
+		queueNotification('Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away

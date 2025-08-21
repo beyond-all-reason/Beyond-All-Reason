@@ -105,38 +105,44 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	CalamityIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	StarfallIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	AstraeusIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	SolinvictusIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	TitanIsReady = {
+		delay = 9999999,
+	},
+	ThorIsReady = {
+		delay = 9999999,
 	},
 	JuggernautIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	Tech3UnitReady = {
 		delay = 9999999,
 	},
 
 	-- Units Detected
-	T2Detected = {
+	Tech2UnitDetected = {
 		delay = 9999999,
 	},
-	T3Detected = {
+	Tech3UnitDetected = {
 		delay = 9999999,
 	},
-	T4Detected = {
+	Tech4UnitDetected = {
 		delay = 9999999,
 	},
-	AircraftSpotted = {
+	AircraftDetected = {
 		delay = 9999999,
 	},
 	MinesDetected = {
@@ -172,10 +178,10 @@ return {
 	TitanDetected = {
 		delay = 9999999,
 	},
-	FlagshipDetected = {
+	ThorDetected = {
 		delay = 9999999,
 	},
-	CommandoDetected = {
+	FlagshipDetected = {
 		delay = 9999999,
 	},
 	TransportDetected = {

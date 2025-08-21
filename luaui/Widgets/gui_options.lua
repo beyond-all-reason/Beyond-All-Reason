@@ -28,7 +28,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local languageCodes = { 'en', 'fr', 'ru' }
+local languageCodes = { 'en', 'fr', 'ru', 'es' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -36,7 +36,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'test_unicode', }
+local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'es', 'test_unicode', }
 devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
 
 local devLanguageNames = {}
@@ -1219,8 +1219,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
+					WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 				end
-				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -1408,7 +1408,10 @@ function widget:DrawScreen()
 			end
 		else
 			if WG['guishader'] then
-				WG['guishader'].DeleteDlist('options')
+				if backgroundGuishader then
+					WG['guishader'].RemoveDlist('options')
+					backgroundGuishader = glDeleteList(backgroundGuishader)
+				end
 				if textInputDlist then
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
@@ -3119,7 +3122,7 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
@@ -3230,7 +3233,6 @@ function init()
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
 		{ id = "camoverviewrestore", group = "control", category = types.advanced, widget = "Overview Camera Keep Position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camoverviewrestore'), type = "bool", value = GetWidgetToggleValue("Overview Camera Keep Position"), description = Spring.I18N('ui.settings.option.camoverviewrestore_descr') },
-
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
@@ -3753,31 +3755,6 @@ function init()
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
 
-		{ id = "seeprices", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.seeprices'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getSeePrices() or 0), description = Spring.I18N('ui.settings.option.seeprices_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "seeprices", { 'seePrices' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setSeePrices', { 'seePrices' }, value)
-			end,
-		},
-		{ id = "showaisaleoffers", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.showaisaleoffers'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getShowAIsaleOffers() or 0), description = Spring.I18N('ui.settings.option.showaisaleoffers_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "showaisaleoffers", { 'showAIsaleOffers' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setShowAIsaleOffers', { 'showAIsaleOffers' }, value)
-			end,
-		},
-		{ id = "buywithoutholdignalt", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buywithoutholdignalt'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getBuyWithoutHoldingAlt() or 0), description = Spring.I18N('ui.settings.option.buywithoutholdignalt_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "buywithoutholdignalt", { 'buyWithoutHoldingAlt' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setBuyWithoutHoldingAlt', { 'buyWithoutHoldingAlt' }, value)
-			end,
-		},
-
 		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("widgetselector", (value and 1 or 0))
@@ -3893,7 +3870,7 @@ function init()
 
 		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
 
-				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		{ id = "highlightunit", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
 		  end,
@@ -6875,7 +6852,7 @@ function widget:Shutdown()
 		end
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
 		WG['guishader'].RemoveScreenRect('options_select')
 		WG['guishader'].RemoveScreenRect('options_select_options')

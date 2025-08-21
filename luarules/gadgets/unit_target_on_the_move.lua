@@ -236,7 +236,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function sendTargetsToUnsyncedBatched(unitID)
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsyncedBatched %d", unitID))
 		local targetCount = #unitTargets[unitID].targets
-		if targetCount == 1 then 
+		if targetCount == 1 then
 			sendTargetsToUnsynced(unitID)
 		elseif targetCount > 1 then
 			local data = {}
@@ -404,7 +404,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	--------------------------------------------------------------------------------
 	-- Command Tracking
-	
+
 	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua)
 		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
 		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
@@ -414,9 +414,9 @@ if gadgetHandler:IsSyncedCode() then
 				local append = cmdOptions.shift or false
 				local userTarget = not cmdOptions.internal
 				local ignoreStop = cmdOptions.ctrl
-		
+
 				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
-				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then 
+				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
 					local targets = {}
 					if #cmdParams == 6 then
 						--rectangle
@@ -476,10 +476,10 @@ if gadgetHandler:IsSyncedCode() then
 						--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
 						-- This will re-call Gadget:AllowCommand for each order
 						-- At this point, we dont yet know how many orders will be allowed out of these
-						-- Its hard to tell which is going to be the last one, which is when we should be sending to unsynced. 
+						-- Its hard to tell which is going to be the last one, which is when we should be sending to unsynced.
 						spGiveOrderArrayToUnit(unitID, orders)
-						-- oh wait we DO know, we just need to wait here for the return. 
-						-- if we are coming from lua, then we are already 
+						-- oh wait we DO know, we just need to wait here for the return.
+						-- if we are coming from lua, then we are already
 					end
 				else
 					if #cmdParams == 3 or #cmdParams == 4 then
@@ -804,7 +804,7 @@ else	-- UNSYNCED
 	end
 
 	function handleTargetListBatchedEvent(_, count, stride, data)
-		for i =1, count, stride do 
+		for i =1, count, stride do
 			local targetB = data[i+6]
 			local targetC = data[i+7]
 			if targetB < 0 then
@@ -918,6 +918,10 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawWorld()
+		if Spring.IsGUIHidden() then
+			return
+		end
+
 		if fullview then
 			drawDecorations()
 		else
