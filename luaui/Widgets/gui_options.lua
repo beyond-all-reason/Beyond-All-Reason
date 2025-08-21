@@ -2278,7 +2278,7 @@ function init()
 		  end,
 		},
 
-		{ id = "supersampling", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.supersampling'), type = "bool", restart = false, value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0), description = Spring.I18N('ui.settings.option.supersampling_descr'),
+		{ id = "supersampling", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.supersampling'), type = "bool", restart = false, value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0), description = Spring.I18N('ui.settings.option.supersampling_descr'),
 		  onchange = function(i, value)
 			Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
 		  end,
