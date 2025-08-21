@@ -2,10 +2,10 @@ return {
 	legerailtank = {
 		acceleration = 0.035,
 		brakerate = 0.055,
-		buildcostenergy = 160000,
-		buildcostmetal = 6250,
+		buildcostenergy = 165000,
+		buildcostmetal = 6500,
 		buildpic = "LEGERAILTANK.DDS",
-		buildtime = 120000,
+		buildtime = 125000,
 		--canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
