@@ -15,7 +15,7 @@ piece  	base, 	turretBaseHeadingPivot,
 				rightFlare,
 				helperStrut;
 
-static-var  restore_delay, last_gun_heading, guncount;
+static-var  restore_delay, last_gun_heading, last_gun_pitch, guncount;
 
 
 
@@ -49,7 +49,7 @@ StopMoving()
 
 Create()
 {
-	restore_delay = 3000;
+	restore_delay = 4500;
 
 	show rightFlare;
 	show midFlare;
@@ -66,13 +66,11 @@ Create()
 	move railBotLeft	to y-axis [1] now;
 	move railBotRight	to y-axis [1] now;
 	move railBotMid		to y-axis [1] now;
+	
+	last_gun_pitch = 0xbadface;
+	last_gun_heading = 0xbadface;
 
 	guncount = 1;
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -87,6 +85,7 @@ ExecuteRestoreAfterDelay()
 	turn turretStrutPivotPitch to x-axis <0> speed <20>;
 	move helperStrut to y-axis [0] speed [6];
 	
+	last_gun_pitch = 0xbadface;
 	last_gun_heading = 0xbadface;
 
 	guncount = 1;
@@ -129,15 +128,18 @@ AimPrimary(heading, pitch)
 		
 		start-script RestoreAfterDelay();
 		
-		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
 		{
 			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
 			wait-for-turn turretBaseHeadingPivot around y-axis;
 			wait-for-turn turretStrutPivotPitch around x-axis;
 			last_gun_heading = heading;
+			last_gun_pitch = pitch;
 			return (0);
 		}
 		
+		last_gun_pitch = pitch;
 		last_gun_heading = heading;
 		
 		return (1);
@@ -201,15 +203,18 @@ AimSecondary(heading, pitch)
 		
 		start-script RestoreAfterDelay();
 		
-		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
 		{
 			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
 			wait-for-turn turretBaseHeadingPivot around y-axis;
 			wait-for-turn turretStrutPivotPitch around x-axis;
 			last_gun_heading = heading;
+			last_gun_pitch = pitch;
 			return (0);
 		}
 		
+		last_gun_pitch = pitch;
 		last_gun_heading = heading;
 		
 		return (1);
@@ -263,15 +268,18 @@ AimTertiary(heading, pitch)
 		
 		start-script RestoreAfterDelay();
 		
-		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>))
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
 		{
 			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
 			wait-for-turn turretBaseHeadingPivot around y-axis;
 			wait-for-turn turretStrutPivotPitch around x-axis;
 			last_gun_heading = heading;
+			last_gun_pitch = pitch;
 			return (0);
 		}
 		
+		last_gun_pitch = pitch;
 		last_gun_heading = heading;
 		
 		return (1);
