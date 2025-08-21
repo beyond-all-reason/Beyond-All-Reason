@@ -1060,6 +1060,8 @@
 				"limitidlefps_descr": "Reduces fps when idle for a minute (by setting vsync to a high number)\nCamera movement will break idle mode",
 				"msaa": "Anti Aliasing",
 				"msaa_descr": "Enables multisample anti-aliasing. NOTE: Can be expensive!",
+				"supersampling": "supersampling",
+				"supersampling_descr": "Enables supersampling anti-aliasing.\nNeeds anti-aliasing to be enabled.\n\nNOTE: Can be very expensive and can also make things look more blurry!",
 				"cas_sharpness": "Sharpness",
 				"cas_sharpness_descr": "How much sharpening should be applied to 3d world space",
 				"sepiatone": "Color filters",
