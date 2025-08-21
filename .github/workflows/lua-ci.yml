@@ -1,0 +1,28 @@
+name: Lua CI
+
+on:
+  pull_request:
+    paths:
+      - 'LuaUI/**.lua'
+      - 'LuaRules/**.lua'
+      - '.luacheckrc'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'LuaUI/**.lua'
+      - 'LuaRules/**.lua'
+      - '.luacheckrc'
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua & Luarocks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.3 luarocks
+          sudo luarocks install luacheck
+      - name: Luacheck
+        run: |
+          luacheck LuaUI/Widgets LuaRules/Gadgets --codes --no-color || true
