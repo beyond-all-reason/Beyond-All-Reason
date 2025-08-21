@@ -274,8 +274,23 @@ function gadget:Shutdown()
     E("[TransportTo:Gadget] %s shutdown", gf())
 end
 
+local loadedUnits = {} --[unitID=boolean]
+
 function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
     if cmdID == CMD_TRANSPORT_TO then
-        return true, false
+        if loadedUnits[unitID] then
+            loadedUnits[unitID] = nil
+            return true, true
+        else
+            return true, false
+        end
     end
 end
+
+function gadget:UnitLoaded(unitID, unitDefID, teamID, transportID)
+    loadedUnits[unitID] = true
+end
+
+-- function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
+--     loadedUnits[unitID] = false
+-- end
