@@ -4,11 +4,11 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name      = "Seismic Dots and Advanced Radar",
-		desc      = "When in Seismic LOS, reveal a wobbling radar dot. And remove wobble if in LOS of a T2 radar",
+		desc      = "When in Seismic LOS, reveal a wobbling radar dot. And allow for custom wobble if in LOS of an advanced radar",
 		author    = "Kyle Anthony Shepherd (Itanthias)",
 		date      = "Aug 7, 2025",
-		license   = "GNU GPL, v2 or later, and anyone who uses this gadget has to email me a rabbit with a sword",
-		layer     = -1,
+		license   = "GNU GPL, v2 or later, and anyone who uses this gadget has to email me a rabbit with a sword at kyleanthonyshepherd@gmail.com",
+		layer     = -1, -- to run after most gadgets have handled their stuff
 		enabled   = Spring.GetModOptions().sensor_rework
 	}
 end
@@ -16,6 +16,12 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
+
+-- Golden Ratio/Angle magic to create "random" wobble without runs of no wobble
+local goldenAngle = (2-(1 + math.sqrt(5))/2)*math.pi*2
+local goldenSteps = {1,4,7,9,12,14}
+local mRandom = math.random
+local mSqrt = math.sqrt
 
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -25,8 +31,9 @@ local spSetUnitLosState = Spring.SetUnitLosState
 local spSetUnitLosMask = Spring.SetUnitLosMask
 local spGetGameFrame = Spring.GetGameFrame
 local spSetUnitPosErrorParams = Spring.SetUnitPosErrorParams
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
 
-local allyteamlist = Spring.GetAllyTeamList() --grab the ally team list at gadget load
+local allyteamlist = Spring.GetAllyTeamList()
 
 local restoreUnitLOS = {} -- list of units to hand off los control back to engine after X frames
 
@@ -40,9 +47,8 @@ local basicRadarUpdateRate = 90
 for key, values in pairs(allyteamlist) do
 	inBasicRadar[values] = {}
 	for i=0,basicRadarUpdateRate-1 do
-		inBasicRadar[values][i] = {} -- segment the table into basicRadarUpdateRate slices
-		-- a slice will be processed each frame.
-		-- so, every basicRadarUpdateRate/30 seconds a unit will be checked to see if it enters advanced radar range.
+		inBasicRadar[values][i] = {} -- segment the table into #basicRadarUpdateRate slices
+		-- improves performace by only iterating over a fraction of the units in radar each frame
 	end
 end
 
@@ -51,9 +57,8 @@ local advancedRadarUpdateRate = 180
 for key, values in pairs(allyteamlist) do
 	inAdvancedRadar[values] = {}
 	for i=0,advancedRadarUpdateRate-1 do
-		inAdvancedRadar[values][i] = {} -- segment the table into advancedRadarUpdateRate slices
-		-- a slice will be checked each frame.
-		-- so, every advancedRadarUpdateRate/30 seconds a unit will be checked to see if it enters advanced radar range.
+		inAdvancedRadar[values][i] = {} -- segment the table into #advancedRadarUpdateRate slices
+		-- improves performace by only iterating over a fraction of the units in radar each frame
 	end
 end
 
@@ -67,10 +72,57 @@ for key, values in pairs(allyteamlist) do
 	unitInAdvancedRadar[values] = {} 
 end
 
-local unitspeeds = {}
+local unitSpeeds = {}
+local unitWobble = {}
 
-function gadget:UnitSeismicPing(x,y,z,strength,allyteam,unitID,unitDefID) -- when engine decides to make a seismic ping, run this stuff
-	
+local function customWobble(unitID,rate,radius)
+
+	if radius == 0 then
+		spSetUnitPosErrorParams(unitID,0,0,0,0,0,0,rate/15)
+	end
+
+	if unitWobble[unitID] == nil then
+		unitWobble[unitID] = {}
+		-- Create initial wobble location
+		local posErrorVectorx = mRandom()*2 - 1
+		local posErrorVectorz = mRandom()*2 - 1
+		local mag = mSqrt(posErrorVectorx^2 + posErrorVectorz^2)
+		unitWobble[unitID].posErrorVectorx = posErrorVectorx*radius/mag
+		unitWobble[unitID].posErrorVectorz = posErrorVectorz*radius/mag
+		unitWobble[unitID].wobbletime = spGetGameFrame()
+	end
+
+	if unitWobble[unitID].wobbletime <= spGetGameFrame()+1 then
+
+		if rate == 0 then
+			rate = math.random(4,15)*15 -- set speed of wobble drift
+		end
+
+		unitWobble[unitID].wobbletime = spGetGameFrame() + rate
+
+		local basePointX, basePointY, basePointZ = spGetUnitPosition(unitID)
+
+		local goldenStep = goldenSteps[math.random(6)] -- picks one of 6 pre-selected "irrational" rotation steps
+
+		-- rotates the wobble/error vector
+		local newposErrorVectorx = unitWobble[unitID].posErrorVectorx * math.cos(goldenStep*goldenAngle) - unitWobble[unitID].posErrorVectorz * math.sin(goldenStep*goldenAngle)
+		local newposErrorVectorz = unitWobble[unitID].posErrorVectorx * math.sin(goldenStep*goldenAngle) + unitWobble[unitID].posErrorVectorz * math.cos(goldenStep*goldenAngle)
+
+		-- set up drift vector
+		local posErrorDeltax = (newposErrorVectorx - unitWobble[unitID].posErrorVectorx)/rate
+		local posErrorDeltaz = (newposErrorVectorz - unitWobble[unitID].posErrorVectorz)/rate
+
+		spSetUnitPosErrorParams(unitID,unitWobble[unitID].posErrorVectorx,0,unitWobble[unitID].posErrorVectorz,posErrorDeltax,0,posErrorDeltaz,1+rate/15)
+		-- last parameter is in *number of slowupdates*
+
+		unitWobble[unitID].posErrorVectorx = newposErrorVectorx
+		unitWobble[unitID].posErrorVectorz = newposErrorVectorz
+
+	end
+end
+
+function gadget:UnitSeismicPing(x,y,z,strength,allyteam,unitID,unitDefID)
+
 	if (allyteam ~= spGetUnitAllyTeam(unitID)) and (spIsUnitInRadar(unitID,allyteam) == false) then
 		-- only run if the unit is being seen by a different allyTeam, and is not in radar.
 
@@ -79,38 +131,32 @@ function gadget:UnitSeismicPing(x,y,z,strength,allyteam,unitID,unitDefID) -- whe
 			spSetUnitLosMask(unitID,allyteam,2) -- stops engine from overwriting SetUnitLosState
 			restoreUnitLOS[unitID] = {}
 		end
-		restoreUnitLOS[unitID].allyteam = allyteam
-		restoreUnitLOS[unitID].restoretime = spGetGameFrame() + 60 -- after 2 seconds, remove the seismic dot
-
-		local basePointX, basePointY, basePointZ = spGetUnitPosition(unitID)
-		-- Currently, just place radar dot directly on the seismic ping.
-		-- "wobble" is decreased by pinpointers.
-		-- TODO: If desired, use RNG on lua side to place the seismic dot, and completly blank the engine seismic texture, and perhaps add our own emitceg via Spring.SpawnCEG("seismic_ping",x,y,z,0,10,0)
-		spSetUnitPosErrorParams(unitID,(x-basePointX)/128,(y-basePointY)/128,(z-basePointZ)/128,0,0,0,4)
-		-- last parameter is in *number of slowupdates*
-
+		restoreUnitLOS[unitID][allyteam] = spGetGameFrame() + 60
+		customWobble(unitID,0,1)
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	-- save unit speed on a quick reference local table, when unit is created
-	unitspeeds[unitID] = UnitDefs[unitDefID].speed
+	unitSpeeds[unitID] = UnitDefs[unitDefID].speed
 
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	-- if the unit is a T2 radar, save it to the local table
-	-- TODO: currently hardcoded by unitname, might be ideal to set a customdef, that could also be read to set the "advanced" radar wobble.
-	if ((UnitDefs[unitDefID].name == "corarad") or (UnitDefs[unitDefID].name == "armarad") or (UnitDefs[unitDefID].name == "legarad")) then
-		advancedRadars[spGetUnitAllyTeam(unitID)][unitID] = {}
-		advancedRadars[spGetUnitAllyTeam(unitID)][unitID].radarEmitHeight = UnitDefs[unitDefID].radarEmitHeight
-		advancedRadars[spGetUnitAllyTeam(unitID)][unitID].radarRadius = UnitDefs[unitDefID].radarRadius
+	-- if the unit is an advanced radar, save it to the local table
+	if UnitDefs[unitDefID].customParams then
+		if UnitDefs[unitDefID].customParams.advancedradar ~= nil then
+			advancedRadars[spGetUnitAllyTeam(unitID)][unitID] = {}
+			advancedRadars[spGetUnitAllyTeam(unitID)][unitID].radarEmitHeight = UnitDefs[unitDefID].radarEmitHeight
+			advancedRadars[spGetUnitAllyTeam(unitID)][unitID].radarRadius = math.max(UnitDefs[unitDefID].radarRadius,UnitDefs[unitDefID].sonarRadius)
+			advancedRadars[spGetUnitAllyTeam(unitID)][unitID].wobblereduction = tonumber(UnitDefs[unitDefID].customParams.advancedradar)
+		end
 	end
 
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	-- remove dead T2 radars from the local table
+	-- remove dead advanced radars from the local table
 	advancedRadars[spGetUnitAllyTeam(unitID)][unitID] = nil
 
 	-- remove dead units from the InRadar lists
@@ -119,72 +165,90 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitInBasicRadar[values][unitID] = nil
 	end
 
-	unitspeeds[unitID] = nil
+	unitSpeeds[unitID] = nil
+	unitWobble[unitID] = nil
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 
 	-- deal with any shared or captured T2 radars
-	if ((UnitDefs[unitDefID].name == "corarad") or (UnitDefs[unitDefID].name == "armarad") or (UnitDefs[unitDefID].name == "legarad")) then
-		advancedRadars[oldTeam][unitID]  = nil
-		advancedRadars[newTeam][unitID] = {}
-		advancedRadars[newTeam][unitID].radarEmitHeight = UnitDefs[unitDefID].radarEmitHeight
-		advancedRadars[newTeam][unitID].radarRadius = UnitDefs[unitDefID].radarRadius
+	if UnitDefs[unitDefID].customParams then
+		if UnitDefs[unitDefID].customParams.advancedradar ~= nil then
+			advancedRadars[oldTeam][unitID]  = nil
+			advancedRadars[newTeam][unitID] = {}
+			advancedRadars[newTeam][unitID].radarEmitHeight = UnitDefs[unitDefID].radarEmitHeight
+			advancedRadars[newTeam][unitID].radarRadius = math.max(UnitDefs[unitDefID].radarRadius,UnitDefs[unitDefID].sonarRadius)
+			advancedRadars[newTeam][unitID].wobblereduction = tonumber(UnitDefs[unitDefID].customParams.advancedradar)
+		end
 	end
 
 end
 
+function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
+	-- TODO: be smarter about which units need their seismic signature removed. Tanks in shallow puddles should probably still have a signature
+	Spring.SetUnitSeismicSignature(unitID,0)
+end
+
+function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
+	Spring.SetUnitSeismicSignature(unitID,UnitDefs[unitDefID].seismicSignature)
+end
+
 local function advancedRadarCheck(unitID,allyTeam)
 	-- this function determines if a specific unit can be seen by the advanced radars of the allyTeam
-	local basePointX, basePointY, basePointZ -- not 100% sure if it is more performent to keep setting a local every time this function is called, or set the local outside this function. 
+	local basePointX, basePointY, basePointZ -- not 100% sure if it is more performant to keep setting a local every time this function is called, or set the local outside this function. 
 	local unitPointX, unitPointY, unitPointZ
 	local advancedRadarFreeLineOfFire = false
+	local wobblereduction = 0
 
 	for advancedRadar, tableValues in pairs(advancedRadars[allyTeam]) do -- loop over every aradar on the allyTeam
-		local radarEmitHeight = tableValues.radarEmitHeight
-		local radarRadius = tableValues.radarRadius
+		if spGetUnitIsStunned(advancedRadar) == false then
+			advancedRadarFreeLineOfFire = false
+			local radarEmitHeight = tableValues.radarEmitHeight
+			local radarRadius = tableValues.radarRadius
 
-		local basePointX, basePointY, basePointZ = spGetUnitPosition(advancedRadar)
-		local unitPointX, unitPointY, unitPointZ = spGetUnitPosition(unitID) -- use basepoint as radar "paints" the ground
-		local dist2D = (basePointX-unitPointX)^2 + (basePointZ-unitPointZ)^2
-		local dist3D = (basePointX-unitPointX)^2 + (basePointY+radarEmitHeight-unitPointY-1)^2 + (basePointZ-unitPointZ)^2
-		-- check if the unit is within cylinder distance of the radar
+			-- check if the unit is within cylinder distance of the radar
+			local basePointX, basePointY, basePointZ = spGetUnitPosition(advancedRadar)
+			local unitPointX, unitPointY, unitPointZ = spGetUnitPosition(unitID) -- use basepoint as radar "paints" the ground
+			local dist2D = (basePointX-unitPointX)^2 + (basePointZ-unitPointZ)^2
+			local dist3D = (basePointX-unitPointX)^2 + (basePointY+radarEmitHeight-unitPointY-1)^2 + (basePointZ-unitPointZ)^2
 
-		-- check if the radar can see the unit without being obstructed by terrain
-		local raylength,_,_,_ = spTraceRayGroundBetweenPositions(basePointX, basePointY+radarEmitHeight, basePointZ, unitPointX, unitPointY + 1, unitPointZ)
-		if raylength == nil then -- returns nil if no ground collision detected
-			advancedRadarFreeLineOfFire = ((radarRadius+unitspeeds[unitID])^2 >= dist2D)
-		end
-		-- +1 on unitPointX to prevent false ground collision positives at the terminal point.
-		-- +unitspeed on radarRadius to help catch units just walking into radar range, it seems unitspeed is accounted for when determining when to trigger UnitEnteredRadar
+			-- check if the radar can see the unit without being obstructed by terrain
+			local raylength,_,_,_ = spTraceRayGroundBetweenPositions(basePointX, basePointY+radarEmitHeight, basePointZ, unitPointX, unitPointY + 1, unitPointZ, false)
+			if raylength == nil then -- returns nil if no ground collision detected
+				advancedRadarFreeLineOfFire = ((radarRadius+unitSpeeds[unitID])^2 >= dist2D)
+			end
+			-- +1 on unitPointX to prevent false ground collision positives at the terminal point.
+			-- +unitspeed on radarRadius to help catch units just walking into radar range, it seems unitspeed is accounted for when determining when to trigger UnitEnteredRadar
 
-		if advancedRadarFreeLineOfFire == true then -- break early if an advanced radar sees the unit
-			break
+			if advancedRadarFreeLineOfFire == true then 
+				wobblereduction = math.max(wobblereduction,tableValues.wobblereduction) -- use best wobblereduction of all advanced radars in range
+			end
 		end
 	end
 
-	if advancedRadarFreeLineOfFire then
-		--TODO: allow for custom "advanced" radar wobble parameters. Hardcoded to "perfect" for now
-		if restoreUnitLOS[unitID] == nil then -- don't set zero error if recently seismic pinged
-			spSetUnitPosErrorParams(unitID,0,0,0,0,0,0,1+advancedRadarUpdateRate/15) -- set the (lack of) wobble here. 1+ to make sure the (lack of) wobble lasts for at least 1 slowupdate longer than the updaterate
+	if wobblereduction>0 then
+
+		if restoreUnitLOS[unitID] == nil then -- don't call customWobble if recently seismic pinged, customWobble will be called after unit LOS control is restored to engine
+			customWobble(unitID,advancedRadarUpdateRate,1-wobblereduction)
 		end
+
 		local framecycle = spGetGameFrame()%advancedRadarUpdateRate
 
 		inAdvancedRadar[allyTeam][framecycle][unitID] = true -- check this unit on next framecycle if it is still seen by an advanced radar
-		unitInAdvancedRadar[allyTeam][unitID] = framecycle -- set table to lookup when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
+		unitInAdvancedRadar[allyTeam][unitID] = framecycle -- lookup table for when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
 		unitInBasicRadar[allyTeam][unitID] = nil -- effectively remove unit from the faster updating InBasicRadar list.
+
 	else
 		local framecycle = spGetGameFrame()%basicRadarUpdateRate
 		inBasicRadar[allyTeam][framecycle][unitID] = true -- check this unit on next framecycle if it is still seen by an advanced radar
-		unitInBasicRadar[allyTeam][unitID] = framecycle -- set table to lookup when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
+		unitInBasicRadar[allyTeam][unitID] = framecycle -- lookup table for when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
 		unitInAdvancedRadar[allyTeam][unitID] = nil -- effectively remove unit from the slower updating InAdvancedRadar list.
 	end
 end
 
 function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
-	-- figure out if the unit entered a T1 or T2 radar range
-	-- and get the unit on the proper InRadar list
-	advancedRadarCheck(unitID,allyTeam)
+
+	advancedRadarCheck(unitID,allyTeam) -- figure out if the unit entered a T1 or T2 radar range
 
 end
 
@@ -200,34 +264,32 @@ function gadget:GameFrame(nn)
 	local advancedRadarUpdateFrame = (nn+1)%advancedRadarUpdateRate
 	local basicRadarUpdateFrame = (nn+1)%basicRadarUpdateRate
 
-	for key, allyTeam in pairs(allyteamlist) do -- check each allyTeam
+	for key, allyTeam in pairs(allyteamlist) do
 
 		--check units in inAdvancedRadar scheduled to be re-checked on this frame
 		for unitID, value in pairs(inAdvancedRadar[allyTeam][advancedRadarUpdateFrame]) do
-			inAdvancedRadar[allyTeam][advancedRadarUpdateFrame][unitID] = nil -- remove the unit from the InRadar list
-			if unitInAdvancedRadar[allyTeam][unitID] == advancedRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, do the check.
+			inAdvancedRadar[allyTeam][advancedRadarUpdateFrame][unitID] = nil
+			if unitInAdvancedRadar[allyTeam][unitID] == advancedRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, and not a stale schedule, do the check.
 				advancedRadarCheck(unitID,allyTeam)
 			end
 		end
 
 		--check units in inBasicRadar scheduled to be re-checked on this frame
 		for unitID, value in pairs(inBasicRadar[allyTeam][basicRadarUpdateFrame]) do
-			inBasicRadar[allyTeam][basicRadarUpdateFrame][unitID] = nil -- remove the unit from the InRadar list
-			if unitInBasicRadar[allyTeam][unitID] == basicRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, do the check.
+			inBasicRadar[allyTeam][basicRadarUpdateFrame][unitID] = nil
+			if unitInBasicRadar[allyTeam][unitID] == basicRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, and not a stale schedule, do the check.
 				advancedRadarCheck(unitID,allyTeam)
 			end
 		end
 	end
 
-	for unitID, data in pairs(restoreUnitLOS) do -- check units in seismic range, to determine if enough time has passed to hand off radar control back to engine
-		if data.restoretime <= nn then
-			spSetUnitLosMask(unitID,data.allyteam,0) -- returns unit los states to engine control
-
-			if unitInAdvancedRadar[data.allyteam][unitID] ~= nil then -- if seen by an advanced radar set the error parameter
-				spSetUnitPosErrorParams(unitID,0,0,0,0,0,0,1+advancedRadarUpdateRate/15)
+	for unitID, allyteams in pairs(restoreUnitLOS) do -- check units that seismic pinged, to determine if enough time has passed to hand off radar control back to engine
+		for allyteam, restoretime in pairs(allyteams) do
+			if restoretime <= nn then
+				spSetUnitLosMask(unitID,allyteam,0) -- returns unit los states to engine control
+				restoreUnitLOS[unitID] = nil
+				advancedRadarCheck(unitID,allyteam) -- check for advanced radars
 			end
-
-			restoreUnitLOS[unitID] = nil
 		end
 	end
 end

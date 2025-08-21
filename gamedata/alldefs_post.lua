@@ -1166,7 +1166,7 @@ function UnitDef_Post(name, uDef)
 
 	--Sensor rework
 	if modOptions.sensor_rework == true then
-		if (uDef.canfly == nil) then
+		if ((uDef.canfly == nil) and (string.find(name,"critter") == nil)) then
 			uDef.seismicsignature = 0.01 -- seems to be small enough to make the texture not appear
 		end
 	end

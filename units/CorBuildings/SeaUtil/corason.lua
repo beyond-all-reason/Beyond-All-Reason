@@ -31,6 +31,7 @@ return {
 		sonardistance = 1600,
 		yardmap = "ooooooooo",
 		customparams = {
+			advancedradar = "0.875",
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
