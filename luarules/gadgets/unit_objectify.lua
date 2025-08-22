@@ -195,6 +195,12 @@ else -- UNSYNCED
 			if not inAlliance then
 				if not isDecoyFor or spGetUnitArmored(unitID) ~= false then
 					-- Ignore walls/decorations and enemy decoy walls/decorations.
+					local units = spGetSelectedUnits()
+					for _, unit in ipairs(units) do
+						if isImmobile[spGetUnitDefID(unit)] then
+							return CMD_ATTACK
+						end
+					end
 					return CMD_MOVE
 				end
 			elseif objectUnit and fromCommand == CMD_GUARD then
