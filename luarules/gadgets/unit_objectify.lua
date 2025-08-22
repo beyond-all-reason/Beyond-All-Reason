@@ -186,7 +186,7 @@ else -- UNSYNCED
 	-- Friendly decoy objects are actually combat units they do want to repair or guard.
 	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
 		local decorative = isDecoration[unitDefID]
-		local beingBuilt = decorative or spGetUnitIsBeingBuilt(unitID)
+		local beingBuilt = not decorative and spGetUnitIsBeingBuilt(unitID)
 		local inAlliance = decorative or spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
 		local objectUnit = isObject[unitDefID]
 		local isDecoyFor = not decorative and not objectUnit and isClosedObject[unitDefID]
