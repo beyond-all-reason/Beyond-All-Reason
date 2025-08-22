@@ -1163,9 +1163,11 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
+	move lFiringPin to z-axis [3] speed [120];
 	emit-sfx 1024 + 0 from lRiotFlare;
 	move lCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	move lFiringPin to z-axis [0] speed [3];
 	move lCannon to z-axis [0] speed [6.000000];
 	return(1);
 }
@@ -1205,9 +1207,11 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
+	move rFiringPin to z-axis [3] speed [120];
 	emit-sfx 1024 + 0 from rRiotFlare;
 	move rCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	move rFiringPin to z-axis [0] speed [3];
 	move rCannon to z-axis [0] speed [6.000000];
 }
 
