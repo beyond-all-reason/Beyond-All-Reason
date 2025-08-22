@@ -969,7 +969,7 @@ local options = {
         items	= {
             { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
             { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
-            { key= "lavaadvanced", 	name= "Advanced",desc= "Lava tide rhythm follows the custom input" },
+            { key= "lavaadvanced", 	name= "Advanced",desc= "Lava tide rhythm follows the advanced tweak input" },
         }
     },
 
@@ -1029,6 +1029,7 @@ local options = {
         key 	= "map_tweaklava",
         name 	= "Advanced Tide Rhythm",
         desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+        hidden 	= true,
         hint    = "{MapHeight, Rate , Dwell Time}",
         type 	= "string",
         def 	= "",
