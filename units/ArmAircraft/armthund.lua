@@ -79,7 +79,6 @@ return {
 		},
 		weapondefs = {
 			armbomb = {
-				accuracy = 500,
 				areaofeffect = 144,
 				avoidfeature = false,
 				burst = 5,

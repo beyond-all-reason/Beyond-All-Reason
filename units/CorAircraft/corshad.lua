@@ -80,7 +80,6 @@ return {
 		},
 		weapondefs = {
 			corbomb = {
-				accuracy = 500,
 				areaofeffect = 168,
 				avoidfeature = false,
 				burst = 5,
