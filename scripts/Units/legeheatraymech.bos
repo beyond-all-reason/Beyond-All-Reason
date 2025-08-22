@@ -39,7 +39,7 @@ lUpperArm,
 lHeatrayStrut,
 lHeatrayHeadingPivot,
 lHeatrayPitchPivot,
-rArmShoulderGun,
+lHeatrayHousing,
 lCoolingCell1,
 lCoolingCell2,
 lLowerArm,
@@ -1043,7 +1043,7 @@ AimWeapon2(heading, pitch)
 	if (isTurning == 1)
 	{
 		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
-			turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+			turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <90>;
 		//}
 		
 	}
@@ -1090,7 +1090,7 @@ AimWeapon3(heading, pitch)
 	if (isTurning == 1)
 	{
 		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
-			turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+			turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <90>;
 		//}
 		
 	}
@@ -1150,7 +1150,7 @@ AimWeapon4(heading, pitch)
 
 	oldHeading3 = heading;
 	
-	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+	if (((heading - torsoAim)<<120> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
 		call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
 		get PRINT(heading - torsoAim);
 		return(1);
@@ -1163,11 +1163,11 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
-	move lFiringPin to z-axis [3] speed [120];
+	move lFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from lRiotFlare;
 	move lCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
-	move lFiringPin to z-axis [0] speed [3];
+	move lFiringPin to z-axis [0] speed [6];
 	move lCannon to z-axis [0] speed [6.000000];
 	return(1);
 }
@@ -1193,7 +1193,7 @@ AimWeapon5(heading, pitch)
 
 	// start-script printStuff();
 	oldHeading4 = heading;
-	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-120>) OR (get ABS(heading - torsoAim)>58000)){
 		call-script CATT2_Aim((heading - torsoAim) + <1>,pitch+400);
 		//get PRINT(((heading - torsoAim)/65536)*180);
 		return(1);
@@ -1207,11 +1207,11 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-	move rFiringPin to z-axis [3] speed [120];
+	move rFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from rRiotFlare;
 	move rCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
-	move rFiringPin to z-axis [0] speed [3];
+	move rFiringPin to z-axis [0] speed [6];
 	move rCannon to z-axis [0] speed [6.000000];
 }
 

@@ -26533,7 +26533,7 @@ local unitLights = {
 		bigtoroid = {
 			lightType = 'point',
 			pieceName = 'torso',
-			lightConfig = { posx = 0, posy = 20, posz = -50, radius = 78,
+			lightConfig = { posx = 0, posy = 10, posz = -25, radius = 78,
 							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
 							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
 							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
