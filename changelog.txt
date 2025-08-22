@@ -1,3 +1,12 @@
+# August 2025
+• [Aircraft] Vision raised to 430, if it was lower previously
+• [T1 Bombers] Random inaccuracy removed from their bombs
+• [T2 Transports] Skyhook 235 -> 200 speed, Abductor 241 -> 225 speed
+• [Hound] 292 -> 340 weaponvelocity
+• [Razorback] 58 -> 22 damage vs air
+• [T2 AA bots] Sightdistance 925 -> 1200
+• [Flagships] Reduced damage vs submarines with main cannon
+
 # July, 30
 * gunslinger movement class changed to 3x3 and hitbox adjusted
 * Sprinter movement class changed to 3x3 and colvol adjusted to cover the funit fully at all angles
