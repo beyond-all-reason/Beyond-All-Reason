@@ -317,36 +317,18 @@ local function updateCountdownColor()
 	local dm = widgetState.dmHandle
 	if dm and dm.isCountdownWarning then
 		local timeRemaining = dm.timeRemainingSeconds or 0
-		local baseClass = "time-display warning pulsing"
 		
 		if timeRemaining <= 10 then
-			timeDisplayElement.class_name = baseClass .. " critical"
-		elseif timeRemaining <= 30 then
-			timeDisplayElement.class_name = baseClass .. " intense"
+			timeDisplayElement.class_name = "time-display warning pulsing critical"
 		else
-			timeDisplayElement.class_name = baseClass
+			timeDisplayElement.class_name = "time-display warning pulsing"
 		end
-		
-		local durationClass = ""
-		if timeRemaining <= 10 then
-			durationClass = " duration-0-3"
-		elseif timeRemaining <= 20 then
-			durationClass = " duration-0-4"
-		elseif timeRemaining <= 30 then
-			durationClass = " duration-0-5"
-		elseif timeRemaining <= 40 then
-			durationClass = " duration-0-6"
-		elseif timeRemaining <= 50 then
-			durationClass = " duration-0-7"
-		else
-			durationClass = " duration-1-0"
-		end
-		
-		timeDisplayElement.class_name = timeDisplayElement.class_name .. durationClass
 	else
 		timeDisplayElement.class_name = "time-display"
 	end
 end
+
+
 
 local function calculateUILayout()
 	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
@@ -735,6 +717,10 @@ function widget:RecvLuaMsg(msg, playerID)
 			hideRoundEndPopup()
 			widgetState.document:Hide()
 			widgetState.hiddenByLobby = true
+		end
+	elseif msg:sub(1, 15) == 'WindowResized' then
+		if widgetState.document then
+			-- Window resize handling can be added here if needed
 		end
 	end
 end
