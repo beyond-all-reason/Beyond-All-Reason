@@ -530,7 +530,7 @@ Walk() {
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move hip to y-axis [0] speed [117.053223] / animSpeed;
+	move hip to y-axis [0] speed [200.053223] / animSpeed;
 	turn Plane to z-axis <-5.000000> speed <-24.999999> / animSpeed;
 	turn hip to y-axis <0> speed <105.172227> / animSpeed;
 	turn lArmGun to x-axis <0> speed <491.281590> / animSpeed;
@@ -570,6 +570,48 @@ StopWalking() {
 	turn rUpperLeg to z-axis <0> speed <42.643251> / animSpeed;
 	turn torso to x-axis <0> speed <217.916161> / animSpeed;
 }
+
+CreatePose() {
+	move hip to y-axis [0] 					now;
+	turn Plane to z-axis <-5.000000> 		now;
+	turn hip to y-axis <0> 					now;
+	turn lArmGun to x-axis <0> 				now;
+	turn lFootJoint to x-axis <0> 			now;
+	turn lFootJoint to y-axis <0> 			now;
+	turn lFootJoint to z-axis <0> 			now;
+	turn lLegConnector to x-axis <0> 		now;
+	turn lLegConnector to y-axis <10> 		now;
+	turn lLowerArm to z-axis <-15.000000> 	now;
+	turn lLowerLeg to x-axis <0> 			now;
+	turn lLowerLeg to y-axis <0> 			now;
+	turn lLowerLeg to z-axis <0> 			now;
+	turn lTibia to x-axis <0> 				now;
+	turn lUpperArm to x-axis <0> 			now;
+	turn lUpperArm to y-axis <0> 			now;
+	turn lUpperArm to z-axis <0> 			now;
+	turn lUpperLeg to x-axis <0> 			now;
+	turn lUpperLeg to y-axis <0> 			now;
+	turn lUpperLeg to z-axis <0> 			now;
+	turn rArmConnector to z-axis <5.000000> now;
+	turn rArmGun to x-axis <0> 				now;
+	turn rLegConnector to x-axis <0> 		now;
+	turn rLegConnector to y-axis <-10> 		now;
+	turn rLegFrontFoot to x-axis <0> 		now;
+	turn rLegFrontFoot to y-axis <0> 		now;
+	turn rLegFrontFoot to z-axis <0> 		now;
+	turn rLowerArm to z-axis <16> 			now;
+	turn rLowerLeg to x-axis <0> 			now;
+	turn rLowerLeg to y-axis <0> 			now;
+	turn rLowerLeg to z-axis <0> 			now;
+	turn rTibia to x-axis <0> 				now;
+	turn rUpperArm to x-axis <0> 			now;
+	turn rUpperArm to y-axis <0> 			now;
+	turn rUpperArm to z-axis <0> 			now;
+	turn rUpperLeg to x-axis <0> 			now;
+	turn rUpperLeg to y-axis <0> 			now;
+	turn rUpperLeg to z-axis <0> 			now;
+	turn torso to x-axis <0> 				now;
+}
 // REMEMBER TO animspeed = 5 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -589,7 +631,7 @@ StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
-	animSpeed = 7;
+	animSpeed = 8;
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
@@ -737,15 +779,17 @@ SmokeItUp()
 Create()
 {
 	call-script Close();
+	call-script CreatePose();
 	hide rRiotFlare;
 	hide lRiotFlare;
+	hide rToroidFlare;
+	hide lToroidFlare;
 	move rHeatrayStrut to y-axis [-10] now;
 	move rHeatrayStrut to z-axis [5.5] now;
 	move lHeatrayStrut to y-axis [-10] now;
 	move lHeatrayStrut to z-axis [5.5] now;
 	turn rHeatrayPitchPivot to x-axis <15> now;
 	turn lHeatrayPitchPivot to x-axis <15> now;
-	move hip to y-axis [-5] now;
 	turn rCoolingCell1 to z-axis <-50> now;
 	turn lCoolingCell1 to z-axis <-50> now;
 	turn rCoolingCell2 to z-axis <50> now;
@@ -769,12 +813,13 @@ Create()
 	oldSsteerHeading = get HEADING;
 	isTurning = 0;
 	isSmoking2 = 0;
-	call-script Steering();
-	call-script CATT1_Init();
-	call-script CATT2_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 	spin flakHeadingPivot around y-axis speed <20> accelerate <1>;
 	turn flakPitchPivot to x-axis <-35> speed <35>;
+	call-script Steering();
+	call-script CATT1_Init();
+	call-script CATT2_Init();
+
 }
 
 
@@ -878,6 +923,7 @@ RestoreLRay()
 	sleep 1;
 	isFiring1 = 0;
 	oldHeading1 = -1000000;
+	hide lToroidFlare;
 	// turn lHeatrayHeadingPivot to y-axis <0.0> speed <20.0>;
 	// // turn lHeatrayPitchPivot to x-axis <35> speed <20.0>;
 	// wait-for-turn lHeatrayHeadingPivot around y-axis;
@@ -896,6 +942,7 @@ RestoreRRay()
 	sleep 1;
 	isFiring2 = 0;
 	oldHeading2 = -1000000;
+	hide rToroidFlare;
 	// turn rHeatrayHeadingPivot to y-axis <0.0> speed <20.0>;
 	// // turn rHeatrayPitchPivot to x-axis <35> speed <20.0>;
 	// wait-for-turn rHeatrayHeadingPivot around y-axis;
@@ -1017,6 +1064,7 @@ AimWeapon2(heading, pitch)
 	oldHeading1 = heading;
 	start-script RestoreLRay();
 	isfiring1 = 1;
+	show lToroidFlare;
 	return (1);
 }
 
@@ -1063,6 +1111,7 @@ AimWeapon3(heading, pitch)
 	oldHeading2 = heading;
 	start-script RestoreRRay();
 	isfiring2 = 2;
+	show rToroidFlare;
 	return (1);
 }
 
@@ -1100,10 +1149,10 @@ AimWeapon4(heading, pitch)
 	set-signal-mask SIG_AIM_4;
 
 	oldHeading3 = heading;
-	get PRINT(heading - torsoAim);
+	
 	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
 		call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
-		
+		get PRINT(heading - torsoAim);
 		return(1);
 	}
 	else{

@@ -26532,8 +26532,8 @@ local unitLights = {
 	['legeheatraymech'] = {
 		bigtoroid = {
 			lightType = 'point',
-			pieceName = 'bigToroidLight',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+			pieceName = 'torso',
+			lightConfig = { posx = 0, posy = 20, posz = -50, radius = 78,
 							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
 							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
 							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
@@ -26541,7 +26541,7 @@ local unitLights = {
 		},
 		righttoroid = {
 			lightType = 'point',
-			pieceName = 'rightToroidLight',
+			pieceName = 'rToroidFlare',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
 							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
 							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
@@ -26550,7 +26550,7 @@ local unitLights = {
 		},
 		lefttoroid = {
 			lightType = 'point',
-			pieceName = 'leftToroidLight',
+			pieceName = 'lToroidFlare',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
 							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
 							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
@@ -26559,7 +26559,7 @@ local unitLights = {
 		},
 		headlightright = {
 			lightType = 'cone',
-			pieceName = 'rShoulderFlare',
+			pieceName = 'rHeatrayFlare',
 			lightConfig = { posx = 0, posy = 0, posz = -16, radius = 400,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.05,
 							r = 0.8, g = 0.55, b = 0.13, a = 0.85,
@@ -26569,7 +26569,7 @@ local unitLights = {
 		},
 		headlightleft = {
 			lightType = 'cone',
-			pieceName = 'lShoulderFlare',
+			pieceName = 'lHeatrayFlare',
 			lightConfig = { posx = 0, posy = 0, posz = -16, radius = 400,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.05,
 							r = 0.8, g = 0.55, b = 0.13, a = 0.85,
