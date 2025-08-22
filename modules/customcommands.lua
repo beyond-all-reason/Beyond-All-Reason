@@ -76,8 +76,41 @@ local getCommandCode = function(cmdID)
 	return CMD[cmdID] or gameCommands[cmdID]
 end
 
+local CMD_INSERT = CMD.INSERT
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+
+---Efficiently repack a command's `cmdParams` table and send it in a `CMD_INSERT`.
+---@param unitID integer
+---@param cmdID integer|CMD
+---@param cmdParams number[]|CMD[]
+---@param cmdOptions CommandOptions
+---@param cmdTag integer
+---@param fromInsert CommandOptions
+local function giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	for i = #cmdParams, 1, -1 do cmdParams[i + 3] = cmdParams[i] end
+	cmdParams[1], cmdParams[2], cmdParams[3] = cmdTag, cmdID, cmdOptions.coded
+	spGiveOrderToUnit(unitID, CMD_INSERT, cmdParams, fromInsert.coded)
+end
+
+---Resend a command, repacking its `cmdParams` table if it was an inserted command.
+---@param unitID integer
+---@param cmdID integer|CMD
+---@param cmdParams number[]|CMD[]
+---@param cmdOptions CommandOptions
+---@param cmdTag integer
+---@param fromInsert CommandOptions
+local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	if fromInsert ~= nil then
+		giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	else
+		spGiveOrderToUnit(unitID, cmdID, cmdParams, cmdOptions)
+	end
+end
+
 return {
 	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
 	GetCommandCode = getCommandCode,
- }
+	GiveInsertOrderToUnit = giveInsertOrderToUnit,
+	ReissueOrder = reissueOrder,
+}
