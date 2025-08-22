@@ -2106,7 +2106,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if WG['guishader'] and displayListsChanged or not guishaderDlist then
+	if WG['guishader'] and (displayListsChanged or not guishaderDlist) then
 		if guishaderDlist then
 			gl.DeleteList(guishaderDlist)
 			guishaderDlist = nil
