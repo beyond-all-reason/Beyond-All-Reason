@@ -40,8 +40,6 @@ lHeatrayStrut,
 lHeatrayHeadingPivot,
 lHeatrayPitchPivot,
 lHeatrayHousing,
-lCoolingCell1,
-lCoolingCell2,
 lLowerArm,
 lArmGun,
 lCannon,
@@ -52,8 +50,6 @@ rHeatrayStrut,
 rHeatrayHeadingPivot,
 rHeatrayPitchPivot,
 rHeatrayHousing,
-rCoolingCell1,
-rCoolingCell2,
 rLowerArm,
 rArmGun,
 rCannon,
@@ -63,10 +59,6 @@ rRiotFlare,
 lRiotFlare,
 rHeatrayFlare,
 lHeatrayFlare,
-rCellFlare1,
-rCellFlare2,
-lCellFlare2,
-lCellFlare1,
 flakFlare1,
 flakFlare2,
 rFootDust,
@@ -790,14 +782,6 @@ Create()
 	move lHeatrayStrut to z-axis [5.5] now;
 	turn rHeatrayPitchPivot to x-axis <15> now;
 	turn lHeatrayPitchPivot to x-axis <15> now;
-	turn rCoolingCell1 to z-axis <-50> now;
-	turn lCoolingCell1 to z-axis <-50> now;
-	turn rCoolingCell2 to z-axis <50> now;
-	turn lCoolingCell2 to z-axis <50> now;
-	turn rCoolingCell1 to x-axis <-25> now;
-	turn lCoolingCell1 to x-axis <-25> now;
-	turn rCoolingCell2 to x-axis <-25> now;
-	turn lCoolingCell2 to x-axis <-25> now;
 	whichAAbarrel = 1;
 	animSpeed = 5;
 	isMoving = FALSE;
