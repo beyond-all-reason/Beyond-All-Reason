@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = "2025",
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
-		layer   = -999999,
+		layer   = -999999, -- preempt most gadgets to act as a source-of-truth
 		enabled = true,
 	}
 end
