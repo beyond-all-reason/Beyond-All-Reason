@@ -113,7 +113,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 0.6,
 				name = "Ballistic g2g AoE plasma cannon",
 				noselfdamage = true,
 				range = 650,
@@ -123,7 +123,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 292,
+				weaponvelocity = 340,
 				damage = {
 					default = 255,
 					vtol = 35,
