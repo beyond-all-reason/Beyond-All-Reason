@@ -89,7 +89,6 @@ local positionCmds = {
 -- What commands need more than one unit selected to be issued as a formation command
 local multiUnitOnlyCmds = {
 	[CMD_MANUAL_LAUNCH]=true,
-    -- [CMD_TRANSPORT_TO]=true,
 }
 
 local chobbyInterface
@@ -153,7 +152,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
-local E = Spring.Echo
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -179,8 +178,6 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 local keyShift = 304
 local selectedUnits = Spring.GetSelectedUnits()
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
-
-E("HAG")
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -250,15 +247,11 @@ local function CanUnitExecute(uID, cmdID)
         local transporting = spGetUnitIsTransporting(uID)
         return (transporting and #transporting > 0)
     end
-
-    if cmdID == CMD_TRANSPORT_TO then
-       
-        if (spFindUnitCmdDesc(uID, cmdID) ~= nil) then
-            E("TRANSPORT TO IN UNIT CAN EXECTUE CHECK, passed")
-        else
-            E("TRANSPORT TO IN UNIT CAN EXECTUE CHECK, rejected")
-            return true
-        end
+    local ud = UnitDefs[spGetUnitDefID(uID)]
+	local grounded = not ud.canFly
+	local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+    if cmdID == CMD_TRANSPORT_TO and grounded and notCantBeTransported then
+        return true
     end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
@@ -376,9 +369,6 @@ end
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
     if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
         --ccc
-        if cmdID == CMD_TRANSPORT_TO then
-            E("CMD TRANSPORT GOT INGNORED")
-        end
         return
     end
     spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
@@ -677,10 +667,7 @@ function widget:MouseRelease(mx, my, mButton)
                 else
                     for i = 1, #orders do
                         local orderPair = orders[i]
-                        if usingCmd == CMD_TRANSPORT_TO then
-                            E("TRANSPORT TO DETECTED")
-                        end
-                            GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
+                        GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
                         if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
                             Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
                             unitArr = {}

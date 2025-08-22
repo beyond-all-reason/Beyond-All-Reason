@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 -- ========= debug toggles =========
-local LOG_VERBOSE = true
+local LOG_VERBOSE = false
 local LOG_DETAIL = false
 
 -- ========= locals / engine aliases =========
@@ -280,6 +280,7 @@ function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, c
     if cmdID == CMD_TRANSPORT_TO then
         if loadedUnits[unitID] then
             loadedUnits[unitID] = nil
+            E("[TransportTo:Gadget] %s unit %s got loaded, setting the command a completed", gf(), uname(unitID))
             return true, true
         else
             return true, false
@@ -291,6 +292,6 @@ function gadget:UnitLoaded(unitID, unitDefID, teamID, transportID)
     loadedUnits[unitID] = true
 end
 
--- function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
---     loadedUnits[unitID] = false
--- end
+function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
+    loadedUnits[unitID] = nil
+end

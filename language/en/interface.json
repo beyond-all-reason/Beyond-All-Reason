@@ -209,6 +209,8 @@
 			"loadunits_tooltip": "Load unit or multiple units within an area in the transport",
 			"unloadunits": "Unload units",
 			"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
+			"transport_to": "Transport to",
+			"transport_to_tooltip":"Order a transport to transport this unit",
 			"landatairbase": "To Air Pad",
 			"landatairbase_tooltip": "Go to nearest Air Repair Pad",
 			"stockpile": "Stockpile %{stockpileStatus}",
