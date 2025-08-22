@@ -26,7 +26,8 @@ end
 function widget:UnitUnloaded(unitID)
 	if (orders[unitID] and #orders[unitID]) then
 		local newOrders = {}
-
+		local firstCommandIsTransportTo = false
+		local endofTheTransportToChain = false
 		for i, command in ipairs(orders[unitID]) do
 			if (#command.params >= 3) then
 				local dist = math.huge
@@ -38,7 +39,14 @@ function widget:UnitUnloaded(unitID)
 					dist = 0
 				end
 				if i == 1 and command.id == CMD_TRANSPORT_TO then --if the first command is a TRANSPORT_TO then discard it it
+					firstCommandIsTransportTo = true
 					discard = true
+				end
+				if firstCommandIsTransportTo and command.id == CMD_TRANSPORT_TO and endofTheTransportToChain == false then
+					discard = true
+				end
+				if (firstCommandIsTransportTo and command.id ~= CMD_TRANSPORT_TO) and endofTheTransportToChain == false then
+					endofTheTransportToChain = true
 				end
 				if (dist <= distToIgnore) and not discard then
 					table.insert(newOrders, { command.id, command.params, command.options })

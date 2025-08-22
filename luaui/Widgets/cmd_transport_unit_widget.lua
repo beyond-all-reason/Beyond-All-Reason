@@ -409,8 +409,22 @@ local function issuePickupAndDrop(transportID, unitID, target)
 		target[3],
 		uname(transportID)
 	)
+	local chainedTargets = {}
+	local chainLenght = 0
+	for _, cmd in ipairs(GetUnitCommands(unitID, -1)) do
+		if cmd.id == CMD_TRANSPORT_TO then
+			chainLenght = chainLenght + 1
+			table.insert(chainedTargets, cmd)
+		else break end
+	end
 	GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, 0)
-	GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, { target[1], target[2], target[3], UNLOAD_RADIUS }, { "shift" })
+	for index, cmd in ipairs(chainedTargets) do
+		if index == #chainedTargets then
+			GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, {cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS }, { "shift" })
+		else
+			GiveOrderToUnit(transportID, CMD_MOVE, {cmd.params[1], cmd.params[2], cmd.params[3]}, { "shift" })
+		end
+	end
 end
 
 local function reloadBindings() end
