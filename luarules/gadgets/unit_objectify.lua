@@ -20,9 +20,11 @@ end
 ]]--
 
 local isBuilder = {}
-local unitSize = {}
 local isObject = {}
+local isClosedObject = {}
 local isDecoration = {}
+local isImmobile = {}
+local unitSize = {}
 for udefID,def in ipairs(UnitDefs) do
     if def.customParams.objectify then
         isObject[udefID] = true
@@ -33,7 +35,17 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder then
 		isBuilder[udefID] = true
 	end
+	if def.isImmobile then
+		isImmobile[udefID] = true
+	end
 	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
+
+	if def.customParams.decoyfor and def.customParams.neutral_when_closed then
+		local coy = UnitDefNames[def.customParams.decoyfor]
+		if coy ~= nil and coy.customParams.objectify then
+			isClosedObject[udefID] = true
+		end
+	end
 end
 
 
@@ -151,32 +163,50 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
-    local CMD_MOVE = CMD.MOVE
     local spGetUnitDefID = Spring.GetUnitDefID
-	local myTeamID = Spring.GetMyTeamID()
-	local spectating = Spring.GetSpectatingState()
+	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+	local spGetUnitArmored = Spring.GetUnitArmored
+	local spAreTeamsAllied = Spring.AreTeamsAllied
+	local spGetSelectedUnits = Spring.GetSelectedUnits
 
+	local CMD_ATTACK = CMD.ATTACK
+    local CMD_MOVE = CMD.MOVE
+	local CMD_GUARD = CMD.GUARD
+
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local spectating = Spring.GetSpectatingState()
 	function gadget:PlayerChanged(playerID)
-		myTeamID = Spring.GetMyTeamID()
+		myAllyTeam = Spring.GetMyAllyTeamID()
 		spectating = Spring.GetSpectatingState()
 	end
 
-    function gadget:DefaultCommand(type, id, cmd)
-		if type == "unit" and cmd ~= CMD_MOVE then
-			local uDefID = spGetUnitDefID(id)
+	-- Ignore decorations and disguise the identity of enemy decoys by moving onto them.
+	-- Friendly actual objects are non-repairable walls the player never wants to guard.
+	-- Friendly decoy objects are actually combat units they do want to repair or guard.
+	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
+		local decorative = isDecoration[unitDefID]
+		local beingBuilt = decorative or spGetUnitIsBeingBuilt(unitID)
+		local inAlliance = decorative or spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
+		local objectUnit = isObject[unitDefID]
+		local isDecoyFor = not decorative and not objectUnit and isClosedObject[unitDefID]
 
-			if isDecoration[uDefID] then
-				return CMD_MOVE -- ignore attack, guard, reclaim, repair
-			elseif isObject[uDefID] then
-				if not spectating
-					and Spring.GetUnitIsBeingBuilt(id) == false
-					and Spring.AreTeamsAllied(myTeamID, Spring.GetUnitTeam(id))
-				then
-					return CMD_MOVE -- ignore guard
+		if not beingBuilt then
+			if not inAlliance then
+				if not isDecoyFor or spGetUnitArmored(unitID) ~= false then
+					-- Ignore walls/decorations and enemy decoy walls/decorations.
+					return CMD_MOVE
 				end
+			elseif objectUnit and fromCommand == CMD_GUARD then
+				return CMD_MOVE
 			end
+		end
+	end
+
+    function gadget:DefaultCommand(type, id, cmd)
+		if type == "unit" and not spectating then
+			return getUnitHoverCommand(id, spGetUnitDefID(id), cmd)
 		end
     end
 
 end
-
