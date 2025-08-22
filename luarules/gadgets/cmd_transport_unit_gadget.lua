@@ -234,7 +234,7 @@ local function buildDefCaches()
         local isNano = ud.isBuilder and not ud.canMove and not ud.isFactory
         local isFactory = ud.isFactory
 
-        if (movable and grounded and notBuilding and notCantBeTransported) then
+        if (grounded and notCantBeTransported) then
             isTransportableDef[defID] = true
         end
         if isNano then
@@ -251,23 +251,21 @@ local function buildDefCaches()
     end
 end
 
+local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
+local CMD_AUTO_TRANSPORT_DESC = {
+	id = CMD_AUTO_TRANSPORT,
+	type = CMDTYPE.ICON_MODE,
+	name = "Auto Transport",
+	cursor = nil,
+	action = "auto_transport",
+	params 	= {0, 'Ignore Orders', 'Fullfill Orders'},
+}
+
 -- ========= gadget lifecycle =========
 local function tcount(t)
     local c = 0
     for _ in pairs(t) do c = c + 1 end
     return c
-end
-
-function gadget:Initialize()
-    buildDefCaches()
-    E(
-        "[TransportTo:Gadget] %s def caches built: transports=%d transportable=%d factories=%d nanos=%d",
-        gf(),
-        tcount(isTransportDef),
-        tcount(isTransportableDef),
-        tcount(isFactoryDef),
-        tcount(isNanoDef)
-    )
 end
 
 function gadget:Shutdown()
@@ -294,4 +292,40 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     loadedUnits[unitID] = nil
+end
+
+function gadget:UnitCreated(unitID, unitDefID, _)
+	if isTransportDef[unitDefID] then
+		CMD_AUTO_TRANSPORT_DESC.params[1] = 0
+		Spring.InsertUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT_DESC)
+	end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	-- accepts: CMD_QUOTA_BUILD_TOGGLE
+	if isTransportDef[unitDefID] then
+        local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT)
+        if cmdDescID then
+            CMD_AUTO_TRANSPORT_DESC.params[1] = cmdParams[1]
+            Spring.EditUnitCmdDesc(unitID, cmdDescID, {params = CMD_AUTO_TRANSPORT_DESC.params})
+        end
+		return false  -- command was used
+	end
+	return true  -- command was not used
+end
+
+function gadget:Initialize()
+    buildDefCaches()
+    E(
+        "[TransportTo:Gadget] %s def caches built: transports=%d transportable=%d factories=%d nanos=%d",
+        gf(),
+        tcount(isTransportDef),
+        tcount(isTransportableDef),
+        tcount(isFactoryDef),
+        tcount(isNanoDef)
+    )
+    gadgetHandler:RegisterAllowCommand(CMD_AUTO_TRANSPORT)
+	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	end
 end

@@ -27,6 +27,8 @@ local ValidUnitID = Spring.ValidUnitID
 local AreTeamsAllied = Spring.AreTeamsAllied
 local GameFrame = Spring.GetGameFrame
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -198,6 +200,8 @@ local CMD_TRANSPORT_TO_DESC = {
 	action = "transport_to",
 }
 
+local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
+
 local HEAVY_TRANSPORT_MASS_THRESHOLD = 3000
 local LIGHT_UNIT_SIZE_THRESHOLD = 6
 local UNLOAD_RADIUS = 10
@@ -331,12 +335,19 @@ local function refreshKnownTransports()
 	E("[TransportTo] %s refreshed transports: %d found", gf(), (units and #units) or 0)
 end
 
+function isAutomaticTransport(unitID)
+    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT)
+	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
+end
+
 local function pickBestTransport(unitID, ux, uz, unitDefID)
 	local wantType = unitRequestedType(unitDefID)
 	local bestLight, bestLightD, bestHeavy, bestHeavyD
 
+	-- Ed("[TransportTo:Pick] %s searching for transport", gf())
 	for transportID in pairs(knownTransports) do
-		if not busyTransport[transportID] then
+		local isAutomatic = isAutomaticTransport(transportID)
+		if (not busyTransport[transportID]) and isAutomatic then
 			local tDefID = GetUnitDefID(transportID)
 			if tDefID then
 				local ok, reason = canTransportWithReason(transportID, tDefID, unitID, unitDefID)
@@ -367,7 +378,12 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 				end
 			end
 		else
-			Ed("[TransportTo:Pick] %s skip %s (busy)", gf(), uname(transportID))
+			if busyTransport[transportID] then
+				Ed("[TransportTo:Pick] %s skip %s (busy)", gf(), uname(transportID))
+			end
+			if not isAutomatic then
+				Ed("[TransportTo:Pick] %s skip %s (not automatic)", gf(), uname(transportID))
+			end
 		end
 	end
 
@@ -452,6 +468,7 @@ end
 
 function widget:CommandsChanged()
 	local selected = Spring.GetSelectedUnits()
+	local cc = widgetHandler.customCommands
 	if #selected == 0 then
 		return
 	end
@@ -464,7 +481,6 @@ function widget:CommandsChanged()
 		end
 	end
 	if addCustom then
-		local cc = widgetHandler.customCommands
 		cc[#cc + 1] = CMD_TRANSPORT_TO_DESC
 	end
 end
