@@ -79,7 +79,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-large-impulse",
 				[2] = "custom:subbubbles",
 				[3] = "custom:barrelshot-flak",
 				[4] = "custom:footstep-medium",
@@ -265,6 +265,7 @@ return {
 				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
+				projectiles = 2,
 				--burst = 2,
 				--burstrate = 0.01,
 				cegtag = "flaktrailaa",
@@ -282,7 +283,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 700,
-				reloadtime = 0.9,--1.8,
+				reloadtime = 1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
