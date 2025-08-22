@@ -545,11 +545,11 @@ end
 if commandSuspendDisallows[CMD.RECLAIM] and commandSuspendDisallows[CMD.REPAIR] then
 	gadget.AllowUnitBuildStep = shouldAllow
 elseif commandSuspendDisallows[CMD.RECLAIM] then
-	function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, featureDefID, part)
 		return part > 0 or suspendedUnits[unitID] == nil
 	end
 elseif commandSuspendDisallows[CMD.RESURRECT] then
-	function gadget:AllowUnitBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, featureDefID, part)
 		return part < 0 or suspendedUnits[unitID] == nil
 	end
 end
@@ -558,10 +558,10 @@ if commandSuspendDisallows[CMD.RECLAIM] and commandSuspendDisallows[CMD.RESURREC
 	gadget.AllowFeatureBuildStep = shouldAllow
 elseif commandSuspendDisallows[CMD.RECLAIM] then
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-		return part > 0 or suspendedUnits[unitID] == nil
+		return part > 0 or suspendedUnits[featureID] == nil
 	end
 elseif commandSuspendDisallows[CMD.RESURRECT] then
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-		return part < 0 or suspendedUnits[unitID] == nil
+		return part < 0 or suspendedUnits[featureID] == nil
 	end
 end
