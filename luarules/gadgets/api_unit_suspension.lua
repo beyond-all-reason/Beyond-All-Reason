@@ -285,33 +285,35 @@ local function stopMoving(unitID)
 	local moveType = spGetUnitMoveTypeData(unitID)
 
 	if moveType then
+		-- Give a sluggish, stalled appearance to any remaining unit movement.
+		-- Units with rotating turrets and torsos still spin at normal speeds.
 		if moveType.name == "ground" then
+			local setMoveType = Spring.MoveCtrl.SetGroundMoveTypeData
 			local stalled = table.copy(moveType)
 			stalled.turnRate = stalled.turnRate * 0.125
 			stalled.accRate = 0
-			stalled.decRate = (stalled.decRate or 1) * 1.5
 			stalled.maxReverseSpeed = 0
 			stalled.wantedSpeed = 0
-			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, stalled)
-			restoreMoveType = { Spring.MoveCtrl.SetGroundMoveTypeData, moveType }
+			setMoveType(unitID, stalled)
+			restoreMoveType = { setMoveType, moveType }
 		elseif moveType.name == "gunship" then
+			local setMoveType = Spring.MoveCtrl.SetGunshipMoveTypeData
 			local stalled = table.copy(moveType)
 			stalled.turnRate = stalled.turnRate * 0.125
 			stalled.accRate = 0
-			stalled.decRate = (stalled.decRate or 1) * 0.5
+			stalled.decRate = (stalled.decRate or 1) * 0.5 -- sluggish -> drifting
 			stalled.altitudeRate = 0
-			-- stalled.flyState = "landing" -- can't set strings?
-			Spring.MoveCtrl.SetGunshipMoveTypeData(unitID, stalled)
-			restoreMoveType = { Spring.MoveCtrl.SetGunshipMoveTypeData, moveType }
+			setMoveType(unitID, stalled)
+			restoreMoveType = { setMoveType, moveType }
 		elseif moveType.name == "airplane" then
+			local setMoveType = Spring.MoveCtrl.SetAirMoveTypeData
 			local stalled = table.copy(moveType)
 			stalled.altitudeRate = 0
 			stalled.maxAileron = 0
 			stalled.maxElevator = 0
 			stalled.maxRudder = 0
-			-- stalled.aircraftState = "landing" -- can't set strings?
-			Spring.MoveCtrl.SetAirMoveTypeData(unitID, stalled)
-			restoreMoveType = { Spring.MoveCtrl.SetAirMoveTypeData, moveType }
+			setMoveType(unitID, stalled)
+			restoreMoveType = { setMoveType, moveType }
 		end
 	end
 
