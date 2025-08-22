@@ -76,7 +76,7 @@ rToroidFlare,
 torsoCalcFlare,
 hipCalcFlare;
 
-static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, whichAAbarrel; 			
+static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, whichAAbarrel, turningBack; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -736,6 +736,7 @@ SmokeItUp()
 
 Create()
 {
+	call-script Close();
 	hide rRiotFlare;
 	hide lRiotFlare;
 	move rHeatrayStrut to y-axis [-10] now;
@@ -745,6 +746,14 @@ Create()
 	turn rHeatrayPitchPivot to x-axis <15> now;
 	turn lHeatrayPitchPivot to x-axis <15> now;
 	move hip to y-axis [-5] now;
+	turn rCoolingCell1 to z-axis <-50> now;
+	turn lCoolingCell1 to z-axis <-50> now;
+	turn rCoolingCell2 to z-axis <50> now;
+	turn lCoolingCell2 to z-axis <50> now;
+	turn rCoolingCell1 to x-axis <-25> now;
+	turn lCoolingCell1 to x-axis <-25> now;
+	turn rCoolingCell2 to x-axis <-25> now;
+	turn lCoolingCell2 to x-axis <-25> now;
 	whichAAbarrel = 1;
 	animSpeed = 5;
 	isMoving = FALSE;
@@ -763,7 +772,11 @@ Create()
 	call-script Steering();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
+	SLEEP_UNTIL_UNITFINISHED;
+	spin flakHeadingPivot around y-axis speed <20> accelerate <1>;
+	turn flakPitchPivot to x-axis <-35> speed <35>;
 }
+
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -816,6 +829,7 @@ Steering(heading, currentSpeed)
 
 
 
+
 ExecuteRestoreAfterDelay(addTime)
 {
 	signal SIGNAL_RESTORE;
@@ -848,6 +862,14 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 	start-script RestoreLRay();
 	start-script RestoreRRay();
+	start-script ExecuteRestoreFlakAfterDelay();
+}
+
+ExecuteRestoreFlakAfterDelay(){
+	set-signal-mask SIG_AIM_6;
+	sleep restoreDelay;
+	spin flakHeadingPivot around y-axis speed <20> accelerate <1>;
+	turn flakPitchPivot to x-axis <-35> speed <35>;
 }
 
 RestoreLRay()
@@ -973,11 +995,16 @@ AimWeapon2(heading, pitch)
 	signal SIG_AIM_2;
 	if (isTurning == 1)
 	{
-		turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+			turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+		//}
+		
 	}
 	if (isTurning == 0)
 	{
-		turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <35>;
+		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+			turn lHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <35>;
+		//}
 	}
 	turn lHeatrayPitchPivot to x-axis (-1*pitch) speed <35>;
 	
@@ -1014,11 +1041,16 @@ AimWeapon3(heading, pitch)
 	signal SIG_AIM_3;
 	if (isTurning == 1)
 	{
-		turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+			turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <70>;
+		//}
+		
 	}
 	if (isTurning == 0)
 	{
-		turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <35>;
+		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+			turn rHeatrayHeadingPivot to y-axis (heading-(torsoAim)) speed <35>;
+		//}
 	}
 	turn rHeatrayPitchPivot to x-axis (-1*pitch) speed <35>;
 	
@@ -1066,12 +1098,18 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
+
 	oldHeading3 = heading;
-	// turn lArmGun to y-axis heading-(torsoAim) speed <30>;
-	// turn lArmGun to x-axis -1*pitch speed <30>;
-	call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
-	// call-script CATT1_Aim((heading+torsoAim),pitch);
-	return(1);
+	get PRINT(heading - torsoAim);
+	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+		call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
+		
+		return(1);
+	}
+	else{
+		return(0);
+	}
+
 }
 
 FireWeapon4()
@@ -1095,16 +1133,25 @@ AimFromWeapon5(pieceIndex)
 	pieceIndex = rArmGun;
 }
 
+
+
 AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
 	set-signal-mask SIG_AIM_5;
+
+	// start-script printStuff();
 	oldHeading4 = heading;
-	// turn rArmGun to y-axis heading-(torsoAim) speed <30>;
-	// turn rArmGun to x-axis -1*pitch speed <30>;
-	call-script CATT2_Aim((heading - torsoAim) + <1>,pitch+400);
-	// call-script CATT2_Aim((heading+torsoAim),pitch);
-	return(1);
+	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
+		call-script CATT2_Aim((heading - torsoAim) + <1>,pitch+400);
+		//get PRINT(((heading - torsoAim)/65536)*180);
+		return(1);
+	}
+	else{
+		return(0);
+	}
+
+
 }
 
 FireWeapon5()
@@ -1135,6 +1182,7 @@ AimFromWeapon6(pieceIndex)
 
 AimWeapon6(heading, pitch)
 {
+	stop-spin flakHeadingPivot around y-axis;
 	signal SIG_AIM_6;
 	set-signal-mask SIG_AIM_6;
 	turn flakHeadingPivot to y-axis (heading - torsoAim) speed <300>;
