@@ -1872,13 +1872,18 @@ function UpdateResources()
         if energyPlayer ~= nil then
 			if energyPlayer.team == myTeamID then
 				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
-				maxShareAmount = storage - current
+				if maxShareAmount == nil then
+					maxShareAmount = math.max(0, storage - current)
+				end
 				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			else
-				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
-				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
-				maxShareAmount = math.min(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
+				if maxShareAmount == nil then
+					local myCurrent = Spring_GetTeamResources(myTeamID, "energy")
+					local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
+					local receiverFree = (energyStorage*shareSliderPos) - energy
+					maxShareAmount = math.max(0, math.min(myCurrent or 0, receiverFree or 0))
+				end
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -1887,13 +1892,25 @@ function UpdateResources()
         if metalPlayer ~= nil then
             if metalPlayer.team == myTeamID then
                 local current, storage = Spring_GetTeamResources(myTeamID, "metal")
-                maxShareAmount = storage - current
+                if maxShareAmount == nil then
+                	maxShareAmount = math.max(0, storage - current)
+                end
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
-				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
-				maxShareAmount = math.min(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
+                if maxShareAmount == nil then
+					local myCurrent = Spring_GetTeamResources(myTeamID, "metal")
+					local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
+					local receiverFree = (metalStorage*shareSliderPos) - metal
+					local cap = math.max(0, math.min(myCurrent or 0, receiverFree or 0))
+					local threshold = Spring_GetTeamRulesParam(myTeamID, 'metal_share_threshold') or 0
+					if threshold > 0 then
+						local cumulative = Spring_GetTeamRulesParam(myTeamID, 'metal_share_cumulative_sent') or 0
+						local remaining = math.max(0, threshold - cumulative)
+						cap = math.min(cap, remaining)
+					end
+					maxShareAmount = cap
+                end
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -3175,6 +3192,8 @@ end
 --  Share slider gllist
 ---------------------------------------------------------------------------------------------------
 
+local ShareTax = VFS.Include('common/luaUtilities/resource_share_tax.lua')
+
 function CreateShareSlider()
     if ShareSlider then
         gl_DeleteList(ShareSlider)
@@ -3185,6 +3204,10 @@ function CreateShareSlider()
         if sliderPosition then
             font:Begin(useRenderToTexture)
             local posY
+            local myTeam = myTeamID
+            local taxRate = Spring_GetTeamRulesParam(myTeam, 'resource_share_tax_rate') or Spring.GetModOptions().tax_resource_sharing_amount or 0
+            local metalThreshold = Spring_GetTeamRulesParam(myTeam, 'metal_share_threshold') or Spring.GetModOptions().player_metal_send_threshold or 0
+            local cumulativeSent = Spring_GetTeamRulesParam(myTeam, 'metal_share_cumulative_sent') or 0
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
                 gl_Texture(pics["barPic"])
@@ -3192,9 +3215,19 @@ function CreateShareSlider()
                 gl_Texture(pics["energyPic"])
                 DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
+				local recv = math.floor(shareAmount * (1 - taxRate))
+				local label = recv.."/"..shareAmount
+				local textXRight = m_share.posX + widgetPosX + (16*playerScale) - (4*playerScale)
+				local fontSize = 14
+				local pad = 4 * playerScale
+				local textWidth = font:GetTextWidth(label) * fontSize
+				local bgLeft = math.floor(textXRight - textWidth - pad)
+				local bgRight = math.floor(textXRight + pad)
+				local bgBottom = math.floor(posY - 1 + sliderPosition)
+				local bgTop = math.floor(posY + (17*playerScale) + sliderPosition)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+				RectRound(bgLeft, bgBottom, bgRight, bgTop, 2.5*playerScale)
+				font:Print("\255\255\255\255"..label, textXRight, posY + (3*playerScale) + sliderPosition, fontSize, "or")
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
@@ -3202,9 +3235,19 @@ function CreateShareSlider()
                 gl_Texture(pics["metalPic"])
                 DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
+				local remainingAllowance = math.max(0, (metalThreshold or 0) - (cumulativeSent or 0))
+				local label = math.floor(shareAmount).."/"..math.floor(remainingAllowance)
+				local textXRight = m_share.posX + widgetPosX + (32*playerScale) - (4*playerScale)
+				local fontSize = 14
+				local pad = 4 * playerScale
+				local textWidth = font:GetTextWidth(label) * fontSize
+				local bgLeft = math.floor(textXRight - textWidth - pad)
+				local bgRight = math.floor(textXRight + pad)
+				local bgBottom = math.floor(posY - 1 + sliderPosition)
+				local bgTop = math.floor(posY + (17*playerScale) + sliderPosition)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+				RectRound(bgLeft, bgBottom, bgRight, bgTop, 2.5*playerScale)
+				font:Print("\255\255\255\255"..label, textXRight, posY + (3*playerScale) + sliderPosition, fontSize, "or")
             end
             font:End()
         end
@@ -3487,6 +3530,14 @@ function widget:MouseRelease(x, y, button)
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
 				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..metalPlayer.name)
+                local threshold = Spring_GetTeamRulesParam(myTeamID, 'metal_share_threshold') or 0
+                if threshold > 0 then
+                    local cumulativeBefore = Spring_GetTeamRulesParam(myTeamID, 'metal_share_cumulative_sent') or 0
+                    local cumulativeAfter = math.floor(cumulativeBefore + shareAmount)
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.sentMetalThreshold:amount='..shareAmount..':cumulative='..cumulativeAfter..':threshold='..math.floor(threshold))
+                else
+                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.sentMetalSimple:amount='..shareAmount)
+                end
                 WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
