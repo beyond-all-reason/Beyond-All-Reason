@@ -122,6 +122,106 @@
 	color: #ff0000;
 }
 
+.time-display.warning.pulsing {
+	animation: countdown-pulse 1s sine-in-out infinite;
+	font-effect: outline(2px rgba(255, 0, 0, 128));
+}
+
+.time-display.warning.pulsing.intense {
+	animation: countdown-pulse-intense 0.5s sine-in-out infinite;
+	font-effect: outline(3px rgba(255, 0, 0, 179));
+}
+
+.time-display.warning.pulsing.critical {
+	animation: countdown-pulse-critical 0.3s sine-in-out infinite;
+	font-effect: outline(4px rgba(255, 0, 0, 230));
+}
+
+.time-display.warning.pulsing.duration-0-3 {
+	animation-duration: 0.3s;
+}
+
+.time-display.warning.pulsing.duration-0-4 {
+	animation-duration: 0.4s;
+}
+
+.time-display.warning.pulsing.duration-0-5 {
+	animation-duration: 0.5s;
+}
+
+.time-display.warning.pulsing.duration-0-6 {
+	animation-duration: 0.6s;
+}
+
+.time-display.warning.pulsing.duration-0-7 {
+	animation-duration: 0.7s;
+}
+
+.time-display.warning.pulsing.duration-0-8 {
+	animation-duration: 0.8s;
+}
+
+.time-display.warning.pulsing.duration-0-9 {
+	animation-duration: 0.9s;
+}
+
+.time-display.warning.pulsing.duration-1-0 {
+	animation-duration: 1.0s;
+}
+
+@keyframes countdown-pulse {
+	0% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+	25% {
+		color: #cc0000;
+		transform: scale(1.05);
+	}
+	50% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+	75% {
+		color: #cc0000;
+		transform: scale(1.05);
+	}
+	100% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+}
+
+@keyframes countdown-pulse-intense {
+	0% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+	50% {
+		color: #cc0000;
+		transform: scale(1.1);
+	}
+	100% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+}
+
+@keyframes countdown-pulse-critical {
+	0% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+	50% {
+		color: #cc0000;
+		transform: scale(1.15);
+	}
+	100% {
+		color: #ff0000;
+		transform: scale(1);
+	}
+}
+
 .score-text {
 	position: absolute;
 	top: 50%;
@@ -156,6 +256,38 @@
 	z-index: 2000;
 	pointer-events: none;
 	display: none;
+	opacity: 0;
+	animation: popup-fade-in 0.5s ease-out forwards;
+}
+
+.round-end-popup.fade-out {
+	animation: popup-fade-out 0.5s ease-in forwards;
+}
+
+@keyframes popup-fade-in {
+	from {
+		opacity: 0;
+		transform: scale(0.8) translateY(-20px);
+		filter: blur(2px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+		filter: blur(0px);
+	}
+}
+
+@keyframes popup-fade-out {
+	from {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+		filter: blur(0px);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.8) translateY(-20px);
+		filter: blur(2px);
+	}
 }
 
 .popup-text {

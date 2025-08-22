@@ -22,7 +22,7 @@ local territorialDominationConfig = {
 	},
 	default = {
 		maxRounds = 3,
-		minutesPerRound = 1,
+		minutesPerRound = 8,
 	},
 	long = {
 		maxRounds = 3,
@@ -98,6 +98,7 @@ local roundTimestamp = 0
 local currentRound = 0
 local gameOver = false
 local allyTeamsCount = 0
+local previousRoundHighestScore = 0
 
 local allyTeamsWatch = {}
 local unitWatchDefs = {}
@@ -199,6 +200,20 @@ local function getRandomizedGridIDs()
 	end
 
 	return randomizedGridIDs
+end
+
+local function updatePreviousHighestScore()
+	local highestScore = 0
+	local highestScoreAllyID = nil
+	
+	for allyID, scoreData in pairs(allyScores) do
+		if scoreData.score > highestScore then
+			highestScore = scoreData.score
+			highestScoreAllyID = allyID
+		end
+	end
+	
+	previousRoundHighestScore = highestScore
 end
 
 local function createVisibilityArray(squareData)
@@ -700,11 +715,12 @@ function gadget:GameFrame(frame)
 				processRoundEnd()
 			else
 				for allyID, scoreData in pairs(allyScores) do
-					if scoreData.rank > 1 then
+					if scoreData.rank > 1 or scoreData.score < previousRoundHighestScore then
 						triggerAllyDefeat(allyID)
 					end
 				end
 			end
+			updatePreviousHighestScore()
 			roundTimestamp = seconds + ROUND_SECONDS
 		end
 		setAllyTeamRanks(allyScores)
@@ -718,11 +734,11 @@ function gadget:GameFrame(frame)
 				secondHighestScore = scoreData.score
 			end
 		end
-	Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
-	Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
-	Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
-	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
-	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
+		Spring.SetGameRulesParam("territorialDominationHighestScore", highestScore)
+		Spring.SetGameRulesParam("territorialDominationSecondHighestScore", secondHighestScore)
+		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
+		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
+		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
 		local projectedPoints = calculateProjectedPointsForNextRound()
 		

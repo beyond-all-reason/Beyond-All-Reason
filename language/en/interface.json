@@ -723,7 +723,7 @@
 			"round": {
 				"display": "Round %{currentRound}",
 				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
-				"overTime": "Overtime"
+				"overtime": "Overtime"
 			},
 			"team": {
 				"ally": "Ally %{allyNumber}"

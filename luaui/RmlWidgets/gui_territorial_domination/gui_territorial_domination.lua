@@ -16,6 +16,13 @@ function widget:GetInfo()
 	}
 end
 
+--[[
+
+we are hard coding the ally team colors, we need to be getting it from luaspace and generating dynamically. This seems to only be the case for the predicted scores
+overtime display incorrect, isn't getting after the interface.json entry
+]]
+
+
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -82,6 +89,7 @@ local widgetState = {
 		isFinalRound = false,
 		playerIsFirst = false,
 		isSpectating = false,
+		fadeOutStartTime = nil,
 	},
 }
 
@@ -151,7 +159,7 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	local popupText = ""
 	if isFinalRound then
 		if isTie() then
-			popupText = spI18N('ui.territorialDomination.round.overTime')
+			popupText = spI18N('ui.territorialDomination.round.overtime')
 		elseif spGetSpectatingState() then
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.gameOver')
 		elseif isPlayerInFirstPlace() then
@@ -171,6 +179,8 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	local centerY = 540
 	popupElement:SetAttribute("style", string.format("display: block; left: %dpx; top: %dpx;", centerX, centerY))
 	
+	popupElement.class_name = "round-end-popup"
+	
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = os.clock()
 	widgetState.popupState.roundNumber = roundNumber
@@ -179,13 +189,24 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	widgetState.popupState.isSpectating = spGetSpectatingState()
 end
 
+local function completePopupFadeOut()
+	if not widgetState.document then return end
+	
+	local popupElement = widgetState.document:GetElementById("round-end-popup")
+	if popupElement then
+		popupElement:SetAttribute("style", "display: none;")
+	end
+	widgetState.popupState.fadeOutStartTime = nil
+end
+
 local function hideRoundEndPopup()
 	if not widgetState.document then return end
 	
 	local popupElement = widgetState.document:GetElementById("round-end-popup")
 	if not popupElement then return end
 	
-	popupElement:SetAttribute("style", "display: none;")
+	popupElement.class_name = "round-end-popup fade-out"
+	widgetState.popupState.fadeOutStartTime = os.clock()
 	widgetState.popupState.isVisible = false
 end
 
@@ -295,7 +316,33 @@ local function updateCountdownColor()
 	
 	local dm = widgetState.dmHandle
 	if dm and dm.isCountdownWarning then
-		timeDisplayElement.class_name = "time-display warning"
+		local timeRemaining = dm.timeRemainingSeconds or 0
+		local baseClass = "time-display warning pulsing"
+		
+		if timeRemaining <= 10 then
+			timeDisplayElement.class_name = baseClass .. " critical"
+		elseif timeRemaining <= 30 then
+			timeDisplayElement.class_name = baseClass .. " intense"
+		else
+			timeDisplayElement.class_name = baseClass
+		end
+		
+		local durationClass = ""
+		if timeRemaining <= 10 then
+			durationClass = " duration-0-3"
+		elseif timeRemaining <= 20 then
+			durationClass = " duration-0-4"
+		elseif timeRemaining <= 30 then
+			durationClass = " duration-0-5"
+		elseif timeRemaining <= 40 then
+			durationClass = " duration-0-6"
+		elseif timeRemaining <= 50 then
+			durationClass = " duration-0-7"
+		else
+			durationClass = " duration-1-0"
+		end
+		
+		timeDisplayElement.class_name = timeDisplayElement.class_name .. durationClass
 	else
 		timeDisplayElement.class_name = "time-display"
 	end
@@ -706,6 +753,7 @@ function widget:Shutdown()
 
 	widgetState.rmlContext = nil
 	widgetState.scoreElements = {}
+	widgetState.popupState.fadeOutStartTime = nil
 end
 
 function widget:updateMargins(newSmallMargin, newBigMargin)
@@ -733,6 +781,11 @@ function widget:Update()
 		local timeSincePopup = currentOSClock - widgetState.popupState.showTime
 		if timeSincePopup >= ROUND_END_POPUP_DELAY then
 			hideRoundEndPopup()
+		end
+	elseif widgetState.popupState.fadeOutStartTime then
+		local timeSinceFadeOut = currentOSClock - widgetState.popupState.fadeOutStartTime
+		if timeSinceFadeOut >= 0.5 then
+			completePopupFadeOut()
 		end
 	end
 	
