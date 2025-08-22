@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMTHUND.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 195,
+		sightdistance = 430,
 		speed = 255,
 		speedtofront = 0.063,
 		turnradius = 64,
