@@ -24,10 +24,9 @@ if not gadgetHandler:IsSyncedCode() then return end
 ---Control player and team intel access to a unit's suspension state (on/off).
 local accessLevel = { inlos = true } ---@type losAccess
 
----Immediately remove commands from the unit's queue when it is suspended.
+---Immediately remove commands from the unit's queue via GG.RemoveSuspendCommands.
 --
--- Units that are completely unrecoverable should have the commands given in
--- this table (or all commands) removed from their command queues.
+-- 
 ---@type table<CMD, true>
 local commandSuspendRemoves = {
 	[CMD.BUILD]        = true,
@@ -86,7 +85,7 @@ local spGetUnitPhysicalState = Spring.GetUnitPhysicalState
 local CMD_REMOVE = CMD.REMOVE
 local OPT_ALT = CMD.OPT_ALT
 
--- todo: put somewhere
+-- todo: put in engine
 local PSTATE = {
 	-- Positional states
 	ONGROUND    = 2 ^ 0,
@@ -355,17 +354,13 @@ end
 ---Disable the unit and set the reason why it cannot take actions.
 ---@param unitID integer
 ---@param reason string?
----@param remove boolean? whether to clear disallowed commands from the command queue
 ---@return string? enableReason
-local function addSuspendReason(unitID, reason, remove)
+local function addSuspendReason(unitID, reason)
 	local suspendedUnit = suspendedUnits[unitID]
 
 	if suspendedUnit == nil then
 		spSetUnitRulesParam(unitID, "suspended", 1, accessLevel)
 		suspendedUnit = {}
-		if remove ~= false then
-			removeCommands(unitID)
-		end
 		if suspendMovement then
 			stopMoving(unitID)
 		end
@@ -376,6 +371,19 @@ local function addSuspendReason(unitID, reason, remove)
 		local enableReason = suspendReasons[reason] or reason
 		suspendedUnit[enableReason] = true
 		return enableReason
+	end
+end
+
+---Remove commands from a suspended unit's queue that it cannot perform while suspended,
+---especially given long-term or indefinite suspension reasons outside player control.
+---@param unitID any
+---@return boolean removed
+local function removeSuspendedUnitCommands(unitID)
+	if suspendedUnits[unitID] ~= nil then
+		removeCommands(unitID)
+		return true
+	else
+		return false
 	end
 end
 
@@ -432,6 +440,7 @@ end
 GG.AddUnitSuspendAndResumeReason = addUnitSuspendAndResumeReason
 GG.RegisterSuspendNotify         = registerSuspendNotify
 GG.AddSuspendReason              = addSuspendReason
+GG.RemoveSuspendedUnitCommands   = removeSuspendedUnitCommands
 GG.ClearSuspendReason            = clearSuspendReason
 GG.GetUnitIsSuspended            = getUnitIsSuspended
 GG.GetUnitSuspendReasons         = getUnitSuspendReasons

@@ -81,16 +81,20 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 GG.AddUnitSuspendAndResumeReason("UnitEnteredWaterDepth", "UnitLeftWaterDepth")
-local addSuspendReason = GG.AddSuspendReason
-local clearSuspendReason = GG.ClearSuspendReason
+local suspendUnit = GG.AddSuspendReason
+local suspendQueue = GG.RemoveSuspendedUnitCommands
+local reenableUnit = GG.ClearSuspendReason
 
 local function setUnitDisabled(unitID, disabled)
 	if disabled then
 		if drowningUnits[unitID] == nil and spGetUnitIsDead(unitID) == false then
-			drowningUnits[unitID] = (addSuspendReason(unitID, "UnitEnteredWaterDepth", true) ~= nil)
+			drowningUnits[unitID] = true
+			suspendUnit(unitID, "UnitEnteredWaterDepth")
+			-- Drowning units are almost certainly not recoverable.
+			suspendQueue(unitID) -- So, clear their bad commands.
 		end
 	else
-		clearSuspendReason(unitID, "UnitLeftWaterDepth")
+		reenableUnit(unitID, "UnitLeftWaterDepth")
 		drowningUnits[unitID] = nil
 	end
 end
