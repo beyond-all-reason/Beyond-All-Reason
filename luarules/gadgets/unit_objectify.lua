@@ -23,7 +23,7 @@ local isBuilder = {}
 local isObject = {}
 local isClosedObject = {}
 local isDecoration = {}
-local isImmobile = {}
+local canMove = {}
 local unitSize = {}
 for udefID,def in ipairs(UnitDefs) do
     if def.customParams.objectify then
@@ -35,8 +35,8 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder then
 		isBuilder[udefID] = true
 	end
-	if def.isImmobile then
-		isImmobile[udefID] = true
+	if def.canMove then
+		canMove[udefID] = true
 	end
 	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
 
@@ -197,11 +197,11 @@ else -- UNSYNCED
 					-- Ignore walls/decorations and enemy decoy walls/decorations.
 					local units = spGetSelectedUnits()
 					for _, unit in ipairs(units) do
-						if isImmobile[spGetUnitDefID(unit)] then
-							return CMD_ATTACK
+						if canMove[spGetUnitDefID(unit)] then
+							return CMD_MOVE
 						end
 					end
-					return CMD_MOVE
+					return CMD_ATTACK
 				end
 			elseif objectUnit and fromCommand == CMD_GUARD then
 				return CMD_MOVE
