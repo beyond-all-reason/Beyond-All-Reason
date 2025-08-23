@@ -1190,7 +1190,7 @@ RestoreAfterDelay()
 RestoreLRay()
 {
 	set-signal-mask SIG_AIM_2;
-	sleep 1;
+	sleep restoreDelay;
 	isFiring1 = 0;
 	oldHeading1 = -1000000;
 	turn lArmShoulderJoint to y-axis <0.0> speed <20.0>;
@@ -1207,7 +1207,7 @@ RestoreLRay()
 RestoreRRay()
 {
 	set-signal-mask SIG_AIM_3;
-	sleep 1;
+	sleep restoreDelay;
 	isFiring2 = 0;
 	oldHeading2 = -1000000;
 	turn rArmShoulderJoint to y-axis <0.0> speed <20.0>;
@@ -1224,7 +1224,7 @@ RestoreRRay()
 RestoreLArmRay()
 {
 	set-signal-mask SIG_AIM_4;
-	sleep 1;
+	sleep restoreDelay;
 	isFiring3 = 0;
 	oldHeading3 = -1000000;
 	turn lArmGun to 		x-axis <15> speed <198.744161> / animSpeed;
@@ -1236,12 +1236,13 @@ RestoreLArmRay()
 	turn lArmUpperArm to 	x-axis <0> speed <12.703869> / animSpeed;
 	turn lArmUpperArm to 	z-axis <0> speed <144.436304> / animSpeed;
 	turn lArmRotationFlare to z-axis <0> speed <40>;
+	heatrayReady = 0;
 }
 
 RestoreRArmRay()
 {
 	set-signal-mask SIG_AIM_5;
-	sleep 1;
+	sleep restoreDelay;
 	isFiring4 = 0;
 	oldHeading4 = -1000000;
 	turn rArmGun to 		x-axis <15> speed <223.639176> / animSpeed;
@@ -1253,6 +1254,7 @@ RestoreRArmRay()
 	turn rArmUpperArm to 	x-axis <0> speed <12.752184> / animSpeed;
 	turn rArmUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
 	turn rArmRotationFlare to z-axis <0> speed <40>;
+	heatrayReady = 0;
 }
 
 QueryWeapon1(piecenum) //Hull Rotation
@@ -1454,11 +1456,13 @@ AimWeapon4(heading, pitch)
 				wait-for-turn lArmGun around x-axis;
 			}
 		start-script RestoreLArmRay();
-		isfiring3 = 2;
+		isfiring3 = 1;
 		return (1);
 	}
 	else{
-		return(0);
+		turn lArmGun to x-axis (-1*pitch) speed <35>;
+		isfiring3 = 1;
+		return(1);
 	}
 
 }
@@ -1517,11 +1521,13 @@ AimWeapon5(heading, pitch)
 				wait-for-turn rArmGun around x-axis;
 			}
 		start-script RestoreRArmRay();
-		isfiring4 = 2;
+		isfiring4 = 1;
 		return (1);
 	}
 	else{
-		return(0);
+		turn rArmGun to x-axis (-1*pitch) speed <35>;
+		isfiring4 = 1;
+		return(1);
 	}
 }
 
