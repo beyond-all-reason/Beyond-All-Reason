@@ -32,6 +32,7 @@ local CMD_INSERT       = CMD.INSERT
 
 -- ========= command id & description =========
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
+local CMD_TRANSPORT_WHO = GameCMD.TRANSPORT_WHO
 local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
 local CMD_AUTO_TRANSPORT_DESC = {
 	id = CMD_AUTO_TRANSPORT,
@@ -113,6 +114,17 @@ function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, c
             return true, false
         end
     end
+    if cmdID == CMD_TRANSPORT_WHO then
+        if #cmdParams == 1 then
+            --is icon_unit
+            --if the unit the command was targeting is lifted, then we consider this command done
+            if loadedUnits[cmdParams[1]]then
+                return true, true
+            else
+                return true, false
+            end
+        end
+    end
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, teamID, transportID)
@@ -132,6 +144,10 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD_QUOTA_BUILD_TOGGLE
+    if not isTransportDef[unitDefID] and cmdID == CMD_TRANSPORT_WHO then
+        --non transport units should´nt be able to have this command on their queue
+        return false
+    end
 	if isTransportDef[unitDefID] then
         local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT)
         if cmdDescID then
