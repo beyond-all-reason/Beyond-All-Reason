@@ -3415,21 +3415,21 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
-		  onload = function(i)
-			  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
-			  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
-				  options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
-				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
-			  else
-				  widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
-			  end
-		  end,
-		},
+		-- { id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
+		--   onload = function(i)
+		-- 	  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
+		-- 	  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
+		-- 		  options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
+		-- 	  end
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
+		-- 		  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
+		-- 	  else
+		-- 		  widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
+		-- 	  end
+		--   end,
+		-- },
 
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buildmenu') ..widgetOptionColor.. "  " .. Spring.I18N('ui.settings.option.buildmenu_bottom'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = Spring.I18N('ui.settings.option.buildmenu_bottom_descr'),
 		  onload = function(i)

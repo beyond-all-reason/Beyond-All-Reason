@@ -1481,8 +1481,8 @@ function widget:Update(dt)
 		local cursors, notIdle = WG['allycursors'].getCursors()
 		for playerID, cursor in pairs(cursors) do
 			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
-				local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 				if not cursorLights[playerID] and not cursor[8] then
+					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
 					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]

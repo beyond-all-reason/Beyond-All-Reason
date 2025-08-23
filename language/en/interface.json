@@ -211,6 +211,8 @@
 			"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
 			"landatairbase": "To Air Pad",
 			"landatairbase_tooltip": "Go to nearest Air Repair Pad",
+			"landatspecificairbase": "To Specific Air Pad",
+			"landatspecificairbase_tooltip": "Go to specific Air Repair Pad",
 			"stockpile": "Stockpile %{stockpileStatus}",
 			"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 			"stopproduction": "Clear Queue",
