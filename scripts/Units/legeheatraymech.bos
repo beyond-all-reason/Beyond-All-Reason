@@ -910,8 +910,8 @@ RestoreAfterDelay()
 	oldHeading4 = 0;
 	turn torsoConnector to y-axis <0> speed <30>;
 	start-script ExecuteRestoreAfterDelay();
-	start-script RestoreLRay();
-	start-script RestoreRRay();
+	// start-script RestoreLRay();
+	// start-script RestoreRRay();
 	start-script ExecuteRestoreFlakAfterDelay();
 }
 
