@@ -11,9 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local LOG_VERBOSE = false
-local LOG_DETAIL = false
-
+local f = string.format
 local Echo = Spring.Echo
 local GetMyPlayerID = Spring.GetMyPlayerID
 local GetPlayerInfo = Spring.GetPlayerInfo
@@ -40,6 +38,14 @@ local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
 local CMD_FIGHT = CMD.FIGHT
 
+local CMD_TRANSPORT_WHO = GameCMD.TRANSPORT_WHO
+local CMD_TRANSPORT_WHO_DESC = {
+	id = CMD_TRANSPORT_WHO,
+	type = CMDTYPE.ICON_UNIT_OR_AREA,
+	name = "Transport Who",
+	cursor = nil,
+	action = "transport_who",
+}
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_TRANSPORT_TO_DESC = {
 	id = CMD_TRANSPORT_TO,
@@ -185,12 +191,27 @@ function isAutomaticTransport(unitID)
 	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
 
+function TransportHasTransportWhoCommandOnUnit(unitID, transportID)
+	local transportQueue = GetUnitCommands(transportID, -1)
+	for index, cmd in ipairs(transportQueue) do
+		if cmd.id == CMD_TRANSPORT_WHO then
+			if #cmd.params == 1 then
+				--is a icon_unit
+				if cmd.params[1] == unitID then
+					return true
+				end
+			end
+		end
+	end
+end
+
 local function pickBestTransport(unitID, ux, uz, unitDefID)
 	local wantType = unitRequestedType(unitDefID)
 	local bestLight, bestLightD, bestHeavy, bestHeavyD
 	for transportID in pairs(knownTransports) do
 		local isAutomatic = isAutomaticTransport(transportID)
-		if (not busyTransport[transportID]) and isAutomatic then
+		local hasTransportWhoCommand = TransportHasTransportWhoCommandOnUnit(unitID, transportID)
+		if (not busyTransport[transportID]) and isAutomatic and hasTransportWhoCommand then
 			local tDefID = GetUnitDefID(transportID)
 			if tDefID then
 				local ok, reason = canTransportWithReason(transportID, tDefID, unitID, unitDefID)
@@ -235,12 +256,21 @@ local function issuePickupAndDrop(transportID, unitID, target)
 			table.insert(chainedTargets, cmd)
 		else break end
 	end
-	GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, 0)
-	for index, cmd in ipairs(chainedTargets) do
+	-- GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, 0)
+	-- for index, cmd in ipairs(chainedTargets) do
+	-- 	if index == #chainedTargets then
+	-- 		GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, {cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS }, { "shift" })
+	-- 	else
+	-- 		GiveOrderToUnit(transportID, CMD_MOVE, {cmd.params[1], cmd.params[2], cmd.params[3]}, { "shift" })
+	-- 	end
+	-- end
+	GiveOrderToUnit(transportID, CMD_INSERT, {0, CMD_LOAD_UNITS,CMD.OPT_SHIFT,unitID},{"alt"})
+		for index, cmd in ipairs(chainedTargets) do
 		if index == #chainedTargets then
-			GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, {cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS }, { "shift" })
+			-- GiveOrderToUnit(transportID, CMD_UNLOAD_UNITS, {cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS }, { "shift" })
+			GiveOrderToUnit(transportID, CMD_INSERT, {index, CMD_UNLOAD_UNITS,CMD.OPT_SHIFT,cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS},{"alt"})
 		else
-			GiveOrderToUnit(transportID, CMD_MOVE, {cmd.params[1], cmd.params[2], cmd.params[3]}, { "shift" })
+			GiveOrderToUnit(transportID, CMD_INSERT, {index, CMD_MOVE,CMD.OPT_SHIFT,cmd.params[1], cmd.params[2], cmd.params[3]},{"alt"})
 		end
 	end
 end
@@ -255,6 +285,8 @@ function widget:Initialize()
 	reloadBindings()
 	Spring.AssignMouseCursor("transto", "cursortransport")
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", {1,1,1,1}) 
+	Spring.AssignMouseCursor("transwho", "cursortransport")
+	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_WHO, "transwho", {1,1,1,1}) 
 end
 
 function widget:PlayerChanged(playerID)
@@ -307,9 +339,20 @@ function widget:CommandsChanged()
 			addCustom = true
 			break
 		end
+		if defID and (isTransportDef[defID]) then
+			cc[#cc + 1] = CMD_TRANSPORT_WHO
+		end
 	end
 	if addCustom then
 		cc[#cc + 1] = CMD_TRANSPORT_TO_DESC
+	end
+end
+
+function giveTransportWhoCommandsToUnits(unitIDArray, transportID)
+	for index, unitID in ipairs(unitIDArray) do
+		if isTransportableDef[GetUnitDefID(unitID)] then
+			GiveOrderToUnit(transportID, CMD_TRANSPORT_WHO, {unitID}, "shift")
+		end
 	end
 end
 
@@ -317,6 +360,11 @@ function widget:CommandNotify(cmdID, params, opts)
 	-- local commandQueue = GetUnitCommands(unitID, -1) or {}
 	local selected = Spring.GetSelectedUnits()
 	if cmdID == CMD_TRANSPORT_TO then
+		for index, transportID in ipairs(selected) do
+			if isTransportDef[GetUnitDefID(transportID)] then
+				giveTransportWhoCommandsToUnits(selected, transportID)
+			end
+		end
 		if #selected > 1 then
 			return true
 		end
