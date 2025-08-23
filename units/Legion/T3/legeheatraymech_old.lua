@@ -1,6 +1,6 @@
 return {
 	legeheatraymech_old = {
-		buildpic = "legeheatraymech.DDS",
+		buildpic = "legeheatraymech_old.DDS",
 		buildtime = 440000,
 		canmove = true,
 		cantbetransported = true,
@@ -59,7 +59,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				metal = 17668,
-				object = "Units/legeheatraymech_dead.s3o",
+				object = "Units/legeheatraymech_old_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

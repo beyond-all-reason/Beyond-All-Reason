@@ -618,6 +618,7 @@ function UnitDef_Post(name, uDef)
 		if name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "legeheatraymech_old" -- Pilum - Fast Assault Mech
 		end
 	end
 
