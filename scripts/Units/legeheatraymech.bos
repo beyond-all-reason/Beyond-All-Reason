@@ -83,6 +83,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM_5			512
 #define SIG_AIM_6			1024
 #define SIGNAL_RESTORE		2048
+#define SIGNAL_OPEN			4096
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -138,6 +139,7 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.129309> speed <6.008976> / animSpeed; 
 			turn torso to x-axis <3.701322> speed <16.425021> / animSpeed;
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <12.506302> speed <11.631676> / animSpeed;
 				turn lUpperArm to x-axis <5.952427> speed <137.583813> / animSpeed; 
 				turn lUpperArm to z-axis <0.267445> speed <6.184082> / animSpeed;
@@ -147,8 +149,8 @@ Walk() {
 				turn rUpperArm to y-axis <0.366983> speed <4.088901> / animSpeed;    
 			}
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <3.285009> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <16.425021> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <16.425021> / animSpeed;
 				turn torso to y-axis <-3.080873> speed <7.646664> / animSpeed;
 			} 
 		sleep ((33*animSpeed) -1);
@@ -179,11 +181,12 @@ Walk() {
 			turn rUpperLeg to y-axis <0.121204> speed <7.515398> / animSpeed; 
 			turn torso to x-axis <2.362247> speed <40.172231> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <3.285009> / animSpeed;
-				turn torso to y-axis <1.592232> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172231> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172231> / animSpeed;
+				turn torso to y-axis <1.592232> speed <44.659240> / animSpeed;
 			} 
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <19.028321> speed <195.660587> / animSpeed;
 				turn lUpperArm to x-axis <15.672871> speed <291.613330> / animSpeed;  
 				turn lUpperArm to z-axis <0.721174> speed <13.611878> / animSpeed;
@@ -218,11 +221,12 @@ Walk() {
 			turn rTibia to x-axis <-20.679023> speed <42.769039> / animSpeed; 
 			turn torso to x-axis <1.028757> speed <40.004708> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <3.285009> / animSpeed;
-				turn torso to y-axis <0.508313> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004708> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004708> / animSpeed;
+				turn torso to y-axis <0.508313> speed <63.016344> / animSpeed;
 			} 
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <28.853953> speed <294.768954> / animSpeed; 
 				turn lUpperArm to x-axis <25.681639> speed <300.263039> / animSpeed; 
 				turn lUpperArm to z-axis <1.238714> speed <15.526180> / animSpeed; 
@@ -262,11 +266,12 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.139947> speed <7.913420> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <30.862713> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <0.000000> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <0.000000> speed <3.285009> / animSpeed;
-				turn torso to y-axis <2.413444> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <0.000000> speed <30.862713> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <0.000000> speed <30.862713> / animSpeed;
+				turn torso to y-axis <2.413444> speed <57.153941> / animSpeed;
 			} 
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <37.980087> speed <273.784001> / animSpeed;
 				turn lUpperArm to x-axis <32.159741> speed <194.343044> / animSpeed; 
 				turn lUpperArm to z-axis <1.622049> speed <11.500052> / animSpeed; 
@@ -308,11 +313,12 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.421341> speed <8.441841> / animSpeed; 
 			turn torso to x-axis <4.358323> speed <130.749684> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <3.285009> / animSpeed;
-				turn torso to y-axis <3.391529> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749684> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749684> / animSpeed;
+				turn torso to y-axis <3.391529> speed <29.342544> / animSpeed;
 			}  
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <43.094758> speed <153.440131> / animSpeed;
 				turn lUpperArm to x-axis <32.917304> speed <22.726908> / animSpeed; 
 				turn rArmGun to x-axis <12.003381> speed <171.452672> / animSpeed;
@@ -342,11 +348,12 @@ Walk() {
 			turn rUpperLeg to z-axis <1.099539> speed <3.854865> / animSpeed; 
 			turn torso to x-axis <3.701322> speed <19.710031> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <3.285009> / animSpeed;
-				turn torso to y-axis <3.067964> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <19.710031> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <19.710031> / animSpeed;
+				turn torso to y-axis <3.067964> speed <9.706952> / animSpeed;
 			}  
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <42.609421> speed <14.560085> / animSpeed;
 				turn lUpperArm to x-axis <27.718002> speed <155.979066> / animSpeed; 
 				turn lUpperArm to z-axis <1.354069> speed <9.488186> / animSpeed; 
@@ -387,11 +394,12 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.233361> speed <7.258639> / animSpeed; 
 			turn torso to x-axis <2.362247> speed <40.172238> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <3.285009> / animSpeed;
-				turn torso to y-axis <1.566566> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172238> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172238> / animSpeed;
+				turn torso to y-axis <1.566566> speed <45.041943> / animSpeed;
 			}
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <36.664899> speed <178.335659> / animSpeed; 
 				turn lUpperArm to x-axis <18.269643> speed <283.450784> / animSpeed; 
 				turn lUpperArm to z-axis <0.849020> speed <15.151454> / animSpeed; 
@@ -404,7 +412,7 @@ Walk() {
 		}
 		if (isMoving) { //Frame:48
 			move hip to y-axis [6.355614] speed [13.769531] / animSpeed; 
-			turn hip to y-axis <0.536879> speed <63.103336> / animSpeed; 
+			turn hip to y-axis <0.536879> speed <63.103336> / animSpeed;
 
 			turn lFootJoint to x-axis <-14.829702> speed <332.021472> / animSpeed; 
 			turn lFootJoint to z-axis <0.240585> speed <4.707151> / animSpeed; 
@@ -425,11 +433,12 @@ Walk() {
 			turn rUpperLeg to x-axis <-0.794633> speed <4.013987> / animSpeed; 
 			turn torso to x-axis <1.028757> speed <40.004705> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <3.285009> / animSpeed;
-				turn torso to y-axis <-0.536879> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004705> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004705> / animSpeed;
+				turn torso to y-axis <-0.536879> speed <63.103336> / animSpeed;
 			}
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <27.152036> speed <285.385914> / animSpeed;
 				turn lUpperArm to x-axis <8.083111> speed <305.595965> / animSpeed; 
 				turn lUpperArm to z-axis <0.364454> speed <14.536995> / animSpeed; 
@@ -469,11 +478,12 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.561892> speed <10.847865> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <30.862710> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <0> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <0> speed <3.285009> / animSpeed;
-				turn torso to y-axis <-2.433928> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <0> speed <30.862710> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <0> speed <30.862710> / animSpeed;
+				turn torso to y-axis <-2.433928> speed <56.911474> / animSpeed;
 			}
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <17.608986> speed <286.291494> / animSpeed;
 				turn lUpperArm to x-axis <1.250380> speed <204.981926> / animSpeed; 
 				turn lUpperArm to z-axis <0.055933> speed <9.255633> / animSpeed;
@@ -515,11 +525,12 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.370673> speed <5.736570> / animSpeed; 
 			turn torso to x-axis <4.358323> speed <130.749697> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <3.285009> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <3.285009> / animSpeed;
-				turn torso to y-axis <-3.396077> speed <7.646664> / animSpeed;
+				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749697> / animSpeed;
+				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749697> / animSpeed;
+				turn torso to y-axis <-3.396077> speed <28.864480> / animSpeed;
 			}
 			if(!aimingPose){
+				
 				turn lArmGun to x-axis <11.966888> speed <169.262948> / animSpeed;
 				turn lUpperArm to x-axis <0.517034> speed <22.000372> / animSpeed;
 				turn rArmGun to x-axis <43.126682> speed <151.391587> / animSpeed;
@@ -571,6 +582,7 @@ StopWalking() {
 	turn rUpperLeg to y-axis <0> speed <18.079775> / animSpeed;
 	turn rUpperLeg to z-axis <0> speed <42.643251> / animSpeed;
 	turn torso to x-axis <0> speed <217.916161> / animSpeed;
+	//turn torsoConnector to x-axis <0> speed <217.916161> / animSpeed;
 }
 
 CreatePose() {
@@ -652,28 +664,29 @@ StopMoving(){
 
 Open()
 {
+	signal SIGNAL_OPEN;
+	set-signal-mask SIGNAL_OPEN;
 	InMotion = 1;
+	turn lUpperArm to 	x-axis <0> speed <120> / animSpeed;
+	turn lUpperArm to 	z-axis <0> speed <144.436304> / animSpeed;
+	turn rUpperArm to 	x-axis <0> speed <120> / animSpeed;
+	turn rUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
 	if( aimingPose == 0)
 	{
 		//emit-sfx 4096 + 6 from upperTorso;
 		aimingPose = 1;
-
 		turn lArmGun to 		x-axis <0> speed <198.744161> / animSpeed;
 		turn lArmGun to 		y-axis <0> speed <187.660497> / animSpeed;
 		turn lArmGun to 		z-axis <0> speed <293.256578> / animSpeed;
 		turn lLowerArm to 	x-axis <0> speed <662.912902> / animSpeed;
 		turn lLowerArm to 	y-axis <0> speed <161.781073> / animSpeed;
 		turn lLowerArm to 	z-axis <-18> speed <51.627009> / animSpeed;
-		turn lUpperArm to 	x-axis <0> speed <12.703869> / animSpeed;
-		turn lUpperArm to 	z-axis <0> speed <144.436304> / animSpeed;
 		turn rArmGun to 		x-axis <0> speed <223.639176> / animSpeed;
 		turn rArmGun to 		y-axis <0> speed <172.971279> / animSpeed;
 		turn rArmGun to 		z-axis <0> speed <207.257634> / animSpeed;
 		turn rLowerArm to 	x-axis <0> speed <656.751222> / animSpeed;
 		turn rLowerArm to 	y-axis <0> speed <160.093278> / animSpeed;
 		turn rLowerArm to 	z-axis <18> speed <58.005416> / animSpeed;
-		turn rUpperArm to 	x-axis <0> speed <12.752184> / animSpeed;
-		turn rUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
 		turn hip to 	y-axis <0> speed <194.050073> / animSpeed;
 		move lHeatrayStrut to y-axis [0] speed [25];
 		move lHeatrayStrut to z-axis [0] speed [25];
@@ -877,7 +890,7 @@ ExecuteRestoreAfterDelay(addTime)
 	start-script CATT2_Restore();
 	turn lArmGun to x-axis <0.0> speed <10>;
 	turn rArmGun to x-axis <0.0> speed <10>;
-	turn torsoConnector to y-axis <0.0> speed <25.0>;
+	turn torso to y-axis <0.0> speed <25.0>;
 	oldHeading1 = 1000000;
 	oldHeading2 = 1000000;
 	oldHeading3 = 0;
@@ -1146,7 +1159,7 @@ AimWeapon4(heading, pitch)
 	
 	if (((heading - torsoAim)<<120> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
 		call-script CATT1_Aim((heading - torsoAim) + <1>,pitch+400);
-		get PRINT(heading - torsoAim);
+		//get PRINT(heading - torsoAim);
 		return(1);
 	}
 	else{
