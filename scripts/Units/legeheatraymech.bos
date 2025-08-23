@@ -698,10 +698,6 @@ Open()
 		move lHeatrayStrut to z-axis [0] speed [25];
 		move rHeatrayStrut to y-axis [0] speed [25];
 		move rHeatrayStrut to z-axis [0] speed [25];
-		// turn lHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn rHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn lHeatrayHeadingPivot to x-axis <-35> speed <50>;
-		// turn rHeatrayHeadingPivot to x-axis <-35> speed <50>;
 		turn lArmGun to z-axis <18> speed <100>;
 		turn rArmGun to z-axis <-18> speed <100>;	
 		turn rHeatrayStrut to z-axis <-5> speed <60>;
@@ -721,11 +717,6 @@ Open()
 		move rHeatrayStrut to z-axis [0] speed [25];
 		turn rHeatrayStrut to z-axis <-5> speed <60>;
 		turn lHeatrayStrut to z-axis <5> speed <60>;
-		//wait-for-move lArmShoulderPivot along y-axis;
-		// turn lHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn rHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn lHeatrayHeadingPivot to x-axis <-35> speed <50>;
-		// turn rHeatrayHeadingPivot to x-axis <-35> speed <50>;
 	}
 }
 
@@ -1077,6 +1068,7 @@ AimWeapon2(heading, pitch)
 	}
 	oldHeading1 = heading;
 	start-script RestoreLRay();
+	start-script RestoreRRay();
 	isfiring1 = 1;
 	show lToroidFlare;
 	return (1);
@@ -1123,6 +1115,7 @@ AimWeapon3(heading, pitch)
 		wait-for-turn rHeatrayHeadingPivot around x-axis;
 	}
 	oldHeading2 = heading;
+	start-script RestoreLRay();
 	start-script RestoreRRay();
 	isfiring2 = 2;
 	show rToroidFlare;
