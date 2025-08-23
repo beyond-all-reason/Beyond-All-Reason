@@ -2,10 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
-        name      = "Transport To (Gadget)", -- gadget copy from: Decloak when damaged
-        desc      = "Adds a map-click Transport To command and auto-assigns transports",
+        name      = "Transport To (Gadget)",
+        desc      = [[This gadget adds the CMD_AUTO_TRANSPORT, which determines if a transport can be used in the widget, 
+                    it also allows the existance of CMD_TRANSPORT_TO in the queue in CommandFallback()
+                    it also removes it once a unit has been loaded (not always the case, i think a weird race condition, but does´nt seem to change anything)]],
         author    = "Silla Noble",
-        date      = "uhhhhh.....", -- Major rework 12 Feb 2014
+        date      = "uhhhhh.....",
         license   = "A what now?",
         layer     = 1,
         enabled   = true
@@ -15,10 +17,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
     return false
 end
-
--- ========= debug toggles =========
-local LOG_VERBOSE = false
-local LOG_DETAIL = false
 
 -- ========= locals / engine aliases =========
 local Echo = Spring.Echo
@@ -34,12 +32,14 @@ local CMD_INSERT       = CMD.INSERT
 
 -- ========= command id & description =========
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
-local CMD_TRANSPORT_TO_DESC = {
-    id = CMD_TRANSPORT_TO,
-    type = CMDTYPE_ICON_MAP,
-    name = "Transport To",
-    cursor = nil,
-    action = "transport_to",
+local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
+local CMD_AUTO_TRANSPORT_DESC = {
+	id = CMD_AUTO_TRANSPORT,
+	type = CMDTYPE.ICON_MODE,
+	name = "Auto Transport",
+	cursor = nil,
+	action = "auto_transport",
+	params 	= {0, 'Ignore Orders', 'Fullfill Orders'},
 }
 
 -- ========= classification thresholds =========
@@ -98,23 +98,7 @@ local function buildDefCaches()
     end
 end
 
-local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
-local CMD_AUTO_TRANSPORT_DESC = {
-	id = CMD_AUTO_TRANSPORT,
-	type = CMDTYPE.ICON_MODE,
-	name = "Auto Transport",
-	cursor = nil,
-	action = "auto_transport",
-	params 	= {0, 'Ignore Orders', 'Fullfill Orders'},
-}
-
 -- ========= gadget lifecycle =========
-local function tcount(t)
-    local c = 0
-    for _ in pairs(t) do c = c + 1 end
-    return c
-end
-
 function gadget:Shutdown()
 end
 

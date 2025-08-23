@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch, duplicate-set-field
 function widget:GetInfo()
 	return {
 		name = "Transport To",
@@ -266,7 +267,7 @@ function widget:PlayerChanged(playerID)
 	refreshKnownTransports()
 end
 
-function widget:UnitCreated(unitID, unitDefID, teamID)
+function widget:MetaUnitAdded(unitID, unitDefID, teamID)
 	if teamID ~= myTeamID then
 		return
 	end
@@ -379,9 +380,6 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 	end
 
 	pendingRequests[unitID] = { x, y, z, requestedGF = GameFrame(), unitDefID = unitDefID }
-	-- if not pendingRequests[unitID] then
-	-- 	pendingRequests[unitID] = { x, y, z, requestedGF = GameFrame(), unitDefID = unitDefID }
-	-- end
 
 	local t = unitRequestedType(unitDefID)
 end

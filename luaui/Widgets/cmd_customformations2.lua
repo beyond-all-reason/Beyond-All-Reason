@@ -368,7 +368,6 @@ end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
     if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
-        --ccc
         return
     end
     spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
