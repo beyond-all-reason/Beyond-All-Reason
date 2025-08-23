@@ -618,7 +618,6 @@ function UnitDef_Post(name, uDef)
 		if name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
-			uDef.buildoptions[numBuildoptions + 2] = "legeheatraymech_old" -- Pilum - Fast Assault Mech
 		end
 	end
 
@@ -772,6 +771,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old" -- Old Sol Invictus - Quad Heatray Mech
 		end
 	end
 
