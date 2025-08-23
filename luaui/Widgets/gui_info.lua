@@ -1088,7 +1088,7 @@ local function drawUnitInfo()
 		end
 		local halfSize = iconSize * 0.5
 		local padding = (halfSize + halfSize) * 0.045
-		local size = (halfSize + halfSize) * 0.18
+		local size = (halfSize + halfSize) * 0.195
 		local metalPriceText = "\255\245\245\245" .. AddSpaces(unitDefInfo[displayUnitDefID].metalCost)
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
@@ -1233,8 +1233,8 @@ local function drawUnitInfo()
 			end
 		end
 	else
-		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
-		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
+		--valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
+		--valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
 		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
 
