@@ -72,7 +72,6 @@ local function buildDefCaches()
             transportClass[defID] = (transportCapacityMass[defID] >= HEAVY_TRANSPORT_MASS_THRESHOLD) and "heavy" or "light"
         end
 
-        -- transportability (grounded, movable non-building, not explicitly excluded)
         local movable = (ud.speed or 0) > 0
         local grounded = not ud.canFly
         local notBuilding = not ud.isBuilding

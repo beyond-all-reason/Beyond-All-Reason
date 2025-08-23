@@ -11,9 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-local LOG_VERBOSE = false
-local LOG_DETAIL = false
-
 local Echo = Spring.Echo
 local GetMyPlayerID = Spring.GetMyPlayerID
 local GetPlayerInfo = Spring.GetPlayerInfo
@@ -98,7 +95,6 @@ local function buildDefCaches()
 		local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
 		local isNano = ud.isBuilder and not ud.canMove and not ud.isFactory
 		local isFactory = ud.isFactory
-
 
 		if grounded and notCantBeTransported then
 			isTransportableDef[defID] = true
@@ -314,8 +310,9 @@ function widget:CommandsChanged()
 end
 
 function widget:CommandNotify(cmdID, params, opts)
-	-- local commandQueue = GetUnitCommands(unitID, -1) or {}
 	local selected = Spring.GetSelectedUnits()
+	--if multiple units are selected, then let customFormations2 handle the command, 
+	--else both left and right click give the command, which is not how it works with the rest of commands handled by customFormations2
 	if cmdID == CMD_TRANSPORT_TO then
 		if #selected > 1 then
 			return true
