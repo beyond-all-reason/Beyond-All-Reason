@@ -139,7 +139,6 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.129309> speed <6.008976> / animSpeed; 
 			turn torso to x-axis <3.701322> speed <16.425021> / animSpeed;
 			if(!aimingPose){
-				
 				turn lArmGun to x-axis <12.506302> speed <11.631676> / animSpeed;
 				turn lUpperArm to x-axis <5.952427> speed <137.583813> / animSpeed; 
 				turn lUpperArm to z-axis <0.267445> speed <6.184082> / animSpeed;
@@ -149,8 +148,8 @@ Walk() {
 				turn rUpperArm to y-axis <0.366983> speed <4.088901> / animSpeed;    
 			}
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <16.425021> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <16.425021> / animSpeed;
+				turn lHeatrayStrut to x-axis <-3.701322> speed <16.425021> / animSpeed;
+				turn rHeatrayStrut to x-axis <-3.701322> speed <16.425021> / animSpeed;
 				turn torso to y-axis <-3.080873> speed <7.646664> / animSpeed;
 			} 
 		sleep ((33*animSpeed) -1);
@@ -181,8 +180,8 @@ Walk() {
 			turn rUpperLeg to y-axis <0.121204> speed <7.515398> / animSpeed; 
 			turn torso to x-axis <2.362247> speed <40.172231> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172231> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172231> / animSpeed;
+				turn lHeatrayStrut to x-axis <-2.362247> speed <40.172231> / animSpeed;
+				turn rHeatrayStrut to x-axis <-2.362247> speed <40.172231> / animSpeed;
 				turn torso to y-axis <1.592232> speed <44.659240> / animSpeed;
 			} 
 			if(!aimingPose){
@@ -221,8 +220,8 @@ Walk() {
 			turn rTibia to x-axis <-20.679023> speed <42.769039> / animSpeed; 
 			turn torso to x-axis <1.028757> speed <40.004708> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004708> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004708> / animSpeed;
+				turn lHeatrayStrut to x-axis <-1.028757> speed <40.004708> / animSpeed;
+				turn rHeatrayStrut to x-axis <-1.028757> speed <40.004708> / animSpeed;
 				turn torso to y-axis <0.508313> speed <63.016344> / animSpeed;
 			} 
 			if(!aimingPose){
@@ -266,8 +265,8 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.139947> speed <7.913420> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <30.862713> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <0.000000> speed <30.862713> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <0.000000> speed <30.862713> / animSpeed;
+				turn lHeatrayStrut to x-axis <0.000000> speed <30.862713> / animSpeed;
+				turn rHeatrayStrut to x-axis <0.000000> speed <30.862713> / animSpeed;
 				turn torso to y-axis <2.413444> speed <57.153941> / animSpeed;
 			} 
 			if(!aimingPose){
@@ -312,9 +311,11 @@ Walk() {
 			turn rUpperLeg to z-axis <0.971044> speed <19.632344> / animSpeed; 
 			turn rUpperLeg to y-axis <-0.421341> speed <8.441841> / animSpeed; 
 			turn torso to x-axis <4.358323> speed <130.749684> / animSpeed;
+			emit-sfx 4096 + 6 from lFootDust;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lFootDust) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lFootDust) & 0x0000ffff),   get HEADING(0));
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749684> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749684> / animSpeed;
+				turn lHeatrayStrut to x-axis <-4.358323> speed <130.749684> / animSpeed;
+				turn rHeatrayStrut to x-axis <-4.358323> speed <130.749684> / animSpeed;
 				turn torso to y-axis <3.391529> speed <29.342544> / animSpeed;
 			}  
 			if(!aimingPose){
@@ -348,8 +349,8 @@ Walk() {
 			turn rUpperLeg to z-axis <1.099539> speed <3.854865> / animSpeed; 
 			turn torso to x-axis <3.701322> speed <19.710031> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-3.701322> speed <19.710031> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-3.701322> speed <19.710031> / animSpeed;
+				turn lHeatrayStrut to x-axis <-3.701322> speed <19.710031> / animSpeed;
+				turn rHeatrayStrut to x-axis <-3.701322> speed <19.710031> / animSpeed;
 				turn torso to y-axis <3.067964> speed <9.706952> / animSpeed;
 			}  
 			if(!aimingPose){
@@ -394,8 +395,8 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.233361> speed <7.258639> / animSpeed; 
 			turn torso to x-axis <2.362247> speed <40.172238> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172238> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-2.362247> speed <40.172238> / animSpeed;
+				turn lHeatrayStrut to x-axis <-2.362247> speed <40.172238> / animSpeed;
+				turn rHeatrayStrut to x-axis <-2.362247> speed <40.172238> / animSpeed;
 				turn torso to y-axis <1.566566> speed <45.041943> / animSpeed;
 			}
 			if(!aimingPose){
@@ -433,8 +434,8 @@ Walk() {
 			turn rUpperLeg to x-axis <-0.794633> speed <4.013987> / animSpeed; 
 			turn torso to x-axis <1.028757> speed <40.004705> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004705> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-1.028757> speed <40.004705> / animSpeed;
+				turn lHeatrayStrut to x-axis <-1.028757> speed <40.004705> / animSpeed;
+				turn rHeatrayStrut to x-axis <-1.028757> speed <40.004705> / animSpeed;
 				turn torso to y-axis <-0.536879> speed <63.103336> / animSpeed;
 			}
 			if(!aimingPose){
@@ -478,8 +479,8 @@ Walk() {
 			turn rUpperLeg to y-axis <-0.561892> speed <10.847865> / animSpeed; 
 			turn torso to x-axis <-0.000000> speed <30.862710> / animSpeed;
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <0> speed <30.862710> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <0> speed <30.862710> / animSpeed;
+				turn lHeatrayStrut to x-axis <0> speed <30.862710> / animSpeed;
+				turn rHeatrayStrut to x-axis <0> speed <30.862710> / animSpeed;
 				turn torso to y-axis <-2.433928> speed <56.911474> / animSpeed;
 			}
 			if(!aimingPose){
@@ -524,9 +525,11 @@ Walk() {
 			turn rUpperLeg to z-axis <0.851365> speed <13.692122> / animSpeed; 
 			turn rUpperLeg to y-axis <-0.370673> speed <5.736570> / animSpeed; 
 			turn torso to x-axis <4.358323> speed <130.749697> / animSpeed;
+			emit-sfx 4096 + 6 from rFootDust;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rFootDust) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rFootDust) & 0x0000ffff),   get HEADING(0));
 			if(aimingPose){
-				turn lHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749697> / animSpeed;
-				turn rHeatrayHeadingPivot to x-axis <-4.358323> speed <130.749697> / animSpeed;
+				turn lHeatrayStrut to x-axis <-4.358323> speed <130.749697> / animSpeed;
+				turn rHeatrayStrut to x-axis <-4.358323> speed <130.749697> / animSpeed;
 				turn torso to y-axis <-3.396077> speed <28.864480> / animSpeed;
 			}
 			if(!aimingPose){
@@ -582,6 +585,9 @@ StopWalking() {
 	turn rUpperLeg to y-axis <0> speed <18.079775> / animSpeed;
 	turn rUpperLeg to z-axis <0> speed <42.643251> / animSpeed;
 	turn torso to x-axis <0> speed <217.916161> / animSpeed;
+	turn lHeatrayStrut to x-axis <0> speed <130.749697> / animSpeed;
+	turn rHeatrayStrut to x-axis <0> speed <130.749697> / animSpeed;
+	
 	//turn torsoConnector to x-axis <0> speed <217.916161> / animSpeed;
 }
 
@@ -911,6 +917,7 @@ RestoreAfterDelay()
 	oldHeading2 = 1000000;
 	oldHeading3 = 0;
 	oldHeading4 = 0;
+	turn torsoConnector to y-axis <0> speed <30>;
 	start-script ExecuteRestoreAfterDelay();
 	start-script RestoreLRay();
 	start-script RestoreRRay();
