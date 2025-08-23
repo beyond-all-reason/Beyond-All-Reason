@@ -1197,7 +1197,8 @@ function CreatePlayer(playerID)
     return {
         rank = trank,
         skill = osSkillFormatted,
-        name = tname,
+        name = pname,
+		orgname = tname,
 		nameIsAlias = isAliasName,
         team = tteam,
         allyteam = tallyteam,
@@ -1294,6 +1295,7 @@ function CreatePlayerFromTeam(teamID)
         rank = 8, -- "don't know which" value
         skill = "",
         name = tname,
+		orgname = tname,
         team = teamID,
         allyteam = tallyteam,
         red = tred,
@@ -3464,7 +3466,7 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..energyPlayer.name)
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
                 WG.sharedEnergyFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
@@ -3486,7 +3488,7 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..metalPlayer.name)
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
                 WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil

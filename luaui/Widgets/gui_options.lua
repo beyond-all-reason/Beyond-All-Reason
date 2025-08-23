@@ -2281,6 +2281,12 @@ function init()
 		  end,
 		},
 
+		{ id = "supersampling", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.supersampling'), type = "bool", restart = false, value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0), description = Spring.I18N('ui.settings.option.supersampling_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
+		  end,
+		},
+
 		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.cas_sharpness'), min = 0.5, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = Spring.I18N('ui.settings.option.cas_sharpness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
@@ -3409,9 +3415,19 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapcanflip'), type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = Spring.I18N('ui.settings.option.minimapcanflip_descr'),
+		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
+		  onload = function(i)
+			  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
+			  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
+				  options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
+			  end
+		  end,
 		  onchange = function(i, value)
-				 Spring.SetConfigInt("MiniMapCanFlip", value and 1 or 0)
+			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
+				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
+			  else
+				  widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
+			  end
 		  end,
 		},
 
@@ -6831,6 +6847,14 @@ function widget:Initialize()
 	end
 	WG['options'].removeOption = function(name)
 		return WG['options'].removeOptions({ name })
+	end
+	WG['options'].applyOptionValue = function(option, value)
+		local optionID = getOptionByID(option)
+		if not optionID then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			return
+		end
+			applyOptionValue(optionID, tonumber(value))
 	end
 
 	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, 't')
