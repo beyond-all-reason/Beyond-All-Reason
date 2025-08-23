@@ -1170,10 +1170,14 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
+	turn lLowerArm to x-axis <30> now;
+	turn lArmGun to x-axis <-30> now;
 	move lFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from lRiotFlare;
 	move lCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	turn lLowerArm to x-axis <0> speed <60>;
+	//turn lArmGun to x-axis <0> speed <60>;
 	move lFiringPin to z-axis [0] speed [6];
 	move lCannon to z-axis [0] speed [6.000000];
 	return(1);
@@ -1214,10 +1218,14 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
+	turn rLowerArm to x-axis <30> now;
+	turn rArmGun to x-axis <-30> now;
 	move rFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from rRiotFlare;
 	move rCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	turn rLowerArm to x-axis <0> speed <60>;
+	//turn rArmGun to x-axis <0> speed <60>;
 	move rFiringPin to z-axis [0] speed [6];
 	move rCannon to z-axis [0] speed [6.000000];
 }
