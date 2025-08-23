@@ -39,158 +39,6 @@ local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
 local CMD_FIGHT = CMD.FIGHT
 
--- Pretty, cycle-safe table -> string for debugging.
-local function debug_tostring(value, opts, _depth, _seen)
-    opts = opts or {}
-    local indentStr = opts.indent or "  "
-    local maxDepth = opts.maxDepth or 3
-    local sortKeys = (opts.sortKeys ~= false)
-    local maxItems = opts.maxItems or 200
-    local showMeta = opts.showMetatable or false
-    local compact = opts.compact or false
-    local showFuncs = (opts.showFunctions ~= false)
-
-    _depth = _depth or 0
-    _seen = _seen or {}
-
-    local t = type(value)
-    if t == "nil" or t == "number" or t == "boolean" then
-        return tostring(value)
-    elseif t == "string" then
-        return string.format("%q", value)
-    elseif t ~= "table" then
-        if showFuncs or t ~= "function" then
-            return string.format("<%s:%s>", t, tostring(value))
-        else
-            return "<function>"
-        end
-    end
-
-    if _seen[value] then
-        return string.format("<ref#%d>", _seen[value].id)
-    end
-    if _depth >= maxDepth then
-        return "<table ...>"
-    end
-
-    local id = 1 + (function()
-        local c = 0
-        for _ in pairs(_seen) do c = c + 1 end
-        return c
-    end)()
-    _seen[value] = { id = id }
-
-    local function indent(n)
-        return compact and "" or string.rep(indentStr, n)
-    end
-
-    -- detect array
-    local arrMax, count = 0, 0
-    for k, _ in pairs(value) do
-        count = count + 1
-        if type(k) == "number" and k > 0 and math.floor(k) == k then
-            if k > arrMax then arrMax = k end
-        end
-    end
-    local isArray = true
-    local seenCount = 0
-    for i = 1, arrMax do
-        if value[i] == nil then isArray = false break end
-        seenCount = seenCount + 1
-    end
-    if seenCount ~= count then isArray = false end
-
-    if isArray then
-        local items = {}
-        for i = 1, arrMax do
-            if #items >= maxItems then
-                items[#items + 1] = "...(truncated)"
-                break
-            end
-            items[#items + 1] = debug_tostring(value[i], opts, _depth + 1, _seen)
-        end
-        if compact then
-            return "{" .. table.concat(items, ",") .. "}"
-        else
-            local pad = indent(_depth + 1)
-            return "{"
-                .. (#items > 0 and ("\n" .. pad .. table.concat(items, ",\n" .. pad) .. "\n" .. indent(_depth)) or "")
-                .. "}"
-        end
-    else
-        local keys = {}
-        for k in pairs(value) do keys[#keys + 1] = k end
-        if sortKeys then
-            table.sort(keys, function(a, b)
-                local ta, tb = type(a), type(b)
-                if ta == tb then
-                    if ta == "string" or ta == "number" then
-                        return a < b
-                    end
-                    return tostring(a) < tostring(b)
-                end
-                return ta < tb
-            end)
-        end
-        local pieces, emitted = {}, 0
-        for _, k in ipairs(keys) do
-            emitted = emitted + 1
-            if emitted > maxItems then
-                pieces[#pieces + 1] = compact and "...(truncated)" or (indent(_depth + 1) .. "...(truncated)")
-                break
-            end
-            local v = value[k]
-            local kv
-            if type(k) == "string" and k:match("^[_%a][_%w]*$") then
-                kv = string.format("%s = %s", k, debug_tostring(v, opts, _depth + 1, _seen))
-            else
-                kv = string.format("[%s] = %s", debug_tostring(k, opts, _depth + 1, _seen), debug_tostring(v, opts, _depth + 1, _seen))
-            end
-            if compact then pieces[#pieces + 1] = kv else pieces[#pieces + 1] = indent(_depth + 1) .. kv end
-        end
-        if showMeta then
-            local mt = getmetatable(value)
-            if mt then
-                local mtStr = debug_tostring(mt, opts, _depth + 1, _seen)
-                local line = compact and ("<metatable>=" .. mtStr) or (indent(_depth + 1) .. "<metatable> = " .. mtStr)
-                pieces[#pieces + 1] = line
-            end
-        end
-        if compact then
-            return "{" .. table.concat(pieces, ",") .. "}"
-        else
-            local inner = table.concat(pieces, ",\n")
-            return inner == "" and "{}" or ("{\n" .. inner .. "\n" .. indent(_depth) .. "}")
-        end
-    end
-end
-
-local function unameByDef(defID)
-	local ud = defID and UnitDefs[defID]
-	return (ud and ud.name) or ("def:" .. tostring(defID))
-end
-
-local function uname(unitID)
-	local defID = GetUnitDefID(unitID)
-	return string.format("%s#%d", unameByDef(defID), unitID or -1)
-end
-
-local function gf()
-	return string.format("gf=%d", GameFrame())
-end
-
-local function E(fmt, ...)
-	if LOG_VERBOSE then
-		Echo(string.format(fmt, ...))
-	end
-end
-
-local function Ed(fmt, ...)
-	if LOG_DETAIL then
-		Echo(string.format(fmt, ...))
-	end
-end
-
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_TRANSPORT_TO_DESC = {
 	id = CMD_TRANSPORT_TO,
@@ -332,7 +180,6 @@ local function refreshKnownTransports()
 			knownTransports[u] = true
 		end
 	end
-	E("[TransportTo] %s refreshed transports: %d found", gf(), (units and #units) or 0)
 end
 
 function isAutomaticTransport(unitID)
@@ -343,8 +190,6 @@ end
 local function pickBestTransport(unitID, ux, uz, unitDefID)
 	local wantType = unitRequestedType(unitDefID)
 	local bestLight, bestLightD, bestHeavy, bestHeavyD
-
-	-- Ed("[TransportTo:Pick] %s searching for transport", gf())
 	for transportID in pairs(knownTransports) do
 		local isAutomatic = isAutomaticTransport(transportID)
 		if (not busyTransport[transportID]) and isAutomatic then
@@ -365,24 +210,8 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 								bestHeavy, bestHeavyD = transportID, d
 							end
 						end
-						Ed(
-							"[TransportTo:Pick] %s candidate %s (%s) dist2=%.0f",
-							gf(),
-							uname(transportID),
-							cls or "?",
-							d
-						)
 					end
-				else
-					Ed("[TransportTo:Pick] %s reject %s -> %s", gf(), uname(transportID), reason)
 				end
-			end
-		else
-			if busyTransport[transportID] then
-				Ed("[TransportTo:Pick] %s skip %s (busy)", gf(), uname(transportID))
-			end
-			if not isAutomatic then
-				Ed("[TransportTo:Pick] %s skip %s (not automatic)", gf(), uname(transportID))
 			end
 		end
 	end
@@ -400,15 +229,6 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 end
 
 local function issuePickupAndDrop(transportID, unitID, target)
-	E(
-		"[TransportTo:Queue] %s pickup %s then drop at (%.1f,%.1f,%.1f) %s",
-		gf(),
-		uname(unitID),
-		target[1],
-		target[2],
-		target[3],
-		uname(transportID)
-	)
 	local chainedTargets = {}
 	local chainLenght = 0
 	for _, cmd in ipairs(GetUnitCommands(unitID, -1)) do
@@ -437,12 +257,10 @@ function widget:Initialize()
 	reloadBindings()
 	Spring.AssignMouseCursor("transto", "cursortransport")
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", {1,1,1,1}) 
-	E("[TransportTo] %s init complete", gf())
 end
 
 function widget:PlayerChanged(playerID)
 	if Spring.GetSpectatingState() then
-		E("[TransportTo] %s removed (spectator)", gf())
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -457,7 +275,6 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	end
 	if isTransportDef[unitDefID] then
 		knownTransports[unitID] = true
-		E("[TransportTo] %s transport spawned: %s", gf(), uname(unitID))
 	end
 end
 
@@ -475,7 +292,6 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	knownTransports[unitID] = nil
 	busyTransport[unitID] = nil
 	if pendingRequests[unitID] then
-		E("[TransportTo:Abort] %s pending request dropped: %s destroyed", gf(), uname(unitID))
 		pendingRequests[unitID] = nil
 	end
 end
@@ -521,10 +337,8 @@ function widget:Update(dt)
 		local cmdID, opts, tag = spGetUnitCurrentCommand(unitID, count)
 		local commandQueue = GetUnitCommands(unitID, -1)
 		if not isValidAndMine(unitID) then
-			E("[TransportTo:Abort] %s pending invalid: %s (unit invalid)", gf(), uname(unitID))
 			pendingRequests[unitID] = nil
 		elseif cmdID ~= CMD_TRANSPORT_TO and #commandQueue > 0 then
-			E("[TransportTo:Abort] %s pending no longer has a TRNASPORT_TO command: unit: %s, queue: %s", gf(), uname(unitID), debug_tostring(commandQueue))
 			pendingRequests[unitID] = nil
 		else
 			local ux, uy, uz = GetUnitPosition(unitID)
@@ -532,12 +346,8 @@ function widget:Update(dt)
 			if tID and isValidAndMine(tID) then
 				busyTransport[tID] = true
 				local target = { req[1], req[2], req[3] }
-				E("[TransportTo:Pick] %s assigned %s (%s) -> %s", gf(), uname(tID), cls or "?", uname(unitID))
 				issuePickupAndDrop(tID, unitID, target)
-				E("[TransportTo] %s pending fulfilled: %s by %s", gf(), uname(unitID), uname(tID))
 				pendingRequests[unitID] = nil
-			else
-				Ed("[TransportTo:Pick] %s no match yet for %s", gf(), uname(unitID))
 			end
 		end
 	end
@@ -568,7 +378,6 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
 	if not (x and y and z) then
-		E("[TransportTo] %s UnitCommand missing coords for %s for CMDID %s", gf(), uname(unitID), tostring(unitID))
 		return
 	end
 
@@ -578,7 +387,6 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 	-- end
 
 	local t = unitRequestedType(unitDefID)
-	E("[TransportTo] %s pending (UnitCommand): %s -> (%.1f,%.1f,%.1f) type=%s, commandQueue: %s", gf(), uname(unitID), x, y, z, t, debug_tostring(commandQueue))
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
@@ -589,32 +397,17 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not unitTeam or not AreTeamsAllied(unitTeam, myTeamID) then
 		return
 	end
-	-- if cmdOpts and cmdOpts.internal then
-	-- 	return
-	-- end
-
 	if cmdID == CMD_TRANSPORT_TO then
 		local commandQueue = GetUnitCommands(unitID, 2)
 		if commandQueue[1] and not(commandQueue[1].id == CMD_MOVE or commandQueue[1].id == CMD_FIGHT) then
 			return
 		else
-			E("[TransportTo] %s using bypass for transportee %s", gf(), uname(unitID))
 			handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, true)
 		end
 	end
-	-- if cmdID == CMD_WAIT then
-	-- 	return
-	-- end
-
-	-- if pendingRequests[unitID] then
-	-- 	E("[TransportTo:Abort] %s %s new cmd (%s) -> cancel pending request",
-	-- 		gf(), uname(unitID), tostring(cmdID))
-	-- 	pendingRequests[unitID] = nil
-	-- end
 end
 
 function widget:Shutdown()
 	busyTransport = {}
 	pendingRequests = {}
-	E("[TransportTo] %s shutdown", gf())
 end
