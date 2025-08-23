@@ -59,8 +59,8 @@
                 <!-- Getting Started Tab Panel -->
                 <div class="tab-panel" data-panel="getting-started" data-if="activeTab == 'getting-started'">
                     <div class="content-section">
-                        <h1 class="text-darkest text-glow-primary">Getting Started</h1>
-                        <p class="text-light">Essential information before creating your first RmlUi widget, for the sake of the following example lets call it <span class="font-bold">my_widget.</span></p>
+                    <h1 class="text-darkest text-glow-primary">Getting Started</h1>
+                    <p class="text-light">Essential information before creating your first RmlUi widget, for the sake of the following example lets call it <span class="font-bold">my_widget.</span></p>
                     </div>
 
                     <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
@@ -155,9 +155,84 @@
                 <!-- Base Widget Structure Tab Panel -->
                 <div class="tab-panel" data-panel="base-widget-structure" data-if="activeTab == 'base-widget-structure'">
                     <div class="content-section">
-                        <h1 class="text-white">Overview <span class="text-warning">[WIP]</span></h1>
-                        <p class="text-dark">This section is currently under development</p>
-                        <p class="text-dark-light m-1">Coming soon: Widget architecture overview, best practices, and development workflow</p>
+                        <h1 class="text-darkest text-glow-primary">Base Widget Structure</h1>
+                        <p class="text-dark-light m-1">Here I will outline some of the fundamental concepts and pieces which make up the base structure of an RmlUi widget.
+                            While there are only conventions, understanding these elements will help you create more effective and maintainable widgets.</p>
+                        <p>For now lets breakdown what each file is responsible for.</p>
+                    </div>
+                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
+                        <h2 class="text-secondary">Logic</h2>
+                        <p>The core of your widget's logic is handled in the .lua file. It must contain the following functions:</p>
+                        <ul class="text-light m-1 flex flex-col gap-2">
+                            <li>
+                                <h3 class="text-secondary mb-1">widget:GetInfo()</h3>
+                                <p>
+                                    Returns a table containing metadata about the widget including name, description, author, version, and configuration options. The name field is particularly important as it's used for widget identification and management.</p>
+                                <p class="p-2 text-sm text-light-alpha"><em>This function is called during widget loading to register the widget. Properties like 'enabled' control default state, while 'layer' affects rendering order relative to other widgets.</em></p>
+                            </li>
+                            <li>
+                                <h3 class="text-secondary mb-1">widget:Initialize()</h3>
+                                <p>
+                                    Called upon initialization and should retrieve the <strong>shared context</strong>, open a data model (used for data binding in the template) on that context, and load a document onto that context.</p>
+                                <p class="p-2 text-sm text-light-alpha"><em>Think of the context as if it is the browser window into which we load our HTML(rml) and CSS(rcss) much like the Document in a web page. The primary difference
+                                    being that in RmlUi we may have many documents loaded on to the same context.
+                                </em></p>
+                            </li>
+                            <li>
+                                <h3 class="text-secondary mb-1">widget:Shutdown()</h3>
+                                <p>
+                                    Called when the widget is being destroyed or disabled. This is where you should clean up all resources including closing documents, removing data models from the context, and clearing any references.</p>
+                                <p class="p-2 text-sm text-light-alpha"><em>Proper cleanup prevents memory leaks and ensures the widget can be safely reloaded or removed without affecting other widgets or the game performance.</em></p>
+                            </li>
+                            <li>
+                                <h3 class="text-secondary mb-1">widget:Reload() <span class="text-warning">[OPTIONAL]</span></h3>
+                                <p>
+                                    Not a standard widget function, but implemented for development convenience. This function typically calls Shutdown() followed by Initialize() to refresh the widget without restarting the game and must be called manually.</p>
+                                <p class="p-2 text-sm text-light-alpha"><em>Extremely useful during development as RML and RCSS files require a widget reload to reflect changes. All functionality mentioned here comes pre-implemented in widgets created by the generation script.</em></p>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
+                        <h2 class="text-secondary">Structure</h2>
+                        <p class="text-light">
+                            The structure and organization of a widget's UI is defined by its layout and the arrangement of its elements.
+                            This includes the use of containers, panels, and individual components to create a cohesive and functional interface. In RmlUi, this is
+                            achieved through a flexible and powerful layout system that allows for precise control over the positioning and behavior of UI elements.
+                            In your .rml files, you can define the structure using a combination of HTML-like tags and RmlUi-specific attributes to achieve the desired layout.
+                        </p>
+                        <ul class="text-light m-1 flex flex-col gap-2">
+                            <h3 class="text-secondary mb-1">Key Elements</h3>
+                            <li>
+                                <p><strong class="text-primary">&lt;rml&gt;</strong></p>
+                                <p>The root element of an RML document containing all other UI elements and defines the overall layout.</p>
+                                <p class="p-2">Think of this as your &lt;html&gt; element if you are coming from web development.</p>
+                            </li>
+                            <li>
+                                <p><strong class="text-primary">&lt;head&gt;</strong></p>
+                                <p>Contains metadata and links to external resources, primarily stylesheets.</p>
+                                <p class="p-2"><em>This element is crucial for defining the visual style and layout of the widget. It must contain <strong class="text-primary">&lt;link&gt;</strong> elements for the global stylesheets
+                                </em>
+                            </p>
+                            <ul class="flex flex-col text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
+                                <li>../styles.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
+                                <li>../rml-utils.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
+                                <li>../palette-standard-global.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
+                                <li>../palette-base.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
+                            </ul>
+                            </li>
+                            <li>
+                                <p class="mb-1"><strong class="text-primary">&lt;body&gt;</strong></p>
+                                <p class="mb-1"> Contains the main content of the widget, including all interactive elements and visual components.
+                                    This element must contain one and only one property the ID. It should also contain a single "container" element onto which the data-model attribute is set.
+                                </p>
+                                <p class="mb-1">
+                                    The <strong class="text-primary">&lt;body&gt;</strong> element must have an <strong>id</strong> attribute matching the widget's unique identifier + "widget".
+                                    For example, if your widget's file name is "rml_starter", then the body element should look like this:
+                                </p>
+                                <p class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">&lt;body id="rml_starter_widget"&gt;</p>
+                                <p class="p-2"><em>This is where you define the structure of your widget's UI, using RML tags to create containers, buttons, text fields, and other elements.</em></p>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 

@@ -39,7 +39,7 @@ local init_model = {
     },
     
     -- Tab system state (controlled by data binding)
-    activeTab = "", -- Start empty for landing page.
+    activeTab = "base-widget-structure", -- Start empty for landing page.
 
     -- All tabs
     tabs = {
