@@ -214,14 +214,7 @@ local function processLine(i)
 		glDeleteList(messageLines[i].displaylist)
 		messageLines[i].displaylist = glCreateList(function()
 			font:Begin()
-			if messageLines[i].pos == 1 then
-				--if string.len(text) ~= string.len(messageLines[i].text) then
-				--	text = text..'\255\255\255\255'..string.sub(messageLines[i].text, messageLines[i].charstyped+1, messageLines[i].charstyped+1)
-				--end
-				font:SetTextColor(1,1,1,1)
-			elseif messageLines[i].pos >= 2 then
-				font:SetTextColor(0.7,0.7,0.7,1)
-			end
+			font:SetTextColor(0.94,0.94,0.94,1)
 			font:SetOutlineColor(0,0,0,1)
 			font:Print(text, 0, 0, charSize*widgetScale, "o")
 			font:End()
