@@ -117,40 +117,37 @@ local function buildDefCaches()
 end
 
 local function canTransportWithReason(transportID, transportDefID, unitID, unitDefID)
-	local tName = uname(transportID)
-	local uName = uname(unitID)
-
 	local trans = GetUnitIsTransporting(transportID)
 	if not trans then
-		return false, string.format("%s has no transport state", tName)
+		return false, ""
 	end
 	if #trans > 0 then
-		return false, string.format("%s already carrying cargo (#%d)", tName, #trans)
+		return false, ""
 	end
 
 	local maxSize = transportSizeLimit[transportDefID] or 0
 	local uSize = unitXsize[unitDefID] or 0
 	if maxSize > 0 and (uSize > maxSize * 2) then
-		return false, string.format("%s size too big for %s (uSize=%d > limit*2=%d)", uName, tName, uSize, maxSize * 2)
+		return false, ""
 	end
 
 	local capacityMass = transportCapacityMass[transportDefID] or 0
 	local uMass = unitMass[unitDefID] or 0
 	if capacityMass > 0 and uMass > capacityMass then
-		return false, string.format("%s mass too high for %s (uMass=%d > cap=%d)", uName, tName, uMass, capacityMass)
+		return false, ""
 	end
 
 	local q = GetUnitCommands(transportID, 5) or {}
 	if #q > 0 then
 		for i = 1, #q do
 			if q[i].id == CMD_WAIT then
-				return false, string.format("%s is waiting", tName)
+				return false, ""
 			end
 		end
-		return false, string.format("%s has non-empty queue (#%d)", tName, #q)
+		return false, ""
 	end
 
-	return true, "ok"
+	return true, ""
 end
 
 local function unitRequestedType(unitDefID)
