@@ -125,7 +125,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Targeting System",
 				noselfdamage = true,
-				range = 800,
+				range = 750,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
