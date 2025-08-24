@@ -571,6 +571,7 @@
 			"title": "Game info",
 			"engine": "Engine",
 			"engineVersionError": "engine version error",
+			"decodefailed": "decode failed",
 			"size": "Size",
 			"gravity": "Gravity",
 			"hardness": "Hardness",

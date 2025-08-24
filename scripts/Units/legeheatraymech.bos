@@ -698,10 +698,6 @@ Open()
 		move lHeatrayStrut to z-axis [0] speed [25];
 		move rHeatrayStrut to y-axis [0] speed [25];
 		move rHeatrayStrut to z-axis [0] speed [25];
-		// turn lHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn rHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn lHeatrayHeadingPivot to x-axis <-35> speed <50>;
-		// turn rHeatrayHeadingPivot to x-axis <-35> speed <50>;
 		turn lArmGun to z-axis <18> speed <100>;
 		turn rArmGun to z-axis <-18> speed <100>;	
 		turn rHeatrayStrut to z-axis <-5> speed <60>;
@@ -721,11 +717,6 @@ Open()
 		move rHeatrayStrut to z-axis [0] speed [25];
 		turn rHeatrayStrut to z-axis <-5> speed <60>;
 		turn lHeatrayStrut to z-axis <5> speed <60>;
-		//wait-for-move lArmShoulderPivot along y-axis;
-		// turn lHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn rHeatrayPitchPivot to x-axis <35> speed <100>;
-		// turn lHeatrayHeadingPivot to x-axis <-35> speed <50>;
-		// turn rHeatrayHeadingPivot to x-axis <-35> speed <50>;
 	}
 }
 
@@ -919,8 +910,8 @@ RestoreAfterDelay()
 	oldHeading4 = 0;
 	turn torsoConnector to y-axis <0> speed <30>;
 	start-script ExecuteRestoreAfterDelay();
-	start-script RestoreLRay();
-	start-script RestoreRRay();
+	// start-script RestoreLRay();
+	// start-script RestoreRRay();
 	start-script ExecuteRestoreFlakAfterDelay();
 }
 
@@ -1077,6 +1068,7 @@ AimWeapon2(heading, pitch)
 	}
 	oldHeading1 = heading;
 	start-script RestoreLRay();
+	start-script RestoreRRay();
 	isfiring1 = 1;
 	show lToroidFlare;
 	return (1);
@@ -1123,6 +1115,7 @@ AimWeapon3(heading, pitch)
 		wait-for-turn rHeatrayHeadingPivot around x-axis;
 	}
 	oldHeading2 = heading;
+	start-script RestoreLRay();
 	start-script RestoreRRay();
 	isfiring2 = 2;
 	show rToroidFlare;
@@ -1177,10 +1170,14 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
+	turn lLowerArm to x-axis <30> speed <1200>;
+	turn lArmGun to x-axis <-30> speed <1200>;
 	move lFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from lRiotFlare;
 	move lCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	turn lLowerArm to x-axis <0> speed <60>;
+	//turn lArmGun to x-axis <0> speed <60>;
 	move lFiringPin to z-axis [0] speed [6];
 	move lCannon to z-axis [0] speed [6.000000];
 	return(1);
@@ -1221,10 +1218,14 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
+	turn rLowerArm to x-axis <30> speed <1200>;
+	turn rArmGun to x-axis <-30> speed <1200>;
 	move rFiringPin to z-axis [6] speed [120];
 	emit-sfx 1024 + 0 from rRiotFlare;
 	move rCannon to z-axis [-6.000000] speed [70.000000];
 	sleep 150;
+	turn rLowerArm to x-axis <0> speed <60>;
+	//turn rArmGun to x-axis <0> speed <60>;
 	move rFiringPin to z-axis [0] speed [6];
 	move rCannon to z-axis [0] speed [6.000000];
 }
