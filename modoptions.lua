@@ -837,6 +837,70 @@ local options = {
         section	= "scav_defense_options",
     },
 
+    {
+        key		= "scav_targeting_rework",
+        name	= "Targeting Rework",
+        desc	= "Enable improved eco-based targeting system with squad target redistribution for scavengers",
+        type	= "bool",
+        def		= false,
+        section	= "scav_defense_options",
+        unlock	= {"scav_targeting_eco", "scav_targeting_tech", "scav_targeting_even_player_spread", "scav_targeting_damage_efficiency_areas", "scav_targeting_random"},
+    },
+    {
+        key		= "scav_targeting_eco",
+        name	= "Economic Target Priority",
+        desc	= "How much scavs prioritize economic targets (metal extractors, energy plants, etc.) 0=ignore, 1=maximum priority. Default: 0.7",
+        type	= "number",
+        min		= 0,
+        max		= 1,
+        step	= 0.01,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_targeting_tech",
+        name	= "Tech Level Priority",
+        desc	= "How much scavs prioritize higher tech level targets. 0=ignore, 1=maximum priority. Default: 0.5",
+        type	= "number",
+        min		= 0,
+        max		= 1,
+        step	= 0.01,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_targeting_even_player_spread",
+        name	= "Player Spread Priority",
+        desc	= "How much scavs try to spread attacks evenly across players. 0=ignore, 1=maximum spread. Default: 0.3",
+        type	= "number",
+        min		= 0,
+        max		= 1,
+        step	= 0.01,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_targeting_damage_efficiency_areas",
+        name	= "Damage Efficiency Areas Priority",
+        desc	= "How much scavs prioritize areas where they're winning battles. 0=ignore, 1=maximum priority. Default: 0",
+        type	= "number",
+        min		= 0,
+        max		= 1,
+        step	= 0.01,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_targeting_random",
+        name	= "Random Factor",
+        desc	= "How much randomness to add to targeting decisions. 0=fully deterministic, 1=maximum chaos. Default: 0",
+        type	= "number",
+        min		= 0,
+        max		= 1,
+        step	= 0.01,
+        section	= "scav_defense_options",
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Extra Options

@@ -2,23 +2,33 @@
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
   "runtime.version": "Lua 5.1",
   "completion.requireSeparator": "/",
-  "runtime.path": [
-      "?",
-      "?.lua"
-  ],
+  "runtime.path": ["?", "?.lua"],
   "runtime.special": {
-      "VFS.Include": "require",
-      "include": "require",
-      "shard_include": "require"
+    "VFS.Include": "require",
+    "include": "require",
+    "shard_include": "require"
   },
   "workspace": {
-    "library": [
-      "recoil-lua-library"
-    ],
-    "ignoreDir": [
-      ".vscode",
-      "luaui/Tests",
-      "luaui/TestsExamples"
-    ]
-  }
+    "library": ["recoil-lua-library"],
+    "ignoreDir": [".vscode", "luaui/Tests", "luaui/TestsExamples"]
+  },
+  "diagnostics.globals": [
+    "CMD",
+    "CMDTYPE",
+    "COB",
+    "Engine",
+    "gadget",
+    "Game",
+    "GameCMD",
+    "GG",
+    "LOG",
+    "Platform",
+    "Script",
+    "SendToUnsynced",
+    "SFX",
+    "Spring",
+    "VFS",
+    "WG",
+    "widget"
+  ]
 }
