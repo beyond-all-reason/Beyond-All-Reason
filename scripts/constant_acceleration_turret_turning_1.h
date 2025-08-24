@@ -77,12 +77,17 @@
 	#define WRAPDELTA(ang) (((ang + 98280) % 65520) - 32760)
 #endif
 
-static-var CATT1velocity, CATT1position, CATT1gameFrame;
+static-var CATT1velocity, CATT1position, CATT1gameFrame, CATT_isAiming, CATT_curChassisHeading, CATT_pastChassisHeading, CATT_goalHeading, CATT_delta;
 
 CATT1_Init(){
 	CATT1velocity = 0;
 	CATT1position = 0;
 	CATT1gameFrame = 0;
+	CATT_isAiming = 0;
+	CATT_curChassisHeading = 0;
+	CATT_pastChassisHeading = 0;
+	CATT_goalHeading = 0;
+	CATT_delta = 0;
 }
 
 CATT1_Restore() // no need to signal, as threads inherit parents signal masks
@@ -115,115 +120,116 @@ CATT1_Restore() // no need to signal, as threads inherit parents signal masks
 	CATT1velocity = 0;
 }
 
-CATT1_Aim(heading, pitch){
+
+CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents signal masks
+{
+	// local vars here
+	var i;
+	var timetozero;
+	var deceleratethreshold;
+	var chassisVelocity;
+	i = 0;
+
+	while ((i < frames) OR (get ABS(CATT1velocity) > 0)) // continue turning with chassis for X frames, or until signal kill, or until velocity is zeroed
+	{
+		++i;
+
+		//Clamp CATT1position and CATT1delta between <-180>;<180>
+		CATT1position = WRAPDELTA(CATT1position);
+		CATT_delta = WRAPDELTA(CATT_delta);
+		CATT_goalHeading = WRAPDELTA(CATT_goalHeading);
+
+		CATT_curChassisHeading = get HEADING; // get current heading
+		chassisVelocity = WRAPDELTA(CATT_curChassisHeading - CATT_pastChassisHeading); // get unit chassis current turning speed
+
+		//number of frames required to decelerate to 0 speed relative to ground
+		timetozero = get ABS(CATT1velocity - chassisVelocity) / CATT1_ACCELERATION;
+
+		//distance from target where we should start decelerating, always 'positive' ensured by +1 (+1 is small compared in COB angular units)
+		//if we assume we start decelerating now to zero relative speed, average speed is half of current speed, so distance is current speed *  time to slow down * 1/2
+		//minus a factor due to discrete acceleration per frame
+		deceleratethreshold = timetozero * (get ABS(CATT1velocity - chassisVelocity)) / 2 - (timetozero * CATT1_ACCELERATION / 2) + 1;
+
+		if (ABSOLUTE_LESS_THAN(CATT_delta, deceleratethreshold)) { //we need to decelerate
+			if (CATT_delta > 0) CATT1velocity = get MAX((-1) * chassisVelocity, CATT1velocity - CATT1_ACCELERATION);
+			if (CATT_delta < 0) CATT1velocity = get MIN((-1) * chassisVelocity, CATT1velocity + CATT1_ACCELERATION);
+
+			if (get ABS(CATT1velocity) == get ABS(chassisVelocity)) // if turret velocity was min/max to chassisVelocity, re-accelerate it so it stays ahead of chassis
+			{
+				if (CATT_delta > 0) CATT1velocity = get MIN(CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION);
+				if (CATT_delta < 0) CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
+			}
+		}
+		else //we need to accelerate
+		{
+			if (CATT_delta > 0) CATT1velocity = get MIN(CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION);
+			if (CATT_delta < 0) CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
+		}
+
+		//Apply jerk at very low velocities
+		if (ABSOLUTE_LESS_THAN(CATT1velocity, CATT1_JERK)) {
+			if ((CATT_delta > 0)) CATT1velocity = CATT1_JERK;
+			if ((CATT_delta < 0)) CATT1velocity = (-1) * CATT1_JERK;
+		}
+
+		// If we would need to move less than the delta, then just move the delta?
+		if ((CATT_delta >= 0)) CATT1velocity = get MIN(CATT_delta, CATT1velocity);
+		if ((CATT_delta <= 0)) CATT1velocity = get MAX(CATT_delta, CATT1velocity);
+
+		// Update our position with our velocity
+		CATT1position = CATT1position + CATT1velocity;
+		CATT_goalHeading = CATT_goalHeading - chassisVelocity;
+		CATT_delta = CATT_goalHeading - CATT1position;
+
+		// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
+		turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
+		CATT_pastChassisHeading = CATT_curChassisHeading; //track chassis heading
+		if (frames == 1) //exits if this is the 1 frame call-script from AimWeaponX->CATT1_Aim
+		{
+			return;
+		}
+		sleep 32;
+	}
+	CATT_isAiming = 0; //unset isAiming, becasue pastChassisHeading will stop being tracked once this thread is over, so will need to be reset when aiming again 
+	#ifndef CATT_DONTRESTORE
+		start-script CATT1_Restore(); // spin up restore thread
+	#endif
+}
+
+CATT1_Aim(heading, pitch) {
 	/*
 	// Set up signals in AimWeaponX(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	// Then 
-	call-script TurretAccelerationAim1(heading, pitch);
+	// Then
+	call-script CATT1_Aim(heading, pitch);
+
+	// and call CATT1_Init() in Create()
 	*/
 
-	// Local vars
-	
-	var timetozero;
-	var deceleratethreshold;
-	var delta;
-	var temp;
-	var pastChassisHeading;
-	pastChassisHeading = get HEADING;
+	CATT_goalHeading = heading; // save heading from AimWeaponX into variable space here
+
+	if (CATT_isAiming == 0) // If this is the first time aiming in a while, initialize pastChassisHeading
+	{
+		CATT_pastChassisHeading = get HEADING;
+	}
+	CATT_isAiming = 1; // Tell CATT we are aiming
 
 	#ifdef CATT1_PIECE_X
-		turn CATT1_PIECE_X to x-axis <0.0> - pitch speed CATT1_PITCH_SPEED;
+		turn CATT1_PIECE_X to x - axis <0.0> -pitch speed CATT1_PITCH_SPEED; // no CATT for pitch, just pitch turret up, does not block firing
+		// TODO, add option to block firing if pitch is not in position?
 	#endif
 
-	delta = WRAPDELTA(heading - CATT1position);
+	CATT_delta = WRAPDELTA(CATT_goalHeading - CATT1position); // determine how much rotation is needed to turn and face the goal heading
+	call-script CATT1_AimWithChassis(1); // run the CATT script once, when AimWeaponX is called
+	start-script CATT1_AimWithChassis(15); // then spin up a separate thread (that starts next frame) that will handle turret aiming for the other frames (for at 15 frames)
 
-	while(ABSOLUTE_GREATER_THAN(delta, CATT1_PRECISION) OR ABSOLUTE_GREATER_THAN(CATT1velocity,  CATT1_JERK)){
-		
-	//while( ( get ABS(delta) > CATT1_PRECISION ) OR (get ABS(CATT1velocity) > CATT1_JERK)){
-		if (CATT1gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			CATT1gameFrame = get(GAME_FRAME);
-
-
-			//Clamp CATT1position and CATT1delta between <-180>;<180>
-			CATT1position 	= WRAPDELTA(CATT1position);
-			delta 			= WRAPDELTA(delta);
-
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(CATT1velocity) / CATT1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive' ensured by +1
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(CATT1velocity)) - (timetozero * (timetozero - 1) * CATT1_ACCELERATION / 2) + 1; 
-			
-			#ifdef CATT1_DEBUG
-				get PRINT ( delta , deceleratethreshold, CATT1velocity, timetozero );
-			#endif 
-			
-			if (ABSOLUTE_LESS_THAN(delta, deceleratethreshold)){ //we need to decelerate
-				if (CATT1velocity > 0) CATT1velocity = CATT1velocity - CATT1_ACCELERATION;
-				else 				   CATT1velocity = CATT1velocity + CATT1_ACCELERATION;
-
-				// account for unit chassis turning, lets CATT units fire while turning.
-				// if turret has decelerated to slower than chassis turn rate, then we can return and let AimWeapon return true.
-				if (get ABS((get HEADING) - pastChassisHeading) > 0) // ABSOLUTE_LESS_THAN behaves bad if the second value is zero
-				{
-					if (ABSOLUTE_LESS_THAN(CATT1velocity, WRAPDELTA((get HEADING) - pastChassisHeading)))
-					{
-						// undo the deacceleration, then just tell the turret to continue turning at that slightly faster than chassis rate. 
-						// and give a goal heading assuming the chassis will continue turing for 6 frames (based on 5-6 frame reaim time for CATT units)
-						// sudden stops and not deacceleration may occur, but will be masked by the bulk unit turning. 
-						// Ideally, the chassis turning would be tracked *after* the return to the AimWeapon function, but that would require a separately threaded CATT implementation
-						if (CATT1velocity > 0) CATT1velocity = CATT1velocity + CATT1_ACCELERATION;
-						else 				   CATT1velocity = CATT1velocity - CATT1_ACCELERATION;
-						turn CATT1_PIECE_Y to y-axis (heading - 6*WRAPDELTA((get HEADING) - pastChassisHeading)) speed 30 * CATT1velocity;
-
-						#ifndef CATT_DONTRESTORE
-							start-script CATT1_Restore();
-						#endif
-						return;
-					}
-				}
-			}	
-			else //we need to accelerate
-			{
-				if (delta > 0) CATT1velocity = get MIN(       CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION); 
-				else           CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
-			}
-			pastChassisHeading = get HEADING; //track chassis heading
-			
-			//Apply jerk at very low velocities
-			if (ABSOLUTE_LESS_THAN(CATT1velocity,  CATT1_JERK)){
-				if ((delta >        CATT1_JERK)) CATT1velocity =        CATT1_JERK;
-				if ((delta < (-1) * CATT1_JERK)) CATT1velocity = (-1) * CATT1_JERK;
-			}
-
-			// If we would need to move less than the delta, then just move the delta?
-
-			// Update our position with our velocity
-			CATT1position = CATT1position + CATT1velocity; 
-			delta = heading - CATT1position ; 	
-
-			// Perform the turn with a NOW, this means that this will be run every frame!
-			//turn CATT1_PIECE_Y to y-axis CATT1position now;
-
-			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
-			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
-
-			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {
-				CATT1velocity = 0;
-				#ifndef CATT_DONTRESTORE
-					start-script CATT1_Restore();
-				#endif
-				return;}
-			}
+	// while loop to check if turret is within tolerance each frame. CATT1_AimWithChassis will update delta.
+	// breaks, returns to AimWeaponX, and that passes true to engine to allow firing, when turret is within tolerance
+	while (ABSOLUTE_GREATER_THAN(CATT_delta, CATT1_PRECISION))
+	{
 		sleep 32;
 	}
-	CATT1velocity = 0;
-	#ifndef CATT_DONTRESTORE
-		start-script CATT1_Restore();
-	#endif
 }
 
 #undef CATT_INDEX
