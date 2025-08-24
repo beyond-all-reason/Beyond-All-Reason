@@ -6,6 +6,7 @@
 • [Razorback] 58 -> 22 damage vs air
 • [T2 AA bots] Sightdistance 925 -> 1200
 • [Flagships] Reduced damage vs submarines with main cannon
+• [Grunt] 270 -> 280 health
 
 # July, 30
 * gunslinger movement class changed to 3x3 and hitbox adjusted
