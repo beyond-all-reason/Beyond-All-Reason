@@ -1,5 +1,10 @@
 local widget = widget ---@type Widget
 
+---@type UnitSharing
+local sharing = VFS.Include("common/unit_sharing.lua")
+local unitSharingMode
+local unitSharingEnabled
+
 function widget:GetInfo()
     return {
         name = "AdvPlayersList",
@@ -870,6 +875,10 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
+
+	-- Initialize unit sharing settings
+	unitSharingMode = sharing.getUnitSharingMode()
+	unitSharingEnabled = unitSharingMode ~= "disabled"
 
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
@@ -2272,7 +2281,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                             end
                         end
                         if m_share.active and not dead and not hideShareIcons then
-                            DrawShareButtons(posY, needm, neede)
+                            local showUnits = unitSharingEnabled and sharing.shouldShowShareButton(Spring.GetSelectedUnits(), unitSharingMode)
+                            DrawShareButtons(posY, needm, neede, showUnits)
                             if tipY then
                                 ShareTip(mouseX, playerID)
                             end
@@ -2409,25 +2419,61 @@ function DrawTakeSignal(posY)
     end
 end
 
-function DrawShareButtons(posY, needm, neede)
-    gl_Color(1, 1, 1, 1)
-    gl_Texture(pics["unitsPic"])
-    DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["energyPic"])
-    DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["metalPic"])
-    DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["lowPic"])
+function DrawShareButtons(posY, needm, neede, showUnits)
+	gl_Color(1, 1, 1, 1)
+	DrawUnitsShareIcon(posY, showUnits)
+	gl_Texture(pics["energyPic"])
+	DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
+	gl_Texture(pics["metalPic"])
+	DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
+	gl_Texture(pics["lowPic"])
 
-    if needm then
-        DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    end
+	if needm then
+		DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
+	end
 
-    if neede then
-        DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    end
+	if neede then
+		DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
+	end
 
-    gl_Texture(false)
+	gl_Texture(false)
+end
+
+-- Helpers for unit-share allow/tooltip/draw logic (scoped to this widget)
+function Sharing_GetUnitsShareAllowAndMessage()
+	if not unitSharingEnabled then
+		return false, sharing.blockMessage(nil, unitSharingMode)
+	end
+	local selected = Spring.GetSelectedUnits()
+	local shareable, unshareable, total = sharing.countUnshareable(selected, unitSharingMode)
+	local allow = (total > 0 and shareable > 0)
+	local msg = allow and nil or sharing.blockMessage(unshareable, unitSharingMode)
+	return allow, msg
+end
+
+function DrawUnitsShareIcon(posY, showUnits)
+	if showUnits == nil then
+		showUnits = select(1, Sharing_GetUnitsShareAllowAndMessage())
+	end
+	if showUnits then
+		gl_Texture(pics["unitsPic"])
+		DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
+	else
+		gl_Color(1, 1, 1, 0.25)
+		gl_Texture(pics["unitsPic"])
+		DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
+		gl_Color(1, 1, 1, 1)
+	end
+end
+
+function UnitsShareTooltip(allowedText)
+	local allow, msg = Sharing_GetUnitsShareAllowAndMessage()
+	if allow then
+		tipText = allowedText
+	else
+		tipText = msg
+	end
+	tipTextTime = os.clock()
 end
 
 function DrawChatButton(posY)
@@ -3027,29 +3073,27 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 end
 
 function ShareTip(mouseX, playerID)
-    if playerID == myPlayerID then
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestSupport')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = os.clock()
-        end
-    else
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareMetal')
-            tipTextTime = os.clock()
-        end
-    end
+	if playerID == myPlayerID then
+		if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
+			UnitsShareTooltip(Spring.I18N('ui.playersList.shareUnits'))
+		elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareEnergy')
+			tipTextTime = os.clock()
+		elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareMetal')
+			tipTextTime = os.clock()
+		end
+	else
+		if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
+			UnitsShareTooltip(Spring.I18N('ui.playersList.shareUnits'))
+		elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareEnergy')
+			tipTextTime = os.clock()
+		elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
+			tipText = Spring.I18N('ui.playersList.shareMetal')
+			tipTextTime = os.clock()
+		end
+	end
 end
 
 function AllyTip(mouseX, playerID)
@@ -3335,21 +3379,19 @@ function widget:MousePress(x, y, button)
                         if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share units button
-                                if release ~= nil then
-                                    if release >= now then
-                                        if clickedPlayer.team == myTeamID then
-                                            --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
-											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
-                                        else
-                                            Spring_ShareResources(clickedPlayer.team, "units")
-                                            Spring.PlaySoundFile("beep4", 1, 'ui')
+                                if unitSharingEnabled and sharing.shouldShowShareButton(Spring.GetSelectedUnits(), unitSharingMode) then
+                                    local selected = Spring.GetSelectedUnits()
+                                    if #selected > 0 then
+                                        local _, _, unshareable = sharing.countUnshareable(selected, unitSharingMode)
+                                        if unshareable and unshareable > 0 then
+                                            Spring.Echo(sharing.blockMessage(unshareable, unitSharingMode))
                                         end
+                                        Spring_ShareResources(clickedPlayer.team, "units")
+                                        Spring.PlaySoundFile("beep4", 1, 'ui')
+                                    else
+                                        Spring.Echo(i18n('ui.playersList.noUnits'))
                                     end
-                                    release = nil
-                                else
-                                    firstclick = now + 1
                                 end
-                                return true
                             end
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share energy button (initiates the slider)
