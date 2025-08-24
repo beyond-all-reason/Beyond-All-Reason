@@ -1,4 +1,10 @@
 local upget = gadget or widget ---@type Addon
+
+if not upget then
+	Spring.Echo("[Modoption: Disable Economic Sharing] Error: not loaded from gadget or widget handler")
+	return
+end
+
 local globalScope = gadget and GG or WG
 
 local enabled = Spring.GetModOptions().disable_economic_sharing
@@ -19,10 +25,9 @@ function upget:GetInfo()
 	}
 end
 
-if gadget then
-	if not gadgetHandler:IsSyncedCode() then
-		return
-	end
+local isSyncedGadget = gadget and gadgetHandler:IsSyncedCode()
+if gadget and not isSyncedGadget then
+	return
 end
 
 local UPGET_NAME = "modoption_disable_economic_sharing"
@@ -91,6 +96,9 @@ function upget:Initialize()
 end
 
 
-function upget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
-	return false
+if isSyncedGadget then
+	function upget:AllowResourceTransfer(senderId, receiverId, resourceType, amount)
+		return false
+	end
 end
+
