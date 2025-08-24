@@ -53,6 +53,8 @@ local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
+local tooltipMetalColor = '\255\192\192\192'
+local tooltipEnergyColor = '\255\255\255\0'
 local tooltipValueYellowColor = '\255\253\192\76'
 local tooltipValueGreenColor = '\255\73\234\43'
 
@@ -987,17 +989,17 @@ local function drawSelection()
 
 	-- metal cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."  " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."  " .. tooltipMetalColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- energy cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."  " .. tooltipValueYellowColor .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."  " .. tooltipEnergyColor .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- Buildpower
 	if totalBuildPower > 0 then
 		height = height + heightStep
 		-- TODO No i18n yet, need the key, maybe name it 'ui.info.bp'
-		font:Print( tooltipLabelTextColor .. "Buildpow".."  " .. tooltipValueGreenColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. "Buildpow".."  " .. tooltipValueYellowColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 
 	-- kills
