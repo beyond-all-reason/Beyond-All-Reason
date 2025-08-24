@@ -16,11 +16,16 @@ local empUnits = {}
 local unEmpableUnits = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
+	
 	for i=1, #weapons do
 		if WeaponDefs[weapons[i].weaponDef].paralyzer then
-			empUnits[udid] = true
+			empUnits[udid] = true 
+		else
+			empUnits[udid] = false
+			break
 		end
 	end
+
 	if not unitDef.modCategories.empable then
 		unEmpableUnits[udid] = true
 	end
@@ -32,12 +37,13 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
+
 	if empUnits[unitDefID]
 	and cmdParams[2] == nil
 	and type(cmdParams[1]) == 'number'
 	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then
-		if unEmpableUnits[Spring.GetUnitDefID(cmdParams[1])] then		--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
-			return false
+		if unEmpableUnits[Spring.GetUnitDefID(cmdParams[1])] then	--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
+			return true 
 		else
 			local _,_,_,_,y = Spring.GetUnitPosition(cmdParams[1], true)
 			if y and y >= 0 then
