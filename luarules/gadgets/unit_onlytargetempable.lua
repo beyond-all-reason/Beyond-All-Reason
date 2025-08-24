@@ -43,7 +43,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	and type(cmdParams[1]) == 'number'
 	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then
 		if unEmpableUnits[Spring.GetUnitDefID(cmdParams[1])] then	--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
-			return true 
+			return false
 		else
 			local _,_,_,_,y = Spring.GetUnitPosition(cmdParams[1], true)
 			if y and y >= 0 then
