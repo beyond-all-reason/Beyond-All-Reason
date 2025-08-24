@@ -177,6 +177,11 @@ function widget:CameraRotationChanged(_, roty)
 	end
 end
 
+-- remove this after engine update
+function widget:Update(dt)
+	widget:CameraRotationChanged(Spring.GetCameraRotation())
+end
+
 
 function widget:GetConfigData()
 	return {
