@@ -11,6 +11,7 @@ function gadget:GetInfo()
 		enabled	= true,
 	}
 end
+
 local unitCategories = {}
 local unitOnlyTargetsCategory = {}
 local unitDontAttackGround = {}
@@ -30,8 +31,8 @@ for udid, unitDef in pairs(UnitDefs) do
 					if category == 'vtol' then
 						unitDontAttackGround[udid] = true
 					end
-				elseif unitOnlyTargetsCategory[udid] ~= category then -- multiple different onlytargetcategory used: disregard
-					unitOnlyTargetsCategory[udid] = nil 
+				elseif unitOnlyTargetsCategory[udid] ~= category then  -- multiple different onlytargetcategory used: disregard
+					unitOnlyTargetsCategory[udid] = nil
 					unitDontAttackGround[udid] = nil -- If there are multiple categories, then it can shoot ground, and should be allowed to do so
 					disregard = true
 					break
