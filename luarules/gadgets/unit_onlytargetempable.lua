@@ -16,7 +16,6 @@ local empUnits = {}
 local unEmpableUnits = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
-	
 	for i=1, #weapons do
 		if WeaponDefs[weapons[i].weaponDef].paralyzer then
 			empUnits[udid] = true 
@@ -25,7 +24,6 @@ for udid, unitDef in pairs(UnitDefs) do
 			break
 		end
 	end
-
 	if not unitDef.modCategories.empable then
 		unEmpableUnits[udid] = true
 	end
