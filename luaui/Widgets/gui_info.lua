@@ -53,6 +53,8 @@ local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
+local tooltipValueYellowColor = '\255\253\192\76'
+local tooltipValueGreenColor = '\255\73\234\43'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
@@ -938,6 +940,7 @@ local function drawSelection()
 	-- loop all unitdefs/cells (but not individual unitID's)
 	local totalMetalValue = 0
 	local totalEnergyValue = 0
+	local totalBuildPower = 0
 	for _, unitDefID in pairs(selectionCells) do
 		-- metal cost
 		if unitDefInfo[unitDefID].metalCost then
@@ -946,6 +949,10 @@ local function drawSelection()
 		-- energy cost
 		if unitDefInfo[unitDefID].energyCost then
 			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
+		end
+		-- build power
+		if unitDefInfo[unitDefID].buildSpeed then
+			totalBuildPower = totalBuildPower + (unitDefInfo[unitDefID].buildSpeed * selUnitsCounts[unitDefID])
 		end
 	end
 
@@ -971,20 +978,27 @@ local function drawSelection()
 	local valueMinColor = '\255\255\180\180'
 	if totalMetalUse > 0 or totalMetalMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.m').."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.m').."  " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 	if totalEnergyUse > 0 or totalEnergyMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.e').."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.e').."  " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 
 	-- metal cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."  " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- energy cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."  " .. tooltipValueYellowColor .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+
+	-- Buildpower
+	if totalBuildPower > 0 then
+		height = height + heightStep
+		-- TODO No i18n yet, need the key, maybe name it 'ui.info.bp'
+		font:Print( tooltipLabelTextColor .. "Buildpow".."  " .. tooltipValueGreenColor .. totalBuildPower, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
 
 	-- kills
 	if totalKills > 0 then
