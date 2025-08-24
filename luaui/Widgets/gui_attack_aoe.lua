@@ -259,10 +259,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 					and not ToBool(weaponDef.interceptor)
 					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
 					and not string.find(weaponDef.name, "flak", nil, true)
-					and not string.find(weaponDef.name, "thunder", nil, true) then
-					
-					Spring.Echo("Heavy Lighting Cannon", weaponDef.name, " can attack")
-
 
 					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 					maxWeaponDef = weaponDef
