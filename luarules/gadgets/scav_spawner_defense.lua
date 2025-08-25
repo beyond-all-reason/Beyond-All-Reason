@@ -193,7 +193,7 @@ if gadgetHandler:IsSyncedCode() then
 	local useEcoTargeting = Spring.GetModOptions().scav_targeting_rework == "1" or Spring.GetModOptions().scav_targeting_rework == true
 	local targetingContext = nil
 	local lastSquadRebalanceFrame = 0
-	local squadRebalanceInterval = 300 -- 10 seconds at 30fps
+	local squadRebalanceInterval = 10 * Game.gameSpeed
 
 	local scavTargetingWeights = {
 		areaRandom = 0,
