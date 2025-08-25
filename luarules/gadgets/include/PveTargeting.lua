@@ -534,7 +534,7 @@ local function calculateDistance(pos1, pos2)
   local dx = pos1.x - pos2.x
   local dy = pos1.y - pos2.y
   local dz = pos1.z - pos2.z
-  return math.sqrt(dx * dx + dy * dy + dz * dz)
+  return math.diag(dx, dy, dz)
 end
 
 -- Efficient nearest-neighbor assignment of units to targets
