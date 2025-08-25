@@ -24,6 +24,7 @@ local circleList
 local secondPart = 0
 local mouseDistance = 1000
 local range = 200
+local restrictedUnits = {}
 
 --------------------------------------------------------------------------------
 --speedups
@@ -31,7 +32,7 @@ local range = 200
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetMyTeamID = Spring.GetMyTeamID
 local GetUnitTeam = Spring.GetUnitTeam
-local GetSelectedUnits = Spring.GetSelectedUnits
+local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local ShareResources = Spring.ShareResources
 local I18N = Spring.I18N
@@ -46,7 +47,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -352,8 +352,13 @@ function widget:CommandsChanged()
 		return
 	end
 
-	local selectedUnits = GetSelectedUnits()
-	if #selectedUnits > 0 then
+	local shareable = false
+	for unitDefID, _ in pairs(GetSelectedUnitsSorted()) do
+		if not restrictedUnits[unitDefID] then
+			shareable = true
+		end
+	end
+	if shareable then
 		local customCommands = widgetHandler.customCommands
 		customCommands[#customCommands + 1] = {
 			id = cmdQuickShareToTargetId,
@@ -373,6 +378,11 @@ function widget:Initialize()
 	widget:ViewResize()
 	defaultColor = { 0.88, 0.88, 0.88, 1 }
 	setupDisplayLists()
+
+	WG['sharecmd'] = {}
+	WG['sharecmd'].setRestrictedUnits = function(value)
+		restrictedUnits = value
+	end
 end
 
 function widget:Shutdown()

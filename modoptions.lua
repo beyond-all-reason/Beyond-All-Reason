@@ -1379,6 +1379,55 @@ local options = {
         def  	= false,
     },
 
+	{
+		key    	= "shieldsrework",
+		name   	= "Shields Rework v2.0",
+		desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
+		type   	= "bool",
+		hidden 	= false,
+		section = "options_experimental",
+		def  	= false,
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Sharing Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+	{
+		key     = "sub_header",
+		section = "options_experimental",
+		type    = "separator",
+		hidden 	= true,
+	},
+
+	{
+		key		= "sub_header",
+		name	= "Experimental sharing restrictions: ",
+		section	= "options_experimental",
+		type	= "subheader",
+		def		= true,
+		hidden 	= true
+	},
+
+	{
+		key 	= "disable_economic_sharing",
+		name 	= "The Nuclear Option",
+		desc 	= "Disable all forms of resource sharing.\n"..
+			"- No direct resource sharing\n"..
+			"- No sharing of resource producing units or structures\n"..
+			"- No sharing of constructors or factories\n"..
+			"- No assisting ally blueprints\n"..
+			"- No resource overflow to allies (Not yet implemented)\n"..
+			"Sharing of combat and utility units (like transports) is allowed",
+		type 	= "bool",
+		section = "options_experimental",
+		hidden 	= true,
+		def 	= false,
+	},
+
     -- Hidden Tests
 
 	{
@@ -1390,16 +1439,6 @@ local options = {
         def  	= false,
         hidden 	= true,
 	},
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
 
     {
         key 	= "lategame_rebalance",

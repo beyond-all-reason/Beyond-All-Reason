@@ -32,6 +32,7 @@ local SAFEWRAP = 0
 
 local HANDLER_DIR = 'LuaGadgets/'
 local GADGETS_DIR = Script.GetName():gsub('US$', '') .. '/Gadgets/'
+local UPGETS_DIR = 'common/upgets/'
 local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
@@ -334,6 +335,11 @@ function gadgetHandler:Initialize()
 	local unsortedGadgets = {}
 	-- get the gadget names
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
+	local upgetFiles = VFS.DirList(UPGETS_DIR, "*.lua", VFSMODE)
+	for _,v in ipairs(upgetFiles) do
+		table.insert(gadgetFiles, v)
+	end
+
 	--  table.sort(gadgetFiles)
 
 	--  for k,gf in ipairs(gadgetFiles) do

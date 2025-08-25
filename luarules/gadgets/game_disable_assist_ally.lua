@@ -1,5 +1,4 @@
 local gadget = gadget ---@type Gadget
-
 function gadget:GetInfo()
 	return {
 		name    = 'Disable Assist Ally Construction',
@@ -13,24 +12,41 @@ function gadget:GetInfo()
 end
 
 ----------------------------------------------------------------
--- Synced only
+-- Decide whether to run
 ----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-
-if allowAssist then
+-- This gadget hooks into AllowCommand, lets leave it off unless it's actually needed
+local disableAssist = Spring.GetModOptions().disable_assist_ally_construction
+local disableEconShare = Spring.GetModOptions().disable_economic_sharing
+if not disableAssist and not disableEconShare then
 	return false
 end
 
-local function isComplete(u)
-	local _,_,_,_,buildProgress=Spring.GetUnitHealth(u)
-	if buildProgress and buildProgress>=1 then
-		return true
-	else
-		return false
+
+----------------------------------------------------------------
+--
+----------------------------------------------------------------
+
+-- TODO: This gadget could handle edge-cases where a blueprint being assisted is transfered to another team
+-- The assisting units will continue because they are on the same command. Need to intercept with UnitGiven
+-- and change the assisting units orders so that they can no longer help the blueprint that is not theirs
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt= Spring.GetUnitIsBeingBuilt
+local spGetUnitTeam = Spring.GetUnitTeam
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+
+local CMD_GUARD = CMD.GUARD
+local CMD_REPAIR = CMD.REPAIR
+local CMD_MOVE_STATE = CMD.MOVE_STATE
+
+local canAssist = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canAssist then
+		canAssist[unitDefID] = true
 	end
 end
 
@@ -38,13 +54,12 @@ end
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
-
-	if (cmdID == CMD.GUARD) then
+	if (cmdID == CMD_GUARD) then
 		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
-		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
-		
-		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+		local targetTeam = spGetUnitTeam(targetID)
+		local targetUnitDef = UnitDefs[spGetUnitDefID(targetID)]
+
+		if (unitTeam ~= targetTeam) and spAreTeamsAllied(unitTeam, targetTeam) then
 			if #targetUnitDef.buildOptions > 0 or targetUnitDef.canAssist then
 				return false
 			end
@@ -52,22 +67,23 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return true
 	end
 
-	-- Also disallow assisting building (caused by a repair command) units under construction 
+	-- Also disallow assisting building (caused by a repair command) units under construction
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-
-	if (cmdID == CMD.REPAIR and #cmdParams == 1) then
+	if (cmdID == CMD_REPAIR and #cmdParams == 1) then
 		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
+		local targetTeam = spGetUnitTeam(targetID)
 
-		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if(not isComplete(targetID)) then
+		if (unitTeam ~= targetTeam) and spAreTeamsAllied(unitTeam, targetTeam) then
+			if(spGetUnitIsBeingBuilt(targetID)) then
 				return false
 			end
 		end
-		return true
 	end
 
-
-
+	-- Disallow changing the move_state value of non-factory builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
+	if (cmdID == CMD_MOVE_STATE and cmdParams[1] == 2 and canAssist[unitDefID] ) then
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 0) -- make toggling still work between Hold and Maneuver
+		return false
+	end
 	return true
 end
