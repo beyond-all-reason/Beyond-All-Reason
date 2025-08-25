@@ -28,7 +28,7 @@ return {
 		script = "Units/ARMHAWK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 250,
+		sightdistance = 430,
 		speed = 358.79999,
 		speedtofront = 0.063,
 		stealth = true,

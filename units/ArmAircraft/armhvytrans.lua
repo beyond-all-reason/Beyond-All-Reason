@@ -26,7 +26,7 @@ return {
 		script = "Units/armhvytrans.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 110,
 		transportcapacity = 1,
 		transportsize = 4,

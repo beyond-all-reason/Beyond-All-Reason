@@ -1,6 +1,6 @@
 return {
 	coraak = {
-		airsightdistance = 925,
+		airsightdistance = 1200,
 		buildpic = "CORAAK.DDS",
 		buildtime = 7600,
 		canmove = true,

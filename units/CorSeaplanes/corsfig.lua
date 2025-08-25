@@ -29,7 +29,7 @@ return {
 		script = "Units/CORSFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 230,
+		sightdistance = 430,
 		speed = 315.60001,
 		speedtofront = 0.07,
 		turnradius = 64,

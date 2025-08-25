@@ -28,7 +28,7 @@ return {
 		script = "Units/CORVAMP.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 250,
+		sightdistance = 430,
 		speed = 379.5,
 		speedtofront = 0.06475,
 		stealth = true,

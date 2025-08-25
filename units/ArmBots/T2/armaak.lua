@@ -1,6 +1,6 @@
 return {
 	armaak = {
-		airsightdistance = 925,
+		airsightdistance = 1200,
 		buildpic = "ARMAAK.DDS",
 		buildtime = 7000,
 		canmove = true,
