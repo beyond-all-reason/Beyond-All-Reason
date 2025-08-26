@@ -3045,9 +3045,9 @@ function UnitDef_Post(name, uDef)
 		
 	end
 
-	if modOptions.proposed_techsplit_balance == true then
-		local proposed_techsplit_balanceUnits = VFS.Include("unitbasedefs/proposed_techsplit_balance_defs.lua")
-		uDef = proposed_techsplit_balanceUnits.proposed_techsplit_balanceTweaks(name, uDef)
+	if modOptions.techsplit_balance == true then
+		local techsplit_balanceUnits = VFS.Include("unitbasedefs/techsplit_balance_defs.lua")
+		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
 	end
 
 

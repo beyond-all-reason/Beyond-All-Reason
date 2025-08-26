@@ -1409,8 +1409,8 @@ local options = {
     },
 
     {
-        key     = "proposed_techsplit_balance",
-        name    = "Proposed Tech Split Balance Pack",
+        key     = "techsplit_balance",
+        name    = "Tech Split Balance Test",
         desc    = "Adjusts the balance of units in the proposed tech split.",
         type    = "bool",
         section = "options_experimental",
