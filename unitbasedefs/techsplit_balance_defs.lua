@@ -6,39 +6,40 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.buildtime = 4200
 		uDef.health = 2200
 		uDef.speed = 54
+		uDef.maxacc = 0.14
+		uDef.maxdec = 0.8
 		uDef.weapondefs.arm_ham = {
-				burst = 2,
-				burstrate = 0.2,
-				areaofeffect = 51,
-				avoidfeature = false,
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-small",
-				gravityaffected = "true",
-				impulsefactor = 0.9,
-				name = "PlasmaCannon",
-				noselfdamage = true,
-				predictboost = 0.6,
-				range = 330,
-				reloadtime = 2.5,
-				soundhit = "xplomed3",
-				soundhitwet = "splshbig",
-				soundstart = "cannon1",
-				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 286,
-				damage = {
-					default = 150,
-					vtol = 31,
-				},
-			}
+			areaofeffect = 51,
+			avoidfeature = false,
+			craterareaofeffect = 0,
+			craterboost = 0,
+			cratermult = 0,
+			edgeeffectiveness = 0.15,
+			explosiongenerator = "custom:genericshellexplosion-small",
+			gravityaffected = "true",
+			impulsefactor = 0.9,
+			name = "PlasmaCannon",
+			noselfdamage = true,
+			predictboost = 0.6,
+			range = 330,
+			reloadtime = 2.5,
+			soundhit = "xplomed3",
+			soundhitwet = "splshbig",
+			soundstart = "cannon1",
+			stages = 12,
+			turret = true,
+			weapontype = "Cannon",
+			weaponvelocity = 286,
+			damage = {
+				default = 300,
+				vtol = 60,
+			},
+		}
 	end
 
 	if name == "armwar" then
 		uDef.speed = 60
-		uDef.weapondefs.armwar_laser.range = 300
+		uDef.weapondefs.armwar_laser.range = 280
 	end
 
 	if name == "corstorm" then
@@ -54,11 +55,17 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "armhlt" then
-		uDef.weapondefs.armlaserh1.range = 750
+		uDef.metalcost = 535
+		uDef.energycost = 5700
+		uDef.buildtime = 13700
+		uDef.weapondefs.arm_laserh1.range = 750
 	end
 
 	if name == "corhlt" then
-		uDef.weapondefs.corlaserh1.range = 750
+		uDef.metalcost = 580
+		uDef.energycost = 5700
+		uDef.buildtime = 13800
+		uDef.weapondefs.cor_laserh1.range = 750
 	end
 
 	if name == "armpw" then
@@ -108,12 +115,15 @@ local function techsplit_balanceTweaks(name, uDef)
 			edgeeffectiveness = 0.15,
 			explosiongenerator = "custom:genericshellexplosion-small",
 			gravityaffected = "true",
-			impulsefactor = 3.6,
-			name = "Light g2g gauss cannon (low trajectory)",
+			impulsefactor = 0.128,
+			paralyzer = true,
+			paralyzetime = 2,
+			name = "Light g2g EMP cannon (low trajectory)",
 			noselfdamage = true,
 			predictboost = 0.4,
 			range = 380,
 			reloadtime = 1.73333,
+			rgbcolor = "0.7 0.7 1",
 			soundhit = "xplomed3",
 			soundhitwet = "splshbig",
 			soundstart = "cannon1",
@@ -121,13 +131,52 @@ local function techsplit_balanceTweaks(name, uDef)
 			weapontype = "Cannon",
 			weaponvelocity = 500,
 			damage = {
-				default = 52,
-				vtol = 11,
+				default = 315,
 			},
 		}
+		uDef.weapons[1] = {
+				def = "ARM_HAM",
+				onlytargetcategory = "EMPABLE",
+			}
+	end
 
 	if name == "armmart" then
-		uDef.weapondefs.arm_artillery.range = 
+		uDef.metalcost = 400
+		uDef.speed = 47
+		uDef.turnrate = 120
+		
+		uDef.health = 750
+		uDef.weapondefs.arm_artillery = {
+			accuracy = 600,
+			areaofeffect = 60,
+			avoidfeature = false,
+			cegtag = "arty-medium",
+			craterboost = 0,
+			cratermult = 0,
+			edgeeffectiveness = 0.65,
+			explosiongenerator = "custom:genericshellexplosion-medium-bomb",
+			gravityaffected = "true",
+			mygravity = 0.12,
+			hightrajectory = true,
+			impulsefactor = 0.123,
+			name = "Long-range g2g plasma cannon",
+			noselfdamage = true,
+			predictboost = 0.0,
+			range = 1140,
+			reloadtime = 3.05,
+			soundhit = "xplomed4",
+			soundhitwet = "splsmed",
+			soundstart = "cannhvy2",
+			turret = true,
+			weapontype = "Cannon",
+			weaponvelocity = 355.28,
+			damage = {
+				default = 488,
+				subs = 122,
+				vtol = 49,
+			},
+		}
+		uDef.weapons[1].maxangledif = 90
 	end
 
 	if name == "corshiva" then
