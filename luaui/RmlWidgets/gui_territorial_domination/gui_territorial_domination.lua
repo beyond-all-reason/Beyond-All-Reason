@@ -16,12 +16,11 @@ function widget:GetInfo()
 	}
 end
 
---[[
-
-we are hard coding the ally team colors, we need to be getting it from luaspace and generating dynamically. This seems to only be the case for the predicted scores
-overtime display incorrect, isn't getting after the interface.json entry
-]]
-
+--danger being displayed when all scores are 0
+-- the score display isn't consistent with the order when changing player perspectives as a spectator.
+-- need a "who am I" indicator. maybe a halo now that I know how the other bug was resolved
+-- rank display?
+-- the countdown is blinking red from white instead of pulsing red. It's possible that we are updating it constantly
 
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
@@ -45,10 +44,6 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spI18N = Spring.I18N
 
 local SCREEN_HEIGHT = 1080
-local HEADER_HEIGHT = 18
-local MAX_HEIGHT = 248
-local MAX_COLUMNS = 4
-local MAX_TEAMS_PER_COLUMN_HEIGHT = 220
 local BACKGROUND_COLOR_ALPHA = 204
 local DEFAULT_POINTS_CAP = 100
 local PROJECTED_COLOR_ALPHA = 100
@@ -58,29 +53,26 @@ local COLOR_MULTIPLIER = 255
 local DEFAULT_COLOR_VALUE = 0.5
 local DARK_COLOR_MULTIPLIER = 0.25
 local UPDATE_INTERVAL = 0.1
+local TIME_UPDATE_INTERVAL = 0.5
+local SCORE_UPDATE_INTERVAL = 1.0
 local SECONDS_PER_MINUTE = 60
-local SMALL_MARGIN = 2
-local BIG_MARGIN = 4
-local SCORE_BAR_MIN_WIDTH = 80
-local SCORE_BAR_HEIGHT = 18
-local MAX_CONTAINER_WIDTH = 300
 local COUNTDOWN_WARNING_THRESHOLD = 60
 local ROUND_END_POPUP_DELAY = 3
-
-local uiDimensions = {
-	scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
-	headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
-}
 
 local widgetState = {
 	document = nil,
 	dmHandle = nil,
 	rmlContext = nil,
 	lastUpdateTime = 0,
+	lastTimeUpdateTime = 0,
+	lastScoreUpdateTime = 0,
 	updateInterval = UPDATE_INTERVAL,
+	timeUpdateInterval = TIME_UPDATE_INTERVAL,
+	scoreUpdateInterval = SCORE_UPDATE_INTERVAL,
 	allyTeamData = {},
 	lastMinimapGeometry = { 0, 0, 0, 0 },
 	scoreElements = {},
+	displayedTeamIds = {},
 	hiddenByLobby = false,
 	popupState = {
 		isVisible = false,
@@ -90,6 +82,14 @@ local widgetState = {
 		playerIsFirst = false,
 		isSpectating = false,
 		fadeOutStartTime = nil,
+	},
+	cachedData = {
+		allyTeams = {},
+		roundInfo = {},
+		lastUpdateHash = "",
+		lastScoreHash = "",
+		lastRoundHash = "",
+		lastTimeHash = "",
 	},
 }
 
@@ -127,6 +127,121 @@ local function isPlayerInFirstPlace()
 	if #allyTeams == 0 then return false end
 	
 	return allyTeams[1].allyTeamID == myAllyTeamID
+end
+
+local function calculateUILayout()
+	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
+	local currentGeometry = { minimapPosX, minimapPosY, minimapSizeX, minimapSizeY }
+	if currentGeometry[1] == widgetState.lastMinimapGeometry[1]
+		and currentGeometry[2] == widgetState.lastMinimapGeometry[2]
+		and currentGeometry[3] == widgetState.lastMinimapGeometry[3]
+		and currentGeometry[4] == widgetState.lastMinimapGeometry[4] then
+		return
+	end
+	widgetState.lastMinimapGeometry = currentGeometry
+
+	local left = minimapPosX
+	local top = SCREEN_HEIGHT - minimapPosY
+
+	if widgetState.document then
+		local rootElement = widgetState.document:GetElementById("td-root") or widgetState.document:GetElementById("score-container")
+		if rootElement then
+			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", left, top))
+		end
+	end
+end
+
+local function createScoreBarElement(parentDiv, allyTeam, index)
+	local scoreBarDiv = widgetState.document:CreateElement("div")
+	scoreBarDiv.class_name = "td-bar"
+
+	local containerDiv = widgetState.document:CreateElement("div")
+	containerDiv.class_name = "td-bar__track"
+
+	local backgroundDiv = widgetState.document:CreateElement("div")
+	backgroundDiv.class_name = "td-bar__background"
+
+	local darkBackgroundColor = {
+		r = math.floor(allyTeam.color.r * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
+		g = math.floor(allyTeam.color.g * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
+		b = math.floor(allyTeam.color.b * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
+		a = BACKGROUND_COLOR_ALPHA
+	}
+	backgroundDiv:SetAttribute("style", string.format("background-color: rgba(%d, %d, %d, %d)",
+		darkBackgroundColor.r, darkBackgroundColor.g, darkBackgroundColor.b, darkBackgroundColor.a))
+
+	local projectedDiv = widgetState.document:CreateElement("div")
+	projectedDiv.class_name = "td-bar__projected"
+	projectedDiv.id = "projected-fill-" .. index
+local projectedColor = string.format("rgba(%d, %d, %d, %d)",
+		allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
+		PROJECTED_COLOR_ALPHA)
+	projectedDiv:SetAttribute("style", "background-color: " .. projectedColor)
+
+	local fillDiv = widgetState.document:CreateElement("div")
+	fillDiv.class_name = "td-bar__fill"
+	fillDiv.id = "score-fill-" .. index
+local fillColor = string.format("rgba(%d, %d, %d, %d)",
+		allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
+		FILL_COLOR_ALPHA)
+	fillDiv:SetAttribute("style", "background-color: " .. fillColor)
+
+	local currentScoreText = widgetState.document:CreateElement("div")
+	currentScoreText.class_name = "td-text current"
+	currentScoreText.id = "current-score-" .. index
+	currentScoreText.inner_rml = tostring(allyTeam.score)
+
+	local projectedScoreText = widgetState.document:CreateElement("div")
+	projectedScoreText.class_name = "td-text projected"
+	projectedScoreText.id = "projected-score-" .. index
+	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+
+	local dangerOverlay = widgetState.document:CreateElement("div")
+	dangerOverlay.class_name = "td-danger"
+	dangerOverlay.id = "danger-overlay-" .. index
+	dangerOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
+
+	containerDiv:AppendChild(backgroundDiv)
+	containerDiv:AppendChild(projectedDiv)
+	containerDiv:AppendChild(fillDiv)
+	containerDiv:AppendChild(currentScoreText)
+	containerDiv:AppendChild(projectedScoreText)
+	containerDiv:AppendChild(dangerOverlay)
+
+	scoreBarDiv:AppendChild(containerDiv)
+	parentDiv:AppendChild(scoreBarDiv)
+
+	return {
+		container = scoreBarDiv,
+		currentScoreElement = currentScoreText,
+		projectedScoreElement = projectedScoreText,
+		projectedElement = projectedDiv,
+		fillElement = fillDiv,
+		dangerOverlay = dangerOverlay,
+	}
+end
+local function createDataHash(data)
+	if type(data) == "table" then
+		local hash = ""
+		for k, v in pairs(data) do
+			if type(v) == "table" then
+				hash = hash .. createDataHash(v)
+			else
+				hash = hash .. tostring(k) .. tostring(v)
+			end
+		end
+		return hash
+	end
+	return tostring(data)
+end
+
+local function hasDataChanged(newData, cacheTable, cacheKey)
+	local newHash = createDataHash(newData)
+	if cacheTable[cacheKey] ~= newHash then
+		cacheTable[cacheKey] = newHash
+		return true
+	end
+	return false
 end
 
 local function isTie()
@@ -175,11 +290,7 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	
 	popupTextElement.inner_rml = popupText
 	
-	local centerX = 960
-	local centerY = 540
-	popupElement:SetAttribute("style", string.format("display: block; left: %dpx; top: %dpx;", centerX, centerY))
-	
-	popupElement.class_name = "round-end-popup"
+	popupElement.class_name = "round-end-popup visible"
 	
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = os.clock()
@@ -194,7 +305,7 @@ local function completePopupFadeOut()
 	
 	local popupElement = widgetState.document:GetElementById("round-end-popup")
 	if popupElement then
-		popupElement:SetAttribute("style", "display: none;")
+		popupElement.class_name = "round-end-popup"
 	end
 	widgetState.popupState.fadeOutStartTime = nil
 end
@@ -215,7 +326,7 @@ local function updateAllyTeamData()
 	local validAllyTeams = {}
 
 	for i = 1, #allyTeamList do
-		local allyTeamID = allyTeamList[i] - 1
+		local allyTeamID = allyTeamList[i]
 		local teamList = spGetTeamList(allyTeamID)
 
 		if teamList and #teamList > 0 then
@@ -258,7 +369,6 @@ local function updateRoundInfo()
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
 
-
 	local highestPlayerCombinedScore = 0
 	if widgetState.allyTeamData and #widgetState.allyTeamData > 0 then
 		local topTeam = widgetState.allyTeamData[1]
@@ -272,18 +382,17 @@ local function updateRoundInfo()
 	local isCountdownWarning = false
 	
 	local roundDisplayText 
-	if currentRound > maxRounds then roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
-	elseif currentRound == 0 then -- pregame
-		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = 1, maxRounds = maxRounds })
+	if currentRound > maxRounds then 
+		roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
+	elseif currentRound == 0 then
+		roundDisplayText = ""
 	else
 		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
 	end
 	
 	if roundEndTime > 0 then
 		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())
-		local minutes = math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE)
-		local seconds = math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE)
-		timeString = string.format("%d:%02d", minutes, seconds)
+		timeString = string.format("%d:%02d", math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE), math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE))
 	end
 	
 	if currentRound > maxRounds then
@@ -308,6 +417,28 @@ local function updateRoundInfo()
 	}
 end
 
+local function updateHeaderVisibility()
+	if not widgetState.document then return end
+	
+	local headerElement = widgetState.document:GetElementById("header-info")
+	local roundElement = widgetState.document:GetElementById("round-display")
+	local timeElement = widgetState.document:GetElementById("time-display")
+	if not headerElement or not roundElement or not timeElement then return end
+	
+	local hasRoundInfo = roundElement.inner_rml and roundElement.inner_rml ~= ""
+	local hasTimeInfo = timeElement.inner_rml and timeElement.inner_rml ~= "0:00"
+	
+	if hasRoundInfo or hasTimeInfo then
+		headerElement.class_name = "header-info"
+		roundElement.class_name = hasRoundInfo and "round-display" or "round-display hidden"
+		timeElement.class_name = hasTimeInfo and "time-display" or "time-display hidden"
+	else
+		headerElement.class_name = "header-info hidden"
+		roundElement.class_name = "round-display hidden"
+		timeElement.class_name = "time-display hidden"
+	end
+end
+
 local function updateCountdownColor()
 	if not widgetState.document then return end
 	
@@ -318,294 +449,199 @@ local function updateCountdownColor()
 	if dm and dm.isCountdownWarning then
 		local timeRemaining = dm.timeRemainingSeconds or 0
 		
+		local newClassName
 		if timeRemaining <= 10 then
-			timeDisplayElement.class_name = "time-display warning pulsing critical"
+			newClassName = "time-display warning pulsing critical"
 		else
-			timeDisplayElement.class_name = "time-display warning pulsing"
+			newClassName = "time-display warning pulsing"
+		end
+		
+		if timeDisplayElement.class_name ~= newClassName then
+			timeDisplayElement.class_name = newClassName
 		end
 	else
-		timeDisplayElement.class_name = "time-display"
-	end
-end
-
-
-
-local function calculateUILayout()
-	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
-	local currentGeometry = { minimapPosX, minimapPosY, minimapSizeX, minimapSizeY }
-
-	if currentGeometry[1] == widgetState.lastMinimapGeometry[1] and
-		currentGeometry[2] == widgetState.lastMinimapGeometry[2] and
-		currentGeometry[3] == widgetState.lastMinimapGeometry[3] and
-		currentGeometry[4] == widgetState.lastMinimapGeometry[4] then
-		return
-	end
-
-	widgetState.lastMinimapGeometry = currentGeometry
-
-	local effectiveMaxWidth = math.min(MAX_CONTAINER_WIDTH, minimapSizeX)
-
-	widgetState.uiState = {
-		position = {
-			x = minimapPosX,
-			y = SCREEN_HEIGHT - minimapPosY,
-			width = effectiveMaxWidth,
-			height = nil,
-		},
-		availableWidth = effectiveMaxWidth - (BIG_MARGIN * 2),
-		maxHeight = MAX_HEIGHT,
-	}
-end
-
-local function calculateColumnWidth(numColumns)
-	local totalGapWidth = (numColumns - 1) * SMALL_MARGIN
-	local availableWidthForColumns = widgetState.uiState.availableWidth - totalGapWidth
-	return math.floor(availableWidthForColumns / numColumns)
-end
-
-local function createScoreBarElement(columnDiv, allyTeam, index)
-	local scoreBarDiv = widgetState.document:CreateElement("div")
-	scoreBarDiv.class_name = "score-bar"
-	scoreBarDiv:SetAttribute("style",
-		string.format("padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; margin-bottom: %dpx;",
-			SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN,
-			SCORE_BAR_MIN_WIDTH, SMALL_MARGIN))
-
-	local containerDiv = widgetState.document:CreateElement("div")
-	containerDiv.class_name = "score-bar-container"
-	containerDiv:SetAttribute("style", string.format("height: %dpx; border-radius: %dpx;",
-		SCORE_BAR_HEIGHT, SMALL_MARGIN))
-
-	local backgroundDiv = widgetState.document:CreateElement("div")
-	backgroundDiv.class_name = "score-bar-background"
-
-	local darkBackgroundColor = {
-		r = math.floor(allyTeam.color.r * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		g = math.floor(allyTeam.color.g * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		b = math.floor(allyTeam.color.b * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		a = BACKGROUND_COLOR_ALPHA
-	}
-	backgroundDiv:SetAttribute("style", string.format("background-color: rgba(%d, %d, %d, %d)",
-		darkBackgroundColor.r, darkBackgroundColor.g, darkBackgroundColor.b, darkBackgroundColor.a))
-
-	local projectedDiv = widgetState.document:CreateElement("div")
-	projectedDiv.class_name = "score-bar-projected"
-	projectedDiv.id = "projected-fill-" .. index
-
-	local fillDiv = widgetState.document:CreateElement("div")
-	fillDiv.class_name = "score-bar-fill"
-	fillDiv.id = "score-fill-" .. index
-
-	local currentScoreText = widgetState.document:CreateElement("div")
-	currentScoreText.class_name = "score-text current"
-	currentScoreText.id = "current-score-" .. index
-	currentScoreText.inner_rml = tostring(allyTeam.score)
-	currentScoreText:SetAttribute("style", string.format("left: %dpx;", SMALL_MARGIN))
-
-	local projectedScoreText = widgetState.document:CreateElement("div")
-	projectedScoreText.class_name = "score-text projected"
-	projectedScoreText.id = "projected-score-" .. index
-	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
-	projectedScoreText:SetAttribute("style", string.format("right: %dpx;", SMALL_MARGIN))
-
-	containerDiv:AppendChild(backgroundDiv)
-	containerDiv:AppendChild(projectedDiv)
-	containerDiv:AppendChild(fillDiv)
-	containerDiv:AppendChild(currentScoreText)
-	containerDiv:AppendChild(projectedScoreText)
-
-	scoreBarDiv:AppendChild(containerDiv)
-	columnDiv:AppendChild(scoreBarDiv)
-
-	return {
-		container = scoreBarDiv,
-		currentScoreElement = currentScoreText,
-		projectedScoreElement = projectedScoreText,
-		projectedElement = projectedDiv,
-		fillElement = fillDiv,
-	}
-end
-
-local function updateElementStyles()
-	if not widgetState.document then return end
-	
-	local function updateElementsByClass(className, styleFormat, ...)
-		local elements = widgetState.document:GetElementsByClassName(className)
-		for i = 0, elements:GetNumElements() - 1 do
-			elements:GetElement(i):SetAttribute("style", string.format(styleFormat, ...))
+		local baseClassName = "time-display"
+		if timeDisplayElement.class_name:find("hidden") then
+			baseClassName = "time-display hidden"
 		end
-	end
-
-	local function updateScoreElements()
-		if not widgetState.scoreElements then return end
-		for i, scoreElements in ipairs(widgetState.scoreElements) do
-			if scoreElements.currentScoreElement then
-				scoreElements.currentScoreElement:SetAttribute("style", string.format("left: %dpx;", SMALL_MARGIN))
-			end
-			if scoreElements.projectedScoreElement then
-				scoreElements.projectedScoreElement:SetAttribute("style", string.format("right: %dpx;", SMALL_MARGIN))
-			end
-		end
-	end
-
-	updateScoreElements()
-	updateElementsByClass("score-bar", "padding: %dpx %dpx; border-radius: %dpx; min-width: %dpx; margin-bottom: %dpx;",
-		SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN, SCORE_BAR_MIN_WIDTH, SMALL_MARGIN)
-	updateElementsByClass("score-bar-container", "height: %dpx; border-radius: %dpx;",
-		SCORE_BAR_HEIGHT, SMALL_MARGIN)
-	updateElementsByClass("score-column", "padding: 0px %dpx;", SMALL_MARGIN)
-end
-
-local function setCSSVariables()
-	if not widgetState.document then return end
-	
-	local function setElementStyle(elementId, styleFormat, ...)
-		local element = widgetState.document:GetElementById(elementId)
-		if element then
-			element:SetAttribute("style", string.format(styleFormat, ...))
-		end
-	end
-
-	setElementStyle("score-container", "padding: %dpx; border-radius: %dpx; max-width: %dpx;",
-		BIG_MARGIN, BIG_MARGIN, MAX_CONTAINER_WIDTH)
-	setElementStyle("header-info", "margin-bottom: %dpx; padding: %dpx %dpx; border-radius: %dpx;",
-		SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN)
-	setElementStyle("victory-points", "margin-top: %dpx; padding: %dpx %dpx;",
-		SMALL_MARGIN, SMALL_MARGIN, SMALL_MARGIN)
-end
-
-local function updateDynamicHeight()
-	if not widgetState.document or not widgetState.uiState then return end
-
-	local allyTeams = widgetState.allyTeamData
-	local numTeams = #allyTeams
-	local headerHeight = uiDimensions.headerHeight
-
-	if numTeams == 0 then
-		local minHeight = headerHeight + (BIG_MARGIN * 2)
-		widgetState.uiState.height = minHeight
-		widgetState.uiState.numColumns = 1
-		widgetState.uiState.teamsPerColumn = 0
-
-		local rootElement = widgetState.document:GetElementById("score-container")
-		if rootElement then
-			local scorePosX = widgetState.uiState.position.x
-			local scorePosY = widgetState.uiState.position.y
-			local containerWidth = widgetState.uiState.position.width
-			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx",
-				scorePosX, scorePosY, containerWidth, minHeight))
-		end
-		return
-	end
-
-	local maxTeamsPerColumn = math.floor(MAX_TEAMS_PER_COLUMN_HEIGHT / uiDimensions.scoreBarHeightWithPadding)
-	local teamsPerColumn = math.min(maxTeamsPerColumn, numTeams)
-	local numColumns = math.ceil(numTeams / teamsPerColumn)
-
-	local minColumnWidth = SMALL_MARGIN * 2 + SCORE_BAR_MIN_WIDTH
-	local maxColumnsByWidth = math.floor((widgetState.uiState and widgetState.uiState.availableWidth or MAX_CONTAINER_WIDTH) / minColumnWidth)
-	maxColumnsByWidth = math.max(1, math.min(maxColumnsByWidth, MAX_COLUMNS))
-
-	if numColumns > maxColumnsByWidth then
-		numColumns = maxColumnsByWidth
-		teamsPerColumn = math.ceil(numTeams / numColumns)
-	end
-
-	local scoreBarHeight = uiDimensions.scoreBarHeightWithPadding
-	local actualTeamsPerColumn = math.ceil(numTeams / numColumns)
-	local heightPerColumn = (actualTeamsPerColumn * scoreBarHeight) + BIG_MARGIN
-	local totalHeight = headerHeight + heightPerColumn + (BIG_MARGIN * 2)
-
-	widgetState.uiState.height = totalHeight
-	widgetState.uiState.numColumns = numColumns
-	widgetState.uiState.teamsPerColumn = teamsPerColumn
-
-	local rootElement = widgetState.document:GetElementById("score-container")
-	if rootElement then
-		local scorePosX = widgetState.uiState.position.x
-		local scorePosY = widgetState.uiState.position.y
-		local containerWidth = widgetState.uiState.position.width
-		local requiredWidth = (numColumns * calculateColumnWidth(numColumns)) + ((numColumns - 1) * SMALL_MARGIN) + (BIG_MARGIN * 2)
-		local finalWidth = math.max(containerWidth, requiredWidth)
 		
-		rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx; width: %dpx; height: %dpx",
-			scorePosX, scorePosY, finalWidth, totalHeight))
-
-		local columnsContainer = widgetState.document:GetElementById("score-columns")
-		if columnsContainer then
-			columnsContainer:SetAttribute("style", string.format("height: %dpx", heightPerColumn))
+		if timeDisplayElement.class_name ~= baseClassName then
+			timeDisplayElement.class_name = baseClassName
 		end
 	end
+end
+
+local function getDisplayedTeams()
+	local allyTeams = widgetState.allyTeamData
+	if not allyTeams or #allyTeams == 0 then return {} end
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local displayed = {}
+	local seen = {}
+
+	local topTeam = allyTeams[1]
+	table.insert(displayed, topTeam)
+	seen[topTeam.allyTeamID] = true
+
+	local myIndex = nil
+	if myAllyTeamID ~= nil then
+		for i = 1, #allyTeams do
+			if allyTeams[i].allyTeamID == myAllyTeamID then
+				myIndex = i
+				break
+			end
+		end
+	end
+
+	if not myIndex then
+		for i = 2, math.min(#allyTeams, 6) do
+			if not seen[allyTeams[i].allyTeamID] then
+				table.insert(displayed, allyTeams[i])
+				seen[allyTeams[i].allyTeamID] = true
+		end
+	end
+		return displayed
+	end
+
+	for i = math.max(2, myIndex - 2), myIndex - 1 do
+		if #displayed >= 6 then break end
+		local team = allyTeams[i]
+		if team and not seen[team.allyTeamID] then
+			table.insert(displayed, team)
+			seen[team.allyTeamID] = true
+		end
+	end
+
+	if #displayed < 6 then
+		local myTeam = allyTeams[myIndex]
+		if myTeam and not seen[myTeam.allyTeamID] then
+			table.insert(displayed, myTeam)
+			seen[myTeam.allyTeamID] = true
+		end
+	end
+
+	for i = myIndex + 1, math.min(#allyTeams, myIndex + 2) do
+		if #displayed >= 6 then break end
+		local team = allyTeams[i]
+		if team and not seen[team.allyTeamID] then
+			table.insert(displayed, team)
+			seen[team.allyTeamID] = true
+		end
+	end
+
+	for i = myIndex + 3, #allyTeams do
+		if #displayed >= 6 then break end
+		local team = allyTeams[i]
+		if team and not seen[team.allyTeamID] then
+			table.insert(displayed, team)
+			seen[team.allyTeamID] = true
+		end
+	end
+
+	for i = math.max(2, myIndex - 3), myIndex - 3 do
+		if #displayed >= 6 then break end
+		local team = allyTeams[i]
+		if team and not seen[team.allyTeamID] then
+			table.insert(displayed, team)
+			seen[team.allyTeamID] = true
+		end
+	end
+
+	return displayed
 end
 
 local function updateScoreBarVisuals()
 	if not widgetState.document then return end
 
 	local dm = widgetState.dmHandle
-	local allyTeams = widgetState.allyTeamData
-	local columnsContainer = widgetState.document:GetElementById("score-columns")
+	local allyTeams = getDisplayedTeams()
+	local columnsContainer = widgetState.document:GetElementById("td-scores") or widgetState.document:GetElementById("score-columns")
 	if not columnsContainer then return end
-
-	columnsContainer.inner_rml = ""
-	widgetState.scoreElements = {}
 
 	local numTeams = #allyTeams
 	if numTeams == 0 then return end
 
-	local numColumns = widgetState.uiState.numColumns or 1
-	local teamsPerColumn = widgetState.uiState.teamsPerColumn or numTeams
+	local needsRebuild = false
+	if #widgetState.scoreElements ~= numTeams then
+		needsRebuild = true
+	else
+		for i, elements in ipairs(widgetState.scoreElements) do
+			if not elements.container or not elements.container.parent_node then
+				needsRebuild = true
+				break
+			end
+		end
+		if not needsRebuild then
+			for i = 1, numTeams do
+				if widgetState.displayedTeamIds[i] ~= allyTeams[i].allyTeamID then
+					needsRebuild = true
+					break
+				end
+			end
+		end
+	end
 
-	local columns = {}
-	for i = 1, numColumns do
-		local columnDiv = widgetState.document:CreateElement("div")
-		columnDiv.class_name = "score-column"
-		local columnWidth = calculateColumnWidth(numColumns)
-		local columnLeft = (i - 1) * (columnWidth + SMALL_MARGIN)
-		columnDiv:SetAttribute("style",
-			string.format("position: absolute; left: %dpx; width: %dpx; top: 0px; padding: 0px %dpx; height: 100%%;",
-				columnLeft, columnWidth, SMALL_MARGIN))
-		columnsContainer:AppendChild(columnDiv)
-		columns[i] = columnDiv
+	if needsRebuild then
+		columnsContainer.inner_rml = ""
+		widgetState.scoreElements = {}
+		widgetState.displayedTeamIds = {}
+
+		for i, allyTeam in ipairs(allyTeams) do
+			local scoreBarElements = createScoreBarElement(columnsContainer, allyTeam, i)
+			widgetState.scoreElements[i] = scoreBarElements
+			widgetState.displayedTeamIds[i] = allyTeam.allyTeamID
+		end
 	end
 
 	for i, allyTeam in ipairs(allyTeams) do
-		local columnIndex = ((i - 1) % numColumns) + 1
-		local scoreBarElements = createScoreBarElement(columns[columnIndex], allyTeam, i)
-		widgetState.scoreElements[i] = scoreBarElements
+		local scoreBarElements = widgetState.scoreElements[i]
+		if scoreBarElements then
+			local projectedWidth = "0%"
+			if dm.pointsCap > 0 then
+				local totalProjected = allyTeam.score + allyTeam.projectedPoints
+				projectedWidth = string.format("%.1f%%",
+					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
+			end
 
-		local projectedWidth = "0%"
-		if dm.pointsCap > 0 then
-			local totalProjected = allyTeam.score + allyTeam.projectedPoints
-			projectedWidth = string.format("%.1f%%",
-				math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
-		end
+			scoreBarElements.projectedElement:SetAttribute("style","width: " .. projectedWidth)
 
-		local projectedColor = string.format("rgba(%d, %d, %d, %d)",
-			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
-			PROJECTED_COLOR_ALPHA)
-		scoreBarElements.projectedElement:SetAttribute("style",
-			"width: " .. projectedWidth .. "; background-color: " .. projectedColor)
+			local fillWidth = "0%"
+			if dm.pointsCap > 0 then
+				fillWidth = string.format("%.1f%%",
+					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
+			end
 
-		local fillWidth = "0%"
-		if dm.pointsCap > 0 then
-			fillWidth = string.format("%.1f%%",
-				math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
-		end
+			scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
 
-		local fillColor = string.format("rgba(%d, %d, %d, %d)",
-			allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
-			FILL_COLOR_ALPHA)
-		scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth .. "; background-color: " .. fillColor)
+			if scoreBarElements.currentScoreElement then
+				scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
+			end
+			if scoreBarElements.projectedScoreElement then
+				scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+			end
 
-		if scoreBarElements.currentScoreElement then
-			scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
-		end
-		if scoreBarElements.projectedScoreElement then
-			scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+			if scoreBarElements.dangerOverlay then
+				local dangerThreshold = dm.pointsCap * 0.5
+				local combinedScore = allyTeam.score + allyTeam.projectedPoints
+				local shouldShowDanger = combinedScore < dangerThreshold
+				local newClassName = shouldShowDanger and "td-danger visible" or "td-danger"
+				if scoreBarElements.dangerOverlay.class_name ~= newClassName then
+					scoreBarElements.dangerOverlay.class_name = newClassName
+				end
+			end
 		end
 	end
 
-	updateDynamicHeight()
+end
+
+local function resetCache()
+	widgetState.cachedData = {
+		allyTeams = {},
+		roundInfo = {},
+		lastUpdateHash = "",
+		lastScoreHash = "",
+		lastRoundHash = "",
+		lastTimeHash = "",
+	}
 end
 
 local function updateDataModel()
@@ -618,59 +654,49 @@ local function updateDataModel()
 	local previousRound = dm.currentRound or 0
 	local previousTimeRemaining = dm.timeRemainingSeconds or 0
 
-	dm.allyTeams = allyTeams
-	dm.currentRound = roundInfo.currentRound
-	dm.roundEndTime = roundInfo.roundEndTime
-	dm.pointsCap = roundInfo.pointsCap
-	dm.highestScore = roundInfo.highestScore
-	dm.secondHighestScore = roundInfo.secondHighestScore
-	dm.timeRemaining = roundInfo.timeRemaining
-	dm.roundDisplayText = roundInfo.roundDisplayText
-	dm.timeRemainingSeconds = roundInfo.timeRemainingSeconds
-	dm.isCountdownWarning = roundInfo.isCountdownWarning
+	local scoresChanged = hasDataChanged(allyTeams, widgetState.cachedData, "allyTeams")
+	local roundChanged = hasDataChanged(roundInfo, widgetState.cachedData, "roundInfo")
+	local timeChanged = hasDataChanged(roundInfo.timeRemainingSeconds, widgetState.cachedData, "lastTimeHash")
 
-	dm:__SetDirty("allyTeams")
-	dm:__SetDirty("pointsCap")
-	dm:__SetDirty("currentRound")
-	dm:__SetDirty("timeRemaining")
-	dm:__SetDirty("roundDisplayText")
-	dm:__SetDirty("timeRemainingSeconds")
-	dm:__SetDirty("isCountdownWarning")
+	if roundChanged and (dm.currentRound or 0) ~= roundInfo.currentRound then
+		resetCache()
+		scoresChanged = true
+		roundChanged = true
+	end
+
+	if scoresChanged or roundChanged then
+		dm.allyTeams = allyTeams
+		dm.currentRound = roundInfo.currentRound
+		dm.roundEndTime = roundInfo.roundEndTime
+		dm.pointsCap = roundInfo.pointsCap
+		dm.highestScore = roundInfo.highestScore
+		dm.secondHighestScore = roundInfo.secondHighestScore
+		dm.timeRemaining = roundInfo.timeRemaining
+		dm.roundDisplayText = roundInfo.roundDisplayText
+		dm.timeRemainingSeconds = roundInfo.timeRemainingSeconds
+		dm.isCountdownWarning = roundInfo.isCountdownWarning
+	end
 
 	calculateUILayout()
 
 	if widgetState.document then
-		updateScoreBarVisuals()
-		updateCountdownColor()
+		if scoresChanged or roundChanged then
+			updateScoreBarVisuals()
+		end
+		
+		if timeChanged then
+			updateCountdownColor()
+		end
+		
+		if roundChanged then
+			updateHeaderVisibility()
+		end
 		
 		if roundInfo.isFinalRound and previousTimeRemaining > 0 and roundInfo.timeRemainingSeconds <= 0 then
 			showRoundEndPopup(roundInfo.currentRound, true)
 		elseif previousRound ~= roundInfo.currentRound and previousRound > 0 then
 			showRoundEndPopup(previousRound, false)
 		end
-	end
-end
-
-local function rebuildUIDimensions()
-	uiDimensions = {
-		scoreBarHeightWithPadding = SCORE_BAR_HEIGHT + (SMALL_MARGIN * 3),
-		headerHeight = HEADER_HEIGHT + (SMALL_MARGIN * 3),
-	}
-end
-
-local function updateUIAndLayout()
-	setCSSVariables()
-	updateElementStyles()
-
-	local rootElement = widgetState.document:GetElementById("score-container")
-	if rootElement then
-		rootElement:SetAttribute("style", string.format("padding: %dpx; border-radius: %dpx; max-width: %dpx;",
-			BIG_MARGIN, BIG_MARGIN, MAX_CONTAINER_WIDTH))
-	end
-
-	if widgetState.uiState then
-		calculateUILayout()
-		updateDynamicHeight()
 	end
 end
 
@@ -697,11 +723,15 @@ function widget:Initialize()
 	document:ReloadStyleSheet()
 	document:Show()
 
+	resetCache()
+	widgetState.lastUpdateTime = Spring.GetGameSeconds()
+	widgetState.lastScoreUpdateTime = Spring.GetGameSeconds()
+	widgetState.lastTimeUpdateTime = Spring.GetGameSeconds()
+
 	calculateUILayout()
-	updateDynamicHeight()
 	updateDataModel()
-	setCSSVariables()
 	updateCountdownColor()
+	updateHeaderVisibility()
 
 	return true
 end
@@ -717,10 +747,6 @@ function widget:RecvLuaMsg(msg, playerID)
 			hideRoundEndPopup()
 			widgetState.document:Hide()
 			widgetState.hiddenByLobby = true
-		end
-	elseif msg:sub(1, 15) == 'WindowResized' then
-		if widgetState.document then
-			-- Window resize handling can be added here if needed
 		end
 	end
 end
@@ -742,49 +768,50 @@ function widget:Shutdown()
 	widgetState.popupState.fadeOutStartTime = nil
 end
 
-function widget:updateMargins(newSmallMargin, newBigMargin)
-	SMALL_MARGIN = newSmallMargin or SMALL_MARGIN
-	BIG_MARGIN = newBigMargin or BIG_MARGIN
-
-	rebuildUIDimensions()
-	updateUIAndLayout()
-end
-
-function widget:updateUIConstants(newScoreBarMinWidth, newScoreBarHeight, newMaxContainerWidth)
-	SCORE_BAR_MIN_WIDTH = newScoreBarMinWidth or SCORE_BAR_MIN_WIDTH
-	SCORE_BAR_HEIGHT = newScoreBarHeight or SCORE_BAR_HEIGHT
-	MAX_CONTAINER_WIDTH = newMaxContainerWidth or MAX_CONTAINER_WIDTH
-
-	rebuildUIDimensions()
-	updateUIAndLayout()
-end
-
 function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
 	local currentOSClock = os.clock()
 	
 	if widgetState.popupState.isVisible then
-		local timeSincePopup = currentOSClock - widgetState.popupState.showTime
-		if timeSincePopup >= ROUND_END_POPUP_DELAY then
+		if currentOSClock - widgetState.popupState.showTime >= ROUND_END_POPUP_DELAY then
 			hideRoundEndPopup()
 		end
 	elseif widgetState.popupState.fadeOutStartTime then
-		local timeSinceFadeOut = currentOSClock - widgetState.popupState.fadeOutStartTime
-		if timeSinceFadeOut >= 0.5 then
+		if currentOSClock - widgetState.popupState.fadeOutStartTime >= 0.5 then
 			completePopupFadeOut()
 		end
 	end
 	
-	if currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval then
+	local shouldUpdateScores = currentTime - widgetState.lastScoreUpdateTime >= widgetState.scoreUpdateInterval
+	
+	local shouldUpdateTime = currentTime - widgetState.lastTimeUpdateTime >= widgetState.timeUpdateInterval
+	
+	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval
+	
+	if shouldFullUpdate or shouldUpdateScores or shouldUpdateTime then
 		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 		if pointsCap and pointsCap > 0 then
 			if widgetState.document and not widgetState.hiddenByLobby then
 				widgetState.document:Show()
 			end
+			
 			if widgetState.document then
-				updateDataModel()
+				if shouldFullUpdate or shouldUpdateScores then
+					updateDataModel()
+					widgetState.lastScoreUpdateTime = currentTime
+				elseif shouldUpdateTime then
+					local roundInfo = updateRoundInfo()
+					local timeChanged = hasDataChanged(roundInfo.timeRemainingSeconds, widgetState.cachedData, "lastTimeHash")
+					if timeChanged and widgetState.document then
+						updateCountdownColor()
+					end
+					widgetState.lastTimeUpdateTime = currentTime
+				end
 			end
-			widgetState.lastUpdateTime = currentTime
+			
+			if shouldFullUpdate then
+				widgetState.lastUpdateTime = currentTime
+			end
 		else
 			if widgetState.document then
 				widgetState.document:Hide()
@@ -801,3 +828,4 @@ function widget:DrawScreen()
 		end
 	end
 end
+

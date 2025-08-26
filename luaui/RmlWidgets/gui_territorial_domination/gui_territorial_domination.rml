@@ -5,15 +5,12 @@
 		<link type="text/rcss" href="gui_territorial_domination.rcss" />
 	</head>
 	<body>
-		<div id="score-container" class="score-container" data-model="territorial_score_model">
-			<div class="header-info" id="header-info">
-				<div class="round-display" id="round-display">{{roundDisplayText}}</div>
-				<div class="time-display" id="time-display">{{timeRemaining}}</div>
+		<div id="td-root" class="td-root" data-model="territorial_score_model">
+			<div id="header-info" class="td-header header-info">
+				<div id="round-display" class="td-round round-display">{{roundDisplayText}}</div>
+				<div id="time-display" class="td-time time-display">{{timeRemaining}}</div>
 			</div>
-			<div id="score-columns" class="score-columns">
-			</div>
-		</div>
-		<div id="skull-image" class="skull-image">
+			<div id="td-scores" class="td-scores"></div>
 		</div>
 		<div id="round-end-popup" class="round-end-popup">
 			<div id="popup-text" class="popup-text"></div>
