@@ -167,20 +167,61 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
-    local CMD_MOVE = CMD.MOVE
     local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+	local spGetUnitArmored = Spring.GetUnitArmored
+	local spAreTeamsAllied = Spring.AreTeamsAllied
+	local spGetSelectedUnits = Spring.GetSelectedUnits
 
-    function gadget:DefaultCommand(type, id, cmd)
-		if type == "unit" and cmd ~= CMD_MOVE then
-			local uDefID = spGetUnitDefID(id)
-			if isObject[uDefID] or isDecoration[uDefID] then
-				-- make sure a command given on top of a objectified/decoration unit is a move command
-				if select(4, Spring.GetUnitHealth(id)) == 1 then
+	local CMD_ATTACK = CMD.ATTACK
+    local CMD_MOVE = CMD.MOVE
+	local CMD_GUARD = CMD.GUARD
+
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local spectating = Spring.GetSpectatingState()
+	function gadget:PlayerChanged(playerID)
+		myAllyTeam = Spring.GetMyAllyTeamID()
+		spectating = Spring.GetSpectatingState()
+	end
+
+	-- Don't auto-guard units like walls and don't reveal enemy decoys:
+	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
+		local objectUnit = isObject[unitDefID]
+		local decoyState = isClosedObject[unitDefID] and spGetUnitArmored(unitID) ~= false
+		local decorative = isDecoration[unitDefID]
+		local beingBuilt = not decorative and spGetUnitIsBeingBuilt(unitID)
+		local inAlliance = decorative or spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
+
+		if not beingBuilt then
+			if inAlliance then
+				if objectUnit and fromCommand == CMD_GUARD then
 					return CMD_MOVE
 				end
+			elseif not decorative and not objectUnit and not decoyState then
+				local selected = spGetSelectedUnits()
+				local canAttackInSelect = false
+				-- Limit the search somewhat. Gadgets don't have g:UpdateSelection.
+				-- This could be more efficient but is not especially costly as-is.
+				for i = 1, 64 do
+					local selectedID = spGetUnitDefID(selected[i])
+					if canMove[selectedID] then
+						return CMD_MOVE
+					elseif not canAttackInSelect and canAttack[selectedID] then
+						canAttackInSelect = true
+					end
+				end
+				if canAttackInSelect then
+					return CMD_ATTACK
+				end
 			end
+		end
+	end
+
+    function gadget:DefaultCommand(type, id, cmd)
+		if type == "unit" and not spectating then
+			return getUnitHoverCommand(id, spGetUnitDefID(id), cmd)
 		end
     end
 
 end
-
