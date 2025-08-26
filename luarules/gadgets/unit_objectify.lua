@@ -20,9 +20,12 @@ end
 ]]--
 
 local isBuilder = {}
-local unitSize = {}
 local isObject = {}
+local isClosedObject = {}
 local isDecoration = {}
+local canAttack = {}
+local canMove = {}
+local unitSize = {}
 for udefID,def in ipairs(UnitDefs) do
     if def.customParams.objectify then
         isObject[udefID] = true
@@ -33,7 +36,20 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder then
 		isBuilder[udefID] = true
 	end
+	if def.canAttack then
+		canAttack[udefID] = true
+	end
+	if def.canMove then
+		canMove[udefID] = true
+	end
 	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
+
+	if def.customParams.decoyfor and def.customParams.neutral_when_closed then
+		local coy = UnitDefNames[def.customParams.decoyfor]
+		if coy ~= nil and coy.customParams.objectify then
+			isClosedObject[udefID] = true
+		end
+	end
 end
 
 
@@ -131,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			-- remove any decoration that is blocking a queued build order
 			elseif cmdID < 0 and numDecorations > 0 then
-				if cmdParams[3] and isBuilder[spGetUnitDefID(unitID)] then
+				if cmdParams[3] and isBuilder[unitDefID] then
 					local udefid = math.abs(cmdID)
 					local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
 					for i=1, #units do
