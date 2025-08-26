@@ -63,9 +63,9 @@ function REPORTS.generateMappingReport()
         "Equiv_ARM", "Equiv_COR", "Equiv_LEG"
     }, ","))
 
-    sideTotals = { [SIDES.ARM]=0, [SIDES.CORE]=0, [SIDES.LEGION]=0 } 
-    sideComplete = { [SIDES.ARM]=0, [SIDES.CORE]=0, [SIDES.LEGION]=0 }
-    uncategorizedUnits = { [SIDES.ARM]={}, [SIDES.CORE]={}, [SIDES.LEGION]={}, ["UNKNOWN"]={} } 
+    sideTotals = { [SIDES.ARMADA]=0, [SIDES.CORTEX]=0, [SIDES.LEGION]=0 } 
+    sideComplete = { [SIDES.ARMADA]=0, [SIDES.CORTEX]=0, [SIDES.LEGION]=0 }
+    uncategorizedUnits = { [SIDES.ARMADA]={}, [SIDES.CORTEX]={}, [SIDES.LEGION]={}, ["UNKNOWN"]={} } 
 
     -- Iterate the minimal data, but fetch details from UnitDefs
     for unitNameLower, buildingCoreData in pairs(masterBuildingDataMinimal) do
@@ -98,8 +98,8 @@ function REPORTS.generateMappingReport()
             local sightDist = unitDef.losRadius or 0
             local canFly = false -- Buildings don't fly
 
-            local equivArm = equivalents[SIDES.ARM] or ""
-            local equivCor = equivalents[SIDES.CORE] or ""
+            local equivArm = equivalents[SIDES.ARMADA] or ""
+            local equivCor = equivalents[SIDES.CORTEX] or ""
             local equivLeg = equivalents[SIDES.LEGION] or ""
 
             local reportLine = table.concat({
@@ -118,7 +118,7 @@ function REPORTS.generateMappingReport()
             table.insert(reportLines, reportLine)
 
             -- Side totals logic remains the same, using 'side' derived earlier
-            if side == SIDES.ARM or side == SIDES.CORE or side == SIDES.LEGION then
+            if side == SIDES.ARMADA or side == SIDES.CORTEX or side == SIDES.LEGION then
                 sideTotals[side] = (sideTotals[side] or 0) + 1
                 if categoryName ~= "Misc" then
                     sideComplete[side] = (sideComplete[side] or 0) + 1
@@ -171,11 +171,11 @@ function REPORTS.generateCategoryListReport()
         local sideUnits = categoryUnits[categoryName]
         table.insert(reportLines, string.format("\nCategory: %s (Enum: %s)", categoryName, entry.enum))
         if sideUnits then
-            local armUnit = sideUnits[SIDES.ARM] or "(none)"
-            local coreUnit = sideUnits[SIDES.CORE] or "(none)"
+            local armUnit = sideUnits[SIDES.ARMADA] or "(none)"
+            local coreUnit = sideUnits[SIDES.CORTEX] or "(none)"
             local legionUnit = sideUnits[SIDES.LEGION] or "(none)"
-            table.insert(reportLines, string.format("  ARM: %s", armUnit))
-            table.insert(reportLines, string.format("  CORE: %s", coreUnit))
+            table.insert(reportLines, string.format("  ARMADA: %s", armUnit))
+            table.insert(reportLines, string.format("  CORTEX: %s", coreUnit))
             table.insert(reportLines, string.format("  LEGION: %s", legionUnit))
         else
             table.insert(reportLines, "  (No side units defined for this category name)")
