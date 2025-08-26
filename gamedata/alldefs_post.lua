@@ -2764,13 +2764,13 @@ function UnitDef_Post(name, uDef)
 				[23] = "armuwes",
 				[24] = "armuwms",
 				[25] = "armhaapuw",
-				[25] = "armvp",
-				[26] = "armlab",
-				[27] = "armap",
-				[28] = "armhaapuw",
-				[29] = "armferret",
-				[30] = "armcir",
-				[31] = "armsd",
+				[26] = "armvp",
+				[27] = "armlab",
+				[28] = "armap",
+				[29] = "armhaapuw",
+				[30] = "armferret",
+				[31] = "armcir",
+				[32] = "armsd",
 			}
 
 		elseif name == "coracsub" then
@@ -2861,7 +2861,7 @@ function UnitDef_Post(name, uDef)
 		
 		elseif name == "armsnipe" or name == "armfboy" or name == "armaser" or name == "armdecom" or name == "armscab"
 		or name == "armbull" or name == "armmerl" or name == "armmanni" or name == "armyork" or name == "armjam"
-		or name == "armserp" or name == "armbats" or name == "armepoch" or name == "armantiship" or name == armaas"
+		or name == "armserp" or name == "armbats" or name == "armepoch" or name == "armantiship" or name == "armaas"
 		or name == "armhawk" or name == "armpnix" or name == "armlance" or name == "armawac" or name == "armdfly" or name == "armliche" or name == "armblade" or name == "armbrawl" or name == "armstil"
 		or name == "corsumo" or name == "cordecom" or name == "corsktl" or name == "corspec"
 		or name == "corgol" or name == "corvroc" or name == "cortrem" or name == "corsent" or name == "coreter" or name == "corparrow"
@@ -3043,6 +3043,11 @@ function UnitDef_Post(name, uDef)
 		
 
 		
+	end
+
+	if modOptions.proposed_techsplit_balance == true then
+		local proposed_techsplit_balanceUnits = VFS.Include("unitbasedefs/proposed_techsplit_balance_defs.lua")
+		uDef = proposed_techsplit_balanceUnits.proposed_techsplit_balanceTweaks(name, uDef)
 	end
 
 

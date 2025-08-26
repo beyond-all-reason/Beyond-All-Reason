@@ -1408,6 +1408,15 @@ local options = {
         def     = false,
     },
 
+    {
+        key     = "proposed_techsplit_balance",
+        name    = "Proposed Tech Split Balance Pack",
+        desc    = "Adjusts the balance of units in the proposed tech split.",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+    },
+
     -- Hidden Tests
 	
 	{
