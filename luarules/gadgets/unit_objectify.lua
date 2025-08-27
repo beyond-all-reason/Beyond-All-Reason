@@ -203,7 +203,7 @@ else -- UNSYNCED
 				local canAttackInSelect = false
 				-- Limit the search somewhat. Gadgets don't have g:UpdateSelection.
 				-- This could be more efficient but is not especially costly as-is.
-				for i = 1, 64 do
+				for i = 1, math.min(64, #selected) do
 					local selectedID = spGetUnitDefID(selected[i])
 					if canMove[selectedID] then
 						return CMD_MOVE
