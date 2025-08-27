@@ -31,6 +31,14 @@ end
 local UPDATE = 30
 local timeCounter = 15
 
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
+			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), 0)
+		end
+	end
+end
+
 function gadget:GameFrame(n)
   if (n >= timeCounter) then
     timeCounter = (n + UPDATE)
