@@ -69,14 +69,13 @@
 
 .header-info {
 	display: flex;
+    margin-bottom: 2px;
 	justify-content: space-between;
 	align-items: center;
-	background-color: rgba(0, 0, 0, 180);
 	flex-shrink: 0;
 }
 
 .header-info.hidden {
-	background-color: transparent;
 }
 
 .round-display {
@@ -192,7 +191,7 @@
 	font-family: Exo 2;
 	font-size: 16px;
 	text-align: center;
-	font-effect: outline(1px black);
+	font-effect: outline(2px black);
 }
 
 

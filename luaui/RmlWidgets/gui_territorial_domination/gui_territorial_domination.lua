@@ -18,9 +18,9 @@ end
 
 --danger being displayed when all scores are 0
 -- the score display isn't consistent with the order when changing player perspectives as a spectator.
--- need a "who am I" indicator. maybe a halo now that I know how the other bug was resolved
--- rank display?
--- the countdown is blinking red from white instead of pulsing red. It's possible that we are updating it constantly
+-- need a "who am I" indicator. maybe a halo now that I know how the other bug was resolved -- update, it isn't displaying but supposedly it exists...
+-- what's with the 3 underscores ___ in the rcss file?
+-- rank as set in game_territorial_domination.lua needs to be made to include "predicted" score as well in its factoring when sent to unsynced... maybe this can be made to simplify the code smore to prevent redundancy?
 
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
