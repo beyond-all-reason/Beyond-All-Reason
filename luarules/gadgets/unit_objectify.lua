@@ -194,6 +194,42 @@ else -- UNSYNCED
 		spectating = Spring.GetSpectatingState()
 	end
 
+	-- "predicate" tables are checked in their index order
+	-- with early returns when the first check is matched:
+	local allyBeingBuilt = {
+		{ check = canRepair, command = CMD_REPAIR }, -- so this is the priority
+		{ check = canMove,   command = CMD_MOVE }, -- and this is the fallback
+	}
+	local allyObjectUnit = {
+		{ check = canReclaim, command = CMD_RECLAIM },
+		{ check = canMove,    command = CMD_MOVE },
+	}
+	local hideEnemyDecoy = {
+		{ check = canAttack,  command = CMD_ATTACK },
+		{ check = canReclaim, command = CMD_RECLAIM },
+		{ check = canMove,    command = CMD_MOVE },
+	}
+
+	local function scanSelection(predicates, limit)
+		local selected = spGetSelectedUnits()
+		local wasFound = table.new(#predicates, 0)
+		for i = 1, math.min(limit, #selected) do
+			local unitDefID = spGetUnitDefID(selected[i])
+			for j = 1, #predicates do
+				local predicate = predicates[j]
+				if predicate.check[unitDefID] then
+					if j == 1 then return predicate.command end
+					wasFound[j] = true
+				end
+			end
+		end
+		for i = 2, #predicates do
+			if wasFound[i] then
+				return predicates[i].command
+			end
+		end
+	end
+
 	-- Don't auto-guard units like walls and don't reveal enemy decoys:
 	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
 		if isDecoration[unitDefID] then
@@ -206,70 +242,18 @@ else -- UNSYNCED
 		local inAlliance = spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
 
 		if beingBuilt then
-			if inAlliance then
-				-- Repair > Move
-				if not objectUnit or fromCommand == CMD_REPAIR then
-					return
-				end
-				local selected = spGetSelectedUnits()
-				local canMoveInSelect = false
-				-- Limit the search somewhat. Gadgets don't have g:UpdateSelection.
-				-- This could be more efficient but is not especially costly as-is.
-				for i = 1, math.min(64, #selected) do
-					local selectedID = spGetUnitDefID(selected[i])
-					if canRepair[selectedID] then
-						return CMD_REPAIR
-					elseif not canMoveInSelect and canMove[selectedID] then
-						canMoveInSelect = true
-					end
-				end
-				if canMoveInSelect then
-					return CMD_MOVE
-				end
+			if inAlliance and objectUnit and fromCommand ~= CMD_REPAIR then
+				return scanSelection(allyBeingBuilt, 64)
 			end
 		else
 			if inAlliance then
-				if not objectUnit or fromCommand == CMD_RECLAIM then
-					return
-				end
-				-- Reclaim > Move
-				local selected = spGetSelectedUnits()
-				local canMoveInSelect = false
-				for i = 1, math.min(64, #selected) do
-					local selectedID = spGetUnitDefID(selected[i])
-					if canReclaim[selectedID] then
-						return CMD_RECLAIM
-					end
-					if not canMoveInSelect and canMove[selectedID] then
-						canMoveInSelect = true
-					end
-				end
-				if canMoveInSelect then
-					return CMD_MOVE
+				if objectUnit and fromCommand ~= CMD_RECLAIM then
+					return scanSelection(allyObjectUnit, 64)
 				end
 			elseif objectUnit or decoyState then
 				-- Many BAR units "canAttack" atm, but not really. Do not filter on CMD_ATTACK. -- todo
 				-- Attack > Reclaim > Move
-				local selected = spGetSelectedUnits()
-				local canMoveInSelect = false
-				local canReclaimInSelect = false
-				for i = 1, math.min(64, #selected) do
-					local selectedID = spGetUnitDefID(selected[i])
-					if canAttack[selectedID] then
-						return CMD_ATTACK
-					end
-					if not canMoveInSelect and canMove[selectedID] then
-						canMoveInSelect = true
-					end
-					if not canReclaimInSelect and canReclaim[selectedID] then
-						canReclaimInSelect = true
-					end
-				end
-				if canReclaimInSelect then
-					return CMD_RECLAIM
-				elseif canMoveInSelect then
-					return CMD_MOVE
-				end
+				return scanSelection(hideEnemyDecoy, 64)
 			end
 		end
 	end
