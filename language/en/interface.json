@@ -728,7 +728,8 @@
 			"team": {
 				"ally": "Ally %{allyNumber}"
 			},
-			"danger": "DANGER"
+			"danger": "DANGER",
+			"rank": "Rank %{rank}"
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",

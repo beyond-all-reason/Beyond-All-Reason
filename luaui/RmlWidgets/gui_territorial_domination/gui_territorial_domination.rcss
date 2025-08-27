@@ -39,6 +39,8 @@
 	border-radius: 4px;
 }
 
+.td-bar__track.halo { box-shadow: 0 0 8px 2px rgba(255,255,255,0.6); }
+
 .td-bar__background {
 	position: absolute;
 	top: 0;
@@ -98,7 +100,7 @@
 }
 
 .time-display.hidden { display: none; }
-.time-display.warning { color: #ffffff; }
+.time-display.warning { color: #cc0000; }
 .time-display.warning.pulsing { animation: countdown-pulse 1s cubic-in-out infinite; }
 .time-display.warning.pulsing.critical { animation: countdown-pulse 0.5s cubic-in-out infinite; font-effect: glow(2px rgba(255, 0, 0, 85)); }
 
@@ -181,6 +183,16 @@
 	text-align: center;
 	white-space: nowrap;
 	font-effect: outline(1.5px black);
+}
+
+.player-rank {
+	margin-top: 2px;
+	color: #ffffff;
+	font-weight: bold;
+	font-family: Exo 2;
+	font-size: 16px;
+	text-align: center;
+	font-effect: outline(1px black);
 }
 
 

@@ -327,7 +327,7 @@ local function setAllyTeamRanks(allyScores)
 		allyScores[allyData.allyID].rank = currentRank
 
 		for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
-			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank)
+			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank, {public = true})
 		end
 	end
 end
@@ -721,6 +721,7 @@ function gadget:GameFrame(frame)
 				end
 			end
 			updatePreviousHighestScore()
+			Spring.SetGameRulesParam("territorialDominationPrevHighestScore", previousRoundHighestScore)
 			roundTimestamp = seconds + ROUND_SECONDS
 		end
 		setAllyTeamRanks(allyScores)

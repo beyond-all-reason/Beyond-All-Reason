@@ -42,6 +42,8 @@ local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetSpectatingState = Spring.GetSpectatingState
 local spI18N = Spring.I18N
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetTeamInfo = Spring.GetTeamInfo
 
 local SCREEN_HEIGHT = 1080
 local BACKGROUND_COLOR_ALPHA = 204
@@ -58,6 +60,7 @@ local SCORE_UPDATE_INTERVAL = 1.0
 local SECONDS_PER_MINUTE = 60
 local COUNTDOWN_WARNING_THRESHOLD = 60
 local ROUND_END_POPUP_DELAY = 3
+local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
 local widgetState = {
 	document = nil,
@@ -100,6 +103,7 @@ local initialModel = {
 	pointsCap = 0,
 	highestScore = 0,
 	secondHighestScore = 0,
+	prevHighestScore = 0,
 	timeRemaining = "0:00",
 	roundDisplayText = "",
 	timeRemainingSeconds = 0,
@@ -213,6 +217,7 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 
 	return {
 		container = scoreBarDiv,
+		trackElement = containerDiv,
 		currentScoreElement = currentScoreText,
 		projectedScoreElement = projectedScoreText,
 		projectedElement = projectedDiv,
@@ -329,7 +334,7 @@ local function updateAllyTeamData()
 		local allyTeamID = allyTeamList[i]
 		local teamList = spGetTeamList(allyTeamID)
 
-		if teamList and #teamList > 0 then
+		if teamList and #teamList > 0 and allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local firstTeamID = teamList[1]
 			table.insert(validAllyTeams, {
 				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
@@ -338,6 +343,7 @@ local function updateAllyTeamData()
 				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0,
 				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0,
 				color = getAllyTeamColor(allyTeamID),
+				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationRank") or 1,
 				teamCount = #teamList,
 			})
 		end
@@ -365,6 +371,7 @@ local function updateRoundInfo()
 	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
 	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
+	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
 
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
@@ -409,6 +416,7 @@ local function updateRoundInfo()
 		pointsCap = pointsCap,
 		highestScore = highestScore,
 		secondHighestScore = secondHighestScore,
+		prevHighestScore = prevHighestScore,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
 		timeRemainingSeconds = timeRemainingSeconds,
@@ -437,6 +445,22 @@ local function updateHeaderVisibility()
 		roundElement.class_name = "round-display hidden"
 		timeElement.class_name = "time-display hidden"
 	end
+end
+
+local function updatePlayerRank()
+	if not widgetState.document then return end
+	local playerRankElement = widgetState.document:GetElementById("player-rank")
+	if not playerRankElement then return end
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myRank = nil
+	for i = 1, #widgetState.allyTeamData do
+		local t = widgetState.allyTeamData[i]
+		if t.allyTeamID == myAllyTeamID then
+			myRank = spGetTeamRulesParam(t.firstTeamID, "territorialDominationRank") or t.rank or 1
+			break
+		end
+	end
+	playerRankElement.inner_rml = myRank and (spI18N('ui.territorialDomination.rank', { rank = myRank })) or ""
 end
 
 local function updateCountdownColor()
@@ -619,10 +643,27 @@ local function updateScoreBarVisuals()
 				scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
 			end
 
+			if scoreBarElements.trackElement then
+				local isPlayersTeam = allyTeam.allyTeamID == Spring.GetMyAllyTeamID()
+				local newClass = isPlayersTeam and "td-bar__track halo" or "td-bar__track"
+				if scoreBarElements.trackElement.class_name ~= newClass then
+					scoreBarElements.trackElement.class_name = newClass
+				end
+				local glowR = math.floor(allyTeam.color.r * COLOR_MULTIPLIER)
+				local glowG = math.floor(allyTeam.color.g * COLOR_MULTIPLIER)
+				local glowB = math.floor(allyTeam.color.b * COLOR_MULTIPLIER)
+				local boxShadow = string.format("box-shadow: 0 0 10px 3px rgba(%d, %d, %d, 0.85);", glowR, glowG, glowB)
+				if isPlayersTeam then
+					scoreBarElements.trackElement:SetAttribute("style", boxShadow)
+				else
+					scoreBarElements.trackElement:SetAttribute("style", "")
+				end
+			end
+
 			if scoreBarElements.dangerOverlay then
-				local dangerThreshold = dm.pointsCap * 0.5
-				local combinedScore = allyTeam.score + allyTeam.projectedPoints
-				local shouldShowDanger = combinedScore < dangerThreshold
+				local prevHighest = dm.prevHighestScore or 0
+				local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
+				local shouldShowDanger = prevHighest > 0 and combinedScore < prevHighest
 				local newClassName = shouldShowDanger and "td-danger visible" or "td-danger"
 				if scoreBarElements.dangerOverlay.class_name ~= newClassName then
 					scoreBarElements.dangerOverlay.class_name = newClassName
@@ -671,6 +712,7 @@ local function updateDataModel()
 		dm.pointsCap = roundInfo.pointsCap
 		dm.highestScore = roundInfo.highestScore
 		dm.secondHighestScore = roundInfo.secondHighestScore
+		dm.prevHighestScore = roundInfo.prevHighestScore
 		dm.timeRemaining = roundInfo.timeRemaining
 		dm.roundDisplayText = roundInfo.roundDisplayText
 		dm.timeRemainingSeconds = roundInfo.timeRemainingSeconds
@@ -690,6 +732,7 @@ local function updateDataModel()
 		
 		if roundChanged then
 			updateHeaderVisibility()
+			updatePlayerRank()
 		end
 		
 		if roundInfo.isFinalRound and previousTimeRemaining > 0 and roundInfo.timeRemainingSeconds <= 0 then
@@ -732,6 +775,7 @@ function widget:Initialize()
 	updateDataModel()
 	updateCountdownColor()
 	updateHeaderVisibility()
+	updatePlayerRank()
 
 	return true
 end

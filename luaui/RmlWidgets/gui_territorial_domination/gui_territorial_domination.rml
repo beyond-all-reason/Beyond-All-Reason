@@ -11,6 +11,7 @@
 				<div id="time-display" class="td-time time-display">{{timeRemaining}}</div>
 			</div>
 			<div id="td-scores" class="td-scores"></div>
+			<div id="player-rank" class="player-rank"></div>
 		</div>
 		<div id="round-end-popup" class="round-end-popup">
 			<div id="popup-text" class="popup-text"></div>
