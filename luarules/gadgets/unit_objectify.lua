@@ -196,32 +196,79 @@ else -- UNSYNCED
 
 	-- Don't auto-guard units like walls and don't reveal enemy decoys:
 	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
-		local objectUnit = isObject[unitDefID]
-		local decoyState = isClosedObject[unitDefID] and spGetUnitArmored(unitID) ~= false
-		local decorative = isDecoration[unitDefID]
-		local beingBuilt = not decorative and spGetUnitIsBeingBuilt(unitID)
-		local inAlliance = decorative or spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
+		if isDecoration[unitDefID] then
+			return CMD_MOVE
+		end
 
-		if not beingBuilt then
+		local objectUnit = isObject[unitDefID]
+		local decoyState = isClosedObject[unitDefID] and spGetUnitArmored(unitID)
+		local beingBuilt = spGetUnitIsBeingBuilt(unitID)
+		local inAlliance = spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
+
+		if beingBuilt then
 			if inAlliance then
-				if objectUnit and fromCommand == CMD_GUARD then
-					return CMD_MOVE
+				-- Repair > Move
+				if not objectUnit or fromCommand == CMD_REPAIR then
+					return
 				end
-			elseif not decorative and not objectUnit and not decoyState then
 				local selected = spGetSelectedUnits()
-				local canAttackInSelect = false
+				local canMoveInSelect = false
 				-- Limit the search somewhat. Gadgets don't have g:UpdateSelection.
 				-- This could be more efficient but is not especially costly as-is.
 				for i = 1, math.min(64, #selected) do
 					local selectedID = spGetUnitDefID(selected[i])
-					if canMove[selectedID] then
-						return CMD_MOVE
-					elseif not canAttackInSelect and canAttack[selectedID] then
-						canAttackInSelect = true
+					if canRepair[selectedID] then
+						return CMD_REPAIR
+					elseif not canMoveInSelect and canMove[selectedID] then
+						canMoveInSelect = true
 					end
 				end
-				if canAttackInSelect then
-					return CMD_ATTACK
+				if canMoveInSelect then
+					return CMD_MOVE
+				end
+			end
+		else
+			if inAlliance then
+				if not objectUnit or fromCommand == CMD_RECLAIM then
+					return
+				end
+				-- Reclaim > Move
+				local selected = spGetSelectedUnits()
+				local canMoveInSelect = false
+				for i = 1, math.min(64, #selected) do
+					local selectedID = spGetUnitDefID(selected[i])
+					if canReclaim[selectedID] then
+						return CMD_RECLAIM
+					end
+					if not canMoveInSelect and canMove[selectedID] then
+						canMoveInSelect = true
+					end
+				end
+				if canMoveInSelect then
+					return CMD_MOVE
+				end
+			elseif objectUnit or decoyState then
+				-- Many BAR units "canAttack" atm, but not really. Do not filter on CMD_ATTACK. -- todo
+				-- Attack > Reclaim > Move
+				local selected = spGetSelectedUnits()
+				local canMoveInSelect = false
+				local canReclaimInSelect = false
+				for i = 1, math.min(64, #selected) do
+					local selectedID = spGetUnitDefID(selected[i])
+					if canAttack[selectedID] then
+						return CMD_ATTACK
+					end
+					if not canMoveInSelect and canMove[selectedID] then
+						canMoveInSelect = true
+					end
+					if not canReclaimInSelect and canReclaim[selectedID] then
+						canReclaimInSelect = true
+					end
+				end
+				if canReclaimInSelect then
+					return CMD_RECLAIM
+				elseif canMoveInSelect then
+					return CMD_MOVE
 				end
 			end
 		end
