@@ -19,13 +19,28 @@ end
 	- Decorations are things like hats and xmas baubles an should be invulnerable
 ]]--
 
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitArmored = Spring.GetUnitArmored
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetSelectedUnits = Spring.GetSelectedUnits
+
+local CMD_ATTACK = CMD.ATTACK
+local CMD_MOVE = CMD.MOVE
+local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+
 local isBuilder = {}
 local isObject = {}
 local isClosedObject = {}
 local isDecoration = {}
 local canAttack = {}
 local canMove = {}
+local canReclaim = {}
+local canRepair = {}
 local unitSize = {}
+
 for udefID,def in ipairs(UnitDefs) do
     if def.customParams.objectify then
         isObject[udefID] = true
@@ -36,14 +51,23 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder then
 		isBuilder[udefID] = true
 	end
-	if def.canAttack then
+	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
+
+	-- NB: This is `true` for e.g. constructors if `canattack = false` is not set. -- todo
+	-- Spring.Echo("ATTACK", UnitDefs[selectedID].name, UnitDefs[selectedID].canAttack)
+	-- So add an additional check that the unit has any actual, effective weapons.
+	if def.canAttack and def.maxWeaponRange > 0 then
 		canAttack[udefID] = true
 	end
 	if def.canMove then
 		canMove[udefID] = true
 	end
-	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
-
+	if def.canReclaim then
+		canReclaim[udefID] = true
+	end
+	if def.canRepair then
+		canRepair[udefID] = true
+	end
 	if def.customParams.decoyfor and def.customParams.neutral_when_closed then
 		local coy = UnitDefNames[def.customParams.decoyfor]
 		if coy ~= nil and coy.customParams.objectify then
@@ -52,14 +76,10 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-
 if gadgetHandler:IsSyncedCode() then
 
 	local numDecorations = 0
 	local numObjects = 0
-
-	local CMD_ATTACK = CMD.ATTACK
-	local spGetUnitDefID = Spring.GetUnitDefID
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
@@ -166,17 +186,6 @@ if gadgetHandler:IsSyncedCode() then
 
 else -- UNSYNCED
 
-
-    local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local spGetUnitArmored = Spring.GetUnitArmored
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetSelectedUnits = Spring.GetSelectedUnits
-
-	local CMD_ATTACK = CMD.ATTACK
-    local CMD_MOVE = CMD.MOVE
-	local CMD_GUARD = CMD.GUARD
 
 	local myAllyTeam = Spring.GetMyAllyTeamID()
 	local spectating = Spring.GetSpectatingState()
