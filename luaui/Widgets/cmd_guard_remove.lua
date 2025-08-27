@@ -1,4 +1,3 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -13,16 +12,22 @@ function widget:GetInfo()
 	}
 end
 
-local spGetGameFrame = Spring.GetGameFrame
-local spGetUnitCommands = Spring.GetUnitCommands
-
-local CMD_GUARD = CMD.GUARD
-local CMD_PATROL = CMD.PATROL
-
+-- Remove non-terminating commands
 local removableCommand = {
-	[CMD_GUARD] = true,
-	[CMD_PATROL] = true,
+	[CMD.GUARD] = true,
+	[CMD.PATROL] = true,
 }
+-- Keep commands when in sequence
+local sequentialCommand = {
+	[CMD.PATROL] = true,
+}
+
+local math_distsq = math.distance3dSquared
+
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+
+local CANCEL_DIST_SQUARED = (Game.squareSize * Game.footprintScale + 1) ^ 2 -- see also CommandAI.cpp
 
 -- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
 -- extreme performance issues by parsing all of those commands. So we track units that have recieved
@@ -35,29 +40,58 @@ for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
-function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
-
-	if not cmdOpts.shift then
+-- Non-exhaustively determines whether the engine will cancel a command.
+-- The edge cases are not interesting to us given a limited remove list.
+local function willCancel(p1, p2, p3, q1, q2, q3)
+	if p1 == q1 and p2 == q2 and p3 == q3 then
+		return true
+	elseif p3 ~= nil and q3 ~= nil then
+		return math_distsq(p1, p2, p3, q1, q2, q3) < CANCEL_DIST_SQUARED
+	else
 		return false
 	end
+end
 
-	if recentUnits[unitID] then
-		return false
-	end
+-- See `CCommandAI:GiveAllowedCommand`.
+-- The engine cancels the first duplicate command, starting from the end,
+-- then cancels overlapping commands by distance and BuildInfo footprint.
+--
+-- We want to remove non-duplicate, non-overlapping commands, then, that
+-- otherwise would prevent reaching our newer, higher-precedence command.
+local function removeCommands(unitID, command, params)
+	local p1, p2, p3 = params[1], params[2], params[3]
 
-	if validUnit[unitDefID] then
-		recentUnits[unitID] = spGetGameFrame()
-		local cmd = spGetUnitCommands(unitID, 2)
-		if cmd then
-			for c = 1, #cmd do
-				if removableCommand[cmd[c].id] then
-					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
-				end
+	local tags = {}
+	local hasCanceled = false
+	local isReachable = sequentialCommand[command]
+
+	for i = Spring.GetUnitCommandCount(unitID), 1, -1 do
+		local queued, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
+		if queued >= 0 and removableCommand[queued] then
+			if not hasCanceled and willCancel(p1, p2, p3, q1, q2, q3) then
+				hasCanceled = true
+			elseif not isReachable or not sequentialCommand[queued] then
+				isReachable = false
+				tags[#tags + 1] = qid
 			end
 		end
 	end
 
-	return false
+	if tags[1] ~= nil then
+		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
+	end
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if not cmdOpts.shift or not validUnit[unitDefID] or recentUnits[unitID] then
+		return
+	else
+		recentUnits[unitID] = spGetGameFrame()
+	end
+
+	if removableCommand[cmdID] then
+		removeCommands(unitID, cmdID, cmdParams)
+	end
 end
 
 function widget:Update(dt)
