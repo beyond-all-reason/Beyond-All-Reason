@@ -37,6 +37,7 @@ local metalSpots = {}
 local geoSpots = {}
 
 local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local SkipAlliedUpgradeWidget ---@type SkipAlliedUpgradeWidget
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
 	gl.Vertex(x1, y1, z1)
@@ -62,6 +63,7 @@ function widget:Initialize()
 	geoSpots = WG["resource_spot_finder"].geoSpotsList
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
 	metalMap = WG["resource_spot_finder"].isMetalMap
+	SkipAlliedUpgradeWidget = WG['skip_allied_upgrade']
 end
 
 
@@ -124,7 +126,7 @@ local function clashesWithBuildQueue(uid, pos)
 		end
 	else
 		for i = 1, #units do
-			local queue = Spring.GetUnitCommands(units[i], 100)
+			local queue = Spring.GetUnitCommands(units[i], 100) or {}
 			for j=1, #queue do
 				local command = queue[j]
 				local id = command.id and command.id or command[1]
@@ -178,8 +180,8 @@ function widget:Update()
 
 	-- Attempt to get position of command
 	local buildingId = -activeCmdID
-	local mx, my, mb, mmb, mrb = spGetMouseState()
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local mx, my = spGetMouseState()
+	local _, _, _, shift = Spring.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos or not pos[1] then
 		clear()
@@ -207,19 +209,17 @@ function widget:Update()
 
 	local isMetalExtractor = selectedMex ~= nil
 	local spotsToSearch = isMetalExtractor and metalSpots or geoSpots
-	local extractorType = isMetalExtractor and "mex" or "geo"
 	local selectedExtractor = isMetalExtractor and selectedMex or selectedGeo
+	local buildingsToCheck = isMetalExtractor and mexBuildings or geoBuildings
+	local shouldSkipAlliedSpots = SkipAlliedUpgradeWidget.shouldSkipAllied()
 
-	local SkipAlliedUpgradeWidget = WG['skip_allied_upgrade'] ---@type SkipAlliedUpgradeWidget
-	if SkipAlliedUpgradeWidget then
-		local buildingsToCheck = extractorType == "geo" and geoBuildings or mexBuildings
+	if shouldSkipAlliedSpots then
 		spotsToSearch = SkipAlliedUpgradeWidget.filterOutAlliedSpots(spotsToSearch, buildingsToCheck)
 	end
 
 	if shift then
 		nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor)
-	elseif alt then
-		-- When ALT is held, find closest spot from filtered spots
+	elseif shouldSkipAlliedSpots then
 		nearestSpot = math.getClosestPosition(x, z, spotsToSearch)
 	else
 		if isMetalExtractor then

@@ -18,14 +18,14 @@ local skipAlliedBuildings = false
 ---@class SkipAlliedUpgradeWidget
 local SkipAlliedUpgradeWidget = {}
 
+function SkipAlliedUpgradeWidget.shouldSkipAllied()
+	return skipAlliedBuildings
+end
+
 ---@param spots table Array of spots to filter
 ---@param unitDefIdsToCheck table
 ---@return table Filtered array of spots
 function SkipAlliedUpgradeWidget.filterOutAlliedSpots(spots, unitDefIdsToCheck)
-	if not skipAlliedBuildings then
-		return spots
-	end
-
 	local filteredSpots = {}
 	local myTeamID = Spring.GetMyTeamID()
 
