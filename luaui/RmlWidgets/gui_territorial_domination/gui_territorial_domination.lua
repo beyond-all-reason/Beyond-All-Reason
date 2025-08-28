@@ -18,6 +18,8 @@ end
 
 --need who am I indicator
 -- defeatTime needs to be removed now that defeat is instaneous
+-- game crashes when there's lots of allies in the same team. Either its infinite memory growth, a div by zero or an invalid key stored
+-- for some reason  the score display isn't correct, we're getting more points sometimes than we are entitled to.
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -224,8 +226,9 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 		dangerOverlay = dangerOverlay,
 		lastFillWidth = nil,
 		lastProjectedWidth = nil,
-		lastHaloStyle = nil,
-		lastIsPlayerHalo = nil,
+		lastSelectionStyle = nil,
+		lastScoreText = nil,
+		lastProjectedText = nil,
 	}
 end
 local function createDataHash(data)
@@ -353,12 +356,20 @@ local function updateAllyTeamData()
 
 		if teamList and #teamList > 0 and allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local firstTeamID = teamList[1]
+			local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
+			local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
+			
+			-- Debug output for score values
+			if allyTeamID == 0 then -- Only show for first ally team to avoid spam
+				Spring.Echo("[TD Debug] Ally " .. allyTeamID .. " - Score: " .. score .. ", Projected: " .. projectedPoints .. ", Total: " .. (score + projectedPoints))
+			end
+			
 			table.insert(validAllyTeams, {
 				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
 				allyTeamID = allyTeamID,
 				firstTeamID = firstTeamID,
-				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0,
-				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0,
+				score = score,
+				projectedPoints = projectedPoints,
 				color = getAllyTeamColor(allyTeamID),
 				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationRank") or 1,
 				teamCount = #teamList,
@@ -635,13 +646,28 @@ local function updateScoreBarVisuals()
 			end
 
 			if scoreBarElements.currentScoreElement then
-				scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
+				local newScoreText = tostring(allyTeam.score)
+				if scoreBarElements.lastScoreText ~= newScoreText then
+					scoreBarElements.currentScoreElement.inner_rml = newScoreText
+					scoreBarElements.lastScoreText = newScoreText
+				end
 			end
 			if scoreBarElements.projectedScoreElement then
-				scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+				local newProjectedText = "+" .. tostring(allyTeam.projectedPoints)
+				if scoreBarElements.lastProjectedText ~= newProjectedText then
+					scoreBarElements.projectedScoreElement.inner_rml = newProjectedText
+					scoreBarElements.lastProjectedText = newProjectedText
+				end
 			end
 
-			-- halo effect removed
+			-- draw white border on selected ally only
+			if scoreBarElements.trackElement and scoreBarElements.container then
+				local isPlayersTeam = allyTeam.allyTeamID == Spring.GetMyAllyTeamID()
+				local desiredClass = isPlayersTeam and "td-bar__track selected" or "td-bar__track"
+				if scoreBarElements.trackElement.class_name ~= desiredClass then
+					scoreBarElements.trackElement.class_name = desiredClass
+				end
+			end
 
 			if scoreBarElements.dangerOverlay then
 				local prevHighest = dm.prevHighestScore or 0
