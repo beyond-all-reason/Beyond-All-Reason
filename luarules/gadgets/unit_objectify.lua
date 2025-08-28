@@ -220,10 +220,9 @@ else -- UNSYNCED
 		for i = 1, math.min(#selected, SELECT_SCAN_LIMIT) do
 			local unitDefID = spGetUnitDefID(selected[i])
 			for j = 1, #predicates do
-				local predicate = predicates[j]
-				if predicate.check[unitDefID] then
+				if predicates[j].check[unitDefID] then
 					if j == 1 then
-						return predicate.command
+						return predicates[j].command
 					end
 					wasFound[j] = true
 				end
