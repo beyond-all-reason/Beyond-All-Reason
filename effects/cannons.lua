@@ -159,11 +159,11 @@ local definitions = {
                 dir                = [[dir]],
                 frontoffset        = 0, --0.03
                 fronttexture       = [[null]], --glow
-                length             = -3.5,
+                length             = -1.5,
                 sidetexture        = [[trail]],
-                size               = 8,
+                size               = 14,
                 sizegrowth         = 0.0,
-                ttl                = 3,
+                ttl                = 2,
                 useairlos          = true,
                 castShadow         = true,
         	},
