@@ -75,8 +75,11 @@ local widgetState = {
 	allyTeamData = {},
 	lastMinimapGeometry = { 0, 0, 0, 0 },
 	scoreElements = {},
+	scoreElementsByTeamId = {},
 	displayedTeamIds = {},
 	hiddenByLobby = false,
+	isDocumentVisible = false,
+
 	popupState = {
 		isVisible = false,
 		showTime = 0,
@@ -176,7 +179,7 @@ local function createScoreBarElement(parentDiv, allyTeam, index)
 
 	local projectedDiv = widgetState.document:CreateElement("div")
 	projectedDiv.class_name = "td-bar__projected"
-	projectedDiv.id = "projected-fill-" .. index
+	projectedDiv.id = "projected-fill-" .. tostring(allyTeam.allyTeamID)
 local projectedColor = string.format("rgba(%d, %d, %d, %d)",
 		allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
 		PROJECTED_COLOR_ALPHA)
@@ -184,7 +187,7 @@ local projectedColor = string.format("rgba(%d, %d, %d, %d)",
 
 	local fillDiv = widgetState.document:CreateElement("div")
 	fillDiv.class_name = "td-bar__fill"
-	fillDiv.id = "score-fill-" .. index
+	fillDiv.id = "score-fill-" .. tostring(allyTeam.allyTeamID)
 local fillColor = string.format("rgba(%d, %d, %d, %d)",
 		allyTeam.color.r * COLOR_MULTIPLIER, allyTeam.color.g * COLOR_MULTIPLIER, allyTeam.color.b * COLOR_MULTIPLIER,
 		FILL_COLOR_ALPHA)
@@ -192,17 +195,17 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 
 	local currentScoreText = widgetState.document:CreateElement("div")
 	currentScoreText.class_name = "td-text current"
-	currentScoreText.id = "current-score-" .. index
+	currentScoreText.id = "current-score-" .. tostring(allyTeam.allyTeamID)
 	currentScoreText.inner_rml = tostring(allyTeam.score)
 
 	local projectedScoreText = widgetState.document:CreateElement("div")
 	projectedScoreText.class_name = "td-text projected"
-	projectedScoreText.id = "projected-score-" .. index
+	projectedScoreText.id = "projected-score-" .. tostring(allyTeam.allyTeamID)
 	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
 
 	local dangerOverlay = widgetState.document:CreateElement("div")
 	dangerOverlay.class_name = "td-danger"
-	dangerOverlay.id = "danger-overlay-" .. index
+	dangerOverlay.id = "danger-overlay-" .. tostring(allyTeam.allyTeamID)
 	dangerOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
 
 	containerDiv:AppendChild(backgroundDiv)
@@ -223,16 +226,34 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 		projectedElement = projectedDiv,
 		fillElement = fillDiv,
 		dangerOverlay = dangerOverlay,
+		lastFillWidth = nil,
+		lastProjectedWidth = nil,
+		lastHaloStyle = nil,
+		lastIsPlayerHalo = nil,
 	}
 end
 local function createDataHash(data)
 	if type(data) == "table" then
 		local hash = ""
-		for k, v in pairs(data) do
-			if type(v) == "table" then
-				hash = hash .. createDataHash(v)
-			else
-				hash = hash .. tostring(k) .. tostring(v)
+		local isArray = (#data > 0)
+		if isArray then
+			for i = 1, #data do
+				hash = hash .. createDataHash(data[i])
+			end
+		else
+			local keys = {}
+			for k in pairs(data) do
+				keys[#keys + 1] = k
+			end
+			table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+			for i = 1, #keys do
+				local k = keys[i]
+				local v = data[k]
+				if type(v) == "table" then
+					hash = hash .. tostring(k) .. createDataHash(v)
+				else
+					hash = hash .. tostring(k) .. tostring(v)
+				end
 			end
 		end
 		return hash
@@ -350,14 +371,13 @@ local function updateAllyTeamData()
 	end
 
 	table.sort(validAllyTeams, function(a, b)
+		if a.rank ~= b.rank then
+			return a.rank < b.rank
+		end
 		local aCombinedScore = a.score + a.projectedPoints
 		local bCombinedScore = b.score + b.projectedPoints
-
 		if aCombinedScore ~= bCombinedScore then
 			return aCombinedScore > bCombinedScore
-		end
-		if a.score ~= b.score then
-			return a.score > b.score
 		end
 		return a.allyTeamID < b.allyTeamID
 	end)
@@ -498,78 +518,11 @@ end
 local function getDisplayedTeams()
 	local allyTeams = widgetState.allyTeamData
 	if not allyTeams or #allyTeams == 0 then return {} end
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local displayed = {}
-	local seen = {}
-
-	local topTeam = allyTeams[1]
-	table.insert(displayed, topTeam)
-	seen[topTeam.allyTeamID] = true
-
-	local myIndex = nil
-	if myAllyTeamID ~= nil then
-		for i = 1, #allyTeams do
-			if allyTeams[i].allyTeamID == myAllyTeamID then
-				myIndex = i
-				break
-			end
-		end
+	local limit = math.min(#allyTeams, 6)
+	for i = 1, limit do
+		displayed[i] = allyTeams[i]
 	end
-
-	if not myIndex then
-		for i = 2, math.min(#allyTeams, 6) do
-			if not seen[allyTeams[i].allyTeamID] then
-				table.insert(displayed, allyTeams[i])
-				seen[allyTeams[i].allyTeamID] = true
-		end
-	end
-		return displayed
-	end
-
-	for i = math.max(2, myIndex - 2), myIndex - 1 do
-		if #displayed >= 6 then break end
-		local team = allyTeams[i]
-		if team and not seen[team.allyTeamID] then
-			table.insert(displayed, team)
-			seen[team.allyTeamID] = true
-		end
-	end
-
-	if #displayed < 6 then
-		local myTeam = allyTeams[myIndex]
-		if myTeam and not seen[myTeam.allyTeamID] then
-			table.insert(displayed, myTeam)
-			seen[myTeam.allyTeamID] = true
-		end
-	end
-
-	for i = myIndex + 1, math.min(#allyTeams, myIndex + 2) do
-		if #displayed >= 6 then break end
-		local team = allyTeams[i]
-		if team and not seen[team.allyTeamID] then
-			table.insert(displayed, team)
-			seen[team.allyTeamID] = true
-		end
-	end
-
-	for i = myIndex + 3, #allyTeams do
-		if #displayed >= 6 then break end
-		local team = allyTeams[i]
-		if team and not seen[team.allyTeamID] then
-			table.insert(displayed, team)
-			seen[team.allyTeamID] = true
-		end
-	end
-
-	for i = math.max(2, myIndex - 3), myIndex - 3 do
-		if #displayed >= 6 then break end
-		local team = allyTeams[i]
-		if team and not seen[team.allyTeamID] then
-			table.insert(displayed, team)
-			seen[team.allyTeamID] = true
-		end
-	end
-
 	return displayed
 end
 
@@ -584,35 +537,78 @@ local function updateScoreBarVisuals()
 	local numTeams = #allyTeams
 	if numTeams == 0 then return end
 
-	local needsRebuild = false
-	if #widgetState.scoreElements ~= numTeams then
-		needsRebuild = true
-	else
-		for i, elements in ipairs(widgetState.scoreElements) do
-			if not elements.container or not elements.container.parent_node then
-				needsRebuild = true
-				break
+	-- Determine minimal update to avoid flicker on selection changes
+	local oldIds = widgetState.displayedTeamIds
+	local newIds = {}
+	for i = 1, numTeams do newIds[i] = allyTeams[i].allyTeamID end
+
+	local setsEqual = (#oldIds == #newIds)
+	if setsEqual then
+		local seen = {}
+		for i = 1, #oldIds do seen[oldIds[i]] = true end
+		for i = 1, #newIds do if not seen[newIds[i]] then setsEqual = false break end end
+	end
+
+	if not setsEqual then
+		-- Remove bars that are no longer displayed
+		local newSet = {}
+		for i = 1, #newIds do newSet[newIds[i]] = true end
+		for i = 1, #oldIds do
+			local id = oldIds[i]
+			if id and not newSet[id] then
+				local el = widgetState.scoreElementsByTeamId[id]
+				if el and el.container and el.container.parent_node == columnsContainer then
+					columnsContainer:RemoveChild(el.container)
+				end
+				widgetState.scoreElementsByTeamId[id] = nil
 			end
 		end
-		if not needsRebuild then
-			for i = 1, numTeams do
-				if widgetState.displayedTeamIds[i] ~= allyTeams[i].allyTeamID then
-					needsRebuild = true
-					break
+		-- Create bars for new ids
+		local newlyCreated = {}
+		for i = 1, #newIds do
+			local id = newIds[i]
+			if not widgetState.scoreElementsByTeamId[id] then
+				local at
+				for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
+				if at then
+					local el = createScoreBarElement(columnsContainer, at, i)
+					widgetState.scoreElementsByTeamId[id] = el
+					newlyCreated[id] = true
 				end
 			end
 		end
-	end
-
-	if needsRebuild then
-		columnsContainer.inner_rml = ""
+		-- Reorder existing bars without re-appending newly created ones
 		widgetState.scoreElements = {}
-		widgetState.displayedTeamIds = {}
-
-		for i, allyTeam in ipairs(allyTeams) do
-			local scoreBarElements = createScoreBarElement(columnsContainer, allyTeam, i)
-			widgetState.scoreElements[i] = scoreBarElements
-			widgetState.displayedTeamIds[i] = allyTeam.allyTeamID
+		for i = 1, #newIds do
+			local id = newIds[i]
+			local el = widgetState.scoreElementsByTeamId[id]
+			if el and el.container then
+				if not newlyCreated[id] then
+					columnsContainer:AppendChild(el.container)
+				end
+				widgetState.scoreElements[i] = el
+			end
+		end
+		widgetState.displayedTeamIds = newIds
+	else
+		-- Same set, maybe different order: rebuild to avoid engine instability from re-append operations
+		local orderChanged = false
+		for i = 1, #newIds do if oldIds[i] ~= newIds[i] then orderChanged = true break end end
+		if orderChanged then
+			columnsContainer.inner_rml = ""
+			widgetState.scoreElements = {}
+			widgetState.scoreElementsByTeamId = {}
+			for i = 1, #newIds do
+				local id = newIds[i]
+				local at
+				for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
+				if at then
+					local el = createScoreBarElement(columnsContainer, at, i)
+					widgetState.scoreElements[i] = el
+					widgetState.scoreElementsByTeamId[id] = el
+				end
+			end
+			widgetState.displayedTeamIds = newIds
 		end
 	end
 
@@ -626,7 +622,10 @@ local function updateScoreBarVisuals()
 					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
-			scoreBarElements.projectedElement:SetAttribute("style","width: " .. projectedWidth)
+			if scoreBarElements.lastProjectedWidth ~= projectedWidth then
+				scoreBarElements.projectedElement:SetAttribute("style","width: " .. projectedWidth)
+				scoreBarElements.lastProjectedWidth = projectedWidth
+			end
 
 			local fillWidth = "0%"
 			if dm.pointsCap > 0 then
@@ -634,7 +633,10 @@ local function updateScoreBarVisuals()
 					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
-			scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
+			if scoreBarElements.lastFillWidth ~= fillWidth then
+				scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
+				scoreBarElements.lastFillWidth = fillWidth
+			end
 
 			if scoreBarElements.currentScoreElement then
 				scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
@@ -643,22 +645,7 @@ local function updateScoreBarVisuals()
 				scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
 			end
 
-			if scoreBarElements.trackElement then
-				local isPlayersTeam = allyTeam.allyTeamID == Spring.GetMyAllyTeamID()
-				local newClass = isPlayersTeam and "td-bar__track halo" or "td-bar__track"
-				if scoreBarElements.trackElement.class_name ~= newClass then
-					scoreBarElements.trackElement.class_name = newClass
-				end
-				local glowR = math.floor(allyTeam.color.r * COLOR_MULTIPLIER)
-				local glowG = math.floor(allyTeam.color.g * COLOR_MULTIPLIER)
-				local glowB = math.floor(allyTeam.color.b * COLOR_MULTIPLIER)
-				local boxShadow = string.format("box-shadow: 0 0 10px 3px rgba(%d, %d, %d, 0.85);", glowR, glowG, glowB)
-				if isPlayersTeam then
-					scoreBarElements.trackElement:SetAttribute("style", boxShadow)
-				else
-					scoreBarElements.trackElement:SetAttribute("style", "")
-				end
-			end
+			-- halo effect removed
 
 			if scoreBarElements.dangerOverlay then
 				local prevHighest = dm.prevHighestScore or 0
@@ -764,7 +751,10 @@ function widget:Initialize()
 	widgetState.document = document
 
 	document:ReloadStyleSheet()
-	document:Show()
+	if not widgetState.hiddenByLobby then
+		document:Show()
+		widgetState.isDocumentVisible = true
+	end
 
 	resetCache()
 	widgetState.lastUpdateTime = Spring.GetGameSeconds()
@@ -783,13 +773,19 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 19) == 'LobbyOverlayActive0' then
 		if widgetState.document then
-			widgetState.document:Show()
+			if not widgetState.isDocumentVisible then
+				widgetState.document:Show()
+				widgetState.isDocumentVisible = true
+			end
 			widgetState.hiddenByLobby = false
 		end
 	elseif msg:sub(1, 19) == 'LobbyOverlayActive1' then
 		if widgetState.document then
 			hideRoundEndPopup()
-			widgetState.document:Hide()
+			if widgetState.isDocumentVisible then
+				widgetState.document:Hide()
+				widgetState.isDocumentVisible = false
+			end
 			widgetState.hiddenByLobby = true
 		end
 	end
@@ -815,6 +811,16 @@ end
 function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
 	local currentOSClock = os.clock()
+
+	if not widgetState._lastDebugEcho or currentOSClock - widgetState._lastDebugEcho >= 1.0 then
+		widgetState._lastDebugEcho = currentOSClock
+		local myAlly = Spring.GetMyAllyTeamID()
+		local ids = {}
+		for i = 1, #widgetState.displayedTeamIds do
+			ids[#ids + 1] = tostring(widgetState.displayedTeamIds[i])
+		end
+		Spring.Echo("[TD] SelectedAlly:", tostring(myAlly), "Displayed:", table.concat(ids, ","))
+	end
 	
 	if widgetState.popupState.isVisible then
 		if currentOSClock - widgetState.popupState.showTime >= ROUND_END_POPUP_DELAY then
@@ -831,12 +837,15 @@ function widget:Update()
 	local shouldUpdateTime = currentTime - widgetState.lastTimeUpdateTime >= widgetState.timeUpdateInterval
 	
 	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval
+
+	-- no halo debounce
 	
 	if shouldFullUpdate or shouldUpdateScores or shouldUpdateTime then
 		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 		if pointsCap and pointsCap > 0 then
-			if widgetState.document and not widgetState.hiddenByLobby then
+			if widgetState.document and not widgetState.hiddenByLobby and not widgetState.isDocumentVisible then
 				widgetState.document:Show()
+				widgetState.isDocumentVisible = true
 			end
 			
 			if widgetState.document then
@@ -857,8 +866,9 @@ function widget:Update()
 				widgetState.lastUpdateTime = currentTime
 			end
 		else
-			if widgetState.document then
+			if widgetState.document and widgetState.isDocumentVisible then
 				widgetState.document:Hide()
+				widgetState.isDocumentVisible = false
 			end
 		end
 	end
