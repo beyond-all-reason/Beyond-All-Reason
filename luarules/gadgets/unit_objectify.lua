@@ -19,6 +19,10 @@ end
 	- Decorations are things like hats and xmas baubles an should be invulnerable
 ]]--
 
+-- We can treat selections as somewhat homogeneous and/or efficient for sampling.
+-- More importantly, this minor feature becomes CPU intensive without this limit.
+local SELECT_SCAN_LIMIT = 64 ---@type integer from 20 to 200 seems fine
+
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -210,15 +214,17 @@ else -- UNSYNCED
 		{ check = canMove,    command = CMD_MOVE },
 	}
 
-	local function scanSelection(predicates, limit)
+	local function scanSelection(predicates)
 		local selected = spGetSelectedUnits()
 		local wasFound = table.new(#predicates, 0)
-		for i = 1, math.min(limit, #selected) do
+		for i = 1, math.min(#selected, SELECT_SCAN_LIMIT) do
 			local unitDefID = spGetUnitDefID(selected[i])
 			for j = 1, #predicates do
 				local predicate = predicates[j]
 				if predicate.check[unitDefID] then
-					if j == 1 then return predicate.command end
+					if j == 1 then
+						return predicate.command
+					end
 					wasFound[j] = true
 				end
 			end
@@ -243,17 +249,17 @@ else -- UNSYNCED
 
 		if beingBuilt then
 			if inAlliance and objectUnit and fromCommand ~= CMD_REPAIR then
-				return scanSelection(allyBeingBuilt, 64)
+				return scanSelection(allyBeingBuilt)
 			end
 		else
 			if inAlliance then
 				if objectUnit and fromCommand ~= CMD_RECLAIM then
-					return scanSelection(allyObjectUnit, 64)
+					return scanSelection(allyObjectUnit)
 				end
 			elseif objectUnit or decoyState then
 				-- Many BAR units "canAttack" atm, but not really. Do not filter on CMD_ATTACK. -- todo
 				-- Attack > Reclaim > Move
-				return scanSelection(hideEnemyDecoy, 64)
+				return scanSelection(hideEnemyDecoy)
 			end
 		end
 	end
