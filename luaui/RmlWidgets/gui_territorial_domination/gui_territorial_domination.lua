@@ -16,12 +16,8 @@ function widget:GetInfo()
 	}
 end
 
---danger being displayed when all scores are 0
--- the score display isn't consistent with the order when changing player perspectives as a spectator.
--- need a "who am I" indicator. maybe a halo now that I know how the other bug was resolved -- update, it isn't displaying but supposedly it exists...
--- what's with the 3 underscores ___ in the rcss file?
--- rank as set in game_territorial_domination.lua needs to be made to include "predicted" score as well in its factoring when sent to unsynced... maybe this can be made to simplify the code smore to prevent redundancy?
-
+--need who am I indicator
+-- defeatTime needs to be removed now that defeat is instaneous
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -650,7 +646,19 @@ local function updateScoreBarVisuals()
 			if scoreBarElements.dangerOverlay then
 				local prevHighest = dm.prevHighestScore or 0
 				local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
-				local shouldShowDanger = prevHighest > 0 and combinedScore < prevHighest
+				local eliminated = false
+				if allyTeam.firstTeamID then
+					local isDead = select(3, spGetTeamInfo(allyTeam.firstTeamID))
+					if isDead then
+						eliminated = true
+					else
+						local defeatTime = spGetTeamRulesParam(allyTeam.firstTeamID, "defeatTime")
+						if defeatTime and defeatTime > 0 then eliminated = true end
+						local tdElim = spGetTeamRulesParam(allyTeam.firstTeamID, "territorialDominationEliminated")
+						if tdElim and tdElim == 1 then eliminated = true end
+					end
+				end
+				local shouldShowDanger = (not eliminated) and prevHighest > 0 and combinedScore < prevHighest
 				local newClassName = shouldShowDanger and "td-danger visible" or "td-danger"
 				if scoreBarElements.dangerOverlay.class_name ~= newClassName then
 					scoreBarElements.dangerOverlay.class_name = newClassName
