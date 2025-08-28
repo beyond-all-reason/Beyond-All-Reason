@@ -646,7 +646,7 @@ local function calculateProjectedPointsForNextRound()
 		if not gameOver then
 			for gridID, data in pairs(captureGrid) do
 				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
-					projectedScore = projectedScore + currentRound
+					projectedScore = projectedScore + 1
 				end
 			end
 		end
@@ -669,10 +669,10 @@ local function calculateMaximumPossiblePoints()
 	return pointsCap
 end
 
-local function processDefenseScores()  
+local function processDefenseScores(roundNumber)
 	for gridID, data in pairs(captureGrid) do
 		if data.progress > OWNERSHIP_THRESHOLD and allyTeamsWatch[data.allyOwnerID] then
-			local points = currentRound
+			local points = 1
 			local allyScore = allyScores[data.allyOwnerID].score
 			allyScore = allyScore or 0
 			allyScores[data.allyOwnerID].score = allyScore + points
@@ -710,9 +710,9 @@ function gadget:GameFrame(frame)
 		updateGridDefensePointRewards()
 		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			if currentRound <= MAX_ROUNDS then
-				currentRound = currentRound + 1
-				processDefenseScores()
+				processDefenseScores(currentRound)
 				processRoundEnd()
+				currentRound = currentRound + 1
 			else
 				for allyID, scoreData in pairs(allyScores) do
 					if scoreData.rank > 1 or scoreData.score < previousRoundHighestScore then
