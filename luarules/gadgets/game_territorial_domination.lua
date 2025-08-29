@@ -21,8 +21,8 @@ local territorialDominationConfig = {
 		minutesPerRound = 5,
 	},
 	default = {
-		maxRounds = 3,
-		minutesPerRound = 8,
+		maxRounds = 10,
+		minutesPerRound = 3,
 	},
 	long = {
 		maxRounds = 3,
@@ -446,23 +446,19 @@ local function generateCaptureGrid()
 	return gridData
 end
 
-local function queueCommanderTeleportRetreat(unitID)
-	local killDelayFrames = floor(Game.gameSpeed * 0.5)
-	local killFrame = spGetGameFrame() + killDelayFrames
-	killQueue[killFrame] = killQueue[killFrame] or {}
-	killQueue[killFrame][unitID] = true
-
-	local x, y, z = spGetUnitPosition(unitID)
-	spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-	spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
-	GG.ComSpawnDefoliate(x, y, z)
-end
-
 local function triggerAllyDefeat(allyID)
 	if DEBUGMODE then return end
 	for unitID, commanderAllyID in pairs(livingCommanders) do
 		if commanderAllyID == allyID then
-			queueCommanderTeleportRetreat(unitID)
+			local killDelayFrames = floor(Game.gameSpeed * 0.5)
+			local killFrame = spGetGameFrame() + killDelayFrames
+			killQueue[killFrame] = killQueue[killFrame] or {}
+			killQueue[killFrame][unitID] = true
+
+			local x, y, z = spGetUnitPosition(unitID)
+			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+			GG.ComSpawnDefoliate(x, y, z)
 		end
 	end
 	for _, teamID in pairs(allyTeamsWatch[allyID] or {}) do
@@ -713,9 +709,14 @@ function gadget:GameFrame(frame)
 				processDefenseScores(currentRound)
 				processRoundEnd()
 				currentRound = currentRound + 1
+				for allyID, scoreData in pairs(allyScores) do
+					if scoreData.score < previousRoundHighestScore then
+						triggerAllyDefeat(allyID)
+					end
+				end
 			else
 				for allyID, scoreData in pairs(allyScores) do
-					if scoreData.rank > 1 or scoreData.score < previousRoundHighestScore then
+					if scoreData.rank > 1 then
 						triggerAllyDefeat(allyID)
 					end
 				end
@@ -798,9 +799,6 @@ function gadget:Initialize()
 	Spring.SetGameRulesParam("territorialDominationRoundDuration", ROUND_SECONDS)
 	Spring.SetGameRulesParam("territorialDominationStartTime", spGetGameSeconds())
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
-end
-
-function gadget:GameStart()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
