@@ -1421,6 +1421,16 @@ local options = {
         def 	= false,
     },
 
+	{
+        key 	= "sensor_rework",
+        name 	= "Sensor Rework",
+        desc 	= "When in Seismic LOS, reveal a wobbling radar dot. And remove wobble if in LOS of a T2 radar",
+        type 	= "bool",
+        section = "options_experimental",
+		hidden 	= true,
+        def 	= true,
+    },
+
     {
         key 	= "skyshift",
         name 	= "Skyshift: Air Rework",

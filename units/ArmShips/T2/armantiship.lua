@@ -50,6 +50,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			advancedradar = "0.5",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",

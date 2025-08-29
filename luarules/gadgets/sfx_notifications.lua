@@ -104,15 +104,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "StealthyUnitsDetected"
-		local players = Spring.GetPlayerList()
-		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-		local _, _, spec, _, playerAllyTeam
-		for ct, playerID in pairs (players) do
-			if tostring(playerID) then
-				_, _, spec, _, playerAllyTeam = spGetPlayerInfo(playerID, false)
-				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
-					SendToUnsynced("NotificationEvent", event, tostring(playerID))
+		if not (Spring.GetModOptions().sensor_rework == true) then
+			local event = "StealthyUnitsDetected"
+			local players = Spring.GetPlayerList()
+			local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+			local _, _, spec, _, playerAllyTeam
+			for ct, playerID in pairs (players) do
+				if tostring(playerID) then
+					_, _, spec, _, playerAllyTeam = spGetPlayerInfo(playerID, false)
+					if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
+						SendToUnsynced("NotificationEvent", event, tostring(playerID))
+					end
 				end
 			end
 		end
