@@ -678,7 +678,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -700,7 +700,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -722,7 +722,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -744,7 +744,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -766,7 +766,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -788,7 +788,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, air repair pad
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -1193,7 +1193,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", }									  -- juno
 		},
 		{
@@ -1260,7 +1260,7 @@ local unitGrids = {
 		},
 		{
 			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
-			{ "", "cordrag", "corasp", "corfasp" },           -- dragon's teeth
+			{ "", "cordrag", "", "" },           -- dragon's teeth
 		},
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
@@ -1376,7 +1376,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", "corasp", "corfasp" },                       -- floating radar, shark's teeth
+			{ "corfrad", "corfdrag", "", "" },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
 		{
@@ -1493,7 +1493,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corsd", "", "" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1563,7 +1563,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corsd", "", "" },                          -- intrusion counter, air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1633,7 +1633,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "corsd", "", "", "" },               -- intrusion counter, air repair pad, floating air repair pad
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1702,7 +1702,7 @@ local unitGrids = {
 		},
 		{
 			{ "corason", "corfatf",  },                         -- adv sonar, floating targeting facility
-			{ "", "", "", "corfasp" },                          -- Floating air repair pad
+			{ "", "", "", "" },                          -- Floating air repair pad
 		},
 		{
 			{ "corsy", },                                      -- T1 shipyard
