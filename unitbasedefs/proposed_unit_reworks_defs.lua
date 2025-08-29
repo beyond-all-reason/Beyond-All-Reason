@@ -1,7 +1,7 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
-	if name == "armap" or name == "armlab" or name == "armsy" or name == "armvp"
-	or name == "corap" or name == "corlab" or name == "corsy" or name == "corvp"
+	if name == "armap" or name == "armlab" or name == "armfhp" or name == "armhp" or name == "armvp"
+	or name == "corap" or name == "corlab" or name == "corfhp" or name == "corhp" or name == "corvp"
 	then
 		uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
 		uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
@@ -15,17 +15,18 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = 3000
 	end
 	
-	if name == "armalab" or name == "armasy" or name == "armavp"
-	or name == "coralab" or name == "corasy" or name == "coravp"
+	if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
+	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
 	then
+		uDef.metalcost = uDef.metalcost - 300
 		uDef.buildtime = uDef.buildtime * 2
 		uDef.workertime = uDef.workertime * 2
 	end
 
 	if uDef.customparams.techlevel == 2 
 	and not (uDef.canfly == 1
-	or name == "armalab" or name == "armasy" or name == "armavp"
-	or name == "coralab" or name == "corasy" or name == "coravp")
+	or name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
+	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp")
 	then
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.012) * 100
 	end
@@ -35,25 +36,17 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	if name == "armfus" then
-		uDef.energymake = 475
-		uDef.metalcost = 2400
-		uDef.energycost = 12000
-		uDef.buildtime = 38000
-	end
-
-	if name == "armckfus" then 
-		uDef.energymake = 500
-		uDef.metalcost = 2800
-		uDef.energycost = 15000
-		uDef.buildtime = 44000
-		uDef.cloakcost = 50
+		uDef.energymake = 750
+		uDef.metalcost = 3350
+		uDef.energycost = 17500
+		uDef.buildtime = 53800
 	end
 
 	if name == "corfus" then
-		uDef.energymake = 500
-		uDef.metalcost = 2500
-		uDef.energycost = 14000
-		uDef.buildtime = 40000
+		uDef.energymake = 825
+		uDef.metalcost = 3500
+		uDef.energycost = 21000
+		uDef.buildtime = 58500
 	end
 
 	if name == "armmoho" or name == "armuwmme"
