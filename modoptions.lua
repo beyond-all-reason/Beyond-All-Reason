@@ -844,7 +844,7 @@ local options = {
         type	= "bool",
         def		= false,
         section	= "scav_defense_options",
-        unlock	= {"scav_targeting_eco", "scav_targeting_tech", "scav_targeting_even_player_spread", "scav_targeting_damage_efficiency_areas", "scav_targeting_random"},
+        unlock	= {"scav_targeting_eco", "scav_targeting_tech", "scav_targeting_even_player_spread", "scav_targeting_damage_efficiency_areas", "scav_targeting_unit_random"},
     },
     {
         key		= "scav_targeting_eco",

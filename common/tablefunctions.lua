@@ -438,3 +438,25 @@ if not pairsByKeys then
 		return iter
 	end
 end
+
+if not table.stringifyKeys then
+	---Recursively converts all table keys to strings, making tables safe for JSON encoding
+	---@param tbl table The table to process
+	---@return table A new table with all keys converted to strings
+	function table.stringifyKeys(tbl)
+		if type(tbl) ~= "table" then
+			return tbl
+		end
+		
+		local result = {}
+		for key, value in pairs(tbl) do
+			local stringKey = tostring(key)
+			if type(value) == "table" then
+				result[stringKey] = table.stringifyKeys(value)
+			else
+				result[stringKey] = value
+			end
+		end
+		return result
+	end
+end

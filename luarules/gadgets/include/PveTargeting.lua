@@ -162,7 +162,6 @@ end
 
 -- Get all potential targets (no caching since targets change frequently)
 local function getPotentialTargets(context)
-
   local targets = {}
   local validTeams = {}
 
@@ -298,7 +297,7 @@ local function calculateEvenSpreadRawValue(context, target)
   end
 
   if totalCount == 0 then
-    return 1/#context.playerTargetCounts
+    return 1 / #context.playerTargetCounts
   end
 
   local currentCount = context.playerTargetCounts[target.teamID]
@@ -312,20 +311,30 @@ local function normalize(value, min, max)
 end
 
 -- Calculate combined score for a target
-local function calculateTargetScores(targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+local function calculateTargetScores(
+  targetRawValues,
+  weights,
+  minEcoValue,
+  maxEcoValue,
+  minTechLevel,
+  maxTechLevel,
+  minDamageEfficiencyArea,
+  maxDamageEfficiencyArea,
+  minEvenSpreadScore,
+  maxEvenSpreadScore)
   local weightedCandidates = {}
   local total = 0
 
   for targetID, targetRawValue in pairs(targetRawValues) do
+    local ecoScore = normalize(targetRawValue.eco, minEcoValue, maxEcoValue)
+    local techScore = normalize(targetRawValue.tech, minTechLevel, maxTechLevel)
+    local damageAreaScore =
+      normalize(targetRawValue.damageEfficiencyArea, minDamageEfficiencyArea, maxDamageEfficiencyArea)
+    local spreadScore = normalize(targetRawValue.evenSpread, minEvenSpreadScore, maxEvenSpreadScore)
 
-  local ecoScore = normalize(targetRawValue.eco, minEcoValue, maxEcoValue)
-  local techScore = normalize(targetRawValue.tech, minTechLevel, maxTechLevel)
-  local damageAreaScore = normalize(targetRawValue.damageEfficiencyArea, minDamageEfficiencyArea, maxDamageEfficiencyArea)
-  local spreadScore = normalize(targetRawValue.evenSpread, minEvenSpreadScore, maxEvenSpreadScore)
-
-  local totalScore =
-    weights.eco * ecoScore + weights.tech * techScore + weights.damageEfficiencyAreas * damageAreaScore +
-    weights.evenPlayerSpread * spreadScore
+    local totalScore =
+      weights.eco * ecoScore + weights.tech * techScore + weights.damageEfficiencyAreas * damageAreaScore +
+      weights.evenPlayerSpread * spreadScore
 
     total = total + totalScore
     table.insert(weightedCandidates, {target = targetID, cumulative = total})
@@ -400,12 +409,32 @@ local function getCachedScores(context, candidates, weights)
   end
 
   -- Ensure min values are valid
-  if minEcoValue == math.huge then minEcoValue = 0 end
-  if minTechLevel == math.huge then minTechLevel = 1 end
-  if minDamageEfficiencyArea == math.huge then minDamageEfficiencyArea = 0 end
-  if minEvenSpreadScore == math.huge then minEvenSpreadScore = 0 end
+  if minEcoValue == math.huge then
+    minEcoValue = 0
+  end
+  if minTechLevel == math.huge then
+    minTechLevel = 1
+  end
+  if minDamageEfficiencyArea == math.huge then
+    minDamageEfficiencyArea = 0
+  end
+  if minEvenSpreadScore == math.huge then
+    minEvenSpreadScore = 0
+  end
 
-  local weightedCandidates, total = calculateTargetScores(targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+  local weightedCandidates, total =
+    calculateTargetScores(
+    targetRawValues,
+    weights,
+    minEcoValue,
+    maxEcoValue,
+    minTechLevel,
+    maxTechLevel,
+    minDamageEfficiencyArea,
+    maxDamageEfficiencyArea,
+    minEvenSpreadScore,
+    maxEvenSpreadScore
+  )
 
   weightedCandidates = shuffleWeightedCandidates(weightedCandidates)
 
@@ -548,6 +577,39 @@ end
 -- Get all area damage statistics (for analysis/debugging)
 function PveTargeting.GetAllAreaDamageStats(context)
   return context.damageAreaStats
+end
+
+-- Export damage stats to gamerulesparams for visualization
+function PveTargeting.ExportDamageStatsToGameRules(context)
+  if not context or not context.damageAreaStats then
+    return false
+  end
+
+  -- Convert keys to strings for JSON encoding and add tile position info
+  local exportStats = {}
+  for key, stats in pairs(context.damageAreaStats) do
+    local tileX, tileZ = string.match(key, '([^,]+),([^,]+)')
+    if tileX and tileZ then
+      exportStats[key] = {
+        x = tonumber(tileX) * context.tileSize + context.tileSize / 2,
+        z = tonumber(tileZ) * context.tileSize + context.tileSize / 2,
+        tileSize = context.tileSize,
+        damageDealt = stats.damageDealt,
+        damageTaken = stats.damageTaken,
+        efficiency = stats.efficiency,
+        lastUpdate = stats.lastUpdate
+      }
+    end
+  end
+
+  -- Export to gamerulesparams for UI access
+  if table.stringifyKeys then
+    Spring.SetGameRulesParam('pveDamageEfficiencyAreas', Json.encode(table.stringifyKeys(exportStats)))
+  else
+    Spring.SetGameRulesParam('pveDamageEfficiencyAreas', Json.encode(exportStats))
+  end
+
+  return true
 end
 
 -- Manually invalidate score cache (useful for external systems)

@@ -204,7 +204,7 @@ if gadgetHandler:IsSyncedCode() then
 		* unitRandom is set to 0 for temporarily disabling it until it is tested.
 	--]]
 	local scavTargetingWeights = {
-		damageEfficiencyAreas = 0,
+		damageEfficiencyAreas = 0.3,
 		eco = 0.7,
 		evenPlayerSpread = 0.3,
 		tech = 0.5,
@@ -1744,7 +1744,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-
+		local impulse = 1
 		if attackerTeam == scavTeamID then
 			damage = damage * config.damageMod
 		end
@@ -1796,29 +1796,31 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				damage = 1
 			end
-			return damage
+			impulse = 0
 		end
-		return damage, 1
-	end
 
-	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		-- Update targeting system damage statistics if beta is enabled
 		if useEcoTargeting and targetingContext then
-			if attackerTeam == scavTeamID and unitTeam ~= scavTeamID then
-				-- Scav damaged enemy - count as damage dealt
-				local x, y, z = Spring.GetUnitPosition(unitID)
-				if x then
-					PveTargeting.UpdateDamageStats(targetingContext, damage, 0, {x = x, y = y, z = z})
-				end
-			elseif unitTeam == scavTeamID and attackerTeam ~= scavTeamID and attackerTeam ~= gaiaTeamID then
-				-- Enemy damaged scav - count as damage taken
-				local x, y, z = Spring.GetUnitPosition(unitID)
-				if x then
-					PveTargeting.UpdateDamageStats(targetingContext, 0, damage, {x = x, y = y, z = z})
+			local scavengersUnitID = attackerTeam == scavTeamID and attackerID or (unitTeam == scavTeamID and unitID or nil)
+			if scavengersUnitID and unitSquadTable[scavengersUnitID] and squadsTable[unitSquadTable[scavengersUnitID]] then
+				local target = squadsTable[unitSquadTable[scavengersUnitID]].target
+				if target then
+					local targetHealth, _, _, _, _ = Spring.GetUnitHealth(unitID)
+					local clampedDamage = math.max(0, math.min(damage, targetHealth))
+					if attackerTeam == scavTeamID and unitTeam ~= scavTeamID then
+						-- Scav damaged enemy - count as damage dealt
+						PveTargeting.UpdateDamageStats(targetingContext, clampedDamage, 0, target)
+					elseif unitTeam == scavTeamID and attackerTeam ~= scavTeamID and attackerTeam ~= gaiaTeamID then
+						-- Enemy damaged scav - count as damage taken
+						PveTargeting.UpdateDamageStats(targetingContext, 0, clampedDamage, target)
+					end
 				end
 			end
 		end
 
+		return damage, impulse
+	end
+
+	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if config.scavBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
 			local ux, uy, uz = GetUnitPosition(unitID)
 			local x, y, z = GetUnitPosition(attackerID)
@@ -2155,6 +2157,10 @@ if gadgetHandler:IsSyncedCode() then
 			if useEcoTargeting and n >= lastSquadRebalanceFrame + squadRebalanceInterval then
 				lastSquadRebalanceFrame = n
 				distributeDistanceSquadTargets()
+			end
+			-- Export damage efficiency areas to gamerulesparams for visualization
+			if useEcoTargeting and targetingContext then
+				PveTargeting.ExportDamageStatsToGameRules(targetingContext)
 			end
 			if nSpawnedBosses == 0 then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
