@@ -82,6 +82,23 @@ local airCmd = {
 	params = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80' }
 }
 
+local function createAirPlant(unitID)
+	InsertUnitCmdDesc(unitID, 500, landCmd)
+	InsertUnitCmdDesc(unitID, 500, airCmd)
+	plantList[unitID] = { landAt = 1, repairAt = 1 }
+end
+
+local function createAirUnit(unitID, builderID)
+	SetUnitNeutral(unitID, true)
+	if builderID ~= nil then
+		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
+		GiveOrderToUnit(unitID, CMD_IDLEMODE, { plantList[builderID].landAt }, 0)
+		buildingUnits[unitID] = factoryMoveRadius[builderID]
+	else
+		buildingUnits[unitID] = unitMoveRadius[unitID]
+	end
+end
+
 -- Fallback method to make sure units don't land atop their origin plant.
 local function moveFromPlant(unitID, radius)
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
@@ -136,14 +153,9 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
-		InsertUnitCmdDesc(unitID, 500, landCmd)
-		InsertUnitCmdDesc(unitID, 500, airCmd)
-		plantList[unitID] = { landAt = 1, repairAt = 1 }
+		createAirPlant(unitID)
 	elseif plantList[builderID] then
-		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
-		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
-		SetUnitNeutral(unitID, true)
-		buildingUnits[unitID] = factoryMoveRadius[builderID]
+		createAirUnit(unitID, builderID)
 	end
 end
 
@@ -168,9 +180,12 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_AIR_REPAIR)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		-- Prevent nil access error in UnitCreated by passing an invalid builderID
-		---@diagnostic disable-next-line: param-type-mismatch -- and ignore unitTeam
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), nil, -1)
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if isAirplant[unitDefID] then
+			createAirPlant(unitID)
+		elseif UnitDefs[unitDefID].isAirUnit and Spring.GetUnitIsBeingBuilt(unitID) then
+			createAirUnit(unitID)
+		end
 	end
 end
 
