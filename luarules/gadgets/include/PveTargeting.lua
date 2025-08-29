@@ -9,8 +9,7 @@ local DEFAULT_WEIGHTS = {
   eco = 1.0,
   tech = 1.0,
   damageEfficiencyAreas = 1.0,
-  unitRandom = 0.0,
-  areaRandom = 0.0
+  unitRandom = 0.0
 }
 
 -- Gadget-level default weights (can be overridden by each gadget)
@@ -49,7 +48,7 @@ local function getEffectiveWeights(modoptions, customParams, gadgetOverride)
       scav_targeting_tech = 'tech',
       scav_targeting_even_player_spread = 'evenPlayerSpread',
       scav_targeting_damage_efficiency_areas = 'damageEfficiencyAreas',
-      scav_targeting_random = 'unitRandom'
+      scav_targeting_unit_random = 'unitRandom'
     }
 
     for modoptionKey, weightKey in pairs(modoptionMapping) do
@@ -63,12 +62,12 @@ local function getEffectiveWeights(modoptions, customParams, gadgetOverride)
       end
     end
 
-    -- Also apply the random factor to areaRandom for position-based randomness
+    -- Also apply the random factor to unitRandom for position-based randomness
     local randomValue = modoptions.scav_targeting_random
     if randomValue ~= nil and randomValue ~= '' then
       local numValue = tonumber(randomValue)
       if numValue then
-        weights.areaRandom = math.max(0, math.min(1, numValue))
+        weights.unitRandom = math.max(0, math.min(1, numValue))
       end
     end
   end
@@ -359,8 +358,7 @@ local function calculateTargetScore(context, target, weights, minEcoValue, maxEc
   local totalScore =
     weights.eco * ecoScore + weights.tech * techScore + weights.damageEfficiencyAreas * damageAreaScore +
     weights.evenPlayerSpread * spreadScore +
-    weights.unitRandom * randomScore +
-    weights.areaRandom * randomScore
+    weights.unitRandom * randomScore
 
   return totalScore
 end

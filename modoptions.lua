@@ -891,9 +891,9 @@ local options = {
     },
 
     {
-        key		= "scav_targeting_random",
-        name	= "Random Factor",
-        desc	= "How much randomness to add to targeting decisions. 0=fully deterministic, 1=maximum chaos. Default: 0",
+        key		= "scav_targeting_unit_random",
+        name	= "Unit Random Factor",
+        desc	= "How much randomness, with respect to units, to add to targeting decisions. 0=fully deterministic, 1=maximum chaos. Default: 0",
         type	= "number",
         min		= 0,
         max		= 1,

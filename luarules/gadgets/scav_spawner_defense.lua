@@ -193,10 +193,17 @@ if gadgetHandler:IsSyncedCode() then
 	local useEcoTargeting = Spring.GetModOptions().scav_targeting_rework == "1" or Spring.GetModOptions().scav_targeting_rework == true
 	local targetingContext = nil
 	local lastSquadRebalanceFrame = 0
-	local squadRebalanceInterval = 10 * Game.gameSpeed
+	local squadRebalanceInterval = 10 * Game.gameSpeed -- 10 seconds
 
+	--[[
+		damageEfficiencyAreas set to 0 for temporarily disabling it until it is tested.
+		eco and tech weights are set to try to mimic the behavior implemented for raptors where ecoValue is multiplied by tech level.
+		In raptors tech level is afaik meant to counter-act the relative low count in high eco buildings but also as a way to detect players that are ahead of the curve in eco,
+		or will be because of the tech level achieved.
+		evenPlayerSpread is untested but is meant to balance between challenging good players (low value) and evening out the workload between players (high value).
+		unitRandom is set to 0 for temporarily disabling it until it is tested.
+	--]]
 	local scavTargetingWeights = {
-		areaRandom = 0,
 		damageEfficiencyAreas = 0,
 		eco = 0.7,
 		evenPlayerSpread = 0.3,
@@ -753,11 +760,10 @@ if gadgetHandler:IsSyncedCode() then
 		local assignedCount = 0
 		for squadID, assignment in pairs(assignments) do
 			if squadsTable[squadID] and assignment.target then
-				local spread = 256
 				squadsTable[squadID].target = {
-					x = assignment.target.x + mRandom(-spread, spread),
+					x = assignment.target.x,
 					y = assignment.target.y,
-					z = assignment.target.z + mRandom(-spread, spread)
+					z = assignment.target.z
 				}
 				squadCommanderGiveOrders(squadID, squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z)
 
