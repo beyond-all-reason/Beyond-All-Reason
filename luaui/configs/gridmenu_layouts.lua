@@ -458,7 +458,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -480,7 +480,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -502,7 +502,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -524,7 +524,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -546,7 +546,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -568,7 +568,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, 
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- intrusion counter, decoy fusion, 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -1679,7 +1679,7 @@ local unitGrids = {
 		},
 		{
 			{ "armason", "armfatf" },                		   -- adv sonar, floating targeting facility
-			{ "", "", "", "armfasp" },                         -- 
+			{ "", "", "", "" },                         -- 
 			{ },                                               --
 		},
 		{
