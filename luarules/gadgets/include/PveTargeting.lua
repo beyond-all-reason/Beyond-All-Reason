@@ -506,7 +506,7 @@ function PveTargeting.GetRandomTargetPosition(context, options)
   local target = PveTargeting.GetRandomTarget(context, options)
 
   if target then
-    local spread = options.positionSpread or 256
+    local spread = options.positionSpread or 0
     return {
       x = target.x + math.random(-spread, spread),
       y = target.y,
