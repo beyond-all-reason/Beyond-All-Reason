@@ -360,10 +360,6 @@ local function updateAllyTeamData()
 			local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
 			local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
 			
-			-- Debug output for score values
-			if allyTeamID == 0 then -- Only show for first ally team to avoid spam
-				Spring.Echo("[TD Debug] Ally " .. allyTeamID .. " - Score: " .. score .. ", Projected: " .. projectedPoints .. ", Total: " .. (score + projectedPoints))
-			end
 			
 			table.insert(validAllyTeams, {
 				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
@@ -527,9 +523,79 @@ local function getDisplayedTeams()
 	local allyTeams = widgetState.allyTeamData
 	if not allyTeams or #allyTeams == 0 then return {} end
 	local displayed = {}
+	local used = {}
 	local limit = math.min(#allyTeams, 6)
-	for i = 1, limit do
-		displayed[i] = allyTeams[i]
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myIndex
+	for i = 1, #allyTeams do
+		if allyTeams[i].allyTeamID == myAllyTeamID then
+			myIndex = i
+			break
+		end
+	end
+	displayed[#displayed + 1] = allyTeams[1]
+	used[allyTeams[1].allyTeamID] = true
+	if not myIndex then
+		for i = 2, math.min(#allyTeams, limit) do
+			displayed[#displayed + 1] = allyTeams[i]
+		end
+		return displayed
+	end
+	if myIndex == 1 then
+		for i = 2, #allyTeams do
+			if #displayed >= limit then break end
+			local at = allyTeams[i]
+			if not used[at.allyTeamID] then
+				displayed[#displayed + 1] = at
+				used[at.allyTeamID] = true
+			end
+		end
+		return displayed
+	end
+	local availableAbove = math.max(0, myIndex - 2)
+	local availableBelow = math.max(0, #allyTeams - myIndex)
+	local aboveTake = math.min(2, availableAbove)
+	local belowTake = math.min(2, availableBelow)
+	if aboveTake < 2 then
+		local add = math.min(2 - aboveTake, math.max(0, availableBelow - belowTake))
+		belowTake = belowTake + add
+	end
+	if belowTake < 2 then
+		local add = math.min(2 - belowTake, math.max(0, availableAbove - aboveTake))
+		aboveTake = aboveTake + add
+	end
+	local startAbove = myIndex - aboveTake
+	if startAbove < 2 then startAbove = 2 end
+	for i = startAbove, myIndex - 1 do
+		if #displayed >= limit then break end
+		local at = allyTeams[i]
+		if at and not used[at.allyTeamID] then
+			displayed[#displayed + 1] = at
+			used[at.allyTeamID] = true
+		end
+	end
+	if #displayed < limit and not used[allyTeams[myIndex].allyTeamID] then
+		displayed[#displayed + 1] = allyTeams[myIndex]
+		used[allyTeams[myIndex].allyTeamID] = true
+	end
+	local endBelow = math.min(#allyTeams, myIndex + belowTake)
+	for i = myIndex + 1, endBelow do
+		if #displayed >= limit then break end
+		local at = allyTeams[i]
+		if at and not used[at.allyTeamID] then
+			displayed[#displayed + 1] = at
+			used[at.allyTeamID] = true
+		end
+	end
+	if #displayed < limit then
+		for i = 2, #allyTeams do
+			if #displayed >= limit then break end
+			local at = allyTeams[i]
+			if not used[at.allyTeamID] then
+				displayed[#displayed + 1] = at
+				used[at.allyTeamID] = true
+			end
+		end
 	end
 	return displayed
 end
@@ -570,6 +636,7 @@ local function updateScoreBarVisuals()
 			end
 		end
 		widgetState.displayedTeamIds = newIds
+
 	end
 
 	for i, allyTeam in ipairs(allyTeams) do
@@ -799,15 +866,7 @@ function widget:Update()
 	local currentTime = Spring.GetGameSeconds()
 	local currentOSClock = os.clock()
 
-	if not widgetState._lastDebugEcho or currentOSClock - widgetState._lastDebugEcho >= 1.0 then
-		widgetState._lastDebugEcho = currentOSClock
-		local myAlly = Spring.GetMyAllyTeamID()
-		local ids = {}
-		for i = 1, #widgetState.displayedTeamIds do
-			ids[#ids + 1] = tostring(widgetState.displayedTeamIds[i])
-		end
-		Spring.Echo("[TD] SelectedAlly:", tostring(myAlly), "Displayed:", table.concat(ids, ","))
-	end
+
 	
 	if widgetState.popupState.isVisible then
 		if currentOSClock - widgetState.popupState.showTime >= ROUND_END_POPUP_DELAY then
