@@ -183,7 +183,7 @@ local function getPotentialTargets(context)
       if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
         local unitDefID = Spring.GetUnitDefID(unitID)
         local unitDef = UnitDefs[unitDefID]
-        local x, y, z = Spring.GetUnitPosition(unitID)
+        local x, y, z = Spring.GetUnitBasePosition(unitID)
 
         if x and unitDefID and unitDef then
           local isEco =
@@ -312,7 +312,7 @@ local function normalize(value, min, max)
 end
 
 -- Calculate combined score for a target
-local function calculateTargetScores(context, targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+local function calculateTargetScores(targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
   local weightedCandidates = {}
   local total = 0
 
@@ -405,7 +405,7 @@ local function getCachedScores(context, candidates, weights)
   if minDamageEfficiencyArea == math.huge then minDamageEfficiencyArea = 0 end
   if minEvenSpreadScore == math.huge then minEvenSpreadScore = 0 end
 
-  local weightedCandidates, total = calculateTargetScores(context, targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+  local weightedCandidates, total = calculateTargetScores(targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
 
   weightedCandidates = shuffleWeightedCandidates(weightedCandidates)
 
@@ -515,8 +515,8 @@ function PveTargeting.GetRandomTargetPosition(context, options)
     }
   else
     -- Fallback to random map position
-    local mapSizeX = (Game and Game.mapSizeX) or 4096
-    local mapSizeZ = (Game and Game.mapSizeZ) or 4096
+    local mapSizeX = Game.mapSizeX
+    local mapSizeZ = Game.mapSizeZ
     local x = math.random(16, mapSizeX - 16)
     local z = math.random(16, mapSizeZ - 16)
     return {
@@ -658,7 +658,7 @@ function PveTargeting.GetSquadAssignments(squads, targets, options)
       local validUnits = 0
 
       for _, unitID in ipairs(squad.units) do
-        local x, y, z = Spring.GetUnitPosition(unitID)
+        local x, y, z = Spring.GetUnitBasePosition(unitID)
         if x then
           sumX = sumX + x
           sumY = sumY + y
@@ -823,7 +823,7 @@ function PveTargeting.GetOptimizedAssignments(context, units, options)
   for i, unit in ipairs(units) do
     if type(unit) == 'number' then
       -- Assume it's a unitID, get position
-      local x, y, z = Spring.GetUnitPosition(unit)
+      local x, y, z = Spring.GetUnitBasePosition(unit)
       if x then
         table.insert(
           formattedUnits,
