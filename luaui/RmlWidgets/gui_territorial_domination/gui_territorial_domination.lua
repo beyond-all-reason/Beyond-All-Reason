@@ -20,6 +20,7 @@ end
 -- defeatTime needs to be removed now that defeat is instaneous
 -- game crashes when there's lots of allies in the same team. Either its infinite memory growth, a div by zero or an invalid key stored
 -- for some reason  the score display isn't correct, we're getting more points sometimes than we are entitled to.
+-- game_territorial_domination.lua the defeat isn't triggering for some reason and killing the team off
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -544,79 +545,31 @@ local function updateScoreBarVisuals()
 	local numTeams = #allyTeams
 	if numTeams == 0 then return end
 
-	-- Determine minimal update to avoid flicker on selection changes
+	-- Determine whether to rebuild (any set or order change) to avoid engine instability from re-append operations
 	local oldIds = widgetState.displayedTeamIds
 	local newIds = {}
 	for i = 1, numTeams do newIds[i] = allyTeams[i].allyTeamID end
 
-	local setsEqual = (#oldIds == #newIds)
-	if setsEqual then
-		local seen = {}
-		for i = 1, #oldIds do seen[oldIds[i]] = true end
-		for i = 1, #newIds do if not seen[newIds[i]] then setsEqual = false break end end
+	local identicalOrder = (#oldIds == #newIds)
+	if identicalOrder then
+		for i = 1, #newIds do if oldIds[i] ~= newIds[i] then identicalOrder = false break end end
 	end
 
-	if not setsEqual then
-		-- Remove bars that are no longer displayed
-		local newSet = {}
-		for i = 1, #newIds do newSet[newIds[i]] = true end
-		for i = 1, #oldIds do
-			local id = oldIds[i]
-			if id and not newSet[id] then
-				local el = widgetState.scoreElementsByTeamId[id]
-				if el and el.container and el.container.parent_node == columnsContainer then
-					columnsContainer:RemoveChild(el.container)
-				end
-				widgetState.scoreElementsByTeamId[id] = nil
-			end
-		end
-		-- Create bars for new ids
-		local newlyCreated = {}
-		for i = 1, #newIds do
-			local id = newIds[i]
-			if not widgetState.scoreElementsByTeamId[id] then
-				local at
-				for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
-				if at then
-					local el = createScoreBarElement(columnsContainer, at, i)
-					widgetState.scoreElementsByTeamId[id] = el
-					newlyCreated[id] = true
-				end
-			end
-		end
-		-- Reorder existing bars without re-appending newly created ones
+	if not identicalOrder then
+		columnsContainer.inner_rml = ""
 		widgetState.scoreElements = {}
+		widgetState.scoreElementsByTeamId = {}
 		for i = 1, #newIds do
 			local id = newIds[i]
-			local el = widgetState.scoreElementsByTeamId[id]
-			if el and el.container then
-				if not newlyCreated[id] then
-					columnsContainer:AppendChild(el.container)
-				end
+			local at
+			for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
+			if at then
+				local el = createScoreBarElement(columnsContainer, at, i)
 				widgetState.scoreElements[i] = el
+				widgetState.scoreElementsByTeamId[id] = el
 			end
 		end
 		widgetState.displayedTeamIds = newIds
-	else
-		-- Same set, maybe different order: rebuild to avoid engine instability from re-append operations
-		local orderChanged = false
-		for i = 1, #newIds do if oldIds[i] ~= newIds[i] then orderChanged = true break end end
-		if orderChanged then
-			columnsContainer.inner_rml = ""
-			widgetState.scoreElements = {}
-			widgetState.scoreElementsByTeamId = {}
-			for i = 1, #newIds do
-				local id = newIds[i]
-				local at
-				for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
-				if at then
-					local el = createScoreBarElement(columnsContainer, at, i)
-					widgetState.scoreElements[i] = el
-					widgetState.scoreElementsByTeamId[id] = el
-				end
-			end
-			widgetState.displayedTeamIds = newIds
-		end
 	end
 
 	for i, allyTeam in ipairs(allyTeams) do
