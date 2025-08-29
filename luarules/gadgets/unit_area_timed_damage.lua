@@ -219,12 +219,7 @@ end
 
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@param x number area center coordinates <x, y, z>
----@param y number
----@param z number
----@param minY number area cylindrical volume test floor
----@param maxY number area cylindrical volume test ceiling
----@param radius number area spherical volume test radius
+---@param area table contains the timed area properties
 ---@param baseX number unit base position coordinates <x, y, z>
 ---@param baseY number
 ---@param baseZ number
@@ -234,26 +229,28 @@ end
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
-local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, baseY, baseZ, midX, midY, midZ)
-    if midY >= minY and midY <= maxY then
-        local dx, dy, dz = x - midX, y - midY, z - midZ
+local function getReferencePointInSphere(area, baseX, baseY, baseZ, midX, midY, midZ)
+    if midY >= area.minY and midY <= area.maxY then
+        local dx, dy, dz = area.x - midX, area.y - midY, area.z - midZ
+        local radius = area.radius
         if dx * dx + dy * dy + dz * dz <= radius * radius then
             return midX, midY, midZ
         end
     end
 
-    if baseY >= minY and baseY <= maxY then
-        local dx, dy, dz = x - baseX, y - baseY, z - baseZ
+    if baseY >= area.minY and baseY <= area.maxY then
+        local dx, dy, dz = area.x - midX, area.y - midY, area.z - midZ
+        local radius = area.radius
         if dx * dx + dy * dy + dz * dz <= radius * radius then
-			-- The unit base point is in the area and the mid point is not.
+            -- The unit base point is in the area and the mid point is not.
             -- Find the intersection of a ray from mid->base onto the area.
-            local t = max(0, (baseX - midX) * (x - midX) + (baseY - midY) * (y - midY) + (baseZ - midZ) * (z - midZ))
+            local t = max(0, (baseX - midX) * (area.x - midX) + (baseY - midY) * (area.y - midY) + (baseZ - midZ) * (area.z - midZ))
 
             local ix = midX + t * (baseX - midX)
             local iy = midY + t * (baseY - midY)
             local iz = midZ + t * (baseZ - midZ)
 
-			return ix, iy, iz
+            return ix, iy, iz
         end
     end
 end
@@ -283,7 +280,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local x, y, z, minY, maxY, radius = area.x, area.y, area.z, area.ymin, area.ymax, area.range
+        local x, z, radius = area.x, area.z, area.range
 
         local unitsInRange = spGetUnitsInCylinder(x, z, radius)
 
@@ -291,7 +288,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local unitID = unitsInRange[j]
 
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
-                local hitX, hitY, hitZ = getReferencePointInSphere(x, y, z, minY, maxY, radius, spGetUnitPosition(unitID, true))
+                local hitX, hitY, hitZ = getReferencePointInSphere(area, spGetUnitPosition(unitID, true))
 
                 if hitX then
                     local damageTaken = unitDamageTaken[unitID]
@@ -327,7 +324,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local x, y, z, minY, maxY, radius = area.x, area.y, area.z, area.ymin, area.ymax, area.range
+        local x, z, radius = area.x, area.z, area.range
 
         local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
 
@@ -335,7 +332,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local featureID = featuresInRange[j]
 
             if not featDamageImmunity[featureID] then
-                local hitX, hitY, hitZ = getReferencePointInSphere(x, y, z, minY, maxY, radius, spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getReferencePointInSphere(area, spGetFeaturePosition(featureID, true))
 
                 if hitX then
                     local damageTaken = featDamageTaken[featureID]
