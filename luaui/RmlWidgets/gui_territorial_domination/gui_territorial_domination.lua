@@ -103,8 +103,6 @@ local initialModel = {
 	currentRound = 0,
 	roundEndTime = 0,
 	pointsCap = 0,
-	highestScore = 0,
-	secondHighestScore = 0,
 	prevHighestScore = 0,
 	timeRemaining = "0:00",
 	roundDisplayText = "",
@@ -393,8 +391,6 @@ end
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
 	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-	local highestScore = spGetGameRulesParam("territorialDominationHighestScore") or 0
-	local secondHighestScore = spGetGameRulesParam("territorialDominationSecondHighestScore") or 0
 	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
 
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
@@ -438,8 +434,6 @@ local function updateRoundInfo()
 		currentRound = currentRound,
 		roundEndTime = roundEndTime,
 		pointsCap = pointsCap,
-		highestScore = highestScore,
-		secondHighestScore = secondHighestScore,
 		prevHighestScore = prevHighestScore,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
@@ -751,8 +745,6 @@ local function updateDataModel()
 		dm.currentRound = roundInfo.currentRound
 		dm.roundEndTime = roundInfo.roundEndTime
 		dm.pointsCap = roundInfo.pointsCap
-		dm.highestScore = roundInfo.highestScore
-		dm.secondHighestScore = roundInfo.secondHighestScore
 		dm.prevHighestScore = roundInfo.prevHighestScore
 		dm.timeRemaining = roundInfo.timeRemaining
 		dm.roundDisplayText = roundInfo.roundDisplayText
