@@ -119,8 +119,8 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
     numTilesX = numTilesX,
     numTilesZ = numTilesZ,
     lastUpdateFrame = 0,
-    targetCache = {},
-    cacheValidUntil = 0
+    scoreCache = {},
+    scoreCacheValidUntil = 0
   }
 end
 
@@ -134,6 +134,11 @@ end
 -- Get tile key for damage area stats
 local function getTileKey(tileX, tileZ)
   return tileX .. ',' .. tileZ
+end
+
+local function invalidateScoreCache(context)
+  context.scoreCacheValidUntil = 0
+  context.scoreCache = {}
 end
 
 -- Update area-based damage statistics for efficiency scoring
@@ -167,14 +172,8 @@ function PveTargeting.UpdateDamageStats(context, damageDealt, damageTaken, targe
   end
 end
 
--- Get all potential targets with caching
-local function getPotentialTargets(context, maxAge)
-  maxAge = maxAge or (10 * Game.gameSpeed) -- 10 seconds default cache
-  local currentFrame = Spring.GetGameFrame()
-
-  if currentFrame < context.cacheValidUntil then
-    return context.targetCache
-  end
+-- Get all potential targets (no caching since targets change frequently)
+local function getPotentialTargets(context)
 
   local targets = {}
   local validTeams = {}
@@ -221,9 +220,6 @@ local function getPotentialTargets(context, maxAge)
       end
     end
   end
-
-  context.targetCache = targets
-  context.cacheValidUntil = currentFrame + maxAge
 
   return targets
 end
@@ -272,18 +268,6 @@ local function calculateRawEcoValue(target)
   return score
 end
 
--- Calculate normalized economic score for a target
-local function calculateEcoScore(target, minEcoValue, maxEcoValue)
-  local rawValue = calculateRawEcoValue(target)
-
-  -- Normalize to 0-1 range using actual min/max values
-  if maxEcoValue > minEcoValue then
-    return (rawValue - minEcoValue) / (maxEcoValue - minEcoValue)
-  else
-    return rawValue > 0 and 1.0 or 0.0
-  end
-end
-
 -- Calculate raw tech level for a target
 local function calculateRawTechLevel(target)
   if not target.unitDef or not target.unitDef.customParams then
@@ -293,22 +277,10 @@ local function calculateRawTechLevel(target)
   return tonumber(target.unitDef.customParams.techlevel) or 1
 end
 
--- Calculate normalized tech level score for a target
-local function calculateTechScore(target, minTechLevel, maxTechLevel)
-  local rawTechLevel = calculateRawTechLevel(target)
-
-  -- Normalize to 0-1 range using actual min/max values
-  if maxTechLevel > minTechLevel then
-    return (rawTechLevel - minTechLevel) / (maxTechLevel - minTechLevel)
-  else
-    return rawTechLevel > minTechLevel and 1.0 or 0.0
-  end
-end
-
 -- Calculate area-based damage efficiency score for a target's position
-local function calculateDamageEfficiencyAreaScore(context, target)
+local function calculateDamageEfficiencyAreaRawValue(context, target)
   if not target.x or not target.z then
-    return 0.5 -- Default neutral score if no position
+    return 0.0 -- Default score if no position
   end
 
   local tileX, tileZ = worldToTile(target.x, target.z, context.tileSize)
@@ -320,11 +292,11 @@ local function calculateDamageEfficiencyAreaScore(context, target)
   end
 
   -- Higher efficiency = higher score (we want to target areas where we're winning)
-  return math.min(1.0, areaStats.efficiency / 2.0)
+  return areaStats.efficiency
 end
 
 -- Calculate even player spread score (lower = better spread)
-local function calculateEvenSpreadScore(context, target)
+local function calculateEvenSpreadRawValue(context, target)
   if not context.playerTargetCounts[target.teamID] then
     context.playerTargetCounts[target.teamID] = 0
   end
@@ -338,29 +310,135 @@ local function calculateEvenSpreadScore(context, target)
   end
 
   if totalCount == 0 then
-    return 1.0
+    return 1/#context.playerTargetCounts
   end
 
   local currentCount = context.playerTargetCounts[target.teamID]
   local spread = 1.0 - ((currentCount - minCount) / totalCount)
 
-  return math.max(0, spread)
+  return spread
+end
+
+local function normalize(value, min, max)
+  return (value - min) / (max - min)
 end
 
 -- Calculate combined score for a target
-local function calculateTargetScore(context, target, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel)
-  local ecoScore = calculateEcoScore(target, minEcoValue, maxEcoValue)
-  local techScore = calculateTechScore(target, minTechLevel, maxTechLevel)
-  local damageAreaScore = calculateDamageEfficiencyAreaScore(context, target)
-  local spreadScore = calculateEvenSpreadScore(context, target)
-  local randomScore = math.random() -- For random components
+local function calculateTargetScores(context, targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+  local weightedCandidates = {}
+  local total = 0
+
+  for targetID, targetRawValue in pairs(targetRawValues) do
+
+  local ecoScore = normalize(targetRawValue.eco, minEcoValue, maxEcoValue)
+  local techScore = normalize(targetRawValue.tech, minTechLevel, maxTechLevel)
+  local damageAreaScore = normalize(targetRawValue.damageEfficiencyArea, minDamageEfficiencyArea, maxDamageEfficiencyArea)
+  local spreadScore = normalize(targetRawValue.evenSpread, minEvenSpreadScore, maxEvenSpreadScore)
 
   local totalScore =
     weights.eco * ecoScore + weights.tech * techScore + weights.damageEfficiencyAreas * damageAreaScore +
-    weights.evenPlayerSpread * spreadScore +
-    weights.unitRandom * randomScore
+    weights.evenPlayerSpread * spreadScore
 
-  return totalScore
+    total = total + totalScore
+    table.insert(weightedCandidates, {target = targetID, cumulative = total})
+  end
+
+  return weightedCandidates, total
+end
+
+-- Efficiently shuffle weighted candidates while preserving weights
+local function shuffleWeightedCandidates(weightedCandidates)
+  local shuffled = {}
+  local n = #weightedCandidates
+
+  -- Copy the array
+  for i = 1, n do
+    shuffled[i] = weightedCandidates[i]
+  end
+
+  -- Fisher-Yates shuffle
+  for i = n, 2, -1 do
+    local j = math.random(i)
+    shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+  end
+
+  return shuffled
+end
+
+-- Get cached scores or calculate new ones if cache is expired
+local function getCachedScores(context, candidates, weights)
+  local currentFrame = Spring.GetGameFrame()
+
+  -- Check if we have valid cached scores
+  if currentFrame < context.scoreCacheValidUntil and context.scoreCache.weightedCandidates and context.scoreCache.total then
+    return context.scoreCache.weightedCandidates, context.scoreCache.total
+  end
+
+  -- Calculate all min/max values for normalization
+  local minEcoValue, maxEcoValue = math.huge, 0
+  local minTechLevel, maxTechLevel = math.huge, 0
+  local minDamageEfficiencyArea, maxDamageEfficiencyArea = math.huge, 0
+  local minEvenSpreadScore, maxEvenSpreadScore = math.huge, 0
+
+  local targetRawValues = {}
+
+  for _, target in ipairs(candidates) do
+    -- Eco values
+    local rawEcoValue = calculateRawEcoValue(target)
+    minEcoValue = math.min(minEcoValue, rawEcoValue)
+    maxEcoValue = math.max(maxEcoValue, rawEcoValue)
+
+    -- Tech levels
+    local rawTechLevel = calculateRawTechLevel(target)
+    minTechLevel = math.min(minTechLevel, rawTechLevel)
+    maxTechLevel = math.max(maxTechLevel, rawTechLevel)
+
+    -- Damage efficiency areas
+    local rawDamageEfficiencyAreaValue = calculateDamageEfficiencyAreaRawValue(context, target)
+    minDamageEfficiencyArea = math.min(minDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
+    maxDamageEfficiencyArea = math.max(maxDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
+
+    -- Even player spread scores
+    local rawEvenSpreadValue = calculateEvenSpreadRawValue(context, target)
+    minEvenSpreadScore = math.min(minEvenSpreadScore, rawEvenSpreadValue)
+    maxEvenSpreadScore = math.max(maxEvenSpreadScore, rawEvenSpreadValue)
+
+    targetRawValues[target.unitID] = {
+      eco = rawEcoValue,
+      tech = rawTechLevel,
+      damageEfficiencyArea = rawDamageEfficiencyAreaValue,
+      evenSpread = rawEvenSpreadValue
+    }
+  end
+
+  -- Ensure min values are valid
+  if minEcoValue == math.huge then minEcoValue = 0 end
+  if minTechLevel == math.huge then minTechLevel = 1 end
+  if minDamageEfficiencyArea == math.huge then minDamageEfficiencyArea = 0 end
+  if minEvenSpreadScore == math.huge then minEvenSpreadScore = 0 end
+
+  local weightedCandidates, total = calculateTargetScores(context, targetRawValues, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel, minDamageEfficiencyArea, maxDamageEfficiencyArea, minEvenSpreadScore, maxEvenSpreadScore)
+
+  weightedCandidates = shuffleWeightedCandidates(weightedCandidates)
+
+  -- Cache the results
+  context.scoreCache = {
+    candidates = candidates,
+    weights = weights,
+    minEcoValue = minEcoValue,
+    maxEcoValue = maxEcoValue,
+    minTechLevel = minTechLevel,
+    maxTechLevel = maxTechLevel,
+    minDamageEfficiencyArea = minDamageEfficiencyArea,
+    maxDamageEfficiencyArea = maxDamageEfficiencyArea,
+    weightedCandidates = weightedCandidates,
+    minEvenSpreadScore = minEvenSpreadScore,
+    maxEvenSpreadScore = maxEvenSpreadScore,
+    total = total
+  }
+  context.scoreCacheValidUntil = currentFrame + 10 * Game.gameSpeed -- 10 seconds cache
+
+  return weightedCandidates, total
 end
 
 -- Get a weighted random target
@@ -407,43 +485,8 @@ function PveTargeting.GetRandomTarget(context, options)
     return candidates[math.random(#candidates)]
   end
 
-  -- Calculate min/max eco values for normalization
-  local minEcoValue = math.huge
-  local maxEcoValue = 0
-  for _, target in ipairs(candidates) do
-    local rawValue = calculateRawEcoValue(target)
-    minEcoValue = math.min(minEcoValue, rawValue)
-    maxEcoValue = math.max(maxEcoValue, rawValue)
-  end
-
-  -- Ensure min is valid
-  if minEcoValue == math.huge then
-    minEcoValue = 0
-  end
-
-  -- Calculate min/max tech levels for normalization
-  local minTechLevel = math.huge
-  local maxTechLevel = 0
-  for _, target in ipairs(candidates) do
-    local rawTechLevel = calculateRawTechLevel(target)
-    minTechLevel = math.min(minTechLevel, rawTechLevel)
-    maxTechLevel = math.max(maxTechLevel, rawTechLevel)
-  end
-
-  -- Ensure min is valid
-  if minTechLevel == math.huge then
-    minTechLevel = 1
-  end
-
-  -- Calculate scores and build cumulative weight table
-  local total = 0
-  local weightedCandidates = {}
-
-  for i, target in ipairs(candidates) do
-    local score = calculateTargetScore(context, target, weights, minEcoValue, maxEcoValue, minTechLevel, maxTechLevel)
-    total = total + score
-    weightedCandidates[i] = {target = target, cumulative = total}
-  end
+  -- Get cached scores or calculate new ones
+  local weightedCandidates, total = getCachedScores(context, candidates, weights)
 
   if total == 0 then
     return candidates[math.random(#candidates)]
@@ -517,6 +560,11 @@ end
 -- Get all area damage statistics (for analysis/debugging)
 function PveTargeting.GetAllAreaDamageStats(context)
   return context.damageAreaStats
+end
+
+-- Manually invalidate score cache (useful for external systems)
+function PveTargeting.InvalidateScoreCache(context)
+  invalidateScoreCache(context)
 end
 
 -- Get grid information for area calculations
