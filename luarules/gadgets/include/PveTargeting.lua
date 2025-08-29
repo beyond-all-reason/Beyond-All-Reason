@@ -16,7 +16,7 @@ local DEFAULT_WEIGHTS = {
 local gadgetWeights = nil
 
 -- Weight priority: modoption > customparam > gadget > default
-local function getEffectiveWeights(modoptions, customParams, gadgetOverride)
+local function getEffectiveWeights(modoptions, gadgetOverride)
   local weights = table.copy(DEFAULT_WEIGHTS)
 
   -- Apply gadget override weights (lowest priority)
@@ -26,18 +26,6 @@ local function getEffectiveWeights(modoptions, customParams, gadgetOverride)
     for key, value in pairs(overrideWeights) do
       if weights[key] ~= nil then
         weights[key] = value
-      end
-    end
-  end
-
-  -- Apply custom params (medium priority)
-  if customParams and customParams.targeting_weights and VFS then
-    local success, parsedWeights = pcall(Json.decode, customParams.targeting_weights)
-    if success and parsedWeights and type(parsedWeights) == 'table' then
-      for key, value in pairs(parsedWeights) do
-        if weights[key] ~= nil and type(value) == 'number' then
-          weights[key] = math.max(0, math.min(1, value))
-        end
       end
     end
   end
@@ -102,7 +90,7 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
   local numTilesX = math.ceil(mapSizeX / tileSize)
   local numTilesZ = math.ceil(mapSizeZ / tileSize)
 
-  local weights = getEffectiveWeights(Spring.GetModOptions(), nil, options.gadgetWeights)
+  local weights = getEffectiveWeights(Spring.GetModOptions(), options.gadgetWeights)
 
   Spring.Echo(
     'Initializing PveTargeting with ' .. numTilesX .. 'x' .. numTilesZ .. ' tiles and weights: ' .. Json.encode(weights)
