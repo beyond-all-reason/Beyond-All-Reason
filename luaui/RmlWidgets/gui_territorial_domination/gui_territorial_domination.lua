@@ -366,7 +366,7 @@ local function updateAllyTeamData()
 				score = score,
 				projectedPoints = projectedPoints,
 				color = getAllyTeamColor(allyTeamID),
-				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationRank") or 1,
+				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
 				teamCount = #teamList,
 			})
 		end
@@ -474,7 +474,7 @@ local function updatePlayerRank()
 	for i = 1, #widgetState.allyTeamData do
 		local t = widgetState.allyTeamData[i]
 		if t.allyTeamID == myAllyTeamID then
-			myRank = spGetTeamRulesParam(t.firstTeamID, "territorialDominationRank") or t.rank or 1
+			myRank = spGetTeamRulesParam(t.firstTeamID, "territorialDominationDisplayRank") or t.rank or 1
 			break
 		end
 	end

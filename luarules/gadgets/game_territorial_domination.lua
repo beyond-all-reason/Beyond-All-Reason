@@ -95,6 +95,7 @@ local currentRound = 0
 local gameOver = false
 local allyTeamsCount = 0
 local previousRoundHighestScore = 0
+local topLivingRankedScoreIndex = 1
 
 local allyTeamsWatch = {}
 local unitWatchDefs = {}
@@ -102,11 +103,12 @@ local captureGrid = {}
 local livingCommanders = {}
 local killQueue = {}
 local commandersDefs = {}
-local allyScores = {}
+local allyData = {}
 local flyingUnits = {}
  
 local projectedAllyTeamPoints = {}
 local sortedTeams = {}
+local rankedAllyScores = {}
 
 for defID, def in pairs(UnitDefs) do
 	local defData
@@ -262,9 +264,12 @@ local function initializeUnsyncedGrid()
 	sentGridStructure = true
 end
 
-local function setAllyTeamRanks(allyScores)
-	local rankedAllyScores = {}
-	for allyID, scoreData in pairs(allyScores) do
+
+local function setAllyTeamRanks()
+	for i = 1, #rankedAllyScores do
+		rankedAllyScores[i] = nil
+	end
+	for allyID, scoreData in pairs(allyData) do
 		local rankingScore = scoreData.score
 		if currentRound > MAX_ROUNDS then
 			local projectedPoints = projectedAllyTeamPoints[allyID] or 0
@@ -277,18 +282,25 @@ local function setAllyTeamRanks(allyScores)
 		return a.rankingScore > b.rankingScore
 	end)
 
+	topLivingRankedScoreIndex = math.huge
 	local currentRank = 1
 	local previousScore = -1
-	for i, allyData in ipairs(rankedAllyScores) do
-		if i <= 1 or allyData.rankingScore ~= previousScore then
+	for i, rankedEntry in ipairs(rankedAllyScores) do
+		if i <= 1 or rankedEntry.rankingScore ~= previousScore then
 			currentRank = i
-			previousScore = allyData.rankingScore
+			previousScore = rankedEntry.rankingScore
 		end
-		allyScores[allyData.allyID].rank = currentRank
-		for teamID in pairs(allyTeamsWatch[allyData.allyID] or {}) do
-			Spring.SetTeamRulesParam(teamID, "territorialDominationRank", currentRank, {public = true})
+		local allyID = rankedEntry.allyID
+		allyData[allyID].rank = currentRank
+		for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+			local isDead = select(3, spGetTeamInfo(teamID))
+			if not isDead and i < topLivingRankedScoreIndex then
+				topLivingRankedScoreIndex = i
+			end
 		end
+		Spring.SetTeamRulesParam(allyData[allyID].representativeTeamID, "territorialDominationDisplayRank", currentRank, {public = true})
 	end
+	Spring.SetGameRulesParam("territorialDominationTopLivingRankedScoreIndex", topLivingRankedScoreIndex)
 end
 
 local function processLivingTeams()
@@ -305,6 +317,14 @@ local function processLivingTeams()
 				end
 				allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
 				allyTeamsWatch[allyID][teamID] = true
+				if not allyData[allyID] then
+					local teamListForAlly = Spring.GetTeamList(allyID) or {}
+					local representativeTeamID = teamListForAlly[1]
+					allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
+				elseif not allyData[allyID].representativeTeamID then
+					local teamListForAlly = Spring.GetTeamList(allyID) or {}
+					allyData[allyID].representativeTeamID = teamListForAlly[1]
+				end
 			end
 		end
 	end
@@ -495,14 +515,6 @@ local function processDecay(gridID)
 	end
 end
 
-local function processMainCaptureLogic()
-	processLivingTeams()
-
-	for gridID, data in pairs(captureGrid) do
-		processGridSquareCapture(gridID)
-	end
-end
-
 local function processNeighborsAndDecay()
 	for gridID, data in pairs(captureGrid) do
 		if not data.contested then
@@ -569,33 +581,6 @@ local function calculateMaximumPossiblePoints()
 	return pointsCap
 end
 
-local function resolveOvertimeIfLeaderExists()
-	if currentRound <= MAX_ROUNDS then return end
-	local topAllyID
-	local topCombined = -1
-	local secondCombined = -1
-	for allyID in pairs(allyTeamsWatch) do
-		local baseScore = (allyScores[allyID] and allyScores[allyID].score) or 0
-		local projected = projectedAllyTeamPoints[allyID] or 0
-		local combined = baseScore + projected
-		if combined > topCombined then
-			secondCombined = topCombined
-			topCombined = combined
-			topAllyID = allyID
-		elseif combined > secondCombined then
-			secondCombined = combined
-		end
-	end
-	if topAllyID and topCombined > secondCombined then
-		for allyID in pairs(allyTeamsWatch) do
-			if allyID ~= topAllyID then
-				defeatAlly(allyID)
-			end
-		end
-		gameOver = true
-	end
-end
-
 function gadget:GameFrame(frame)
 	if not sentGridStructure then
 		initializeUnsyncedGrid()
@@ -605,31 +590,38 @@ function gadget:GameFrame(frame)
 	local frameModulo = frame % GRID_CHECK_INTERVAL
 
 	if frameModulo == 0 then
-		processMainCaptureLogic()
+		processLivingTeams()
+		for gridID, data in pairs(captureGrid) do
+			processGridSquareCapture(gridID)
+		end
 	elseif frameModulo == 1 then
 		processNeighborsAndDecay()
 	elseif frameModulo == 2 then
 		updateProjectedPoints()
-		setAllyTeamRanks(allyScores)
+		setAllyTeamRanks()
 		local seconds = spGetGameSeconds()
 		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			local newHighestScore = 0
 			if currentRound <= MAX_ROUNDS then
 				for allyID in pairs(allyTeamsWatch) do
 					local addPoints = projectedAllyTeamPoints[allyID] or 0
-					allyScores[allyID].score = allyScores[allyID].score + addPoints
-					newHighestScore = math.max(newHighestScore, allyScores[allyID].score)
+					allyData[allyID].score = allyData[allyID].score + addPoints
+					newHighestScore = math.max(newHighestScore, allyData[allyID].score)
 				end
 				currentRound = currentRound + 1
 				if currentRound <= MAX_ROUNDS then
-					for allyID, scoreData in pairs(allyScores) do
-						if scoreData.score < previousRoundHighestScore and allyTeamsWatch[allyID] then
+					for allyID, scoreData in pairs(allyData) do
+						if scoreData.score < previousRoundHighestScore and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
 							defeatAlly(allyID)
 						end
 					end
 				end
 			else
-				resolveOvertimeIfLeaderExists()
+				for allyID, scoreData in pairs(allyData) do
+					if scoreData.rank > topLivingRankedScoreIndex and allyTeamsWatch[allyID] then
+						defeatAlly(allyID)
+					end
+				end
 			end
 			if currentRound <= MAX_ROUNDS then
 				previousRoundHighestScore = newHighestScore
@@ -642,7 +634,7 @@ function gadget:GameFrame(frame)
 		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
-		for allyID, scoreData in pairs(allyScores) do
+		for allyID, scoreData in pairs(allyData) do
 			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 				Spring.SetTeamRulesParam(teamID, "territorialDominationScore", scoreData.score, {public = true})
 				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedAllyTeamPoints[allyID] or 0, {public = true})
@@ -670,8 +662,10 @@ function gadget:Initialize()
 
 	processLivingTeams()
 	for allyID in pairs(allyTeamsWatch) do
-		if not allyScores[allyID] then
-			allyScores[allyID] = { score = 0, rank = 1 }
+		local teamListForAlly = Spring.GetTeamList(allyID) or {}
+		local representativeTeamID = teamListForAlly[1]
+		if not allyData[allyID] then
+			allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
 		end
 	end
 	local initialPointsCap = calculateMaximumPossiblePoints()
@@ -685,7 +679,7 @@ function gadget:Initialize()
 
 	allTeams = Spring.GetTeamList()
 	for _, teamID in pairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "territorialDominationRank", 1, {public = true})
+		Spring.SetTeamRulesParam(teamID, "territorialDominationDisplayRank", 1, {public = true})
 	end
 	
 	updateProjectedPoints()
