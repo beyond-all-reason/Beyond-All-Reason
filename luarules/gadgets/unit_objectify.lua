@@ -19,16 +19,12 @@ end
 	- Decorations are things like hats and xmas baubles an should be invulnerable
 ]]--
 
--- We can treat selections as somewhat homogeneous and/or efficient for sampling.
--- More importantly, this minor feature becomes CPU intensive without this limit.
-local SELECT_SCAN_LIMIT = 64 ---@type integer from 20 to 200 seems fine
-
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitArmored = Spring.GetUnitArmored
 local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_MOVE = CMD.MOVE
@@ -215,21 +211,19 @@ else -- UNSYNCED
 	}
 
 	local function scanSelection(predicates)
-		local selected = spGetSelectedUnits()
-		local wasFound = table.new(#predicates, 0)
-		for i = 1, math.min(#selected, SELECT_SCAN_LIMIT) do
-			local unitDefID = spGetUnitDefID(selected[i])
+		local canExecute = {}
+		for unitDefID in pairs(spGetSelectedUnitsCounts()) do
 			for j = 1, #predicates do
 				if predicates[j].check[unitDefID] then
 					if j == 1 then
 						return predicates[j].command
 					end
-					wasFound[j] = true
+					canExecute[j] = true
 				end
 			end
 		end
 		for i = 2, #predicates do
-			if wasFound[i] then
+			if canExecute[i] then
 				return predicates[i].command
 			end
 		end
