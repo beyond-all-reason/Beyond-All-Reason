@@ -219,7 +219,19 @@ end
 
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@return number? hitX
+---@param x number area center coordinates <x, y, z>
+---@param y number
+---@param z number
+---@param minY number area cylindrical volume test floor
+---@param maxY number area cylindrical volume test ceiling
+---@param radius number area spherical volume test radius
+---@param baseX number unit base position coordinates <x, y, z>
+---@param baseY number
+---@param baseZ number
+---@param midX number unit midpoint position coordinates <x, y, z>
+---@param midY number
+---@param midZ number
+---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
 local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, baseY, baseZ, midX, midY, midZ)
@@ -233,20 +245,15 @@ local function getReferencePointInSphere(x, y, z, minY, maxY, radius, baseX, bas
     if baseY >= minY and baseY <= maxY then
         local dx, dy, dz = x - baseX, y - baseY, z - baseZ
         if dx * dx + dy * dy + dz * dz <= radius * radius then
-            -- Use the intersection of the ray from mid->base and the area volume.
+			-- The unit base point is in the area and the mid point is not.
+            -- Find the intersection of a ray from mid->base onto the area.
             local t = max(0, (baseX - midX) * (x - midX) + (baseY - midY) * (y - midY) + (baseZ - midZ) * (z - midZ))
 
-            local dx = (midX + t * (baseX - midX)) - x
-            local dy = (midY + t * (baseY - midY)) - y
-            local dz = (midZ + t * (baseZ - midZ)) - z
-            local dw = dx * dx + dy * dy + dz * dz
+            local ix = midX + t * (baseX - midX)
+            local iy = midY + t * (baseY - midY)
+            local iz = midZ + t * (baseZ - midZ)
 
-            if dw > radius * radius then
-                local scale = radius / (radius + math.sqrt(dw))
-                return x + dx * scale, y + dy * scale, z + dz * scale
-            else
-                return x + dx, y + dy, z + dz
-            end
+			return ix, iy, iz
         end
     end
 end
