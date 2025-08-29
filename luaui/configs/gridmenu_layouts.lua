@@ -1170,7 +1170,7 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "armasp", "armfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  -- air repair pad, floating air repair pad
 			{ "armjuno", }									  -- juno
 		},
 		{
@@ -1238,7 +1238,7 @@ local unitGrids = {
 		},
 		{
 			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armdrag", "armasp", "armfasp"},                        	      -- dragon's teeth
+			{ "", "armdrag", "", ""},                        	      -- dragon's teeth
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -1353,7 +1353,7 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", "armasp", "armfasp" },                       -- floating radar, shark's teeth
+			{ "armfrad", "armfdrag", "", "" },                       -- floating radar, shark's teeth
 			{ "armjuno", },                                   -- juno
 		},
 		{
@@ -1470,7 +1470,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armsd", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -1540,7 +1540,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armsd", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -1610,7 +1610,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armsd", "armdf", "", "" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
 			{ "armgate", },                                      -- shield
 		},
 		{
