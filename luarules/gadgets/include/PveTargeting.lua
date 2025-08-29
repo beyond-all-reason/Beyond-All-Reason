@@ -37,7 +37,7 @@ local function getEffectiveWeights(modoptions, customParams, gadgetOverride)
     if success and parsedWeights and type(parsedWeights) == 'table' then
       for key, value in pairs(parsedWeights) do
         if weights[key] ~= nil and type(value) == 'number' then
-          weights[key] = math.max(0, math.min(1, value)) -- Clamp to [0,1]
+          weights[key] = math.max(0, math.min(1, value))
         end
       end
     end
@@ -94,8 +94,9 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
   end
 
   -- Get map dimensions for tile-based calculations
-  local mapSizeX = (Game and Game.mapSizeX) or 4096
-  local mapSizeZ = (Game and Game.mapSizeZ) or 4096
+  local mapSizeX = Game.mapSizeX
+  local mapSizeZ = Game.mapSizeZ
+  -- 192 is the size of 4 afus next to each other. A regularly occurring value/multiple in buildings and maps. 192*2 might be too large.
   local tileSize = 192
 
   -- Calculate grid dimensions (number of tiles in each direction)
@@ -169,7 +170,7 @@ end
 
 -- Get all potential targets with caching
 local function getPotentialTargets(context, maxAge)
-  maxAge = maxAge or 300 -- 10 seconds default cache
+  maxAge = maxAge or (10 * Game.gameSpeed) -- 10 seconds default cache
   local currentFrame = Spring.GetGameFrame()
 
   if currentFrame < context.cacheValidUntil then
