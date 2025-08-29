@@ -174,7 +174,9 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_AIR_REPAIR)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), -1, -1)
+		-- Prevent nil access error in UnitCreated by passing an invalid builderID
+		---@diagnostic disable-next-line: param-type-mismatch -- and ignore unitTeam
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), nil, -1)
 	end
 end
 
