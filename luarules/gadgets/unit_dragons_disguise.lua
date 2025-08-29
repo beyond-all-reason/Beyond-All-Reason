@@ -34,7 +34,8 @@ local timeCounter = 15
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
-			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), 0)
+			---@diagnostic disable-next-line: missing-parameter, param-type-mismatch -- OK
+			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
 end
