@@ -11,8 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
--- redo the projected and normal points acquisition system, it's a fucking mess. Also rounds need to be done in a more logical way because it's kinda all over the place now.
-
+-- if top allyID is defeated through conventional means, it fucks up the ranking and the declaring of victors in both overtime and elimination scenarios
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
@@ -78,6 +77,7 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spDestroyUnit = Spring.DestroyUnit
 local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local SendToUnsynced = SendToUnsynced
 
 local mapSizeX = Game.mapSizeX
@@ -267,12 +267,8 @@ local function setAllyTeamRanks(allyScores)
 	for allyID, scoreData in pairs(allyScores) do
 		local rankingScore = scoreData.score
 		if currentRound > MAX_ROUNDS then
-			local teamList = spGetTeamList(allyID)
-			if teamList and #teamList > 0 then
-				local firstTeamID = teamList[1]
-				local projectedPoints = Spring.GetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0 --zzz need redo
-				rankingScore = rankingScore + projectedPoints
-			end
+			local projectedPoints = projectedAllyTeamPoints[allyID] or 0
+			rankingScore = rankingScore + projectedPoints
 		end
 		table.insert(rankedAllyScores, { allyID = allyID, rankingScore = rankingScore })
 	end
@@ -301,10 +297,8 @@ local function processLivingTeams()
 
 	allTeams = Spring.GetTeamList()
 	for _, teamID in ipairs(allTeams) do
-		local _, _, isDead = spGetTeamInfo(teamID)
+		local _, _, isDead, _, _, allyID = spGetTeamInfo(teamID)
 		if not isDead then
-			local allyID = select(6, spGetTeamInfo(teamID))
-
 			if allyID and allyID ~= gaiaAllyTeamID then
 				if not allyTeamsWatch[allyID] then
 					allyTeamsCount = allyTeamsCount + 1
@@ -368,8 +362,8 @@ local function generateCaptureGrid()
 	return gridData
 end
 
-local function triggerAllyDefeat(allyID)
-	if DEBUGMODE then return end
+local function defeatAlly(allyID)
+	if DEBUGMODE or not allyTeamsWatch[allyID] then return end
 	for unitID, commanderAllyID in pairs(livingCommanders) do
 		if commanderAllyID == allyID then
 			local killDelayFrames = floor(Game.gameSpeed * 0.5)
@@ -383,8 +377,11 @@ local function triggerAllyDefeat(allyID)
 			GG.ComSpawnDefoliate(x, y, z)
 		end
 	end
-	for _, teamID in pairs(allyTeamsWatch[allyID] or {}) do
-		Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
+	for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+		local isDead = select(3, spGetTeamInfo(teamID))
+		if not isDead then
+			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
+		end
 	end
 end
 
@@ -544,7 +541,7 @@ end
 local function updateProjectedPoints()
 	for allyID in pairs(allyTeamsWatch) do
 		local projectedScore = 0
-		if not gameOver and currentRound <= MAX_ROUNDS then
+		if not gameOver then
 			for gridID, data in pairs(captureGrid) do
 				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
 					projectedScore = projectedScore + currentRound
@@ -572,6 +569,33 @@ local function calculateMaximumPossiblePoints()
 	return pointsCap
 end
 
+local function resolveOvertimeIfLeaderExists()
+	if currentRound <= MAX_ROUNDS then return end
+	local topAllyID
+	local topCombined = -1
+	local secondCombined = -1
+	for allyID in pairs(allyTeamsWatch) do
+		local baseScore = (allyScores[allyID] and allyScores[allyID].score) or 0
+		local projected = projectedAllyTeamPoints[allyID] or 0
+		local combined = baseScore + projected
+		if combined > topCombined then
+			secondCombined = topCombined
+			topCombined = combined
+			topAllyID = allyID
+		elseif combined > secondCombined then
+			secondCombined = combined
+		end
+	end
+	if topAllyID and topCombined > secondCombined then
+		for allyID in pairs(allyTeamsWatch) do
+			if allyID ~= topAllyID then
+				defeatAlly(allyID)
+			end
+		end
+		gameOver = true
+	end
+end
+
 function gadget:GameFrame(frame)
 	if not sentGridStructure then
 		initializeUnsyncedGrid()
@@ -597,21 +621,21 @@ function gadget:GameFrame(frame)
 					newHighestScore = math.max(newHighestScore, allyScores[allyID].score)
 				end
 				currentRound = currentRound + 1
-				for allyID, scoreData in pairs(allyScores) do
-					if scoreData.score < previousRoundHighestScore then
-						triggerAllyDefeat(allyID)
+				if currentRound <= MAX_ROUNDS then
+					for allyID, scoreData in pairs(allyScores) do
+						if scoreData.score < previousRoundHighestScore and allyTeamsWatch[allyID] then
+							defeatAlly(allyID)
+						end
 					end
 				end
 			else
-				for allyID, scoreData in pairs(allyScores) do
-					if scoreData.rank > 1 then
-						triggerAllyDefeat(allyID)
-					end
-				end
+				resolveOvertimeIfLeaderExists()
 			end
-			previousRoundHighestScore = newHighestScore
-			Spring.SetGameRulesParam("territorialDominationPrevHighestScore", previousRoundHighestScore)
-			roundTimestamp = seconds + ROUND_SECONDS
+			if currentRound <= MAX_ROUNDS then
+				previousRoundHighestScore = newHighestScore
+				Spring.SetGameRulesParam("territorialDominationPrevHighestScore", previousRoundHighestScore)
+				roundTimestamp = seconds + ROUND_SECONDS
+			end
 		end
 
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
@@ -629,7 +653,10 @@ function gadget:GameFrame(frame)
 	local currentKillQueue = killQueue[gameFrame]
 	if currentKillQueue then
 		for unitID in pairs(currentKillQueue) do
-			spDestroyUnit(unitID, false, true)
+			if not spGetUnitIsDead(unitID) then
+				currentKillQueue[unitID] = nil
+				spDestroyUnit(unitID, false, true)
+			end
 		end
 		killQueue[gameFrame] = nil
 	end
@@ -647,7 +674,6 @@ function gadget:Initialize()
 			allyScores[allyID] = { score = 0, rank = 1 }
 		end
 	end
-	processLivingTeams()
 	local initialPointsCap = calculateMaximumPossiblePoints()
 	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
 
