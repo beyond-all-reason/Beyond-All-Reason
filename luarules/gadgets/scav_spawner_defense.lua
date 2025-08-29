@@ -284,6 +284,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SetCount(set)
+		if set.count then
+			return set.count
+		end
 		local count = 0
 		for k in pairs(set) do
 			count = count + 1
