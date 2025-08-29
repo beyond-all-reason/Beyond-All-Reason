@@ -126,17 +126,15 @@ local function moveToCommand(unitID, command, factoryRadius)
 
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local dx = tx - ux
-	local dy = ty - uy
 	local dz = tz - uz
-	local distance = math.diag(dx, dy, dz)
+	local distanceXZ = math.diag(dx, dz)
 
-	if distance > distanceMin then
+	if distanceXZ > distanceMin then
 		-- Nudge the unit toward its command without sending it too far.
-		local scale = distanceMin / distance
+		local scale = distanceMin / distanceXZ
 		tx = ux + dx * scale
-		ty = uy + dy * scale
 		tz = uz + dz * scale
-		Spring.SetUnitMoveGoal(unitID, tx, ty, tz, moveGoalLeashRadius)
+		Spring.SetUnitMoveGoal(unitID, tx, uy, tz, moveGoalLeashRadius)
 	end
 end
 
