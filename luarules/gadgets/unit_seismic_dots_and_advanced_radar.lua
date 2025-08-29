@@ -79,6 +79,7 @@ local function customWobble(unitID,rate,radius)
 
 	if radius == 0 then
 		spSetUnitPosErrorParams(unitID,0,0,0,0,0,0,rate/15)
+		return 0
 	end
 
 	if unitWobble[unitID] == nil then
