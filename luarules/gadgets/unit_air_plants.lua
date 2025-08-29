@@ -128,11 +128,11 @@ local function moveToCommand(unitID, command, factoryRadius)
 	local dx = tx - ux
 	local dy = ty - uy
 	local dz = tz - uz
-	local distanceSq = dx * dx + dy * dy + dz * dz
+	local distance = math.diag(dx, dy, dz)
 
-	if distanceSq > distanceMin * distanceMin then
+	if distance > distanceMin then
 		-- Nudge the unit toward its command without sending it too far.
-		local scale = math.sqrt(distanceMin * distanceMin / distanceSq)
+		local scale = distanceMin / distance
 		tx = ux + dx * scale
 		ty = uy + dy * scale
 		tz = uz + dz * scale
