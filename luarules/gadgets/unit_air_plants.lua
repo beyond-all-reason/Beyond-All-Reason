@@ -16,6 +16,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+-- `unit_airunitsturnradius.lua` sets an arbitrary attack radius
+-- which influences how air units handle movement and move goals
+local bomberAttackTurnRadius = 500
+-- Given a large unit radius of 80, we need to clear double that
+local moveGoalMinimumRadius = 160
+-- Move goals issued don't represent real tasks so should be loose
+local moveGoalLeashRadius = 4 * Game.squareSize
+
 local EditUnitCmdDesc = Spring.EditUnitCmdDesc
 local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -53,9 +61,10 @@ for unitName, params in pairs(isAirplantNames) do
 	end
 end
 
--- `unit_airunitsturnradius.lua` sets an arbitrary attack radius
--- which influences how air units handle movement and move goals
-local bomberAttackTurnRadius = 500
+local unitMoveRadius = {} -- just enough to avoid collision
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	unitMoveRadius[unitDefID] = math.max(unitDef.turnRadius, unitDef.radius)
+end
 
 local plantList = {}
 local buildingUnits = {}
@@ -78,6 +87,7 @@ local airCmd = {
 	params = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80' }
 }
 
+-- Fallback method to make sure units don't land atop their origin plant.
 local function moveFromPlant(unitID, factoryRadius)
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local theta = math.random() * 2 * math.pi
@@ -87,6 +97,7 @@ local function moveFromPlant(unitID, factoryRadius)
 	GiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.MOVE, 0, tx, ty, tz }, 0)
 end
 
+-- Prevent air units from relaxing their target height when leaving the plant.
 local function moveToCommand(unitID, command, factoryRadius)
 	local tx, ty, tz
 	if command then
@@ -106,14 +117,12 @@ local function moveToCommand(unitID, command, factoryRadius)
 		return
 	end
 
-	-- Within a certain distance, air units do not dip when leaving the plant.
-	-- The actual rules for air move types are a bit elaborate; this is close:
-	local distanceMin = Spring.GetUnitMoveTypeData(unitID).turnRadius
-	if not distanceMin or distanceMin == 0 or distanceMin == bomberAttackTurnRadius then
-		local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-		distanceMin = math.max(unitDef.turnRadius, unitDef.radius)
+	-- Within a short distance, air units do not dip when leaving the plant.
+	local distanceMin = Spring.GetUnitMoveTypeData(unitID).turnRadius or 0
+	if distanceMin == 0 or distanceMin == bomberAttackTurnRadius then
+		distanceMin = unitMoveRadius[Spring.GetUnitDefID(unitID)]
 	end
-	distanceMin = math.max(distanceMin, factoryRadius) -- Maybe plus padding.
+	distanceMin = math.max(distanceMin, factoryRadius)
 
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local dx = tx - ux
@@ -122,12 +131,12 @@ local function moveToCommand(unitID, command, factoryRadius)
 	local distanceSq = dx * dx + dy * dy + dz * dz
 
 	if distanceSq > distanceMin * distanceMin then
-		-- Nudge the unit toward its command, but not too far away.
+		-- Nudge the unit toward its command without sending it too far.
 		local scale = math.sqrt(distanceMin * distanceMin / distanceSq)
 		tx = ux + dx * scale
 		ty = uy + dy * scale
 		tz = uz + dz * scale
-		Spring.SetUnitMoveGoal(unitID, tx, ty, tz, Game.squareSize)
+		Spring.SetUnitMoveGoal(unitID, tx, ty, tz, moveGoalLeashRadius)
 	end
 end
 
@@ -140,7 +149,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
 		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
 		SetUnitNeutral(unitID, true)
-		buildingUnits[unitID] = math.max(Spring.GetUnitRadius(builderID) or 0, 120)
+		buildingUnits[unitID] = math.max(Spring.GetUnitRadius(builderID) or 0, moveGoalMinimumRadius)
 	end
 end
 
