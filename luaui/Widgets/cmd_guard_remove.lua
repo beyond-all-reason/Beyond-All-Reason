@@ -12,6 +12,9 @@ function widget:GetInfo()
 	}
 end
 
+-- Minimum time between checks per-builder. Increase to improve performance.
+local safeguardDuration = 0.1 ---@type number in seconds
+
 -- Remove non-terminating commands
 local removableCommand = {
 	[CMD.GUARD] = true,
@@ -23,21 +26,31 @@ local sequentialCommand = {
 }
 
 local math_distsq = math.distance3dSquared
-
-local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-
 local CANCEL_DIST_SQUARED = (Game.squareSize * Game.footprintScale + 1) ^ 2 -- see also CommandAI.cpp
 
--- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
--- extreme performance issues by parsing all of those commands. So we track units that have recieved
--- commands in the last 5 frames and skip any that are touched
+-- Performance safeguard: When certain commands are spammed, like reclaim, `UnitCommand` can cause
+-- extreme performance issues by parsing all of those commands. So we skip units recently touched.
 local recentUnits = {}
 local updateTime = 0
+local releaseTime = 0
+-- Regardless of the preference above, we don't need to go any lower than the double-click speed.
+safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and not ud.isFactory
+end
+
+local function clearRecentUnits()
+	-- Clear about 50% of units per pass:
+	updateTime = safeguardDuration * 0.5
+	local release = releaseTime - safeguardDuration
+	for i, seconds in pairs(recentUnits) do
+		if seconds <= release then
+			recentUnits[i] = nil
+		end
+	end
 end
 
 -- Non-exhaustively determines whether the engine will cancel a command.
@@ -86,7 +99,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not cmdOpts.shift or not validUnit[unitDefID] or recentUnits[unitID] then
 		return
 	else
-		recentUnits[unitID] = spGetGameFrame()
+		recentUnits[unitID] = releaseTime
 	end
 
 	if removableCommand[cmdID] then
@@ -95,17 +108,11 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 end
 
 function widget:Update(dt)
-	updateTime = updateTime + dt
-	if updateTime < 0.25 then
+	releaseTime = releaseTime + dt
+	updateTime = updateTime - dt
+	if updateTime > 0 then
 		return
+	else
+		clearRecentUnits()
 	end
-
-	-- Clear all recent units that are outside of the time window
-	for i, t in pairs(recentUnits) do
-		if t < spGetGameFrame() - 5 then
-			recentUnits[i] = nil;
-		end
-	end
-
-	updateTime = 0
 end
