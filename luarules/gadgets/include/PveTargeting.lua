@@ -806,11 +806,7 @@ function PveTargeting.ExportDamageStatsToGameRules(context)
   end
 
   -- Export to gamerulesparams for UI access
-  if table.stringifyKeys then
-    Spring.SetGameRulesParam('pveDamageEfficiencyAreas', Json.encode(table.stringifyKeys(exportStats)))
-  else
-    Spring.SetGameRulesParam('pveDamageEfficiencyAreas', Json.encode(exportStats))
-  end
+  Spring.SetGameRulesParam('pveDamageEfficiencyAreas', Json.encode(table.stringifyKeys(exportStats)))
 
   return true
 end
