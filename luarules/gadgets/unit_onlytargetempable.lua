@@ -18,7 +18,10 @@ for udid, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
 	for i=1, #weapons do
 		if WeaponDefs[weapons[i].weaponDef].paralyzer then
-			empUnits[udid] = true
+			empUnits[udid] = true 
+		else
+			empUnits[udid] = false
+			break
 		end
 	end
 	if not unitDef.modCategories.empable then
