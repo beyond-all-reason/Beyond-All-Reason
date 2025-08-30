@@ -57,7 +57,8 @@ local UPDATE_INTERVAL = 0.1
 local TIME_UPDATE_INTERVAL = 0.5
 local SCORE_UPDATE_INTERVAL = 1.0
 local SECONDS_PER_MINUTE = 60
-local COUNTDOWN_WARNING_THRESHOLD = 60
+local COUNTDOWN_ALERT_THRESHOLD = 60
+local COUNTDOWN_WARNING_THRESHOLD = 10
 local ROUND_END_POPUP_DELAY = 3
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
@@ -307,7 +308,12 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.defeat')
 		end
 	elseif roundNumber > 0 then
-		popupText = spI18N('ui.territorialDomination.roundOverPopup.round', { roundNumber = roundNumber })
+		local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
+		if roundNumber == maxRounds then
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.finalRound')
+		else
+			popupText = spI18N('ui.territorialDomination.roundOverPopup.round', { roundNumber = roundNumber })
+		end
 	else
 		popupText = ""
 	end
@@ -408,11 +414,13 @@ local function updateRoundInfo()
 	local timeRemainingSeconds = 0
 	local isCountdownWarning = false
 	
-	local roundDisplayText 
-	if currentRound > maxRounds then 
+	local roundDisplayText
+	if currentRound > maxRounds then
 		roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
 	elseif currentRound == 0 then
 		roundDisplayText = ""
+	elseif currentRound == maxRounds then
+		roundDisplayText = spI18N('ui.territorialDomination.round.finalRound')
 	else
 		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
 	end
@@ -420,11 +428,12 @@ local function updateRoundInfo()
 	if roundEndTime > 0 then
 		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())
 		timeString = string.format("%d:%02d", math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE), math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE))
+		if timeRemainingSeconds < 1 then timeString = "0:00" end
 	end
 	
 	if currentRound > maxRounds then
 		isCountdownWarning = true
-	elseif timeRemainingSeconds <= COUNTDOWN_WARNING_THRESHOLD then
+	elseif timeRemainingSeconds <= COUNTDOWN_ALERT_THRESHOLD then
 		isCountdownWarning = true
 	end
 
@@ -452,17 +461,17 @@ local function updateHeaderVisibility()
 	if not headerElement or not roundElement or not timeElement then return end
 	
 	local hasRoundInfo = roundElement.inner_rml and roundElement.inner_rml ~= ""
-	local hasTimeInfo = timeElement.inner_rml and timeElement.inner_rml ~= "0:00"
+	local currentRoundParam = spGetGameRulesParam("territorialDominationCurrentRound") or 0
+	local maxRoundsParam = spGetGameRulesParam("territorialDominationMaxRounds") or 7
+	local inOvertime = currentRoundParam > maxRoundsParam
+	local dm = widgetState.dmHandle
+	local showZeroSecond = dm and ((dm.timeRemainingSeconds or 0) < 1)
+	local hasTimeInfo = timeElement.inner_rml and (timeElement.inner_rml ~= "0:00" or inOvertime or showZeroSecond)
 	
-	if hasRoundInfo or hasTimeInfo then
-		headerElement.class_name = "header-info"
-		roundElement.class_name = hasRoundInfo and "round-display" or "round-display hidden"
-		timeElement.class_name = hasTimeInfo and "time-display" or "time-display hidden"
-	else
-		headerElement.class_name = "header-info hidden"
-		roundElement.class_name = "round-display hidden"
-		timeElement.class_name = "time-display hidden"
-	end
+	-- Only toggle the 'hidden' class; do not overwrite other classes like 'warning'/'pulsing'
+	headerElement:SetClass("hidden", not (hasRoundInfo or hasTimeInfo))
+	roundElement:SetClass("hidden", not hasRoundInfo)
+	timeElement:SetClass("hidden", not hasTimeInfo)
 end
 
 local function updatePlayerRank()
@@ -490,26 +499,15 @@ local function updateCountdownColor()
 	local dm = widgetState.dmHandle
 	if dm and dm.isCountdownWarning then
 		local timeRemaining = dm.timeRemainingSeconds or 0
-		
-		local newClassName
-		if timeRemaining <= 10 then
-			newClassName = "time-display warning pulsing critical"
-		else
-			newClassName = "time-display warning pulsing"
-		end
-		
-		if timeDisplayElement.class_name ~= newClassName then
-			timeDisplayElement.class_name = newClassName
-		end
+		local isAlert = timeRemaining <= COUNTDOWN_ALERT_THRESHOLD
+		local isWarning = timeRemaining <= COUNTDOWN_WARNING_THRESHOLD
+		timeDisplayElement:SetClass("warning", isAlert)
+		timeDisplayElement:SetClass("pulsing", isWarning)
+		timeDisplayElement:SetAttribute("style", "")
 	else
-		local baseClassName = "time-display"
-		if timeDisplayElement.class_name:find("hidden") then
-			baseClassName = "time-display hidden"
-		end
-		
-		if timeDisplayElement.class_name ~= baseClassName then
-			timeDisplayElement.class_name = baseClassName
-		end
+		timeDisplayElement:SetClass("warning", false)
+		timeDisplayElement:SetClass("pulsing", false)
+		timeDisplayElement:SetAttribute("style", "")
 	end
 end
 
@@ -732,7 +730,7 @@ local function updateDataModel()
 
 	local scoresChanged = hasDataChanged(allyTeams, widgetState.cachedData, "allyTeams")
 	local roundChanged = hasDataChanged(roundInfo, widgetState.cachedData, "roundInfo")
-	local timeChanged = hasDataChanged(roundInfo.timeRemainingSeconds, widgetState.cachedData, "lastTimeHash")
+	local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
 
 	if roundChanged and (dm.currentRound or 0) ~= roundInfo.currentRound then
 		resetCache()
@@ -771,7 +769,7 @@ local function updateDataModel()
 		if roundInfo.isFinalRound and previousTimeRemaining > 0 and roundInfo.timeRemainingSeconds <= 0 then
 			showRoundEndPopup(roundInfo.currentRound, true)
 		elseif previousRound ~= roundInfo.currentRound and previousRound > 0 then
-			showRoundEndPopup(previousRound, false)
+			showRoundEndPopup(roundInfo.currentRound, false)
 		end
 	end
 end
@@ -892,8 +890,13 @@ function widget:Update()
 					widgetState.lastScoreUpdateTime = currentTime
 				elseif shouldUpdateTime then
 					local roundInfo = updateRoundInfo()
-					local timeChanged = hasDataChanged(roundInfo.timeRemainingSeconds, widgetState.cachedData, "lastTimeHash")
+					local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
 					if timeChanged and widgetState.document then
+						if widgetState.dmHandle then
+							widgetState.dmHandle.timeRemainingSeconds = roundInfo.timeRemainingSeconds
+							widgetState.dmHandle.isCountdownWarning = roundInfo.isCountdownWarning
+							widgetState.dmHandle.timeRemaining = roundInfo.timeRemaining
+						end
 						updateCountdownColor()
 					end
 					widgetState.lastTimeUpdateTime = currentTime

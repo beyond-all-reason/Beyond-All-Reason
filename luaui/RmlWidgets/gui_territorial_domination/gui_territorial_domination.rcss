@@ -102,13 +102,11 @@
 }
 
 .time-display.hidden { display: none; }
-.time-display.warning { color: #cc0000; }
-.time-display.warning.pulsing { animation: countdown-pulse 1s cubic-in-out infinite; }
-.time-display.warning.pulsing.critical { animation: countdown-pulse 0.5s cubic-in-out infinite; font-effect: glow(2px rgba(255, 0, 0, 85)); }
+.time-display.warning { color: #ff0000; }
+.time-display.warning.pulsing { animation: countdown-pulse 0.5s cubic-in-out infinite; }
 
 @keyframes countdown-pulse {
-	0% { color: #cc0000; transform: scale(1); }
-	50% { color: #ff0000; transform: scale(1.025); }
+	0% { color: #ff0000; transform: scale(1.025); }
 	100% { color: #cc0000; transform: scale(1); }
 }
 
@@ -163,13 +161,13 @@
 	left: 960px;
 	top: 540px;
 	transform: translate(-50%, -50%);
-	background-color: rgba(0, 0, 0, 180);
-	border-width: 2px;
-	border-color: #ffffff;
-	border-radius: 12px;
-	padding: 24px;
+	background-color: transparent;
+	border-width: 0px;
+	border-color: transparent;
+	border-radius: 0px;
+	padding: 0px;
 	text-align: center;
-	min-width: 300px;
+	min-width: 0px;
 }
 .round-end-popup.visible { display: block; opacity: 1; transform: scale(1) translateY(0); animation: popup-fade-in 0.5s cubic-out; }
 .round-end-popup.fade-out { animation: popup-fade-out 0.5s cubic-in; }

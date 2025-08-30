@@ -718,12 +718,14 @@
 				"gameOver": "Game Over",
 				"victory": "Victory",
 				"defeat": "Defeat",
-				"round": "Round %{roundNumber}"
+				"round": "Round %{roundNumber}",
+				"finalRound": "Final Round"
 			},
 			"round": {
 				"display": "Round %{currentRound}",
 				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
-				"overtime": "Overtime"
+				"overtime": "Overtime",
+				"finalRound": "Final Round"
 			},
 			"team": {
 				"ally": "Ally %{allyNumber}"
