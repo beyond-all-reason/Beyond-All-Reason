@@ -20,5 +20,8 @@
       "luaui/Tests",
       "luaui/TestsExamples"
     ]
-  }
+  },
+    "diagnostics.globals": [
+        "GameCMD"
+    ]
 }
