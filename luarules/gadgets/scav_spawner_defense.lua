@@ -605,11 +605,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				squadsTable[squadID].squadNeedsRefresh = false
-				if squadsTable[squadID].squadNeedsRegroup == true then
-					squadsTable[squadID].squadRegrouping = true
-				elseif squadsTable[squadID].squadNeedsRegroup == false then
-					squadsTable[squadID].squadRegrouping = false
-				end
+				squadsTable[squadID].squadRegrouping = squadsTable[squadID].squadNeedsRegroup
 			end
 		end
 	end
@@ -2223,13 +2219,18 @@ if gadgetHandler:IsSyncedCode() then
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and scavTeamUnitCount < scavUnitCap then
 			spawnCreepStructuresWave()
 		end
-		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
-		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
-			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-			if targetx then
-				squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-			else
-				refreshSquad(squadID)
+
+		if #squadsTable > 0 then
+			local randomSquadID = math.random(#squadsTable)
+			if randomSquadID and squadsTable[randomSquadID] and squadsTable[randomSquadID].squadRegroupEnabled then
+				if squadsTable[randomSquadID].target then
+					local targetx, targety, targetz = squadsTable[randomSquadID].target.x, squadsTable[randomSquadID].target.y, squadsTable[randomSquadID].target.z
+					if targetx then
+						squadCommanderGiveOrders(randomSquadID, targetx, targety, targetz)
+					else
+						refreshSquad(randomSquadID)
+					end
+				end
 			end
 		end
 		if n%7 == 3 then
@@ -2367,8 +2368,10 @@ if gadgetHandler:IsSyncedCode() then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
 			capturableUnits[unitID] = nil
-			for squad in ipairs(unitTargetPool) do
-				if unitTargetPool[squad] == unitID then
+			for squad, target in pairs(unitTargetPool) do
+				if target == unitID then
+					unitTargetPool[squad] = nil
+					squadsTable[squad].squadRegroupEnabled = true
 					refreshSquad(squad)
 				end
 			end
@@ -2443,8 +2446,10 @@ if gadgetHandler:IsSyncedCode() then
 		squadPotentialTarget[unitID] = nil
 		squadPotentialHighValueTarget[unitID] = nil
 		capturableUnits[unitID] = nil
-		for squad in ipairs(unitTargetPool) do
-			if unitTargetPool[squad] == unitID then
+		for squad, target in pairs(unitTargetPool) do
+			if target == unitID then
+				unitTargetPool[squad] = nil
+				squadsTable[squad].squadRegroupEnabled = true
 				refreshSquad(squad)
 			end
 		end

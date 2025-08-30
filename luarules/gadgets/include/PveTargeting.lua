@@ -548,33 +548,6 @@ function PveTargeting.GetRandomTarget(context, options)
     return nil
   end
 
-  -- Filter candidates by type if specified
-  if options.targetType then
-    local filtered = {}
-    for _, target in ipairs(weightedCandidates) do
-      local unitDef = target.unitDef
-      if options.targetType == 'mobile' and unitDef.canMove then
-        table.insert(filtered, target)
-      elseif options.targetType == 'structure' and not unitDef.canMove then
-        table.insert(filtered, target)
-      elseif options.targetType == 'factory' and unitDef.isFactory then
-        table.insert(filtered, target)
-      elseif
-        options.targetType == 'eco' and (unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0)
-       then
-        table.insert(filtered, target)
-      end
-    end
-    weightedCandidates = filtered
-
-    -- Recalculate cumulative values for filtered candidates
-    total = 0
-    for i = 1, #weightedCandidates do
-      total = total + weightedCandidates[i].totalScore
-      weightedCandidates[i].cumulative = total
-    end
-  end
-
   if #weightedCandidates == 0 then
     return nil
   end
