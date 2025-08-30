@@ -75,8 +75,6 @@ local function initializePrecomputedData()
     return
   end
   
-  Spring.Echo("PveTargeting: Precomputing unit data...")
-  
   for unitDefID, unitDef in pairs(UnitDefs) do
     local isEco = unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or
                   unitDef.energyUpkeep < 0 or (unitDef.customParams and unitDef.customParams.metal_extractor)
@@ -128,23 +126,21 @@ local function initializePrecomputedData()
       targetCandidateUnitDefs[unitDefID] = true
     end
   end
-  
+
   precomputedDataInitialized = true
-  
+
   -- Count target candidate unit types
   local count = 0
   for _ in pairs(targetCandidateUnitDefs) do
     count = count + 1
   end
-  Spring.Echo("PveTargeting: Precomputed data for", count, "target candidate unit types")
-  
-  -- Debug: Show some key precomputed values
+
 end
 
 -- Initialize targeting system
 function PveTargeting.Initialize(teamID, allyTeamID, options)
   options = options or {}
-  
+
   -- Initialize precomputed data once
   initializePrecomputedData()
 
@@ -174,7 +170,7 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
   local weights = getEffectiveWeights(Spring.GetModOptions(), options.gadgetWeights)
 
   Spring.Echo(
-    'Initializing PveTargeting with ' .. numTilesX .. 'x' .. numTilesZ .. ' tiles and weights: ' .. Json.encode(weights)
+    'Initializing PveTargeting with weights: ' .. Json.encode(weights)
   )
 
   return {
@@ -508,7 +504,6 @@ local function getCachedTargetsAndScores(context, weights)
       minEvenSpreadScore and
       maxEvenSpreadScore)
    then
-    Spring.Echo('PveTargeting: Invalid min/max values detected, using fallback ranges')
     minEcoValue, maxEcoValue = 0, 1
     minTechLevel, maxTechLevel = 1, 2
     minDamageEfficiencyArea, maxDamageEfficiencyArea = 0, 1

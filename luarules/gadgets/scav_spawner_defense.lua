@@ -196,10 +196,10 @@ if gadgetHandler:IsSyncedCode() then
 	local squadRebalanceInterval = 10 * Game.gameSpeed -- 10 seconds
 
 	--[[
-		* damageEfficiencyAreas set to 0 for temporarily disabling it until it is tested.
+		* damageEfficiencyAreas is intended to make the targeting more strategic/economic but needs more testing
 		* eco and tech weights are set to try to mimic the behavior implemented for raptors where ecoValue is multiplied by tech level.
-			In raptors tech level is afaik meant to counter-act the relative low count in high eco buildings but also as a way to detect players that are ahead of the curve in eco,
-			or will be because of the tech level achieved.
+			In raptors tech level is afaik meant to counter-act the relative low count in high eco buildings but also
+			as a way to detect players that are ahead of the curve in eco, or will be because of the tech level achieved.
 		* evenPlayerSpread is untested but is meant to balance between challenging good players (low value) and evening out the workload between players (high value).
 		* unitRandom is set to 0 for temporarily disabling it until it is tested.
 	--]]
