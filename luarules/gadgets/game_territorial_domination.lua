@@ -22,12 +22,12 @@ local territorialDominationConfig = {
 		minutesPerRound = 5,
 	},
 	default = {
-		maxRounds = 10,
-		minutesPerRound = 3,
+		maxRounds = 5,
+		minutesPerRound = 5,
 	},
 	long = {
-		maxRounds = 3,
-		minutesPerRound = 12,
+		maxRounds = 7,
+		minutesPerRound = 5,
 	},
 }
 
@@ -51,6 +51,7 @@ local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
+local MAX_INITIAL_POINTS_CAP = 300
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
@@ -576,7 +577,7 @@ local function calculateMaximumPossiblePoints()
 		roundSum = roundSum + round
 	end
 	local maxPossiblePoints = totalTerritories * roundSum
-	local pointsCap = math.ceil(maxPossiblePoints / allyTeamsCount + 1)
+	local pointsCap = math.min(MAX_INITIAL_POINTS_CAP, math.ceil(maxPossiblePoints / allyTeamsCount + 1))
 	
 	return pointsCap
 end

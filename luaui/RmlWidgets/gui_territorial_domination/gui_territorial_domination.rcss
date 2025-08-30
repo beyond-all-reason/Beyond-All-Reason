@@ -40,7 +40,7 @@
 	border-width: 0px;
 }
 
-.td-bar__track.selected { border-width: 1px; border-color:rgba(148, 148, 148); }
+.td-bar__track.selected { border-width: 1px; border-color:rgb(148, 148, 148); }
 
 .td-bar__track.halo { box-shadow: 0 0 8px 2px rgba(255,255,255,0.6); }
 
@@ -146,6 +146,8 @@
 }
 .td-danger.visible { display: block; }
 
+.td-danger.defeated { color: #aaaaaa; opacity: 0.33; animation: none; font-size: 16px; }
+
 @keyframes danger-pulse {
 	0% { color: #ff0000; opacity: 1; }
 	50% { color: #cc0000; opacity: 0.0; }
@@ -192,6 +194,20 @@
 	font-family: Exo 2;
 	font-size: 16px;
 	text-align: center;
+	font-effect: outline(2px black);
+}
+
+.td-rank-spacer {
+	margin-bottom: 1px;
+	text-align: center;
+	z-index: 5;
+	pointer-events: none;
+	display: block;
+	width: 100%;
+	font-size: 16px;
+	color: #ffffff;
+	font-weight: bold;
+	font-family: Exo 2;
 	font-effect: outline(2px black);
 }
 

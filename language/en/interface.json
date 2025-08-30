@@ -731,6 +731,7 @@
 				"ally": "Ally %{allyNumber}"
 			},
 			"danger": "DANGER",
+			"defeated": "DEFEATED",
 			"rank": "Rank %{rank}"
 		},
 		"loadScreen": {

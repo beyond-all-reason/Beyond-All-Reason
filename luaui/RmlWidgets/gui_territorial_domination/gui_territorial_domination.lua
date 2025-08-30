@@ -61,7 +61,7 @@ local COUNTDOWN_ALERT_THRESHOLD = 60
 local COUNTDOWN_WARNING_THRESHOLD = 10
 local ROUND_END_POPUP_DELAY = 3
 local DEFAULT_MAX_ROUNDS = 7
-local DISPLAY_LIMIT = 6
+local DISPLAY_LIMIT = 8
 local POPUP_FADE_OUT_DURATION = 0.5
 local TIME_ZERO_STRING = "0:00"
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
@@ -349,7 +349,14 @@ local function updateAllyTeamData()
 			local firstTeamID = teamList[1]
 			local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
 			local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-			
+			local hasAliveTeam = false
+			for j = 1, #teamList do
+				local _, _, isDead = spGetTeamInfo(teamList[j])
+				if not isDead then
+					hasAliveTeam = true
+					break
+				end
+			end
 			
 			table.insert(validAllyTeams, {
 				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
@@ -360,6 +367,8 @@ local function updateAllyTeamData()
 				color = getAllyTeamColor(allyTeamID),
 				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
 				teamCount = #teamList,
+				isAlive = hasAliveTeam,
+				teamList = teamList,
 			})
 		end
 	end
@@ -474,7 +483,7 @@ local function updatePlayerRank()
 			break
 		end
 	end
-	playerRankElement.inner_rml = myRank and (spI18N('ui.territorialDomination.rank', { rank = myRank })) or ""
+	playerRankElement.inner_rml = "" --zzz unneeded? leftovers from a refactor?
 end
 
 local function updateCountdownColor()
@@ -501,81 +510,65 @@ end
 local function getDisplayedTeams()
 	local allyTeams = widgetState.allyTeamData
 	if not allyTeams or #allyTeams == 0 then return {} end
-	local displayed = {}
-	local used = {}
+
 	local limit = math.min(#allyTeams, DISPLAY_LIMIT)
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local myIndex
+
+	local livingTeams = {}
+	local deadTeams = {}
 	for i = 1, #allyTeams do
-		if allyTeams[i].allyTeamID == myAllyTeamID then
-			myIndex = i
-			break
+		local teamInfo = allyTeams[i]
+		if teamInfo.isAlive then
+			livingTeams[#livingTeams + 1] = teamInfo
+		else
+			deadTeams[#deadTeams + 1] = teamInfo
 		end
 	end
-	displayed[#displayed + 1] = allyTeams[1]
-	used[allyTeams[1].allyTeamID] = true
-	if not myIndex then
-		for i = 2, math.min(#allyTeams, limit) do
-			displayed[#displayed + 1] = allyTeams[i]
+
+	local function sortByScoreDesc(a, b)
+		if (a.score or 0) ~= (b.score or 0) then
+			return (a.score or 0) > (b.score or 0)
 		end
-		return displayed
+		return a.allyTeamID < b.allyTeamID
 	end
-	if myIndex == 1 then
-		for i = 2, #allyTeams do
-			if #displayed >= limit then break end
-			local allyTeamInfo = allyTeams[i]
-			if not used[allyTeamInfo.allyTeamID] then
-				displayed[#displayed + 1] = allyTeamInfo
-				used[allyTeamInfo.allyTeamID] = true
-			end
-		end
-		return displayed
-	end
-	local availableAbove = math.max(0, myIndex - 2)
-	local availableBelow = math.max(0, #allyTeams - myIndex)
-	local aboveTake = math.min(2, availableAbove)
-	local belowTake = math.min(2, availableBelow)
-	if aboveTake < 2 then
-		local add = math.min(2 - aboveTake, math.max(0, availableBelow - belowTake))
-		belowTake = belowTake + add
-	end
-	if belowTake < 2 then
-		local add = math.min(2 - belowTake, math.max(0, availableAbove - aboveTake))
-		aboveTake = aboveTake + add
-	end
-	local startAbove = myIndex - aboveTake
-	if startAbove < 2 then startAbove = 2 end
-	for i = startAbove, myIndex - 1 do
-		if #displayed >= limit then break end
-		local allyTeamInfo = allyTeams[i]
-		if allyTeamInfo and not used[allyTeamInfo.allyTeamID] then
-			displayed[#displayed + 1] = allyTeamInfo
-			used[allyTeamInfo.allyTeamID] = true
-		end
-	end
-	if #displayed < limit and not used[allyTeams[myIndex].allyTeamID] then
-		displayed[#displayed + 1] = allyTeams[myIndex]
-		used[allyTeams[myIndex].allyTeamID] = true
-	end
-	local endBelow = math.min(#allyTeams, myIndex + belowTake)
-	for i = myIndex + 1, endBelow do
-		if #displayed >= limit then break end
-		local allyTeamInfo = allyTeams[i]
-		if allyTeamInfo and not used[allyTeamInfo.allyTeamID] then
-			displayed[#displayed + 1] = allyTeamInfo
-			used[allyTeamInfo.allyTeamID] = true
-		end
+	if #livingTeams > 1 then table.sort(livingTeams, sortByScoreDesc) end
+	if #deadTeams > 1 then table.sort(deadTeams, sortByScoreDesc) end
+
+	local displayed = {}
+	for i = 1, math.min(#livingTeams, limit) do
+		displayed[#displayed + 1] = livingTeams[i]
 	end
 	if #displayed < limit then
-		for i = 2, #allyTeams do
-			if #displayed >= limit then break end
-			local allyTeamInfo = allyTeams[i]
-			if not used[allyTeamInfo.allyTeamID] then
-				displayed[#displayed + 1] = allyTeamInfo
-				used[allyTeamInfo.allyTeamID] = true
+		local remaining = limit - #displayed
+		for i = 1, math.min(#deadTeams, remaining) do
+			displayed[#displayed + 1] = deadTeams[i]
+		end
+	end
+
+	local function containsAlly(list, allyTeamID)
+		for i = 1, #list do if list[i].allyTeamID == allyTeamID then return true end end
+		return false
+	end
+
+	if myAllyTeamID then
+		if not containsAlly(displayed, myAllyTeamID) then
+			local myTeam
+			for i = 1, #allyTeams do
+				if allyTeams[i].allyTeamID == myAllyTeamID then
+					myTeam = allyTeams[i]
+					break
+				end
+			end
+			if myTeam then
+				if #displayed < limit then
+					displayed[#displayed + 1] = myTeam
+				else
+					displayed[#displayed] = myTeam
+				end
 			end
 		end
 	end
+
 	return displayed
 end
 
@@ -616,9 +609,32 @@ local function updateScoreBarVisuals()
 
 	end
 
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myScoreRank = nil
+	for i = 1, #widgetState.allyTeamData do
+		local team = widgetState.allyTeamData[i]
+		if team.allyTeamID == myAllyTeamID then
+			myScoreRank = spGetTeamRulesParam(team.firstTeamID, "territorialDominationDisplayRank") or team.rank or 1
+			break
+		end
+	end
+
+	local insertedSpacer = false
+	local existingSpacer = widgetState.document:GetElementById("rank-spacer")
+	if existingSpacer and columnsContainer then
+		columnsContainer:RemoveChild(existingSpacer)
+	end
 	for i, allyTeam in ipairs(allyTeams) do
 		local scoreBarElements = widgetState.scoreElements[i]
 		if scoreBarElements then
+			if not insertedSpacer and myScoreRank and myScoreRank > DISPLAY_LIMIT and allyTeam.allyTeamID == myAllyTeamID then
+				local spacer = widgetState.document:CreateElement("div")
+				spacer.class_name = "td-rank-spacer"
+				spacer.id = "rank-spacer"
+				spacer.inner_rml = spI18N('ui.territorialDomination.rank', { rank = myScoreRank })
+				columnsContainer:InsertBefore(spacer, scoreBarElements.container)
+				insertedSpacer = true
+			end
 			local projectedWidth = "0%"
 			if dataModel.pointsCap > 0 then
 				local totalProjected = allyTeam.score + allyTeam.projectedPoints
@@ -683,9 +699,29 @@ local function updateScoreBarVisuals()
 					end
 				end
 				local shouldShowDanger = (not eliminated) and prevHighest > 0 and combinedScore < prevHighest
-				local newClassName = shouldShowDanger and "td-danger visible" or "td-danger"
-				if scoreBarElements.dangerOverlay.class_name ~= newClassName then
-					scoreBarElements.dangerOverlay.class_name = newClassName
+				if eliminated then
+					local newClassName = "td-danger visible defeated"
+					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
+						scoreBarElements.dangerOverlay.class_name = newClassName
+					end
+					local defeatedText = spI18N('ui.territorialDomination.defeated')
+					if scoreBarElements.dangerOverlay.inner_rml ~= defeatedText then
+						scoreBarElements.dangerOverlay.inner_rml = defeatedText
+					end
+				elseif shouldShowDanger then
+					local newClassName = "td-danger visible"
+					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
+						scoreBarElements.dangerOverlay.class_name = newClassName
+					end
+					local desiredText = spI18N('ui.territorialDomination.danger')
+					if scoreBarElements.dangerOverlay.inner_rml ~= desiredText then
+						scoreBarElements.dangerOverlay.inner_rml = desiredText
+					end
+				else
+					local newClassName = "td-danger"
+					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
+						scoreBarElements.dangerOverlay.class_name = newClassName
+					end
 				end
 			end
 		end
