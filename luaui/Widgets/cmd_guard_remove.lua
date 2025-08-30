@@ -75,12 +75,12 @@ local function removeCommands(unitID, command, params)
 	local p1, p2, p3 = params[1], params[2], params[3]
 
 	local tags = {}
-	local hasCanceled = false
+	local hasCanceled = not removableCommand[command]
 	local isReachable = sequentialCommand[command]
 
 	for i = Spring.GetUnitCommandCount(unitID), 1, -1 do
 		local queued, _, qid, q1, q2, q3 = spGetUnitCurrentCommand(unitID, i)
-		if queued >= 0 and removableCommand[queued] then
+		if removableCommand[queued] then
 			if not hasCanceled and willCancel(p1, p2, p3, q1, q2, q3) then
 				hasCanceled = true
 			elseif not isReachable or not sequentialCommand[queued] then
@@ -100,9 +100,6 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		return
 	else
 		recentUnits[unitID] = releaseTime
-	end
-
-	if removableCommand[cmdID] then
 		removeCommands(unitID, cmdID, cmdParams)
 	end
 end
