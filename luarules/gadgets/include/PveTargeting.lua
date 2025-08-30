@@ -15,6 +15,12 @@ local DEFAULT_WEIGHTS = {
 -- Gadget-level default weights (can be overridden by each gadget)
 local gadgetWeights = nil
 
+-- Precomputed static data for performance
+local unitDefEcoValues = {} -- unitDefID -> rawEcoValue
+local unitDefTechLevels = {} -- unitDefID -> rawTechLevel  
+local targetCandidateUnitDefs = {} -- unitDefID -> true for valid target candidates
+local precomputedDataInitialized = false
+
 -- Weight priority: modoption > customparam > gadget > default
 local function getEffectiveWeights(modoptions, gadgetOverride)
   local weights = table.copy(DEFAULT_WEIGHTS)
@@ -63,9 +69,84 @@ local function getEffectiveWeights(modoptions, gadgetOverride)
   return weights
 end
 
+-- Precompute static unit data for performance
+local function initializePrecomputedData()
+  if precomputedDataInitialized then
+    return
+  end
+  
+  Spring.Echo("PveTargeting: Precomputing unit data...")
+  
+  for unitDefID, unitDef in pairs(UnitDefs) do
+    local isEco = unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or
+                  unitDef.energyUpkeep < 0 or (unitDef.customParams and unitDef.customParams.metal_extractor)
+    local isCommander = unitDef.customParams and unitDef.customParams.iscommander
+    if (isEco and not unitDef.canMove) or isCommander then
+
+      local ecoScore = 0
+
+      -- Metal/Energy production
+      if unitDef.metalMake and unitDef.metalMake > 0 then
+        ecoScore = ecoScore + unitDef.metalMake * 60
+      end
+
+      if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
+        ecoScore = ecoScore + unitDef.extractsMetal * 60
+      end
+
+      if unitDef.energyMake and unitDef.energyMake > 0 then
+        ecoScore = ecoScore + unitDef.energyMake
+      end
+
+      if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
+        ecoScore = ecoScore - unitDef.energyUpkeep
+      end
+
+      if unitDef.windGenerator and unitDef.windGenerator > 0 then
+        ecoScore = ecoScore + unitDef.windGenerator * 0.75
+      end
+
+      if unitDef.tidalGenerator and unitDef.tidalGenerator > 0 then
+        ecoScore = ecoScore + unitDef.tidalGenerator * 15
+      end
+
+      if unitDef.customParams and unitDef.customParams.energyconv_capacity and
+        tonumber(unitDef.customParams.energyconv_capacity) > 0 then
+        ecoScore = ecoScore + tonumber(unitDef.customParams.energyconv_capacity) / 3
+      end
+
+      if ecoScore > 0 then
+        unitDefEcoValues[unitDefID] = ecoScore
+      end
+
+      local techLevel = unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) or 1
+
+      if techLevel > 1 then
+        unitDefTechLevels[unitDefID] = techLevel
+      end
+
+      targetCandidateUnitDefs[unitDefID] = true
+    end
+  end
+  
+  precomputedDataInitialized = true
+  
+  -- Count target candidate unit types
+  local count = 0
+  for _ in pairs(targetCandidateUnitDefs) do
+    count = count + 1
+  end
+  Spring.Echo("PveTargeting: Precomputed data for", count, "target candidate unit types")
+  
+  -- Debug: Show some key precomputed values
+end
+
 -- Initialize targeting system
 function PveTargeting.Initialize(teamID, allyTeamID, options)
   options = options or {}
+  
+  -- Initialize precomputed data once
+  initializePrecomputedData()
 
   -- Get excluded allyteams (caller and gaia only)
   local excludedAllyTeams = {}
@@ -175,34 +256,27 @@ local function getPotentialTargets(context)
     end
   end
 
-  -- Collect only eco buildings and commanders from valid teams (excludes caller + gaia allyteams)
+  -- Collect only precomputed target candidates from valid teams
   for teamID, _ in pairs(validTeams) do
     local teamUnits = Spring.GetTeamUnits(teamID)
     for _, unitID in ipairs(teamUnits) do
       if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
         local unitDefID = Spring.GetUnitDefID(unitID)
-        local unitDef = UnitDefs[unitDefID]
         local x, y, z = Spring.GetUnitBasePosition(unitID)
 
-        if x and unitDefID and unitDef then
-          local isEco =
-            unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or unitDef.energyUpkeep < 0 or
-            (unitDef.customParams and unitDef.customParams.metal_extractor)
-          -- Only include non-mobile units (buildings) and commanders
-          if (isEco and not unitDef.canMove) or (unitDef.customParams and unitDef.customParams.iscommander) then
-            table.insert(
-              targets,
-              {
-                unitID = unitID,
-                unitDefID = unitDefID,
-                teamID = teamID,
-                x = x,
-                y = y,
-                z = z,
-                unitDef = unitDef
-              }
-            )
-          end
+        if x and unitDefID and targetCandidateUnitDefs[unitDefID] then
+          table.insert(
+            targets,
+            {
+              unitID = unitID,
+              unitDefID = unitDefID,
+              teamID = teamID,
+              x = x,
+              y = y,
+              z = z,
+              unitDef = UnitDefs[unitDefID]
+            }
+          )
         end
       end
     end
@@ -211,57 +285,14 @@ local function getPotentialTargets(context)
   return targets
 end
 
--- Calculate raw economic value for a target
+-- Calculate raw economic value for a target (using precomputed lookup)
 local function calculateRawEcoValue(target)
-  if not target.unitDef then
-    return 0
-  end
-
-  local unitDef = target.unitDef
-  local score = 0
-
-  -- Metal/Energy production
-  if unitDef.metalMake and unitDef.metalMake > 0 then
-    score = score + unitDef.metalMake * 60
-  end
-
-  if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-    score = score + unitDef.extractsMetal * 60
-  end
-
-  if unitDef.energyMake and unitDef.energyMake > 0 then
-    score = score + unitDef.energyMake
-  end
-
-  if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
-    score = score - unitDef.energyUpkeep
-  end
-
-  if unitDef.windGenerator and unitDef.windGenerator > 0 then
-    score = score + unitDef.windGenerator * 0.75
-  end
-
-  if unitDef.tidalGenerator and unitDef.tidalGenerator > 0 then
-    score = score + unitDef.tidalGenerator * 15
-  end
-
-  if
-    unitDef.customParams and unitDef.customParams.energyconv_capacity and
-      tonumber(unitDef.customParams.energyconv_capacity) > 0
-   then
-    score = score + tonumber(unitDef.customParams.energyconv_capacity) / 3
-  end
-
-  return score
+  return unitDefEcoValues[target.unitDefID] or 0
 end
 
--- Calculate raw tech level for a target
+-- Calculate raw tech level for a target (using precomputed lookup)
 local function calculateRawTechLevel(target)
-  if not target.unitDef or not target.unitDef.customParams then
-    return 1
-  end
-
-  return tonumber(target.unitDef.customParams.techlevel) or 1
+  return unitDefTechLevels[target.unitDefID] or 1
 end
 
 -- Calculate area-based damage efficiency score for a target's position
@@ -333,7 +364,6 @@ local function calculateTargetScores(
   maxDamageEfficiencyArea,
   minEvenSpreadScore,
   maxEvenSpreadScore)
-
   -- local weightedCandidates = {}
   local total = 0
 
@@ -351,7 +381,10 @@ local function calculateTargetScores(
     if not techScore or techScore ~= techScore or techScore == math.huge or techScore == -math.huge then
       techScore = 0.5
     end
-    if not damageAreaScore or damageAreaScore ~= damageAreaScore or damageAreaScore == math.huge or damageAreaScore == -math.huge then
+    if
+      not damageAreaScore or damageAreaScore ~= damageAreaScore or damageAreaScore == math.huge or
+        damageAreaScore == -math.huge
+     then
       damageAreaScore = 0.5
     end
     if not spreadScore or spreadScore ~= spreadScore or spreadScore == math.huge or spreadScore == -math.huge then
@@ -370,9 +403,6 @@ local function calculateTargetScores(
     total = total + totalScore
     candidate.cumulative = total
     candidate.totalScore = totalScore
-    candidate.partScores = {eco = ecoScore, tech = techScore, damageEfficiencyArea = damageAreaScore, evenSpread = spreadScore}
-    candidate.name = candidate.unitDef.name
-    candidate.unitDef = nil
   end
 
   return candidates, total
@@ -397,14 +427,16 @@ local function shuffleWeightedCandidates(weightedCandidates)
   return shuffled
 end
 
--- Get cached scores or calculate new ones if cache is expired
-local function getCachedScores(context, candidates, weights)
+-- Get cached targets and scores or calculate new ones if cache is expired
+local function getCachedTargetsAndScores(context, weights)
   local currentFrame = Spring.GetGameFrame()
 
   -- Check if we have valid cached scores
   if currentFrame < context.scoreCacheValidUntil and context.scoreCache.weightedCandidates and context.scoreCache.total then
     return context.scoreCache.weightedCandidates, context.scoreCache.total
   end
+
+  local candidates = getPotentialTargets(context)
 
   -- Calculate all min/max values for normalization
   local minEcoValue, maxEcoValue = math.huge, 0
@@ -437,7 +469,7 @@ local function getCachedScores(context, candidates, weights)
       eco = rawEcoValue,
       tech = rawTechLevel,
       damageEfficiencyArea = rawDamageEfficiencyAreaValue,
-      evenSpread = rawEvenSpreadValue,
+      evenSpread = rawEvenSpreadValue
     }
   end
 
@@ -470,10 +502,13 @@ local function getCachedScores(context, candidates, weights)
   end
 
   -- Additional safety check: validate that all values are finite
-  if not (minEcoValue and maxEcoValue and minTechLevel and maxTechLevel and 
-          minDamageEfficiencyArea and maxDamageEfficiencyArea and 
-          minEvenSpreadScore and maxEvenSpreadScore) then
-    Spring.Echo("PveTargeting: Invalid min/max values detected, using fallback ranges")
+  if
+    not (minEcoValue and maxEcoValue and minTechLevel and maxTechLevel and minDamageEfficiencyArea and
+      maxDamageEfficiencyArea and
+      minEvenSpreadScore and
+      maxEvenSpreadScore)
+   then
+    Spring.Echo('PveTargeting: Invalid min/max values detected, using fallback ranges')
     minEcoValue, maxEcoValue = 0, 1
     minTechLevel, maxTechLevel = 1, 2
     minDamageEfficiencyArea, maxDamageEfficiencyArea = 0, 1
@@ -519,16 +554,16 @@ function PveTargeting.GetRandomTarget(context, options)
   options = options or {}
   local weights = options.weights or context.weights
 
-  -- Get all potential targets
-  local candidates = getPotentialTargets(context)
-  if #candidates == 0 then
+  -- Get cached targets and scores (only recalculates if cache expired)
+  local weightedCandidates, total = getCachedTargetsAndScores(context, weights)
+  if not weightedCandidates or #weightedCandidates == 0 then
     return nil
   end
 
   -- Filter candidates by type if specified
   if options.targetType then
     local filtered = {}
-    for _, target in ipairs(candidates) do
+    for _, target in ipairs(weightedCandidates) do
       local unitDef = target.unitDef
       if options.targetType == 'mobile' and unitDef.canMove then
         table.insert(filtered, target)
@@ -542,10 +577,17 @@ function PveTargeting.GetRandomTarget(context, options)
         table.insert(filtered, target)
       end
     end
-    candidates = filtered
+    weightedCandidates = filtered
+    
+    -- Recalculate cumulative values for filtered candidates
+    total = 0
+    for i = 1, #weightedCandidates do
+      total = total + weightedCandidates[i].totalScore
+      weightedCandidates[i].cumulative = total
+    end
   end
 
-  if #candidates == 0 then
+  if #weightedCandidates == 0 then
     return nil
   end
 
@@ -555,14 +597,11 @@ function PveTargeting.GetRandomTarget(context, options)
     totalWeight = totalWeight + weight
   end
   if totalWeight == 0 then
-    return candidates[math.random(#candidates)]
+    return weightedCandidates[math.random(#weightedCandidates)]
   end
 
-  -- Get cached scores or calculate new ones
-  local weightedCandidates, total = getCachedScores(context, candidates, weights)
-
   if total == 0 then
-    return candidates[math.random(#candidates)]
+    return weightedCandidates[math.random(#weightedCandidates)]
   end
 
   -- Pick a random point on the total score range
@@ -582,7 +621,7 @@ function PveTargeting.GetRandomTarget(context, options)
   end
 
   -- Fallback
-  return candidates[#candidates]
+  return weightedCandidates[#weightedCandidates]
 end
 
 -- Get a random position near a target or general area
@@ -687,6 +726,7 @@ local function calculateDistance(pos1, pos2)
   local dx = pos1.x - pos2.x
   local dy = pos1.y - pos2.y
   local dz = pos1.z - pos2.z
+  -- math.diag exists in the BAR repository, so we use it here
   return math.diag(dx, dy, dz)
 end
 
