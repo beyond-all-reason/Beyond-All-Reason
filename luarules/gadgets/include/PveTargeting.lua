@@ -17,7 +17,7 @@ local gadgetWeights = nil
 
 -- Precomputed static data for performance
 local unitDefEcoValues = {} -- unitDefID -> rawEcoValue
-local unitDefTechLevels = {} -- unitDefID -> rawTechLevel  
+local unitDefTechLevels = {} -- unitDefID -> rawTechLevel
 local targetCandidateUnitDefs = {} -- unitDefID -> true for valid target candidates
 local precomputedDataInitialized = false
 
@@ -74,7 +74,7 @@ local function initializePrecomputedData()
   if precomputedDataInitialized then
     return
   end
-  
+
   for unitDefID, unitDef in pairs(UnitDefs) do
     local isEco = unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or
                   unitDef.energyUpkeep < 0 or (unitDef.customParams and unitDef.customParams.metal_extractor)
@@ -566,7 +566,7 @@ function PveTargeting.GetRandomTarget(context, options)
       end
     end
     weightedCandidates = filtered
-    
+
     -- Recalculate cumulative values for filtered candidates
     total = 0
     for i = 1, #weightedCandidates do

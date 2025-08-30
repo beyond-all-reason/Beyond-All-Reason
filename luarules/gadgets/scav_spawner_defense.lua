@@ -304,10 +304,7 @@ if gadgetHandler:IsSyncedCode() then
 	function getRandomEnemyPos()
 
 		if useEcoTargeting and targetingContext then
-			local targetPos = PveTargeting.GetRandomTargetPosition(targetingContext, {
-				positionSpread = 32,
-				targetType = nil
-			})
+			local targetPos = PveTargeting.GetRandomTargetPosition(targetingContext)
 
 			if targetPos and targetPos.target then
 				return {x = targetPos.x, y = targetPos.y, z = targetPos.z}, targetPos.target.unitID
