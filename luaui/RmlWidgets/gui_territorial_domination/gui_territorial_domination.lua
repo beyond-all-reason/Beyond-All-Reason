@@ -65,6 +65,7 @@ local DISPLAY_LIMIT = 8
 local POPUP_FADE_OUT_DURATION = 0.5
 local TIME_ZERO_STRING = "0:00"
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
+local DANGER_INITIAL_DURATION = 8
 
 local widgetState = {
 	document = nil,
@@ -85,6 +86,7 @@ local widgetState = {
 		showTime = 0,
 		fadeOutStartTime = nil,
 	},
+	dangerStates = {},
 	cachedData = {
 		allyTeams = {},
 		roundInfo = {},
@@ -197,12 +199,18 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 	dangerOverlay.id = "danger-overlay-" .. tostring(allyTeam.allyTeamID)
 	dangerOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
 
+	local dangerInitialOverlay = widgetState.document:CreateElement("div")
+	dangerInitialOverlay.class_name = "td-danger-initial"
+	dangerInitialOverlay.id = "danger-initial-overlay-" .. tostring(allyTeam.allyTeamID)
+	dangerInitialOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
+
 	containerDiv:AppendChild(backgroundDiv)
 	containerDiv:AppendChild(projectedDiv)
 	containerDiv:AppendChild(fillDiv)
 	containerDiv:AppendChild(currentScoreText)
 	containerDiv:AppendChild(projectedScoreText)
 	containerDiv:AppendChild(dangerOverlay)
+	containerDiv:AppendChild(dangerInitialOverlay)
 
 	scoreBarDiv:AppendChild(containerDiv)
 	parentDiv:AppendChild(scoreBarDiv)
@@ -215,6 +223,7 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 		projectedElement = projectedDiv,
 		fillElement = fillDiv,
 		dangerOverlay = dangerOverlay,
+		dangerInitialOverlay = dangerInitialOverlay,
 		lastFillWidth = nil,
 		lastProjectedWidth = nil,
 		lastScoreText = nil,
@@ -699,29 +708,78 @@ local function updateScoreBarVisuals()
 					end
 				end
 				local shouldShowDanger = (not eliminated) and prevHighest > 0 and combinedScore < prevHighest
+				local myAllyTeamIDInner = Spring.GetMyAllyTeamID()
+				local isPlayersTeam = (allyTeam.allyTeamID == myAllyTeamIDInner)
+				local state = widgetState.dangerStates[allyTeam.allyTeamID]
+				if not state then
+					state = { wasInDanger = false, initialActive = false, initialEndTime = 0 }
+					widgetState.dangerStates[allyTeam.allyTeamID] = state
+				end
 				if eliminated then
-					local newClassName = "td-danger visible defeated"
-					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
-						scoreBarElements.dangerOverlay.class_name = newClassName
+					local classBase = "td-danger visible defeated"
+					if scoreBarElements.dangerOverlay.class_name ~= classBase then
+						scoreBarElements.dangerOverlay.class_name = classBase
 					end
 					local defeatedText = spI18N('ui.territorialDomination.defeated')
 					if scoreBarElements.dangerOverlay.inner_rml ~= defeatedText then
 						scoreBarElements.dangerOverlay.inner_rml = defeatedText
 					end
+					if scoreBarElements.dangerInitialOverlay and scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+						scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+					end
+					state.wasInDanger = false
+					state.initialActive = false
+					state.initialEndTime = 0
 				elseif shouldShowDanger then
-					local newClassName = "td-danger visible"
-					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
-						scoreBarElements.dangerOverlay.class_name = newClassName
+					local classBase = "td-danger visible"
+					if scoreBarElements.dangerOverlay.class_name ~= classBase then
+						scoreBarElements.dangerOverlay.class_name = classBase
 					end
 					local desiredText = spI18N('ui.territorialDomination.danger')
 					if scoreBarElements.dangerOverlay.inner_rml ~= desiredText then
 						scoreBarElements.dangerOverlay.inner_rml = desiredText
 					end
-				else
-					local newClassName = "td-danger"
-					if scoreBarElements.dangerOverlay.class_name ~= newClassName then
-						scoreBarElements.dangerOverlay.class_name = newClassName
+					if scoreBarElements.dangerInitialOverlay then
+						if isPlayersTeam then
+							if not state.wasInDanger then
+								local initClass = "td-danger-initial visible"
+								if scoreBarElements.dangerInitialOverlay.class_name ~= initClass then
+									scoreBarElements.dangerInitialOverlay.class_name = initClass
+								end
+								local desiredInitText = spI18N('ui.territorialDomination.danger')
+								if scoreBarElements.dangerInitialOverlay.inner_rml ~= desiredInitText then
+									scoreBarElements.dangerInitialOverlay.inner_rml = desiredInitText
+								end
+								state.initialActive = true
+								state.initialEndTime = os.clock() + DANGER_INITIAL_DURATION
+								state.wasInDanger = true
+							else
+								if state.initialActive and os.clock() >= state.initialEndTime then
+									if scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+										scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+									end
+									state.initialActive = false
+								end
+							end
+						else
+							if scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+								scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+							end
+							state.wasInDanger = true
+							state.initialActive = false
+							state.initialEndTime = 0
+						end
 					end
+				else
+					if scoreBarElements.dangerOverlay.class_name ~= "td-danger" then
+						scoreBarElements.dangerOverlay.class_name = "td-danger"
+					end
+					if scoreBarElements.dangerInitialOverlay and scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+						scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+					end
+					state.wasInDanger = false
+					state.initialActive = false
+					state.initialEndTime = 0
 				end
 			end
 		end

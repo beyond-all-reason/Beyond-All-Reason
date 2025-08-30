@@ -132,6 +132,7 @@
 	left: 50%;
 	transform: translate(-50%, -50%);
 	color: #ff0000;
+	opacity: 0.0;
 	font-weight: bold;
 	font-family: Exo 2;
 	font-size: 20px;
@@ -149,9 +150,36 @@
 .td-danger.defeated { color: #aaaaaa; opacity: 0.33; animation: none; font-size: 16px; }
 
 @keyframes danger-pulse {
-	0% { color: #ff0000; opacity: 1; }
-	50% { color: #cc0000; opacity: 0.0; }
-	100% { color: #ff0000; opacity: 1; }
+	0% { color: #cc0000; opacity: 0.0; }
+	50% { color: #ff0000; opacity: 0.5; }
+	100% { color: #cc0000; opacity: 0.0; }
+}
+
+.td-danger-initial {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: #ff0000;
+	opacity: 0.0;
+	font-weight: bold;
+	font-family: Exo 2;
+	font-size: 20px;
+	z-index: 11;
+	pointer-events: none;
+	font-effect: outline(2px black);
+	animation: danger-initial-pulse 2s cubic-in-out 4;
+	display: none;
+	width: auto;
+	height: auto;
+	text-align: center;
+}
+.td-danger-initial.visible { display: block; }
+
+@keyframes danger-initial-pulse {
+	0% { color: #cc0000; opacity: 0.0; }
+	50% { color: #ff0000; opacity: 1.0; }
+	100% { color: #cc0000; opacity: 0.0; }
 }
 
 .round-end-popup {
